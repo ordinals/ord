@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Boilerplate)]
+#[derive(Boilerplate, Default)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) children: Vec<InscriptionId>,
@@ -99,21 +99,12 @@ mod tests {
   fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
-        output: None,
-        previous: None,
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -159,21 +150,13 @@ mod tests {
   fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
         output: Some(tx_out(1, address())),
-        previous: None,
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -199,21 +182,14 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
         output: Some(tx_out(1, address())),
-        previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -235,20 +211,15 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
         inscription_number: 1,
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -267,24 +238,17 @@ mod tests {
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
-        next: None,
         inscription_number: -1,
         output: Some(tx_out(1, address())),
-        previous: None,
-        sat: None,
         satpoint: SatPoint {
           outpoint: unbound_outpoint(),
           offset: 0
         },
         timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription -1</h1>
@@ -306,21 +270,13 @@ mod tests {
   fn with_parent() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
         parent: Some(inscription_id(2)),
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
-        output: None,
-        previous: None,
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -369,20 +325,12 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2), inscription_id(3)],
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
-        output: None,
-        previous: None,
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
-        rune: None,
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
@@ -435,21 +383,13 @@ mod tests {
   fn with_rune() {
     assert_regex_match!(
       InscriptionHtml {
-        children: Vec::new(),
-        parent: None,
-        chain: Chain::Mainnet,
         genesis_fee: 1,
-        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        next: None,
         inscription_number: 1,
-        output: None,
-        previous: None,
-        sat: None,
         satpoint: satpoint(1, 0),
-        timestamp: timestamp(0),
         rune: Some(Rune(0)),
+        ..Default::default()
       },
       "
         <h1>Inscription 1</h1>
