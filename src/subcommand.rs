@@ -11,6 +11,7 @@ mod preview;
 mod server;
 pub mod subsidy;
 pub mod supply;
+pub mod teleburn;
 pub mod traits;
 pub mod wallet;
 
@@ -38,6 +39,8 @@ pub(crate) enum Subcommand {
   Subsidy(subsidy::Subsidy),
   #[command(about = "Display Bitcoin supply information")]
   Supply,
+  #[command(about = "Generate teleburn addresses")]
+  Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
   #[command(subcommand, about = "Wallet commands")]
@@ -63,6 +66,7 @@ impl Subcommand {
       }
       Self::Subsidy(subsidy) => subsidy.run(),
       Self::Supply => supply::run(),
+      Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),
     }

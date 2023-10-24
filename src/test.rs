@@ -111,6 +111,19 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
+pub(crate) struct InscriptionTemplate {
+  pub(crate) parent: Option<InscriptionId>,
+}
+
+impl From<InscriptionTemplate> for Inscription {
+  fn from(template: InscriptionTemplate) -> Self {
+    Self {
+      parent: template.parent.map(|id| id.parent_value()),
+      ..Default::default()
+    }
+  }
+}
+
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
 }

@@ -1259,6 +1259,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1310,6 +1311,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1432,6 +1434,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1483,6 +1486,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1544,6 +1548,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1678,6 +1683,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1747,6 +1753,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -1935,6 +1942,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         ),
@@ -2175,6 +2183,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
@@ -2244,6 +2253,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            number: 1,
             ..Default::default()
           }
         )
