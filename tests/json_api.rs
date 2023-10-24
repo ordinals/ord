@@ -159,7 +159,7 @@ fn get_inscription() {
       timestamp: 2,
       previous: None,
       next: None,
-      runes: Vec::new(),
+      rune: None,
     }
   )
 }

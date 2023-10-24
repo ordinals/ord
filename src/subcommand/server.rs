@@ -1087,7 +1087,7 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
-    let runes = index.get_runes_by_inscription_id(inscription_id)?;
+    let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
@@ -1105,7 +1105,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
-        runes,
+        rune,
       ))
       .into_response()
     } else {
@@ -1124,7 +1124,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
-        runes,
+        rune,
       }
       .page(page_config)
       .into_response()
@@ -3340,12 +3340,8 @@ mod tests {
       ".*
 <dl>
   .*
-  <dt>runes</dt>
-  <dd>
-    <ul>
-      <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
-    </ul>
-  </dd>
+  <dt>rune</dt>
+  <dd><li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li></dd>
 </dl>
 .*",
     );

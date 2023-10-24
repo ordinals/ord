@@ -79,14 +79,8 @@
     </div>
   </dd>
 %% }
-%% if !self.runes.is_empty() {
-  <dt>runes</dt>
-  <dd>
-    <ul>
-%% for rune in &self.runes {
-      <li><a href=/rune/{{ rune }}>{{ rune }}</a></li>
-%% }
-    </ul>
-  </dd>
+%% if let Some(rune) = self.rune {
+  <dt>rune</dt>
+  <dd><li><a href=/rune/{{ rune }}>{{ rune }}</a></li></dd>
 %% }
 </dl>

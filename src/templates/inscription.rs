@@ -13,7 +13,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
-  pub(crate) runes: Vec<Rune>,
+  pub(crate) rune: Option<Rune>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
@@ -33,10 +33,10 @@ pub struct InscriptionJson {
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
+  pub rune: Option<Rune>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
-  pub runes: Vec<Rune>,
 }
 
 impl InscriptionJson {
@@ -55,7 +55,7 @@ impl InscriptionJson {
     sat: Option<Sat>,
     satpoint: SatPoint,
     timestamp: DateTime<Utc>,
-    runes: Vec<Rune>,
+    rune: Option<Rune>,
   ) -> Self {
     Self {
       inscription_id,
@@ -76,7 +76,7 @@ impl InscriptionJson {
       timestamp: timestamp.timestamp(),
       previous,
       next,
-      runes,
+      rune,
     }
   }
 }
@@ -113,7 +113,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -173,7 +173,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -213,7 +213,7 @@ mod tests {
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -248,7 +248,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -284,7 +284,7 @@ mod tests {
           offset: 0
         },
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription -1</h1>
@@ -320,7 +320,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -382,7 +382,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
-        runes: Vec::new(),
+        rune: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -425,6 +425,38 @@ mod tests {
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
           </dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_rune() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        inscription_number: 1,
+        output: None,
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+        rune: Some(Rune(0)),
+      },
+      "
+        <h1>Inscription 1</h1>
+        .*
+        <dl>
+          <dt>rune</dt>
+          <dd><a href=/rune/A>A</a></dd>
         </dl>
       "
       .unindent()
