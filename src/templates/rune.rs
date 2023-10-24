@@ -24,9 +24,10 @@ mod tests {
         entry: RuneEntry {
           burned: 123456789123456789,
           divisibility: 9,
+          etching: Txid::all_zeros(),
+          number: 25,
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
-          etching: Txid::all_zeros(),
           symbol: Some('$'),
         },
         id: RuneId {
@@ -42,6 +43,8 @@ mod tests {
 <dl>
   <dt>id</dt>
   <dd>10/9</dd>
+  <dt>number</dt>
+  <dd>25</dd>
   <dt>supply</dt>
   <dd>\$123456789.123456789</dd>
   <dt>burned</dt>

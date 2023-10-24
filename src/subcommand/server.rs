@@ -3319,6 +3319,8 @@ mod tests {
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
+  <dt>number</dt>
+  <dd>0</dd>
   <dt>supply</dt>
   <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
