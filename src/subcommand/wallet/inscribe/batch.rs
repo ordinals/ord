@@ -151,13 +151,13 @@ impl Batch {
         Mode::SeparateOutputs => 0,
       };
 
-      let txid = reveal;
-      let index = index.try_into().unwrap();
-
       inscriptions_output.push(InscriptionInfo {
-        id: InscriptionId { txid, index },
+        id: InscriptionId {
+          txid: reveal,
+          index,
+        },
         location: SatPoint {
-          outpoint: OutPoint { txid, vout },
+          outpoint: OutPoint { txid: reveal, vout },
           offset,
         },
       });
