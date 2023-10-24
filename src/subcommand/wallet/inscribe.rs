@@ -1275,10 +1275,10 @@ inscriptions:
         args.push(value);
       }
 
-      assert!(
-        dbg!(Arguments::try_parse_from(args).unwrap_err().to_string())
-          .contains("the argument '--batch <BATCH>' cannot be used with")
-      );
+      assert!(Arguments::try_parse_from(args)
+        .unwrap_err()
+        .to_string()
+        .contains("the argument '--batch <BATCH>' cannot be used with"));
     }
   }
 }
