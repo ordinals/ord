@@ -553,7 +553,13 @@ pub(crate) struct Batchfile {
 
 impl Batchfile {
   pub(crate) fn load(path: &Path) -> Result<Batchfile> {
-    Ok(serde_yaml::from_reader(File::open(path)?)?)
+    let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
+
+    if batchfile.inscriptions.is_empty() {
+      bail!("batchfile must contain at least one inscription");
+    }
+
+    Ok(batchfile)
   }
 
   pub(crate) fn inscriptions(
@@ -563,6 +569,8 @@ impl Batchfile {
     metadata: Option<Vec<u8>>,
     postage: Amount,
   ) -> Result<Vec<Inscription>> {
+    assert!(!self.inscriptions.is_empty());
+
     if metadata.is_some() {
       assert!(self
         .inscriptions

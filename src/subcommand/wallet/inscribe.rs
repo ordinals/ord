@@ -122,20 +122,20 @@ impl Inscribe {
     let parent_info;
 
     if let Some(batch) = self.batch {
-      let batch_config = Batchfile::load(&batch)?;
+      let batchfile = Batchfile::load(&batch)?;
 
-      parent_info = Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, chain)?;
+      parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
 
-      inscriptions = batch_config.inscriptions(
+      inscriptions = batchfile.inscriptions(
         chain,
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
         postage,
       )?;
 
-      mode = batch_config.mode;
+      mode = batchfile.mode;
 
-      let destination_count = match batch_config.mode {
+      let destination_count = match batchfile.mode {
         Mode::SharedOutput => 1,
         Mode::SeparateOutputs => inscriptions.len(),
       };

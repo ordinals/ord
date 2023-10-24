@@ -763,6 +763,24 @@ fn error_message_when_parsing_cbor_metadata_is_reasonable() {
 }
 
 #[test]
+fn batch_inscribe_fails_if_batchfile_has_no_inscriptions() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("batch.yaml", "mode: shared-output\ninscriptions: []\n")
+    .rpc_server(&rpc_server)
+    .stderr_regex(".*batchfile must contain at least one inscription.*")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
 fn batch_inscribe_can_create_one_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
