@@ -52,6 +52,7 @@ rustls-acme = { version = "0.7.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_yaml = "0.9.17"
+sha3 = "0.10.8"
 sysinfo = "0.29.2"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }

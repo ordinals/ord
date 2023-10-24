@@ -13,6 +13,7 @@
 - [Guides](guides.md)
   - [Explorer](guides/explorer.md)
   - [Inscriptions](guides/inscriptions.md)
+  - [Batch Inscribing](guides/batch-inscribing.md)
   - [Sat Hunting](guides/sat-hunting.md)
   - [Collecting](guides/collecting.md)
     - [Sparrow Wallet](guides/collecting/sparrow-wallet.md)
