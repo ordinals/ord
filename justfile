@@ -68,7 +68,17 @@ profile-tests:
     | tee test-times.txt
 
 fuzz:
-  cd fuzz && cargo +nightly fuzz run transaction-builder
+  #!/usr/bin/env bash
+  set -euxo pipefail
+
+  cd fuzz
+
+  while true; do
+    cargo +nightly fuzz run transaction-builder -- -max_total_time=60
+    cargo +nightly fuzz run runestone-decipher -- -max_total_time=60
+    cargo +nightly fuzz run varint-decode -- -max_total_time=60
+    cargo +nightly fuzz run varint-encode -- -max_total_time=60
+  done
 
 open:
   open http://localhost
@@ -164,7 +174,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "fr" "zh" "ja" "es" "fil" "ru"; do
+  for lang in "de" "fr" "es" "ru" "zh" "ja" "ko" "fil" "ar"; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang

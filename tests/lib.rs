@@ -22,6 +22,7 @@ use {
   reqwest::{StatusCode, Url},
   serde::de::DeserializeOwned,
   std::{
+    collections::BTreeMap,
     fs,
     io::Write,
     net::TcpListener,

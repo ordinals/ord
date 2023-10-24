@@ -27,7 +27,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::{Pile, RuneId},
+    runes::{Pile, Rune, RuneId},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -55,7 +55,7 @@ use {
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp,
-    collections::{BTreeMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
@@ -79,8 +79,13 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, inscription::Inscription, object::Object, rarity::Rarity, sat::Sat,
-  sat_point::SatPoint, subcommand::wallet::transaction_builder::TransactionBuilder,
+  fee_rate::FeeRate,
+  inscription::Inscription,
+  object::Object,
+  rarity::Rarity,
+  sat::Sat,
+  sat_point::SatPoint,
+  subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -121,11 +126,12 @@ mod outgoing;
 mod page_config;
 pub mod rarity;
 mod representation;
-mod runes;
+pub mod runes;
 pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
+mod teleburn;
 pub mod templates;
 mod wallet;
 

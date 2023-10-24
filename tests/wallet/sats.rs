@@ -4,6 +4,18 @@ use {
 };
 
 #[test]
+fn requires_sat_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("wallet sats")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: sats requires index created with `--index-sats` flag\n")
+    .run_and_extract_stdout();
+}
+
+#[test]
 fn sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
@@ -37,7 +49,7 @@ fn sats_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  CommandBuilder::new("wallet sats --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -51,7 +63,7 @@ fn sats_from_tsv_parse_error() {
 fn sats_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  CommandBuilder::new("wallet sats --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
