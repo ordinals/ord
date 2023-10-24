@@ -10,6 +10,7 @@ pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 
 pub(crate) const BODY_TAG: [u8; 0] = [];
 pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
+pub(crate) const POINTER_TAG: [u8; 1] = [2];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
 pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
@@ -27,12 +28,18 @@ pub(crate) struct Envelope<T> {
 }
 
 fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
-  let value = fields.get_mut(field)?;
+  let values = fields.get_mut(field)?;
 
-  if value.is_empty() {
+  if values.is_empty() {
     None
   } else {
-    Some(value.remove(0).to_vec())
+    let value = values.remove(0).to_vec();
+
+    if values.is_empty() {
+      fields.remove(field);
+    }
+
+    Some(value)
   }
 }
 
@@ -72,6 +79,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
+    let pointer = remove_field(&mut fields, &POINTER_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
     let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
 
@@ -90,6 +98,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         }),
         content_type,
         parent,
+        pointer,
         unrecognized_even_field,
         duplicate_field,
         incomplete_field,
@@ -735,6 +744,36 @@ mod tests {
       parse(&[envelope(&[b"ord", &[22], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
+          unrecognized_even_field: true,
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
+  fn pointer_field_is_recognized() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[2], &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          pointer: Some(vec![1]),
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
+  fn duplicate_pointer_field_makes_inscription_unbound() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[2], &[1], &[2], &[0]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          pointer: Some(vec![1]),
+          duplicate_field: true,
           unrecognized_even_field: true,
           ..Default::default()
         },

@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::send::Output};
+use {super::*, ord::subcommand::wallet::send::Output, std::collections::BTreeMap};
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -262,7 +262,8 @@ fn splitting_merged_inscriptions_is_possible() {
           txid: reveal_txid,
           index: 2
         },
-      ]
+      ],
+      runes: BTreeMap::new(),
     }
   );
 
