@@ -3341,7 +3341,7 @@ mod tests {
 <dl>
   .*
   <dt>rune</dt>
-  <dd><li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li></dd>
+  <dd><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></dd>
 </dl>
 .*",
     );
