@@ -96,7 +96,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Inscribe::backup_recovery_key(client, recovery_key_pair, chain.network())?;
+      Self::backup_recovery_key(client, recovery_key_pair, chain.network())?;
     }
 
     let commit = client.send_raw_transaction(&signed_commit_tx)?;
@@ -408,6 +408,34 @@ impl Batch {
       + Inscribe::calculate_fee(&reveal_tx, &utxos);
 
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
+  }
+
+  fn backup_recovery_key(
+    client: &Client,
+    recovery_key_pair: TweakedKeyPair,
+    network: Network,
+  ) -> Result {
+    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+
+    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+
+    let response = client.import_descriptors(ImportDescriptors {
+      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+      timestamp: Timestamp::Now,
+      active: Some(false),
+      range: None,
+      next_index: None,
+      internal: Some(false),
+      label: Some("commit tx recovery key".to_string()),
+    })?;
+
+    for result in response {
+      if !result.success {
+        return Err(anyhow!("commit tx recovery key import failed"));
+      }
+    }
+
+    Ok(())
   }
 }
 

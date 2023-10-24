@@ -282,34 +282,6 @@ impl Inscribe {
       .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
       .unwrap()
   }
-
-  fn backup_recovery_key(
-    client: &Client,
-    recovery_key_pair: TweakedKeyPair,
-    network: Network,
-  ) -> Result {
-    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
-
-    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
-
-    let response = client.import_descriptors(ImportDescriptors {
-      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
-      timestamp: Timestamp::Now,
-      active: Some(false),
-      range: None,
-      next_index: None,
-      internal: Some(false),
-      label: Some("commit tx recovery key".to_string()),
-    })?;
-
-    for result in response {
-      if !result.success {
-        return Err(anyhow!("commit tx recovery key import failed"));
-      }
-    }
-
-    Ok(())
-  }
 }
 
 #[cfg(test)]
