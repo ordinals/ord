@@ -1,4 +1,6 @@
-# Summary
+Summary
+=======
+
 [Introduction](introduction.md)
 - [Overview](overview.md)
 - [Digital Artifacts](digital-artifacts.md)
