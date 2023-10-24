@@ -45,6 +45,11 @@ pub(crate) struct ParentInfo {
 }
 
 #[derive(Debug, Parser)]
+#[clap(
+  group = ArgGroup::new("source")
+      .required(true)
+      .args(&["file", "batch"]),
+)]
 pub(crate) struct Inscribe {
   #[arg(
     long,
@@ -1280,5 +1285,15 @@ inscriptions:
         .to_string()
         .contains("the argument '--batch <BATCH>' cannot be used with"));
     }
+  }
+
+  #[test]
+  fn batch_or_file_is_required() {
+    assert!(
+      Arguments::try_parse_from(["ord", "wallet", "inscribe", "--fee-rate", "1",])
+        .unwrap_err()
+        .to_string()
+        .contains("error: the following required arguments were not provided:\n  <--file <FILE>|--batch <BATCH>>")
+    );
   }
 }
