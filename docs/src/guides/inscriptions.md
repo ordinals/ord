@@ -27,6 +27,7 @@ This guide covers:
 5. Creating inscriptions with `ord wallet inscribe`
 6. Sending inscriptions with `ord wallet send`
 7. Receiving inscriptions with `ord wallet receive`
+8. Batch inscribing with `ord wallet inscribe --batch`
 
 Getting Help
 ------------
@@ -312,4 +313,26 @@ Once the send transaction confirms, you can can confirm receipt by running:
 
 ```
 ord wallet inscriptions
+```
+
+Batch Inscribing
+----------------
+
+Multiple inscriptions can be created inscriptions at the same time using the
+[pointer field](./pointer.md). This is especially helpful for collections, or
+other cases when multiple inscriptions should share the same parent, since the
+parent can passed into a reveal transaction that creates multiple children.
+
+To create a batch inscription using a batchfile in `batch.yaml`, run the
+following command:
+
+```bash
+ord wallet inscribe --fee-rate 21 --batch batch.yaml
+```
+
+Example `batch.yaml`
+--------------------
+
+```yaml
+{{#include ../../../batch.yaml}}
 ```
