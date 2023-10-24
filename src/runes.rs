@@ -21,7 +21,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 mod tests {
   use {super::*, crate::index::testing::Context};
 
-  const RUNE: u128 = (21_000_000 * COIN_VALUE) as u128;
+  const RUNE: u128 = 99246114928149462;
 
   #[test]
   fn index_starts_with_no_runes() {
@@ -186,7 +186,7 @@ mod tests {
   }
 
   #[test]
-  fn sat_corresponding_to_rune_must_have_been_mined() {
+  fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
     {
       let context = Context::builder()
         .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
@@ -204,7 +204,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE - 1)),
+              rune: Rune(RUNE - 1),
               ..Default::default()
             }),
             ..Default::default()
@@ -238,7 +238,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
+              rune: Rune(RUNE),
               ..Default::default()
             }),
             ..Default::default()
@@ -261,7 +261,7 @@ mod tests {
           id,
           RuneEntry {
             etching: txid,
-            rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
+            rune: Rune(RUNE),
             supply: u128::max_value(),
             ..Default::default()
           }
@@ -1271,17 +1271,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1446,17 +1446,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1695,17 +1695,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1954,17 +1954,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -2195,17 +2195,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
