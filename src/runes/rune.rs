@@ -11,6 +11,24 @@ impl Rune {
   }
 }
 
+impl Serialize for Rune {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for Rune {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+  }
+}
+
 impl Display for Rune {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     let mut n = self.0;
@@ -58,24 +76,6 @@ impl FromStr for Rune {
       }
     }
     Ok(Rune(x))
-  }
-}
-
-impl Serialize for Rune {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Rune {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 
