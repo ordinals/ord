@@ -564,7 +564,8 @@ impl<'index> Updater<'_> {
         &inscription_id_to_inscription_entry,
         &mut inscription_id_to_runes,
         &mut rune_to_rune_id,
-      );
+        &mut statistic_to_count,
+      )?;
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;
       }

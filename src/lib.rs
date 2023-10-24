@@ -131,6 +131,7 @@ pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
+mod teleburn;
 pub mod templates;
 mod wallet;
 

@@ -26,7 +26,7 @@ use {
 
 pub(crate) use self::entry::RuneEntry;
 
-mod entry;
+pub(crate) mod entry;
 mod fetcher;
 mod reorg;
 mod rtx;
@@ -84,6 +84,7 @@ pub(crate) enum Statistic {
   IndexSats,
   LostSats,
   OutputsTraversed,
+  Runes,
   SatRanges,
   Schema,
   UnboundInscriptions,
@@ -1134,7 +1135,7 @@ impl Index {
 
   pub(crate) fn get_inscriptions(
     &self,
-    utxos: BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
