@@ -1032,7 +1032,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_1
     ),
   );
@@ -1040,7 +1040,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_2
     ),
   );
@@ -1048,23 +1048,8 @@ fn batch_in_separate_outputs_with_parent() {
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_3
     ),
-  );
-
-  ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
-    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*"),
-  );
-
-  ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[1].id),
-    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*"),
-  );
-
-  ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[2].id),
-    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*"),
   );
 }
