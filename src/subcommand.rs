@@ -8,6 +8,7 @@ pub mod info;
 pub mod list;
 pub mod parse;
 mod preview;
+pub mod runes;
 mod server;
 pub mod subsidy;
 pub mod supply;
@@ -45,6 +46,8 @@ pub(crate) enum Subcommand {
   Traits(traits::Traits),
   #[command(subcommand, about = "Wallet commands")]
   Wallet(wallet::Wallet),
+  #[command(subcommand, about = "Rune commands")]
+  Runes(runes::RunesSubcommand),
 }
 
 impl Subcommand {
@@ -69,6 +72,7 @@ impl Subcommand {
       Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),
+      Self::Runes(runes) => runes.run(options),
     }
   }
 }

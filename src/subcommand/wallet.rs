@@ -71,7 +71,7 @@ impl Wallet {
   }
 }
 
-fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
+pub fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
   Ok(
     client
       .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])

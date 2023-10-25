@@ -93,7 +93,7 @@ impl Runestone {
     }))
   }
 
-  #[cfg(test)]
+  //#[cfg(test)]
   pub(crate) fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
