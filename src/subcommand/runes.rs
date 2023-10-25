@@ -7,7 +7,7 @@ pub mod issue;
 pub(crate) enum RunesSubcommand {
   #[command(about = "Issue a rune")]
   Issue(issue::Issue),
-  #[command(about = "Issue a rune")]
+  #[command(about = "Get rune balance")]
   Balance(balance::Balance),
 }
 
