@@ -14,9 +14,14 @@ struct Allocation {
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+  inscription_id_to_inscription_entry:
+    &'a Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  runes: u64,
+  statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   timestamp: u32,
   transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
@@ -25,20 +30,36 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+    inscription_id_to_inscription_entry: &'a Table<
+      'db,
+      'tx,
+      &'static InscriptionIdValue,
+      InscriptionEntryValue,
+    >,
+    inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+    statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
     timestamp: u32,
     transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
-  ) -> Self {
-    Self {
+  ) -> Result<Self> {
+    let runes = statistic_to_count
+      .get(&Statistic::Runes.into())?
+      .map(|x| x.value())
+      .unwrap_or(0);
+    Ok(Self {
       height,
       id_to_entry,
+      inscription_id_to_inscription_entry,
+      inscription_id_to_rune,
       minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
       rune_to_id,
+      runes,
+      statistic_to_count,
       timestamp,
       transaction_id_to_rune,
-    }
+    })
   }
 
   pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
@@ -64,6 +85,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         }
       }
     }
+
+    let burn = runestone
+      .as_ref()
+      .map(|runestone| runestone.burn)
+      .unwrap_or_default();
 
     // A vector of allocated transaction output rune balances
     let mut allocated: Vec<HashMap<u128, u128>> = vec![HashMap::new(); tx.output.len()];
@@ -96,42 +122,75 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         None => None,
       };
 
-      for Edict { id, amount, output } in runestone.edicts {
-        // Skip edicts not referring to valid outputs
-        if output >= tx.output.len() as u128 {
-          continue;
-        }
+      if !burn {
+        for Edict { id, amount, output } in runestone.edicts {
+          let Ok(output) = usize::try_from(output) else {
+            continue;
+          };
 
-        let (balance, id) = if id == 0 {
-          // If this edict allocates new issuance runes, skip it
-          // if no issuance was present, or if the issuance was invalid.
-          // Additionally, replace ID 0 with the newly assigned ID, and
-          // get the unallocated balance of the issuance.
-          match allocation.as_mut() {
-            Some(Allocation { balance, id, .. }) => (balance, *id),
-            None => continue,
+          // Skip edicts not referring to valid outputs
+          if output > tx.output.len() {
+            continue;
           }
-        } else {
-          // Get the unallocated balance of the given ID
-          match unallocated.get_mut(&id) {
-            Some(balance) => (balance, id),
-            None => continue,
+
+          let (balance, id) = if id == 0 {
+            // If this edict allocates new issuance runes, skip it
+            // if no issuance was present, or if the issuance was invalid.
+            // Additionally, replace ID 0 with the newly assigned ID, and
+            // get the unallocated balance of the issuance.
+            match allocation.as_mut() {
+              Some(Allocation { balance, id, .. }) => (balance, *id),
+              None => continue,
+            }
+          } else {
+            // Get the unallocated balance of the given ID
+            match unallocated.get_mut(&id) {
+              Some(balance) => (balance, id),
+              None => continue,
+            }
+          };
+
+          let mut allocate = |balance: &mut u128, amount: u128, output: usize| {
+            if amount > 0 {
+              *balance -= amount;
+              *allocated[output].entry(id).or_default() += amount;
+            }
+          };
+
+          if output == tx.output.len() {
+            // find non-OP_RETURN outputs
+            let destinations = tx
+              .output
+              .iter()
+              .enumerate()
+              .filter_map(|(output, tx_out)| {
+                (!tx_out.script_pubkey.is_op_return()).then_some(output)
+              })
+              .collect::<Vec<usize>>();
+
+            if amount == 0 {
+              // if amount is zero, divide balance between eligible outputs
+              let amount = *balance / destinations.len() as u128;
+
+              for output in destinations {
+                allocate(balance, amount, output);
+              }
+            } else {
+              // if amount is non-zero, distribute amount to eligible outputs
+              for output in destinations {
+                allocate(balance, amount.min(*balance), output);
+              }
+            }
+          } else {
+            // Get the allocatable amount
+            let amount = if amount == 0 {
+              *balance
+            } else {
+              amount.min(*balance)
+            };
+
+            allocate(balance, amount, output);
           }
-        };
-
-        // Get the allocatable amount
-        let amount = if amount == 0 {
-          *balance
-        } else {
-          amount.min(*balance)
-        };
-
-        // If the amount to be allocated is greater than zero,
-        // deduct it from the remaining balance, and increment
-        // the allocated entry.
-        if amount > 0 {
-          *balance -= amount;
-          *allocated[output as usize].entry(id).or_default() += amount;
         }
       }
 
@@ -146,12 +205,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         let id = RuneId::try_from(id).unwrap();
         self.rune_to_id.insert(rune.0, id.store())?;
         self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+        let number = self.runes;
+        self.runes += 1;
+        self
+          .statistic_to_count
+          .insert(&Statistic::Runes.into(), self.runes)?;
         self.id_to_entry.insert(
           id.store(),
           RuneEntry {
             burned: 0,
             divisibility,
             etching: txid,
+            number,
             rune,
             supply: u128::max_value() - balance,
             symbol,
@@ -159,24 +224,42 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           }
           .store(),
         )?;
-      }
-    }
 
-    // Assign all un-allocated runes to the first non OP_RETURN output
-    if let Some((vout, _)) = tx
-      .output
-      .iter()
-      .enumerate()
-      .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
-    {
-      for (id, balance) in unallocated {
-        if balance > 0 {
-          *allocated[vout].entry(id).or_default() += balance;
+        let inscription_id = InscriptionId { txid, index: 0 };
+
+        if self
+          .inscription_id_to_inscription_entry
+          .get(&inscription_id.store())?
+          .is_some()
+        {
+          self
+            .inscription_id_to_rune
+            .insert(&inscription_id.store(), rune.0)?;
         }
       }
     }
 
     let mut burned: HashMap<u128, u128> = HashMap::new();
+
+    if burn {
+      for (id, balance) in unallocated {
+        *burned.entry(id).or_default() += balance;
+      }
+    } else {
+      // Assign all un-allocated runes to the first non OP_RETURN output
+      if let Some((vout, _)) = tx
+        .output
+        .iter()
+        .enumerate()
+        .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
+      {
+        for (id, balance) in unallocated {
+          if balance > 0 {
+            *allocated[vout].entry(id).or_default() += balance;
+          }
+        }
+      }
+    }
 
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();

@@ -178,6 +178,7 @@ impl Server {
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
+        index_sats: index.has_sat_index(),
       });
 
       let router = Router::new()
@@ -217,7 +218,7 @@ impl Server {
         .route("/runes", get(Self::runes))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
-        .route("/search/:query", get(Self::search_by_path))
+        .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -465,7 +466,7 @@ impl Server {
         blocktime,
         inscriptions,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -480,11 +481,7 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let list = if index.has_sat_index()? {
-      index.list(outpoint)?
-    } else {
-      None
-    };
+    let list = index.list(outpoint)?;
 
     let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
@@ -535,14 +532,13 @@ impl Server {
         output,
         runes,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
 
   async fn range(
     Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
@@ -553,16 +549,12 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config, index.has_sat_index()?)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config)),
     }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Ok(RareTxt(index.rare_sat_satpoints()?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking rare sats requires index created with `--index-sats` flag".into(),
-      )
-    })?))
+    Ok(RareTxt(index.rare_sat_satpoints()?))
   }
 
   async fn rune(
@@ -576,23 +568,21 @@ impl Server {
       )
     })?;
 
-    let inscription = InscriptionId {
+    let parent = InscriptionId {
       txid: entry.etching,
       index: 0,
     };
 
-    let inscription = index
-      .inscription_exists(inscription)?
-      .then_some(inscription);
+    let parent = index.inscription_exists(parent)?.then_some(parent);
 
     Ok(
       RuneHtml {
-        entry,
         id,
-        inscription,
+        entry,
+        parent,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -600,13 +590,12 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<RunesHtml>> {
-    let entries = index.runes()?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag".into(),
-      )
-    })?;
-
-    Ok(RunesHtml { entries }.page(page_config, index.has_sat_index()?))
+    Ok(
+      RunesHtml {
+        entries: index.runes()?,
+      }
+      .page(page_config),
+    )
   }
 
   async fn home(
@@ -622,7 +611,7 @@ impl Server {
       featured_blocks.insert(*hash, inscriptions);
     }
 
-    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config))
   }
 
   async fn install_script() -> Redirect {
@@ -666,7 +655,7 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -689,7 +678,7 @@ impl Server {
         page_config.chain,
         index.get_etching(txid)?,
       )
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -728,8 +717,10 @@ impl Server {
   fn search_inner(index: &Index, query: &str) -> ServerResult<Redirect> {
     lazy_static! {
       static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
-      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
+      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+      static ref RUNE: Regex = Regex::new(r"^[A-Z]+$").unwrap();
+      static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
     }
 
     let query = query.trim();
@@ -744,6 +735,16 @@ impl Server {
       Ok(Redirect::to(&format!("/output/{query}")))
     } else if INSCRIPTION_ID.is_match(query) {
       Ok(Redirect::to(&format!("/inscription/{query}")))
+    } else if RUNE.is_match(query) {
+      Ok(Redirect::to(&format!("/rune/{query}")))
+    } else if RUNE_ID.is_match(query) {
+      let id = query
+        .parse::<RuneId>()
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let rune = index.get_rune_by_id(id)?.ok_or_not_found(|| "rune ID")?;
+
+      Ok(Redirect::to(&format!("/rune/{rune}")))
     } else {
       Ok(Redirect::to(&format!("/sat/{query}")))
     }
@@ -902,7 +903,7 @@ impl Server {
       .nth(path.2)
       .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(page_config, index.has_sat_index()?))
+    Ok(InputHtml { path, input }.page(page_config))
   }
 
   async fn faq() -> Redirect {
@@ -1095,6 +1096,8 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
+    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1111,6 +1114,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
+        rune,
       ))
       .into_response()
     } else {
@@ -1129,8 +1133,9 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        rune,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -1175,7 +1180,7 @@ impl Server {
         inscriptions,
         page_index,
       )?
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -1222,7 +1227,7 @@ impl Server {
         next,
         prev,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -1248,6 +1253,8 @@ mod tests {
     serde::de::DeserializeOwned,
     std::net::TcpListener,
   };
+
+  const RUNE: u128 = 99246114928149462;
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
@@ -1705,6 +1712,11 @@ mod tests {
   }
 
   #[test]
+  fn search_by_query_returns_rune() {
+    TestServer::new().assert_redirect("/search?query=ABCD", "/rune/ABCD");
+  }
+
+  #[test]
   fn search_by_query_returns_inscription() {
     TestServer::new().assert_redirect(
       "/search?query=0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -1751,6 +1763,55 @@ mod tests {
     TestServer::new().assert_redirect(
       "/search/0000000000000000000000000000000000000000000000000000000000000000i0",
       "/inscription/0000000000000000000000000000000000000000000000000000000000000000i0",
+    );
+  }
+
+  #[test]
+  fn search_by_path_returns_rune() {
+    TestServer::new().assert_redirect("/search/ABCD", "/rune/ABCD");
+  }
+
+  #[test]
+  fn search_by_rune_id_returns_rune() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune,
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_redirect("/search/2/1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=2/1", "/rune/AAAAAAAAAAAAA");
+
+    server.assert_response_regex("/rune/100/200", StatusCode::NOT_FOUND, ".*");
+
+    server.assert_response_regex(
+      "/search/100000000000000000000/200000000000000000",
+      StatusCode::BAD_REQUEST,
+      ".*",
     );
   }
 
@@ -2069,7 +2130,7 @@ mod tests {
   <dt>id</dt>
   <dd class=monospace>{inscription_id}</dd>
   <dt>preview</dt>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
   }
@@ -2268,7 +2329,7 @@ mod tests {
   }
 
   #[test]
-  fn rare_with_index() {
+  fn rare_with_sat_index() {
     TestServer::new_with_sat_index().assert_response(
       "/rare.txt",
       StatusCode::OK,
@@ -2282,8 +2343,9 @@ mod tests {
   fn rare_without_sat_index() {
     TestServer::new().assert_response(
       "/rare.txt",
-      StatusCode::NOT_FOUND,
-      "tracking rare sats requires index created with `--index-sats` flag",
+      StatusCode::OK,
+      "sat\tsatpoint
+",
     );
   }
 
@@ -3153,10 +3215,10 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
-            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
-            symbol: None,
+            rune: Rune(RUNE),
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3171,17 +3233,15 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          rune: Rune(RUNE),
           supply: u128::max_value(),
-          symbol: None,
           timestamp: 2,
+          ..Default::default()
         }
       )]
     );
@@ -3197,7 +3257,7 @@ mod tests {
       ".*<title>Runes</title>.*
 <h1>Runes</h1>
 <ul>
-  <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
+  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
 </ul>.*",
     );
   }
@@ -3208,7 +3268,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3222,10 +3282,11 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune,
             symbol: Some('$'),
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3240,17 +3301,16 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
           rune,
           supply: u128::max_value(),
           symbol: Some('$'),
           timestamp: 2,
+          ..Default::default()
         }
       )]
     );
@@ -3264,11 +3324,14 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        r".*<title>Rune NVTDIJZYIPU</title>.*
-<h1>Rune NVTDIJZYIPU</h1>
+        r".*<title>Rune AAAAAAAAAAAAA</title>.*
+<h1>Rune AAAAAAAAAAAAA</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
+  <dt>number</dt>
+  <dd>0</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>etching block height</dt>
@@ -3285,11 +3348,23 @@ mod tests {
   <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"
       ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*
+<dl>
+  .*
+  <dt>rune</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+</dl>
+.*",
     );
   }
 
@@ -3337,7 +3412,7 @@ mod tests {
       "/inscription/-1",
       StatusCode::OK,
       format!(
-        ".*<h1>Inscription -1 \\(unstable\\)</h1>.*
+        ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{cursed_inscription_id}</dd>.*"
@@ -3367,10 +3442,10 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
-            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
-            symbol: None,
+            rune: Rune(RUNE),
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3385,17 +3460,15 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          rune: Rune(RUNE),
           supply: u128::max_value(),
-          symbol: None,
           timestamp: 2,
+          ..Default::default()
         }
       )]
     );
@@ -3410,7 +3483,7 @@ mod tests {
       StatusCode::OK,
       ".*
   <dt>etching</dt>
-  <dd><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></dd>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
 .*",
     );
   }
@@ -3421,7 +3494,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3437,8 +3510,9 @@ mod tests {
           etching: Some(Etching {
             divisibility: 1,
             rune,
-            symbol: None,
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3453,17 +3527,16 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
-          burned: 0,
           divisibility: 1,
           etching: txid,
           rune,
           supply: u128::max_value(),
-          symbol: None,
           timestamp: 2,
+          ..Default::default()
         }
       )]
     );
@@ -3488,7 +3561,7 @@ mod tests {
         <th>balance</th>
       </tr>
       <tr>
-        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
         <td>34028236692093846346337460743176821145.5</td>
       </tr>
     </table>
@@ -3506,12 +3579,9 @@ mod tests {
         transaction: txid.to_string(),
         sat_ranges: None,
         inscriptions: Vec::new(),
-        runes: vec![(
-          Rune(2100000000000000),
-          340282366920938463463374607431768211455
-        )]
-        .into_iter()
-        .collect(),
+        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
+          .into_iter()
+          .collect(),
       }
     );
   }

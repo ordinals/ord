@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) trait Entry: Sized {
+pub(crate) trait Entry: Sized {
   type Value;
 
   fn load(value: Self::Value) -> Self;
@@ -27,19 +27,35 @@ pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) divisibility: u8,
   pub(crate) etching: Txid,
+  pub(crate) number: u64,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
   pub(crate) symbol: Option<char>,
   pub(crate) timestamp: u32,
 }
 
-pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u128, u128, u32, u32);
+pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u64, u128, u128, u32, u32);
+
+impl Default for RuneEntry {
+  fn default() -> Self {
+    Self {
+      burned: 0,
+      divisibility: 0,
+      etching: Txid::all_zeros(),
+      number: 0,
+      rune: Rune(0),
+      supply: 0,
+      symbol: None,
+      timestamp: 0,
+    }
+  }
+}
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
   fn load(
-    (burned, divisibility, etching, rune, supply, symbol, timestamp): RuneEntryValue,
+    (burned, divisibility, etching, number, rune, supply, symbol, timestamp): RuneEntryValue,
   ) -> Self {
     Self {
       burned,
@@ -54,6 +70,7 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
+      number,
       rune: Rune(rune),
       supply,
       symbol: char::from_u32(symbol),
@@ -78,6 +95,7 @@ impl Entry for RuneEntry {
           ]),
         )
       },
+      self.number,
       self.rune.0,
       self.supply,
       match self.symbol {
@@ -409,8 +427,9 @@ mod tests {
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      rune: Rune(3),
-      supply: 4,
+      number: 3,
+      rune: Rune(4),
+      supply: 5,
       symbol: Some('a'),
       timestamp: 6,
     };
@@ -426,6 +445,7 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::from('a'),
         6,
       )
@@ -441,6 +461,7 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::from('a'),
         6,
       )),
@@ -463,6 +484,7 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::max_value(),
         6,
       )
@@ -478,6 +500,7 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::max_value(),
         6,
       )),

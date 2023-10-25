@@ -5,9 +5,19 @@ pub struct Rune(pub u128);
 
 impl Rune {
   pub(crate) fn minimum_at_height(height: Height) -> Self {
-    Self(u128::from(
-      Sat::SUPPLY - height.starting_sat().0 - height.subsidy(),
-    ))
+    let length = 13u64
+      .saturating_sub(height.0 / (DIFFCHANGE_INTERVAL * 2))
+      .max(1);
+
+    let mut rune = 0u128;
+    for i in 0..length {
+      if i > 0 {
+        rune += 1;
+      }
+      rune *= 26;
+    }
+
+    Rune(rune)
   }
 }
 
@@ -131,16 +141,57 @@ mod tests {
   }
 
   #[test]
-  fn minimum_for_height() {
-    assert_eq!(Rune::minimum_at_height(Sat::LAST.height()).to_string(), "A");
-    assert_eq!(
-      Rune::minimum_at_height(Height(0)).to_string(),
-      Sat(50 * COIN_VALUE - 1).name().to_uppercase()
-    );
-    assert_eq!(
-      Rune::minimum_at_height(Height(1)).to_string(),
-      Sat(100 * COIN_VALUE - 1).name().to_uppercase()
-    );
+  #[allow(clippy::identity_op)]
+  #[allow(clippy::erasing_op)]
+  #[allow(clippy::zero_prefixed_literal)]
+  fn minimum_at_height() {
+    #[track_caller]
+    fn case(height: u64, minimum: &str) {
+      assert_eq!(Rune::minimum_at_height(Height(height)).to_string(), minimum);
+    }
+
+    case(2016 * 2 * 00 + 0, "AAAAAAAAAAAAA");
+    case(2016 * 2 * 00 + 1, "AAAAAAAAAAAAA");
+    case(2016 * 2 * 01 - 1, "AAAAAAAAAAAAA");
+    case(2016 * 2 * 01 + 0, "AAAAAAAAAAAA");
+    case(2016 * 2 * 01 + 1, "AAAAAAAAAAAA");
+    case(2016 * 2 * 02 - 1, "AAAAAAAAAAAA");
+    case(2016 * 2 * 02 + 0, "AAAAAAAAAAA");
+    case(2016 * 2 * 02 + 1, "AAAAAAAAAAA");
+    case(2016 * 2 * 03 - 1, "AAAAAAAAAAA");
+    case(2016 * 2 * 03 + 0, "AAAAAAAAAA");
+    case(2016 * 2 * 03 + 1, "AAAAAAAAAA");
+    case(2016 * 2 * 04 - 1, "AAAAAAAAAA");
+    case(2016 * 2 * 04 + 0, "AAAAAAAAA");
+    case(2016 * 2 * 04 + 1, "AAAAAAAAA");
+    case(2016 * 2 * 05 - 1, "AAAAAAAAA");
+    case(2016 * 2 * 05 + 0, "AAAAAAAA");
+    case(2016 * 2 * 05 + 1, "AAAAAAAA");
+    case(2016 * 2 * 06 - 1, "AAAAAAAA");
+    case(2016 * 2 * 06 + 0, "AAAAAAA");
+    case(2016 * 2 * 06 + 1, "AAAAAAA");
+    case(2016 * 2 * 07 - 1, "AAAAAAA");
+    case(2016 * 2 * 07 + 0, "AAAAAA");
+    case(2016 * 2 * 07 + 1, "AAAAAA");
+    case(2016 * 2 * 08 - 1, "AAAAAA");
+    case(2016 * 2 * 08 + 0, "AAAAA");
+    case(2016 * 2 * 08 + 1, "AAAAA");
+    case(2016 * 2 * 09 - 1, "AAAAA");
+    case(2016 * 2 * 09 + 0, "AAAA");
+    case(2016 * 2 * 09 + 1, "AAAA");
+    case(2016 * 2 * 10 - 1, "AAAA");
+    case(2016 * 2 * 10 + 0, "AAA");
+    case(2016 * 2 * 10 + 1, "AAA");
+    case(2016 * 2 * 11 - 1, "AAA");
+    case(2016 * 2 * 11 + 0, "AA");
+    case(2016 * 2 * 11 + 1, "AA");
+    case(2016 * 2 * 12 - 1, "AA");
+    case(2016 * 2 * 12 + 0, "A");
+    case(2016 * 2 * 12 + 1, "A");
+    case(2016 * 2 * 13 - 1, "A");
+    case(2016 * 2 * 13 + 0, "A");
+    case(2016 * 2 * 13 + 1, "A");
+    case(u64::max_value(), "A");
   }
 
   #[test]
