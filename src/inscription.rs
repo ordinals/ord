@@ -44,16 +44,13 @@ impl Inscription {
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
     let mut content_encoding: Option<Vec<u8>> = None;
     let content_type_string = content_type.clone().map(|content_type| String::from_utf8(content_type).unwrap());
-    println!("content_type_string: {:?}", content_type_string);
-    if content_type_string.clone().is_some() {
-      if content_type_string.clone().unwrap().starts_with("text"){
-        content_encoding = Some("br".as_bytes().to_vec());
-      }
-    }
+    
     if body.clone().is_some() && content_type_string.is_some() && body.clone().unwrap().len() > 10 {
-    let mut mut_body  = body.clone().unwrap();
+      
+      let mut mut_body  = body.clone().unwrap();
 
       if content_type_string.unwrap().starts_with("text") {
+        content_encoding = Some("br".as_bytes().to_vec());
         let lu32 = mut_body.len().try_into().unwrap();
         let encoder = BrotliEncoderOptions::new()
         .quality(Quality::best())

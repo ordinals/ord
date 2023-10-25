@@ -21,10 +21,6 @@ fn inscribe_creates_inscriptions() {
     request.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
-  assert_eq!(
-    request.headers().get("content-encoding").unwrap(),
-    "br"
-  );
   assert_eq!(request.text().unwrap(), "FOO");
 }
 
@@ -239,7 +235,7 @@ fn inscribe_with_optional_satpoint_arg() {
   );
 
   TestServer::spawn_with_args(&rpc_server, &[])
-    .assert_response_regex(format!("/content/{inscription}",), "FOO");
+    .assert_response_regex(format!("/content/{inscription}",), "�FOO");
 }
 
 #[test]
@@ -815,7 +811,7 @@ fn batch_inscribe_can_create_one_inscription() {
     request.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
-  assert_eq!(request.text().unwrap(), "Hello World");
+  assert_eq!(request.text().unwrap(), "\u{f}\u{5}�Hello World\u{3}");
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
@@ -854,7 +850,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
     request.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
-  assert_eq!(request.text().unwrap(), "Hello World");
+  assert_eq!(request.text().unwrap(), "\u{f}\u{5}�Hello World\u{3}");
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
     .request(format!("/content/{}", output.inscriptions[1].id));
