@@ -1,4 +1,7 @@
 <h1>Rune {{ self.entry.rune }}</h1>
+%% if let Some(parent) = self.parent {
+{{Iframe::main(parent)}}
+%% }
 <dl>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>
@@ -16,8 +19,8 @@
 %% }
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
-%% if let Some(inscription) = self.inscription {
-  <dt>inscription</dt>
-  <dd><a class=monospace href=/inscription/{{ inscription }}>{{ inscription }}</a></dd>
+%% if let Some(parent) = self.parent {
+  <dt>parent</dt>
+  <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
 </dl>

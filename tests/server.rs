@@ -296,9 +296,19 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
 
   rpc_server.mine_blocks(1);
 
-  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
-  assert_eq!(response.status(), StatusCode::OK);
-  assert_eq!(response.text().unwrap(), "2");
+  for i in 0.. {
+    let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    if response.text().unwrap() == "2" {
+      break;
+    }
+
+    if i == 400 {
+      panic!("server failed to sync");
+    }
+
+    thread::sleep(Duration::from_millis(25));
+  }
 
   child.kill().unwrap();
 }
