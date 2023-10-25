@@ -1027,7 +1027,6 @@ impl Server {
         let mut decoded_input: Vec<u8> = Vec::new();
         let content_encoding = inscription.content_encoding();
         let body = inscription.body();
-        println!("content_encoding: {:?}", content_encoding);
         if content_encoding.is_some() {
           if content_encoding.unwrap() == "br" {
           decoded_input = match body {
@@ -1055,7 +1054,6 @@ impl Server {
             };
           }
         
-
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(&decoded_input)
