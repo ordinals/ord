@@ -2276,16 +2276,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyo3-build-config"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a96fe70b176a89cff78f2fa7b3c930081e163d5379b4dcdf993e3ae29ca662e5"
-dependencies = [
- "once_cell",
- "target-lexicon",
-]
-
-[[package]]
 name = "quick-xml"
 version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2369,11 +2359,9 @@ dependencies = [
 [[package]]
 name = "redb"
 version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f58f6da33e3b54de2ef82201ce2b465e67f337deb15d45f54355e0f77202bb4"
+source = "git+https://github.com/cberner/redb?branch=repair_callback#01f5bd91252ed0a9bbce07a37809b74bd5dfa3be"
 dependencies = [
  "libc",
- "pyo3-build-config",
 ]
 
 [[package]]
@@ -2984,12 +2972,6 @@ dependencies = [
  "core-foundation-sys",
  "libc",
 ]
-
-[[package]]
-name = "target-lexicon"
-version = "0.12.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14c39fd04924ca3a864207c66fc2cd7d22d7c016007f9ce846cbb9326331930a"
 
 [[package]]
 name = "tempfile"
