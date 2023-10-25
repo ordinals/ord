@@ -125,6 +125,7 @@ impl From<InscriptionTemplate> for Inscription {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
+
   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
 }
 

@@ -21,6 +21,10 @@ fn inscribe_creates_inscriptions() {
     request.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
+  assert_eq!(
+    request.headers().get("content-encoding").unwrap(),
+    "br"
+  );
   assert_eq!(request.text().unwrap(), "FOO");
 }
 

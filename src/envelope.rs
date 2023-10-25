@@ -14,6 +14,7 @@ pub(crate) const POINTER_TAG: [u8; 1] = [2];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
 pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
+pub(crate) const CONTENT_ENCODING_TAG: [u8; 1] = [8];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
@@ -78,6 +79,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
+    let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let pointer = remove_field(&mut fields, &POINTER_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
@@ -97,6 +99,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
             .collect()
         }),
         content_type,
+        content_encoding,
         parent,
         pointer,
         unrecognized_even_field,

@@ -16,6 +16,8 @@ use {
       PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
     },
   },
+  std::io::Read,
+  brotlic::DecompressorReader,
   axum::{
     body,
     extract::{Extension, Json, Path, Query},
@@ -1022,12 +1024,41 @@ impl Server {
           .into_response(),
       ),
       Media::Text => {
-        let content = inscription
-          .body()
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+        let mut decoded_input: Vec<u8> = Vec::new();
+        let content_encoding = inscription.content_encoding();
+        let body = inscription.body();
+        println!("content_encoding: {:?}", content_encoding);
+        if content_encoding.is_some() {
+          if content_encoding.unwrap() == "br" {
+          decoded_input = match body {
+            Some(body) => {
+              
+              let mut decompressed_reader = DecompressorReader::new(
+                body as &[u8],
+              );
+              let mut decoded_input = Vec::new();
+              decompressed_reader.read_to_end(&mut decoded_input).unwrap();
+              
+
+              decoded_input
+            }
+            None => Vec::new()
+          };
+          }
+        }
+          else {
+            decoded_input = match body {
+              Some(body) => {
+                body.to_vec()
+              }
+              None => Vec::new()
+            };
+          }
+        
+
         Ok(
           PreviewTextHtml {
-            text: str::from_utf8(content)
+            text: str::from_utf8(&decoded_input)
               .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?,
           }
           .into_response(),

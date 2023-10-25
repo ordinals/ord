@@ -639,7 +639,7 @@ mod tests {
   fn inscribe_over_max_standard_tx_weight() {
     let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
 
-    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let inscription = inscription("image/video", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -667,7 +667,7 @@ mod tests {
     .to_string();
 
     assert!(
-      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402799")),
+      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402800")),
       "{}",
       error
     );
@@ -677,7 +677,7 @@ mod tests {
   fn inscribe_with_no_max_standard_tx_weight() {
     let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
 
-    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let inscription = inscription("image/video", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -1046,9 +1046,9 @@ inscriptions:
     let wallet_inscriptions = BTreeMap::new();
 
     let inscriptions = vec![
-      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
-      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
-      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+      inscription("image/video", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+      inscription("image/video", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+      inscription("image/video", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
     ];
 
     let commit_address = change(1);
@@ -1077,7 +1077,7 @@ inscriptions:
     .to_string();
 
     assert!(
-      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402841")),
+      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402844")),
       "{}",
       error
     );

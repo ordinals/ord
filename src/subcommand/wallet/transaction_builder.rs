@@ -306,7 +306,6 @@ impl TransactionBuilder {
           .ok_or(Error::ValueOverflow)?;
 
         let (utxo, value) = self.select_cardinal_utxo(needed, false)?;
-
         let benefit = value
           .checked_sub(additional_fee)
           .ok_or(Error::NotEnoughCardinalUtxos)?;

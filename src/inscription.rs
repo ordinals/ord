@@ -10,6 +10,8 @@ use {
   io::Cursor,
   std::str,
 };
+use std::io::{Write, Read};
+use brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize};
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -27,6 +29,7 @@ pub(crate) enum Curse {
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
+  pub content_encoding: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
   pub metadata: Option<Vec<u8>>,
@@ -39,11 +42,44 @@ pub struct Inscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
+    let mut content_encoding: Option<Vec<u8>> = None;
+    let content_type_string = content_type.clone().map(|content_type| String::from_utf8(content_type).unwrap());
+    if body.is_some() {
+    let mut mut_body  = body.clone().unwrap();
+
+    if content_type_string.is_some() && body.unwrap().len() > 10 {
+      if content_type_string.unwrap().starts_with("text") {
+        content_encoding = Some("br".as_bytes().to_vec());
+        let lu32 = mut_body.len().try_into().unwrap();
+        let encoder = BrotliEncoderOptions::new()
+        .quality(Quality::best())
+        .window_size(WindowSize::new(24).unwrap())
+        .size_hint(lu32)
+        .build().unwrap();
+        let underlying_storage = Vec::new();
+        let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
+
+        compressor.write_all(&mut_body).with_context(|| format!("io error writing")).unwrap();
+        mut_body = compressor.into_inner().unwrap();      
+        
+        
+      }
+    }
     Self {
+      content_encoding,
+      content_type,
+      body:Some(mut_body),
+      ..Default::default()
+    }
+  }
+  else {
+    Self {
+      content_encoding,
       content_type,
       body,
       ..Default::default()
     }
+  }
   }
 
   pub(crate) fn from_file(
@@ -55,27 +91,61 @@ impl Inscription {
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
+    let mut file = fs::File::open(path).with_context(|| format!("io error opening {}", path.display()))?;
+    let mut body = Vec::new();
+    file.read_to_end(&mut body).with_context(|| format!("io error reading {}", path.display()))?;
+    let len = body.len();
+    let content_type = Media::content_type_for_path(path)?;
+    if content_type.starts_with("text/") {
+      let lu32 = len.try_into().unwrap();
+      let encoder = BrotliEncoderOptions::new()
+      .quality(Quality::best())
+      .window_size(WindowSize::new(24)?)
+      .size_hint(lu32)
+      .build()?;
+      let underlying_storage = Vec::new();
+      let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
 
-    let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
-
-    if let Some(limit) = chain.inscription_content_size_limit() {
-      let len = body.len();
-      if len > limit {
-        bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
+      compressor.write_all(&body).with_context(|| format!("io error writing {}", path.display()))?;
+      let encoded_body = compressor.into_inner().unwrap();      
+      
+      if let Some(limit) = chain.inscription_content_size_limit() {
+        let len = encoded_body.len();
+        if len > limit {
+          bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
+        }
       }
+      
+      Ok(Self {
+        body: Some(encoded_body),
+        content_type: Some(content_type.into()),
+        content_encoding: Some("br".into()),
+        metadata,
+        metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
+        parent: parent.map(|id| id.parent_value()),
+        pointer: pointer.map(Self::pointer_value),
+        ..Default::default()
+      })
+    } else {
+      
+      if let Some(limit) = chain.inscription_content_size_limit() {
+        let len = body.len();
+        if len > limit {
+          bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
+        }
+      }
+      Ok(Self {
+        body: Some(body),
+        content_type: Some(content_type.into()),
+        content_encoding: None,
+        metadata,
+        metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
+        parent: parent.map(|id| id.parent_value()),
+        pointer: pointer.map(Self::pointer_value),
+        ..Default::default()
+      })
     }
 
-    let content_type = Media::content_type_for_path(path)?;
-
-    Ok(Self {
-      body: Some(body),
-      content_type: Some(content_type.into()),
-      metadata,
-      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|id| id.parent_value()),
-      pointer: pointer.map(Self::pointer_value),
-      ..Default::default()
-    })
   }
 
   fn pointer_value(pointer: u64) -> Vec<u8> {
@@ -127,6 +197,13 @@ impl Inscription {
         builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
       }
     }
+
+    if let Some(content_encoding) = &self.content_encoding {
+      builder = builder
+      .push_slice(envelope::CONTENT_ENCODING_TAG)
+      .push_slice(PushBytesBuf::try_from(content_encoding.to_vec()).unwrap());
+    }
+
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -188,6 +265,11 @@ impl Inscription {
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
+
+  pub(crate) fn content_encoding(&self) -> Option<&str> {
+    str::from_utf8(self.content_encoding.as_ref()?).ok()
+  }
+
 
   pub(crate) fn metadata(&self) -> Option<Value> {
     ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
