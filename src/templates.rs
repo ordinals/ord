@@ -1,7 +1,7 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::BlockHtml,
+  block::{BlockHtml, BlockJson},
   clock::ClockSvg,
   home::HomeHtml,
   iframe::Iframe,
@@ -24,7 +24,7 @@ pub(crate) use {
   transaction::TransactionHtml,
 };
 
-mod block;
+pub mod block;
 mod clock;
 mod home;
 mod iframe;
