@@ -25,7 +25,6 @@ impl Media {
     ("application/pdf", Media::Pdf, &["pdf"]),
     ("application/pgp-signature", Media::Text, &["asc"]),
     ("application/protobuf", Media::Unknown, &["binpb"]),
-    ("text/x-python", Media::Code, &["py"]),
     ("application/yaml", Media::Code, &["yaml", "yml"]),
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
@@ -52,6 +51,7 @@ impl Media {
     ("text/markdown;charset=utf-8", Media::Markdown, &["md"]),
     ("text/plain", Media::Text, &[]),
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+    ("text/x-python", Media::Code, &["py"]),
     ("video/mp4", Media::Video, &["mp4"]),
     ("video/webm", Media::Video, &["webm"]),
   ];
