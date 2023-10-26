@@ -575,7 +575,15 @@ impl Server {
 
     let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(RuneHtml { id, entry, parent }.page(page_config))
+    Ok(
+      RuneHtml {
+        id,
+        entry,
+        parent,
+        timestamp: timestamp(entry.timestamp),
+      }
+      .page(page_config),
+    )
   }
 
   async fn runes(
@@ -678,6 +686,7 @@ impl Server {
         blockhash,
         inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
+        index.get_etching(txid)?,
       )
       .page(page_config),
     )
@@ -2290,6 +2299,8 @@ mod tests {
       StatusCode::OK,
       format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
+<dl>
+</dl>
 <h2>1 Input</h2>
 <ul>
   <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
@@ -3239,6 +3250,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3307,6 +3319,7 @@ mod tests {
           rune,
           supply: u128::max_value(),
           symbol: Some('$'),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3329,6 +3342,12 @@ mod tests {
   <dd>2/1</dd>
   <dt>number</dt>
   <dd>0</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>1</dd>
   <dt>supply</dt>
   <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
@@ -3412,6 +3431,74 @@ mod tests {
   }
 
   #[test]
+  fn transactions_link_to_etching() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+.*",
+    );
+  }
+
+  #[test]
   fn runes_are_displayed_on_output_page() {
     let server = TestServer::new_with_regtest_with_index_runes();
 
@@ -3458,6 +3545,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]

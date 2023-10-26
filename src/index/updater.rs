@@ -557,14 +557,17 @@ impl<'index> Updater<'_> {
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut inscription_id_to_rune = wtx.open_table(INSCRIPTION_ID_TO_RUNE)?;
+      let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
       let mut rune_updater = RuneUpdater::new(
         self.height,
-        &mut outpoint_to_rune_balances,
         &mut rune_id_to_rune_entry,
         &inscription_id_to_inscription_entry,
         &mut inscription_id_to_rune,
+        &mut outpoint_to_rune_balances,
         &mut rune_to_rune_id,
         &mut statistic_to_count,
+        block.header.time,
+        &mut transaction_id_to_rune,
       )?;
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;

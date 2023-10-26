@@ -123,6 +123,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -174,6 +175,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -263,6 +265,7 @@ mod tests {
             etching: txid,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         )]
@@ -320,6 +323,7 @@ mod tests {
           etching: txid,
           divisibility: 1,
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -381,6 +385,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -443,6 +448,7 @@ mod tests {
           rune: Rune(RUNE),
           supply: u128::max_value(),
           symbol: None,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -497,6 +503,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: 100,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -559,6 +566,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: 200,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -623,6 +631,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: 100,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -677,6 +686,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -719,6 +729,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -778,6 +789,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -829,6 +841,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -868,6 +881,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -919,6 +933,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -951,6 +966,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1012,6 +1028,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1044,6 +1061,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1104,6 +1122,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1144,6 +1163,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1198,6 +1218,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1250,6 +1271,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1259,6 +1281,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1302,6 +1325,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1311,6 +1335,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1373,6 +1398,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1425,6 +1451,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1434,6 +1461,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1477,6 +1505,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1486,6 +1515,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1539,6 +1569,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1548,6 +1579,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1622,6 +1654,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1674,6 +1707,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1683,6 +1717,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1744,6 +1779,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -1753,6 +1789,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -1816,6 +1853,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1853,6 +1891,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -1933,6 +1972,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 3,
             ..Default::default()
           }
         ),
@@ -1942,6 +1982,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -2013,6 +2054,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2062,6 +2104,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2122,6 +2165,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2174,6 +2218,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -2183,6 +2228,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -2244,6 +2290,7 @@ mod tests {
             etching: txid0,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
             ..Default::default()
           }
         ),
@@ -2253,6 +2300,7 @@ mod tests {
             etching: txid1,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
             number: 1,
             ..Default::default()
           }
@@ -2324,6 +2372,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2366,6 +2415,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2427,6 +2477,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2482,6 +2533,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2544,6 +2596,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2599,6 +2652,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: (u128::max_value() / 4) * 4,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2678,6 +2732,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: 1000 + ((u128::max_value() - 1000) / 4) * 4,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2757,6 +2812,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2829,6 +2885,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: 4000,
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2896,6 +2953,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -2965,6 +3023,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3028,6 +3087,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3071,6 +3131,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3140,6 +3201,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3190,6 +3252,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3259,6 +3322,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3309,6 +3373,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3378,6 +3443,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3421,6 +3487,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3490,6 +3557,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3540,6 +3608,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3609,6 +3678,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3659,6 +3729,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3744,6 +3815,7 @@ mod tests {
           rune: Rune(RUNE),
           supply: u128::max_value(),
           symbol: Some('$'),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3798,6 +3870,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3852,6 +3925,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3895,6 +3969,7 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]

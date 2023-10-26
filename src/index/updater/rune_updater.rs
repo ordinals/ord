@@ -22,12 +22,13 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   runes: u64,
   statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+  timestamp: u32,
+  transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
-    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
     inscription_id_to_inscription_entry: &'a Table<
       'db,
@@ -36,8 +37,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       InscriptionEntryValue,
     >,
     inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
+    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
     statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+    timestamp: u32,
+    transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
   ) -> Result<Self> {
     let runes = statistic_to_count
       .get(&Statistic::Runes.into())?
@@ -46,13 +50,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     Ok(Self {
       height,
       id_to_entry,
-      minimum: Rune::minimum_at_height(Height(height)),
-      outpoint_to_balances,
       inscription_id_to_inscription_entry,
       inscription_id_to_rune,
+      minimum: Rune::minimum_at_height(Height(height)),
+      outpoint_to_balances,
       rune_to_id,
       runes,
       statistic_to_count,
+      timestamp,
+      transaction_id_to_rune,
     })
   }
 
@@ -198,6 +204,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       {
         let id = RuneId::try_from(id).unwrap();
         self.rune_to_id.insert(rune.0, id.store())?;
+        self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
         let number = self.runes;
         self.runes += 1;
         self
@@ -213,6 +220,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             rune,
             supply: u128::max_value() - balance,
             symbol,
+            timestamp: self.timestamp,
           }
           .store(),
         )?;
