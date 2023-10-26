@@ -226,7 +226,8 @@ fn splitting_merged_inscriptions_is_possible() {
 
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+  let server =
+    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", reveal_txid));
   assert_eq!(response.status(), StatusCode::OK);
