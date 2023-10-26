@@ -56,9 +56,9 @@ mod tests {
   <dt>etching transaction index</dt>
   <dd>9</dd>
   <dt>open etching end</dt>
-  <dd>11</dd>
+  <dd><a href=/block/11>11</a></dd>
   <dt>open etching limit</dt>
-  <dd>\$1.00000001</dd>
+  <dd>\$1.000000001</dd>
   <dt>supply</dt>
   <dd>\$123456789.123456789</dd>
   <dt>burned</dt>

@@ -15,7 +15,7 @@
   <dd>{{ self.id.index }}</dd>
 %% if let Some(end) = self.entry.end {
   <dt>open etching end</dt>
-  <dd>{{ end }}</dd>
+  <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
 %% }
 %% if let Some(limit) = self.entry.limit {
   <dt>open etching limit</dt>
