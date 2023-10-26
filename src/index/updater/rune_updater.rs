@@ -344,6 +344,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         for (id, balance) in &balances {
           *burned.entry(*id).or_default() += balance;
         }
+        continue;
       }
 
       buffer.clear();

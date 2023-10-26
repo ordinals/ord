@@ -532,10 +532,7 @@ mod tests {
           ..Default::default()
         },
       )],
-      [
-        (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
-        (OutPoint { txid, vout: 1 }, vec![(id, 100)]),
-      ],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
     );
   }
 
@@ -2284,7 +2281,7 @@ mod tests {
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])],
+      [],
     );
   }
 
