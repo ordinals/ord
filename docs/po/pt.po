@@ -634,7 +634,7 @@ msgid ""
 "If the block offset is zero, it may be omitted. This is the uncommon satoshi "
 "from above:"
 msgstr ""
-“Se o deslocamento do bloco for zero, ele pode ser omitido. Esse é o satoshi incomum”
+"Se o deslocamento do bloco for zero, ele pode ser omitido. Esse é o satoshi incomum"
 "de cima:"
 
 #: src/overview.md:164
@@ -987,7 +987,7 @@ msgid ""
 "_should_ be, sometimes are, and what inscriptions _always_ are, by their "
 "very nature."
 msgstr ""
-"A definição de artefato digital pretende refletir o que NFTs”
+"A definição de artefato digital pretende refletir o que NFTs "
 "_deveriam_ ser, às vezes são, e o que as inscrições _sempre_ são, por "
 "natureza própria."
 
@@ -1186,8 +1186,8 @@ msgid ""
 "Lightning Network."
 msgstr ""
 "Tags não reconhecidas são interpretadas de maneira diferente dependendo se são "
-"pares ou ímpares, seguindo a regra \"não há problema ser ímpar\" usada pela 
-"Rede Lightning.”
+"pares ou ímpares, seguindo a regra \"não há problema ser ímpar\" usada pela
+"Rede Lightning."
 
 #: src/inscriptions.md:89
 msgid ""
@@ -1606,7 +1606,7 @@ msgid ""
 msgstr ""
 "A teoria ordinal é um protocolo para atribuir números de série aos satoshis, "
 "a menor subdivisão de um bitcoin, e rastrear esses satoshis à medida que são "
-"gastos nas transações.”
+"gastos nas transações."
 
 #: src/faq.md:11
 msgid ""
@@ -1622,7 +1622,7 @@ msgid ""
 "Bitcoin?"
 msgstr ""
 "A teoria ordinal requer uma sidechain, um token separado ou alterações no "
-"Bitcoin?”
+"Bitcoin?"
 
 #: src/faq.md:17
 msgid ""
@@ -1925,7 +1925,7 @@ msgid ""
 "the contract source code is available and has been audited."
 msgstr ""
 "É muito difícil para um usuário não técnico determinar se uma determinada "
-"NFT no Ethereum é mutável ou imutável, e as plataformas daquele ecosistema " 
+"NFT no Ethereum é mutável ou imutável, e as plataformas daquele ecosistema "
 "não fazem nenhum esforço para distinguir se uma NFT é mutável ou imutável, "
 "e se o código-fonte do contrato está disponível e foi auditado."
 
@@ -2052,7 +2052,7 @@ msgid ""
 msgstr ""
 "As NFTs do Ethereum, por outro lado, podem ser criadas em qualidades "
 "virtualmente ilimitadas com uma única transação, tornando-as inerentemente "
-"menos escassas e, portanto, potencialmente menos valiosas.”
+"menos escassas e, portanto, potencialmente menos valiosas."
 
 #: src/faq.md:181
 msgid "_Inscriptions do not pretend to support on-chain royalties._"
@@ -2351,7 +2351,7 @@ msgid ""
 msgstr ""
 "O Bitcoin fornece uma plataforma incrível para criar e coletar artefatos digitais "
 "de forma segura e descentralizada, que protege usuários e artistas da mesma forma "
-"que fornece uma plataforma incrível para enviar e receber valor, e pelos mesmos motivos.”
+"que fornece uma plataforma incrível para enviar e receber valor, e pelos mesmos motivos."
 
 #: src/faq.md:307
 msgid ""
@@ -2428,7 +2428,7 @@ msgid ""
 msgstr ""
 "Os usuários de inscrições e provedores de serviços são incentivados a executar "
 "nós completos do Bitcoin, a publicar e rastrear inscrições e, assim, colocar seu "
-"peso econômico na cadeia honesta.”
+"peso econômico na cadeia honesta."
 
 #: src/faq.md:338
 msgid ""
@@ -2446,7 +2446,7 @@ msgid ""
 msgstr ""
 "Esperamos que a teoria ordinal fortaleça e enriqueça o bitcoin, e lhe dê outra "
 "dimensão de apelo e funcionalidade, permitindo-lhe servir de forma mais eficaz "
-"o seu caso de uso principal como reserva descentralizada de valor da humanidade.”
+"o seu caso de uso principal como reserva descentralizada de valor da humanidade."
 
 #: src/contributing.md:1
 msgid "Contributing to `ord`"
@@ -2865,7 +2865,7 @@ msgid ""
 "have been issued when they are mined:"
 msgstr ""
 "Ou por percentil, a porcentagem do oferta de bitcoin que foi ou terá sido "
-"emitida quando ele for minerado:”
+"emitida quando ele for minerado:"
 
 #: src/guides/explorer.md:69
 msgid "[100%](https://ordinals.com/search/100%)"
@@ -2897,7 +2897,7 @@ msgstr ""
 "Trabalhar com inscrições requer um nó completo do Bitcoin, para fornecer uma "
 "visão do estado atual da blockchain do Bitcoin, e uma carteira que pode criar "
 "inscrições e realizar controle de sat ao construir transações para enviar "
-"inscrições para outra carteira.”
+"inscrições para outra carteira."
 
 #: src/guides/inscriptions.md:14
 msgid ""
