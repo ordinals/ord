@@ -36,7 +36,18 @@ pub(crate) struct RuneEntry {
   pub(crate) timestamp: u32,
 }
 
-pub(super) type RuneEntryValue = (u128, u8, u64, (u128, u128), u128, u64, u128, u128, u32, u32);
+pub(super) type RuneEntryValue = (
+  u128,         // burned
+  u8,           // divisibility
+  u64,          // end
+  (u128, u128), // etching
+  u128,         // limit
+  u64,          // number
+  u128,         // rune
+  u128,         // supply
+  u32,          // symbol
+  u32,          // timestamp
+);
 
 impl Default for RuneEntry {
   fn default() -> Self {

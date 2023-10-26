@@ -19,6 +19,8 @@ const TAG_BURN: u128 = 256;
 // - claiming after end doesn't work
 // - open etching without end
 // - don't show end if there is no limit
+// - use Height for end
+// - make sure we check for end >= u64::max_value when checking for end in runestone
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
