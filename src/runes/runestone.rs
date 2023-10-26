@@ -8,7 +8,7 @@ const TAG_LIMIT: u128 = 4;
 const TAG_TERM: u128 = 6;
 
 #[allow(unused)]
-const TAG_BURN: u128 = 8;
+const TAG_BURN: u128 = 256;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
