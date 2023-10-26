@@ -70,15 +70,16 @@ profile-tests:
 fuzz:
   #!/usr/bin/env bash
   set -euxo pipefail
-
   cd fuzz
-
   while true; do
     cargo +nightly fuzz run transaction-builder -- -max_total_time=60
     cargo +nightly fuzz run runestone-decipher -- -max_total_time=60
     cargo +nightly fuzz run varint-decode -- -max_total_time=60
     cargo +nightly fuzz run varint-encode -- -max_total_time=60
   done
+
+decode txid:
+  bitcoin-cli getrawtransaction {{txid}} | xxd -r -p - | cargo run decode
 
 open:
   open http://localhost
@@ -110,6 +111,20 @@ publish-release revision='master':
   git clone https://github.com/ordinals/ord.git tmp/release
   cd tmp/release
   git checkout {{ revision }}
+  cargo publish
+  cd ../..
+  rm -rf tmp/release
+
+publish-tag-and-crate revision='master':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  rm -rf tmp/release
+  git clone git@github.com:ordinals/ord.git tmp/release
+  cd tmp/release
+  git checkout {{revision}}
+  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  git tag -a $VERSION -m "Release $VERSION"
+  git push git@github.com:ordinals/ord.git $VERSION
   cargo publish
   cd ../..
   rm -rf tmp/release

@@ -376,21 +376,6 @@ impl<'index> Updater<'_> {
       }
     }
 
-    if index.index_runes {
-      let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-      let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-      let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
-      let mut rune_updater = RuneUpdater::new(
-        self.height,
-        &mut outpoint_to_rune_balances,
-        &mut rune_id_to_rune_entry,
-        &mut rune_to_rune_id,
-      );
-      for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(i, tx, *txid)?;
-      }
-    }
-
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
@@ -425,143 +410,169 @@ impl<'index> Updater<'_> {
       .map(|unbound_inscriptions| unbound_inscriptions.value())
       .unwrap_or(0);
 
-    let mut inscription_updater = InscriptionUpdater::new(
-      self.height,
-      &mut inscription_id_to_children,
-      &mut inscription_id_to_satpoint,
-      value_receiver,
-      &mut inscription_id_to_inscription_entry,
-      lost_sats,
-      &mut inscription_number_to_inscription_id,
-      cursed_inscription_count,
-      blessed_inscription_count,
-      &mut sequence_number_to_inscription_id,
-      &mut outpoint_to_value,
-      &mut sat_to_inscription_id,
-      &mut satpoint_to_inscription_id,
-      block.header.time,
-      unbound_inscriptions,
-      value_cache,
-    )?;
+    {
+      let mut inscription_updater = InscriptionUpdater::new(
+        self.height,
+        &mut inscription_id_to_children,
+        &mut inscription_id_to_satpoint,
+        value_receiver,
+        &mut inscription_id_to_inscription_entry,
+        lost_sats,
+        &mut inscription_number_to_inscription_id,
+        cursed_inscription_count,
+        blessed_inscription_count,
+        &mut sequence_number_to_inscription_id,
+        &mut outpoint_to_value,
+        &mut sat_to_inscription_id,
+        &mut satpoint_to_inscription_id,
+        block.header.time,
+        unbound_inscriptions,
+        value_cache,
+      )?;
 
-    if self.index.index_sats {
-      let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
-      let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
+      if self.index.index_sats {
+        let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
+        let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-      let mut coinbase_inputs = VecDeque::new();
+        let mut coinbase_inputs = VecDeque::new();
 
-      let h = Height(self.height);
-      if h.subsidy() > 0 {
-        let start = h.starting_sat();
-        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-        self.sat_ranges_since_flush += 1;
-      }
-
-      for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
-        log::trace!("Indexing transaction {tx_offset}…");
-
-        let mut input_sat_ranges = VecDeque::new();
-
-        for input in &tx.input {
-          let key = input.previous_output.store();
-
-          let sat_ranges = match self.range_cache.remove(&key) {
-            Some(sat_ranges) => {
-              self.outputs_cached += 1;
-              sat_ranges
-            }
-            None => outpoint_to_sat_ranges
-              .remove(&key)?
-              .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-              .value()
-              .to_vec(),
-          };
-
-          for chunk in sat_ranges.chunks_exact(11) {
-            input_sat_ranges.push_back(SatRange::load(chunk.try_into().unwrap()));
-          }
+        let h = Height(self.height);
+        if h.subsidy() > 0 {
+          let start = h.starting_sat();
+          coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+          self.sat_ranges_since_flush += 1;
         }
 
-        self.index_transaction_sats(
-          tx,
-          *txid,
-          &mut sat_to_satpoint,
-          &mut input_sat_ranges,
-          &mut sat_ranges_written,
-          &mut outputs_in_block,
-          &mut inscription_updater,
-          index_inscriptions,
-        )?;
+        for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
+          log::trace!("Indexing transaction {tx_offset}…");
 
-        coinbase_inputs.extend(input_sat_ranges);
-      }
+          let mut input_sat_ranges = VecDeque::new();
 
-      if let Some((tx, txid)) = block.txdata.get(0) {
-        self.index_transaction_sats(
-          tx,
-          *txid,
-          &mut sat_to_satpoint,
-          &mut coinbase_inputs,
-          &mut sat_ranges_written,
-          &mut outputs_in_block,
-          &mut inscription_updater,
-          index_inscriptions,
-        )?;
-      }
+          for input in &tx.input {
+            let key = input.previous_output.store();
 
-      if !coinbase_inputs.is_empty() {
-        let mut lost_sat_ranges = outpoint_to_sat_ranges
-          .remove(&OutPoint::null().store())?
-          .map(|ranges| ranges.value().to_vec())
-          .unwrap_or_default();
-
-        for (start, end) in coinbase_inputs {
-          if !Sat(start).is_common() {
-            sat_to_satpoint.insert(
-              &start,
-              &SatPoint {
-                outpoint: OutPoint::null(),
-                offset: lost_sats,
+            let sat_ranges = match self.range_cache.remove(&key) {
+              Some(sat_ranges) => {
+                self.outputs_cached += 1;
+                sat_ranges
               }
-              .store(),
-            )?;
+              None => outpoint_to_sat_ranges
+                .remove(&key)?
+                .ok_or_else(|| {
+                  anyhow!("Could not find outpoint {} in index", input.previous_output)
+                })?
+                .value()
+                .to_vec(),
+            };
+
+            for chunk in sat_ranges.chunks_exact(11) {
+              input_sat_ranges.push_back(SatRange::load(chunk.try_into().unwrap()));
+            }
           }
 
-          lost_sat_ranges.extend_from_slice(&(start, end).store());
+          self.index_transaction_sats(
+            tx,
+            *txid,
+            &mut sat_to_satpoint,
+            &mut input_sat_ranges,
+            &mut sat_ranges_written,
+            &mut outputs_in_block,
+            &mut inscription_updater,
+            index_inscriptions,
+          )?;
 
-          lost_sats += end - start;
+          coinbase_inputs.extend(input_sat_ranges);
         }
 
-        outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
+        if let Some((tx, txid)) = block.txdata.get(0) {
+          self.index_transaction_sats(
+            tx,
+            *txid,
+            &mut sat_to_satpoint,
+            &mut coinbase_inputs,
+            &mut sat_ranges_written,
+            &mut outputs_in_block,
+            &mut inscription_updater,
+            index_inscriptions,
+          )?;
+        }
+
+        if !coinbase_inputs.is_empty() {
+          let mut lost_sat_ranges = outpoint_to_sat_ranges
+            .remove(&OutPoint::null().store())?
+            .map(|ranges| ranges.value().to_vec())
+            .unwrap_or_default();
+
+          for (start, end) in coinbase_inputs {
+            if !Sat(start).is_common() {
+              sat_to_satpoint.insert(
+                &start,
+                &SatPoint {
+                  outpoint: OutPoint::null(),
+                  offset: lost_sats,
+                }
+                .store(),
+              )?;
+            }
+
+            lost_sat_ranges.extend_from_slice(&(start, end).store());
+
+            lost_sats += end - start;
+          }
+
+          outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
+        }
+      } else {
+        for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
+          inscription_updater.index_envelopes(tx, *txid, None)?;
+        }
       }
-    } else {
-      for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_envelopes(tx, *txid, None)?;
-      }
+
+      self.index_block_inscription_numbers(
+        &mut height_to_last_sequence_number,
+        &inscription_updater,
+        index_inscriptions,
+      )?;
+
+      statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+      statistic_to_count.insert(
+        &Statistic::CursedInscriptions.key(),
+        &inscription_updater.cursed_inscription_count,
+      )?;
+
+      statistic_to_count.insert(
+        &Statistic::BlessedInscriptions.key(),
+        &inscription_updater.blessed_inscription_count,
+      )?;
+
+      statistic_to_count.insert(
+        &Statistic::UnboundInscriptions.key(),
+        &inscription_updater.unbound_inscriptions,
+      )?;
     }
 
-    self.index_block_inscription_numbers(
-      &mut height_to_last_sequence_number,
-      &inscription_updater,
-      index_inscriptions,
-    )?;
-
-    statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
-
-    statistic_to_count.insert(
-      &Statistic::CursedInscriptions.key(),
-      &inscription_updater.cursed_inscription_count,
-    )?;
-
-    statistic_to_count.insert(
-      &Statistic::BlessedInscriptions.key(),
-      &inscription_updater.blessed_inscription_count,
-    )?;
-
-    statistic_to_count.insert(
-      &Statistic::UnboundInscriptions.key(),
-      &inscription_updater.unbound_inscriptions,
-    )?;
+    if index.index_runes {
+      let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+      let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+      let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
+      let mut inscription_id_to_rune = wtx.open_table(INSCRIPTION_ID_TO_RUNE)?;
+      let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
+      let mut rune_updater = RuneUpdater::new(
+        self.height,
+        &mut rune_id_to_rune_entry,
+        &inscription_id_to_inscription_entry,
+        &mut inscription_id_to_rune,
+        &mut outpoint_to_rune_balances,
+        &mut rune_to_rune_id,
+        &mut statistic_to_count,
+        block.header.time,
+        &mut transaction_id_to_rune,
+      )?;
+      for (i, (tx, txid)) in block.txdata.iter().enumerate() {
+        rune_updater.index_runes(i, tx, *txid)?;
+      }
+    }
 
     height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
