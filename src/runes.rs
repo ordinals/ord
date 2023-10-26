@@ -3984,14 +3984,201 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn open_etching_claims_can_use_split() {
-    todo!()
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 0,
+            output: 3,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 1000,
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 500)],
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 1,
+          },
+          vec![(id, 500)],
+        ),
+      ],
+    );
   }
 
   #[test]
-  #[ignore]
   fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
-    todo!()
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          edicts: vec![Edict {
+            id: 0,
+            amount: 2000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 1000,
+          ..Default::default()
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+    );
+  }
+
+  #[test]
+  fn runes_can_be_etched_and_claimed_with_claim_bit_in_the_same_transaction() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          edicts: vec![Edict {
+            id: CLAIM_BIT,
+            amount: 2000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 1000,
+          ..Default::default()
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+    );
   }
 }

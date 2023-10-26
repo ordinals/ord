@@ -176,7 +176,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             continue;
           }
 
-          let (balance, id) = if id == 0 {
+          let (balance, id) = if id == 0 || id == CLAIM_BIT {
             // If this edict allocates new issuance runes, skip it
             // if no issuance was present, or if the issuance was invalid.
             // Additionally, replace ID 0 with the newly assigned ID, and

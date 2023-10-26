@@ -95,6 +95,7 @@ impl Context {
     ]
   }
 
+  #[track_caller]
   pub(crate) fn assert_runes(
     &self,
     mut runes: impl AsMut<[(RuneId, RuneEntry)]>,
