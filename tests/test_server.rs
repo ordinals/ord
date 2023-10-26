@@ -14,7 +14,18 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
-  pub(crate) fn spawn_with_args(rpc_server: &test_bitcoincore_rpc::Handle, args: &[&str]) -> Self {
+  pub(crate) fn spawn_with_args(
+    rpc_server: &test_bitcoincore_rpc::Handle,
+    ord_args: &[&str],
+  ) -> Self {
+    Self::spawn_with_server_args(rpc_server, ord_args, &[])
+  }
+
+  pub(crate) fn spawn_with_server_args(
+    rpc_server: &test_bitcoincore_rpc::Handle,
+    ord_args: &[&str],
+    server_args: &[&str],
+  ) -> Self {
     let tempdir = TempDir::new().unwrap();
     fs::write(tempdir.path().join(".cookie"), "foo:bar").unwrap();
     let port = TcpListener::bind("127.0.0.1:0")
@@ -24,11 +35,12 @@ impl TestServer {
       .port();
 
     let child = Command::new(executable_path("ord")).args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server --http-port {port} --address 127.0.0.1",
+      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display(),
-      args.join(" "),
+      ord_args.join(" "),
+      server_args.join(" "),
     ).to_args())
       .env("ORD_INTEGRATION_TEST", "1")
       .current_dir(&tempdir)
