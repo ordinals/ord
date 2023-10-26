@@ -4,7 +4,7 @@ use {
 };
 
 fn claim(id: u128) -> Option<u128> {
-  (id & CLAIM_BIT != 0).then_some(id & !CLAIM_BIT)
+  (id & CLAIM_BIT != 0).then_some(id ^ CLAIM_BIT)
 }
 
 struct Allocation {
