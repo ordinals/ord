@@ -27,10 +27,14 @@ pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) divisibility: u8,
   pub(crate) etching: Txid,
+  pub(crate) number: u64,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
   pub(crate) symbol: Option<char>,
+  pub(crate) timestamp: u32,
 }
+
+pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u64, u128, u128, u32, u32);
 
 impl Default for RuneEntry {
   fn default() -> Self {
@@ -38,19 +42,21 @@ impl Default for RuneEntry {
       burned: 0,
       divisibility: 0,
       etching: Txid::all_zeros(),
+      number: 0,
       rune: Rune(0),
       supply: 0,
       symbol: None,
+      timestamp: 0,
     }
   }
 }
 
-pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u128, u128, u32);
-
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((burned, divisibility, etching, rune, supply, symbol): RuneEntryValue) -> Self {
+  fn load(
+    (burned, divisibility, etching, number, rune, supply, symbol, timestamp): RuneEntryValue,
+  ) -> Self {
     Self {
       burned,
       divisibility,
@@ -64,9 +70,11 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
+      number,
       rune: Rune(rune),
       supply,
       symbol: char::from_u32(symbol),
+      timestamp,
     }
   }
 
@@ -87,12 +95,14 @@ impl Entry for RuneEntry {
           ]),
         )
       },
+      self.number,
       self.rune.0,
       self.supply,
       match self.symbol {
         Some(symbol) => symbol.into(),
         None => u32::max_value(),
       },
+      self.timestamp,
     )
   }
 }
@@ -116,31 +126,31 @@ pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) inscription_number: i64,
-  pub(crate) sequence_number: u64,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
+  pub(crate) sequence_number: u64,
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, i64, u64, ParentValue, u64, u32);
+pub(crate) type InscriptionEntryValue = (u64, u64, i64, ParentValue, u64, u64, u32);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
   fn load(
-    (fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue,
+    (fee, height, inscription_number, parent, sat, sequence_number, timestamp): InscriptionEntryValue,
   ) -> Self {
     Self {
       fee,
       height,
       inscription_number,
-      sequence_number,
       parent: ParentEntry::load(parent),
       sat: if sat == u64::MAX {
         None
       } else {
         Some(Sat(sat))
       },
+      sequence_number,
       timestamp,
     }
   }
@@ -150,12 +160,12 @@ impl Entry for InscriptionEntry {
       self.fee,
       self.height,
       self.inscription_number,
-      self.sequence_number,
       self.parent.store(),
       match self.sat {
         Some(sat) => sat.n(),
         None => u64::MAX,
       },
+      self.sequence_number,
       self.timestamp,
     )
   }
@@ -417,9 +427,11 @@ mod tests {
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      rune: Rune(3),
-      supply: 4,
+      number: 3,
+      rune: Rune(4),
+      supply: 5,
       symbol: Some('a'),
+      timestamp: 6,
     };
 
     assert_eq!(
@@ -433,7 +445,9 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::from('a'),
+        6,
       )
     );
 
@@ -447,7 +461,9 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::from('a'),
+        6,
       )),
       rune_entry
     );
@@ -468,7 +484,9 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::max_value(),
+        6,
       )
     );
 
@@ -482,7 +500,9 @@ mod tests {
         ),
         3,
         4,
+        5,
         u32::max_value(),
+        6,
       )),
       rune_entry
     );
