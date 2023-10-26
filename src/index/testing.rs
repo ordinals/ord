@@ -95,7 +95,20 @@ impl Context {
     ]
   }
 
-  #[track_caller]
+  // todo:
+  // - open etching with splits
+  // - show term, limit, and end on /rune
+  // - rune can be etched and claimed in one transaction
+  // - rune can be etched and claimed using claim ID (with claim bit) in single transaction
+
+  // OP_RETURN outputs assigned runes show up in balances
+  // they are correctly burned
+  // however, when summing the outputs, we get the op return balances, which throws off the supply calculation
+  //
+  // we can either:
+  // - show op_return outputs as having a zero balance
+  // - track if an balance is held by an op return, sum op returns, and check against burned
+
   pub(crate) fn assert_runes(
     &self,
     mut runes: impl AsMut<[(RuneId, RuneEntry)]>,
