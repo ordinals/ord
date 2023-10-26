@@ -10,6 +10,16 @@ const TAG_TERM: u128 = 6;
 #[allow(unused)]
 const TAG_BURN: u128 = 256;
 
+// todo:
+// - test that limits over max limit are ignored
+// - term of u64 is ignored
+// - term is after etching is mined
+// - check that etching and term are encoded correctly
+// - open etching with end but without limit is recognized as a normal etching with MAX_LIMIT
+// - claiming after end doesn't work
+// - open etching without end
+// - don't show end if there is no limit
+
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
   pub edicts: Vec<Edict>,
