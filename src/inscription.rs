@@ -50,6 +50,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
+    pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
@@ -72,8 +73,19 @@ impl Inscription {
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
+      pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
+  }
+
+  fn pointer_value(pointer: u64) -> Vec<u8> {
+    let mut bytes = pointer.to_le_bytes().to_vec();
+
+    while bytes.last().copied() == Some(0) {
+      bytes.pop();
+    }
+
+    bytes
   }
 
   pub(crate) fn append_reveal_script_to_builder(
@@ -126,8 +138,27 @@ impl Inscription {
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
+  #[cfg(test)]
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
+  }
+
+  pub(crate) fn append_batch_reveal_script_to_builder(
+    inscriptions: &[Inscription],
+    mut builder: script::Builder,
+  ) -> script::Builder {
+    for inscription in inscriptions {
+      builder = inscription.append_reveal_script_to_builder(builder);
+    }
+
+    builder
+  }
+
+  pub(crate) fn append_batch_reveal_script(
+    inscriptions: &[Inscription],
+    builder: script::Builder,
+  ) -> ScriptBuf {
+    Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
   pub(crate) fn media(&self) -> Media {
@@ -239,7 +270,7 @@ impl Inscription {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, std::io::Write};
 
   #[test]
   fn reveal_script_chunks_body() {
@@ -630,5 +661,32 @@ mod tests {
       .to_witness(),
       envelope(&[b"ord", &[2], &[1, 2, 3]]),
     );
+  }
+
+  #[test]
+  fn pointer_value() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None).unwrap();
+
+    assert_eq!(inscription.pointer, None);
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(0), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(Vec::new()));
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(1), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(vec![1]));
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(vec![0, 1]));
   }
 }

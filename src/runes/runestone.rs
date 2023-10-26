@@ -159,9 +159,8 @@ impl Runestone {
       let mut payload = Vec::new();
 
       for result in instructions {
-        match result? {
-          Instruction::PushBytes(push) => payload.extend_from_slice(push.as_bytes()),
-          Instruction::Op(op) => return Err(Error::Opcode(op)),
+        if let Instruction::PushBytes(push) = result? {
+          payload.extend_from_slice(push.as_bytes());
         }
       }
 
@@ -331,26 +330,34 @@ mod tests {
   }
 
   #[test]
-  fn deciphering_runestone_with_non_push_opcode_returns_opcode_error() {
-    let result = Runestone::decipher(&Transaction {
-      input: Vec::new(),
-      output: vec![TxOut {
-        script_pubkey: script::Builder::new()
-          .push_opcode(opcodes::all::OP_RETURN)
-          .push_slice(b"RUNE_TEST")
-          .push_opcode(opcodes::all::OP_VERIFY)
-          .into_script(),
-        value: 0,
-      }],
-      lock_time: locktime::absolute::LockTime::ZERO,
-      version: 0,
-    });
-
-    match result {
-      Ok(_) => panic!("expected error"),
-      Err(Error::Opcode(opcodes::all::OP_VERIFY)) => {}
-      Err(err) => panic!("unexpected error: {err}"),
-    }
+  fn non_push_opcodes_in_runestone_are_ignored() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice([0, 1])
+            .push_opcode(opcodes::all::OP_VERIFY)
+            .push_slice([2, 3])
+            .into_script(),
+          value: 0,
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      })
+      .unwrap()
+      .unwrap(),
+      Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        ..Default::default()
+      },
+    );
   }
 
   #[test]

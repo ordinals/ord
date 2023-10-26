@@ -568,23 +568,14 @@ impl Server {
       )
     })?;
 
-    let inscription = InscriptionId {
+    let parent = InscriptionId {
       txid: entry.etching,
       index: 0,
     };
 
-    let inscription = index
-      .inscription_exists(inscription)?
-      .then_some(inscription);
+    let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(
-      RuneHtml {
-        id,
-        entry,
-        inscription,
-      }
-      .page(page_config),
-    )
+    Ok(RuneHtml { id, entry, parent }.page(page_config))
   }
 
   async fn runes(
@@ -1096,6 +1087,8 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
+    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1112,6 +1105,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
+        rune,
       ))
       .into_response()
     } else {
@@ -1130,6 +1124,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        rune,
       }
       .page(page_config)
       .into_response()
@@ -1249,6 +1244,8 @@ mod tests {
     serde::de::DeserializeOwned,
     std::net::TcpListener,
   };
+
+  const RUNE: u128 = 99246114928149462;
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
@@ -1771,7 +1768,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -1797,8 +1794,8 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_redirect("/search/2/1", "/rune/NVTDIJZYIPU");
-    server.assert_redirect("/search?query=2/1", "/rune/NVTDIJZYIPU");
+    server.assert_redirect("/search/2/1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=2/1", "/rune/AAAAAAAAAAAAA");
 
     server.assert_response_regex("/rune/100/200", StatusCode::NOT_FOUND, ".*");
 
@@ -3207,7 +3204,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+            rune: Rune(RUNE),
             ..Default::default()
           }),
           ..Default::default()
@@ -3230,7 +3227,7 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          rune: Rune(RUNE),
           supply: u128::max_value(),
           ..Default::default()
         }
@@ -3248,7 +3245,7 @@ mod tests {
       ".*<title>Runes</title>.*
 <h1>Runes</h1>
 <ul>
-  <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
+  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
 </ul>.*",
     );
   }
@@ -3259,7 +3256,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3314,11 +3311,14 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        r".*<title>Rune NVTDIJZYIPU</title>.*
-<h1>Rune NVTDIJZYIPU</h1>
+        r".*<title>Rune AAAAAAAAAAAAA</title>.*
+<h1>Rune AAAAAAAAAAAAA</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
+  <dt>number</dt>
+  <dd>0</dd>
   <dt>supply</dt>
   <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
@@ -3329,11 +3329,23 @@ mod tests {
   <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"
       ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*
+<dl>
+  .*
+  <dt>rune</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+</dl>
+.*",
     );
   }
 
@@ -3395,7 +3407,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3461,7 +3473,7 @@ mod tests {
         <th>balance</th>
       </tr>
       <tr>
-        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
         <td>34028236692093846346337460743176821145.5</td>
       </tr>
     </table>
@@ -3479,12 +3491,9 @@ mod tests {
         transaction: txid.to_string(),
         sat_ranges: None,
         inscriptions: Vec::new(),
-        runes: vec![(
-          Rune(2100000000000000),
-          340282366920938463463374607431768211455
-        )]
-        .into_iter()
-        .collect(),
+        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
+          .into_iter()
+          .collect(),
       }
     );
   }

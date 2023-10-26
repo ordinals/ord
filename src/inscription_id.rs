@@ -6,6 +6,15 @@ pub struct InscriptionId {
   pub index: u32,
 }
 
+impl Default for InscriptionId {
+  fn default() -> Self {
+    Self {
+      txid: Txid::all_zeros(),
+      index: 0,
+    }
+  }
+}
+
 impl InscriptionId {
   pub(crate) fn parent_value(self) -> Vec<u8> {
     let index = self.index.to_le_bytes();
