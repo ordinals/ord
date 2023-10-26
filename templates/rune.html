@@ -19,7 +19,7 @@
 %% }
 %% if let Some(limit) = self.entry.limit {
   <dt>open etching limit</dt>
-  <dd>{{ limit }}</dd>
+  <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
 %% }
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
