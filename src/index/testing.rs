@@ -95,12 +95,6 @@ impl Context {
     ]
   }
 
-  // todo:
-  // - open etching with splits
-  // - show term, limit, and end on /rune
-  // - rune can be etched and claimed in one transaction
-  // - rune can be etched and claimed using claim ID (with claim bit) in single transaction
-
   pub(crate) fn assert_runes(
     &self,
     mut runes: impl AsMut<[(RuneId, RuneEntry)]>,

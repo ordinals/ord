@@ -5,7 +5,6 @@ pub(crate) struct RuneHtml {
   pub(crate) entry: RuneEntry,
   pub(crate) id: RuneId,
   pub(crate) parent: Option<InscriptionId>,
-  pub(crate) timestamp: DateTime<Utc>,
 }
 
 impl PageContent for RuneHtml {
@@ -30,7 +29,9 @@ mod tests {
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
           symbol: Some('$'),
-          ..Default::default()
+          limit: Some(10),
+          end: Some(11),
+          timestamp: 0,
         },
         id: RuneId {
           height: 10,
@@ -40,7 +41,6 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
-        timestamp: timestamp(0),
       },
       r"<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>

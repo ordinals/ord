@@ -3982,4 +3982,16 @@ mod tests {
       [],
     );
   }
+
+  #[test]
+  #[ignore]
+  fn open_etching_claims_can_use_split() {
+    todo!()
+  }
+
+  #[test]
+  #[ignore]
+  fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
+    todo!()
+  }
 }

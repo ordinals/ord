@@ -575,15 +575,7 @@ impl Server {
 
     let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(
-      RuneHtml {
-        id,
-        entry,
-        parent,
-        timestamp: timestamp(entry.timestamp),
-      }
-      .page(page_config),
-    )
+    Ok(RuneHtml { id, entry, parent }.page(page_config))
   }
 
   async fn runes(
