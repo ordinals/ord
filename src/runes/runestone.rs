@@ -21,6 +21,15 @@ const TAG_BURN: u128 = 256;
 // - don't show end if there is no limit
 // - use Height for end
 // - make sure we check for end >= u64::max_value when checking for end in runestone
+// - end is calculated correctly
+// - open etching with zero term cannot be claimed in etching, or in subsequent transactions
+// - consider using ID instead of u128 in runestone
+// - consider using amount instead of u128
+// - transaction cannot claim more than limit
+// - etching can claim rune using id or id with claim bit
+// - can etch and allocate input runes in same transaction
+// - two edicts can claim the same rune in an open etching up to the limit
+// - supply reflects claims
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
