@@ -148,7 +148,15 @@ pub(crate) struct InscriptionEntry {
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, i64, ParentValue, u64, u64, u32);
+pub(crate) type InscriptionEntryValue = (
+  u64,         // fee
+  u64,         // height
+  i64,         // inscription number
+  ParentValue, // parent
+  u64,         // sat
+  u64,         // sequence number
+  u32,         // timestamp
+);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
