@@ -18,10 +18,10 @@ impl TestServer {
     rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
   ) -> Self {
-    Self::spawn_with_more_args(rpc_server, ord_args, &[])
+    Self::spawn_with_server_args(rpc_server, ord_args, &[])
   }
 
-  pub(crate) fn spawn_with_more_args(
+  pub(crate) fn spawn_with_server_args(
     rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
     server_args: &[&str],

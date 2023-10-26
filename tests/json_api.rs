@@ -4,7 +4,7 @@ use {super::*, bitcoin::BlockHash};
 fn get_sat_without_sat_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  let response = TestServer::spawn_with_more_args(&rpc_server, &[], &["--enable-json-api"])
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
     .json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -44,7 +44,7 @@ fn get_sat_with_inscription_and_sat_index() {
   let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response =
-    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
       .json_request(format!("/sat/{}", 50 * COIN_VALUE));
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -97,7 +97,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   };
 
   let response =
-    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
       .json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -134,7 +134,7 @@ fn get_inscription() {
   let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response =
-    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
       .json_request(format!("/inscription/{}", inscription_id));
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -221,7 +221,7 @@ fn get_inscriptions() {
   let inscriptions = create_210_inscriptions(&rpc_server);
 
   let server =
-    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
@@ -312,7 +312,7 @@ fn get_inscriptions_in_block() {
 
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_more_args(
+  let server = TestServer::spawn_with_server_args(
     &rpc_server,
     &["--index-sats", "--first-inscription-height", "0"],
     &["--enable-json-api"],
@@ -355,7 +355,7 @@ fn get_output() {
   rpc_server.mine_blocks(1);
 
   let server =
-    TestServer::spawn_with_more_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", txid));
   assert_eq!(response.status(), StatusCode::OK);
@@ -400,7 +400,7 @@ fn get_block() {
 
   rpc_server.mine_blocks(1);
 
-  let response = TestServer::spawn_with_more_args(&rpc_server, &[], &["--enable-json-api"])
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
     .json_request("/block/0");
 
   assert_eq!(response.status(), StatusCode::OK);
