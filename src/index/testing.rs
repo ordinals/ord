@@ -100,7 +100,7 @@ impl Context {
   // - show term, limit, and end on /rune
   // - rune can be etched and claimed in one transaction
   // - rune can be etched and claimed using claim ID (with claim bit) in single transaction
-
+  //
   // OP_RETURN outputs assigned runes show up in balances
   // they are correctly burned
   // however, when summing the outputs, we get the op return balances, which throws off the supply calculation
