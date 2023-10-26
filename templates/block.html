@@ -21,13 +21,13 @@ prev
 next
 %% }
 </div>
-<h2>{{"Inscription".tally(self.total_num_inscriptions)}}</h2>
+<h2>{{"Inscription".tally(self.inscription_count)}}</h2>
 <div class=thumbnails>
 %% for id in &self.featured_inscriptions {
     {{ Iframe::thumbnail(*id) }}
 %% }
 </div>
-%% if &self.total_num_inscriptions > &self.featured_inscriptions.len() {
+%% if &self.inscription_count > &self.featured_inscriptions.len() {
 <div class=center>
   <a href="/inscriptions/block/{{ &self.height }}">more</a>
 </div>
