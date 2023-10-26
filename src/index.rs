@@ -56,6 +56,7 @@ define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
+define_table! { INSCRIPTION_ID_TO_RUNE, &InscriptionIdValue, u128 }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
@@ -83,6 +84,7 @@ pub(crate) enum Statistic {
   IndexSats,
   LostSats,
   OutputsTraversed,
+  Runes,
   SatRanges,
   Schema,
   UnboundInscriptions,
@@ -272,6 +274,7 @@ impl Index {
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+        tx.open_table(INSCRIPTION_ID_TO_RUNE)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -792,6 +795,20 @@ impl Index {
           .map_err(|err| err.into())
       })
       .collect()
+  }
+
+  pub(crate) fn get_rune_by_inscription_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Rune>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_RUNE)?
+        .get(&inscription_id.store())?
+        .map(|entry| Rune(entry.value())),
+    )
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {

@@ -158,7 +158,8 @@ fn get_inscription() {
       content_length: Some(3),
       timestamp: 2,
       previous: None,
-      next: None
+      next: None,
+      rune: None,
     }
   )
 }
