@@ -1,10 +1,10 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone},
+  crate::runes::{varint, Edict, Runestone, CLAIM_BIT},
 };
 
 fn claim(id: u128) -> Option<u128> {
-  id.checked_sub(1 << 48)
+  (id & CLAIM_BIT != 0).then_some(id & !CLAIM_BIT)
 }
 
 struct Allocation {
@@ -377,5 +377,16 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }
 
     Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn claim_from_id() {
+    assert_eq!(claim(1), None);
+    assert_eq!(claim(1 | CLAIM_BIT), Some(1));
   }
 }

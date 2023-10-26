@@ -1159,7 +1159,7 @@ mod tests {
     case(
       vec![Edict {
         amount: 0,
-        id: 1 << 48,
+        id: CLAIM_BIT,
         output: 0,
       }],
       None,

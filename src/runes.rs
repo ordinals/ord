@@ -4,6 +4,7 @@ pub use runestone::Runestone;
 
 pub(crate) use {edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId};
 
+pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 const MAX_DIVISIBILITY: u8 = 38;
 const MAX_LIMIT: u128 = 1 << 64;
 
@@ -4045,7 +4046,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | 1 << 48,
+            id: u128::from(id) | CLAIM_BIT,
             amount: 1000,
             output: 0,
           }],
@@ -4089,7 +4090,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | 1 << 48,
+            id: u128::from(id) | CLAIM_BIT,
             amount: 1000,
             output: 0,
           }],
@@ -4192,7 +4193,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | 1 << 48,
+            id: u128::from(id) | CLAIM_BIT,
             amount: 1000,
             output: 0,
           }],
@@ -4237,7 +4238,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | 1 << 48,
+            id: u128::from(id) | CLAIM_BIT,
             amount: 1000,
             output: 0,
           }],
