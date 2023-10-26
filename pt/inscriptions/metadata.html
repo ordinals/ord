@@ -1,0 +1,359 @@
+<!DOCTYPE HTML>
+<html lang="pt" class="sidebar-visible no-js coal" dir="ltr">
+<script>
+  var lang = "pt"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="pt" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Metadata - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introdução</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> Descrição Geral</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artefatos Digitais</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> Inscrições</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html" class="active"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Procedência</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Recursão</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> Perguntas Frequentes</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Contribuir</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> Doações</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> Guias</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorador</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscrições</a></li><li class="chapter-item expanded "><a href="../guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Batch Inscribing</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> Caçando Sats</a></li><li class="chapter-item expanded "><a href="../guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.6.</strong> Colecionando</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> Carteira Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.7.</strong> Testando</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.8.</strong> Moderação</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> Reindexação</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> Recompensas</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Recompensa 0: 100,000 sats reivindicados!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Recompensa 1: 200,000 sats reivindicados!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Recompensa 2: 300,000 sats reivindicados!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Recompensa 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("pt");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "inscriptions/metadata.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
+<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
+<p>Metadata is rendered to HTML for display as follows:</p>
+<ul>
+<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
+<li>Byte strings are rendered as uppercase hexadecimal.</li>
+<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
+<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
+<li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
+</ul>
+<p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
+<h2 id="exemplo"><a class="header" href="#exemplo">Exemplo</a></h2>
+<p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
+<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>And rendered as:</p>
+<pre><code>&lt;dl&gt;
+  ...
+  &lt;dt&gt;metadata&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;foo&lt;/dt&gt;
+      &lt;dd&gt;bar&lt;/dd&gt;
+      &lt;dt&gt;baz&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;ul&gt;
+          &lt;li&gt;null&lt;/li&gt;
+          &lt;li&gt;true&lt;/li&gt;
+          &lt;li&gt;false&lt;/li&gt;
+          &lt;li&gt;0&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/dd&gt;
+  ...
+&lt;/dl&gt;
+</code></pre>
+<p>Metadata longer than 520 bytes must be split into multiple fields:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
+    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>Which would then be concatinated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../inscriptions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../inscriptions/provenance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../inscriptions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../inscriptions/provenance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
