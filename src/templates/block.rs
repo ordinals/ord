@@ -1,5 +1,9 @@
 use super::*;
 
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
+}
+
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
@@ -7,7 +11,7 @@ pub(crate) struct BlockHtml {
   best_height: Height,
   block: Block,
   height: Height,
-  total_num_inscriptions: usize,
+  inscription_count: usize,
   featured_inscriptions: Vec<InscriptionId>,
 }
 
@@ -16,16 +20,16 @@ impl BlockHtml {
     block: Block,
     height: Height,
     best_height: Height,
-    total_num_inscriptions: usize,
+    inscription_count: usize,
     featured_inscriptions: Vec<InscriptionId>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_le_bytes())),
+      target: target_as_block_hash(block.header.target()),
       block,
       height,
       best_height,
-      total_num_inscriptions,
+      inscription_count,
       featured_inscriptions,
     }
   }
@@ -33,12 +37,11 @@ impl BlockHtml {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockJson {
-  pub hash: String,
-  pub target: String,
+  pub hash: BlockHash,
+  pub target: BlockHash,
   pub best_height: u64,
   pub height: u64,
-  pub total_num_inscriptions: usize,
-  pub featured_inscriptions: Vec<InscriptionId>,
+  pub inscriptions: Vec<InscriptionId>,
 }
 
 impl BlockJson {
@@ -46,17 +49,14 @@ impl BlockJson {
     block: Block,
     height: Height,
     best_height: Height,
-    total_num_inscriptions: usize,
-    featured_inscriptions: Vec<InscriptionId>,
+    inscriptions: Vec<InscriptionId>,
   ) -> Self {
     Self {
-      hash: block.header.block_hash().to_string(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_le_bytes()))
-        .to_string(),
+      hash: block.header.block_hash(),
+      target: target_as_block_hash(block.header.target()),
       height: height.0,
       best_height: best_height.0,
-      total_num_inscriptions,
-      featured_inscriptions,
+      inscriptions,
     }
   }
 }
@@ -131,6 +131,14 @@ mod tests {
         Vec::new()
       ),
       r"<h1>Block 1</h1>.*<a class=prev href=/block/0>prev</a>\s*next.*",
+    );
+  }
+
+  #[test]
+  fn block_hash_serializes_as_hex_string() {
+    assert_eq!(
+      serde_json::to_string(&BlockHash::all_zeros()).unwrap(),
+      "\"0000000000000000000000000000000000000000000000000000000000000000\""
     );
   }
 }

@@ -646,19 +646,18 @@ impl Server {
       }
     };
 
-    let (featured_inscriptions, total_num) =
-      index.get_highest_paying_inscriptions_in_block(height, 8)?;
-
     Ok(if accept_json.0 {
+      let inscriptions = index.get_inscriptions_in_block(height)?;
       Json(BlockJson::new(
         block,
         Height(height),
         Self::index_height(&index)?,
-        total_num,
-        featured_inscriptions,
+        inscriptions,
       ))
       .into_response()
     } else {
+      let (featured_inscriptions, total_num) =
+        index.get_highest_paying_inscriptions_in_block(height, 8)?;
       BlockHtml::new(
         block,
         Height(height),

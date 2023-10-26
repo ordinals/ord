@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoin::BlockHash};
 
 #[test]
 fn get_sat_without_sat_index() {
@@ -408,12 +408,15 @@ fn get_block() {
   assert_eq!(
     block_json,
     BlockJson {
-      hash: String::from("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
-      target: String::from("00000000ffff0000000000000000000000000000000000000000000000000000"),
+      hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+        .parse::<BlockHash>()
+        .unwrap(),
+      target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+        .parse::<BlockHash>()
+        .unwrap(),
       best_height: 1,
       height: 0,
-      total_num_inscriptions: 0,
-      featured_inscriptions: vec![],
+      inscriptions: vec![],
     }
   );
 }
