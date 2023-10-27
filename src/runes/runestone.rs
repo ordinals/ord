@@ -22,7 +22,7 @@ const TAG_BURN: u128 = 256;
 // - use Height for end
 // - make sure we check for end >= u64::max_value when checking for end in runestone
 // - end is calculated correctly
-// - open etching with zero term cannot be claimed in etching, or in subsequent transactions
+// - open etching with zero term cannot be claimed in subsequent transactions
 // - consider using ID instead of u128 in runestone
 // - consider using amount instead of u128
 // - transaction cannot claim more than limit
