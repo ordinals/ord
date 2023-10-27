@@ -38,7 +38,6 @@ hyper = { version = "0.14.24", features = ["http1", "client"] }
 indicatif = "0.17.1"
 lazy_static = "1.4.0"
 log = "0.4.14"
-mdbook-i18n-helpers = "0.2.4"
 mime = "0.3.16"
 mime_guess = "2.0.4"
 miniscript = "10.0.0"
