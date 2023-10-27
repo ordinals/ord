@@ -550,10 +550,6 @@ impl Index {
     self.unrecoverably_reorged.load(atomic::Ordering::Relaxed)
   }
 
-  pub(crate) fn is_json_api_enabled(&self) -> bool {
-    self.options.enable_json_api
-  }
-
   fn begin_read(&self) -> Result<rtx::Rtx> {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
