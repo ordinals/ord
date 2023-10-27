@@ -1,3 +1,4 @@
+use ciborium::value::Integer;
 use {super::*, crate::command_builder::ToArgs, ord::subcommand::wallet::send::Output};
 
 #[test]
@@ -188,6 +189,56 @@ fn inscription_content() {
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
+}
+
+#[test]
+fn inscription_metadata() {
+  let metadata = r#"{"foo":"bar","baz":1}"#;
+  let mut encoded_metadata = Vec::new();
+  let cbor_map = ciborium::value::Value::Map(vec![
+    (
+      ciborium::value::Value::Text("foo".into()),
+      ciborium::value::Value::Text("bar".into()),
+    ),
+    (
+      ciborium::value::Value::Text("baz".into()),
+      ciborium::value::Value::Integer(Integer::from(1)),
+    ),
+  ]);
+  ciborium::ser::into_writer(&cbor_map, &mut encoded_metadata).unwrap();
+
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = CommandBuilder::new(
+    "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file foo.txt",
+  )
+  .write("foo.txt", "FOO")
+  .write("metadata.json", metadata)
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>()
+  .inscriptions
+  .get(0)
+  .unwrap()
+  .id;
+
+  rpc_server.mine_blocks(1);
+
+  let response =
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/r/metadata/{inscription_id}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(
+    response.headers().get("content-type").unwrap(),
+    "application/json"
+  );
+  // what comes back is a json string, so we need the extra quotes
+  assert_eq!(
+    response.text().unwrap(),
+    format!("\"{}\"", hex::encode(encoded_metadata))
+  );
 }
 
 #[test]

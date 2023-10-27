@@ -231,6 +231,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/r/metadata/:inscription_id", get(Self::metadata))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -691,6 +692,19 @@ impl Server {
       )
       .page(page_config),
     )
+  }
+
+  async fn metadata(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Json<String>> {
+    let metadata = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      .metadata
+      .ok_or_not_found(|| format!("inscription {inscription_id} metadata"))?;
+
+    Ok(Json(hex::encode(metadata)))
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
