@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct TransactionHtml {
   blockhash: Option<BlockHash>,
   chain: Chain,
+  etching: Option<Rune>,
   inscription: Option<InscriptionId>,
   transaction: Transaction,
   txid: Txid,
@@ -15,11 +16,13 @@ impl TransactionHtml {
     blockhash: Option<BlockHash>,
     inscription: Option<InscriptionId>,
     chain: Chain,
+    etching: Option<Rune>,
   ) -> Self {
     Self {
       txid: transaction.txid(),
       blockhash,
       chain,
+      etching,
       inscription,
       transaction,
     }
@@ -65,10 +68,12 @@ mod tests {
     let txid = transaction.txid();
 
     pretty_assert_eq!(
-      TransactionHtml::new(transaction, None, None, Chain::Mainnet).to_string(),
+      TransactionHtml::new(transaction, None, None, Chain::Mainnet, None).to_string(),
       format!(
         "
         <h1>Transaction <span class=monospace>{txid}</span></h1>
+        <dl>
+        </dl>
         <h2>1 Input</h2>
         <ul>
           <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
@@ -119,7 +124,7 @@ mod tests {
     };
 
     assert_regex_match!(
-      TransactionHtml::new(transaction, Some(blockhash(0)), None, Chain::Mainnet),
+      TransactionHtml::new(transaction, Some(blockhash(0)), None, Chain::Mainnet, None),
       "
         <h1>Transaction <span class=monospace>[[:xdigit:]]{64}</span></h1>
         <dl>

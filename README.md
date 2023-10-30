@@ -255,7 +255,7 @@ To align your translated version of the Handbook with reference to commit
 commands to assist you. It is assumed that your local environment is already
 well-configured with [Python](https://www.python.org/),
 [Mdbook](https://github.com/rust-lang/mdBook),
-[mdBook i18n helper](https://github.com/rust-lang/mdbb) and that you've clone
+[mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers) and that you've clone
 this repo.
 
 
