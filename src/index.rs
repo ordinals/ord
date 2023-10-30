@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     reorg::*,
     runes::{Rune, RuneId},
@@ -26,7 +26,7 @@ use {
 
 pub(crate) use self::entry::RuneEntry;
 
-mod entry;
+pub(crate) mod entry;
 mod fetcher;
 mod reorg;
 mod rtx;
@@ -56,6 +56,7 @@ define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
+define_table! { INSCRIPTION_ID_TO_RUNE, &InscriptionIdValue, u128 }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
@@ -66,6 +67,7 @@ define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
+define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
@@ -83,6 +85,7 @@ pub(crate) enum Statistic {
   IndexSats,
   LostSats,
   OutputsTraversed,
+  Runes,
   SatRanges,
   Schema,
   UnboundInscriptions,
@@ -272,6 +275,7 @@ impl Index {
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+        tx.open_table(INSCRIPTION_ID_TO_RUNE)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -280,6 +284,7 @@ impl Index {
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
+        tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         {
@@ -545,10 +550,6 @@ impl Index {
     self.unrecoverably_reorged.load(atomic::Ordering::Relaxed)
   }
 
-  pub(crate) fn is_json_api_enabled(&self) -> bool {
-    self.options.enable_json_api
-  }
-
   fn begin_read(&self) -> Result<rtx::Rtx> {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
@@ -792,6 +793,31 @@ impl Index {
           .map_err(|err| err.into())
       })
       .collect()
+  }
+
+  pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<Rune>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(TRANSACTION_ID_TO_RUNE)?
+        .get(&txid.store())?
+        .map(|entry| Rune(entry.value())),
+    )
+  }
+
+  pub(crate) fn get_rune_by_inscription_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Rune>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_RUNE)?
+        .get(&inscription_id.store())?
+        .map(|entry| Rune(entry.value())),
+    )
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
@@ -1115,7 +1141,7 @@ impl Index {
 
   pub(crate) fn get_inscriptions(
     &self,
-    utxos: BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let rtx = self.database.begin_read()?;
 

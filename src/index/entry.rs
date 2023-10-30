@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) trait Entry: Sized {
+pub(crate) trait Entry: Sized {
   type Value;
 
   fn load(value: Self::Value) -> Self;
@@ -26,34 +26,56 @@ impl Entry for BlockHash {
 pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) divisibility: u8,
+  pub(crate) end: Option<u64>,
   pub(crate) etching: Txid,
+  pub(crate) limit: Option<u128>,
+  pub(crate) number: u64,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
   pub(crate) symbol: Option<char>,
+  pub(crate) timestamp: u32,
 }
+
+pub(super) type RuneEntryValue = (
+  u128,         // burned
+  u8,           // divisibility
+  u64,          // end
+  (u128, u128), // etching
+  u128,         // limit
+  u64,          // number
+  u128,         // rune
+  u128,         // supply
+  u32,          // symbol
+  u32,          // timestamp
+);
 
 impl Default for RuneEntry {
   fn default() -> Self {
     Self {
       burned: 0,
       divisibility: 0,
+      end: None,
       etching: Txid::all_zeros(),
+      limit: None,
+      number: 0,
       rune: Rune(0),
       supply: 0,
       symbol: None,
+      timestamp: 0,
     }
   }
 }
 
-pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u128, u128, u32);
-
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((burned, divisibility, etching, rune, supply, symbol): RuneEntryValue) -> Self {
+  fn load(
+    (burned, divisibility, end, etching, limit, number, rune, supply, symbol, timestamp): RuneEntryValue,
+  ) -> Self {
     Self {
       burned,
       divisibility,
+      end: (end != u64::max_value()).then_some(end),
       etching: {
         let low = etching.0.to_le_bytes();
         let high = etching.1.to_le_bytes();
@@ -64,9 +86,12 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
+      limit: (limit != u128::max_value()).then_some(limit),
+      number,
       rune: Rune(rune),
       supply,
       symbol: char::from_u32(symbol),
+      timestamp,
     }
   }
 
@@ -74,6 +99,7 @@ impl Entry for RuneEntry {
     (
       self.burned,
       self.divisibility,
+      self.end.unwrap_or(u64::max_value()),
       {
         let bytes = self.etching.to_byte_array();
         (
@@ -87,12 +113,12 @@ impl Entry for RuneEntry {
           ]),
         )
       },
+      self.limit.unwrap_or(u128::max_value()),
+      self.number,
       self.rune.0,
       self.supply,
-      match self.symbol {
-        Some(symbol) => symbol.into(),
-        None => u32::max_value(),
-      },
+      self.symbol.map(u32::from).unwrap_or(u32::max_value()),
+      self.timestamp,
     )
   }
 }
@@ -116,31 +142,39 @@ pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) inscription_number: i64,
-  pub(crate) sequence_number: u64,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
+  pub(crate) sequence_number: u64,
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, i64, u64, ParentValue, u64, u32);
+pub(crate) type InscriptionEntryValue = (
+  u64,         // fee
+  u64,         // height
+  i64,         // inscription number
+  ParentValue, // parent
+  u64,         // sat
+  u64,         // sequence number
+  u32,         // timestamp
+);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
   fn load(
-    (fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue,
+    (fee, height, inscription_number, parent, sat, sequence_number, timestamp): InscriptionEntryValue,
   ) -> Self {
     Self {
       fee,
       height,
       inscription_number,
-      sequence_number,
       parent: ParentEntry::load(parent),
       sat: if sat == u64::MAX {
         None
       } else {
         Some(Sat(sat))
       },
+      sequence_number,
       timestamp,
     }
   }
@@ -150,12 +184,12 @@ impl Entry for InscriptionEntry {
       self.fee,
       self.height,
       self.inscription_number,
-      self.sequence_number,
       self.parent.store(),
       match self.sat {
         Some(sat) => sat.n(),
         None => u64::MAX,
       },
+      self.sequence_number,
       self.timestamp,
     )
   }
@@ -412,14 +446,18 @@ mod tests {
     let rune_entry = RuneEntry {
       burned: 1,
       divisibility: 2,
+      end: Some(3),
       etching: Txid::from_byte_array([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      rune: Rune(3),
-      supply: 4,
+      limit: Some(4),
+      number: 5,
+      rune: Rune(6),
+      supply: 7,
       symbol: Some('a'),
+      timestamp: 6,
     };
 
     assert_eq!(
@@ -427,13 +465,17 @@ mod tests {
       (
         1,
         2,
+        3,
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        3,
         4,
+        5,
+        6,
+        7,
         u32::from('a'),
+        6,
       )
     );
 
@@ -441,19 +483,25 @@ mod tests {
       RuneEntry::load((
         1,
         2,
+        3,
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        3,
         4,
+        5,
+        6,
+        7,
         u32::from('a'),
+        6,
       )),
       rune_entry
     );
 
     let rune_entry = RuneEntry {
       symbol: None,
+      limit: None,
+      end: None,
       ..rune_entry
     };
 
@@ -462,13 +510,17 @@ mod tests {
       (
         1,
         2,
+        u64::max_value(),
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        3,
-        4,
+        u128::max_value(),
+        5,
+        6,
+        7,
         u32::max_value(),
+        6,
       )
     );
 
@@ -476,13 +528,17 @@ mod tests {
       RuneEntry::load((
         1,
         2,
+        u64::max_value(),
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        3,
-        4,
+        u128::max_value(),
+        5,
+        6,
+        7,
         u32::max_value(),
+        6,
       )),
       rune_entry
     );

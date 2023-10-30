@@ -1,7 +1,26 @@
 <h1>Rune {{ self.entry.rune }}</h1>
+%% if let Some(parent) = self.parent {
+{{Iframe::main(parent)}}
+%% }
 <dl>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>
+  <dt>number</dt>
+  <dd>{{ self.entry.number }}</dd>
+  <dt>timestamp</dt>
+  <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>{{ self.id.index }}</dd>
+%% if let Some(end) = self.entry.end {
+  <dt>open etching end</dt>
+  <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
+%% }
+%% if let Some(limit) = self.entry.limit {
+  <dt>open etching limit</dt>
+  <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
+%% }
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
   <dt>burned</dt>
@@ -14,8 +33,8 @@
 %% }
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
-%% if let Some(inscription) = self.inscription {
-  <dt>inscription</dt>
-  <dd><a class=monospace href=/inscription/{{ inscription }}>{{ inscription }}</a></dd>
+%% if let Some(parent) = self.parent {
+  <dt>parent</dt>
+  <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
 </dl>

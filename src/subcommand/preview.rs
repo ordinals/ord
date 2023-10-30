@@ -79,12 +79,13 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
+            batch: None,
             cbor_metadata: None,
             commit_fee_rate: None,
             destination: None,
             dry_run: false,
             fee_rate: FeeRate::try_from(1.0).unwrap(),
-            file,
+            file: Some(file),
             json_metadata: None,
             metaprotocol: None,
             no_backup: true,

@@ -1,12 +1,18 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone},
+  crate::runes::{varint, Edict, Runestone, CLAIM_BIT},
 };
+
+fn claim(id: u128) -> Option<u128> {
+  (id & CLAIM_BIT != 0).then_some(id ^ CLAIM_BIT)
+}
 
 struct Allocation {
   balance: u128,
   divisibility: u8,
+  end: Option<u64>,
   id: u128,
+  limit: Option<u128>,
   rune: Rune,
   symbol: Option<char>,
 }
@@ -14,25 +20,52 @@ struct Allocation {
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+  inscription_id_to_inscription_entry:
+    &'a Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  runes: u64,
+  statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+  timestamp: u32,
+  transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
-    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+    inscription_id_to_inscription_entry: &'a Table<
+      'db,
+      'tx,
+      &'static InscriptionIdValue,
+      InscriptionEntryValue,
+    >,
+    inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
+    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
-  ) -> Self {
-    Self {
+    statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+    timestamp: u32,
+    transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  ) -> Result<Self> {
+    let runes = statistic_to_count
+      .get(&Statistic::Runes.into())?
+      .map(|x| x.value())
+      .unwrap_or(0);
+    Ok(Self {
       height,
       id_to_entry,
+      inscription_id_to_inscription_entry,
+      inscription_id_to_rune,
       minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
       rune_to_id,
-    }
+      runes,
+      statistic_to_count,
+      timestamp,
+      transaction_id_to_rune,
+    })
   }
 
   pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
@@ -75,6 +108,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if etching.rune < self.minimum || self.rune_to_id.get(etching.rune.0)?.is_some() {
             None
           } else {
+            let (limit, term) = match (etching.limit, etching.term) {
+              (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
+              (limit, term) => (limit, term),
+            };
+
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
             // with 2**16 + 1 transactions, there is no test that checks that
@@ -82,11 +120,21 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: u128::max_value(),
+                balance: if let Some(limit) = limit {
+                  if term == Some(0) {
+                    0
+                  } else {
+                    limit
+                  }
+                } else {
+                  u128::max_value()
+                },
+                limit,
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
                 rune: etching.rune,
                 symbol: etching.symbol,
+                end: term.map(|term| term + self.height),
               }),
               Err(_) => None,
             }
@@ -96,6 +144,33 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       };
 
       if !burn {
+        let mut mintable: HashMap<u128, u128> = HashMap::new();
+
+        let mut claims = runestone
+          .edicts
+          .iter()
+          .filter_map(|edict| claim(edict.id))
+          .collect::<Vec<u128>>();
+        claims.sort();
+        claims.dedup();
+        for id in claims {
+          if let Ok(key) = RuneId::try_from(id) {
+            if let Some(entry) = self.id_to_entry.get(&key.store())? {
+              let entry = RuneEntry::load(entry.value());
+              if let Some(limit) = entry.limit {
+                if let Some(end) = entry.end {
+                  if self.height >= end {
+                    continue;
+                  }
+                }
+                mintable.insert(id, limit);
+              }
+            }
+          }
+        }
+
+        let limits = mintable.clone();
+
         for Edict { id, amount, output } in runestone.edicts {
           let Ok(output) = usize::try_from(output) else {
             continue;
@@ -113,6 +188,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // get the unallocated balance of the issuance.
             match allocation.as_mut() {
               Some(Allocation { balance, id, .. }) => (balance, *id),
+              None => continue,
+            }
+          } else if let Some(claim) = claim(id) {
+            match mintable.get_mut(&claim) {
+              Some(balance) => (balance, claim),
               None => continue,
             }
           } else {
@@ -165,6 +245,17 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             allocate(balance, amount, output);
           }
         }
+
+        // increment entries with minted runes
+        for (id, amount) in mintable {
+          let minted = limits[&id] - amount;
+          if minted > 0 {
+            let id = RuneId::try_from(id).unwrap().store();
+            let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
+            entry.supply += minted;
+            self.id_to_entry.insert(id, entry.store())?;
+          }
+        }
       }
 
       if let Some(Allocation {
@@ -173,22 +264,54 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         id,
         rune,
         symbol,
+        limit,
+        end,
       }) = allocation
       {
         let id = RuneId::try_from(id).unwrap();
         self.rune_to_id.insert(rune.0, id.store())?;
+        self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+        let number = self.runes;
+        self.runes += 1;
+        self
+          .statistic_to_count
+          .insert(&Statistic::Runes.into(), self.runes)?;
         self.id_to_entry.insert(
           id.store(),
           RuneEntry {
             burned: 0,
             divisibility,
             etching: txid,
+            number,
             rune,
-            supply: u128::max_value() - balance,
+            supply: if let Some(limit) = limit {
+              if end == Some(self.height) {
+                0
+              } else {
+                limit
+              }
+            } else {
+              u128::max_value()
+            } - balance,
+            end,
             symbol,
+            limit,
+            timestamp: self.timestamp,
           }
           .store(),
         )?;
+
+        let inscription_id = InscriptionId { txid, index: 0 };
+
+        if self
+          .inscription_id_to_inscription_entry
+          .get(&inscription_id.store())?
+          .is_some()
+        {
+          self
+            .inscription_id_to_rune
+            .insert(&inscription_id.store(), rune.0)?;
+        }
       }
     }
 
@@ -226,6 +349,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         for (id, balance) in &balances {
           *burned.entry(*id).or_default() += balance;
         }
+        continue;
       }
 
       buffer.clear();
@@ -259,5 +383,16 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }
 
     Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn claim_from_id() {
+    assert_eq!(claim(1), None);
+    assert_eq!(claim(1 | CLAIM_BIT), Some(1));
   }
 }

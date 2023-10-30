@@ -13,7 +13,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
   index.update()?;
 
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
-  let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
+  let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
   let explorer = match options.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",

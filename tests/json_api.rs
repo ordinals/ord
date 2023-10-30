@@ -1,10 +1,10 @@
-use super::*;
+use {super::*, bitcoin::BlockHash};
 
 #[test]
 fn get_sat_without_sat_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  let response = TestServer::spawn_with_args(&rpc_server, &["--enable-json-api"])
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
     .json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -41,14 +41,11 @@ fn get_sat_with_inscription_and_sat_index() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
-  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
-    .json_request(format!("/sat/{}", 50 * COIN_VALUE));
+  let response =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+      .json_request(format!("/sat/{}", 50 * COIN_VALUE));
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -86,7 +83,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { reveal, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 foo.txt",
+    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
     txid
   ))
   .write("foo.txt", "FOO")
@@ -99,8 +96,9 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
     index: 0,
   };
 
-  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
-    .json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
+  let response =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+      .json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -133,14 +131,11 @@ fn get_inscription() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
-  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
-    .json_request(format!("/inscription/{}", inscription_id));
+  let response =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+      .json_request(format!("/inscription/{}", inscription_id));
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -166,7 +161,8 @@ fn get_inscription() {
       content_length: Some(3),
       timestamp: 2,
       previous: None,
-      next: None
+      next: None,
+      rune: None,
     }
   )
 }
@@ -200,10 +196,11 @@ fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<Ins
 
   // Create another 60 non cursed
   for _ in 0..60 {
-    let Inscribe { reveal, .. } = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
-      .write("foo.txt", "FOO")
-      .rpc_server(rpc_server)
-      .run_and_deserialize_output();
+    let Inscribe { reveal, .. } =
+      CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+        .write("foo.txt", "FOO")
+        .rpc_server(rpc_server)
+        .run_and_deserialize_output();
     rpc_server.mine_blocks(1);
     inscriptions.push(InscriptionId {
       txid: reveal,
@@ -223,7 +220,8 @@ fn get_inscriptions() {
   create_wallet(&rpc_server);
   let inscriptions = create_210_inscriptions(&rpc_server);
 
-  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+  let server =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
@@ -314,14 +312,10 @@ fn get_inscriptions_in_block() {
 
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(
+  let server = TestServer::spawn_with_server_args(
     &rpc_server,
-    &[
-      "--index-sats",
-      "--enable-json-api",
-      "--first-inscription-height",
-      "0",
-    ],
+    &["--index-sats", "--first-inscription-height", "0"],
+    &["--enable-json-api"],
   );
 
   // get all inscriptions from block 11
@@ -360,7 +354,8 @@ fn get_output() {
   });
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+  let server =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", txid));
   assert_eq!(response.status(), StatusCode::OK);
@@ -397,4 +392,33 @@ fn json_request_fails_when_not_enabled() {
     TestServer::spawn_with_args(&rpc_server, &[]).json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
+}
+
+#[test]
+fn get_block() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  rpc_server.mine_blocks(1);
+
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+    .json_request("/block/0");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let block_json: BlockJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(
+    block_json,
+    BlockJson {
+      hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+        .parse::<BlockHash>()
+        .unwrap(),
+      target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+        .parse::<BlockHash>()
+        .unwrap(),
+      best_height: 1,
+      height: 0,
+      inscriptions: vec![],
+    }
+  );
 }

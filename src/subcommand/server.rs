@@ -9,7 +9,7 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
@@ -150,6 +150,8 @@ pub(crate) struct Server {
   https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   redirect_http_to_https: bool,
+  #[arg(long, short = 'j', help = "Enable JSON API.")]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Server {
@@ -169,7 +171,7 @@ impl Server {
       INDEXER.lock().unwrap().replace(index_thread);
 
       let server_config = Arc::new(ServerConfig {
-        is_json_api_enabled: index.is_json_api_enabled(),
+        is_json_api_enabled: self.enable_json_api,
       });
 
       let config = options.load_config()?;
@@ -183,6 +185,13 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/r/blockheight", get(Self::block_height))
+        .route("/r/blockhash", get(Self::block_hash_json))
+        .route(
+          "/r/blockhash/:height",
+          get(Self::block_hash_from_height_json),
+        )
+        .route("/r/blocktime", get(Self::block_time))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
@@ -568,23 +577,14 @@ impl Server {
       )
     })?;
 
-    let inscription = InscriptionId {
+    let parent = InscriptionId {
       txid: entry.etching,
       index: 0,
     };
 
-    let inscription = index
-      .inscription_exists(inscription)?
-      .then_some(inscription);
+    let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(
-      RuneHtml {
-        id,
-        entry,
-        inscription,
-      }
-      .page(page_config),
-    )
+    Ok(RuneHtml { id, entry, parent }.page(page_config))
   }
 
   async fn runes(
@@ -623,7 +623,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<PageHtml<BlockHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
@@ -645,10 +646,18 @@ impl Server {
       }
     };
 
-    let (featured_inscriptions, total_num) =
-      index.get_highest_paying_inscriptions_in_block(height, 8)?;
-
-    Ok(
+    Ok(if accept_json.0 {
+      let inscriptions = index.get_inscriptions_in_block(height)?;
+      Json(BlockJson::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      ))
+      .into_response()
+    } else {
+      let (featured_inscriptions, total_num) =
+        index.get_highest_paying_inscriptions_in_block(height, 8)?;
       BlockHtml::new(
         block,
         Height(height),
@@ -656,8 +665,9 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config),
-    )
+      .page(page_config)
+      .into_response()
+    })
   }
 
   async fn transaction(
@@ -677,6 +687,7 @@ impl Server {
         blockhash,
         inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
+        index.get_etching(txid)?,
       )
       .page(page_config),
     )
@@ -859,6 +870,15 @@ impl Server {
     )
   }
 
+  async fn block_hash_json(Extension(index): Extension<Arc<Index>>) -> ServerResult<Json<String>> {
+    Ok(Json(
+      index
+        .block_hash(None)?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    ))
+  }
+
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u64>,
@@ -869,6 +889,18 @@ impl Server {
         .ok_or_not_found(|| "blockhash")?
         .to_string(),
     )
+  }
+
+  async fn block_hash_from_height_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path(height): Path<u64>,
+  ) -> ServerResult<Json<String>> {
+    Ok(Json(
+      index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    ))
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
@@ -950,7 +982,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
@@ -1096,6 +1128,8 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
+    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1112,6 +1146,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
+        rune,
       ))
       .into_response()
     } else {
@@ -1130,6 +1165,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        rune,
       }
       .page(page_config)
       .into_response()
@@ -1250,6 +1286,8 @@ mod tests {
     std::net::TcpListener,
   };
 
+  const RUNE: u128 = 99246114928149462;
+
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
     index: Arc<Index>,
@@ -1289,8 +1327,8 @@ mod tests {
           .network(bitcoin::network::constants::Network::Regtest)
           .build(),
         None,
-        &["--chain", "regtest", "--enable-json-api"],
-        &[],
+        &["--chain", "regtest"],
+        &["--enable-json-api"],
       )
     }
 
@@ -1315,9 +1353,8 @@ mod tests {
           "--chain",
           "regtest",
           "--index-runes-pre-alpha-i-agree-to-get-rekt",
-          "--enable-json-api",
         ],
-        &[],
+        &["--enable-json-api"],
       )
     }
 
@@ -1771,7 +1808,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -1797,8 +1834,8 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_redirect("/search/2/1", "/rune/NVTDIJZYIPU");
-    server.assert_redirect("/search?query=2/1", "/rune/NVTDIJZYIPU");
+    server.assert_redirect("/search/2/1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=2/1", "/rune/AAAAAAAAAAAAA");
 
     server.assert_response_regex("/rune/100/200", StatusCode::NOT_FOUND, ".*");
 
@@ -2283,6 +2320,8 @@ mod tests {
       StatusCode::OK,
       format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
+<dl>
+</dl>
 <h2>1 Input</h2>
 <ul>
   <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
@@ -3207,7 +3246,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+            rune: Rune(RUNE),
             ..Default::default()
           }),
           ..Default::default()
@@ -3230,8 +3269,9 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3248,7 +3288,7 @@ mod tests {
       ".*<title>Runes</title>.*
 <h1>Runes</h1>
 <ul>
-  <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
+  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
 </ul>.*",
     );
   }
@@ -3259,7 +3299,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3300,6 +3340,7 @@ mod tests {
           rune,
           supply: u128::max_value(),
           symbol: Some('$'),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3314,11 +3355,20 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        r".*<title>Rune NVTDIJZYIPU</title>.*
-<h1>Rune NVTDIJZYIPU</h1>
+        r".*<title>Rune AAAAAAAAAAAAA</title>.*
+<h1>Rune AAAAAAAAAAAAA</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
+  <dt>number</dt>
+  <dd>0</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>1</dd>
   <dt>supply</dt>
   <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
@@ -3329,11 +3379,23 @@ mod tests {
   <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"
       ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*
+<dl>
+  .*
+  <dt>rune</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+</dl>
+.*",
     );
   }
 
@@ -3390,12 +3452,80 @@ mod tests {
   }
 
   #[test]
+  fn transactions_link_to_etching() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+.*",
+    );
+  }
+
+  #[test]
   fn runes_are_displayed_on_output_page() {
     let server = TestServer::new_with_regtest_with_index_runes();
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3436,6 +3566,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3461,7 +3592,7 @@ mod tests {
         <th>balance</th>
       </tr>
       <tr>
-        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
         <td>34028236692093846346337460743176821145.5</td>
       </tr>
     </table>
@@ -3479,12 +3610,9 @@ mod tests {
         transaction: txid.to_string(),
         sat_ranges: None,
         inscriptions: Vec::new(),
-        runes: vec![(
-          Rune(2100000000000000),
-          340282366920938463463374607431768211455
-        )]
-        .into_iter()
-        .collect(),
+        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
+          .into_iter()
+          .collect(),
       }
     );
   }

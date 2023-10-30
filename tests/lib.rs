@@ -5,15 +5,15 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
-    Network, OutPoint,
+    Network, OutPoint, Txid,
   },
   executable_path::executable_path,
   ord::{
     inscription_id::InscriptionId,
     rarity::Rarity,
     templates::{
-      inscription::InscriptionJson, inscriptions::InscriptionsJson, output::OutputJson,
-      sat::SatJson,
+      block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
+      output::OutputJson, sat::SatJson,
     },
     SatPoint,
   },
@@ -52,17 +52,19 @@ macro_rules! assert_regex_match {
 
 type Inscribe = ord::subcommand::wallet::inscribe::Output;
 
-fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
+fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
-    .run_and_deserialize_output();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
-  output
+  assert_eq!(output.inscriptions.len(), 1);
+
+  (output.inscriptions[0].id, output.reveal)
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
