@@ -17,7 +17,7 @@ To specify a port add the `--http-port` flag:
 To enable the JSON-API endpoints add the `--enable-json-api` or `-j` flag (see
 [here](#json-api) for more info):
 
-`ord --enable-json-api server`
+`ord server --enable-json-api`
 
 To test how your inscriptions will look you can run:
 
@@ -76,7 +76,7 @@ been issued when they are mined:
 JSON-API
 --------
 
-You can run `ord` with the `--enable-json-api` flag to access endpoints that
+You can run `ord server` with the `--enable-json-api` flag to access endpoints that
 return JSON instead of HTML if you set the HTTP `Accept: application/json`
 header. The structure of theses objects closely follows
 what is shown in the HTML. These endpoints are:
