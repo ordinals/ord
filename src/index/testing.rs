@@ -94,4 +94,40 @@ impl Context {
       Context::builder().arg("--index-sats").build(),
     ]
   }
+
+  #[track_caller]
+  pub(crate) fn assert_runes(
+    &self,
+    mut runes: impl AsMut<[(RuneId, RuneEntry)]>,
+    mut balances: impl AsMut<[(OutPoint, Vec<(RuneId, u128)>)]>,
+  ) {
+    let runes = runes.as_mut();
+    runes.sort_by_key(|(id, _)| *id);
+
+    let balances = balances.as_mut();
+    balances.sort_by_key(|(outpoint, _)| *outpoint);
+
+    for (_, balances) in balances.iter_mut() {
+      balances.sort_by_key(|(id, _)| *id);
+    }
+
+    assert_eq!(runes, self.index.runes().unwrap());
+
+    assert_eq!(balances, self.index.get_rune_balances());
+
+    let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
+
+    for (_, balances) in balances {
+      for (id, balance) in balances {
+        *outstanding.entry(*id).or_default() += *balance;
+      }
+    }
+
+    for (id, entry) in runes {
+      assert_eq!(
+        outstanding.get(id).copied().unwrap_or_default(),
+        entry.supply - entry.burned
+      );
+    }
+  }
 }

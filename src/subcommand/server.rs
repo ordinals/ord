@@ -9,7 +9,7 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
@@ -150,6 +150,8 @@ pub(crate) struct Server {
   https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   redirect_http_to_https: bool,
+  #[arg(long, short = 'j', help = "Enable JSON API.")]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Server {
@@ -169,7 +171,7 @@ impl Server {
       INDEXER.lock().unwrap().replace(index_thread);
 
       let server_config = Arc::new(ServerConfig {
-        is_json_api_enabled: index.is_json_api_enabled(),
+        is_json_api_enabled: self.enable_json_api,
       });
 
       let config = options.load_config()?;
@@ -614,7 +616,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<PageHtml<BlockHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
@@ -636,10 +639,18 @@ impl Server {
       }
     };
 
-    let (featured_inscriptions, total_num) =
-      index.get_highest_paying_inscriptions_in_block(height, 8)?;
-
-    Ok(
+    Ok(if accept_json.0 {
+      let inscriptions = index.get_inscriptions_in_block(height)?;
+      Json(BlockJson::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      ))
+      .into_response()
+    } else {
+      let (featured_inscriptions, total_num) =
+        index.get_highest_paying_inscriptions_in_block(height, 8)?;
       BlockHtml::new(
         block,
         Height(height),
@@ -647,8 +658,9 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config),
-    )
+      .page(page_config)
+      .into_response()
+    })
   }
 
   async fn transaction(
@@ -668,6 +680,7 @@ impl Server {
         blockhash,
         inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
+        index.get_etching(txid)?,
       )
       .page(page_config),
     )
@@ -1286,8 +1299,8 @@ mod tests {
           .network(bitcoin::network::constants::Network::Regtest)
           .build(),
         None,
-        &["--chain", "regtest", "--enable-json-api"],
-        &[],
+        &["--chain", "regtest"],
+        &["--enable-json-api"],
       )
     }
 
@@ -1312,9 +1325,8 @@ mod tests {
           "--chain",
           "regtest",
           "--index-runes-pre-alpha-i-agree-to-get-rekt",
-          "--enable-json-api",
         ],
-        &[],
+        &["--enable-json-api"],
       )
     }
 
@@ -2280,6 +2292,8 @@ mod tests {
       StatusCode::OK,
       format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
+<dl>
+</dl>
 <h2>1 Input</h2>
 <ul>
   <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
@@ -3229,6 +3243,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3297,6 +3312,7 @@ mod tests {
           rune,
           supply: u128::max_value(),
           symbol: Some('$'),
+          timestamp: 2,
           ..Default::default()
         }
       )]
@@ -3319,6 +3335,12 @@ mod tests {
   <dd>2/1</dd>
   <dt>number</dt>
   <dd>0</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>1</dd>
   <dt>supply</dt>
   <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
@@ -3402,6 +3424,74 @@ mod tests {
   }
 
   #[test]
+  fn transactions_link_to_etching() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+.*",
+    );
+  }
+
+  #[test]
   fn runes_are_displayed_on_output_page() {
     let server = TestServer::new_with_regtest_with_index_runes();
 
@@ -3448,6 +3538,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::max_value(),
+          timestamp: 2,
           ..Default::default()
         }
       )]

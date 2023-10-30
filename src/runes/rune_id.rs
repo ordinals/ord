@@ -1,6 +1,6 @@
 use {super::*, std::num::TryFromIntError};
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
 pub(crate) struct RuneId {
   pub(crate) height: u32,
   pub(crate) index: u16,
