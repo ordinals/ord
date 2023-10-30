@@ -5,16 +5,12 @@
 {{ Iframe::thumbnail(id) }}
 </div>
 %% }
-<dl>
 %% if let Some(blockhash) = self.blockhash {
+<dl>
   <dt>block</dt>
   <dd><a href=/block/{{ blockhash }} class=monospace>{{ blockhash }}</a></dd>
-%% }
-%% if let Some(rune) = self.etching {
-  <dt>etching</dt>
-  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
-%% }
 </dl>
+%% }
 <h2>{{"Input".tally(self.transaction.input.len())}}</h2>
 <ul>
 %% for input in &self.transaction.input {

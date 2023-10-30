@@ -9,7 +9,11 @@ fn inscriptions() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
@@ -56,7 +60,11 @@ fn inscriptions_includes_locked_utxos() {
 
   rpc_server.mine_blocks(1);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  let Inscribe {
+    inscription,
+    reveal,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -80,7 +88,7 @@ fn inscriptions_with_postage() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)

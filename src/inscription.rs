@@ -7,7 +7,6 @@ use {
     },
     ScriptBuf,
   },
-  io::Cursor,
   std::str,
 };
 
@@ -17,8 +16,6 @@ pub(crate) enum Curse {
   IncompleteField,
   NotAtOffsetZero,
   NotInFirstInput,
-  Pointer,
-  Pushnum,
   Reinscription,
   UnrecognizedEvenField,
 }
@@ -27,13 +24,11 @@ pub(crate) enum Curse {
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
+  pub parent: Option<Vec<u8>>,
+  pub metaprotocol: Option<Vec<u8>>,
+  pub unrecognized_even_field: bool,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
-  pub metadata: Option<Vec<u8>>,
-  pub metaprotocol: Option<Vec<u8>>,
-  pub parent: Option<Vec<u8>>,
-  pub pointer: Option<Vec<u8>>,
-  pub unrecognized_even_field: bool,
 }
 
 impl Inscription {
@@ -50,9 +45,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
-    pointer: Option<u64>,
     metaprotocol: Option<String>,
-    metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -70,22 +63,12 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      metadata,
-      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
-      pointer: pointer.map(Self::pointer_value),
-      ..Default::default()
+      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
+      duplicate_field: false,
+      unrecognized_even_field: false,
+      incomplete_field: false,
     })
-  }
-
-  fn pointer_value(pointer: u64) -> Vec<u8> {
-    let mut bytes = pointer.to_le_bytes().to_vec();
-
-    while bytes.last().copied() == Some(0) {
-      bytes.pop();
-    }
-
-    bytes
   }
 
   pub(crate) fn append_reveal_script_to_builder(
@@ -115,19 +98,6 @@ impl Inscription {
         .push_slice(PushBytesBuf::try_from(parent).unwrap());
     }
 
-    if let Some(pointer) = self.pointer.clone() {
-      builder = builder
-        .push_slice(envelope::POINTER_TAG)
-        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
-    }
-
-    if let Some(metadata) = &self.metadata {
-      for chunk in metadata.chunks(520) {
-        builder = builder.push_slice(envelope::METADATA_TAG);
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-      }
-    }
-
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
       for chunk in body.chunks(520) {
@@ -138,27 +108,8 @@ impl Inscription {
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
-  #[cfg(test)]
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
-  }
-
-  pub(crate) fn append_batch_reveal_script_to_builder(
-    inscriptions: &[Inscription],
-    mut builder: script::Builder,
-  ) -> script::Builder {
-    for inscription in inscriptions {
-      builder = inscription.append_reveal_script_to_builder(builder);
-    }
-
-    builder
-  }
-
-  pub(crate) fn append_batch_reveal_script(
-    inscriptions: &[Inscription],
-    builder: script::Builder,
-  ) -> ScriptBuf {
-    Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
   pub(crate) fn media(&self) -> Media {
@@ -189,10 +140,6 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
-  pub(crate) fn metadata(&self) -> Option<Value> {
-    ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
-  }
-
   pub(crate) fn metaprotocol(&self) -> Option<&str> {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
@@ -211,9 +158,7 @@ impl Inscription {
     let (txid, index) = value.split_at(Txid::LEN);
 
     if let Some(last) = index.last() {
-      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
-      // or variable length (no trailing zeroes)
-      if index.len() != 4 && *last == 0 {
+      if *last == 0 {
         return None;
       }
     }
@@ -230,27 +175,6 @@ impl Inscription {
     let index = u32::from_le_bytes(index);
 
     Some(InscriptionId { txid, index })
-  }
-
-  pub(crate) fn pointer(&self) -> Option<u64> {
-    let value = self.pointer.as_ref()?;
-
-    if value.iter().skip(8).copied().any(|byte| byte != 0) {
-      return None;
-    }
-
-    let pointer = [
-      value.first().copied().unwrap_or(0),
-      value.get(1).copied().unwrap_or(0),
-      value.get(2).copied().unwrap_or(0),
-      value.get(3).copied().unwrap_or(0),
-      value.get(4).copied().unwrap_or(0),
-      value.get(5).copied().unwrap_or(0),
-      value.get(6).copied().unwrap_or(0),
-      value.get(7).copied().unwrap_or(0),
-    ];
-
-    Some(u64::from_le_bytes(pointer))
   }
 
   #[cfg(test)]
@@ -270,10 +194,10 @@ impl Inscription {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::io::Write};
+  use super::*;
 
   #[test]
-  fn reveal_script_chunks_body() {
+  fn reveal_script_chunks_data() {
     assert_eq!(
       inscription("foo", [])
         .append_reveal_script(script::Builder::new())
@@ -324,64 +248,6 @@ mod tests {
   }
 
   #[test]
-  fn reveal_script_chunks_metadata() {
-    assert_eq!(
-      Inscription {
-        metadata: None,
-        ..Default::default()
-      }
-      .append_reveal_script(script::Builder::new())
-      .instructions()
-      .count(),
-      4
-    );
-
-    assert_eq!(
-      Inscription {
-        metadata: Some(Vec::new()),
-        ..Default::default()
-      }
-      .append_reveal_script(script::Builder::new())
-      .instructions()
-      .count(),
-      4
-    );
-
-    assert_eq!(
-      Inscription {
-        metadata: Some(vec![0; 1]),
-        ..Default::default()
-      }
-      .append_reveal_script(script::Builder::new())
-      .instructions()
-      .count(),
-      6
-    );
-
-    assert_eq!(
-      Inscription {
-        metadata: Some(vec![0; 520]),
-        ..Default::default()
-      }
-      .append_reveal_script(script::Builder::new())
-      .instructions()
-      .count(),
-      6
-    );
-
-    assert_eq!(
-      Inscription {
-        metadata: Some(vec![0; 521]),
-        ..Default::default()
-      }
-      .append_reveal_script(script::Builder::new())
-      .instructions()
-      .count(),
-      8
-    );
-  }
-
-  #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
     assert!(Inscription {
       parent: None,
@@ -412,24 +278,10 @@ mod tests {
   }
 
   #[test]
-  fn inscription_with_parent_field_index_with_trailing_zeroes_and_fixed_length_has_parent() {
+  fn inscription_with_parent_field_index_with_trailing_zeroes_has_no_parent() {
     let mut parent = vec![1; 36];
 
     parent[35] = 0;
-
-    assert!(Inscription {
-      parent: Some(parent),
-      ..Default::default()
-    }
-    .parent()
-    .is_some());
-  }
-
-  #[test]
-  fn inscription_with_parent_field_index_with_trailing_zeroes_and_variable_length_has_no_parent() {
-    let mut parent = vec![1; 35];
-
-    parent[34] = 0;
 
     assert!(Inscription {
       parent: Some(parent),
@@ -543,150 +395,5 @@ mod tests {
       .index,
       0x04030201,
     );
-  }
-
-  #[test]
-  fn metadata_function_decodes_metadata() {
-    assert_eq!(
-      Inscription {
-        metadata: Some(vec![0x44, 0, 1, 2, 3]),
-        ..Default::default()
-      }
-      .metadata()
-      .unwrap(),
-      Value::Bytes(vec![0, 1, 2, 3]),
-    );
-  }
-
-  #[test]
-  fn metadata_function_returns_none_if_no_metadata() {
-    assert_eq!(
-      Inscription {
-        metadata: None,
-        ..Default::default()
-      }
-      .metadata(),
-      None,
-    );
-  }
-
-  #[test]
-  fn metadata_function_returns_none_if_metadata_fails_to_parse() {
-    assert_eq!(
-      Inscription {
-        metadata: Some(vec![0x44]),
-        ..Default::default()
-      }
-      .metadata(),
-      None,
-    );
-  }
-
-  #[test]
-  fn pointer_decode() {
-    assert_eq!(
-      Inscription {
-        pointer: None,
-        ..Default::default()
-      }
-      .pointer(),
-      None
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![0]),
-        ..Default::default()
-      }
-      .pointer(),
-      Some(0),
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8]),
-        ..Default::default()
-      }
-      .pointer(),
-      Some(0x0807060504030201),
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3, 4, 5, 6]),
-        ..Default::default()
-      }
-      .pointer(),
-      Some(0x0000060504030201),
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
-        ..Default::default()
-      }
-      .pointer(),
-      Some(0x0807060504030201),
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 1]),
-        ..Default::default()
-      }
-      .pointer(),
-      None,
-    );
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 1]),
-        ..Default::default()
-      }
-      .pointer(),
-      None,
-    );
-  }
-
-  #[test]
-  fn pointer_encode() {
-    assert_eq!(
-      Inscription {
-        pointer: None,
-        ..Default::default()
-      }
-      .to_witness(),
-      envelope(&[b"ord"]),
-    );
-
-    assert_eq!(
-      Inscription {
-        pointer: Some(vec![1, 2, 3]),
-        ..Default::default()
-      }
-      .to_witness(),
-      envelope(&[b"ord", &[2], &[1, 2, 3]]),
-    );
-  }
-
-  #[test]
-  fn pointer_value() {
-    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
-
-    write!(file, "foo").unwrap();
-
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None).unwrap();
-
-    assert_eq!(inscription.pointer, None);
-
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(0), None, None).unwrap();
-
-    assert_eq!(inscription.pointer, Some(Vec::new()));
-
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(1), None, None).unwrap();
-
-    assert_eq!(inscription.pointer, Some(vec![1]));
-
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
-
-    assert_eq!(inscription.pointer, Some(vec![0, 1]));
   }
 }

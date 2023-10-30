@@ -40,12 +40,11 @@ fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
-
-  let ethereum_teleburn_address = CommandBuilder::new(format!("teleburn {inscription}"))
-    .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::teleburn::Output>()
-    .ethereum;
+  let Inscribe {
+    inscription,
+    reveal,
+    ..
+  } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
@@ -84,8 +83,6 @@ fn inscription_page() {
   <dd><a class=monospace href=/output/{reveal}:0>{reveal}:0</a></dd>
   <dt>offset</dt>
   <dd>0</dd>
-  <dt>ethereum teleburn address</dt>
-  <dd>{ethereum_teleburn_address}</dd>
 </dl>.*",
     ),
   );
@@ -96,7 +93,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (_, reveal) = inscribe(&rpc_server);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -111,7 +108,11 @@ fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -126,7 +127,11 @@ fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -164,7 +169,7 @@ fn inscription_content() {
 
   rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -184,7 +189,7 @@ fn inscription_content() {
       .collect::<Vec<&http::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
-      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/-/ *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:",
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
@@ -195,7 +200,7 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (inscription, _) = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
@@ -214,14 +219,15 @@ fn inscriptions_page_is_sorted() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let mut regex = String::new();
+  let mut inscriptions = String::new();
 
   for _ in 0..8 {
-    let (inscription, _) = inscribe(&rpc_server);
-    regex.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
+    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex("/inscriptions", &regex);
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex("/inscriptions", &inscriptions);
 }
 
 #[test]
@@ -229,9 +235,9 @@ fn inscriptions_page_has_next_and_previous() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let (a, _) = inscribe(&rpc_server);
-  let (b, _) = inscribe(&rpc_server);
-  let (c, _) = inscribe(&rpc_server);
+  let Inscribe { inscription: a, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: b, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: c, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{b}"),
@@ -296,19 +302,9 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
 
   rpc_server.mine_blocks(1);
 
-  for i in 0.. {
-    let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    if response.text().unwrap() == "2" {
-      break;
-    }
-
-    if i == 400 {
-      panic!("server failed to sync");
-    }
-
-    thread::sleep(Duration::from_millis(25));
-  }
+  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.text().unwrap(), "2");
 
   child.kill().unwrap();
 }
@@ -328,32 +324,4 @@ fn missing_credentials() {
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc user specified\n")
     .run_and_extract_stdout();
-}
-
-#[test]
-fn all_endpoints_in_recursive_directory_return_json() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-
-  rpc_server.mine_blocks(2);
-
-  let server = TestServer::spawn_with_args(&rpc_server, &[]);
-
-  assert_eq!(server.request("/r/blockheight").json::<u64>().unwrap(), 2);
-
-  assert_eq!(server.request("/r/blocktime").json::<u64>().unwrap(), 2);
-
-  assert_eq!(
-    server.request("/r/blockhash").json::<String>().unwrap(),
-    "70a93647a8d559c7e7ff2df9bd875f5b726a2ff8ca3562003d257df5a4c47ae2"
-  );
-
-  assert_eq!(
-    server.request("/r/blockhash/0").json::<String>().unwrap(),
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-  );
-
-  assert!(server.request("/blockhash").json::<String>().is_err());
-
-  assert!(server.request("/blockhash/2").json::<String>().is_err());
 }

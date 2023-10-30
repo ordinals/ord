@@ -5,15 +5,15 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Txid,
+    Network, OutPoint,
   },
   executable_path::executable_path,
   ord::{
     inscription_id::InscriptionId,
     rarity::Rarity,
     templates::{
-      block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
-      output::OutputJson, sat::SatJson,
+      inscription::InscriptionJson, inscriptions::InscriptionsJson, output::OutputJson,
+      sat::SatJson,
     },
     SatPoint,
   },
@@ -22,7 +22,6 @@ use {
   reqwest::{StatusCode, Url},
   serde::de::DeserializeOwned,
   std::{
-    collections::BTreeMap,
     fs,
     io::Write,
     net::TcpListener,
@@ -52,19 +51,17 @@ macro_rules! assert_regex_match {
 
 type Inscribe = ord::subcommand::wallet::inscribe::Output;
 
-fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
+fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output();
 
   rpc_server.mine_blocks(1);
 
-  assert_eq!(output.inscriptions.len(), 1);
-
-  (output.inscriptions[0].id, output.reveal)
+  output
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
