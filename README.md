@@ -32,7 +32,7 @@ Ordinals is open-source and community funded. The current lead maintainer of
 entirely funded by donations. If you can, please consider donating!
 
 The donation address is
-[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt).
+[bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3](https://mempool.space/address/bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3).
 
 This address is 2 of 4 multisig wallet with keys held by
 [raphjaph](https://twitter.com/raphjaph),
@@ -255,7 +255,7 @@ To align your translated version of the Handbook with reference to commit
 commands to assist you. It is assumed that your local environment is already
 well-configured with [Python](https://www.python.org/),
 [Mdbook](https://github.com/rust-lang/mdBook),
-[mdBook i18n helper](https://github.com/rust-lang/mdbb) and that you've clone
+[mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers) and that you've clone
 this repo.
 
 
@@ -288,7 +288,7 @@ mv docs/build/zh/html docs/build/html/zh
 python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
 ```
 
-6. Upon verifying everything and ensuring all is in order, you can commit the
+5. Upon verifying everything and ensuring all is in order, you can commit the
 modifications and progress to open a Pull Request (PR) on Github.
 (**Note**: Please ensure **ONLY** the **'xx.po'** file is pushed, other files
 such as '.pot' or files ending in '~' are **unnecessary** and should **NOT** be

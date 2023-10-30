@@ -1,6 +1,120 @@
 Changelog
 =========
 
+[0.10.0](https://github.com/ordinals/ord/releases/tag/0.10.0) - 2023-10-23
+--------------------------------------------------------------------------
+
+### Added
+- Batch inscriptions (#2504)
+- Add teleburn command to generate Ethereum teleburn addresses (#1680)
+- Add Korean version of handbook (#2560)
+- Add German version of handbook (#2441)
+- Add Arabic version of handbook (#2442)
+- Add French version of handbook (#2508)
+- Implement pointer spec (#2499)
+- Add pointer spec (#2383)
+- Add Russian version of handbook (#2468)
+- Add inscription number endpoint (#2485)
+- Allow inscriptions to include CBOR metadata (#2421)
+- Add Filipino version of handbook (#2483)
+- Add code syntax highlighting to preview (#2471)
+- Add font media types (#2464)
+- Render markdown previews (#2325)
+- Add metaprotocol field (#2449)
+- Add Spanish version of handbook (#2448)
+- Add `application/cbor` media type with extension `.cbor` (#2446)
+
+### Changed
+- Create single-directory release archives (#2537)
+- Allow fixed length encoding for parent id in child inscription (#2519)
+- Recognize inscriptions with pushnum opcodes (#2497)
+- Rename `index run` -> `index update` (#2462)
+- Refactor inscription parsing (#2461)
+- Allow running `find` on a range of sats (#1992)
+
+### Fixed
+- Fix overflow in Sat::from_name (#2500)
+- Fix issue with `--satpoint` when offset not 0 (#2466)
+
+### Misc
+- Remove paranthetical annotations (#2540)
+- Refactor index checks (#2541)
+- Don't add path component in bin/package (#2536)
+- Metadata Filipino translation (#2517)
+- Add pointer spec to docs (#2533)
+- Make inscriptions with pointer cursed (#2523)
+- Small refactor for inscribe code (#2515)
+- Pre-allocate vector size (#1960)
+- Add troubleshooting guide for syncing bitcoind (#1737)
+- Same input envelopes become reinscriptions (#2478)
+- Document JSON-API (#2484)
+- Update parent-child guide (#2487)
+- Add regtest flag to bitcoin-cli docs (#2488)
+- Update overview.md (#2456)
+- Correct donation address (#2475)
+- Fixes release tarbomb (#2473)
+- Update dependencies (#2470)
+- Add internal sequence number (#2460)
+- Update guide with parent-child and json API (#2429)
+- Update Japanese handbook version with provenance section (#2450)
+
+### Runes
+- Implement splits (#2530)
+- Add rune fuzz targets (#2526)
+- Allow searching by rune or rune ID (#2522)
+- Encode runestones with tags (#2547)
+- Edict with zero amount allocates all remaining runes (#2531)
+- Always create rune, even if none were allocated (#2543)
+- Show rune balances on /output page (#2527)
+- Delta encode Rune IDs in edicts (#2532)
+- Add test to keep track of runestone size (#2529)
+- Show etching and inscription on /rune page (#2512)
+- Track burned runes (#2511)
+- Don't encode divisibility if zero (#2510)
+- Format rune supply using divisibility (#2509)
+- Add pre-alpha unstable incomplete half-baked rune index (#2491)
+
+[0.9.0](https://github.com/ordinals/ord/releases/tag/0.9.0) - 2023-09-11
+------------------------------------------------------------------------
+
+### Added
+
+- Allow reinscribing with wallet (#2432)
+- Provide more detailed translation instructions (#2443)
+- Add Japanese version of handbook (#2426)
+- Add provenance to docs summary (#2427)
+- Inscribe with parent (#2388)
+- Add provenance spec (#2278)
+- Implement provenance in index (#2353)
+- Add application/protobuf media type (#2389)
+- Install mdbook-i18n-helpers in Github Workflows (#2408)
+- Add `decode` command (#2401)
+- Add Chinese version of the handbook (#2406)
+- Add language picker for docs (#2403)
+- Add reindexing docs (#2393)
+- Vaccuum log with every new deploy (#2390)
+
+### Changed
+
+- Fold BlockIndex into database (#2436)
+- Prevent search when query field is empty (#2425)
+- Make any zero-valued input inscription unbound (#2397)
+- Tweak translations intructions (#2413)
+- Remove unused itertools dependency (#2416)
+- Update dependencies (#2414)
+- Update clap (#2415)
+- Use tapscript extraction from rust-bitcoin (#2404)
+- Allocate blocks vector ahead of time (#2409)
+- Deduplicate sat range summation logic (#2402)
+- Inscriptions with unrecognized even fields are unbound and cursed (#2359)
+- Remove unused content_response match statement (#2384)
+
+### Fixed
+
+- Fix type (#2444)
+- Fix Chinese translation typos and format errors (#2419)
+- Fix UTXO selection in mock Bitcoin Core instance(#2417)
+
 [0.8.3](https://github.com/ordinals/ord/releases/tag/0.8.3) - 2023-08-28
 ------------------------------------------------------------------------
 

@@ -1,0 +1,9 @@
+/* rtl.css */
+
+body {
+  direction: rtl;
+}
+
+.rtl-header {
+    direction: rtl;
+}
