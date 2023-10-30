@@ -108,6 +108,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if etching.rune < self.minimum || self.rune_to_id.get(etching.rune.0)?.is_some() {
             None
           } else {
+            let (limit, term) = match (etching.limit, etching.term) {
+              (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
+              (limit, term) => (limit, term),
+            };
+
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
             // with 2**16 + 1 transactions, there is no test that checks that
@@ -115,8 +120,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: if let Some(limit) = etching.limit {
-                  if etching.term == Some(0) {
+                balance: if let Some(limit) = limit {
+                  if term == Some(0) {
                     0
                   } else {
                     limit
@@ -124,12 +129,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 } else {
                   u128::max_value()
                 },
-                limit: etching.limit,
+                limit,
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
                 rune: etching.rune,
                 symbol: etching.symbol,
-                end: etching.term.map(|term| term + self.height),
+                end: term.map(|term| term + self.height),
               }),
               Err(_) => None,
             }
@@ -176,7 +181,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             continue;
           }
 
-          let (balance, id) = if id == 0 || id == CLAIM_BIT {
+          let (balance, id) = if id == 0 {
             // If this edict allocates new issuance runes, skip it
             // if no issuance was present, or if the issuance was invalid.
             // Additionally, replace ID 0 with the newly assigned ID, and

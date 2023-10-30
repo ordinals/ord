@@ -1328,4 +1328,34 @@ mod tests {
       63,
     );
   }
+
+  #[test]
+  fn etching_with_term_greater_than_maximum_is_ignored() {
+    let payload = payload(&[2, 4, 6, u128::from(u64::max_value()) + 1]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        etching: Some(Etching {
+          rune: Rune(4),
+          ..Default::default()
+        }),
+        ..Default::default()
+      }))
+    );
+  }
 }
