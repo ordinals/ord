@@ -804,7 +804,7 @@ OP_ENDIF
 <p>Para mag specify ng port i-add ang <code>--http-port</code> na flag:</p>
 <p><code>ord server --http-port 8080</code></p>
 <p>Para ma-enable ang JSON-API endpoints i-add ang <code>--enable-json-api</code> or <code>-j</code> flag (tingnan <a href="guides/explorer.html#json-api">sa</a> para karagdagang impormasyon):</p>
-<p><code>ord --enable-json-api server</code></p>
+<p><code>ord server --enable-json-api</code></p>
 <p>Maaring i-test ang iyong inscriptions gamit naman ang:</p>
 <p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
 <h2 id="search"><a class="header" href="#search">Search</a></h2>
@@ -830,7 +830,7 @@ OP_ENDIF
 <p>O ayon sa percentile, ang porsyento ng supply ng bitcoin na ibibigay o ibibigay kapag na-mina:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>Maaari mong patakbuhin ang <code>ord</code> gamit ang <code>--enable-json-api</code> flag upang ma-access ang mga endpoint na ibalik ang JSON sa halip na HTML kung na-set mo ang HTTP <code>Accept: application/json</code> header. Ang istraktura ng mga bagay na ito ay malapit na sumusunod sa kung ano ang ipinapakita sa HTML. Ang mga endpoint na ito ay:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li>/inscriptions</li>

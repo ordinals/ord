@@ -804,7 +804,7 @@ OP_ENDIF
 <p>Para especificar un puerto agrega la bandera (flag) <code>--http-port</code>:</p>
 <p><code> ord server --http-port 8080</code></p>
 <p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-j</code> flag (see <a href="guides/explorer.html#json-api">here</a> for more info):</p>
-<p><code>ord --enable-json-api server</code></p>
+<p><code>ord server --enable-json-api</code></p>
 <p>Para ver como se verían tus inscripciones puedes ejecutar esto:</p>
 <p><code>ord preview &lt;ARCHIVO1&gt; &lt;ARCHIVO2&gt; ...</code></p>
 <h2 id="búsqueda"><a class="header" href="#búsqueda">Búsqueda</a></h2>
@@ -830,7 +830,7 @@ OP_ENDIF
 <p>O por percentil, el cual representa el porcentaje del suministro total de bitcoin que ha sido o será emitido una vez sean minados:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

@@ -259,7 +259,7 @@
 <p>Pour spécifier un port, ajoutez le drapeau <code>--http-port</code> :</p>
 <p><code>ord server --http-port 8080</code></p>
 <p>Pour activer les points de terminaisons JSON-API, ajoutez le drapeau <code>--enable-json-api</code> ou <code>-j</code> (voir <a href="#json-api">ici</a> pour plus d’informations) :</p>
-<p><code>ord --enable-json-api server</code></p>
+<p><code>ord server --enable-json-api</code></p>
 <p>Pour tester à quoi ressembleraient vos inscriptions, vous pouvez lancer :</p>
 <p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
 <h2 id="recherche"><a class="header" href="#recherche">Recherche</a></h2>
@@ -285,7 +285,7 @@
 <p>Ou par percentile, le pourcentage de l’offre de bitcoins qui a été ou sera émis une fois qu’ils auront été minés :</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>Vous pouvez exécuter <code>ord</code> avec le drapeau <code>--enable-json-api</code> pour accéder à des points de terminaison qui renvoient des réponses JSON au lieu de HTML si vous définissez l’en-tête HTTP <code>Accept: application/json</code>. La structure de ces objets suit de près ce qui est montré dans HTML. Ces points de terminaison sont les suivants :</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

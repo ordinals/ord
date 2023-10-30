@@ -804,7 +804,7 @@ OP_ENDIF
 <p>포트를 지정하려면 <code>--http-port</code> 플래그를 추가한다:</p>
 <p><code>ord server —http-port 8080</code></p>
 <p>JSON-API 엔드포인트를 활성화하려면 <code>--enable-json-api</code> 또는 <code>-j</code> 플래그를 추가한다:</p>
-<p><code>ord --enable-json-api server</code></p>
+<p><code>ord server --enable-json-api</code></p>
 <p>인스크립션이 어떻게 나올지 테스트하려면 이것을 실행해 보라:</p>
 <p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; …</code></p>
 <h2 id="검색"><a class="header" href="#검색">검색</a></h2>
@@ -830,7 +830,7 @@ OP_ENDIF
 <p>또는 백분위수로 검색할 수 있다. 이는 해당 SAT가 채굴되었을 때 이미 발행되었거나 앞으로 발행될 비트코인의 공급량의 비율이다:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
