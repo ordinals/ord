@@ -150,6 +150,8 @@ pub(crate) struct Server {
   https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   redirect_http_to_https: bool,
+  #[arg(long, short = 'j', help = "Enable JSON API.")]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Server {
@@ -169,7 +171,7 @@ impl Server {
       INDEXER.lock().unwrap().replace(index_thread);
 
       let server_config = Arc::new(ServerConfig {
-        is_json_api_enabled: index.is_json_api_enabled(),
+        is_json_api_enabled: self.enable_json_api,
       });
 
       let config = options.load_config()?;
@@ -1297,8 +1299,8 @@ mod tests {
           .network(bitcoin::network::constants::Network::Regtest)
           .build(),
         None,
-        &["--chain", "regtest", "--enable-json-api"],
-        &[],
+        &["--chain", "regtest"],
+        &["--enable-json-api"],
       )
     }
 
@@ -1323,9 +1325,8 @@ mod tests {
           "--chain",
           "regtest",
           "--index-runes-pre-alpha-i-agree-to-get-rekt",
-          "--enable-json-api",
         ],
-        &[],
+        &["--enable-json-api"],
       )
     }
 
