@@ -36,7 +36,7 @@ Ideas for small issues:
 - Find an issue that needs more research, and do that research and summarize it
   in a comment
 - Find an out-of-date issue and comment that it can be closed
-- Find an issue that shouldn't be done, and provide constrictive feedback
+- Find an issue that shouldn't be done, and provide constructive feedback
   detailing why you think that is the case
 
 Merge early and often
@@ -49,7 +49,7 @@ test. Do research or testing, and report on your results. Break a feature into
 small sub-features, and implement them one at a time.
 
 Figuring out how to break down a larger PR into smaller PRs where each can be
-merged is a art form well-worth practicing. The hard part is that each PR must
+merged is an art form well-worth practicing. The hard part is that each PR must
 itself be an improvement.
 
 I strive to follow this advice myself, and am always better off when I do.

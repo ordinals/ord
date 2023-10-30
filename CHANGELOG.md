@@ -1,7 +1,391 @@
 Changelog
 =========
 
-[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2022-01-24
+[0.10.0](https://github.com/ordinals/ord/releases/tag/0.10.0) - 2023-10-23
+--------------------------------------------------------------------------
+
+### Added
+- Batch inscriptions (#2504)
+- Add teleburn command to generate Ethereum teleburn addresses (#1680)
+- Add Korean version of handbook (#2560)
+- Add German version of handbook (#2441)
+- Add Arabic version of handbook (#2442)
+- Add French version of handbook (#2508)
+- Implement pointer spec (#2499)
+- Add pointer spec (#2383)
+- Add Russian version of handbook (#2468)
+- Add inscription number endpoint (#2485)
+- Allow inscriptions to include CBOR metadata (#2421)
+- Add Filipino version of handbook (#2483)
+- Add code syntax highlighting to preview (#2471)
+- Add font media types (#2464)
+- Render markdown previews (#2325)
+- Add metaprotocol field (#2449)
+- Add Spanish version of handbook (#2448)
+- Add `application/cbor` media type with extension `.cbor` (#2446)
+
+### Changed
+- Create single-directory release archives (#2537)
+- Allow fixed length encoding for parent id in child inscription (#2519)
+- Recognize inscriptions with pushnum opcodes (#2497)
+- Rename `index run` -> `index update` (#2462)
+- Refactor inscription parsing (#2461)
+- Allow running `find` on a range of sats (#1992)
+
+### Fixed
+- Fix overflow in Sat::from_name (#2500)
+- Fix issue with `--satpoint` when offset not 0 (#2466)
+
+### Misc
+- Remove paranthetical annotations (#2540)
+- Refactor index checks (#2541)
+- Don't add path component in bin/package (#2536)
+- Metadata Filipino translation (#2517)
+- Add pointer spec to docs (#2533)
+- Make inscriptions with pointer cursed (#2523)
+- Small refactor for inscribe code (#2515)
+- Pre-allocate vector size (#1960)
+- Add troubleshooting guide for syncing bitcoind (#1737)
+- Same input envelopes become reinscriptions (#2478)
+- Document JSON-API (#2484)
+- Update parent-child guide (#2487)
+- Add regtest flag to bitcoin-cli docs (#2488)
+- Update overview.md (#2456)
+- Correct donation address (#2475)
+- Fixes release tarbomb (#2473)
+- Update dependencies (#2470)
+- Add internal sequence number (#2460)
+- Update guide with parent-child and json API (#2429)
+- Update Japanese handbook version with provenance section (#2450)
+
+### Runes
+- Implement splits (#2530)
+- Add rune fuzz targets (#2526)
+- Allow searching by rune or rune ID (#2522)
+- Encode runestones with tags (#2547)
+- Edict with zero amount allocates all remaining runes (#2531)
+- Always create rune, even if none were allocated (#2543)
+- Show rune balances on /output page (#2527)
+- Delta encode Rune IDs in edicts (#2532)
+- Add test to keep track of runestone size (#2529)
+- Show etching and inscription on /rune page (#2512)
+- Track burned runes (#2511)
+- Don't encode divisibility if zero (#2510)
+- Format rune supply using divisibility (#2509)
+- Add pre-alpha unstable incomplete half-baked rune index (#2491)
+
+[0.9.0](https://github.com/ordinals/ord/releases/tag/0.9.0) - 2023-09-11
+------------------------------------------------------------------------
+
+### Added
+
+- Allow reinscribing with wallet (#2432)
+- Provide more detailed translation instructions (#2443)
+- Add Japanese version of handbook (#2426)
+- Add provenance to docs summary (#2427)
+- Inscribe with parent (#2388)
+- Add provenance spec (#2278)
+- Implement provenance in index (#2353)
+- Add application/protobuf media type (#2389)
+- Install mdbook-i18n-helpers in Github Workflows (#2408)
+- Add `decode` command (#2401)
+- Add Chinese version of the handbook (#2406)
+- Add language picker for docs (#2403)
+- Add reindexing docs (#2393)
+- Vaccuum log with every new deploy (#2390)
+
+### Changed
+
+- Fold BlockIndex into database (#2436)
+- Prevent search when query field is empty (#2425)
+- Make any zero-valued input inscription unbound (#2397)
+- Tweak translations intructions (#2413)
+- Remove unused itertools dependency (#2416)
+- Update dependencies (#2414)
+- Update clap (#2415)
+- Use tapscript extraction from rust-bitcoin (#2404)
+- Allocate blocks vector ahead of time (#2409)
+- Deduplicate sat range summation logic (#2402)
+- Inscriptions with unrecognized even fields are unbound and cursed (#2359)
+- Remove unused content_response match statement (#2384)
+
+### Fixed
+
+- Fix type (#2444)
+- Fix Chinese translation typos and format errors (#2419)
+- Fix UTXO selection in mock Bitcoin Core instance(#2417)
+
+[0.8.3](https://github.com/ordinals/ord/releases/tag/0.8.3) - 2023-08-28
+------------------------------------------------------------------------
+
+### Added
+
+- Tweaks to front-end (#2381)
+- Add some links  to docs  (#2364)
+- Add testing guide for recursion (#2357)
+- Make homepage more interesting (#2374)
+- Add proper block inscriptions HTML (#2337)
+- Render GLB/GLTF models in preview (#2369)
+- Add tags and inscription id documentation (#2351)
+- Add hint about maximum number of open files for testing (#2348)
+- Reduce index durability when testing (#2347)
+- Homogenize design (#2346)
+
+### Fixed
+
+- Fix slice error for inscriptions block view (#2378)
+- Use correct height and depth in reorg log (#2352)
+
+### Changed
+
+- Remove transaction ID to inscription ID conversion (#2370)
+- Return JSON from all commands (#2355)
+- Allow splitting merged inscriptions (#1927)
+- Update explorer.md (#2215)
+- Recognize media types without explicit charset (#2349)
+
+[0.8.2](https://github.com/ordinals/ord/releases/tag/0.8.2) - 2023-08-17
+------------------------------------------------------------------------
+
+### Added
+
+- Allow setting custom postage (#2331)
+- Make retrieving inscriptions in block fast (#2333)
+- JSON API for `/inscription`, `/inscriptions` and `/output` (#2323)
+- Ignore invalid content type header values (#2326)
+- Add reorg resistance  (#2320)
+- Add JSON API endpoint `/sat/<SAT>` (#2250)
+- Add `amount` field to `wallet inscriptions` output. (#1928)
+
+### Changed
+
+- Only fetch inscriptions that are owned by the ord wallet (#2310)
+- Inform user when redb starts in recovery mode (#2304)
+- Select multiple utxos (#2303)
+
+### Fixed
+
+- Use `--fee-rate` when sending an amount (#1922)
+- Fix typos in documentation (#2328)
+- Fix dust limit for padding in `TransactionBuilder` (#1929)
+- Fix remote RPC wallet commands (#1766)
+
+[0.8.1](https://github.com/ordinals/ord/releases/tag/0.8.1) - 2023-07-23
+---------------------------------------------------------------------
+
+### Added
+
+- Add retry to fetcher (#2297)
+- Add satpoint and address to index export (#2284)
+- Don't create default data directory if --index overrides it (#1991)
+- Implement clean index shutdown to prevent index corruption (with clippy updates for Rust 1.71) (#2275)
+- Set lower max age for not found (#2240)
+
+### Changed
+
+- Fix justfile recipe (#2299)
+- Clean up deploy scripts (#2298)
+- Update redb (#2294)
+- Update bitcoin dependencies (#2281)
+- Fix ordering for reinscriptions and show all reinscriptions for sat (#2279)
+- Modify `ord list` output to include the end of each range (#1998)
+
+### Documentation
+
+- Fix docs inconsistency (#2276)
+- Add contributing section (#2261)
+
+[0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
+---------------------------------------------------------------------
+
+### Added
+
+- Dev server deploy script (#2228)
+- Set DB cache size (#2224)
+- Update redb from 0.13.0 to 1.0.2 (#2141)
+- Fix typo in BIP (#2220)
+
+[0.7.0](https://github.com/ordinals/ord/releases/tag/0.7.0) - 2023-06-23
+---------------------------------------------------------------------
+
+### Added
+- Tweak publish recipe (#2212)
+- Handle cursed inscriptions edge cases (#2209)
+- Add export command for <INSCRIPTION_NUMBER_TO_INSCRIPTION_ID> table (#2208)
+- Add Markdown media type (#2206)
+- Add blob urls to Content Security Policy headers (#2203)
+- Check inscribe destination address network (#2189)
+
+[0.6.2](https://github.com/ordinals/ord/releases/tag/0.6.2) - 2023-06-15
+---------------------------------------------------------------------
+
+### Added
+- Recursive endpoints: `/blockhash, /blockheight, /blocktime` (#2175)
+- Document recursion (#2174)
+- Add CSS and JavaScript media types (#2173)
+- Recursive Inscriptions (#2167)
+
+### Misc
+- Update ord dependency in lockfile (#2168)
+
+[0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
+---------------------------------------------------------------------
+
+### Changed
+- Fix sat index test and unbound assignment (#2154)
+- Updated install.sh for new repo name (#2155)
+
+[0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
+---------------------------------------------------------------------
+
+### Added
+- Cursed Inscriptions [1/n] (#2145)
+- Authenticate to bitcoin using a username and password (#1527)
+- Add example config file (#2044)
+
+### Changed
+- Unbind inscriptions from zero-sat transactions (#2107)
+
+### Documentation
+- Tweak doc: Inscriptions made on first sat of input (#2148)
+- `OP_PUSH` instead of `OP_1` in inscription docs (#2135)
+- Document bitcoind RPC authentication options (#2056)
+- Fix typo in Sparrow Wallet docs (#2077)
+- Update donate.md for inscriptions donations. (#2125)
+- Promote raphjaph to lead maintainer 🫡 (#2119)
+- Improve donation page (#2034)
+
+### Misc
+- Switch CI back to stable clippy (#2108)
+- Update dependencies (#2068)
+- Use struct variants in Origin enum (#2067)
+- Fix test name typos(#2043)
+- Switch to nightly clippy (#2037)
+
+[0.5.2](https://github.com/ordinals/ord/releases/tag/0.5.2) - 2023-04-17
+---------------------------------------------------------------------
+
+### Added
+- Add `ord wallet cardinals` command to list the cardinal outputs (#1904)
+
+### Changed
+- Shut down immediately after two interrupts (#2008)
+- Mandatory fee rate for inscribe (#1897)
+- Add error when a satpoint's offset exceeds the size of its output (#1857)
+
+### Fixed
+- Fix fee-spent inscription tracking (#1971)
+- Label change and receive addresses correctly (#1847)
+- Correct reveal tx fee calculation (#1853)
+
+### Misc
+- Misc changes (#2025)
+- Misc doc fixes (#2021)
+- Typo in sparrow wallet guide (#1947)
+- Miscellaneous design improvements (#1968)
+- Update miniscript dependency to 9.0.1 (#1966)
+- Skip indexing inscriptions when below first inscription also for `--index-sats`(#1828)
+- Better interrupt message (#1874)
+- Fix colored coins link in BIP (#1856)
+- Added cozy pair programming twitch link to README.md (#1827)
+- Create rpc client after updating index (#1731)
+- Add additional err msg to build from source for users who's arch falls outside of the list (#1792)
+- Add note on default build location (#1625)
+- Minor copy fixes (#1730)
+- Typo (#1815)
+
+[0.5.1](https://github.com/ordinals/ord/releases/tag/0.5.1) - 2023-02-21
+---------------------------------------------------------------------
+
+### Performance
+- Batch tx requests and re-enable skipping transactions (#1759)
+
+### Added
+- Add option to set inscription destination address (#1536)
+- Allow supplying passphrase for `ord wallet create` and `ord wallet restore` (#1669)
+- Add `--config-dir` option (#1697)
+
+### Changed
+- Require users manually specify a `--fee-rate` for `wallet send` (#1755)
+
+### Documentation
+- Add Sparrow Wallet Guide to Handbook (#1742)
+
+### Misc
+- Handle block count RPC error gracefully (#1637)
+- Fix typos in overview.md (#1715)
+- Typo fix (#1682)
+- README typo fix (#1716)
+- Fix changelog dates: 2022 → 2023 (#1700)
+- Bump version number (#1695)
+
+[0.5.0](https://github.com/ordinals/ord/releases/tag/0.5.0) - 2023-02-11
+---------------------------------------------------------------------
+
+### Breaking Changes
+- Upgrade to redb 0.13.0 (#1513)
+- Update redb to 0.12.1 (#1329)
+- Display inscription genesis fee (#1381)
+
+### Added
+- Add support for `.glb` inscriptions (#1689)
+- Add --no-limit flag to bypass MAX_STANDARD_TX_WEIGHT check to allow four meggers (#1571)
+- Add `--commit-fee-rate` for setting inscribe commit transaction fee rate (#1490)
+- Allow viewing but not creating AVIF inscriptions (#1428)
+- Support STL inscriptions (#1492)
+- Support MP4 inscriptions (#1419)
+- Preview JSON and YAML inscriptions as text (#1449)
+- Display inputs on /tx (#1433)
+- Support PGP signature inscriptions (#1413)
+- Add config (#1392)
+- Add paging to /inscriptions (#1279)
+
+### Changed
+- Increase deployment mempool size to 1024 megabytes (#1587)
+- Increase number of inscriptions in RSS feed (#1567)
+- Link to block from /inscription (#1395)
+- Use favicon as icon for Twitter preview (#1425)
+- Allow data URIs in content security policy (#1422)
+- Raise server open file limit (#1408)
+- Remove HTTP to HTTPS redirect (#1414)
+- Use JSON for more command output (#1367)
+- Use JSON for `wallet` command output (#1359)
+
+### Misc
+- Set rustc version in Cargo.toml & README (#1615)
+- Disable Prettier format-on-save (#1593)
+- Add build instructions to README (#1573)
+- Ensure wallet commands load wallet (#1524)
+- Improve error messages related to cookie file (#1537)
+- Include inscription ID in text inscription decode error (#1540)
+- Lazily load iframes (#1456)
+- Log recoverable errors as warnings
+- Add alert pop-up example (#1498)
+- Use custom Discord invite link in handbox (#1506)
+- Note that bounty 3 requires sat index (#1509)
+- Link donation addresses to mempool.space (#1510)
+- Add linebreak to donate page (#1500)
+- Add donate page to handbook (#1499)
+- Moderation guide typo: wiht → with (#1483)
+- Add moderation guide (#1473)
+- Add collecting guide to docs (#1474)
+- Add missing dependencies to shell.nix (#1463)
+- Mute and autoplay video inscriptions (#1420)
+- Throw an error Bitcoin Core wallet and ord index are out of sync (#1459)
+- Typo: managment -> management (#1441)
+- Fix README.md grammar (#1406)
+- Typo: Aritacts -> Artifacts (#1434)
+- Update justfile to use unproxied domains (#1391)
+- Typo: sat -> sats (#1411)
+- Docs: `ord wallet utxos` -> `ord wallet outputs` (#1405)
+- Round expected sat timestamps (#1386)
+- Remove ellipsis (#1376)
+- Hide overflowing ordered lists (#1384)
+- Compress responses (#1366)
+- Avoid listening on 0.0.0.0 in tests (#1365)
+- Rename `GitHub` nav link to `Wallet` (#1360)
+
+[0.4.2](https://github.com/ordinals/ord/releases/tag/0.4.2) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Changed
@@ -13,7 +397,7 @@ Changelog
 ### Misc
 - Fix guide typo: getblockchount -> getblockcount (#1354)
 
-[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2022-01-24
+[0.4.1](https://github.com/ordinals/ord/releases/tag/0.4.1) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Added
@@ -44,7 +428,7 @@ Changelog
 - Serve favicon as PNG to Safari and SVG others (#1302)
 - Use sans-serif font for height on clock (#1300)
 
-[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2022-01-19
+[0.4.0](https://github.com/ordinals/ord/releases/tag/0.4.0) - 2023-01-19
 ---------------------------------------------------------------------
 
 ### Added
@@ -173,7 +557,7 @@ Changelog
 - Fix softprops/actions-gh-release version (#992)
 - Fuzz test transaction builder with multiple UTXOs (#1291)
 
-[0.3.0](https://github.com/casey/ord/releases/tag/0.3.0) - 2022-12-16
+[0.3.0](https://github.com/ordinals/ord/releases/tag/0.3.0) - 2022-12-16
 ---------------------------------------------------------------------
 
 - Update CI dependencies (#986)
@@ -181,12 +565,12 @@ Changelog
 - Display content type and size /inscription (#975)
 - Use "sat" in place of "ordinal" (#979)
 
-[0.2.1](https://github.com/casey/ord/releases/tag/0.2.1) - 2022-12-14
+[0.2.1](https://github.com/ordinals/ord/releases/tag/0.2.1) - 2022-12-14
 ---------------------------------------------------------------------
 
 - Revise inscription guide after mainnet walkthrough (#968)
 
-[0.2.0](https://github.com/casey/ord/releases/tag/0.2.0) - 2022-12-14
+[0.2.0](https://github.com/ordinals/ord/releases/tag/0.2.0) - 2022-12-14
 ---------------------------------------------------------------------
 
 - Add `ord wallet create` (#958)
@@ -277,13 +661,13 @@ Changelog
 - Remove old recipes from justfile (#718)
 - Update roadmap (#722)
 
-[0.1.0](https://github.com/casey/ord/releases/tag/0.1.0) - 2022-10-25
+[0.1.0](https://github.com/ordinals/ord/releases/tag/0.1.0) - 2022-10-25
 ---------------------------------------------------------------------
 
 - Add index updater (#703)
 - Speed up rarity check while indexing (#702)
 
-[0.0.6](https://github.com/casey/ord/releases/tag/0.0.6) - 2022-10-25
+[0.0.6](https://github.com/ordinals/ord/releases/tag/0.0.6) - 2022-10-25
 ---------------------------------------------------------------------
 
 - Switch to ord-bitcoincore-rpc (#707)
@@ -358,7 +742,7 @@ Changelog
 - Add ordinal hunting how-to docs page (#596)
 - Fix bounty example links (#595)
 
-[0.0.5](https://github.com/casey/ord/releases/tag/0.0.5) - 2022-10-02
+[0.0.5](https://github.com/ordinals/ord/releases/tag/0.0.5) - 2022-10-02
 ---------------------------------------------------------------------
 
 - Add bitcoin.conf (#592)
@@ -388,7 +772,7 @@ Changelog
 - Convert block and transaction integration tests to unit tests (#560)
 - Fix release script (#562)
 
-[0.0.4](https://github.com/casey/ord/releases/tag/0.0.4) - 2022-09-26
+[0.0.4](https://github.com/ordinals/ord/releases/tag/0.0.4) - 2022-09-26
 ---------------------------------------------------------------------
 
 - Add more links and labels to clocks (#552)
@@ -552,7 +936,7 @@ Changelog
 - Add nix flake (#214)
 - Build binaries for releases (#213)
 
-[0.0.1](https://github.com/casey/ord/releases/tag/0.0.1) - 2022-06-05
+[0.0.1](https://github.com/ordinals/ord/releases/tag/0.0.1) - 2022-06-05
 ---------------------------------------------------------------------
 
 - Add commands to mint and verify NFTs (#211)

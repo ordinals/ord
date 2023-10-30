@@ -40,7 +40,7 @@ There are a few things you'll need before you start.
 
 2. Second, you'll need a synced `ord` index.
 
-   - Get a copy of `ord` from [the repo](https://github.com/casey/ord/).
+   - Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/).
 
    - Run `RUST_LOG=info ord index`. It should connect to your bitcoin core
      node and start indexing.

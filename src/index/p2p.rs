@@ -1,6 +1,8 @@
 use {
+  crate::Network,
   anyhow::{bail, ensure, Context, Result},
   bitcoin::{
+    blockdata::block::{Block, BlockHash, Header},
     consensus::{encode, Decodable},
     hashes::Hash,
     network::{
@@ -11,7 +13,6 @@ use {
       Address,
     },
     secp256k1::{self, rand::Rng},
-    Block, BlockHash, BlockHeader, Network,
   },
   log::{debug, trace, warn},
   std::{
@@ -28,11 +29,11 @@ use {
 pub(crate) struct Connection {
   msg_send: SyncSender<NetworkMessage>,
   blocks_recv: Receiver<Block>,
-  headers_recv: Receiver<Vec<BlockHeader>>,
+  headers_recv: Receiver<Vec<Header>>,
 }
 
 impl Connection {
-  pub(crate) fn get_headers(&mut self, begin_hash: Option<BlockHash>) -> Result<Vec<BlockHeader>> {
+  pub(crate) fn get_headers(&mut self, begin_hash: Option<BlockHash>) -> Result<Vec<Header>> {
     let msg = GetHeadersMessage::new(
       vec![begin_hash.unwrap_or_else(BlockHash::all_zeros)],
       BlockHash::all_zeros(),
@@ -102,7 +103,7 @@ impl Connection {
     });
 
     let (blocks_send, blocks_recv) = sync_channel::<Block>(10);
-    let (headers_send, headers_recv) = sync_channel::<Vec<BlockHeader>>(1);
+    let (headers_send, headers_recv) = sync_channel::<Vec<Header>>(1);
     let (init_send, init_recv) = sync_channel::<()>(0);
 
     tx_send.send(build_version_message())?;

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-
 if [ ! -z ${GITHUB_ACTIONS-} ]; then
   set -x
 fi
@@ -24,9 +23,9 @@ OPTIONS:
 EOF
 }
 
-git=casey/ord
+git=ordinals/ord
 crate=ord
-url=https://github.com/casey/ord
+url=https://github.com/ordinals/ord
 releases=$url/releases
 
 say() {
@@ -98,7 +97,7 @@ if [ -z ${dest-} ]; then
 fi
 
 if [ -z ${tag-} ]; then
-  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/casey/ord/releases/latest |
+  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/ordinals/ord/releases/latest |
     grep tag_name |
     cut -d'"' -f4
   )
@@ -113,6 +112,8 @@ if [ -z ${target-} ]; then
     x86_64-Linux) target=x86_64-unknown-linux-gnu;;
     *)
       err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
+      err 'Target architecture is not supported by this install script.'
+      err 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
     ;;
   esac
 fi
@@ -127,7 +128,7 @@ say_err "Destination: $dest"
 say_err "Archive:     $archive"
 
 td=$(mktemp -d || mktemp -d -t tmp)
-curl --proto =https --tlsv1.2 -sSfL $archive | tar -C $td -xz
+curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $td --strip-components 1 -xz
 
 for f in $(ls $td); do
   test -x $td/$f || continue

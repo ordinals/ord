@@ -7,6 +7,45 @@ pub(crate) struct OutputHtml {
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
   pub(crate) inscriptions: Vec<InscriptionId>,
+  pub(crate) runes: Vec<(Rune, Pile)>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct OutputJson {
+  pub value: u64,
+  pub script_pubkey: String,
+  pub address: Option<String>,
+  pub transaction: String,
+  pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub inscriptions: Vec<InscriptionId>,
+  pub runes: BTreeMap<Rune, u128>,
+}
+
+impl OutputJson {
+  pub fn new(
+    outpoint: OutPoint,
+    list: Option<List>,
+    chain: Chain,
+    output: TxOut,
+    inscriptions: Vec<InscriptionId>,
+    runes: BTreeMap<Rune, u128>,
+  ) -> Self {
+    Self {
+      value: output.value,
+      runes: runes.into_iter().collect(),
+      script_pubkey: output.script_pubkey.to_asm_string(),
+      address: chain
+        .address_from_script(&output.script_pubkey)
+        .ok()
+        .map(|address| address.to_string()),
+      transaction: outpoint.txid.to_string(),
+      sat_ranges: match list {
+        Some(List::Unspent(ranges)) => Some(ranges),
+        _ => None,
+      },
+      inscriptions,
+    }
+  }
 }
 
 impl PageContent for OutputHtml {
@@ -19,7 +58,7 @@ impl PageContent for OutputHtml {
 mod tests {
   use {
     super::*,
-    bitcoin::{blockdata::script, PubkeyHash, Script},
+    bitcoin::{blockdata::script, PubkeyHash},
   };
 
   #[test]
@@ -32,8 +71,9 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
+        runes: Vec::new(),
       },
       "
         <h1>Output <span class=monospace>1{64}:1</span></h1>
@@ -65,6 +105,7 @@ mod tests {
           value: 1,
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
+        runes: Vec::new(),
       },
       "
         <h1>Output <span class=monospace>1{64}:1</span></h1>
@@ -89,8 +130,9 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
+        runes: Vec::new(),
       }
       .to_string(),
       "
@@ -116,8 +158,9 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
+        runes: Vec::new(),
       },
       "
         <h1>Output <span class=monospace>1{64}:1</span></h1>
@@ -125,6 +168,50 @@ mod tests {
           <dt>inscriptions</dt>
           <dd class=thumbnails>
             <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+          </dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_runes() {
+    assert_regex_match!(
+      OutputHtml {
+        inscriptions: Vec::new(),
+        outpoint: outpoint(1),
+        list: None,
+        chain: Chain::Mainnet,
+        output: TxOut {
+          value: 3,
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
+        },
+        runes: vec![(
+          Rune(0),
+          Pile {
+            amount: 11,
+            divisibility: 1,
+            symbol: None,
+          }
+        )],
+      },
+      "
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
+        <dl>
+          <dt>runes</dt>
+          <dd>
+            <table>
+              <tr>
+                <th>rune</th>
+                <th>balance</th>
+              </tr>
+              <tr>
+                <td><a href=/rune/A>A</a></td>
+                <td>1.1</td>
+              </tr>
+            </table>
           </dd>
           .*
         </dl>
