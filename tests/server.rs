@@ -184,7 +184,7 @@ fn inscription_content() {
       .collect::<Vec<&http::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
-      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/-/ 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:",
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
@@ -339,17 +339,17 @@ fn all_endpoints_in_recursive_directory_return_json() {
 
   let server = TestServer::spawn_with_args(&rpc_server, &[]);
 
-  assert_eq!(server.request("/-/blockheight").json::<u64>().unwrap(), 2);
+  assert_eq!(server.request("/r/blockheight").json::<u64>().unwrap(), 2);
 
-  assert_eq!(server.request("/-/blocktime").json::<u64>().unwrap(), 2);
+  assert_eq!(server.request("/r/blocktime").json::<u64>().unwrap(), 2);
 
   assert_eq!(
-    server.request("/-/blockhash").json::<String>().unwrap(),
+    server.request("/r/blockhash").json::<String>().unwrap(),
     "70a93647a8d559c7e7ff2df9bd875f5b726a2ff8ca3562003d257df5a4c47ae2"
   );
 
   assert_eq!(
-    server.request("/-/blockhash/0").json::<String>().unwrap(),
+    server.request("/r/blockhash/0").json::<String>().unwrap(),
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
   );
 

@@ -185,13 +185,13 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/-/blockheight", get(Self::block_height))
-        .route("/-/blockhash", get(Self::block_hash_json))
+        .route("/r/blockheight", get(Self::block_height))
+        .route("/r/blockhash", get(Self::block_hash_json))
         .route(
-          "/-/blockhash/:height",
+          "/r/blockhash/:height",
           get(Self::block_hash_from_height_json),
         )
-        .route("/-/blocktime", get(Self::block_time))
+        .route("/r/blocktime", get(Self::block_time))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
@@ -982,7 +982,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/-/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
