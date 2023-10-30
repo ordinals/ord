@@ -185,8 +185,6 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/-/content/sat/:sat/:page_index", get(Self::content_sat))
-        .route("/-/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
@@ -194,6 +192,8 @@ impl Server {
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/content/sat/:sat/:page_index", get(Self::content_sat))
+        .route("/r/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
@@ -2082,13 +2082,13 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      "/-/sat/5000000000/1",
+      "/r/sat/5000000000/1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
 
     server.assert_response_regex(
-      "/-/sat/5000000000/-1",
+      "/r/sat/5000000000/-1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
