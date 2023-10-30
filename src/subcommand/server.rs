@@ -2082,13 +2082,13 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      "/-/sat/5000000000/1",
+      "/r/sat/5000000000/1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
 
     server.assert_response_regex(
-      "/-/sat/5000000000/-1",
+      "/r/sat/5000000000/-1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
