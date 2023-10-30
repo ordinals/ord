@@ -345,7 +345,28 @@ impl StreamEvent {
       Ok(_) => Ok(()),
       Err((e, _)) => Err(anyhow!("failed to send kafka message: {}", e)),
     }?;
-    println!("{}", serde_json::to_string(&self)?);
+
+    self.log_kafka_message().unwrap_or_else(|e| {
+      error!("failed to log kafka message: {}", e);
+    });
+
+    Ok(())
+  }
+
+  fn log_kafka_message(&self) -> Result {
+    // Only log the message if it is not a SATS mint inscription
+    if let Some(is_brc20_sats_mint_transfer) = self
+      .brc20
+      .as_ref()
+      .map(|brc20| brc20.op == "mint" && brc20.tick == "sats" && self.old_location.is_some())
+    {
+      if !is_brc20_sats_mint_transfer {
+        println!("{}", serde_json::to_string(&self)?);
+      }
+    } else {
+      println!("{}", serde_json::to_string(&self)?);
+    }
+
     Ok(())
   }
 }
