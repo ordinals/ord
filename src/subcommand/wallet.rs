@@ -71,12 +71,12 @@ impl Wallet {
   }
 }
 
-fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
   Ok(
     client
       .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
       .context("could not get change addresses from wallet")?
-      .require_network(options.chain().network())?,
+      .require_network(chain.network())?,
   )
 }
 

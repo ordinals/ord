@@ -89,7 +89,7 @@ fn export_inscription_number_to_id_tsv() {
 
   inscribe(&rpc_server);
   inscribe(&rpc_server);
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
