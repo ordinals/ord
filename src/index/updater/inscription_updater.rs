@@ -190,7 +190,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         } else if inscription.pushnum {
           Some(Curse::Pushnum)
         } else if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self.id_to_entry.len()?;
+          let seq_num = self.next_sequence_number;
 
           let sat = Self::calculate_sat(input_sat_ranges, offset);
 
