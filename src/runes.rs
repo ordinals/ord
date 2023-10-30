@@ -4,7 +4,9 @@ pub use runestone::Runestone;
 
 pub(crate) use {edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId};
 
+pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 const MAX_DIVISIBILITY: u8 = 38;
+pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 
 mod edict;
 mod error;
@@ -28,8 +30,7 @@ mod tests {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
-    assert_eq!(context.index.runes().unwrap(), []);
-    assert_eq!(context.index.get_rune_balances(), []);
+    context.assert_runes([], []);
   }
 
   #[test]
@@ -48,9 +49,8 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune: Rune(RUNE),
-            symbol: None,
+            ..Default::default()
           }),
           ..Default::default()
         }
@@ -61,9 +61,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(context.index.runes().unwrap(), []);
-
-    assert_eq!(context.index.get_rune_balances(), []);
+    context.assert_runes([], []);
   }
 
   #[test]
@@ -82,8 +80,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(context.index.runes().unwrap(), []);
-    assert_eq!(context.index.get_rune_balances(), []);
+    context.assert_runes([], []);
   }
 
   #[test]
@@ -116,8 +113,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -125,11 +121,10 @@ mod tests {
           rune: Rune(RUNE),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
+        },
+      )],
+      [],
     );
-
-    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -167,8 +162,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -177,13 +171,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -218,9 +208,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(context.index.runes().unwrap(), []);
-
-      assert_eq!(context.index.get_rune_balances(), []);
+      context.assert_runes([], []);
     }
 
     {
@@ -257,8 +245,7 @@ mod tests {
         index: 1,
       };
 
-      assert_eq!(
-        context.index.runes().unwrap(),
+      context.assert_runes(
         [(
           id,
           RuneEntry {
@@ -267,13 +254,9 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
-        )]
-      );
-
-      assert_eq!(
-        context.index.get_rune_balances(),
-        [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+          },
+        )],
+        [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
       );
     }
   }
@@ -314,8 +297,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -325,13 +307,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -377,8 +355,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -387,13 +364,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -439,8 +412,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -450,13 +422,9 @@ mod tests {
           symbol: None,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -495,8 +463,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -505,13 +472,9 @@ mod tests {
           supply: 100,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
     );
   }
 
@@ -557,8 +520,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -568,16 +530,9 @@ mod tests {
           supply: 200,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [
-        (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
-        (OutPoint { txid, vout: 1 }, vec![(id, 100)])
-      ]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
     );
   }
 
@@ -623,8 +578,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -633,13 +587,9 @@ mod tests {
           supply: 100,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, 100)]),]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
     );
   }
 
@@ -678,8 +628,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -688,19 +637,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -721,8 +666,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -731,19 +675,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
   }
 
@@ -782,8 +722,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -791,11 +730,10 @@ mod tests {
           rune: Rune(RUNE),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
+        },
+      )],
+      [],
     );
-
-    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -833,8 +771,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -843,19 +780,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -872,8 +805,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -883,11 +815,10 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
+        },
+      )],
+      [],
     );
-
-    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -925,8 +856,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -935,19 +865,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -958,8 +884,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -968,19 +893,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
   }
 
@@ -1020,8 +941,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1030,19 +950,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1053,8 +969,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1063,19 +978,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
   }
 
@@ -1114,8 +1025,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1124,13 +1034,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1155,8 +1061,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1165,13 +1070,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -1210,8 +1111,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id0,
         RuneEntry {
@@ -1220,19 +1120,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1262,8 +1158,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1273,7 +1168,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1284,29 +1179,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid0,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
-      ]
+      ],
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1316,8 +1207,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1327,7 +1217,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1338,20 +1228,16 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [(
         OutPoint {
           txid: txid2,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+      )],
     );
   }
 
@@ -1390,8 +1276,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id0,
         RuneEntry {
@@ -1400,19 +1285,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1442,8 +1323,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1453,7 +1333,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1464,29 +1344,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid0,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
-      ]
+      ],
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1496,8 +1372,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1507,7 +1382,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1518,20 +1393,16 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [(
         OutPoint {
           txid: txid2,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+      )],
     );
 
     let txid3 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1560,8 +1431,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1571,7 +1441,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1582,32 +1452,28 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid3,
-            vout: 0
+            vout: 0,
           },
           vec![
             (id0, u128::max_value() / 2 + 1),
-            (id1, u128::max_value() / 2 + 1)
-          ]
+            (id1, u128::max_value() / 2 + 1),
+          ],
         ),
         (
           OutPoint {
             txid: txid3,
-            vout: 1
+            vout: 1,
           },
-          vec![(id0, u128::max_value() / 2), (id1, u128::max_value() / 2)]
-        )
-      ]
+          vec![(id0, u128::max_value() / 2), (id1, u128::max_value() / 2)],
+        ),
+      ],
     );
   }
 
@@ -1646,8 +1512,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id0,
         RuneEntry {
@@ -1656,19 +1521,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1698,8 +1559,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1709,7 +1569,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1720,29 +1580,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid0,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
-      ]
+      ],
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1770,8 +1626,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1781,7 +1636,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1792,20 +1647,16 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [(
         OutPoint {
           txid: txid2,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+      )],
     );
   }
 
@@ -1845,8 +1696,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1855,19 +1705,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1883,8 +1729,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -1893,13 +1738,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -1963,8 +1804,7 @@ mod tests {
       index: 2,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -1974,7 +1814,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 3,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -1985,29 +1825,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
+          },
         ),
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+      ],
       [
         (
           OutPoint {
             txid: txid0,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
-      ]
+      ],
     );
   }
 
@@ -2046,8 +1882,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2056,19 +1891,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -2096,8 +1927,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2106,19 +1936,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
   }
 
@@ -2157,8 +1983,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id0,
         RuneEntry {
@@ -2167,19 +1992,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id0, u128::max_value())]
-      )]
+        vec![(id0, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -2209,8 +2030,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -2220,7 +2040,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -2231,29 +2051,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid0,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
-      ]
+      ],
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -2281,8 +2097,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [
         (
           id0,
@@ -2292,7 +2107,7 @@ mod tests {
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
-          }
+          },
         ),
         (
           id1,
@@ -2303,29 +2118,25 @@ mod tests {
             timestamp: 3,
             number: 1,
             ..Default::default()
-          }
-        )
-      ]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+          },
+        ),
+      ],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id1, u128::max_value())]
+          vec![(id1, u128::max_value())],
         ),
         (
           OutPoint {
             txid: txid2,
-            vout: 0
+            vout: 0,
           },
-          vec![(id0, u128::max_value())]
+          vec![(id0, u128::max_value())],
         ),
-      ]
+      ],
     );
   }
 
@@ -2364,8 +2175,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2374,19 +2184,15 @@ mod tests {
           supply: u128::max_value() / 2,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value() / 2)]
-      )]
+        vec![(id, u128::max_value() / 2)],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -2407,8 +2213,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2417,19 +2222,15 @@ mod tests {
           supply: u128::max_value() / 2,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value() / 2)]
-      )]
+        vec![(id, u128::max_value() / 2)],
+      )],
     );
   }
 
@@ -2468,8 +2269,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2479,13 +2279,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [],
     );
   }
 
@@ -2525,8 +2321,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2535,13 +2330,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -2588,8 +2379,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2598,13 +2388,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -2644,8 +2430,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2654,30 +2439,26 @@ mod tests {
           supply: (u128::max_value() / 4) * 4,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
         (
           OutPoint { txid, vout: 3 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
-      ]
+      ],
     );
   }
 
@@ -2724,8 +2505,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2734,30 +2514,26 @@ mod tests {
           supply: 1000 + ((u128::max_value() - 1000) / 4) * 4,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, 1000 + (u128::max_value() - 1000) / 4)]
+          vec![(id, 1000 + (u128::max_value() - 1000) / 4)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, (u128::max_value() - 1000) / 4)]
+          vec![(id, (u128::max_value() - 1000) / 4)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, (u128::max_value() - 1000) / 4)]
+          vec![(id, (u128::max_value() - 1000) / 4)],
         ),
         (
           OutPoint { txid, vout: 3 },
-          vec![(id, (u128::max_value() - 1000) / 4)]
+          vec![(id, (u128::max_value() - 1000) / 4)],
         ),
-      ]
+      ],
     );
   }
 
@@ -2804,8 +2580,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2814,30 +2589,26 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4 + 3)]
+          vec![(id, u128::max_value() / 4 + 3)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
         (
           OutPoint { txid, vout: 3 },
-          vec![(id, u128::max_value() / 4)]
+          vec![(id, u128::max_value() / 4)],
         ),
-      ]
+      ],
     );
   }
 
@@ -2877,8 +2648,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2887,18 +2657,14 @@ mod tests {
           supply: 4000,
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (OutPoint { txid, vout: 0 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 2 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 3 }, vec![(id, 1000)]),
-      ]
+      ],
     );
   }
 
@@ -2945,8 +2711,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -2955,20 +2720,16 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() - 2000)]
+          vec![(id, u128::max_value() - 2000)],
         ),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 2 }, vec![(id, 1000)]),
-      ]
+      ],
     );
   }
 
@@ -3015,8 +2776,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3025,21 +2785,17 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() - 4000 + 1000)]
+          vec![(id, u128::max_value() - 4000 + 1000)],
         ),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 2 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 3 }, vec![(id, 1000)]),
-      ]
+      ],
     );
   }
 
@@ -3061,9 +2817,8 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune: Rune(RUNE),
-            symbol: None,
+            ..Default::default()
           }),
           ..Default::default()
         }
@@ -3079,8 +2834,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3089,19 +2843,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3123,8 +2873,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3133,28 +2882,24 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id, u128::max_value() / 2 + 1)]
+          vec![(id, u128::max_value() / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
-          vec![(id, u128::max_value() / 2)]
-        )
-      ]
+          vec![(id, u128::max_value() / 2)],
+        ),
+      ],
     );
   }
 
@@ -3193,8 +2938,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3203,19 +2947,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3244,8 +2984,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3254,28 +2993,24 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
           vec![(id, 1000 + (u128::max_value() - 1000) / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
           vec![(id, (u128::max_value() - 1000) / 2)],
-        )
-      ]
+        ),
+      ],
     );
   }
 
@@ -3314,8 +3049,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3324,19 +3058,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3365,8 +3095,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3375,28 +3104,24 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
           vec![(id, u128::max_value() / 2)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
           vec![(id, u128::max_value() / 2 + 1)],
-        )
-      ]
+        ),
+      ],
     );
   }
 
@@ -3435,8 +3160,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3445,19 +3169,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3479,8 +3199,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3489,28 +3208,24 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id, u128::max_value() - 1000)]
+          vec![(id, u128::max_value() - 1000)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
-          vec![(id, 1000)]
-        )
-      ]
+          vec![(id, 1000)],
+        ),
+      ],
     );
   }
 
@@ -3549,8 +3264,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3559,19 +3273,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3600,8 +3310,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3610,28 +3319,24 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id, u128::max_value() - 2000 + 1000)]
+          vec![(id, u128::max_value() - 2000 + 1000)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
-          vec![(id, 1000)]
-        )
-      ]
+          vec![(id, 1000)],
+        ),
+      ],
     );
   }
 
@@ -3670,8 +3375,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3680,19 +3384,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3721,8 +3421,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3731,42 +3430,38 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [
         (
           OutPoint {
             txid: txid1,
-            vout: 0
+            vout: 0,
           },
-          vec![(id, u128::max_value() - 4000 + 1000)]
+          vec![(id, u128::max_value() - 4000 + 1000)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 1
+            vout: 1,
           },
-          vec![(id, 1000)]
+          vec![(id, 1000)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 2
+            vout: 2,
           },
-          vec![(id, 1000)]
+          vec![(id, 1000)],
         ),
         (
           OutPoint {
             txid: txid1,
-            vout: 3
+            vout: 3,
           },
-          vec![(id, 1000)]
-        )
-      ]
+          vec![(id, 1000)],
+        ),
+      ],
     );
   }
 
@@ -3806,8 +3501,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3817,13 +3511,9 @@ mod tests {
           symbol: Some('$'),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -3862,8 +3552,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3872,13 +3561,9 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
     );
   }
 
@@ -3917,8 +3602,7 @@ mod tests {
       index: 1,
     };
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3927,19 +3611,15 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid0,
-          vout: 0
+          vout: 0,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3961,8 +3641,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(
-      context.index.runes().unwrap(),
+    context.assert_runes(
       [(
         id,
         RuneEntry {
@@ -3971,19 +3650,853 @@ mod tests {
           supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      context.index.get_rune_balances(),
+        },
+      )],
       [(
         OutPoint {
           txid: txid1,
           vout: 1,
         },
-        vec![(id, u128::max_value())]
-      )]
+        vec![(id, u128::max_value())],
+      )],
+    );
+  }
+
+  #[test]
+  fn max_limit() {
+    MAX_LIMIT
+      .checked_mul(u128::from(u16::max_value()) * 144 * 365 * 1_000_000_000)
+      .unwrap();
+  }
+
+  #[test]
+  fn etching_with_limit_can_be_minted() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 1000,
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 2000,
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid2,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+      ],
+    );
+  }
+
+  #[test]
+  fn open_etchings_can_be_limited_to_term() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            term: Some(2),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          end: Some(4),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 1000,
+          end: Some(4),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 1000,
+          end: Some(4),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
+  fn open_etchings_with_term_zero_cannot_be_minted() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: 1000,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            term: Some(0),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          end: Some(2),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 1,
+            output: 3,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          end: Some(2),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
+  fn open_etching_claims_can_use_split() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 0,
+            output: 3,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          supply: 1000,
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 500)],
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 1,
+          },
+          vec![(id, 500)],
+        ),
+      ],
+    );
+  }
+
+  #[test]
+  fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          edicts: vec![Edict {
+            id: 0,
+            amount: 2000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 1000,
+          ..Default::default()
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+    );
+  }
+
+  #[test]
+  fn limit_over_max_limit_is_ignored() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(MAX_LIMIT + 1),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: MAX_LIMIT + 1,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
+  fn omitted_limit_defaults_to_max_limit() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            term: Some(1),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          limit: Some(MAX_LIMIT),
+          end: Some(3),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
+  fn transactions_cannot_claim_more_than_limit() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          edicts: vec![Edict {
+            id: 0,
+            amount: 2000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 1000,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: etching,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    let edict = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id) | CLAIM_BIT,
+            amount: 2000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 2000,
+          ..Default::default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: etching,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+        (
+          OutPoint {
+            txid: edict,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+      ],
+    );
+  }
+
+  #[test]
+  fn multiple_edicts_in_one_transaction_may_claim_open_etching() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    let edict = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: u128::from(id) | CLAIM_BIT,
+              amount: 500,
+              output: 0,
+            },
+            Edict {
+              id: u128::from(id) | CLAIM_BIT,
+              amount: 500,
+              output: 0,
+            },
+            Edict {
+              id: u128::from(id) | CLAIM_BIT,
+              amount: 500,
+              output: 0,
+            },
+          ],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching,
+          rune: Rune(RUNE),
+          limit: Some(1000),
+          timestamp: 2,
+          supply: 1000,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: edict,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
     );
   }
 }
