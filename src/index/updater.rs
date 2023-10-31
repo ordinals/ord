@@ -1,8 +1,8 @@
 use {
-  super::{p2p::Connection, *},
-  bitcoin::hashes::Hash,
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
+  super::{p2p::Connection, *},
+  bitcoin::hashes::Hash,
   futures::future::try_join_all,
   std::sync::mpsc,
   tokio::sync::mpsc::{error::TryRecvError, Receiver, Sender},
@@ -85,7 +85,9 @@ impl<'index> Updater<'_> {
     };
 
     let hash = 'hash: {
-      let Some(prev_height) = self.height.checked_sub(1) else { break 'hash Ok::<Option<BlockHash>, Error>(None); };
+      let Some(prev_height) = self.height.checked_sub(1) else {
+        break 'hash Ok::<Option<BlockHash>, Error>(None);
+      };
 
       let height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
@@ -244,6 +246,7 @@ impl<'index> Updater<'_> {
       } else {
         remainder
       };
+
       let remaining_headers = &headers[headers_only_height..remainder.try_into().unwrap()];
       let hashes = remaining_headers
         .iter()
