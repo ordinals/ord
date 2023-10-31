@@ -8,8 +8,8 @@ use opentelemetry::trace::Tracer;
 use ord_kafka_macros::trace;
 use ordinals::{
   block_rarity::{
-    is_palindrome, BLOCK78_BLOCK_HEIGHT, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE,
-    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
+    BLOCK78_BLOCK_HEIGHT, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, NAKAMOTO_BLOCK_HEIGHTS,
+    PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
   },
   BlockRarity,
 };
@@ -228,39 +228,87 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
       }
     }
     BlockRarity::Palindrome => {
-      // for palindrome in get_palindromes_from_sat_range(start, end) {
-      //   chunks.push((palindrome, palindrome + 1))
-      // }
+      for palindrome in get_palindromes_from_sat_range(start, end) {
+        chunks.push((palindrome, palindrome + 1))
+      }
     }
   }
   chunks
 }
 
-#[allow(dead_code)]
 fn get_palindromes_from_sat_range(start: u64, end: u64) -> Vec<u64> {
-  let mut res = vec![];
-  let s = start.to_string();
-  let e = end.to_string();
+  let sat_range_start_string = start.to_string();
+  let sat_range_end_string = end.to_string();
+  let sat_range_start_length = sat_range_start_string.len();
+  let sat_range_end_length = sat_range_end_string.len();
 
-  if end - start > 1_000_000 {
-    return res;
+  let mut equal_length_ranges: Vec<(String, String)> = vec![];
+  if sat_range_start_length == sat_range_end_length {
+    equal_length_ranges.push((sat_range_start_string.clone(), sat_range_end_string.clone()));
+  } else {
+    equal_length_ranges.push((
+      sat_range_start_string.clone(),
+      "9".repeat(sat_range_start_length),
+    ));
+
+    for i in (sat_range_start_length + 1)..sat_range_end_length {
+      equal_length_ranges.push(("1".to_string() + &"0".repeat(i - 1), "9".repeat(i)));
+    }
+    equal_length_ranges.push((
+      "1".to_string() + &"0".repeat(sat_range_end_length - 1),
+      sat_range_end_string.clone(),
+    ));
   }
 
-  // Below magic numbers are only applicable for <= 1 million sats ranges.
-  // Will change to the long term solution in the future.
-  if s.len() == e.len()
-    && s.len() >= 14
-    && s.chars().nth(6) != s.chars().nth(s.len() - 7)
-    && e.chars().nth(6) != e.chars().nth(e.len() - 7)
-  {
-    return res;
+  let mut palindromes: Vec<u64> = vec![];
+  for range in equal_length_ranges {
+    palindromes.extend(get_palindromes_from_equal_length_range(range.0, range.1));
   }
-  for i in start..end {
-    if is_palindrome(&i) {
-      res.push(i);
+
+  palindromes
+}
+
+fn get_palindromes_from_equal_length_range(start_string: String, end_string: String) -> Vec<u64> {
+  let mut palindromes: Vec<u64> = vec![];
+
+  let sat_length = start_string.len();
+  let palindrome_sig_digits = (sat_length + 1) / 2;
+  let middle_digit_exists = sat_length % 2 == 1;
+
+  let start_sig_digits = &start_string[..palindrome_sig_digits];
+  let start_sig_digits_number = start_sig_digits.parse::<u64>().unwrap();
+  let end_sig_digits = &end_string[..palindrome_sig_digits];
+  let end_sig_digits_number = end_sig_digits.parse::<u64>().unwrap();
+
+  let start_sat = start_string.parse::<u64>().unwrap();
+  let end_sat = end_string.parse::<u64>().unwrap();
+
+  let get_palindrome = |sig_digits: &str| -> u64 {
+    let palindrome_string = sig_digits.to_string()
+      + &sig_digits.chars().rev().collect::<String>()[middle_digit_exists as usize..];
+    palindrome_string.parse::<u64>().unwrap()
+  };
+
+  let potential_first_palindrome = get_palindrome(start_sig_digits);
+  if start_sat <= potential_first_palindrome && potential_first_palindrome <= end_sat {
+    palindromes.push(potential_first_palindrome);
+  }
+
+  palindromes.extend(if start_sig_digits_number + 1 < end_sig_digits_number {
+    (start_sig_digits_number + 1..end_sig_digits_number)
+      .map(|num| get_palindrome(&num.to_string()))
+      .collect::<Vec<u64>>()
+  } else {
+    vec![]
+  });
+
+  if start_sig_digits != end_sig_digits {
+    let potential_last_palindrome = get_palindrome(end_sig_digits);
+    if start_sat <= potential_last_palindrome && potential_last_palindrome <= end_sat {
+      palindromes.push(potential_last_palindrome);
     }
   }
-  res
+  palindromes
 }
 
 #[cfg(test)]
@@ -311,13 +359,13 @@ mod tests {
           block_rarity: BlockRarity::FirstTransaction,
           chunks: vec![(460 * COIN_VALUE - 10_000, 460 * COIN_VALUE)]
         },
-        // BlockRarityInfo {
-        //   block_rarity: BlockRarity::Palindrome,
-        //   chunks: vec![
-        //     (45_999_999_954, 45_999_999_955),
-        //     (46_000_000_064, 46_000_000_065)
-        //   ]
-        // }
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Palindrome,
+          chunks: vec![
+            (45_999_999_954, 45_999_999_955),
+            (46_000_000_064, 46_000_000_065)
+          ]
+        }
       ]
     );
 
@@ -365,27 +413,50 @@ mod tests {
     block_rarities = get_block_rarities(204589006000000, 204589046000000).unwrap();
     assert_eq!(
       block_rarities,
-      vec![BlockRarityInfo {
-        block_rarity: BlockRarity::Pizza,
-        chunks: vec![
-          (204589006000000, 204589008000000),
-          (204589017000000, 204589019000000),
-          (204589026000000, 204589028000000),
-          (204589029000000, 204589030000000),
-          (204589032000000, 204589033000000),
-          (204589034000000, 204589035000000),
-          (204589037000000, 204589038000000),
-          (204589041000000, 204589043000000),
-          (204589045000000, 204589046000000)
-        ]
-      },]
+      vec![
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Pizza,
+          chunks: vec![
+            (204589006000000, 204589008000000),
+            (204589017000000, 204589019000000),
+            (204589026000000, 204589028000000),
+            (204589029000000, 204589030000000),
+            (204589032000000, 204589033000000),
+            (204589034000000, 204589035000000),
+            (204589037000000, 204589038000000),
+            (204589041000000, 204589043000000),
+            (204589045000000, 204589046000000)
+          ]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Palindrome,
+          chunks: vec![
+            (204589010985402, 204589010985403),
+            (204589020985402, 204589020985403),
+            (204589030985402, 204589030985403),
+            (204589040985402, 204589040985403)
+          ]
+        }
+      ]
     );
   }
 
   #[test]
   fn test_get_palindromes_from_sat_range() {
     env_logger::init();
-    let mut palindromes = get_palindromes_from_sat_range(3153515_5000000, 3153515_6000000);
+    let mut palindromes = get_palindromes_from_sat_range(1, 999);
+    assert_eq!(
+      palindromes,
+      vec![
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44, 55, 66, 77, 88, 99, 101, 111, 121, 131, 141,
+        151, 161, 171, 181, 191, 202, 212, 222, 232, 242, 252, 262, 272, 282, 292, 303, 313, 323,
+        333, 343, 353, 363, 373, 383, 393, 404, 414, 424, 434, 444, 454, 464, 474, 484, 494, 505,
+        515, 525, 535, 545, 555, 565, 575, 585, 595, 606, 616, 626, 636, 646, 656, 666, 676, 686,
+        696, 707, 717, 727, 737, 747, 757, 767, 777, 787, 797, 808, 818, 828, 838, 848, 858, 868,
+        878, 888, 898, 909, 919, 929, 939, 949, 959, 969, 979, 989, 999
+      ]
+    );
+    palindromes = get_palindromes_from_sat_range(3153515_5000000, 3153515_6000000);
     assert_eq!(palindromes, vec![31535155153513]);
     palindromes = get_palindromes_from_sat_range(1999999_9999999, 2000000_0999999);
     assert_eq!(palindromes, vec![20000000000002]);
