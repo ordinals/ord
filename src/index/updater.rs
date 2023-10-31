@@ -232,6 +232,7 @@ impl<'index> Updater<'_> {
         remainder
       };
 
+      // todo: This was crashing on the command line with `ord --height-limit 767430 index update`
       let remaining_headers = &headers[headers_only_height..remainder.try_into().unwrap()];
       let hashes = remaining_headers
         .iter()
