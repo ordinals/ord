@@ -228,30 +228,4 @@ impl Fetcher {
     let res = serde_json::from_slice(&buf)?;
     Ok(res)
   }
-
-  async fn try_get_transactions(&self, body: String) -> Result<Vec<JsonResponse<String>>> {
-    let req = Request::builder()
-      .method(Method::POST)
-      .uri(&self.url)
-      .header(hyper::header::AUTHORIZATION, &self.auth)
-      .header(hyper::header::CONTENT_TYPE, "application/json")
-      .body(Body::from(body))?;
-
-    let response = self.client.request(req).await?;
-
-    let buf = hyper::body::to_bytes(response).await?;
-
-    let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf) {
-      Ok(results) => results,
-      Err(e) => {
-        return Err(anyhow!(
-          "failed to parse JSON-RPC response: {e}. response: {response}",
-          e = e,
-          response = String::from_utf8_lossy(&buf)
-        ))
-      }
-    };
-
-    Ok(results)
-  }
 }
