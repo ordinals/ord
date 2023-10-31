@@ -9,11 +9,12 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
-      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
-      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionChildrenHtml,
+      InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml,
+      SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -206,6 +207,14 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
+        .route(
+          "/inscription/:inscription_id/children",
+          get(Self::inscription_children),
+        )
+        .route(
+          "/inscription/:inscription_id/children/:page_index",
+          get(Self::inscription_children_from_pages),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route(
           "/inscriptions/block/:height",
@@ -1127,6 +1136,8 @@ impl Server {
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
+    let end_index = usize::min(children.len(), 20);
+    let featured_children = children[0..end_index].to_vec();
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
@@ -1155,6 +1166,7 @@ impl Server {
         genesis_fee: entry.fee,
         genesis_height: entry.height,
         children,
+        featured_children,
         inscription,
         inscription_id,
         next,
@@ -1170,6 +1182,37 @@ impl Server {
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn inscription_children(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::inscription_children_from_pages(
+      Extension(page_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn inscription_children_from_pages(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((inscription_id, page_index)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    let _inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let children = index.get_children_by_inscription_id(inscription_id)?;
+
+    Ok(
+      InscriptionChildrenHtml::new(inscription_id, children, page_index)?
+        .page(page_config)
+        .into_response(),
+    )
   }
 
   async fn inscriptions(

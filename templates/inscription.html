@@ -69,14 +69,19 @@
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
   <dd>{{ teleburn::Ethereum::from(self.inscription_id) }}</dd>
-%% if !self.children.is_empty() {
+%% if !self.featured_children.is_empty() {
   <dt>children</dt>
   <dd>
     <div class=thumbnails>
-%% for id in &self.children {
+%% for id in &self.featured_children {
       {{Iframe::thumbnail(*id)}}
 %% }
     </div>
+%% if &self.children.len() > &self.featured_children.len() {
+    <div class=center>
+      <a href=/inscription/{{self.inscription_id}}/children>more</a>
+    </div>
+%% }
   </dd>
 %% }
 %% if let Some(rune) = self.rune {

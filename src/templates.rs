@@ -7,6 +7,7 @@ pub(crate) use {
   iframe::Iframe,
   input::InputHtml,
   inscription::{InscriptionHtml, InscriptionJson},
+  inscription_children::InscriptionChildrenHtml,
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
@@ -30,6 +31,7 @@ mod home;
 mod iframe;
 mod input;
 pub mod inscription;
+mod inscription_children;
 pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;
