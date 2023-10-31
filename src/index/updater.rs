@@ -1,7 +1,7 @@
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
+  super::p2p::Connection,
   super::{fetcher::Fetcher, *},
-  super::{p2p::Connection, *},
   bitcoin::hashes::Hash,
   futures::future::try_join_all,
   std::sync::mpsc,
@@ -108,7 +108,7 @@ impl<'index> Updater<'_> {
         &mut outpoint_sender,
         &mut value_receiver,
         &mut wtx,
-        block.unwrap(), // TODO
+        block,
         &mut value_cache,
       )?;
 
@@ -175,7 +175,7 @@ impl<'index> Updater<'_> {
     mut height: u64,
     hash: Option<BlockHash>,
     index_sats: bool,
-  ) -> Result<mpsc::Receiver<Option<BlockData>>> {
+  ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
@@ -195,21 +195,6 @@ impl<'index> Updater<'_> {
 
       let headers = conn.get_headers(hash).unwrap();
 
-      match headers.first() {
-        None => return,
-        Some(new_header) => {
-          if let Some(prev_hash) = hash {
-            if new_header.prev_blockhash != prev_hash {
-              // Reorg
-              if let Err(err) = tx.send(None) {
-                log::info!("Block receiver disconnected: {err}");
-                return;
-              }
-              return;
-            }
-          }
-        }
-      }
       hash = headers.last().map(|header| header.block_hash());
       let headers_only_height = if index_sats || height >= first_inscription_height {
         0
@@ -224,7 +209,7 @@ impl<'index> Updater<'_> {
           header: *header,
           txdata: Vec::new(),
         };
-        if let Err(err) = tx.send(Some(block.into())) {
+        if let Err(err) = tx.send(block.into()) {
           log::info!("Block receiver disconnected: {err}");
           return;
         }
@@ -259,7 +244,7 @@ impl<'index> Updater<'_> {
           if disconnected {
             return;
           }
-          if let Err(err) = tx.send(Some(block.into())) {
+          if let Err(err) = tx.send(block.into()) {
             log::info!("Block receiver disconnected: {err}");
             disconnected = true;
           }
@@ -276,52 +261,6 @@ impl<'index> Updater<'_> {
     });
 
     Ok(rx)
-  }
-
-  fn get_block_with_retries(
-    client: &Client,
-    height: u64,
-    index_sats: bool,
-    first_inscription_height: u64,
-  ) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match client
-        .get_block_hash(height)
-        .into_option()
-        .and_then(|option| {
-          option
-            .map(|hash| {
-              if index_sats || height >= first_inscription_height {
-                Ok(client.get_block(&hash)?)
-              } else {
-                Ok(Block {
-                  header: client.get_block_header(&hash)?,
-                  txdata: Vec::new(),
-                })
-              }
-            })
-            .transpose()
-        }) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::warn!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(result) => return Ok(result),
-      }
-    }
   }
 
   fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {

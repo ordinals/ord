@@ -172,7 +172,6 @@ pub(crate) struct Index {
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let rpc_url = options.rpc_url();
-    let cookie_file = options.cookie_file()?;
 
     let client = options.bitcoin_rpc_client()?;
 
@@ -339,7 +338,7 @@ impl Index {
       database,
       durability,
       first_inscription_height: options.first_inscription_height(),
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid().clone(),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       index_runes,
