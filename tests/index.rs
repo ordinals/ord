@@ -62,8 +62,9 @@ fn index_runs_with_rpc_user_and_pass_as_env_vars() {
   let ord = Command::new(executable_path("ord"))
     .args(
       format!(
-        "--rpc-url {} --bitcoin-data-dir {} --data-dir {} index update",
+        "--rpc-url {} --p2p-port {} --bitcoin-data-dir {} --data-dir {} index update",
         rpc_server.url(),
+        rpc_server.p2p_port(),
         tempdir.path().display(),
         tempdir.path().display()
       )

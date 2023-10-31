@@ -270,8 +270,9 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
 
   let mut child = Command::new(executable_path("ord"))
     .args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
+      "--rpc-url {} --p2p-port {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
+      rpc_server.p2p_port(),
       tempdir.path().display(),
       tempdir.path().display()).to_args()
       )
