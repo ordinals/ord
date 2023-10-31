@@ -34,6 +34,7 @@ pub(crate) struct CommandBuilder {
   expected_stderr: Expected,
   expected_stdout: Expected,
   rpc_server_url: Option<String>,
+  stdin: Vec<u8>,
   tempdir: TempDir,
 }
 
@@ -45,6 +46,7 @@ impl CommandBuilder {
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
+      stdin: Vec::new(),
       tempdir: TempDir::new().unwrap(),
     }
   }
@@ -59,6 +61,10 @@ impl CommandBuilder {
       rpc_server_url: Some(rpc_server.url()),
       ..self
     }
+  }
+
+  pub(crate) fn stdin(self, stdin: Vec<u8>) -> Self {
+    Self { stdin, ..self }
   }
 
   pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
@@ -89,6 +95,10 @@ impl CommandBuilder {
     }
   }
 
+  pub(crate) fn temp_dir(self, tempdir: TempDir) -> Self {
+    Self { tempdir, ..self }
+  }
+
   pub(crate) fn command(&self) -> Command {
     let mut command = Command::new(executable_path("ord"));
 
@@ -105,7 +115,7 @@ impl CommandBuilder {
 
     command
       .env("ORD_INTEGRATION_TEST", "1")
-      .stdin(Stdio::null())
+      .stdin(Stdio::piped())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
       .current_dir(&self.tempdir)
@@ -116,11 +126,20 @@ impl CommandBuilder {
     command
   }
 
-  pub(crate) fn run(self) -> String {
-    let output = self.command().output().unwrap();
+  fn run(self) -> (TempDir, String) {
+    let child = self.command().spawn().unwrap();
+
+    child
+      .stdin
+      .as_ref()
+      .unwrap()
+      .write_all(&self.stdin)
+      .unwrap();
+
+    let output = child.wait_with_output().unwrap();
+
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
-
     if output.status.code() != Some(self.expected_exit_code) {
       panic!(
         "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -131,11 +150,20 @@ impl CommandBuilder {
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
 
-    stdout.into()
+    (self.tempdir, stdout.into())
   }
 
-  pub(crate) fn output<T: DeserializeOwned>(self) -> T {
-    let stdout = self.stdout_regex(".*").run();
+  pub(crate) fn run_and_extract_file(self, path: impl AsRef<Path>) -> String {
+    let tempdir = self.run().0;
+    fs::read_to_string(tempdir.path().join(path)).unwrap()
+  }
+
+  pub(crate) fn run_and_extract_stdout(self) -> String {
+    self.run().1
+  }
+
+  pub(crate) fn run_and_deserialize_output<T: DeserializeOwned>(self) -> T {
+    let stdout = self.stdout_regex(".*").run_and_extract_stdout();
     serde_json::from_str(&stdout)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{stdout}"))
   }

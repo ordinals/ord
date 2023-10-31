@@ -1,7 +1,9 @@
 use {
+  crate::Options,
   anyhow::{anyhow, bail, ensure, Result},
-  bitcoin::{consensus::Decodable, Block, BlockHash, BlockHeader, Transaction, Txid},
-  bitcoincore_rpc::Auth,
+  base64::Engine,
+  bitcoin::{blockdata::block::Header, consensus::Decodable, Block, BlockHash, Transaction, Txid},
+  // bitcoincore_rpc::Auth,
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde::Deserialize,
   serde_json::{json, Value},
@@ -10,16 +12,16 @@ use {
 
 #[derive(Clone)]
 pub(crate) struct Fetcher {
+  auth: String,
   client: Client<HttpConnector>,
   url: Uri,
-  auth: String,
 }
 
 #[derive(Deserialize, Debug)]
 struct JsonResponse<T> {
-  result: Option<T>,
   error: Option<JsonError>,
   id: usize,
+  result: Option<T>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -43,24 +45,23 @@ impl Error for JsonError {}
 const FETCH_SIZE: usize = 2000;
 
 impl Fetcher {
-  pub(crate) fn new(url: &str, auth: Auth) -> Result<Self> {
-    if auth == Auth::None {
-      return Err(anyhow!("No rpc authentication provided"));
-    }
-
+  pub(crate) fn new(options: &Options) -> Result<Self> {
     let client = Client::new();
 
-    let url = if url.starts_with("http://") {
-      url.to_string()
+    let url = if options.rpc_url().starts_with("http://") {
+      options.rpc_url()
     } else {
-      "http://".to_string() + url
+      "http://".to_string() + &options.rpc_url()
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
-    let (user, password) = auth.get_user_pass()?;
+    let (user, password) = options.auth()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!("Basic {}", &base64::encode(auth));
+    let auth = format!(
+      "Basic {}",
+      &base64::engine::general_purpose::STANDARD.encode(auth)
+    );
     Ok(Fetcher { client, url, auth })
   }
 
@@ -78,7 +79,7 @@ impl Fetcher {
     Ok(res)
   }
 
-  pub(crate) async fn get_block_headers(&self, hashes: &[BlockHash]) -> Result<Vec<BlockHeader>> {
+  pub(crate) async fn get_block_headers(&self, hashes: &[BlockHash]) -> Result<Vec<Header>> {
     let res = self
       .batched_fetch_hex(
         "getblockheader",
@@ -226,5 +227,31 @@ impl Fetcher {
     let buf = hyper::body::to_bytes(response).await?;
     let res = serde_json::from_slice(&buf)?;
     Ok(res)
+  }
+
+  async fn try_get_transactions(&self, body: String) -> Result<Vec<JsonResponse<String>>> {
+    let req = Request::builder()
+      .method(Method::POST)
+      .uri(&self.url)
+      .header(hyper::header::AUTHORIZATION, &self.auth)
+      .header(hyper::header::CONTENT_TYPE, "application/json")
+      .body(Body::from(body))?;
+
+    let response = self.client.request(req).await?;
+
+    let buf = hyper::body::to_bytes(response).await?;
+
+    let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf) {
+      Ok(results) => results,
+      Err(e) => {
+        return Err(anyhow!(
+          "failed to parse JSON-RPC response: {e}. response: {response}",
+          e = e,
+          response = String::from_utf8_lossy(&buf)
+        ))
+      }
+    };
+
+    Ok(results)
   }
 }

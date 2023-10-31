@@ -2,7 +2,7 @@ use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
-  #[clap(flatten)]
+  #[command(flatten)]
   server: super::server::Server,
   inscriptions: Vec<PathBuf>,
 }
@@ -16,7 +16,7 @@ impl Drop for KillOnDrop {
 }
 
 impl Preview {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self) -> SubcommandResult {
     let tmpdir = TempDir::new()?;
 
     let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
@@ -68,8 +68,9 @@ impl Preview {
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+    let address = rpc_client
+      .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
+      .require_network(Network::Regtest)?;
 
     rpc_client.generate_to_address(101, &address)?;
 
@@ -78,14 +79,21 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            batch: None,
+            cbor_metadata: None,
             commit_fee_rate: None,
-            file,
-            no_backup: true,
-            satpoint: None,
-            dry_run: false,
-            no_limit: false,
             destination: None,
+            dry_run: false,
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            file: Some(file),
+            json_metadata: None,
+            metaprotocol: None,
+            no_backup: true,
+            no_limit: false,
+            parent: None,
+            postage: Some(TransactionBuilder::TARGET_POSTAGE),
+            reinscribe: false,
+            satpoint: None,
           },
         )),
       }
@@ -100,8 +108,6 @@ impl Preview {
       options,
       subcommand: Subcommand::Server(self.server),
     }
-    .run()?;
-
-    Ok(())
+    .run()
   }
 }

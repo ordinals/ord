@@ -14,7 +14,18 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
-  pub(crate) fn spawn_with_args(rpc_server: &test_bitcoincore_rpc::Handle, args: &[&str]) -> Self {
+  pub(crate) fn spawn_with_args(
+    rpc_server: &test_bitcoincore_rpc::Handle,
+    ord_args: &[&str],
+  ) -> Self {
+    Self::spawn_with_server_args(rpc_server, ord_args, &[])
+  }
+
+  pub(crate) fn spawn_with_server_args(
+    rpc_server: &test_bitcoincore_rpc::Handle,
+    ord_args: &[&str],
+    server_args: &[&str],
+  ) -> Self {
     let tempdir = TempDir::new().unwrap();
     fs::write(tempdir.path().join(".cookie"), "foo:bar").unwrap();
     let port = TcpListener::bind("127.0.0.1:0")
@@ -24,11 +35,12 @@ impl TestServer {
       .port();
 
     let child = Command::new(executable_path("ord")).args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server --http-port {port} --address 127.0.0.1",
+      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display(),
-      args.join(" "),
+      ord_args.join(" "),
+      server_args.join(" "),
     ).to_args())
       .env("ORD_INTEGRATION_TEST", "1")
       .current_dir(&tempdir)
@@ -60,19 +72,7 @@ impl TestServer {
   }
 
   pub(crate) fn assert_response_regex(&self, path: impl AsRef<str>, regex: impl AsRef<str>) {
-    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
-    let chain_block_count = client.get_block_count().unwrap() + 1;
-
-    for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
-      assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("index failed to synchronize with chain");
-      }
-      thread::sleep(Duration::from_millis(25));
-    }
+    self.sync_server();
 
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
@@ -80,11 +80,29 @@ impl TestServer {
   }
 
   pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
+    self.sync_server();
+
+    reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap()
+  }
+
+  pub(crate) fn json_request(&self, path: impl AsRef<str>) -> Response {
+    self.sync_server();
+
+    let client = reqwest::blocking::Client::new();
+
+    client
+      .get(self.url().join(path.as_ref()).unwrap())
+      .header(reqwest::header::ACCEPT, "application/json")
+      .send()
+      .unwrap()
+  }
+
+  fn sync_server(&self) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
+      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
       if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
         break;
@@ -93,8 +111,6 @@ impl TestServer {
       }
       thread::sleep(Duration::from_millis(25));
     }
-
-    reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap()
   }
 }
 

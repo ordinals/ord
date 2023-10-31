@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Subsidy {
-  #[clap(help = "List sats in subsidy at <HEIGHT>.")]
+  #[arg(help = "List sats in subsidy at <HEIGHT>.")]
   height: Height,
 }
 
@@ -14,7 +14,7 @@ pub struct Output {
 }
 
 impl Subsidy {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self) -> SubcommandResult {
     let first = self.height.starting_sat();
 
     let subsidy = self.height.subsidy();
@@ -23,12 +23,10 @@ impl Subsidy {
       bail!("block {} has no subsidy", self.height);
     }
 
-    print_json(Output {
+    Ok(Box::new(Output {
       first: first.0,
       subsidy,
       name: first.name(),
-    })?;
-
-    Ok(())
+    }))
   }
 }

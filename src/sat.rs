@@ -81,12 +81,12 @@ impl Sat {
       match c {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
+          if x > Self::SUPPLY {
+            bail!("sat name out of range");
+          }
         }
         _ => bail!("invalid character in sat name: {c}"),
       }
-    }
-    if x > Self::SUPPLY {
-      bail!("sat name out of range");
     }
     Ok(Sat(Self::SUPPLY - x))
   }
@@ -543,6 +543,7 @@ mod tests {
     assert!(parse("(").is_err());
     assert!(parse("").is_err());
     assert!(parse("nvtdijuwxlq").is_err());
+    assert!(parse("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").is_err());
   }
 
   #[test]
