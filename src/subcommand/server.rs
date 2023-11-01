@@ -1136,7 +1136,7 @@ impl Server {
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
-    let end_index = usize::min(children.len(), 20);
+    let end_index = usize::min(children.len(), 100);
     let featured_children = children[0..end_index].to_vec();
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
