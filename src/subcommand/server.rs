@@ -1149,9 +1149,13 @@ impl Server {
 
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
-    let children = index.get_children_by_inscription_id(inscription_id)?;
-    let end_index = usize::min(children.len(), 100);
-    let featured_children = children[0..end_index].to_vec();
+    let mut children = index.get_children_by_inscription_id_with_limit(inscription_id, 5)?;
+
+    let more_children = children.len() == 5;
+
+    if more_children {
+      children.pop();
+    }
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
@@ -1177,21 +1181,21 @@ impl Server {
     } else {
       InscriptionHtml {
         chain: page_config.chain,
+        children,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
-        children,
-        featured_children,
         inscription,
         inscription_id,
-        next,
         inscription_number: entry.inscription_number,
+        more_children,
+        next,
         output,
         parent: entry.parent,
         previous,
+        rune,
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
-        rune,
       }
       .page(page_config)
       .into_response()

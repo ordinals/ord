@@ -4,12 +4,12 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) children: Vec<InscriptionId>,
-  pub(crate) featured_children: Vec<InscriptionId>,
   pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription_number: i64,
+  pub(crate) more_children: bool,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
