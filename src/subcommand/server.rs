@@ -1214,15 +1214,15 @@ impl Server {
   async fn children_paginated(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((inscription_id, page)): Path<(InscriptionId, usize)>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    if !index.inscription_exists(inscription_id)? {
+    if !index.inscription_exists(parent)? {
       return Err(ServerError::NotFound(format!(
-        "inscription {inscription_id} not found"
+        "inscription {parent} not found"
       )));
     }
 
-    let mut children = index.get_children_by_inscription_id_paginated(inscription_id, page)?;
+    let mut children = index.get_children_by_inscription_id_paginated(parent, page)?;
 
     let prev_page = page.checked_sub(1);
 
@@ -1234,7 +1234,7 @@ impl Server {
 
     Ok(
       ChildrenHtml {
-        parent: inscription_id,
+        parent,
         children,
         prev_page,
         next_page,
