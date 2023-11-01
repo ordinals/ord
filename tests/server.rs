@@ -1,5 +1,7 @@
-use ciborium::value::Integer;
-use {super::*, crate::command_builder::ToArgs, ord::subcommand::wallet::send::Output};
+use {
+  super::*, crate::command_builder::ToArgs, ciborium::value::Integer,
+  ord::subcommand::wallet::send::Output,
+};
 
 #[test]
 fn run() {
@@ -234,7 +236,6 @@ fn inscription_metadata() {
     response.headers().get("content-type").unwrap(),
     "application/json"
   );
-  // what comes back is a json string, so we need the extra quotes
   assert_eq!(
     response.text().unwrap(),
     format!("\"{}\"", hex::encode(encoded_metadata))

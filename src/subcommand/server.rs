@@ -185,18 +185,11 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/r/blockheight", get(Self::block_height))
-        .route("/r/blockhash", get(Self::block_hash_json))
-        .route(
-          "/r/blockhash/:height",
-          get(Self::block_hash_from_height_json),
-        )
-        .route("/r/blocktime", get(Self::block_time))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
-        .route("/blockheight", get(Self::block_height))
         .route("/blockhash", get(Self::block_hash))
         .route("/blockhash/:height", get(Self::block_hash_from_height))
+        .route("/blockheight", get(Self::block_height))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
@@ -207,6 +200,8 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/:from", get(Self::inscriptions_from))
+        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route(
           "/inscriptions/block/:height",
           get(Self::inscriptions_in_block),
@@ -215,12 +210,18 @@ impl Server {
           "/inscriptions/block/:height/:page_index",
           get(Self::inscriptions_in_block_from_page),
         )
-        .route("/inscriptions/:from", get(Self::inscriptions_from))
-        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/preview/:inscription_id", get(Self::preview))
+        .route("/r/blockhash", get(Self::block_hash_json))
+        .route(
+          "/r/blockhash/:height",
+          get(Self::block_hash_from_height_json),
+        )
+        .route("/r/blockheight", get(Self::block_height))
+        .route("/r/blocktime", get(Self::block_time))
+        .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -231,7 +232,6 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
-        .route("/r/metadata/:inscription_id", get(Self::metadata))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
