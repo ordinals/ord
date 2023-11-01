@@ -2,48 +2,15 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct ChildrenHtml {
-  pub(crate) parent_inscription_id: InscriptionId,
+  pub(crate) parent: InscriptionId,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
 }
 
-impl ChildrenHtml {
-  pub(crate) fn new(
-    parent_inscription_id: InscriptionId,
-    children: Vec<InscriptionId>,
-    page_index: usize,
-  ) -> Result<Self> {
-    let num_children = children.len();
-
-    let start = page_index * 20;
-    let end = usize::min(start + 20, num_children);
-
-    if start > num_children || start > end {
-      return Err(anyhow!("page index {page_index} exceeds inscription count"));
-    }
-    let children = children[start..end].to_vec();
-
-    Ok(Self {
-      parent_inscription_id,
-      children,
-      prev_page: if page_index > 0 {
-        Some(page_index - 1)
-      } else {
-        None
-      },
-      next_page: if (page_index + 1) * 20 <= num_children {
-        Some(page_index + 1)
-      } else {
-        None
-      },
-    })
-  }
-}
-
 impl PageContent for ChildrenHtml {
   fn title(&self) -> String {
-    format!("Inscription {} Children", self.parent_inscription_id)
+    format!("Inscription {} Children", self.parent)
   }
 }
 
@@ -55,7 +22,7 @@ mod tests {
   fn without_prev_and_next() {
     assert_regex_match!(
       ChildrenHtml {
-        parent_inscription_id: inscription_id(1),
+        parent: inscription_id(1),
         children: vec![inscription_id(2), inscription_id(3)],
         prev_page: None,
         next_page: None,
@@ -79,7 +46,7 @@ mod tests {
   fn with_prev_and_next() {
     assert_regex_match!(
       ChildrenHtml {
-        parent_inscription_id: inscription_id(1),
+        parent: inscription_id(1),
         children: vec![inscription_id(2), inscription_id(3)],
         next_page: Some(3),
         prev_page: Some(1),

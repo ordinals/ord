@@ -1,4 +1,4 @@
-<h1 class=light-fg>Children of Inscription <a href=/inscription/{{ self.parent_inscription_id }}>{{ self.parent_inscription_id }}</a></h1>
+<h1 class=light-fg>Children of Inscription <a href=/inscription/{{ self.parent }}>{{ self.parent }}</a></h1>
 <div class=thumbnails>
 %% for id in &self.children {
   {{ Iframe::thumbnail(*id) }}
@@ -6,12 +6,12 @@
 </div>
 <div class=center>
 %% if let Some(prev_page) = &self.prev_page {
-  <a class=prev href=/inscription/{{ self.parent_inscription_id }}/children/{{ prev_page }}>prev</a>
+  <a class=prev href=/inscription/{{ self.parent }}/children/{{ prev_page }}>prev</a>
 %% } else {
 prev
 %% }
 %% if let Some(next_page) = &self.next_page {
-  <a class=next href=/inscription/{{ self.parent_inscription_id }}/children/{{ next_page }}>next</a>
+  <a class=next href=/inscription/{{ self.parent }}/children/{{ next_page }}>next</a>
 %% } else {
 next
 %% }

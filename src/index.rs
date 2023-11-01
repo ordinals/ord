@@ -778,13 +778,6 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_children_by_inscription_id(
-    &self,
-    inscription_id: InscriptionId,
-  ) -> Result<Vec<InscriptionId>> {
-    self.get_children_by_inscription_id_with_limit(inscription_id, usize::max_value())
-  }
-
   pub(crate) fn get_children_by_inscription_id_with_limit(
     &self,
     inscription_id: InscriptionId,
@@ -796,6 +789,26 @@ impl Index {
       .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
       .get(&inscription_id.store())?
       .take(limit)
+      .map(|result| {
+        result
+          .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
+          .map_err(|err| err.into())
+      })
+      .collect()
+  }
+
+  pub(crate) fn get_children_by_inscription_id_paginated(
+    &self,
+    inscription_id: InscriptionId,
+    page: usize,
+  ) -> Result<Vec<InscriptionId>> {
+    self
+      .database
+      .begin_read()?
+      .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
+      .get(&inscription_id.store())?
+      .skip(page * 100)
+      .take(101)
       .map(|result| {
         result
           .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
