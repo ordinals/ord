@@ -9,7 +9,7 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionChildrenHtml,
+      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, ChildrenHtml,
       InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
       OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
       PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
@@ -1225,7 +1225,7 @@ impl Server {
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
     Ok(
-      InscriptionChildrenHtml::new(inscription_id, children, page_index)?
+      ChildrenHtml::new(inscription_id, children, page_index)?
         .page(page_config)
         .into_response(),
     )

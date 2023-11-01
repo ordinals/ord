@@ -2,12 +2,12 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
+  children::ChildrenHtml,
   clock::ClockSvg,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
   inscription::{InscriptionHtml, InscriptionJson},
-  inscription_children::InscriptionChildrenHtml,
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
@@ -26,12 +26,12 @@ pub(crate) use {
 };
 
 pub mod block;
+mod children;
 mod clock;
 mod home;
 mod iframe;
 mod input;
 pub mod inscription;
-mod inscription_children;
 pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;

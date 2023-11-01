@@ -1,14 +1,14 @@
 use super::*;
 
 #[derive(Boilerplate)]
-pub(crate) struct InscriptionChildrenHtml {
+pub(crate) struct ChildrenHtml {
   pub(crate) parent_inscription_id: InscriptionId,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
 }
 
-impl InscriptionChildrenHtml {
+impl ChildrenHtml {
   pub(crate) fn new(
     parent_inscription_id: InscriptionId,
     children: Vec<InscriptionId>,
@@ -41,7 +41,7 @@ impl InscriptionChildrenHtml {
   }
 }
 
-impl PageContent for InscriptionChildrenHtml {
+impl PageContent for ChildrenHtml {
   fn title(&self) -> String {
     format!("Inscription {} Children", self.parent_inscription_id)
   }
@@ -54,7 +54,7 @@ mod tests {
   #[test]
   fn without_prev_and_next() {
     assert_regex_match!(
-      InscriptionChildrenHtml {
+      ChildrenHtml {
         parent_inscription_id: inscription_id(1),
         children: vec![inscription_id(2), inscription_id(3)],
         prev_page: None,
@@ -78,7 +78,7 @@ mod tests {
   #[test]
   fn with_prev_and_next() {
     assert_regex_match!(
-      InscriptionChildrenHtml {
+      ChildrenHtml {
         parent_inscription_id: inscription_id(1),
         children: vec![inscription_id(2), inscription_id(3)],
         next_page: Some(3),
