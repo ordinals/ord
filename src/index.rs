@@ -778,6 +778,24 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
+  #[cfg(test)]
+  pub(crate) fn get_children_by_inscription_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Vec<InscriptionId>> {
+    self
+      .database
+      .begin_read()?
+      .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
+      .get(&inscription_id.store())?
+      .map(|result| {
+        result
+          .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
+          .map_err(|err| err.into())
+      })
+      .collect()
+  }
+
   pub(crate) fn get_children_by_inscription_id_with_limit(
     &self,
     inscription_id: InscriptionId,

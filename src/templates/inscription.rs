@@ -212,7 +212,6 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: Vec::new(),
-        featured_children: Vec::new(),
         genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
@@ -327,7 +326,6 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2), inscription_id(3)],
-        featured_children: vec![inscription_id(2), inscription_id(3)],
         genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
@@ -386,8 +384,8 @@ mod tests {
   fn with_paginated_children() {
     assert_regex_match!(
       InscriptionHtml {
-        children: vec![inscription_id(2), inscription_id(3)],
-        featured_children: vec![inscription_id(2)],
+        children: vec![inscription_id(2)],
+        more_children: true,
         genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
