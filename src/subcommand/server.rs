@@ -1216,9 +1216,11 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((inscription_id, page_index)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    let _inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+    if !index.inscription_exists(inscription_id)? {
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} not found"
+      )));
+    }
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
