@@ -202,7 +202,7 @@ impl Server {
         .route("/children/:inscription_id", get(Self::children))
         .route(
           "/children/:inscription_id/:page_index",
-          get(Self::child_page),
+          get(Self::children_paginated),
         )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
@@ -1203,7 +1203,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    Self::child_page(
+    Self::children_paginated(
       Extension(page_config),
       Extension(index),
       Path((inscription_id, 0)),
@@ -1211,7 +1211,7 @@ impl Server {
     .await
   }
 
-  async fn child_page(
+  async fn children_paginated(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((inscription_id, page)): Path<(InscriptionId, usize)>,
