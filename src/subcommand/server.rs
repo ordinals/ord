@@ -201,7 +201,7 @@ impl Server {
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/children/:inscription_id", get(Self::children))
         .route(
-          "/children/:inscription_id/:page_index",
+          "/children/:inscription_id/:page",
           get(Self::children_paginated),
         )
         .route("/inscriptions", get(Self::inscriptions))
@@ -212,7 +212,7 @@ impl Server {
           get(Self::inscriptions_in_block),
         )
         .route(
-          "/inscriptions/block/:height/:page_index",
+          "/inscriptions/block/:height/:page",
           get(Self::inscriptions_in_block_from_page),
         )
         .route("/install.sh", get(Self::install_script))
@@ -1270,7 +1270,7 @@ impl Server {
   async fn inscriptions_in_block_from_page(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page_index)): Path<(u64, usize)>,
+    Path((block_height, page)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscriptions_in_block(block_height)?;
@@ -1282,7 +1282,7 @@ impl Server {
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
-        page_index,
+        page,
       )?
       .page(page_config)
       .into_response()
