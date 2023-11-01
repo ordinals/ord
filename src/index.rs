@@ -782,11 +782,20 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Vec<InscriptionId>> {
+    self.get_children_by_inscription_id_with_limit(inscription_id, usize::max_value())
+  }
+
+  pub(crate) fn get_children_by_inscription_id_with_limit(
+    &self,
+    inscription_id: InscriptionId,
+    limit: usize,
+  ) -> Result<Vec<InscriptionId>> {
     self
       .database
       .begin_read()?
       .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
       .get(&inscription_id.store())?
+      .take(limit)
       .map(|result| {
         result
           .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
