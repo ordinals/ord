@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use {
   self::{
     entry::{
@@ -331,6 +332,22 @@ impl Index {
     })
   }
 
+  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    Ok(
+      self
+        .client
+        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+        .into_iter()
+        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
+        .collect(),
+    )
+  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
@@ -351,19 +368,18 @@ impl Index {
         }),
     );
 
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(_wallet)?;
 
-    for JsonOutPoint { txid, vout } in self
-      .client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-    {
+    for outpoint in locked_utxos {
       utxos.insert(
-        OutPoint { txid, vout },
-        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        outpoint,
+        Amount::from_sat(
+          self
+            .client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[outpoint.vout as usize]
+            .value,
+        ),
       );
     }
     let rtx = self.database.begin_read()?;
