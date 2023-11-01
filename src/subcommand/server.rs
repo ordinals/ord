@@ -192,7 +192,6 @@ impl Server {
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/content/sat/:sat/:page_index", get(Self::content_sat))
         .route("/r/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
@@ -1013,36 +1012,6 @@ impl Server {
     );
 
     Some((headers, inscription.into_body()?))
-  }
-
-  async fn content_sat(
-    Extension(index): Extension<Arc<Index>>,
-    Extension(_config): Extension<Arc<Config>>,
-    Path((sat, page_index)): Path<(Option<Sat>, Option<i64>)>,
-  ) -> ServerResult<Response> {
-    let inscription_id = match (sat, page_index) {
-      (Some(sat), Some(page_index)) => {
-        let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
-        if page_index < 0 {
-          inscriptions.reverse();
-        }
-        let index = usize::try_from(page_index.abs())
-          .map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?
-          - 1;
-        *inscriptions.get(index).ok_or_not_found(|| "inscription")?
-      }
-      _ => return Err(ServerError::BadRequest("Invalid request".to_string())),
-    };
-
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    Ok(
-      Self::content_response(inscription)
-        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-        .into_response(),
-    )
   }
 
   async fn preview(
