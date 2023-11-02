@@ -242,7 +242,7 @@ Translations
 
 To translate [the docs](https://docs.ordinals.com) we use this
 [mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers).
-So read through their [usage guide](https://github.com/google/mdbook-i18n-helpers/blob/main/USAGE.md)
+So read through their [usage guide](https://github.com/google/mdbook-i18n-helpers/blob/main/i18n-helpers/USAGE.md)
 to see the structure that translations should follow.
 
 There are some other things to watch out for but feel free to just start a
