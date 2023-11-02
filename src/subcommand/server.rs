@@ -1145,7 +1145,7 @@ impl Server {
 
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
-    let children = index.get_children_by_inscription_id_paginated(inscription_id, 0, Some(4))?;
+    let children = index.get_children_by_inscription_id_paginated(inscription_id, 0, 4)?;
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
@@ -1214,7 +1214,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {parent}"))?
       .inscription_number;
 
-    let mut children = index.get_children_by_inscription_id_paginated(parent, page, None)?;
+    let mut children = index.get_children_by_inscription_id_paginated(parent, page, 100)?;
 
     let prev_page = page.checked_sub(1);
 

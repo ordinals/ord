@@ -799,16 +799,16 @@ impl Index {
   pub(crate) fn get_children_by_inscription_id_paginated(
     &self,
     inscription_id: InscriptionId,
-    page: usize,
-    limit: Option<usize>,
+    page_index: usize,
+    page_size: usize,
   ) -> Result<Vec<InscriptionId>> {
     self
       .database
       .begin_read()?
       .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
       .get(&inscription_id.store())?
-      .skip(page * 100)
-      .take(limit.unwrap_or(101))
+      .skip(page_index * page_size)
+      .take(page_size + 1)
       .map(|result| {
         result
           .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
