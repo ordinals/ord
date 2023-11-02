@@ -799,10 +799,10 @@ impl Index {
   pub(crate) fn get_children_by_inscription_id_paginated(
     &self,
     inscription_id: InscriptionId,
-    page_index: usize,
     page_size: usize,
-  ) -> Result<Vec<InscriptionId>> {
-    self
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let mut children = self
       .database
       .begin_read()?
       .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
@@ -814,7 +814,15 @@ impl Index {
           .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
           .map_err(|err| err.into())
       })
-      .collect()
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = children.len() > page_size;
+
+    if more {
+      children.pop();
+    }
+
+    Ok((children, more))
   }
 
   pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<Rune>> {
