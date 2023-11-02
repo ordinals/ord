@@ -61,8 +61,8 @@ mod tests {
           <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
         </div>
         .*
-          <a class=prev href=/inscription/1{64}i1/children/1>prev</a>
-          <a class=next href=/inscription/1{64}i1/children/3>next</a>
+          <a class=prev href=/children/1{64}i1/1>prev</a>
+          <a class=next href=/children/1{64}i1/3>next</a>
         .*
       "
       .unindent()

@@ -341,6 +341,13 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
+          <dt>children</dt>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+            </div>
+          </dd>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>preview</dt>
@@ -367,13 +374,6 @@ mod tests {
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
           <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-          <dt>children</dt>
-          <dd>
-            <div class=thumbnails>
-              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
-            </div>
-          </dd>
         </dl>
       "
       .unindent()
@@ -401,6 +401,15 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
+          <dt>children</dt>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+            </div>
+            <div class=center>
+              <a href=/children/1{64}i1>more</a>
+            </div>
+          </dd>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>preview</dt>
@@ -427,15 +436,6 @@ mod tests {
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
           <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-          <dt>children</dt>
-          <dd>
-            <div class=thumbnails>
-              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-            </div>
-            <div class=center>
-              <a href=/inscription/1{64}i1/children>more</a>
-            </div>
-          </dd>
         </dl>
       "
       .unindent()

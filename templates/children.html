@@ -9,12 +9,12 @@
 </div>
 <div class=center>
 %% if let Some(prev_page) = &self.prev_page {
-  <a class=prev href=/inscription/{{ self.parent }}/children/{{ prev_page }}>prev</a>
+  <a class=prev href=/children/{{ self.parent }}/{{ prev_page }}>prev</a>
 %% } else {
 prev
 %% }
 %% if let Some(next_page) = &self.next_page {
-  <a class=next href=/inscription/{{ self.parent }}/children/{{ next_page }}>next</a>
+  <a class=next href=/children/{{ self.parent }}/{{ next_page }}>next</a>
 %% } else {
 next
 %% }
