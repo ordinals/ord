@@ -1,4 +1,7 @@
 <h1 class=light-fg>Children of <a href=/inscription/{{ self.parent }}>Inscription {{ self.parent_number }}</a></h1>
+%% if self.children.is_empty() {
+<h3 class=light-fg>No children</h3>
+%% } else {
 <div class=thumbnails>
 %% for id in &self.children {
   {{ Iframe::thumbnail(*id) }}
@@ -16,3 +19,4 @@ prev
 next
 %% }
 </div>
+%% }

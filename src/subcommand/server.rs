@@ -3297,7 +3297,7 @@ mod tests {
   }
 
   #[test]
-  fn inscription_with_children_page() {
+  fn inscription_with_and_without_children_page() {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
@@ -3312,6 +3312,12 @@ mod tests {
       txid: parent_txid,
       index: 0,
     };
+
+    server.assert_response_regex(
+      format!("/children/{parent_inscription_id}"),
+      StatusCode::OK,
+      format!(".*<h3 class=light-fg>No children</h3>.*"),
+    );
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[
