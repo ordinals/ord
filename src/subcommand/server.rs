@@ -1145,13 +1145,7 @@ impl Server {
 
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
-    let mut children = index.get_children_by_inscription_id_with_limit(inscription_id, 5)?;
-
-    let more_children = children.len() == 5;
-
-    if more_children {
-      children.pop();
-    }
+    let children = index.get_children_by_inscription_id_paginated(inscription_id, 0, Some(4))?;
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
@@ -1183,7 +1177,6 @@ impl Server {
         inscription,
         inscription_id,
         inscription_number: entry.inscription_number,
-        more_children,
         next,
         output,
         parent: entry.parent,
@@ -1221,7 +1214,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {parent}"))?
       .inscription_number;
 
-    let mut children = index.get_children_by_inscription_id_paginated(parent, page)?;
+    let mut children = index.get_children_by_inscription_id_paginated(parent, page, None)?;
 
     let prev_page = page.checked_sub(1);
 
@@ -3345,7 +3338,7 @@ mod tests {
     server.assert_response_regex(
       format!("/children/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Children of Inscription 0</title>.*<h1 class=light-fg>Children of <a href=/inscription/{parent_inscription_id}>Inscription 0</a></h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 0 Children</title>.*<h1 class=light-fg><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
     );
   }
 
@@ -3445,96 +3438,9 @@ mod tests {
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
     <div class=center>
-      <a href=/children/{parent_inscription_id}>more</a>
+      <a href=/children/{parent_inscription_id}>all</a>
     </div>.*"
       ),
-    );
-  }
-
-  #[test]
-  fn inscriptions_page_shows_no_more_if_four_children() {
-    let server = TestServer::new_with_regtest();
-    server.mine_blocks(1);
-
-    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
-      ..Default::default()
-    });
-
-    server.mine_blocks(6);
-
-    let parent_inscription_id = InscriptionId {
-      txid: parent_txid,
-      index: 0,
-    };
-
-    let _txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[
-        (
-          2,
-          0,
-          0,
-          Inscription {
-            content_type: Some("text/plain".into()),
-            body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
-            ..Default::default()
-          }
-          .to_witness(),
-        ),
-        (
-          3,
-          0,
-          0,
-          Inscription {
-            content_type: Some("text/plain".into()),
-            body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
-            ..Default::default()
-          }
-          .to_witness(),
-        ),
-        (
-          4,
-          0,
-          0,
-          Inscription {
-            content_type: Some("text/plain".into()),
-            body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
-            ..Default::default()
-          }
-          .to_witness(),
-        ),
-        (
-          5,
-          0,
-          0,
-          Inscription {
-            content_type: Some("text/plain".into()),
-            body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
-            ..Default::default()
-          }
-          .to_witness(),
-        ),
-        (2, 1, 0, Default::default()),
-      ],
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex(
-      format!("/inscription/{parent_inscription_id}"),
-      StatusCode::OK,
-      ".*<title>Inscription 0</title>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
-    </div>
-  </dd>.*",
     );
   }
 

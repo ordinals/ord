@@ -9,7 +9,6 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription_number: i64,
-  pub(crate) more_children: bool,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
@@ -347,6 +346,9 @@ mod tests {
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
+            <div class=center>
+              <a href=/children/1{64}i1>all</a>
+            </div>
           </dd>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
@@ -385,7 +387,6 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2)],
-        more_children: true,
         genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
@@ -407,7 +408,7 @@ mod tests {
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>more</a>
+              <a href=/children/1{64}i1>all</a>
             </div>
           </dd>
           <dt>id</dt>
