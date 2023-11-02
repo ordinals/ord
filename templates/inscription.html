@@ -13,6 +13,19 @@
 %% }
 </div>
 <dl>
+%% if !self.children.is_empty() {
+  <dt>children</dt>
+  <dd>
+    <div class=thumbnails>
+%% for id in &self.children {
+      {{Iframe::thumbnail(*id)}}
+%% }
+    </div>
+    <div class=center>
+      <a href=/children/{{self.inscription_id}}>all</a>
+    </div>
+  </dd>
+%% }
   <dt>id</dt>
   <dd class=monospace>{{ self.inscription_id }}</dd>
 %% if let Some(metadata) = self.inscription.metadata() {
@@ -69,16 +82,6 @@
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
   <dd>{{ teleburn::Ethereum::from(self.inscription_id) }}</dd>
-%% if !self.children.is_empty() {
-  <dt>children</dt>
-  <dd>
-    <div class=thumbnails>
-%% for id in &self.children {
-      {{Iframe::thumbnail(*id)}}
-%% }
-    </div>
-  </dd>
-%% }
 %% if let Some(rune) = self.rune {
   <dt>rune</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>

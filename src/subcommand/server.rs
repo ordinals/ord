@@ -9,9 +9,9 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
-      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
-      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
+      BlockHtml, BlockJson, ChildrenHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml,
+      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
+      OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
       PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
     },
@@ -199,6 +199,11 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
+        .route("/children/:inscription_id", get(Self::children))
+        .route(
+          "/children/:inscription_id/:page",
+          get(Self::children_paginated),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
@@ -207,7 +212,7 @@ impl Server {
           get(Self::inscriptions_in_block),
         )
         .route(
-          "/inscriptions/block/:height/:page_index",
+          "/inscriptions/block/:height/:page",
           get(Self::inscriptions_in_block_from_page),
         )
         .route("/install.sh", get(Self::install_script))
@@ -1140,7 +1145,8 @@ impl Server {
 
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
-    let children = index.get_children_by_inscription_id(inscription_id)?;
+    let (children, _more_children) =
+      index.get_children_by_inscription_id_paginated(inscription_id, 4, 0)?;
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
@@ -1166,24 +1172,67 @@ impl Server {
     } else {
       InscriptionHtml {
         chain: page_config.chain,
+        children,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
-        children,
         inscription,
         inscription_id,
-        next,
         inscription_number: entry.inscription_number,
+        next,
         output,
         parent: entry.parent,
         previous,
+        rune,
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
-        rune,
       }
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn children(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::children_paginated(
+      Extension(page_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn children_paginated(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    let parent_number = index
+      .get_inscription_entry(parent)?
+      .ok_or_not_found(|| format!("inscription {parent}"))?
+      .inscription_number;
+
+    let (children, more_children) =
+      index.get_children_by_inscription_id_paginated(parent, 100, page)?;
+
+    let prev_page = page.checked_sub(1);
+
+    let next_page = more_children.then_some(page + 1);
+
+    Ok(
+      ChildrenHtml {
+        parent,
+        parent_number,
+        children,
+        prev_page,
+        next_page,
+      }
+      .page(page_config)
+      .into_response(),
+    )
   }
 
   async fn inscriptions(
@@ -1212,7 +1261,7 @@ impl Server {
   async fn inscriptions_in_block_from_page(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page_index)): Path<(u64, usize)>,
+    Path((block_height, page)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscriptions_in_block(block_height)?;
@@ -1224,7 +1273,7 @@ impl Server {
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
-        page_index,
+        page,
       )?
       .page(page_config)
       .into_response()
@@ -3235,6 +3284,161 @@ mod tests {
         .get_json::<InscriptionJson>(format!("/inscription/{parent_inscription_id}"))
         .children,
       [inscription_id],
+    );
+  }
+
+  #[test]
+  fn inscription_with_and_without_children_page() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response_regex(
+      format!("/children/{parent_inscription_id}"),
+      StatusCode::OK,
+      ".*<h3>No children</h3>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (2, 1, 0, Default::default()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/children/{parent_inscription_id}"),
+      StatusCode::OK,
+      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_shows_max_four_children() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(6);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let _txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (
+          4,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (
+          5,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (
+          6,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (2, 1, 0, Default::default()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{parent_inscription_id}"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Inscription 0</title>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+    <div class=center>
+      <a href=/children/{parent_inscription_id}>all</a>
+    </div>.*"
+      ),
     );
   }
 
