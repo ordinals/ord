@@ -1,4 +1,3 @@
-use std::collections::BTreeSet;
 use {
   self::{
     entry::{
@@ -21,7 +20,7 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
-  std::collections::HashMap,
+  std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
 };
 
