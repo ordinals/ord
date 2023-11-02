@@ -1,4 +1,4 @@
-<h1 class=light-fg>Children of Inscription <a href=/inscription/{{ self.parent }}>{{ self.parent }}</a></h1>
+<h1 class=light-fg>Children of <a href=/inscription/{{ self.parent }}>Inscription {{ self.parent_number }}</a></h1>
 <div class=thumbnails>
 %% for id in &self.children {
   {{ Iframe::thumbnail(*id) }}

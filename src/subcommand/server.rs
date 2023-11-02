@@ -1216,11 +1216,10 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    if !index.inscription_exists(parent)? {
-      return Err(ServerError::NotFound(format!(
-        "inscription {parent} not found"
-      )));
-    }
+    let parent_number = index
+      .get_inscription_entry(parent)?
+      .ok_or_not_found(|| format!("inscription {parent}"))?
+      .inscription_number;
 
     let mut children = index.get_children_by_inscription_id_paginated(parent, page)?;
 
@@ -1235,6 +1234,7 @@ impl Server {
     Ok(
       ChildrenHtml {
         parent,
+        parent_number,
         children,
         prev_page,
         next_page,
@@ -3293,6 +3293,53 @@ mod tests {
         .get_json::<InscriptionJson>(format!("/inscription/{parent_inscription_id}"))
         .children,
       [inscription_id],
+    );
+  }
+
+  #[test]
+  fn inscription_with_children_page() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parent: Some(parent_inscription_id.parent_value()),
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (2, 1, 0, Default::default()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/children/{parent_inscription_id}"),
+      StatusCode::OK,
+      format!(".*<title>Children of Inscription 0</title>.*<h1 class=light-fg>Children of <a href=/inscription/{parent_inscription_id}>Inscription 0</a></h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
     );
   }
 
