@@ -3316,7 +3316,7 @@ mod tests {
     server.assert_response_regex(
       format!("/children/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<h3 class=light-fg>No children</h3>.*"),
+      ".*<h3 class=light-fg>No children</h3>.*",
     );
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3528,15 +3528,13 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(
-        ".*<title>Inscription 0</title>.*
+      ".*<title>Inscription 0</title>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
     </div>
-  </dd>.*"
-      ),
+  </dd>.*",
     );
   }
 
