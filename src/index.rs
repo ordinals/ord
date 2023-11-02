@@ -35,7 +35,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 9;
+const SCHEMA_VERSION: u64 = 10;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -78,6 +78,7 @@ pub enum List {
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
+  Schema = 0,
   BlessedInscriptions,
   Commits,
   CursedInscriptions,
@@ -87,7 +88,6 @@ pub(crate) enum Statistic {
   OutputsTraversed,
   Runes,
   SatRanges,
-  Schema,
   UnboundInscriptions,
 }
 
