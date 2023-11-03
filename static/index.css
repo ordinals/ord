@@ -34,6 +34,10 @@ h1 {
   width: 100%;
 }
 
+h1 a {
+  color: var(--light-fg);
+}
+
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
@@ -124,9 +128,6 @@ ol, ul {
   margin: 1%;
 }
 
-.light-fg a {
-  color: var(--light-fg);
-}
 .center {
   text-align: center;
 }

@@ -340,6 +340,16 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
+          <dt>children</dt>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+            </div>
+            <div class=center>
+              <a href=/children/1{64}i1>all</a>
+            </div>
+          </dd>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>preview</dt>
@@ -366,13 +376,67 @@ mod tests {
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
           <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_paginated_children() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: vec![inscription_id(2)],
+        genesis_fee: 1,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        inscription_number: 1,
+        satpoint: satpoint(1, 0),
+        ..Default::default()
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
           <dt>children</dt>
           <dd>
             <div class=thumbnails>
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+            </div>
+            <div class=center>
+              <a href=/children/1{64}i1>all</a>
             </div>
           </dd>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
+          <dt>content length</dt>
+          <dd>10 bytes</dd>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>genesis height</dt>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>location</dt>
+          <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
+          <dt>ethereum teleburn address</dt>
+          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
