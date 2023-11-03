@@ -243,6 +243,54 @@ fn inscription_metadata() {
 }
 
 #[test]
+fn recursive_inscription_metadata() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file wizards.txt")
+    .write("wizards.txt", "THEWIZARDSOFORD")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  let inscription = output.inscriptions.get(0).unwrap();
+
+  rpc_server.mine_blocks(1);
+
+  let response = TestServer::spawn_with_args(&rpc_server, &[])
+    .request(format!("/r/inscription/{}", inscription.id));
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(
+    response.headers().get("content-type").unwrap(),
+    "application/json"
+  );
+
+  let mut inscription_metadata_json: InscriptionDetailsJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+  assert_regex_match!(inscription_metadata_json.address.unwrap(), r"bc1p.*");
+  inscription_metadata_json.address = None;
+
+  pretty_assert_eq!(
+    inscription_metadata_json,
+    InscriptionDetailsJson {
+      address: None,
+      inscription_number: 0,
+      content_type: Some("text/plain;charset=utf-8".to_string()),
+      content_length: Some(15),
+      genesis_fee: 141,
+      genesis_height: 2,
+      satpoint: SatPoint {
+        outpoint: inscription.location.outpoint,
+        offset: 0,
+      },
+      timestamp: 2,
+    }
+  )
+}
+
+#[test]
 fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);

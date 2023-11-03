@@ -20,6 +20,18 @@ pub(crate) struct InscriptionHtml {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionDetailsJson {
+  pub address: Option<String>,
+  pub inscription_number: i64,
+  pub content_type: Option<String>,
+  pub content_length: Option<usize>,
+  pub genesis_fee: u64,
+  pub genesis_height: u64,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
   pub address: Option<String>,
   pub children: Vec<InscriptionId>,

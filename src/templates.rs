@@ -7,7 +7,7 @@ pub(crate) use {
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::{InscriptionHtml, InscriptionJson},
+  inscription::{InscriptionDetailsJson, InscriptionHtml, InscriptionJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
