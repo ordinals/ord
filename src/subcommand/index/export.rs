@@ -7,7 +7,7 @@ pub(crate) struct Export {
     default_value = "inscription_number_to_id.tsv",
     help = "<TSV> file to write to"
   )]
-  tsv: String,
+  tsv: PathBuf,
   #[arg(long, help = "Whether to include addresses in export")]
   include_addresses: bool,
 }

@@ -11,7 +11,7 @@ use {
   super::*,
   crate::subcommand::find::FindRangeOutput,
   crate::wallet::Wallet,
-  bitcoin::block::Header,
+  bitcoin::{block::Header, hashes::HashEngine},
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
@@ -21,7 +21,7 @@ use {
     TableDefinition, WriteTransaction,
   },
   std::collections::HashMap,
-  std::io::{BufWriter, Read, Write},
+  std::io::{BufRead, BufReader, BufWriter, Read, Write},
 };
 
 pub(crate) use self::entry::RuneEntry;
@@ -157,7 +157,6 @@ pub(crate) struct Index {
   first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
-  height_limit: Option<u64>,
   index_runes: bool,
   index_sats: bool,
   options: Options,
@@ -322,7 +321,6 @@ impl Index {
       durability,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: options.height_limit,
       options: options.clone(),
       index_runes,
       index_sats,
@@ -479,8 +477,75 @@ impl Index {
     }
   }
 
-  pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
-    let mut writer = BufWriter::new(File::create(filename)?);
+  pub(crate) fn load_utxos(&self, file: File) -> Result {
+    let mut reader = BufReader::new(file);
+
+    let wtx = self.database.begin_write()?;
+
+    {
+      let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+
+      let mut engine = sha256::Hash::engine();
+
+      while reader.fill_buf()?.len() > 0 {
+        let mut outpoint = [0; 36];
+        let mut value = [0; 8];
+        reader.read_exact(&mut outpoint)?;
+        reader.read_exact(&mut value)?;
+        outpoint_to_value.insert(&outpoint, u64::from_le_bytes(value))?;
+        engine.input(&outpoint);
+        engine.input(&value);
+      }
+
+      let hash = sha256::Hash::from_engine(engine);
+      let expected = self.options.chain().utxo_hash();
+
+      ensure!(
+        hash == expected,
+        "UTXO snapshot does not match expected hash: {hash} != {expected}",
+      );
+    }
+
+    wtx.commit()?;
+
+    Ok(())
+  }
+
+  pub(crate) fn dump_utxos(&self, file: File) -> Result {
+    let mut engine = sha256::Hash::engine();
+
+    let mut writer = BufWriter::new(file);
+
+    for result in self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_VALUE)?
+      .iter()?
+    {
+      let (outpoint, value) = result?;
+      let outpoint = *outpoint.value();
+      let value = value.value().to_le_bytes();
+      writer.write(&outpoint)?;
+      writer.write(&value)?;
+      engine.input(&outpoint);
+      engine.input(&value);
+    }
+
+    writer.into_inner()?.sync_all()?;
+
+    let hash = sha256::Hash::from_engine(engine);
+    let expected = self.options.chain().utxo_hash();
+
+    ensure!(
+      hash == expected,
+      "UTXO snapshot does not match expected hash: {hash} != {expected}",
+    );
+
+    Ok(())
+  }
+
+  pub(crate) fn export(&self, path: &Path, include_addresses: bool) -> Result {
+    let mut writer = BufWriter::new(File::create(path)?);
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -493,7 +558,7 @@ impl Index {
 
     writeln!(writer, "# export at block height {}", blocks_indexed)?;
 
-    log::info!("exporting database tables to {filename}");
+    log::info!("exporting database tables to {}", path.display());
 
     let inscription_entries = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
 

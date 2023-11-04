@@ -182,6 +182,16 @@ build-snapshots:
     printf "$height_limit\t$((b - a))\n" >> time.txt
   done
 
+dump-utxos chain="mainnet":
+  # rm -f tmp/snapshot.redb
+  cargo run --release -- \
+    --chain {{chain}}
+    --first-inscription-height 0 \
+    --height-limit 767430 \
+    --index tmp/snapshot.redb \
+    index \
+    dump-utxos
+
 serve-docs: build-docs
   open http://127.0.0.1:8080
   python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080

@@ -47,6 +47,15 @@ impl Chain {
     }
   }
 
+  pub(crate) fn utxo_hash(self) -> sha256::Hash {
+    match self {
+      Self::Mainnet => todo!(),
+      Self::Regtest => todo!(),
+      Self::Signet => todo!(),
+      Self::Testnet => todo!(),
+    }
+  }
+
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }

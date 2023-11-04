@@ -163,7 +163,7 @@ impl<'index> Updater<'_> {
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
-    let height_limit = index.height_limit;
+    let height_limit = index.options.height_limit;
 
     let client = index.options.bitcoin_rpc_client()?;
 
@@ -331,6 +331,15 @@ impl<'index> Updater<'_> {
       timestamp(block.header.time),
       block.txdata.len()
     );
+
+    if self.height == index.options.first_inscription_height() {
+      if let Some(file) = &index.options.load_utxos {
+        eprintln!("Loading UTXOs from {}…", file.display());
+        index.load_utxos(
+          File::open(file).context(format!("failed to load UTXO dump from {}", file.display()))?,
+        )?;
+      }
+    }
 
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block

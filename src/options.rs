@@ -57,6 +57,8 @@ pub(crate) struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[arg(long, short, help = "Load UTXOS from <FILE>.", value_name = "FILE")]
+  pub(crate) load_utxos: Option<PathBuf>,
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
 }
@@ -75,9 +77,7 @@ impl Options {
   }
 
   pub(crate) fn first_inscription_height(&self) -> u64 {
-    if self.chain() == Chain::Regtest {
-      self.first_inscription_height.unwrap_or(0)
-    } else if integration_test() {
+    if integration_test() {
       0
     } else {
       self
