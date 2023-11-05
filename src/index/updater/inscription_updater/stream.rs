@@ -231,6 +231,31 @@ impl StreamEvent {
     Network::from_str(&env::var("NETWORK").unwrap_or("bitcoin".to_owned())).unwrap()
   }
 
+  fn is_text_related(media: Media, content_type: Option<String>) -> bool {
+    if content_type
+      .map(|ct| ct.starts_with("text/") || ct.starts_with("image/svg"))
+      .unwrap_or(false)
+    {
+      return true;
+    }
+
+    // check if inscription.media() is within a list of streamable media
+    match media {
+      Media::Text => true,
+      Media::Code(_) => true,
+      Media::Iframe => true,
+      Media::Markdown => true,
+
+      Media::Image => false,
+      Media::Model => false,
+      Media::Pdf => false,
+      Media::Unknown => false,
+      Media::Video => false,
+      Media::Audio => false,
+      Media::Font => false,
+    }
+  }
+
   fn enrich_content(&mut self, inscription: Inscription) -> &mut Self {
     self.metaprotocol = inscription.metaprotocol().map(|mp| mp.to_owned());
     self.metadata = inscription.metadata();
@@ -248,15 +273,9 @@ impl StreamEvent {
           .parse::<usize>()
           .unwrap();
 
-        // Text Media and Content-Type starting with "text/" are included with the content-body payload
-        let is_text = inscription.media() == Media::Text
-          || self
-            .content_type
-            .clone()
-            .map(|ct| ct.starts_with("text/") || ct.starts_with("image/svg"))
-            .unwrap_or(false);
-
-        if is_text && body.len() < kafka_body_max_bytes {
+        if Self::is_text_related(inscription.media(), self.content_type.clone())
+          && body.len() < kafka_body_max_bytes
+        {
           self.brc20 = serde_json::from_slice(body).unwrap_or(None);
           self.domain = Domain::parse(body);
           Some(general_purpose::STANDARD.encode(body))
