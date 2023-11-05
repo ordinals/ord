@@ -3436,7 +3436,7 @@ mod tests {
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
     <div class=center>
-      <a href=/children/{parent_inscription_id}>all</a>
+      <a href=/children/{parent_inscription_id}>view all</a>
     </div>.*"
       ),
     );

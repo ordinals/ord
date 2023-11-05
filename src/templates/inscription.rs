@@ -347,7 +347,7 @@ mod tests {
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>view all</a>
             </div>
           </dd>
           <dt>id</dt>
@@ -408,7 +408,7 @@ mod tests {
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>view all</a>
             </div>
           </dd>
           <dt>id</dt>
