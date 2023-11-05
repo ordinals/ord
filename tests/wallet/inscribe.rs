@@ -915,6 +915,43 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 }
 
 #[test]
+fn batch_inscribe_with_multiple_inscriptions_with_satpoint() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  let coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let output = CommandBuilder::new(format!("wallet inscribe --fee-rate 1 --satpoint {coinbase}:0:10000 --batch batch.yaml"))
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  ord_server.assert_response_regex(
+    "/sat/5000010000",
+    format!(".*<a href=/inscription/{}>.*", output.inscriptions[0].id),
+  );
+
+  ord_server.assert_response_regex(
+    "/sat/5000020000",
+    format!(".*<a href=/inscription/{}>.*", output.inscriptions[1].id),
+  );
+
+  ord_server.assert_response_regex(
+    "/sat/5000030000",
+    format!(".*<a href=/inscription/{}>.*", output.inscriptions[2].id),
+  );
+}
+
+#[test]
 fn batch_inscribe_respects_dry_run_flag() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);

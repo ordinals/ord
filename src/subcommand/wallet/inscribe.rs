@@ -55,7 +55,7 @@ pub(crate) struct Inscribe {
     long,
     help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
-      "file", "destination", "cbor_metadata", "json_metadata", "satpoint", "reinscribe", "metaprotocol", "parent"
+      "file", "destination", "cbor_metadata", "json_metadata", "reinscribe", "metaprotocol", "parent"
     ]
   )]
   pub(crate) batch: Option<PathBuf>,
@@ -1258,10 +1258,6 @@ inscriptions:
       ),
       ("--cbor-metadata", Some("foo")),
       ("--json-metadata", Some("foo")),
-      (
-        "--satpoint",
-        Some("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"),
-      ),
       ("--reinscribe", None),
       ("--metaprotocol", Some("foo")),
       (

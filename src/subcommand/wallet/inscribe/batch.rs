@@ -186,14 +186,6 @@ impl Batch {
         .all(|inscription| inscription.parent().unwrap() == parent_info.id))
     }
 
-    if self.satpoint.is_some() {
-      assert_eq!(
-        self.inscriptions.len(),
-        1,
-        "invariant: satpoint may only be specified when making a single inscription",
-      );
-    }
-
     match self.mode {
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
