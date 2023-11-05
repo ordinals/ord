@@ -287,7 +287,7 @@ fn get_palindromes_from_equal_length_range(start_string: String, end_string: Str
 
   let get_palindrome = |sig_digits: &str| -> u64 {
     let palindrome_string = sig_digits.to_string()
-      + &sig_digits.chars().rev().collect::<String>()[middle_digit_exists as usize..];
+      + &sig_digits.chars().rev().collect::<String>()[usize::from(middle_digit_exists)..];
     palindrome_string.parse::<u64>().unwrap()
   };
 
