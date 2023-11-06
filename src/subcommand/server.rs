@@ -226,7 +226,7 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/metadata/:inscription_id", get(Self::metadata)
+        .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
