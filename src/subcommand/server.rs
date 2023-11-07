@@ -244,7 +244,7 @@ impl Server {
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
         ))
-        .layer(SetResponseHeaderLayer::overriding(
+        .layer(SetResponseHeaderLayer::if_not_present(
           header::STRICT_TRANSPORT_SECURITY,
           HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
         ))
@@ -3085,6 +3085,18 @@ mod tests {
     let response = server.get(format!("/content/{}", InscriptionId { txid, index: 0 }));
 
     assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "max-age=31536000, immutable"
+    );
+  }
+
+  #[test]
+  fn error_content_responses_have_max_age_zero_cache_control_headers() {
+    let server = TestServer::new_with_regtest();
+    let response = server.get("/content/foo");
+
+    assert_eq!(response.status(), 400);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
       "max-age=31536000, immutable"
