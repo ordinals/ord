@@ -23,19 +23,13 @@ impl IntoResponse for ServerError {
       }
       Self::NotFound(message) => (
         StatusCode::NOT_FOUND,
-        [(
-          header::STRICT_TRANSPORT_SECURITY,
-          HeaderValue::from_static("max-age=0; includeSubDomains; preload"),
-        )],
+        [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
         message,
       )
         .into_response(),
       Self::BadRequest(message) => (
         StatusCode::BAD_REQUEST,
-        [(
-          header::STRICT_TRANSPORT_SECURITY,
-          HeaderValue::from_static("max-age=0; includeSubDomains; preload"),
-        )],
+        [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
         message,
       )
         .into_response(),

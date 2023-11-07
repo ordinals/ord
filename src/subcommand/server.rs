@@ -244,7 +244,7 @@ impl Server {
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
         ))
-        .layer(SetResponseHeaderLayer::if_not_present(
+        .layer(SetResponseHeaderLayer::overriding(
           header::STRICT_TRANSPORT_SECURITY,
           HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
         ))
