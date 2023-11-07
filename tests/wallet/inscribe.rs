@@ -1239,6 +1239,6 @@ fn inscribe_does_not_pick_locked_utxos() {
     .rpc_server(&rpc_server)
     .write("hello.txt", "HELLOWORLD")
     .expected_exit_code(1)
-    .stderr_regex("error:.*")
+    .stderr_regex("error: wallet contains no cardinal utxos\n")
     .run_and_extract_stdout();
 }
