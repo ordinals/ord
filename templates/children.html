@@ -1,0 +1,22 @@
+<h1><a href=/inscription/{{ self.parent }}>Inscription {{ self.parent_number }}</a> Children</h1>
+%% if self.children.is_empty() {
+<h3>No children</h3>
+%% } else {
+<div class=thumbnails>
+%% for id in &self.children {
+  {{ Iframe::thumbnail(*id) }}
+%% }
+</div>
+<div class=center>
+%% if let Some(prev_page) = &self.prev_page {
+  <a class=prev href=/children/{{ self.parent }}/{{ prev_page }}>prev</a>
+%% } else {
+prev
+%% }
+%% if let Some(next_page) = &self.next_page {
+  <a class=next href=/children/{{ self.parent }}/{{ next_page }}>next</a>
+%% } else {
+next
+%% }
+</div>
+%% }
