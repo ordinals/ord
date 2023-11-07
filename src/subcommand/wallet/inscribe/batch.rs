@@ -220,7 +220,7 @@ impl Batch {
 
       utxos
         .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint))
+        .find(|outpoint| !inscribed_utxos.contains(outpoint) && !locked_utxos.contains(outpoint))
         .map(|outpoint| SatPoint {
           outpoint: *outpoint,
           offset: 0,
