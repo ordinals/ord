@@ -3092,6 +3092,19 @@ mod tests {
   }
 
   #[test]
+  fn error_content_responses_have_max_age_zero_cache_control_headers() {
+    let server = TestServer::new_with_regtest();
+    let response =
+      server.get("/content/6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0");
+
+    assert_eq!(response.status(), 404);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "no-store"
+    );
+  }
+
+  #[test]
   fn inscriptions_page_with_no_prev_or_next() {
     TestServer::new_with_regtest_with_index_sats().assert_response_regex(
       "/inscriptions",
