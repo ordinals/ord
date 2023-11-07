@@ -939,7 +939,7 @@ OP_ENDIF
 <p>As transações de inscrição devem ter menos de 400.000 unidades de peso ou não serão retransmitidas pelo Bitcoin Core. Um byte de conteúdo de inscrição custa uma unidade de peso. Como uma transação de inscrição não inclui apenas o conteúdo da inscrição, limite o conteúdo da inscrição a menos de 400.000 unidades de peso. 390.000 unidades de peso é uma margem segura.</p>
 <h2 id="criando-inscrições"><a class="header" href="#criando-inscrições">Criando Inscrições</a></h2>
 <p>Para criar uma inscrição com o conteúdo de <code>ARQUIVO</code>, execute:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord produzirá dois IDs de transação, um para a transação de confirmação, outro para a transação de revelação, e o ID de inscrição. Os IDs de inscrição têm o formato <code>TXIDiN</code>, onde <code>TXID</code> é o ID da transação de revelação e <code>N</code> é o índice da inscrição na transação de revelação.</p>
 <p>A transação de commit confirma um tapscript contendo o conteúdo da inscrição, e a transação de revelação gasta a partir desse tapscript, revelando o conteúdo na cadeia e inscrevendo-o no primeiro sat da entrada que contém o tapscript correspondente.</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="enviando-inscrições"><a class="header" href="#enviando-inscrições">Enviando Inscrições</a></h2>
@@ -1341,7 +1341,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscreva no regtest com:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Minere a inscrição:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1351,12 +1351,12 @@ inscriptions:
 </code></pre>
 <h2 id="testando-recursão"><a class="header" href="#testando-recursão">Testando Recursão</a></h2>
 <p>Ao testar <a href="guides/../inscriptions/recursion.html">recursão</a>, inscreva as dependências primeiro (exemplo com <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Isso deve retornar um <code>inscription_id</code> que você pode referenciar em sua inscrição recursiva.</p>
 <p>ATENÇÃO: Esses ids serão diferentes ao inscrever-se na mainnet ou signet, portanto, certifique-se de alterá-los em sua inscrição recursiva para cada cadeia.</p>
 <p>Então você pode inscrever sua inscrição recursiva com:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Finalmente você terá que minerar alguns blocos e iniciar o servidor:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

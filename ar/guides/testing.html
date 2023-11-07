@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>إنسكرايب بوسطه الريغيست باستخدام الأمر:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>عدن الإنسكريبشين باستخدام الأمر:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="اختبار-التكرار"><a class="header" href="#اختبار-التكرار">اختبار التكرار</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>سيعيد هذا <code>inscription_id</code> الذي يمكنك بعد ذلك الرجوع إليه في الإنسكريبشين لتكراري.</p>
 <p>تنبيه: سيكون هذه الهويات مختلفة عندما تكون الإنسكريبشين على شبكة mainnet أو signet ، لذا تأكد من تغييرها في تسجيلك التكراري لكل سلسلة.</p>
 <p>ثم يمكنك تسجيل السجل التكراري الخاص بك باستخدام الأمر:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>أخيرًا، ستحتاج إلى تعدين بعض الكتل وبدء الخادم باستخدام الأمر:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>I-inscribe sa regtest kasama:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>I-mine and inscription gamit ang:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="pag-test-ng-recursion"><a class="header" href="#pag-test-ng-recursion">Pag-test ng Recursion</a></h2>
 <p>Kapag sinusubukan ang <a href="../inscriptions/recursion.html">recursion</a>, isulat ang mga dependencies muna (halimbawa sa <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Dapat itong magbalik ng <code>inscription_id</code> na maaari mong ireference sa iyong recursive inscription.</p>
 <p>PANSIN: Magiging iba ang mga id na ito kapag nag-inscribe sa mainnet o signet, kaya siguraduhing baguhin ang mga nasa iyong recursive inscription para sa bawat chain.</p>
 <p>Pagkatapos ay maaari mong isulat ang iyong recursive inscription ng:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Sa wakas, kakailanganin mong mag-mine ng ilang mga bloke at simulan ang server:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

@@ -939,7 +939,7 @@ OP_ENDIF
 <p>Ang mga transaksyon sa inscription ay dapat na mas mababa sa 400,00, o hindi sila ipapadala ng Bitcoin Core. Ang isang byte na nilalaman ng inscription ay nagkakahalaga ng isang yunit ng timbang. Dahil ang isang transaksyon sa inscription ay hindi kasama lamang ang nilalaman ng inscription, angkop na limitahan ang nilalaman ng pagpapatala sa mas mababa sa 400,000. Dapat ay sapat na ang 390,000 weight units.</p>
 <h2 id="paglikha-ng-mga-inscription"><a class="header" href="#paglikha-ng-mga-inscription">Paglikha ng mga inscription</a></h2>
 <p>Upang lumikha ng inscription na may mga nilalaman na <code>FILE</code>, patakbuhin ang:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Maglalabas ang Ord ng dalawang transaction ID, isa para sa commit transaction at isa para sa reveal transaction, kasama ang inscription ID. Ang mga Inscription ID ay nasa anyong <code>TXIDiN</code>, kung saan ang <code>TXID</code> ay ang transaction ID ng reveal na transaksyon, at ang <code>N</code> ay ang index ng pag-inscribe sa reveal na transaksyon.</p>
 <p>Ang commit na transaksyon ay commit sa isang tapscript na naglalaman ng content ng inscription, at ang reveal na transaction ay gumagastos mula sa tapscript na iyon, na nire-reveal ang content sa string at nii-inscribe ito sa unang sat ng input na naglalaman ng kaukulang tapscript.</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Ang Parent-child inscriptions ay nagbibigay-daan sa kung ano ang karaniwang kilala bilang mga koleksyon, tingnan ang <a href="guides/../inscriptions/provenance.html">provenance</a> para sa higit pang impormasyon.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Ngayon i-inscribe ang child inscription at tukuyin ang parent tulad nito:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="magpadala-ng-mga-inscription"><a class="header" href="#magpadala-ng-mga-inscription">Magpadala ng mga inscription</a></h2>
@@ -1341,7 +1341,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>I-inscribe sa regtest kasama:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>I-mine and inscription gamit ang:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1351,12 +1351,12 @@ inscriptions:
 </code></pre>
 <h2 id="pag-test-ng-recursion"><a class="header" href="#pag-test-ng-recursion">Pag-test ng Recursion</a></h2>
 <p>Kapag sinusubukan ang <a href="guides/../inscriptions/recursion.html">recursion</a>, isulat ang mga dependencies muna (halimbawa sa <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Dapat itong magbalik ng <code>inscription_id</code> na maaari mong ireference sa iyong recursive inscription.</p>
 <p>PANSIN: Magiging iba ang mga id na ito kapag nag-inscribe sa mainnet o signet, kaya siguraduhing baguhin ang mga nasa iyong recursive inscription para sa bawat chain.</p>
 <p>Pagkatapos ay maaari mong isulat ang iyong recursive inscription ng:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Sa wakas, kakailanganin mong mag-mine ng ilang mga bloke at simulan ang server:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

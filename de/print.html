@@ -939,7 +939,7 @@ OP_ENDIF
 <p>Inscription transaktion müssen weniger als 400.000 Gewichtseinheiten betragen, da sie ansonsten von Bitcoin Core nicht weitergeleitet werden. Ein Byte inscription inhalt kostet eine Gewichtseinheit. Da eine inscription transaktion nicht nur den inscription inhalt enthält, sollte der inscription inhalt auf weniger als 400.000 Gewichtseinheiten begrenzt werden. 390.000 Gewichtseinheiten sollten sicher sein.</p>
 <h2 id="inscription-erstellen"><a class="header" href="#inscription-erstellen">Inscription erstellen</a></h2>
 <p>Um eine Inschrift mit dem Inhalt von <code>FILE</code> zu erstellen, führen:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord gibt zwei Transaktions-IDs aus, eine für die Commit-Transaktion und eine für die Reveal-Transaktion, sowie die inscription -ID. inscription -IDs haben das Format <code>TXIDiN</code>, wobei <code>TXID</code> die Transaktions-ID der Reveal-Transaktion ist und <code>N</code> der Index der inscription in der Reveal-Transaktion ist.</p>
 <p>Die Commit-Transaktion verpflichtet sich zu einem Tapscript, das den Inhalt der inscription enthält, und die Reveal-Transaktion gibt von diesem Tapscript aus und enthüllt den Inhalt auf der Blockchain, indem sie ihn auf die erste Satoshis des Inputs schreibt, der das entsprechende Tapscript enthält.</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="inscriptions-senden"><a class="header" href="#inscriptions-senden">Inscriptions Senden</a></h2>
@@ -1341,7 +1341,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe im Regtest mit:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Mine die inscription mit:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1351,12 +1351,12 @@ inscriptions:
 </code></pre>
 <h2 id="testen-der-rekursion"><a class="header" href="#testen-der-rekursion">Testen der Rekursion</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Dies sollte eine <code>inscription_id</code> zurückgeben, auf die Sie dann in Ihrer rekursiven inscription verweisen können.</p>
 <p>ACHTUNG: Diese IDs werden unterschiedlich sein, wenn Sie auf Mainnet oder Signet inskribieren. Stellen Sie sicher, dass Sie sie für jede Kette in Ihrer rekursiven inscription ändern.</p>
 <p>Dann können Sie Ihre rekursive inscribe einschreiben mit:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Schließlich müssen Sie einige Blöcke minen und den Server starten:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

@@ -330,7 +330,7 @@
 <p>يجب أن تكون المعاملات أقل من 400,000 وحدة وزنية، وإلا فلن يتم نقلها بواسطة بيتكوين كور. بايت واحد من المحتوى يكلف وحدة وزنية واحدة. نظرًا لأن المعاملات لا تشمل فقط المحتوى ، يجب تقييد محتوى الإنسكريبشين لأقل من 400,000 وحدة وزنية. 390,000 وحدة وزنية يجب أن تكون آمنة وصحيحه.</p>
 <h2 id="إنشاء-الإنسكريبشينس"><a class="header" href="#إنشاء-الإنسكريبشينس">إنشاء الإنسكريبشينس</a></h2>
 <p>لإنشاء الإنسكريبشين مع محتوى <code>FILE</code> , اعطي الأمر:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>أورد سيقوم بإخراج رقمين معرّفين للمعاملات، واحد لمعاملة الالتزام، وآخر لمعاملة الكشف، وكذلك مُعرف إنسكريبشين . مُعرفات إنسكريبشين على الشكل <code>TXIDiN</code>، حيث <code>TXID</code> هو مُعرّف المعاملة لمعاملة الكشف، و <code>N</code> هو المؤشر الإنسكريبشين في معاملة الكشف.</p>
 <p>تُؤكد معاملة الالتزام على tapscript يحتوي على محتوى الإنسكريبشين، وتقوم معاملة الكشف بإنفاق من هذا الـ tapscript، مكشفةً المحتوى على الشبكة وتسجيله على أول ساتوشي في المدخل الذي يحتوي على الـ tapscript المقابل.</p>
@@ -342,7 +342,7 @@
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="إرسال-الإنسكريبشينس"><a class="header" href="#إرسال-الإنسكريبشينس">إرسال الإنسكريبشينس</a></h2>

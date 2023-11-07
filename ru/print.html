@@ -939,7 +939,7 @@ OP_ENDIF
 <p>Транзакции с надписями должны быть менее 400 000 весовых единиц, иначе они не будут переданы Bitcoin Core. Один байт содержимого надписи стоит одну весовую единицу. Поскольку транзакция с надписью включает в себя не только содержимое надписи, ограничьте размер транзакции с надписью до менее чем 400 000 весовых единиц. 390 000 весовых единиц должно быть безопасно.</p>
 <h2 id="Создание-надписей"><a class="header" href="#Создание-надписей">Создание надписей</a></h2>
 <p>Чтобы создать надпись с контентом <code>FILE</code>, выполните команду:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord выдаст два ID транзакций, один для транзакции commit, другой для транзакции reveal, а также ID надписи. ID надписей имеют вид <code>TXIDiN</code>, где <code>TXID</code> - ID транзакции reveal, а N - индекс надписи в транзакции reveal.</p>
 <p>Транзакция commit фиксирует tapscript, содержащий содержимое надписи, а транзакция reveal использует этот tapscript, раскрывая содержимое по цепочке и прописывая его на первом sat ввода, содержащем соответствующий tapscript.</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="Отправка-надписей"><a class="header" href="#Отправка-надписей">Отправка надписей</a></h2>
@@ -1341,7 +1341,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe в regtest с:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Добыть надпись с:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1351,12 +1351,12 @@ inscriptions:
 </code></pre>
 <h2 id="Тестирование-рекурсии"><a class="header" href="#Тестирование-рекурсии">Тестирование рекурсии</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Это должно вернуть значение <code>inscription_id</code>, на которое затем можно ссылаться в рекурсивной надписи.</p>
 <p>ВНИМАНИЕ: Эти ID будут отличаться при вписывании в mainnet и signet, поэтому не забудьте изменить их в рекурсивном вписывании для каждого чейна.</p>
 <p>Затем можно нанести рекурсивную надпись с помощью:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Наконец, нужно добыть несколько блоков и запустить сервер:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

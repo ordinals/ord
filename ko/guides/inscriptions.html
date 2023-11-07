@@ -330,7 +330,7 @@
 <p>인스크립션 트랜잭션은 400,000 가중치 단위(weight unit) 미만이어야 하며, 그렇지 않으면 Bitcoin Core에서 릴레이 되지 않는다. 1바이트의 인스크립션 콘텐츠는 1 가중치 단위의 비용이 든다. 인스크립션 트랜잭션에는 인스크립션 콘텐츠만 포함되지 않으므로, 인스크립션 콘텐츠를 400,000 가중치 단위 미만으로 제한하라. 390,000 개의 가중치 단위미만은 안전할 것이다.</p>
 <h2 id="인스크립션-생성하기"><a class="header" href="#인스크립션-생성하기">인스크립션 생성하기</a></h2>
 <p><code>FILE</code>의 내용으로 인스크립션을 만들려면 다음을 실행한다:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord는 커밋 트랜잭션과 리빌 트랜잭션에 대한 두 개의 트랜잭션 ID와 인스크립션 ID를 출력한다. 인스크립션 ID는 <code>TXIDiN</code> 형식이며, 여기서 <code>TXID</code>는 리빌 트랜잭션의 트랜잭션 ID이고 <code>N</code>은 리빌 트랜잭션안에 있는 인스크립션의 인덱스이다.</p>
 <p>커밋 트랜잭션은 인스크립션 콘텐츠가 포함된 탭스크립트(tapscript)에 커밋하고, 리빌 트랜잭션은 해당 탭스크립트에서 지출하여 체인에서 콘텐츠를 공개하고 해당 탭스크립트가 포함된 입력의 첫 번째 SAT에 인스크립션을 새긴다.</p>
@@ -342,7 +342,7 @@
 <p>부모-자식 인스크립션은 구어체로 컬렉션이라고 하는 것을 가능하게 한다. 자세한 내용은 <a href="../inscriptions/provenance.html">기원</a>을 참조하자.</p>
 <p>인스크립션을 다른 인스크립션의 자식으로 만들려면 부모 인스크립션이 새김되어 있고 지갑에 있어야 한다. 부모를 선택하려면 <code>ord wallet inscriptions</code>을 실행하고 인스크립션 ID(<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>)를 복사한다.</p>
 <p>이제 자식 인스크립션을 새기고 부모를 다음과 같이 지정한다:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>이 관계는 소급하여 추가할 수 없으며, 부모는 자녀가 시작될 때 이미 존재해야 한다.</p>
 <h2 id="인스크립션-보내기"><a class="header" href="#인스크립션-보내기">인스크립션 보내기</a></h2>

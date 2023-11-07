@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscrivez sur regtest avec :</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Minez l’inscription avec :</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="test-de-récursion"><a class="header" href="#test-de-récursion">Test de récursion</a></h2>
 <p>Lorsque vous testez la <a href="../inscriptions/recursion.html">récursion</a>, inscrivez d'abord les dépendances (exemple avec <a href="https://p5js.org">p5.js</a>) :</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Cela devrait renvoyer un <code>inscription_id</code> (id d’inscription) que vous pouvez ensuite référencer dans votre inscription récursive.</p>
 <p>ATTENTION : Ces ids seront différents si vous inscrivez sur mainnet ou signet, assurez-vous donc de les changer dans votre inscription récursive pour chaque chaîne.</p>
 <p>Ensuite, vous pouvez inscrire votre inscription récursive avec :</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Enfin, vous devrez miner quelques blocs et démarrer le serveur :</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

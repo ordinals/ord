@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>在regtest上铭刻</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>挖取铭文</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="测试递归"><a class="header" href="#测试递归">测试递归</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>这应该返回一个<code>inscription_id</code>，然后您可以在递归铭文中引用它。</p>
 <p>请注意，在主网和signet上铭刻的时候这些id有所不同，因此请务必更改每个链的递归铭文中的内容。</p>
 <p>现在你可以使用以下命令来铭刻你的递归铭文：</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>最终你可以挖取一些区块来开始服务器：</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

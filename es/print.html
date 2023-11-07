@@ -939,7 +939,7 @@ OP_ENDIF
 <p>Las transacciones de inscripción deben tener un peso inferior a 400,000 unidades,de lo contrario, no serán retransmitidas por Bitcoin Core. Un byte del contenido de inscripción equivale a una unidad de peso. Considerando que una transacción de inscripción abarca más que solo el contenido de la inscripción se debe restringir el contenido de cada inscripción a menos de 400,000 unidades de peso. Para mantener un margen de seguridad, se recomienda no exceder las 390,000 unidades de peso.</p>
 <h2 id="creación-de-inscripciones"><a class="header" href="#creación-de-inscripciones">Creación de Inscripciones</a></h2>
 <p>Para crear una inscripción con el contenido de <code>ARCHIVO</code>, ejecuta:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord mostrará dos IDs de transacciones, uno para la transacción de compromiso, uno para la transacción de revelación, y el ID de inscripción. Los IDs de inscripción tienen el formato <code>TXIDiN</code>, donde <code>TXID</code> es el ID de la transacción de revelación, y <code>N</code> es el índice de la inscripción en la transacción de revelación.</p>
 <p>La transacción de compromiso se compromete a un tapscript que aloja el contenido de la inscripción, mientras que la transacción de revelación consume ese tapscript, revelando el contenido en la cadena e inscribiéndolo en el primer sat del input que contiene el tapscript correspondiente.</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="enviar-inscripciones"><a class="header" href="#enviar-inscripciones">Enviar Inscripciones</a></h2>
@@ -1343,7 +1343,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribir en regtest:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Minar la inscripcion:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1353,12 +1353,12 @@ inscriptions:
 </code></pre>
 <h2 id="prueba-de-recursión"><a class="header" href="#prueba-de-recursión">Prueba de Recursión</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Esto debería proporcionar un <code>inscription_id</code> (id de inscripción) que luego puedes referenciar en tu inscripción recursiva.</p>
 <p>ATENCION: Estos IDs serán diferentes dependiendo de si estás inscribiendo en la red principal (mainnet) o en signet, así que recuerda ajustarlos en tu inscripción recursiva según la cadena que estés utilizando.</p>
 <p>Luego podrás inscribir tu inscripción recursiva utilizando:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Para finalizar, necesitarás minar algunos bloques e iniciar el servidor:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

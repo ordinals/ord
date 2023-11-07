@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>regtest上で刻みます。</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>銘文を発掘します。</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="再帰のテスト"><a class="header" href="#再帰のテスト">再帰のテスト</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。。</p>
 <p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。</p>
 <p>次のコマンドを使用して、再帰的な碑文を刻むことができます。：</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>最終的には、サーバーを開始するためにいくつかのブロックを掘ることができます：</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

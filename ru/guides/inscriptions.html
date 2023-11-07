@@ -330,7 +330,7 @@
 <p>Транзакции с надписями должны быть менее 400 000 весовых единиц, иначе они не будут переданы Bitcoin Core. Один байт содержимого надписи стоит одну весовую единицу. Поскольку транзакция с надписью включает в себя не только содержимое надписи, ограничьте размер транзакции с надписью до менее чем 400 000 весовых единиц. 390 000 весовых единиц должно быть безопасно.</p>
 <h2 id="Создание-надписей"><a class="header" href="#Создание-надписей">Создание надписей</a></h2>
 <p>Чтобы создать надпись с контентом <code>FILE</code>, выполните команду:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord выдаст два ID транзакций, один для транзакции commit, другой для транзакции reveal, а также ID надписи. ID надписей имеют вид <code>TXIDiN</code>, где <code>TXID</code> - ID транзакции reveal, а N - индекс надписи в транзакции reveal.</p>
 <p>Транзакция commit фиксирует tapscript, содержащий содержимое надписи, а транзакция reveal использует этот tapscript, раскрывая содержимое по цепочке и прописывая его на первом sat ввода, содержащем соответствующий tapscript.</p>
@@ -342,7 +342,7 @@
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="Отправка-надписей"><a class="header" href="#Отправка-надписей">Отправка надписей</a></h2>

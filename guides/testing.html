@@ -269,7 +269,7 @@ can be run with the following network flags:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe in regtest with:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Mine the inscription with:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -280,7 +280,7 @@ can be run with the following network flags:</p>
 <h2 id="testing-recursion"><a class="header" href="#testing-recursion">Testing Recursion</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the
 dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>This should return a <code>inscription_id</code> which you can then reference in your
 recursive inscription.</p>
@@ -288,7 +288,7 @@ recursive inscription.</p>
 mainnet or signet, so be sure to change those in your recursive inscription for
 each chain.</p>
 <p>Then you can inscribe your recursive inscription with:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Finally you will have to mine some blocks and start the server:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

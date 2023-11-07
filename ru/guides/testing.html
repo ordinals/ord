@@ -267,7 +267,7 @@
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe в regtest с:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Добыть надпись с:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -277,12 +277,12 @@
 </code></pre>
 <h2 id="Тестирование-рекурсии"><a class="header" href="#Тестирование-рекурсии">Тестирование рекурсии</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>Это должно вернуть значение <code>inscription_id</code>, на которое затем можно ссылаться в рекурсивной надписи.</p>
 <p>ВНИМАНИЕ: Эти ID будут отличаться при вписывании в mainnet и signet, поэтому не забудьте изменить их в рекурсивном вписывании для каждого чейна.</p>
 <p>Затем можно нанести рекурсивную надпись с помощью:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Наконец, нужно добыть несколько блоков и запустить сервер:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

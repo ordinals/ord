@@ -939,7 +939,7 @@ OP_ENDIF
 <p>銘文取引は400,000重量測定単位未満でなければならない。そうでなければ、Bitcoin Coreに中継されないの1バイトの銘文内容には重み測定単位が必要です。銘文取引は銘文の内容だけではないので、銘文の内容は400、000重量計量単位以内に制限されている。390、000の重み測定単位は安全でなければならなりません。</p>
 <h2 id="銘文を作成します"><a class="header" href="#銘文を作成します">銘文を作成します。</a></h2>
 <p>『FILE』の内容で銘文を作成し、実行する必要があります:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ordは2つの取引IDが出力されます。1つはcommit取引、もう1つはreveal取引、そして銘文IDです。銘文IDのフォーマットは、'TXIDiN'であり、'TXID'は、取引を開示する取引IDであり、'N'は、取引における銘文を開示するインデックスであ。</p>
 <p>CommitCommitトランザクションは銘文の内容を含むtapscriptに提出され、revealトランザクションはそのtapscriptから費やされます。チェーン上のコンテンツを表示し、revealトランザクションの最初の出力の最初のsatにそれらをマークします。</p>
@@ -951,7 +951,7 @@ OP_ENDIF
 <p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
@@ -1341,7 +1341,7 @@ inscriptions:
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>regtest上で刻みます。</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>銘文を発掘します。</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
@@ -1351,12 +1351,12 @@ inscriptions:
 </code></pre>
 <h2 id="再帰のテスト"><a class="header" href="#再帰のテスト">再帰のテスト</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
 <p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。。</p>
 <p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。</p>
 <p>次のコマンドを使用して、再帰的な碑文を刻むことができます。：</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>最終的には、サーバーを開始するためにいくつかのブロックを掘ることができます：</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;

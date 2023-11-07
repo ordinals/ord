@@ -330,7 +330,7 @@
 <p>Les transactions d’inscription doivent être inférieures à 400 000 unités de poids, sinon elles ne seront pas relayées par Bitcoin Core. Un octet de contenu d’inscription coûte une unité de poids. Étant donné qu’une transaction d’inscription ne contient pas seulement le contenu de l’inscription, il faut limiter le contenu de l’inscription à moins de 400 000 unités de poids. Il est donc recommandé de ne pas dépasser 390 000 unités de poids, afin de maintenir une marge de sécurité.</p>
 <h2 id="la-création-dinscriptions"><a class="header" href="#la-création-dinscriptions">La création d’inscriptions</a></h2>
 <p>Pour créer une inscription avec le contenu de <code>FILE</code>, exécutez :</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
 <p>Ord affichera deux identifiants de transaction, l’un pour la transaction d’engagement et l’autre pour la transaction de révélation, ainsi que l’identifiant de l’inscription. Les identifiants d’inscription ont le format <code>TXIDiN</code>, <code>TXID</code> étant l’identifiant de la transaction de révélation et <code>N</code> l’index de l’inscription dans la transaction de révélation.</p>
 <p>La transaction d’engagement s’engage à utiliser un tapscript qui héberge le contenu de l’inscription, tandis que la transaction de révélation dépense ce tapscript, révélant ainsi le contenu sur la chaîne et l’inscrivant sur le premier sat d’entrée contenant le tapscript correspondant.</p>
@@ -342,7 +342,7 @@
 <p>Les inscriptions parent-enfant permettent ce que l’on appelle des collections en langage courant (voir <a href="../inscriptions/provenance.html">provenance</a> pour plus d’informations).</p>
 <p>Pour faire d’une inscription l’enfant d’une autre, l’inscription parent doit être inscrite et présente dans le portefeuille. Pour choisir un parent, lancez <code>ord wallet inscriptions</code> et copiez l’identifiant de l’inscription (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Inscrivez maintenant l’inscription enfant et spécifiez le parent comme suit :</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
 <p>Cette relation ne peut pas être ajoutée rétroactivement, le parent doit être présent lors de la création de l’enfant.</p>
 <h2 id="lenvoi-dinscriptions"><a class="header" href="#lenvoi-dinscriptions">L’envoi d’inscriptions</a></h2>
