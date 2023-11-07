@@ -3094,12 +3094,13 @@ mod tests {
   #[test]
   fn error_content_responses_have_max_age_zero_cache_control_headers() {
     let server = TestServer::new_with_regtest();
-    let response = server.get("/content/foo");
+    let response =
+      server.get("/content/6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0");
 
-    assert_eq!(response.status(), 400);
+    assert_eq!(response.status(), 404);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
-      "max-age=31536000, immutable"
+      "no-store"
     );
   }
 
