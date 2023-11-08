@@ -352,7 +352,7 @@ impl Index {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -367,7 +367,7 @@ impl Index {
         }),
     );
 
-    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(_wallet)?;
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
 
     for outpoint in locked_utxos {
       utxos.insert(
@@ -376,8 +376,8 @@ impl Index {
           self
             .client
             .get_raw_transaction(&outpoint.txid, None)?
-            .output[outpoint.vout as usize]
-            .value,
+            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+          .value,
         ),
       );
     }
