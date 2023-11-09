@@ -11,12 +11,12 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   let mut out = [0; 19];
   let mut i = 18;
 
-  out[i] = n.to_le_bytes()[0] & 0x7f;
+  out[i] = n.to_le_bytes()[0] & 0b0111_1111;
 
-  while n >= 0x80 {
+  while n > 0b0111_1111 {
     n = n / 128 - 1;
     i -= 1;
-    out[i] = n.to_le_bytes()[0] & 0x7f | 0x80;
+    out[i] = n.to_le_bytes()[0] | 0b1000_0000;
   }
 
   v.extend_from_slice(&out[i..]);
