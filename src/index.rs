@@ -20,7 +20,7 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
-  std::collections::HashMap,
+  std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
 };
 
@@ -331,12 +331,28 @@ impl Index {
     })
   }
 
+  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    Ok(
+      self
+        .client
+        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+        .into_iter()
+        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
+        .collect(),
+    )
+  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -351,19 +367,18 @@ impl Index {
         }),
     );
 
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
 
-    for JsonOutPoint { txid, vout } in self
-      .client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-    {
+    for outpoint in locked_utxos {
       utxos.insert(
-        OutPoint { txid, vout },
-        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        outpoint,
+        Amount::from_sat(
+          self
+            .client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+          .value,
+        ),
       );
     }
     let rtx = self.database.begin_read()?;

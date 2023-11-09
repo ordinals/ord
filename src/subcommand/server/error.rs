@@ -11,6 +11,7 @@ pub(super) type ServerResult<T> = Result<T, ServerError>;
 impl IntoResponse for ServerError {
   fn into_response(self) -> Response {
     match self {
+      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
       Self::Internal(error) => {
         eprintln!("error serving request: {error}");
         (
@@ -21,8 +22,12 @@ impl IntoResponse for ServerError {
         )
           .into_response()
       }
-      Self::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
-      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
+      Self::NotFound(message) => (
+        StatusCode::NOT_FOUND,
+        [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
+        message,
+      )
+        .into_response(),
     }
   }
 }
