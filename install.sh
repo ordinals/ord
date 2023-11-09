@@ -23,17 +23,16 @@ OPTIONS:
 EOF
 }
 
-git=ordinals/ord
 crate=ord
 url=https://github.com/ordinals/ord
 releases=$url/releases
 
 say() {
-  echo "install: $@"
+  echo "install.sh: $*"
 }
 
 say_err() {
-  say "$@" >&2
+  say "$*" >&2
 }
 
 err() {
@@ -41,7 +40,7 @@ err() {
     rm -rf $td
   fi
 
-  say_err "error: $@"
+  say_err "error: $*"
   exit 1
 }
 
@@ -104,16 +103,17 @@ if [ -z ${tag-} ]; then
 fi
 
 if [ -z ${target-} ]; then
-  uname_target=`uname -m`-`uname -s`
+  uname_target=$(uname -m)-$(uname -s)
 
   case $uname_target in
     arm64-Darwin) target=aarch64-apple-darwin;;
     x86_64-Darwin) target=x86_64-apple-darwin;;
     x86_64-Linux) target=x86_64-unknown-linux-gnu;;
     *)
-      err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
-      err 'Target architecture is not supported by this install script.'
-      err 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
+      say_err 'Could not determine target from output of $(uname -m)-$(uname -s), please use `--target`:' $uname_target
+      say_err 'Target architecture is not supported by this install script.'
+      say_err 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
+      exit 1
     ;;
   esac
 fi
@@ -130,14 +130,16 @@ say_err "Archive:     $archive"
 td=$(mktemp -d || mktemp -d -t tmp)
 curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $td --strip-components 1 -xz
 
-for f in $(ls $td); do
-  test -x $td/$f || continue
+for file in "$td"/*; do
+  test -x $file || continue
 
-  if [ -e "$dest/$f" ] && [ $force = false ]; then
-    err "$f already exists in $dest"
+  name=${file##*/}
+
+  if [ -e "$dest/$name" ] && [ $force = false ]; then
+    err "$name already exists in $dest"
   else
     mkdir -p $dest
-    install -m 755 $td/$f $dest
+    install -m 755 $file $dest
   fi
 done
 
