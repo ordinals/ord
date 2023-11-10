@@ -1098,7 +1098,7 @@ inscriptions:
 <li>
 <p>지갑 기술자를 'foo-watch-only'로 가져온다:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  ‘[{ “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax”, “timestamp”:0 }]’
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
 </code></pre>
 <p>지갑이 처음 트랜잭션을 받기 시작한 유닉스 타임스탬프를 알고 있다면, <code>0</code> 대신 <code>”timestamp”</code> 값에 사용할 수 있다. 이렇게 하면 Bitcoin Core가 당신 지갑의 UTXO를 검색하는 데 걸리는 시간을 줄일 수 있다.</p>
 </li>
@@ -1135,11 +1135,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  “descriptor”: “wpkh([bf1dd55e/84’/0’/0’]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29”,
-  “checksum”: “tpnxnxax”,
-  “isrange”: true,
-  “issolvable”: true,
-  “hasprivatekeys”: false
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
 }
 </code></pre>
 <p>그리고 변경 주소 설명자의 체크섬(이 경우 <code>64k8wnd7</code>)를 가져와 기록한다:</p>
@@ -1147,11 +1147,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  “descriptor”: “wpkh([bf1dd55e/84’/0’/0’]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a”,
-  “checksum”: “64k8wnd7”,
-  “isrange”: true,
-  “issolvable”: true,
-  “hasprivatekeys”: false
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
 }
 </code></pre>
 </li>
@@ -1164,16 +1164,16 @@ inscriptions:
 <p>이제 올바른 체크섬과 기술자를 Bitcoin Core로 가져오기 한다.</p>
 <pre><code class="language-sh">bitcoin-cli \
  importdescriptors \
- ‘[
+ '[
    {
-     “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax”
-     “timestamp”:0
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
    },
    {
-     “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7”,
-     “timestamp”:0
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
    }
- ]’
+ ]'
 </code></pre>
 <p>지갑이 처음 트랜잭션을 받기 시작한 유닉스 타임스탬프를 알고 있다면, <code>0</code> 대신 <code>”timestamp”</code> 값에 사용할 수 있다. 이렇게 하면 Bitcoin Core가 당신 지갑의 UTXO를 검색하는 데 걸리는 시간을 줄일 수 있다.</p>
 </li>
