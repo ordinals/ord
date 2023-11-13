@@ -525,11 +525,10 @@ impl<'index> Updater<'_> {
       }
     }
 
-    self.index_block_inscription_numbers(
-      &mut height_to_last_sequence_number,
-      &inscription_updater,
-      index_inscriptions,
-    )?;
+    if index_inscriptions {
+      height_to_last_sequence_number
+        .insert(&self.height, inscription_updater.next_sequence_number)?;
+    }
 
     statistic_to_count.insert(
       &Statistic::LostSats.key(),
@@ -652,21 +651,6 @@ impl<'index> Updater<'_> {
       self.range_cache.insert(outpoint.store(), sats);
       self.outputs_inserted_since_flush += 1;
     }
-
-    Ok(())
-  }
-
-  fn index_block_inscription_numbers(
-    &mut self,
-    height_to_sequence_number: &mut Table<u64, u64>,
-    inscription_updater: &InscriptionUpdater,
-    index_inscription: bool,
-  ) -> Result {
-    if !index_inscription {
-      return Ok(());
-    }
-
-    height_to_sequence_number.insert(&self.height, inscription_updater.next_sequence_number)?;
 
     Ok(())
   }
