@@ -1,5 +1,6 @@
 use {
   self::{
+    accept_encoding_brotli::AcceptEncodingBrotli,
     accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
@@ -42,6 +43,7 @@ use {
   },
 };
 
+mod accept_encoding_brotli;
 mod accept_json;
 mod error;
 
@@ -969,6 +971,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
+    accept_encoding_brotli: AcceptEncodingBrotli,
   ) -> ServerResult<Response> {
     if config.is_hidden(inscription_id) {
       return Ok(PreviewUnknownHtml.into_response());
@@ -979,13 +982,16 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription)
+      Self::content_response(inscription, accept_encoding_brotli.0)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
   }
 
-  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
+  fn content_response(
+    inscription: Inscription,
+    accept_encoding_brotli: bool,
+  ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
     headers.insert(
@@ -996,12 +1002,13 @@ impl Server {
         .unwrap_or(HeaderValue::from_static("application/octet-stream")),
     );
 
-    // if let Some(content_encoding) = inscription.content_encoding() {
-    //   headers.insert(
-    //     header::CONTENT_ENCODING,
-    //     HeaderValue::from_str(content_encoding).ok()?,
-    //   );
-    // }
+    if let Some(content_encoding) = inscription.content_encoding() {
+      if content_encoding == "br" && accept_encoding_brotli {
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("br"));
+      } else {
+        return Err(ServerError::NotAcceptable(content_encoding.to_string()));
+      }
+    }
 
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
@@ -1018,13 +1025,18 @@ impl Server {
       HeaderValue::from_static("max-age=31536000, immutable"),
     );
 
-    Some((headers, inscription.into_body()?))
+    let Some(body) = inscription.into_body() else {
+      return Ok(None);
+    };
+
+    Ok(Some((headers, body)))
   }
 
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
+    accept_encoding_brotli: AcceptEncodingBrotli,
   ) -> ServerResult<Response> {
     if config.is_hidden(inscription_id) {
       return Ok(PreviewUnknownHtml.into_response());
@@ -1047,7 +1059,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription)
+        Self::content_response(inscription, accept_encoding_brotli.0)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -2645,22 +2657,26 @@ mod tests {
   #[test]
   fn content_response_no_content() {
     assert_eq!(
-      Server::content_response(Inscription::new(
-        Some("text/plain".as_bytes().to_vec()),
-        None,
-        None
-      )),
+      Server::content_response(
+        Inscription::new(Some("text/plain".as_bytes().to_vec()), None, None),
+        false
+      )
+      .unwrap(),
       None
     );
   }
 
   #[test]
   fn content_response_with_content() {
-    let (headers, body) = Server::content_response(Inscription::new(
-      Some("text/plain".as_bytes().to_vec()),
-      None,
-      Some(vec![1, 2, 3]),
-    ))
+    let (headers, body) = Server::content_response(
+      Inscription::new(
+        Some("text/plain".as_bytes().to_vec()),
+        None,
+        Some(vec![1, 2, 3]),
+      ),
+      false,
+    )
+    .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "text/plain");
@@ -2695,7 +2711,9 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) =
-      Server::content_response(Inscription::new(None, None, Some(Vec::new()))).unwrap();
+      Server::content_response(Inscription::new(None, None, Some(Vec::new())), false)
+        .unwrap()
+        .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
@@ -2703,11 +2721,11 @@ mod tests {
 
   #[test]
   fn content_response_bad_content_type() {
-    let (headers, body) = Server::content_response(Inscription::new(
-      Some("\n".as_bytes().to_vec()),
-      None,
-      Some(Vec::new()),
-    ))
+    let (headers, body) = Server::content_response(
+      Inscription::new(Some("\n".as_bytes().to_vec()), None, Some(Vec::new())),
+      false,
+    )
+    .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");

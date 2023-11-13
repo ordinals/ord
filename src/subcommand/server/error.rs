@@ -1,9 +1,11 @@
 use super::*;
 
+#[derive(Debug)]
 pub(super) enum ServerError {
   Internal(Error),
   BadRequest(String),
   NotFound(String),
+  NotAcceptable(String),
 }
 
 pub(super) type ServerResult<T> = Result<T, ServerError>;
@@ -28,6 +30,9 @@ impl IntoResponse for ServerError {
         message,
       )
         .into_response(),
+      Self::NotAcceptable(content_type) => {
+        (StatusCode::NOT_ACCEPTABLE, content_type).into_response()
+      }
     }
   }
 }
