@@ -1,0 +1,398 @@
+<!DOCTYPE HTML>
+<html lang="hi" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>एफएक्‍यू - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">परिचय</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> अवलोकन</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> डिजिटल अभिलेख</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> इंस्‍क्रीप्‍शंस</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> उत्‍पति</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> रिकर्सन-प्रतिवर्तन</a></li><li class="chapter-item expanded "><a href="inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html" class="active"><strong aria-hidden="true">4.</strong> एफएक्‍यू</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> योगदान</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> दान करें</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> मार्गदर्शक निर्देश</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> एक्‍सप्‍लोरर</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> इंस्‍क्रीप्‍शंस</a></li><li class="chapter-item expanded "><a href="guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Batch Inscribing</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> सैट हंटिंग</a></li><li class="chapter-item expanded "><a href="guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.6.</strong> संग्राहक</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> स्‍पैरो वॉलेट</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.7.</strong> परीक्षण</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.8.</strong> मॉडरेशन</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> रिइंडैक्सिंग</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> बांउटीज़</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> बांउटी 0: 100,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> बांउटी 1: 200,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> बांउटी 2: 300,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> बांउटी 3: 400,000 सैट्स दावा किया!</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("hi");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "faq.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="ऑरडिनल-थयौरी-एफएकयू"><a class="header" href="#ऑरडिनल-थयौरी-एफएकयू">ऑर्डिनल थ्‍यौरी एफएक्‍यू</a></h1>
+<h2 id="ऑरडिनल-थयौरी-कया-है"><a class="header" href="#ऑरडिनल-थयौरी-कया-है">ऑर्डिनल थ्‍यौरी क्या है?</a></h2>
+<p>ऑर्डिनल थ्‍यौरी एक प्रोटोकॉल है जिसके अधीन बिटकॉइन के अंश के सबसे छोटे भाग को सातोशी में क्रम संख्‍या निर्दिष्ट करने और लेनदेन के रूप में खर्च सातोशी को ट्रैक करने के लिए एक प्रोटोकॉल है।</p>
+<p>ये क्रम संख्‍या बड़ी संख्याएँ होती हैं, जैसे 804766073970493। प्रत्येक सातोशी, जो एक बिटकॉइन का ¹⁄₁₀₀₀₀₀₀₀₀ भाग है, उसमें क्रमसूचक संख्या निहित होती हैं।</p>
+<h2 id="कया-ऑरडिनल-थयौरी-के-लिए-साइड-चेन-अलग-टोकन-या-बिटकॉइन-में-बदलाव-करने-की-आवशयकता-होती-है"><a class="header" href="#कया-ऑरडिनल-थयौरी-के-लिए-साइड-चेन-अलग-टोकन-या-बिटकॉइन-में-बदलाव-करने-की-आवशयकता-होती-है">क्या ऑर्डिनल थ्‍यौरी के लिए साइड चेन, अलग टोकन या बिटकॉइन में बदलाव करने की आवश्यकता &quot;होती है?</a></h2>
+<p>बिलकुल नहीं! वर्तमान समय में, आर्डिनल थ्‍यौरी (क्रमसूचक सिद्धांत) साइड चेन के बगैर काम करती है, और इसके लिए सिर्फ बिटकॉइन टोकन ही जरूरी होता है।</p>
+<h2 id="ऑरडिनल-थयौरी-किस-परकार-से-अचछी-है"><a class="header" href="#ऑरडिनल-थयौरी-किस-परकार-से-अचछी-है">ऑर्डिनल थ्‍यौरी किस प्रकार से अच्छी है?</a></h2>
+<p>संग्रह, लेनदेन करना और योजना बनाना। आर्डिनल थ्‍यौरी व्यक्तिगत सातोशियों को पहचान देती है, ताकि वे व्यक्तिगत रूप से ट्रैक और क्‍यूरियस के रूप में मौद्रिक मूल्‍य पर लेनदेन कर सकें।</p>
+<p>ऑर्डिनल थ्‍यौरी इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) को भी सक्षम बनाता है, जो स्‍वेच्छित संदेशों को व्यक्तिगत सातोशियों के साथ जोड़ने के लिए एक प्रोटोकॉल है, उन्हें बिटकॉइन-मूल डिजिटल कलाकृतियों में परिवर्तित करता है।</p>
+<h2 id="ऑरडिनल-थयौरी-कैसे-काम-करती-है"><a class="header" href="#ऑरडिनल-थयौरी-कैसे-काम-करती-है">ऑर्डिनल थ्‍यौरी कैसे काम करती है?</a></h2>
+<p>क्रमसूचक संख्‍याएं सातोशि‍यों को उस क्रम में निर्दिष्‍ट की जाती हैं, जिस क्रम में उनका खनन किया जाता है। पहले ब्लॉक के पहले सातोशी की क्रमसूचक संख्‍या 0 है, दूसरे की क्रमसूचक संख्‍या 1 है, और पहले ब्लॉक के अंतिम सातोशी की क्रमसूचक संख्‍या 4,999,999,999 है।</p>
+<p>सातोशी आउटपुट में निर्वाह करते हैं, लेकिन लेनदेन आउटपुट को नष्ट करके नई आउटपुट का सृजन कर लिया है, इसलिए आर्डिनल थ्‍यौरी (क्रमसूचक सिद्धांत) एक एल्गोरिदम (कलन विध‍ि) का उपयोग करके यह निर्धारित करती है कि कैसे सातोषी लेनदेन के इनपुट से उसके आउटपुट तक उछाल लगाते हैं।</p>
+<p>सौभाग्य से, यह एल्गोरिदम बहुत सरल है।</p>
+<p>सातोशी फर्स्ट-इन-फर्स्ट-आउट (फीफो) क्रम में स्थानांतरण करते हैं। लेन-देन इनपुट को सातोशी की सूची और आउटपुट को सातोशी प्राप्त करने की प्रतीक्षारत स्लॉट की सूची के रूप में विचार करते हैं। इनपुट सातोशी को स्लॉट में निर्दिष्‍ट करने के लिए, इनपुट में प्रत्येक सातोशी की क्रम से जांच-परख करें, और प्रत्येक को आउटपुट में पहले उपलब्ध स्लॉट में निर्दिष्‍ट कर दें।</p>
+<p>आइए तीन इनपुट और दो आउटपुट वाले लेनदेन की कल्पना करते हैं। इनपुट तीर के बाईं ओर हैं और आउटपुट तीर के दाईं ओर रखी गई हैं, उन सभी पर उनके मान के साथ लेबल लगाए गए हैं:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>अब चलिए उसी लेन-देन को उस प्रवेश इनपुट में होने वाले सतोशियों के क्रमिक अंकों से चिह्नित करते हैं, &quot;और प्रत्येक आउटपुट स्लॉट के लिए प्रश्न चिह्न। क्रमिक अंक बड़े होते हैं, इसलिए चलिए उन्हें प्रतिस्थापित करने के लिए अक्षरों का उपयोग करते हैं:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>यह समझने के लिए कि कौन सा सातोशी किस आउटपुट में जाता है, प्रवेश सतोशियों को क्रम में देखें और प्रत्येक को एक प्रश्न चिह्न के साथ सौंपें:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>आप शुल्क के बारे में पूछ सकते हैं, हैं ना? अच्छा सवाल! चलिए वही लेन-देन कल्पना करते हैं, इस बार दो सातोशी शुल्क के साथ। शुल्क वाले लेन-देन में प्रवेश में अधिक सातोशियाँ भेजी जाती हैं जितनी आउटपुट द्वारा प्राप्त होती है, इसलिए हमारे लेन-देन को एक शुल्क चुकाने वाले लेन-देन में बदलने के लिए, हम दूसरे आउटपुट को हटा देंगे:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>सातोशी<var>e</var>और <var>f</var>आउटपुट में निष्क्रिय हो गया है:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>इसलिए वे शुल्‍क के रूप में ब्‍लॉक का खनन करने वाले माइनर (खनिक) के पास जाते हैं। बीआईपी <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP</a> &quot;में विवरण दिए गये हैं, लेकिन संक्षेप में, लेनदेन द्वारा किए गये भुगतान शुल्‍क सिक्‍का आधारित लेनदेन के अतिरिक्त इनपुट के रूप में उपचारित किये जाएंगे, और इस तरह क्रमबद्ध किये जाएंगे जिस क्रम में ब्लॉक में उनके संबंधित लेनदेन के क्रम दिये गये हैं। ब्लॉक का कॉइनबेस लेनदेन इस तरह दिख सकता है:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="मैं-कहां-से-विसतृत-विवरण-परापत-कर-सकता-हूं"><a class="header" href="#मैं-कहां-से-विसतृत-विवरण-परापत-कर-सकता-हूं">मैं कहां से विस्तृत विवरण प्राप्‍त कर सकता हूं?</a></h2>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">बीआईपी!</a></p>
+<h2 id="सैट-इंसकरिपशंस-को-कयों-एनएफटी-के-बदले-डिजिटल-अभिलेख-कहा-जाता-है"><a class="header" href="#सैट-इंसकरिपशंस-को-कयों-एनएफटी-के-बदले-डिजिटल-अभिलेख-कहा-जाता-है">सैट इंस्‍क्रि‍प्‍शंस को क्‍यों &quot;एनएफटी&quot; के बदले &quot;डिजिटल अभिलेख&quot; कहा जाता है?</a></h2>
+<p>एक इंस्‍क्रि‍प्‍शंस एनएफटी है, लेकिन इसके बजाय इसके लिए &quot;डिजिटल अभिलेख&quot; शब्द का उपयोग किया जाता है, &quot;क्योंकि यह सरल, सांकेतिक और परिचित है।</p>
+<p>वाक्यांश &quot;डिजिटल अभिलेख&quot; अत्यधिक सांकेतिक है, यहां तक कि उस व्यक्ति के लिए भी जिसने यह शब्द पहले कभी नहीं सुना है। इसकी तुलना में, एनएफटी एक संक्षिप्त शब्द है, और यदि आपने इस शब्द को पहले नहीं सुना है तो यह इसका कोई संकेत व्‍यक्‍त नहीं करता है कि इसका क्या अर्थ हो सकता है।</p>
+<p>इसके अतिरिक्त, &quot;एनएफटी&quot; एक प्रकार से वित्तीय शब्दावली सदृश लगता है, और &quot;एनएफटी&quot; में प्रयुक्त शब्द &quot;प्रतिमोच्‍य&quot; और &quot;टोकन&quot; शब्द का अर्थ वित्तीय संदर्भों के बाहर बहुत ही असामान्य है।</p>
+<h2 id="सैटस-अभिलेखों-की-तुलना-निमन-के-साथ-किस-परकार-की-जाती-है"><a class="header" href="#सैटस-अभिलेखों-की-तुलना-निमन-के-साथ-किस-परकार-की-जाती-है">सैट्स अभिलेखों की तुलना निम्‍न के साथ किस प्रकार की जाती है…</a></h2>
+<h3 id="एथेरियम-एनएफटी"><a class="header" href="#एथेरियम-एनएफटी">एथेरियम एनएफटी?</a></h3>
+<p><em>डिजिटल अभिलेख सदैव अपरिवर्तनीय रहते हैं।</em></p>
+<p>&quot;एक बार किसी डिजिटल अभिलेख का सृजन करने के बाद किसी भी तरीके से उसके निर्माता, या किसी डिजिटल अभिलेख का सृजनकर्ता उसे संशोधित नहीं कर सकते।</p>
+<p>एथेरियम एनएफटी अपरिवर्तनीय <em>हो सकते हैं</em>, लेकिन बहुत सारे नहीं, और इन्‍हें एनएफटी अनुबंध मालिकों के द्वारा बदला या हटाया जा सकता है।</p>
+<p>यह सुनिश्चित करने के लिए एथेरियम एनएफटी अपरिवर्तनीय हैं, उनके अनुबंध कोड का लेखा-परीक्षण किया जाना चाहिए, जिसके लिए ईवीएम और मजबूती के शब्‍दार्थ का विस्‍तृत ज्ञान होना अत्‍यन्‍त आवश्‍यक है।</p>
+<p>एक गैर-तकनीकी उपयोगकर्ता के लिए यह तय करना बहुत मुश्किल है कि क्‍या एथेरियम एनएफटी परिवर्तनीय या अपरिवर्तनीय है या नहीं, और एथेरियम एनएफटी मंच यह अंतर करने का बिलकुल प्रयास नहीं करते कि कोई एनएफटी परिवर्तनीय है या अपरिवर्तनीय है, और क्या अनुबंध स्रोत कोड उपलब्ध है और उसका लेखा-परीक्षण किया गया है।</p>
+<p><em>इंस्‍क्र‍िपशन (डिजिटल अभिलेख) विषय-वस्‍तु हमेशा ऑन-चेन होती हैं।</em></p>
+<p>किसी भी सूरत में इंस्‍क्र‍िपशन (डिजिटल अभिलेख) ऑफ-चेन विषय-वस्‍तु को संदर्भित नहीं करते। यह इंस्‍क्र‍िपशन को अधिक स्थिर बनाता है, क्योंकि विषय-वस्‍तु नष्ट नहीं हो सकते हैं, और दुर्लभ हैं, क्योंकि इंस्‍क्र‍िपशन (डिजिटल अभिलेख) के सृजनकर्ता को विषय-वस्‍तु के आकार के अनुपात में शुल्क का भुगतान करना होगा।</p>
+<p>कुछ एथेरियम एनएफटी विषय-वस्‍तु ऑन-चेन (क्लाउड सदृश सभी के लिए दृश्यमान) हैं, लेकिन अधिकांश ऑफ-चेन (निजी हैं सार्वजनिक रूप से दृश्य नहीं हैं) हैं, और इन्‍हें IPFS या Arweave जैसे मंचों पर, या पारंपरिक रूप से, पूरी तरह से केंद्रीकृत वेब सर्वर पर संग्रहि‍त किया जाता है। आईपीएफएस पर विषय-वस्‍तु उपलब्ध रहने की गारंटी नहीं है, और आईपीएफएस पर संग्रहीत कुछ एनएफटी विषय-वस्‍तु पहले ही खो चुकी है। Arweave जैसे प्लेटफ़ॉर्म कमज़ोर आर्थिक धारणाओं पर भरोसा करते हैं, और जब ये आर्थिक धारणाएँ पूरी नहीं होंगी तो संभवतः विनाशकारी रूप से विफल हो जाएंगे। केंद्रीकृत वेब सर्वर किसी भी समय गायब हो सकते हैं।</p>
+<p>एक गैर-तकनीकी उपयोगकर्ता के लिए यह तय करना बहुत मुश्किल है कि दी गई एथेरियम एनएफटी की विषय-वस्‍तु कहाँ संग्रहीत की गई है।</p>
+<p><em>इंस्‍क्र‍िपशन (डिजिटल अभिलेख) बहुत सरल हैं।</em></p>
+<p>एथेरियम एनएफटी, एथेरियम नेटवर्क और वर्चुअल मशीन पर निर्भर करते हैं, जो बेहद जटिल होते हैं, निरंतर बदलते रहते हैं, और जो बैकवर्ड-कम्‍पेटिबल हार्ड फोर्क्स (बैकवर्ड कम्पैटिबिलिटी को किसी भी हार्डवेयर या सॉफ़्टवेयर के पुराने सॉफ़्टवेयर संस्करणों से इंटरफ़ेस का उपयोग करने या अन्य हार्डवेयर सिस्टम के साथ पुराने मॉडलों के साथ संगत करना) के माध्यम से अपडेट होते रहते हैं।</p>
+<p>दूसरी ओर, इंस्‍क्रि‍प्‍शंस बिटकॉइन ब्लॉकचेन पर निर्भर करते हैं, जो अपेक्षाकृत सरल हैं लेकिन परिवर्तनशील नहीं हैं, और जो बैकवर्ड-संगत सॉफ्ट फोर्क्स के माध्यम से परिवर्तन अपडेट करते हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) अधिक सुरक्षित हैं।</em></p>
+<p>इंस्‍क्रि‍प्‍शंस बिटकॉइन के लेनदेन मॉडल को विरासत में अपनाते हैं। यह उपयोगकर्ता को हस्ताक्षर करने से पहले यह देखने की अनुमति देते हैं कि वास्‍तव में लेनदेन द्वारा कौन से इंस्‍क्रि‍प्‍शंस स्थानांतरित किए जा रहे हैं। &quot;इंस्‍क्रि‍प्‍शंस की आंशिक रूप से लेनदेन पर हस्‍ताक्षर करके बिक्री की जा सकती है, जिसके लिए उपयोगकर्ता की ओर &quot;से उन्हें स्थानांतरित करने के लिए एक्सचेंज या बाजार जैसे किसी तीसरे पक्ष से अनुमति लेने की आवश्यकता नहीं होती।</p>
+<p>तुलनात्मक रूप से, एथेरियम एनएफटी अंतिम-उपयोगकर्ता सुरक्षा अरक्षितता से ग्रस्त हैं। लेनदेन पर अंधाधुंध हस्ताक्षर करना, उपयोगकर्ता के एनएफटी पर तीसरे पक्ष के ऐप्स तक पहुंच को असीमित अनुमति देना और जटिल और अप्रत्याशित स्मार्ट अनुबंधों के साथ समन्‍वय करना इनमें आम कमजोरियां हैं। यह एथेरियम एनएफटी उपयोगकर्ताओं के लिए खतरों से भरी विस्‍फोटक स्थिति उत्‍पन्‍न कर देता है जो आर्डिनल थ्‍योरिस्‍ट (क्रमसूचक सिद्धांतवादियों) के लिए चिंता का विषय नहीं है।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) दुर्लभ हैं।</em></p>
+<p>इंस्‍क्रि‍प्‍शंस की ढलाई, स्थानांतरित करने और संग्रहीत करने के लिए बिटकॉइन की आवश्यकता पड़ती है। वास्‍तविक धरातल पर यह एक नकारात्मक पहलू प्रतीत होता है, लेकिन डिजिटल अभिलेख का उद्देश्‍य दुर्लभ है और इसलिए यह मूल्यवान है। </p>
+<p>एथेरियम एनएफटी, दूसरी ओर, एक ही लेन-देन के साथ लगभग असीमित गुणों में ढाले जा सकते हैं, जिससे वे स्वाभाविक रूप से कम दुर्लभ बन जाते हैं, और इसीलिए, संभावित रूप से कम मूल्यवान होते हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख), ऑन-चेन रॉयल्टी का समर्थन करने का दिखावा नहीं करते हैं।</em></p>
+<p>ऑन-चेन रॉयल्टी सैद्धांति‍क रूप में एक अच्छा विचार है लेकिन व्यवहारि‍क नहीं है। जटिल और आक्रामक प्रतिबंधों के बिना रॉयल्टी के भुगतान ऑन-चेन पर लागू नहीं किये जा सकते। वर्तमान समय में, एथेरियम एनएफटी पारिस्थितिकी तंत्र रॉयल्टी के इर्दगिर्द आशंका से जूझ रहा है, और सामूहिक रूप से इस असलियत की चपेट में आ गया है कि ऑन-चेन रॉयल्टी, जिसके संदेश कलाकारों को एनएफटी के लाभ के रूप में भेजे गये थे, संभव ही नहीं हैं, जबकि मंच सभी नियमों का ताक पर रखकर रॉयल्टी समर्थन को समाप्‍त कर देते हैं।</p>
+<p>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख), ऑन-चेन की तरह रॉयल्टी के समर्थन का ऐसा कोई झूठा वायदा नहीं करता और इस स्थिति से सर्वथा पूरी तरह बचता है, इस प्रकार, एथेरियम एनएफटी जैसी स्थिति के भ्रम, अराजकता और नकारात्मकता से बचते हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) नए बाज़ारों में प्रवेश</em></p>
+<p>बिटकॉइन का बाजारी पूंजीकरण और तरलता एथेरियम से काफी अधिक है। इस तरलता का अधिकांश भाग एथेरियम एनएफटी के लिए उपलब्ध नहीं होता है, क्योंकि कई बिटकॉन उपयोगकर्ता इसकी सरलता, सुरक्षा और विकेंद्रीकरण से संबंधित सरोकारों के कारण एथेरियम पारिस्थितिकी तंत्र के साथ समन्‍वय करना पसंद नहीं करते हैं।</p>
+<p>ऐसे बिटकॉन उपयोगकर्ता, एथेरियम एनएफटी की तुलना में इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) में अधिक दिलचस्‍पी दिखा सकते हैं, जो संग्रहकों के नए वर्गों के द्वार खोल देते हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) का समृद्ध डेटा मॉडल है।</em></p>
+<p>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) में विषय-वस्‍तु का प्रकार सम्मिलित होता है, जिसे MIME प्रकार के रूप में भी जाना जाता है, और इसकी विषय-वस्‍तु एक स्‍वेच्छित बाइट स्ट्रिंग होती है। यह वेब द्वारा उपयोग किया जाने वाला वैसा ही डेटा मॉडल है, और इंस्‍क्रि‍प्‍शंस विषय-वस्‍तु को वेब के साथ विकसित करने में सक्षम करता है, और अंतर्निहित प्रोटोकॉल में बदलाव की जरूरत के बिना, वेब ब्राउज़र द्वारा समर्थित किसी भी प्रकार की विषय-वस्‍तु का समर्थन करता है।</p>
+<h3 id="rgb-आरजीबी-और-taro-टैरो-संपततियां"><a class="header" href="#rgb-आरजीबी-और-taro-टैरो-संपततियां">RGB (आरजीबी) और Taro (टैरो) संपत्तियां?</a></h3>
+<p>RGB और Taro दोनों बिटकॉइन पर निर्मित दूसरी परत के परिसंपत्ति प्रोटोकॉल हैं। इंस्‍क्रि‍प्‍शंस की तुलना में, वे बहुत अधिक जटिल हैं, लेकिन बहुत अधिक विशिष्ट भी हैं।</p>
+<p>डिजिटल अभिलेखों के लिए ऑर्डिनल सिद्धांत को जमीनी स्तर पर डिजाइन किया गया है, जबकि RGB और Taro के प्राथमिक उपयोग-मामले परिवर्तनीय टोकन हैं, इसलिए इंस्‍क्रि‍प्‍शंस के लिए उपयोगकर्ता अनुभव  आरजीबी और टैरो एनएफटी के लिए उपयोगकर्ता अनुभव की तुलना में सरल और अधिक परिष्कृत होने की संभावना है।</p>
+<p>RGB और Taro दोनों ऑफ-चेन विषय-वस्‍तु संग्रहीत करते हैं, जिसके लिए अतिरिक्त बुनियादी ढांचे की आवश्यकता होती है, और जो खो सकता है। इसके विपरीत, इंस्‍क्रि‍प्‍शंस विषय-वस्‍तु को श्रृंखला पर संग्रहीत किया जाता है, और उसे खोया नहीं जा सकता।</p>
+<p>ऑर्डिनल थ्‍यौरी (क्रमसूचक सिद्धांत), RGB और Taro पुराने हो गये हैं, इसलिए यह अनुमान/सट्टा हैं, लेकिन ऑर्डिनल थ्‍यौरी इसे डिजिटल अभिलेखों के लिए सुविधाओं के मामले में अनुकूल या श्रेष्ठ स्थिति में बेहतर लाभ प्रदान कर सकती है, जिसमें एक बेहतर विषय-वस्‍तु मॉडल और विश्व स्तर पर अद्वितीय प्रतीकों जैसी विशेषताएं। शामिल हैं।</p>
+<h3 id="परतिपकष-संपततियां"><a class="header" href="#परतिपकष-संपततियां">प्रतिपक्ष संपत्तियां?</a></h3>
+<p>प्रतिपक्ष के अपने स्‍वयं के टोकन, XCP (एक्ससीपी) हैं, जो कुछ कार्यक्षमता के लिए अत्‍यंत आवश्यक हैं, जिससे अधिकांश बिटकॉइनर्स इसे एक आल्टकॉइन के रूप में मानते हैं, न कि बिटकॉइन का विस्‍तार/प्रसार या दूसरी परत का रूप।</p>
+<p>ऑर्डिनल थ्‍यौरी (क्रमसूचक सिद्धांत), का सृजन पूरी तरह से डिजिटल अभिलेखों के लिए किया गया है, &quot;जबकि प्रतिपक्ष संपत्तियों को मुख्य रूप से वित्तीय टोकन जारी करने के लिए डिज़ाइन किया गया था।</p>
+<h2 id="इंसकरिपशंस-डिजिटल-अभिलेख"><a class="header" href="#इंसकरिपशंस-डिजिटल-अभिलेख">इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख)…</a></h2>
+<h3 id="कलाकारों-के-लिए"><a class="header" href="#कलाकारों-के-लिए">कलाकारों के लिए</a></h3>
+<p><em>इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) बिटकॉइन पर उपलब्‍ध होते हैं।</em> बिटकॉइन उच्चतम स्थिति और दीर्घकालिक अस्तित्व की सबसे व्‍यापक संभावना वाली डिजिटल मुद्रा है। यदि आप यह गारंटी देना चाहते हैं कि आपकी कला भविष्य में भी अस्तित्‍व में बरकरार रहे, तो इसे इंस्‍क्रि‍प्‍शंस के रूप में प्रकाशित करने का इससे बेहतर कोई भी दूसरा तरीका नहीं है।</p>
+<p><em>किफायती ऑन-चेन भंडारण।</em> $20,000 प्रति बीटीसी और 1 सातोशी प्रति वीबाइट की न्यूनतम रिले शुल्क पर, इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) विषय-वस्‍तु प्रकाशित करने की लागत $50 प्रति 1 मिलियन बाइट्स आती है।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस आउटडेटेड हो गई हैं!</em> इंस्‍क्रि‍प्‍शंस अभी भी विकसित हो रही है, और अभी तक मुख्‍य नेट पर लॉन्च नहीं हुई है। आपके लिए यह सुनहरी मौका है कि आप जल्‍द से जल्‍द इसे अपना लें, और जैसे-जैसे यह माध्यम विकसित होता है, उसका फायदा उठाएं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस सरल हैं।</em> इंस्‍क्रि‍प्‍शंस के लिए स्मार्ट अनुबंध लिखने या समझने की बिलकुल जरूरत नहीं है।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस नई लिक्विडिटी/तरलता के मार्ग प्रशस्‍त करती हैं।</em> बिटकॉइन धारकों के लिए इंस्‍क्रि‍प्‍शंस अधिक सुलभ और आकर्षक हैं, जो पूरी तरह नई श्रेणी के संग्रहकों के लिए लेनदेन करने के नये रास्‍ते खोल देती हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस डिजिटल अभिलेखों के लिए डिज़ाइन किए गए हैं।</em> एनएफटी का समर्थन करने के लिए इंस्‍क्रि‍प्‍शंस को बुनियादी स्‍तर से ही डिज़ाइन किया जाता है, जिसमें एक बेहतर डेटा मॉडल और विश्व स्तरीय असाधारण प्रतीकों और उन्नत उत्‍पति जैसी अनूठी विशेषताएं हैं।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस ऑन-चेन रॉयल्टी का समर्थन नहीं करते।</em> यह नकारात्मक है, जो केवल इस पर निर्भर करता है कि आप इसे कैसे देखते हैं। ऑन-चेन रॉयल्टी उत्‍पतिकर्ताओं के लिए एक वरदान साबित हुआ है, लेकिन इसने एथेरियम एनएफटी पारिस्थितिकी तंत्र में बहुत अधिक भ्रम भी पैदा कर दिये हैं। पारिस्थितिकी तंत्र अब इस मुद्दे के साथ संघर्षरत है, और रॉयल्टी-वैकल्पिक भविष्य की ओर, प्रतिस्पर्धा की दौड़ में समझौता करने में संलग्‍न हो जाता है। इंस्‍क्रि‍प्‍शंस में ऑन-चेन रॉयल्टी के लिए कोई समर्थन नहीं मिलता, क्योंकि तकनीकी रूप से वे व्यवहारिक नहीं हैं। यदि आप इंस्‍क्रि‍प्‍शंस सृजन करने का चयन करते हैं, ऐसे कई तरीके हैं जिनसे आप इस सीमा के दायरे में काम कर सकते हैं: अपने इंस्‍क्रि‍प्‍शंस के एक हिस्से को भविष्य में बिक्री के लिए सहेज लें, ताकि भविष्य में होने वाली उछाल से लाभ उठा पाएं, या क‍दाचित वैकल्पिक रॉयल्टी देने वाले वाले उपयोगकर्ताओं को प्रोत्‍साहन की पेशकश करें।</p>
+<h3 id="संगरहक"><a class="header" href="#संगरहक">संग्रहक</a></h3>
+<p><em>इंस्‍क्रि‍प्‍शंस सरल, स्पष्ट हैं और इनमें कोई अप्रत्‍याशित घटना नहीं होती।</em> वे हमेशा अपरिवर्तनीय और ऑन-चेन रहती हैं, इसके लिए कोई विशेष सम्‍यक तत्‍परता (ड्यू डिलिजेंस) की आवश्यकता नहीं होती है।</p>
+<p><em>इंस्‍क्रि‍प्‍शंस बिटकॉइन पर सुलभ हैं।</em> आप अपने नियंत्रण वाले बिटकॉइन पूर्ण नोड के साथ इंस्‍क्रि‍प्‍शंस के स्थान और गुणों को आसानी से सत्यापित कर सकते हैं।</p>
+<h3 id="बिटकॉइनरस"><a class="header" href="#बिटकॉइनरस">बिटकॉइनर्स</a></h3>
+<p>आईये अब मैं इस अनुभाग को यह संबोधित कर शुरू करता हूं: बिटकॉइन नेटवर्क सबसे महत्वपूर्ण काम पैसे का विकेंद्रीकरण करना है। आर्डिनल थ्‍यौ‍री (क्रमसूचक सिद्धांत) सहित अन्य सभी उपयोग के मामलों का महत्‍व कम है। आर्डिनल थ्‍यौ‍री (क्रमसूचक सिद्धांत) के डेवलपर्स इसे अच्‍छे से समझते हैं और स्वीकार भी करते हैं, और मानते हैं कि आर्डिनल थ्‍यौ‍री (क्रमसूचक सिद्धांत), कम से कम बहुत ही मामूली तरीके के साथ बिटकॉइन के प्राथमिक मिशन में मदद करती है।</p>
+<p>ऑल्टकॉइन स्‍पेस में कई अन्य तथ्‍यों के विपरीत, डिजिटल अभिलेख सक्षम हैं। &quot;बेशक, बड़ी संख्या में एनएफटी बेढंगे, मूर्खतापूर्ण और धोखाधड़ी वाले हैं। हालाँकि, कुछेक ऐसे भी हैं जो शानदार ढंग से रचनात्मक हैं, और कला का निर्माण और संग्रह शुरू से ही मानव इतिहास का एक अभिन्‍न हिस्सा रहा है, यहां तक कि व्यापार और मुद्रा के प्रचलन से भी पहले का है, जो प्राचीन प्रौद्योगिकियां भी हैं।</p>
+<p>बिटकॉइन डिजिटल अभिलेखों के सुरक्षित, विकेन्द्रीकृत तरीके से सृजन और संग्रह करने हेतु एक अद्भुत मंच प्रदान करता है, जो उपयोगकर्ताओं और कलाकारों को उसी तरह सुरक्षा प्रदान करता है जिस प्रकार यह अद्भुत मंच धन भेजने और प्राप्त करने या इस प्रकार के समान कारणों के लिए करता है।</p>
+<p>ऑर्डिनल्स और इंस्‍क्रि‍प्‍शंस बिटकॉइन ब्लॉक स्पेस की मांग में इजाफा करते हैं, जिससे बिटकॉइन का सुरक्षा बजट बढ़ जाता है, जो बिटकॉइन के शुल्क-निर्भर सुरक्षा मॉडल में ट्रांजिशन को सुरक्षित रखने के लिए महत्वपूर्ण है, क्योंकि ब्लॉक की आर्थिक सहायता को निरर्थक आधा कर दिया गया है।</p>
+<p>इंस्‍क्रि‍प्‍शंस की विषय-वस्‍तु को ऑन-चेन संग्रहीत किया जाता है, और इस प्रकार इंस्‍क्रि‍प्‍शंस में उपयोग के लिए ब्लॉक स्‍पेस &quot;की मांग असीमित है। यह <em>सभी</em> बिटकॉइन ब्लॉक स्पेस के लिए खरीदार के पास अंतिम उपाय बन जाता है।इससे एक मजबूत शुल्क बाजार का समर्थन करने में मदद मिलेगी, जो सुनिश्चित करता है कि बिटकॉइन सुरक्षित बने रहें।</p>
+<p>इंस्‍क्रि‍प्‍शंस इस वृतांत का भी प्रतिकार करते हैं कि बिटकॉइन को नए उपयोग के मामलों में विस्तारित या उपयोग नहीं किया जा सकता है। यदि आप डीएलसी, फेडिमिंट, लाइटनिंग, टैरो और आरजीबी जैसी परियोजनाओं का अनुसरण करते हैं, &quot;तब आप जानते हैं कि यह वृतांत झूठा है, लेकिन इंस्‍क्रि‍प्‍शंस एक जवाबी तर्क प्रदान करता है जिसे समझना आसान है, और जो एक लोकप्रिय और सिद्ध उपयोग के मामले, एनएफटी को लक्षित करता है, जो इसे अत्यधिक सुपाठ्य बनाता है।</p>
+<p>यदि लेखकों की आशा के अनुरूप इंस्‍क्रि‍प्‍शंस समृद्ध इतिहास के साथ डिजिटल अभिलेखों की अत्यधिक मांग का सृजन करने में सफल हो जाता है, तो वे बिटकॉइन अपनाने के लि‍ए एक शक्तिशाली दावे के समर्थन में कारगर होंगे: चाहे वह मनोरंजन का क्षेत्र हो, समृद्ध कला, विकेंद्रीकृत डिजिटल पैसों के लेनदेनों का दृढ़ता के साथ &quot;बरकरार बने रहना।</p>
+<p>इंस्‍क्रि‍प्‍शंस ब्लॉक स्‍पेस मांग का एक अत्‍यधिक अनुकूल स्रोत हैं। इसके विपरीत, उदाहरण के लिए, स्‍टेबलकॉईन (स्थिर सिक्के), बिटकॉइन भविष्य के विकास या डीएफआई पर संभावित रूप से बिटकॉइन दिग्‍गज स्‍टेबलकॉईन &quot;जारीकर्ताओं पर अपना असर डालते है, जो बिटकॉइन पर एमईवी, डिजिटल कला और संग्रहणीय वस्तुओं के लिए अवसरों को प्रस्‍तुत करते हुए खनन को केंद्रीकृत कर सकते हैं, बिटकॉइन को भ्रष्ट करने के लिए पर्याप्त शक्ति वाली व्यक्तिगत संस्थाओं के उत्पादन करने की संभावना नगण्‍य है। कला विकेन्द्रीकृत है।</p>
+<p>इंस्‍क्रि‍प्‍शंस उपयोगकर्ताओं और सेवा प्रदाताओं को बिटकॉइन पूर्ण नोड्स संचालित करने, इंस्‍क्रि‍प्‍शंस प्रकाशित करने और ट्रैक करने के लिए प्रोत्साहित किया जाता है, और इस प्रकार ईमानदार श्रृंखला के पीछे आक्रामक तरीके &quot;से आर्थिक रूप से अपना प्रभाव डालकर समर्थन किया जाता है।</p>
+<p>ऑर्डिनल्स थ्‍यौरी (क्रमसूचक सिद्धांत) और इंस्‍क्रि‍प्‍शंस (डिजिटल अभिलेख) बिटकॉइन की परिवर्तनशीलता को सार्थक रूप से प्रभावित नहीं करते। बिटकॉइन उपयोगकर्ता दोनों को अनदेखा कर सकते हैं और इससे अप्रभावित रह सकते हैं।</p>
+<p>हम आशा करते हैं कि ऑर्डिनल्स थ्‍यौरी (क्रमसूचक सिद्धांत) बिटकॉइन को मजबूत और समृद्ध करेंगे, और इसे आकर्षक &quot;और कार्यात्‍मक बनाकर इसके प्राथमिक उपयोग के मामले की सेवा करके इसे और अधिक प्रभावी ढंग से मानवता के मूल्य के विकेन्द्रीकृत भंडार के रूप में सक्षम करेंगे।</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="inscriptions/pointer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="inscriptions/pointer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE HTML>
+<html lang="hi" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>सैट हंटिंग - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">परिचय</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> अवलोकन</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> डिजिटल अभिलेख</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> इंस्‍क्रीप्‍शंस</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> उत्‍पति</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> रिकर्सन-प्रतिवर्तन</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> एफएक्‍यू</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> योगदान</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> दान करें</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> मार्गदर्शक निर्देश</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> एक्‍सप्‍लोरर</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> इंस्‍क्रीप्‍शंस</a></li><li class="chapter-item expanded "><a href="../guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Batch Inscribing</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html" class="active"><strong aria-hidden="true">7.4.</strong> सैट हंटिंग</a></li><li class="chapter-item expanded "><a href="../guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.6.</strong> संग्राहक</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> स्‍पैरो वॉलेट</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.7.</strong> परीक्षण</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.8.</strong> मॉडरेशन</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> रिइंडैक्सिंग</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> बांउटीज़</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> बांउटी 0: 100,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> बांउटी 1: 200,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> बांउटी 2: 300,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> बांउटी 3: 400,000 सैट्स दावा किया!</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("hi");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/sat-hunting.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="सैट-हंटिंग"><a class="header" href="#सैट-हंटिंग">सैट हंटिंग</a></h1>
+<p>_यह मार्गदर्शिका पुरानी हो गई है। जब से इसे लिखा गया है, <code>ऑर्ड</code> बाइनरी को <code>--index-sats</code> फ्लैग आपूर्ति करने के बाद पूर्ण सातोशी सूचकांक बनाने के लिए बदल दिया गया था। इसके अतिरिक्त, ऑर्ड में अब एक अंतरंग वॉलेट है जो बिटकॉइन कोर वॉलेट को सम्मिलित करता है। <code>ord wallet –help</code> पर देखें।</p>
+<p>ऑर्डिनल हंटिंग कठिन जरूर है लेकिन बहुत लाभदायक है। यूटीएक्सओ से युक्‍त वॉलेट के मालिक बनने का एहसास, सैट की आकर्षकता और दुर्लभता का सूचक है, जो अतुलनीय है।</p>
+<p>ऑर्डिनल्स सातोशी के लिए संख्याएँ हैं। प्रत्येक सातोशी में क्रमसूचक संख्या होती है और प्रत्येक क्रमसूचक संख्या की एक सातोशी होती है।</p>
+<h2 id="तैयारी-करना"><a class="header" href="#तैयारी-करना">तैयारी करना</a></h2>
+<p>आरंभ करने से पहले आपको कुछ कार्य करने की आवश्यकता होगी।</p>
+<ol>
+<li>
+<p>सबसे पहले, आपको लेनदेन सूचकांक के साथ सिंक किए बिटकॉइन कोर नोड की आवश्यकता होगी। लेन-देन सूचकांक सक्रिय करने के लिए, कमांड-लाइन पर <code>-txindex</code> पास करें:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>या अपनी <a href="https://github.com/%22bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">बिटकॉइन कॉन्फ़िगरेशन फ़ाइल</a> में निम्नलिखित दर्ज करें:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>इसे लॉन्च करें और इसके चेन टिप तक पहुंचने की प्रतीक्षा करें, जिस बिंदु पर निम्नलिखित कमांड को वर्तमान ब्लॉक की ऊंचाई को प्रिंट करना चाहिए:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>दूसरा, आपको एक सिंक किए गए ऑर्ड इंडेक्स की आवश्यकता होगी।</p>
+<ul>
+<li>
+<p><a href="https://github.com/ordinals/ord/">रेपो</a> से <code>ऑर्ड</code> की एक प्रति प्राप्त करें।</p>
+</li>
+<li>
+<p><code>RUST_LOG=जानकारी ऑर्ड इंडेक्स</code> क्रियाशील करें। यह आपके बिटकॉइन कोर नोड से जुड़ना चाहिए और सूचकांक शुरू हो जाना चाहिए।</p>
+</li>
+<li>
+<p>इसके सूचकांक के समाप्त होने तक प्रतीक्षा करें।</p>
+</li>
+</ul>
+</li>
+<li>
+<p>तीसरा, जिसे UTXOs वॉलेट को आप खोजना चाहते हैं आपको उसकी आवश्यकता होगी।</p>
+</li>
+</ol>
+<h2 id="दुरलभ-ऑरडिनलसस-करमसूचक-के-लिए-खोज"><a class="header" href="#दुरलभ-ऑरडिनलसस-करमसूचक-के-लिए-खोज">दुर्लभ ऑर्डिनल्स्‍स (क्रमसूचक) के लिए खोज</a></h2>
+<h3 id="बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलसस-करमसूचक-के-लिए-खोज"><a class="header" href="#बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलसस-करमसूचक-के-लिए-खोज">बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स्‍स (क्रमसूचक) के लिए खोज</a></h3>
+<p><code>ऑर्ड वॉलेट</code> कमांड बिटकॉइन कोर के आरपीसी एपीआई के चारों ओर सिर्फ एक आवरण है, इसलिए बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करना आसान है। मान लें कि आपके वॉलेट का नाम <code>foo</code> है:</p>
+<ol>
+<li>
+<p>अपना वॉलेट लोड करें:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>किसी भी दुर्लभ ऑर्डिनल्स वॉलेट <code>foo</code> का UTXO प्रदर्शित करें:</p>
+<pre><code class="language-sh">ord --wallet foo --index-sats wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="गैर-बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करें"><a class="header" href="#गैर-बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करें">गैर-बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करें</a></h3>
+<p><code>ऑर्ड वॉलेट</code> कमांड बिटकॉइन कोर के आरपीसी एपीआई के इर्द-गिर्द रैप्‍ड हैं, इसलिए गैर-बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करने के लिए, आपको अपने वॉलेट के डिस्क्रिप्टर को बिटकॉइन कोर में इंपोर्ट करना होगा।</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">डिस्क्रिप्टर्स</a> &quot;उन तरीकों का वर्णन करते हैं जिनसे वॉलेट निजी कुंजी और सार्वजनिक कुंजी का सृजन करते हैं।</p>
+<p>केवल वॉलेट की सार्वजनिक कुंजी के लिए आपको अपने बिटकॉइन कोर में डिस्क्रिप्टर इंपोर्ट करना चाहिए, न कि इसकी निजी कुंजी के लिए।</p>
+<p>यदि आपके वॉलेट की सार्वजनिक कुंजी डिस्क्रिप्टर के साथ छेड़छाड़ की गई है, ऐसी सूरत में छेड़छाड़ करने वाला आपके वॉलेट के पते देख सकेगा, लेकिन आपका फंड फिर भी सुरक्षित रहेगा।</p>
+<p>यदि आपके वॉलेट की निजी कुंजी डिस्क्रिप्टर के साथ किसी प्रकार की छेड़छाड़ की गई है, तो ऐसी स्थिति में छेड़छाड़ करने वाला आपके वॉलेट से धनराशि निकाल सकता है।</p>
+<ol>
+<li>
+<p>वॉलेट डिस्क्रिप्टर उस वॉलेट से प्राप्त करें जिसके यूटीएक्सओ में आप दुर्लभ ऑर्डिनल्स की खोज करना चाहते हैं। यह कुछ इस तरह से दिखेगा:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>सिर्फ देखने योग्‍य <code>foo-watch-only</code> नामक वॉलेट बनाएं:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>इसे <code>foo-watch-only</code> के मुकाबले बेझिझक बेहतर नाम दें!</p>
+</li>
+<li>
+<p><code>foo-watch-only</code> वॉलेट लोड करें:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>अपने वॉलेट डिस्क्रिप्टर को <code>foo-watch-only</code> पर इंपोर्ट करें:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग 0 के बजाय &quot;टाइमस्टैम्प&quot; के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
+</li>
+<li>
+<p>जांच लें कि सब कुछ सही से काम कर रहा है:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>अपने वॉलेट के दुर्लभ ऑर्डिनलस प्रदर्शित करें:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="मलटी-पथ-डिसकरिपटर-निरयात-करने-वाले-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करना"><a class="header" href="#मलटी-पथ-डिसकरिपटर-निरयात-करने-वाले-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करना">मल्टी-पथ डिस्क्रिप्टर निर्यात करने वाले वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करना</a></h3>
+<p>कुछ डिस्क्रिप्टर कोण कोष्ठक का उपयोग करके एक डिस्क्रिप्टर में एक से अधिक पथों का उल्‍लेख करते हैं, उदाहरण के लिए, <code>&lt;0;1&gt;</code> मल्टी-पथ डिस्क्रिप्टर को वर्तमान में बिटकॉइन कोर द्वारा समर्थन नहीं दिया गया है, &quot;इसलिए आपको पहले उन्हें बहुत सारे डिस्क्रिप्टर्स में बदलना होगा, और फिर उन मल्टीपल डिस्क्रिप्टर को बिटकॉइन कोर में इंपोर्ट करना होगा।</p>
+<ol>
+<li>
+<p>सबसे पहले अपने वॉलेट से मल्टी-पथ डिस्क्रिप्टर प्राप्त करें। यह कुछ इस तरह दिखेगा:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>प्राप्त पता पथ के लिए एक डिस्क्रिप्टर का सृजन करें:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>और पता परिवर्तन पथ:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>प्राप्त पता डिस्क्रिप्टर के लिए चेकसम प्राप्त करें और नोट करें, इस मामले में tpnxnxax:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>और परिवर्तन पता डिस्क्रिप्टर के लिए, इस मामले में 64k8wnd7:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>वह वॉलेट लोड करें जिसमें आप डिस्क्रिप्टर इंपोर्ट करना चाहते हैं:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>अब बिटकॉइन कोर में सही चेकसम के साथ डिस्क्रिप्टर को इंपोर्ट करें।</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग <code>0</code> के बजाय <code>&quot;टाइमस्टैम्प&quot;</code> के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
+</li>
+<li>
+<p>जांच लें कि सब कुछ सही से काम कर रहा है:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>अपने वॉलेट के दुर्लभ ऑर्डिनलस प्रदर्शित करें:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="डिसकरिपटर-एकसपोरट-करना"><a class="header" href="#डिसकरिपटर-एकसपोरट-करना">डिस्क्रिप्टर एक्‍सपोर्ट करना</a></h3>
+<h4 id="सपैरो-वॉलेट"><a class="header" href="#सपैरो-वॉलेट">स्‍पैरो वॉलेट</a></h4>
+<p>पहले सेटिंग्स टैब पर जाएँ, फिर स्क्रिप्ट पॉलिसी पर जाएँ, और डिस्क्रिप्टर प्रदर्शित करने के लिए एडिट बटन दबाएँ।</p>
+<h3 id="ऑरडिनलस-करमसूचक-संखयाएं-सथानांतरित-करना"><a class="header" href="#ऑरडिनलस-करमसूचक-संखयाएं-सथानांतरित-करना">ऑर्डिनल्‍स (क्रमसूचक संख्‍याएं) स्थानांतरित करना</a></h3>
+<p><code>ऑर्ड</code> वॉलेट विशिष्ट सातोशी स्थानांतरित करने का समर्थन करता है। आप <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, और <code>sendrawtransaction</code> बिटकॉइन-सीएलआई कमांड भी प्रयोग कर सकते हैं, इसे कैसे करना है यह थोड़ा मुश्किल है और इस मार्गदर्शिका के दायरे से बाहर के विषय हैं।</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/batch-inscribing.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../guides/teleburning.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/batch-inscribing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../guides/teleburning.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

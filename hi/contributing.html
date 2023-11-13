@@ -1,0 +1,333 @@
+<!DOCTYPE HTML>
+<html lang="hi" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>योगदान - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">परिचय</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> अवलोकन</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> डिजिटल अभिलेख</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> इंस्‍क्रीप्‍शंस</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> उत्‍पति</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> रिकर्सन-प्रतिवर्तन</a></li><li class="chapter-item expanded "><a href="inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> एफएक्‍यू</a></li><li class="chapter-item expanded "><a href="contributing.html" class="active"><strong aria-hidden="true">5.</strong> योगदान</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> दान करें</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> मार्गदर्शक निर्देश</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> एक्‍सप्‍लोरर</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> इंस्‍क्रीप्‍शंस</a></li><li class="chapter-item expanded "><a href="guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Batch Inscribing</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> सैट हंटिंग</a></li><li class="chapter-item expanded "><a href="guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.6.</strong> संग्राहक</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> स्‍पैरो वॉलेट</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.7.</strong> परीक्षण</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.8.</strong> मॉडरेशन</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> रिइंडैक्सिंग</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> बांउटीज़</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> बांउटी 0: 100,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> बांउटी 1: 200,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> बांउटी 2: 300,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> बांउटी 3: 400,000 सैट्स दावा किया!</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("hi");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "contributing.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="ऑरड-में-योगदान"><a class="header" href="#ऑरड-में-योगदान"><code>ऑर्ड</code> में योगदान</a></h1>
+<h2 id="अनुशंसित-कदम"><a class="header" href="#अनुशंसित-कदम">अनुशंसित कदम</a></h2>
+<ol>
+<li>जिस मुद्दे पर आप काम करना चाहते हैं उसका पता लगाएं</li>
+<li>यह जानने का पता लगाएँ कि समस्या सुलझाने की दिशा में आपका पहला बेहतर कदम क्या होगा। यह कोड, शोध, एक प्रस्ताव या इसे बंद करने के सुझाव के रूप में हो सकता है, यदि यह बहुत पुराना हो गया है या पहली बार अच्छे से विचार नहीं किया है।</li>
+<li>अपने सुझाए गए पहले कदम की रूपरेखा के साथ मुद्दे पर टिप्पणी करें, और प्रतिक्रिया की मांग करें। निस्‍संदेह, &quot;आप इसकी गहराई में उतरें और तुरंत कोड या परीक्षण लिखना शुरू कर सकते हैं, लेकिन यह संभावित रूप से बेकार &quot;की मेहनत करने से बचना है, यदि मुद्दा बहुत पुराना है, स्पष्ट उल्‍लेख नहीं किया गया, किसी अन्‍य को अवरुद्ध किया है, या अन्यथा लागू करने के लिए तैयार नहीं है।</li>
+<li>यदि मुद्दे के लिए कोड में बदलाव या बगफिक्स (किसी कंप्यूटर प्रोग्राम या सिस्टम में किसी बग में सुधार) करने की आवश्यकता है, तब परीक्षणों के साथ एक ड्राफ्ट पीआर खोलें और प्रतिक्रिया की मांग करें। यह सुनिश्चित करता है कि मुद्दे को सुलझाने के लिए जो कुछ भी करने की आवश्यकता है उस पर सबने सहमति दे दी है। इसके अतिरिक्‍त, साथ ही, &quot;चूंकि परीक्षण करने की आवश्यकता होती है, इसलिए पहले परीक्षण लिखने से यह पुष्टि करना आसान हो जाता है कि परिवर्तन का आसानी से परीक्षण किया जा सकता है।</li>
+<li>परीक्षण पास होने तक कीबोर्ड को बेतरतीब ढंग से मैश करें, और जब तक कोड सबमिट करने के लिए तैयार न हो जाए, &quot;तब तक पुनर्संशोधित करें।</li>
+<li>PR (पीआर) को समीक्षा के लिए तैयार के रूप में चिह्नित करें।</li>
+<li>PR (पीआर) जरूरत के अनुसार संशोधित करें।</li>
+<li>और अंत में, विलयन!</li>
+</ol>
+<h2 id="छोटे-छोटे-बदलावों-से-शुरूआत-करें"><a class="header" href="#छोटे-छोटे-बदलावों-से-शुरूआत-करें">छोटे-छोटे बदलावों से शुरूआत करें</a></h2>
+<p>छोटे-छोटे बदलाव करने से आपको उनका तुरन्‍त असर डालने में मदद करेगा और यदि आप गलत तरीका अपनाते हैं, तो भी आपका बहुत ज्यादा समय बर्बाद नहीं होगा।</p>
+<p>छोटे मुद्दों के लिए विचार:</p>
+<ul>
+<li>एक नये परीक्षण या परीक्षण मामले को जोड़ें जो परीक्षण के कवरेज को बढ़ाता है</li>
+<li>दस्तावेज़ीकरण संलग्‍न करें या सुधार करें</li>
+<li>ऐसे मुद्दे की खोज करें जिस पर अधिक शोध करने की आवश्यकता है, और वह शोध करें तथा एक टिप्पणी में उसके संक्षिप्‍त विवरण प्रस्तुत करें</li>
+<li>किसी पुराने मुद्दे को खोजें और टिप्पणी में उल्‍लेख करें कि उसे बंद किया जा सकता है</li>
+<li>एक ऐसे मुद्दे का पता लगाएं जिसे नहीं किया जाना चाहिए, और रचनात्मक प्रतिक्रिया प्रदान करें जिसमें उल्‍लेख किया गया हो कि आप ऐसा क्यों सोचते हैं</li>
+</ul>
+<h2 id="जलद-से-जलद-और-बार-बार-विलय-करें"><a class="header" href="#जलद-से-जलद-और-बार-बार-विलय-करें">जल्द-से-जल्‍द और बार-बार विलय करें</a></h2>
+<p>बड़े कामों को छोटे-छोटे कई चरणों में बांट दें ताकि व्यक्तिगत रूप से प्रगति हो सके। यदि कोई बग से हमला हुआ है, &quot;तब आप एक पीआर खोल सकते हैं जो एक असफल उपेक्षित परीक्षण को जोड़ देता है। इसे विलय किया जा सकता है, और अगला कदम बग को फिक्‍स यानि सुधार करना और परीक्षण को अनदेखा नहीं करना हो सकता है। शोध या परीक्षण करें, और अपने परिणामों पर सूचित करें। किसी विशेषता को छोटी-छोटी उप-विशेषताओं में तोड़ दें और उन्हें एक-एक करके कार्यान्वित करें।</p>
+<p>यह पता लगाएं कि एक बड़े पीआर को छोटे पीआर में कैसे तोड़ा जाए, जहां प्रत्येक का अभ्‍यास करने योग्‍य कला के रूप में विलय किया जा सके। मुश्किल यह है कि प्रत्येक पीआर अपने आप में एक सुधार होना चाहिए।</p>
+<p>मैं स्वयं इस सलाह का पालन करने का प्रयास करता हूं और जब भी मैं कुछ ऐसा करता हूं अपने आपको हमेशा &quot;बेहतर स्थिति में पाता हूं।</p>
+<p>छोटे-छोटे बदलाव शीघ्रता के साथ लिखे, समीक्षा और विलय किए जा सकते हैं है, बहुत अधिक बड़े पीआर पर मेहनत करने से ये कहीं अधिक आसान होते हैं, बड़े पीआर लिखने, समीक्षा करने और विलय करने में बहुत समय खर्च हो जाता है। छोटे-छोटे बदलावों में ज्यादा समय नहीं लगता, इसलिए यदि आपको बीच में काम रोकना भी पड़ता है तो छोटे बदलावों में बड़े बदलावों के मुकाबले आपका ज्यादा समय बर्बाद नहीं होगा। पीआर को तुरन्‍त प्राप्त करने के लिए परियोजना &quot;में हलके सुधार, बहुत व्‍यापक सुधार के मुकाबले तुरंत पूरे हो जाते हैं। छोटे बदलावों से विलय मतभेदों के बढ़ने की संभावना कम हो जाती है। जैसा कि एथेनियाईयों ने कहा है:<em>तेज़ लोग वही करते हैं जो वे करना चाहते हैं, धीमे लोग जो करना चाहते हैं उसे पूरा कर लेते हैं।</em></p>
+<h2 id="सहायता-की-मांग-करें"><a class="header" href="#सहायता-की-मांग-करें">सहायता की मांग करें</a></h2>
+<p>यदि आप 15 मिनट से अधिक समय तक रस्ट डिस्कॉर्ड, स्टैक एक्सचेंज, या किसी परियोजना के मुद्दे या चर्चा संबंधी किसी मामले में फंस जाते हैं, तो किसी से मदद की मांग करें।&quot;</p>
+<h2 id="परिकलपना-चालित-डिबगिंग-का-अभयास-करें"><a class="header" href="#परिकलपना-चालित-डिबगिंग-का-अभयास-करें">परिकल्पना-चालित डिबगिंग का अभ्यास करें</a></h2>
+<p>समस्या के पीछे के कारण के बारे में परिकल्पना करें। यह पता लगाने का प्रयास करें कि उस परिकल्पना का परीक्षण कैसे किया जाए। परीक्षण को अंजाम दें। यदि यह ठीक से काम करता है, तो बहुत बढ़िया है, आपने समस्या दुरूस्‍त कर दी है या अब आप जान गये हैं कि समस्या को कैसे दुरूस्‍त किया जाए। यदि ऐसा कुछ भी नहीं हुआ है, तो एक नई परिकल्पना करके फिर से यही प्रक्रिया दोहराएँ।</p>
+<h2 id="तरुटि-संदेशों-पर-धयान-दें"><a class="header" href="#तरुटि-संदेशों-पर-धयान-दें">त्रुटि संदेशों पर ध्यान दें</a></h2>
+<p>सभी त्रुटि संदेशों को ध्‍यान से पढ़ें और चेतावनियाँ को नजरअंदाज मत करें।</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="faq.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="donate.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="faq.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="donate.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

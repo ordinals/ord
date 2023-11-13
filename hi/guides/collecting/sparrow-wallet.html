@@ -1,0 +1,400 @@
+<!DOCTYPE HTML>
+<html lang="hi" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>स्‍पैरो वॉलेट - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">परिचय</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> अवलोकन</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> डिजिटल अभिलेख</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> इंस्‍क्रीप्‍शंस</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> उत्‍पति</a></li><li class="chapter-item expanded "><a href="../../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> रिकर्सन-प्रतिवर्तन</a></li><li class="chapter-item expanded "><a href="../../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> एफएक्‍यू</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> योगदान</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> दान करें</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> मार्गदर्शक निर्देश</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> एक्‍सप्‍लोरर</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> इंस्‍क्रीप्‍शंस</a></li><li class="chapter-item expanded "><a href="../../guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Batch Inscribing</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> सैट हंटिंग</a></li><li class="chapter-item expanded "><a href="../../guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.6.</strong> संग्राहक</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.6.1.</strong> स्‍पैरो वॉलेट</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/testing.html"><strong aria-hidden="true">7.7.</strong> परीक्षण</a></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.8.</strong> मॉडरेशन</a></li><li class="chapter-item expanded "><a href="../../guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> रिइंडैक्सिंग</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> बांउटीज़</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> बांउटी 0: 100,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> बांउटी 1: 200,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> बांउटी 2: 300,000 सैट्स दावा किया!</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> बांउटी 3: 400,000 सैट्स दावा किया!</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("hi");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/collecting/sparrow-wallet.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-और-ऑरडिनलस-संगरहीत-करना"><a class="header" href="#सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-और-ऑरडिनलस-संगरहीत-करना">स्पैरो वॉलेट के साथ इंस्‍क्रीप्‍शंस और ऑर्डिनल्‍स संग्रहीत करना</a></h1>
+<p>ऐसे उपयोगकर्ता जो अभी तक <a href="https://github.com/ordinals/ord">ऑर्ड</a> वॉलेट सेट नहीं कर सके या अभी तक सेट नहीं किया है, वे वैकल्पिक बिटकॉइन वॉलेट से इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) और ऑर्डिनल्‍स (क्रमसूचक संख्‍याएं) प्राप्त कर सकते हैं, बशर्ते वे उस वॉलेट से <em>सावधानी</em> के साथ खर्च करते हैं।</p>
+<p><a href="https://sparrowwallet.com/">स्पैरो वॉलेट</a> के साथ वॉलेट कैसे बनाने हैं इसके बारे में यह मार्गदर्शिका कुछ बुनियादी कदमों का उल्‍लेख करती है जो ऑर्ड के साथ संगत है और बाद में इसे <code>ऑर्ड</code> में इंपोर्ट किया जा सकता है।</p>
+<h2 id="-चेतावनी-"><a class="header" href="#-चेतावनी-">⚠️⚠️ चेतावनी!! ⚠️⚠️</a></h2>
+<p>एक सामान्य नियम के रूप में यदि आप इस दृष्टिकोण को अपनाते हैं, तब आपको स्पैरो सॉफ़्टवेयर के साथ इस वॉलेट का उपयोग रिसीव-ओनली वॉलेट के रूप में करना चाहिए।</p>
+<p>इस वॉलेट से तब तक कोई सातोशी खर्च मत करें जब तक आप आश्वस्त न हो जाएं कि आप अच्‍छे से जानते हैं कि आप क्या कर रहे हैं। यदि आप इस चेतावनी पर ध्यान नहीं देते हैं तो आप बहुत आसानी से अनजाने में अपने ऑर्डिनल्‍स और इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) पर संपर्क करने में सक्षम नहीं होंगे।</p>
+<h2 id="वॉलेट-सेटअप-और-परापत-करना"><a class="header" href="#वॉलेट-सेटअप-और-परापत-करना">वॉलेट सेटअप और प्राप्त करना</a></h2>
+<p><a href="https://sparrowwallet.com/download/">रिलीज़ पेज</a> से अपने विशेष ऑपरेटिंग सिस्टम &quot;के लिए स्पैरो वॉलेट डाउनलोड करें।</p>
+<p><code>फ़ाइल  -&gt; New Wallet</code> चयन करें और <code>ऑर्ड</code> नामक एक नया वॉलेट बनाएं।</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p><code>Script Type</code> को <code>Taproot (P2TR)</code> में बदलें और <code>नया या इंर्पोटेड सॉफ़्टवेयर वॉलेट</code> विकल्प का चयन करें।</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p><code>Use 12 Words</code> का चयन करें और फिर <code>Generate New</code> पर क्लिक करें। पासफ़्रेज़ को खाली छोड़ दें।</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>आपके लिए एक नया 12 शब्दों का BIP39 सीड फ्रेज उत्पन्न किया जाएगा। इसे कहीं सुरक्षित स्थान पर लिख लें क्‍योंकि यह आपकी वॉलेट तक पहुँचने के लिए आपकी बैकअप है। किसी के साथ इस सीड फ्रेज को कभी साझा नहीं करें और न दिखाएं।</p>
+<p>जब आपने सीड फ्रेज लिख लिया हो, तो <code>Confirm Backup</code> पर क्लिक करें।</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>जिस सीड फ़्रेज़ को आपने अभी लिखा है उसे दुबारा दर्ज करें, और फिर <code>Create Keystore</code> पर क्लिक करें।</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p><code>Import Keystore</code> पर क्लिक करें।</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p><code>Apply</code> पर क्लिक करें। यदि आप चाहते हैं तो वॉलेट के लिए एक पासवर्ड डालें।</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>अब आपके पास एक वॉलेट उपलब्‍ध है जो <code>ऑर्ड</code> के साथ संगत है, और इसे BIP39 सीड फ़्रेज़ का उपयोग करके <code>ऑर्ड</code> में इंपोर्ट किया जा सकता है। ऑर्डिनल्‍स (क्रमसूचक संख्‍याएं) या इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्राप्त करने के लिए, <code>Receive</code> टैब पर क्लिक करें और नये पते को कॉपी करें।</p>
+<p>हर बार जब आप प्राप्त करना चाहते हैं तो आपको बिल्कुल नए पते का उपयोग करना होगा, और वर्तमान पते का दोबारा उपयोग नहीं करना है।</p>
+<p>ध्यान दें कि बिटकॉइन कुछ अन्य ब्लॉकचेन वॉलेट से भिन्‍न होते हैं, क्योंकि यह वॉलेट असीमित संख्या में नए पते &quot;उत्पन्न कर सकते हैं। आप <code>Get Next Address</code> बटन पर क्लिक करके नये पते का सृजन कर सकते हैं। आप &quot;अपने सभी पते ऐप के <code>एड्रेस</code> टैब पर देख सकते हैं।</p>
+<p>आप प्रत्येक पते पर एक लेबल जोड़ सकते हैं, ताकि आप इसका ट्रैक रख सकें कि इसका उपयोग किस लिए किया गया था।</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="परापत-की-गई-इंसकरीपशंस-डिजिटल-अभिलेखों-का-परमाणीकरणदेखना"><a class="header" href="#परापत-की-गई-इंसकरीपशंस-डिजिटल-अभिलेखों-का-परमाणीकरणदेखना">प्राप्त की गई इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) का प्रमाणीकरण/देखना</a></h2>
+<p>एक बार जब आप एक इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्राप्त कर लेते हैं तब आपको स्पैरो के <code>Transactions</code> टैब में एक नया लेनदेन, साथ ही यूटीएक्सओ टैब में एक नया <code>UTXOs</code> दिखाई देगा।</p>
+<p>शुरूआत में इस लेन-देन की स्थिति &quot;अपुष्टीकृत&quot; हो सकती है, और आपको इसे पूरी तरह से प्राप्त होने से पहलेबिटकॉइन ब्लॉक में इसके खनन होने की प्रतीक्षा करनी होगी।</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>अपने लेनदेन की स्थिति को ट्रैक करने के लिए आप उस पर राइट-क्लिक कर सकते हैं, <code>Copy Transaction ID</code> का चयन करें और फिर उस लेनदेन आईडी को <a href="https://mempool.space">mempool.space</a> में पेस्ट कर दें।</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>एक बार जब लेन-देन की पुष्टि हो जाती है, आप इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) को प्रमाणीकरण और देखने के लिए <code>UTXOs</code> टैब पर जाकर, जिस यूटीएक्सओ की जांच करना चाहते हैं, आप Output और <code>Copy Transaction Output</code> पर राइट क्लिक करें। इस लेनदेन आउटपुट आईडी को फिर [ordinals.com]&quot;(https://ordinals.com) खोज में पेस्‍ट किया जा सकता है।</p>
+<h2 id="utxo-फरीज-करना"><a class="header" href="#utxo-फरीज-करना">UTXO फ्रीज करना</a></h2>
+<p>जैसा कि ऊपर स्‍पष्‍ट किया गया है, आपका प्रत्येक इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) अनस्पेंट ट्रांजेक्शन आउटपुट (UTXO) में संग्रहीत किया गया है। आपके इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) गलती से भी खर्च न हों, &quot;इसके लिए आपको बेहद सावधान रहना चाहि‍ए, और इसे कठिन बनाने का तरीका यूटीएक्सओ को फ्रीज करना है।</p>
+<p>इसे करने के लिए, <code>UTXOs</code> टैब पर जाएं, जिस UTXO को आप फ़्रीज़ करना चाहते हैं, <code>Output</code> पर राइट-क्लिक करें और <code>Freeze UTXO</code> टैब का चयन करें।</p>
+<p>यह UTXO (इंस्‍क्रीप्‍शंस) अब स्पैरो वॉलेट में तब तक खर्च नहीं किए जा सकेंगे जब तक आप इसे फ्रीज को निष्क्रिय नहीं कर देते।</p>
+<h2 id="ऑरड-वॉलेट-में-इंपोरट-किया-जा-रहा-है"><a class="header" href="#ऑरड-वॉलेट-में-इंपोरट-किया-जा-रहा-है"><code>ऑर्ड</code> वॉलेट में इंपोर्ट किया जा रहा है</a></h2>
+<p>बिटकॉइन कोर और <code>ऑर्ड</code> वॉलेट सेट करने के विवरण के लिए इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) मार्गदर्शक <a href="../inscriptions.html">Inscriptions Guide</a> निर्देश देखें।</p>
+<p><code>ऑर्ड</code> सेट करते समय, <code>ord wallet create</code> को चलाने के बजाय, एकदम नया वॉलेट बनाएं, आप स्पैरो वॉलेट के साथ सृजन किए गए सीड फ़्रेज़ का उपयोग करके <code>ord wallet restore &quot;BIP39 सीड फ़्रेज़&quot;</code> &quot; का उपयोग करके अपना मौजूदा वॉलेट इंपोर्ट कर सकते हैं।</p>
+<p>वर्तमान में एक <a href="https://github.com/ordinals/ord/issues/1589">बग</a> का हमला हुआ है, &quot;जिसके कारण इंपोर्ट किए गये वॉलेट को ब्लॉकचेन के विरुद्ध स्वचालित रूप से दुबारा स्कैन नहीं किया जा सकता। इसे दुरूस्‍त करने के लिए, आपको bitcoin core cli:<code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code> का उपयोग करके मैन्युअल रूप से रीस्कैन करना होगा।&quot;</p>
+<p>इसके बाद आप <code>ord wallet inscriptions</code> का उपयोग कर अपने वॉलेट इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) की जांच कर सकते हैं</p>
+<p>ध्यान रहे, यदि आपने पहले <code>ऑर्ड</code> के साथ एक वॉलेट बना चुके हैं, तब आपके पास पहले से ही डिफ़ॉल्ट नाम वाला एक वॉलेट पहले से ही उपलब्‍ध है, और इसलिए आपको अपने इंर्पोटेड वॉलेट को कोई दूसरा नाम देना होगा। आप सभी <code>ऑर्ड</code> में <code>–-wallet</code> पैरामीटर में सभी कमांड का उपयोग करके किसी भिन्न वॉलेट को संदर्भित कर सकते हैं, उदाहरण के लिए:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-डिजिटल-अभिलेख-परेषित-करना"><a class="header" href="#सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-डिजिटल-अभिलेख-परेषित-करना">स्पैरो वॉलेट के साथ इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्रेषित करना</a></h2>
+<h4 id="-चेतावनी--1"><a class="header" href="#-चेतावनी--1">⚠️⚠️ चेतावनी ⚠️⚠️</a></h4>
+<p>हालांकि यह अत्यधिक अनुशंसित किया जाता है कि आप एक बिटकॉइन कोर नोड सेट करें और <code>ऑर्ड</code> सॉफ़्टवेयर संचालित करें, सुरक्षित तरीके से स्पैरो वॉलेट से इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्रेषित करने के कुछ &quot;सीमित तरीके हैं। कृपया ध्यान रखें कि यह अनुशंसित नहीं किया जाता, और आपको यह केवल तभी करना चाहिए जब आप पूरी तरह से समझें कि आप क्या कर रहे हैं।</p>
+<p><code>ऑर्ड</code> सॉफ़्टवेयर का उपयोग करने से हम यहां जो जटिलता वर्णन कर रहे हैं, उसका बहुत सारा हिस्‍सा निकाल देगा, &quot;क्‍योंकि यह स्वच्‍छंद तरीके से इंस्‍क्रीप्‍शंस भेजने का काम स्‍वत: और सुरक्षित तरीके से कर सकता है।</p>
+<h4 id="-अतिरिकत-चेतावनी-"><a class="header" href="#-अतिरिकत-चेतावनी-">⚠️⚠️ अतिरिक्‍त चेतावनी ⚠️⚠️</a></h4>
+<p>गैर-इंस्‍क्रीप्‍शंस बिटकॉईन के सामान्‍य प्रे‍षण के लिए स्पैरो इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) वॉलेट का प्रयोग मत करो। आप स्‍पैरो में अलग वॉलेट सेट कर सकते हैं यदि आपको सामान्‍य बिटकॉईन लेनदेन करने की आवश्‍यकता है, और अपना इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) वॉलेट अलग रख सकते हैं।&quot;</p>
+<h4 id="बिटकॉइन-का-utxo-मॉडल"><a class="header" href="#बिटकॉइन-का-utxo-मॉडल">बिटकॉइन का UTXO मॉडल</a></h4>
+<p>कोई भी लेन-देन प्रेषित करने से पहले यह अत्‍यंत महत्वपूर्ण हो जाता है कि आपके पास बिटकॉइन के अनस्पेंट ट्रांजेक्शन आउटपुट (UTXO) सिस्टम का एक अच्छे मानसिक अवस्‍था का मॉडल हो। बिटकॉइन के काम करने का तरीका एथेरियम जैसे कई अन्य ब्लॉकचेन से मौलिक रूप से भिन्न है। एथेरियम में आम तौर पर आपके पास &quot;एक ही पता होता है जिसमें आप ईटीएच संग्रहीत करते हैं, और आप किसी भी ईटीएच के बीच अंतर नहीं कर सकते हैं - यह उस पते पर कुल राशि का केवल एकमात्र एक ही मूल्य होता है। बिटकॉइन बहुत अलग तरीके से &quot;काम करता है, इसमें हम प्रत्येक प्राप्ति के लिए वॉलेट में एक नया पता बनाते हैं, और हर बार अपने वॉलेट में किसी पते पर सैट प्राप्त करते हैं तो इसका सीधा और स्‍पष्‍ट अर्थ यह है कि उस समय आप एक नया UTXO बना रहे होते हैं। प्रत्येक UTXO को व्यक्तिगत रूप से देखा और प्रबंधित किया जा सकता है। आप किसी विशिष्ट यूटीएक्सओ का चयन कर सकते हैं जिसे आप खर्च करना चाहते हैं, इसके प्रतिकूल आप कुछ यूटीएक्स को खर्च न &quot;करने का विकल्प चयन कर सकते हैं।</p>
+<p>कुछ बिटकॉइन वॉलेट इस स्तर के विवरण प्रकट नहीं करते, और वे आपको केवल आपके वॉलेट में सभी बिटकॉइन के कुल मूल्य का सारांश प्रकट करते हैं। हालाँकि, इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्रेषित करते समय यह महत्वपूर्ण है कि आप स्पैरो जैसे वॉलेट का उपयोग करें जो UTXO नियंत्रण की अनुमति देता है।</p>
+<h4 id="इंसकरीपशंस-डिजिटल-अभिलेख-परेषण-से-पहले-अपने-उनका-निरीकषण"><a class="header" href="#इंसकरीपशंस-डिजिटल-अभिलेख-परेषण-से-पहले-अपने-उनका-निरीकषण">इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्रेषण से पहले अपने उनका निरीक्षण</a></h4>
+<p>जैसा कि हम पहले उल्‍लेख कर चुके हैं कि इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) सैट्स पर उत्‍कीर्ण/अंकित किए जाते हैं, और सैट्स यूटीएक्सओ के भीतर संग्रहीत होते हैं। यूटीएक्सओ, सातोशी की संख्या (आउटपुट मूल्य) के कुछ विशेष मूल्य के साथ सातोशी का एक संग्रह है। आमतौर पर (लेकिन हमेशा नहीं)  इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) यूटीएक्सओ के पहले सातोशी पर उत्‍कीर्ण/अंकित किए जाएंगे।</p>
+<p>जब आप इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) का प्रेषण से पहले निरीक्षण करते हैं,उस समय आप सबसे पहले यह जांचना चाहेंगे कि किस यूटीएक्सओ के सातोषी में आपका इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) उत्‍कीर्ण/अंकित किए गये है।</p>
+<p>इसे करने के लिए, आप ordinals.com पर ऊपर उल्लिखित <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing ReceivedInscriptions</a> का अनुसरण करके अपने इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) के लिए पृष्ठ खोज सकते हैं।</p>
+<p>वहां पर आपको अपने इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) के बारे में कुछ मेटाडेटा मिलेंगे जो निम्नलिखित जैसे दिखाई देते हैं:</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>यहां जांचने योग्य कुछ महत्वपूर्ण तथ्‍य हैं:</p>
+<ul>
+<li><code>Output</code> आईडेंटिफॉयर (अभिज्ञापक) उस UTXO के उस अभिज्ञापक के अनुकूल है जिसे आप प्रेषित करने जा रहे हैं</li>
+<li>इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) का <code>offset</code> <code>0</code> है (इसका अर्थ यह है कि इंस्‍क्रीप्‍शंस UTXO में पहले सैट पर स्थित है)</li>
+<li><code>output_value</code> में लेनदेन प्रेषण हेतु लेनदेन शुल्क (डाक शुल्क) समावेश करने के लिए पर्याप्त सैट्स हैं। &quot;आपको जिस समुचि‍त राशि की आवश्यकता होगी वह उस शुल्क दर पर निर्भर करती है जिसका चयन आप लेनदेन के लिए करेंगे।</li>
+</ul>
+<p>यदि उपरोक्त सभी तथ्‍य आपके इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) के लिए सही हैं, तब इसे नीचे दी गई विधि का उपयोग करके प्रेषण आपके लिए सुरक्षित होगा।</p>
+<p>⚠️⚠️ अपना इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) प्रेषण करने में बहुत सावधानी बरतें, खासकर यदि <code>offset</code> मान <code>0</code> नहीं है। यदि ऐसा मामला है तो इस पद्धति का उपयोग करने की सिफारिश नहीं की जाती, क्योंकि ऐसा करने से आप गलती से अपना इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) बिटकॉइन माइनर को भेज सकते हैं जब तक कि आप नहीं जानते कि आप क्या कर रहे हैं।</p>
+<h4 id="अपना-इंसकरीपशन-डिजिटल-अभिलेख-परेषित-करना"><a class="header" href="#अपना-इंसकरीपशन-डिजिटल-अभिलेख-परेषित-करना">अपना इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) प्रेषित करना</a></h4>
+<p>इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) प्रेषित करने के लिए <code>UTXOs</code> टैब पर जाएं, और उस UTXO की खोज करें जिसे आपने पहले प्रमाणित किया था जिसमें आपका इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) शामिल है।</p>
+<p>यदि आपने पहले UTXOs को फ़्रीज़ कर दिया था तो आपको उस पर राइट-क्लिक करके फ़्रीज़ को निष्क्रिय करना होगा।</p>
+<p>उस UTXO का चयन करें जिसे आप प्रेषित करना चाहते हैं, और सुनिश्चित करें कि <em>केवल</em> उसी UTXO का ही चयन किया गया है। आपको इंटरफ़ेस में <code>UTXOs 1/1</code> देखना चाहिए। एक बार जब आप आश्वस्त हो जाते हैं कि ऐसा मामला है तब आप <code>Send Selected</code> पर क्लिक कर सकते हैं।</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>इसके बाद आपको लेनदेन निर्माण इंटरफ़ेस प्रस्तुत किया जाएगा। सुरक्षित प्रेषण सुनिश्चित करने के लिए आपको यहां कुछ तथ्‍य की जांच करने की आवश्यकता होगी:</p>
+<ul>
+<li>लेन-देन में केवल 1 इनपुट होनी चाहिए, और यह उस लेबल के साथ UTXO होना चाहिए जिसका आप प्रेषण करना चाहते हैं। </li>
+<li>लेन-देन में केवल 1 आउटपुट होना चाहिए, जो कि पता/लेबल है जहां आप इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) प्रेषि‍त करना चाहते हैं।</li>
+</ul>
+<p>यदि आपका लेनदेन कुछ अलग तरह का दिखाई देता है, उदाहरण के लिए आपके पास एक से अधिक इनपुट, या एक से अधिक आउटपुट हैं तो यह आपके इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) का सुरक्षित हस्तांतरण नहीं हो सकता है, और जब तक आप इसे अच्‍छे से समझ नहीं लेते, या ऑर्ड वॉलेट में इंपोर्ट नहीं कर लेते, तब तक आपको इसे प्रेषित करने से बचना चाहिए।</p>
+<p>आपको एक उचित लेनदेन शुल्क निर्धारित करना चाहिए, स्पैरो आमतौर पर उचित शुल्क की अनुशंसा करेगा, </p>
+<p>आपको प्राप्तकर्ता के पते के लिए एक लेबल जोड़ना चाहिए, <code>alice address for inscription #123</code> &quot;जैसा लेबल इष्‍टतम होगा।</p>
+<p>एक बार जब आप ऊपर दिये गये जांच पैमानों का उपयोग करके जाँच लेते हैं कि लेन-देन एक सुरक्षित लेन-देन है, और आप इसे प्रेषित करने के लिए आश्वस्त हैं तो आप लेन-देन को अंतिम रूप देने के लिए <code>Create Transaction</code> &quot;पर क्लिक कर सकते हैं।</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>दुबारा आप नये सिरे से जांच कर सकते हैं कि आपका लेन-देन एक सुरक्षित लेन-देन है, एक बार जब आप आश्‍वस्‍त हो जाते हैं तब आप <code>Finalize Transaction for Signing</code> पर क्लिक कर सकते हैं।</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>यहां आप साइन दबाने से पहले हर तथ्‍य की तीन बार जांच कर सकते हैं।</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>और फिर वास्तव में आपको <code>Broadcast Transaction</code> करने से पहले सब कुछ जांचने का आखिरी मौका मिलता है। एक बार जब आप लेनदेन प्रसारित करते हैं तो इसे बिटकॉइन नेटवर्क पर प्रेषित किया जाता है, और mempool में प्रसारित किया जाना शुरू हो जाता है।</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>यदि आप अपने लेन-देन की स्थिति को ट्रैक करना चाहते हैं तो आप Transaction Id (Txid) की प्रतिलिपि बना सकते हैं और उसे <a href="https://mempool.space">mempool.space</a> में पेस्ट कर सकते हैं</p>
+<p>जब लेनदेन की पुष्टि हो गई है, तो आप <a href="https://ordinals.com">ordinals.com</a> पर इंस्क्रिप्शन पृष्ठ की जाँच कर सकते हैं ताकि यह नए आउटपुट स्थान और पते पर स्थानांतरित हुआ है।</p>
+<h2 id="समसया-सुलझाना"><a class="header" href="#समसया-सुलझाना">समस्या सुलझाना</a></h2>
+<h4 id="सपैरो-वॉलेट-transactionutxo-नहीं-दरशा-रहा-है-लेकिन-मैं-इसे-mempoolspace-पर-देख-सकता-हूँ"><a class="header" href="#सपैरो-वॉलेट-transactionutxo-नहीं-दरशा-रहा-है-लेकिन-मैं-इसे-mempoolspace-पर-देख-सकता-हूँ">स्पैरो वॉलेट transaction/UTXO नहीं दर्शा रहा है, लेकिन मैं इसे mempool.space पर देख सकता हूँ!</a></h4>
+<p>सुनिश्चित करें कि आपका वॉलेट बिटकॉइन नोड से जुड़ा हुआ है। इसे प्रमाणित  करने के लिए,<code>Preferences-&gt; Server</code> सेटिंग्स पर जाएँ, और <code>Edit Existing Connection</code> पर क्लिक करें।</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>वहां से आप एक नोड का चयन कर सकते हैं और यह प्रमाणित करने के लिए <code>Test Connection</code> पर क्लिक &quot;कर सकते हैं कि स्पैरो सफलतापूर्वक जुड़ने में सक्षम है।</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../guides/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../guides/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
