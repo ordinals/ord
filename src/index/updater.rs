@@ -534,11 +534,14 @@ impl<'index> Updater<'_> {
         index_inscriptions,
       )?;
 
-      if !index_inscriptions && self.index.index_sats {
-        statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
-      } else {
-        statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
-      }
+      statistic_to_count.insert(
+        &Statistic::LostSats.key(),
+        &if self.index.index_sats {
+          lost_sats
+        } else {
+          inscription_updater.lost_sats
+        },
+      )?;
 
       statistic_to_count.insert(
         &Statistic::CursedInscriptions.key(),
