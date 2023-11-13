@@ -66,12 +66,12 @@ impl Inscription {
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
-    let (content_type, mode) = Media::content_type(path)?;
+    let (content_type, compression_mode) = Media::content_type(path)?;
 
     let (body, content_encoding) = if compress {
       let encoder = BrotliEncoderOptions::new()
         .block_size(BlockSize::best())
-        .mode(mode)
+        .mode(compression_mode)
         .quality(Quality::best())
         .size_hint(body.len().try_into().unwrap_or(u32::MAX))
         .window_size(WindowSize::best())
