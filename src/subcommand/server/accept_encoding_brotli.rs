@@ -27,7 +27,7 @@ where
                   .trim()
                   .split(';')
                   .next()
-                  .map(|value| value == "br")
+                  .map(|value| value.trim() == "br")
                   .unwrap_or_default()
               })
             })
