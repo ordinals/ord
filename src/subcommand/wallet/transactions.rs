@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Transactions {
-  #[clap(long, help = "Fetch at most <LIMIT> transactions.")]
+  #[arg(long, help = "Fetch at most <LIMIT> transactions.")]
   limit: Option<u16>,
 }
 
@@ -13,7 +13,7 @@ pub struct Output {
 }
 
 impl Transactions {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let mut output = Vec::new();
     for tx in options
       .bitcoin_rpc_client_for_wallet_command(false)?
@@ -30,8 +30,6 @@ impl Transactions {
       });
     }
 
-    print_json(output)?;
-
-    Ok(())
+    Ok(Box::new(output))
   }
 }

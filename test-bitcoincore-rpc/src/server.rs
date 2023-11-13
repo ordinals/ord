@@ -1,9 +1,8 @@
 use {
   super::*,
   bitcoin::{
-    psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-    Address, Witness,
+    Witness,
   },
   bitcoincore_rpc::RawTx,
 };
@@ -51,6 +50,7 @@ impl Api for Server {
         Network::Testnet => "test",
         Network::Signet => "signet",
         Network::Regtest => "regtest",
+        _ => panic!(),
       }),
       blocks: 0,
       headers: 0,
@@ -128,7 +128,7 @@ impl Api for Server {
           nonce: 0,
           previous_block_hash: None,
           time: 0,
-          version: 0,
+          version: Version::ONE,
           version_hex: Some(vec![0, 0, 0, 0]),
         })
         .unwrap(),
@@ -201,12 +201,12 @@ impl Api for Server {
 
     let tx = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: utxos
         .iter()
         .map(|input| TxIn {
           previous_output: OutPoint::new(input.txid, input.vout),
-          script_sig: Script::new(),
+          script_sig: ScriptBuf::new(),
           sequence: Sequence::MAX,
           witness: Witness::new(),
         })
@@ -215,7 +215,7 @@ impl Api for Server {
         .values()
         .map(|amount| TxOut {
           value: (*amount * COIN_VALUE as f64) as u64,
-          script_pubkey: Script::new(),
+          script_pubkey: ScriptBuf::new(),
         })
         .collect(),
     };
@@ -241,15 +241,16 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<()>,
+    _utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
-    assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
-    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+      if input.witness.is_empty() {
+        input.witness = Witness::from_slice(&[&[0; 64]]);
+      }
     }
 
     Ok(
@@ -271,7 +272,7 @@ impl Api for Server {
 
   fn send_to_address(
     &self,
-    address: Address,
+    address: Address<NetworkUnchecked>,
     amount: f64,
     comment: Option<String>,
     comment_to: Option<String>,
@@ -279,6 +280,9 @@ impl Api for Server {
     replaceable: Option<bool>,
     confirmation_target: Option<u32>,
     estimate_mode: Option<EstimateMode>,
+    avoid_reuse: Option<bool>,
+    fee_rate: Option<f64>,
+    verbose: Option<bool>,
   ) -> Result<Txid, jsonrpc_core::Error> {
     assert_eq!(comment, None);
     assert_eq!(comment_to, None);
@@ -286,12 +290,54 @@ impl Api for Server {
     assert_eq!(replaceable, None);
     assert_eq!(confirmation_target, None);
     assert_eq!(estimate_mode, None);
+    assert_eq!(avoid_reuse, None);
+    assert_eq!(verbose, None);
 
     let mut state = self.state.lock().unwrap();
-    let locked = state.locked.iter().cloned().collect();
+    let locked = state.locked.iter().cloned().collect::<Vec<OutPoint>>();
+
+    let value = Amount::from_btc(amount).expect("error converting amount to sat");
+
+    let (outpoint, utxo_amount) = match state
+      .utxos
+      .iter()
+      .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
+    {
+      Some((outpoint, utxo_amount)) => (outpoint, utxo_amount),
+      _ => return Err(Self::not_found()),
+    };
+
+    let mut transaction = Transaction {
+      version: 1,
+      lock_time: LockTime::ZERO,
+      input: vec![TxIn {
+        previous_output: *outpoint,
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::new(),
+      }],
+      output: vec![
+        TxOut {
+          value: value.to_sat(),
+          script_pubkey: address.payload.script_pubkey(),
+        },
+        TxOut {
+          value: (*utxo_amount - value).to_sat(),
+          script_pubkey: address.payload.script_pubkey(),
+        },
+      ],
+    };
+
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
+    let fee = (fee_rate.unwrap_or(1.0) * transaction.vsize() as f64).round() as u64;
+
+    transaction.output[1].value -= fee;
+
+    state.mempool.push(transaction);
 
     state.sent.push(Sent {
-      address,
+      address: address.assume_checked(),
       amount,
       locked,
     });
@@ -378,7 +424,7 @@ impl Api for Server {
     &self,
     minconf: Option<usize>,
     maxconf: Option<usize>,
-    address: Option<bitcoin::Address>,
+    address: Option<Address<NetworkUnchecked>>,
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
@@ -402,7 +448,7 @@ impl Api for Server {
           label: None,
           redeem_script: None,
           witness_script: None,
-          script_pub_key: Script::new(),
+          script_pub_key: ScriptBuf::new(),
           amount,
           confirmations: 0,
           spendable: true,
@@ -428,7 +474,7 @@ impl Api for Server {
   fn get_raw_change_address(
     &self,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+  ) -> Result<Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);

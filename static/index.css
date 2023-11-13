@@ -34,6 +34,10 @@ h1 {
   width: 100%;
 }
 
+h1 a {
+  color: var(--light-fg);
+}
+
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
@@ -101,11 +105,27 @@ ol, ul {
   }
 }
 
-.blocks {
+.block-list {
   font-family: monospace, monospace;
   list-style-position: inside;
-  padding-inline-start: 1rem;
   white-space: nowrap;
+}
+
+.block {
+  background-color: var(--light-bg);
+  border-radius: 0.5%;
+  margin: 3%;
+  padding: 0.5%;
+  text-align: center;
+}
+
+.block a {
+  color: var(--light-fg);
+  margin-top: 1%;
+}
+
+.block h2 {
+  margin: 1%;
 }
 
 .center {

@@ -54,7 +54,7 @@ pub trait Api {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<()>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error>;
 
@@ -64,7 +64,7 @@ pub trait Api {
   #[rpc(name = "sendtoaddress")]
   fn send_to_address(
     &self,
-    address: Address,
+    address: Address<NetworkUnchecked>,
     amount: f64,
     comment: Option<String>,
     comment_to: Option<String>,
@@ -72,6 +72,9 @@ pub trait Api {
     replaceable: Option<bool>,
     confirmation_target: Option<u32>,
     estimate_mode: Option<EstimateMode>,
+    avoid_reuse: Option<bool>,
+    fee_rate: Option<f64>,
+    verbose: Option<bool>,
   ) -> Result<Txid, jsonrpc_core::Error>;
 
   #[rpc(name = "gettransaction")]
@@ -94,7 +97,7 @@ pub trait Api {
     &self,
     minconf: Option<usize>,
     maxconf: Option<usize>,
-    address: Option<bitcoin::Address>,
+    address: Option<Address<NetworkUnchecked>>,
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error>;
@@ -106,7 +109,7 @@ pub trait Api {
   fn get_raw_change_address(
     &self,
     address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
+  ) -> Result<Address, jsonrpc_core::Error>;
 
   #[rpc(name = "getdescriptorinfo")]
   fn get_descriptor_info(
@@ -125,7 +128,7 @@ pub trait Api {
     &self,
     label: Option<String>,
     address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
+  ) -> Result<Address, jsonrpc_core::Error>;
 
   #[rpc(name = "listtransactions")]
   fn list_transactions(

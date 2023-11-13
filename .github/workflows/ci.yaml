@@ -14,6 +14,7 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
+  LANGUAGES: de fr es pt ru zh ja ko fil ar
 
 jobs:
   docs:
@@ -21,9 +22,20 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
     - uses: peaceiris/actions-mdbook@v1
       with:
         mdbook-version: latest
+
+    - name: Install mdbook-i18n-helpers
+      run: cargo install mdbook-i18n-helpers
 
     - name: Install mdbook-linkcheck
       run: |
@@ -34,7 +46,18 @@ jobs:
         chmod +x mdbook-linkcheck
         pwd >> $GITHUB_PATH
 
-    - run: mdbook build docs
+    - name: Build docs
+      run: mdbook build docs -d build
+
+    - name: Build all translations for docs
+      run: |
+        for lang in ${{ env.LANGUAGES }}; do
+          echo "::group::Building $lang translation"
+          MDBOOK_BOOK__LANGUAGE=$lang \
+            mdbook build docs -d build/$lang
+          mv docs/build/$lang/html docs/build/html/$lang
+          echo "::endgroup::"
+        done
 
     - name: Deploy Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -43,6 +66,7 @@ jobs:
         github_token: ${{secrets.GITHUB_TOKEN}}
         publish_branch: gh-pages
         publish_dir: docs/build/html
+
   lint:
     runs-on: ubuntu-latest
 
