@@ -597,7 +597,7 @@ impl Batchfile {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
-        compress
+        compress,
       )?);
 
       pointer += postage.to_sat();

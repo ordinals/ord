@@ -158,7 +158,7 @@ impl Inscribe {
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
           postage,
-          self.compress
+          self.compress,
         )?;
 
         mode = batchfile.mode;
