@@ -137,9 +137,9 @@ impl Inscription {
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
     }
 
-    if let Some(content_encoding) = self.content_type.clone() {
+    if let Some(content_encoding) = self.content_encoding.clone() {
       builder = builder
-        .push_slice(envelope::CONTENT_TYPE_TAG)
+        .push_slice(envelope::CONTENT_ENCODING_TAG)
         .push_slice(PushBytesBuf::try_from(content_encoding).unwrap());
     }
 
@@ -230,7 +230,7 @@ impl Inscription {
   }
 
   pub(crate) fn content_encoding(&self) -> Option<&str> {
-    str::from_utf8(self.content_type.as_ref()?).ok()
+    str::from_utf8(self.content_encoding.as_ref()?).ok()
   }
 
   pub(crate) fn metadata(&self) -> Option<Value> {

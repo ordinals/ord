@@ -403,7 +403,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[9],
+        &[11],
         b"bar",
         &[],
         b"ord",
@@ -733,7 +733,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[9], &[0]])]),
+      parse(&[envelope(&[b"ord", &[11], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()

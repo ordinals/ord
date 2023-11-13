@@ -995,14 +995,24 @@ impl Server {
         .and_then(|content_type| content_type.parse().ok())
         .unwrap_or(HeaderValue::from_static("application/octet-stream")),
     );
+
+    // if let Some(content_encoding) = inscription.content_encoding() {
+    //   headers.insert(
+    //     header::CONTENT_ENCODING,
+    //     HeaderValue::from_str(content_encoding).ok()?,
+    //   );
+    // }
+
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
+
     headers.append(
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
+
     headers.insert(
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
