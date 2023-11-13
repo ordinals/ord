@@ -7,6 +7,7 @@ use {
     },
     ScriptBuf,
   },
+  brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize},
   io::{Cursor, Write},
   std::str,
 };
@@ -36,8 +37,6 @@ pub struct Inscription {
   pub pointer: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
-
-use brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize};
 
 impl Inscription {
   #[cfg(test)]
