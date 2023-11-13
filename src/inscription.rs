@@ -7,7 +7,7 @@ use {
     },
     ScriptBuf,
   },
-  brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize, BlockSize},
+  brotlic::{BlockSize, BrotliEncoderOptions, CompressorWriter, Quality, WindowSize},
   io::{Cursor, Write},
   std::str,
 };
@@ -86,7 +86,7 @@ impl Inscription {
       let compressed = compressor.into_inner().unwrap();
 
       if compressed.len() < body.len() {
-        (compressed, Some(b"br".to_vec()))
+        (compressed, Some("br".as_bytes().to_vec()))
       } else {
         (body, None)
       }
