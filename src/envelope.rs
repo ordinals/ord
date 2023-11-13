@@ -81,8 +81,8 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let pointer = remove_field(&mut fields, &POINTER_TAG);
-    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
     let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
+    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
     let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
 
     let unrecognized_even_field = fields
