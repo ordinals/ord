@@ -69,7 +69,7 @@ impl Inscription {
     let (body, content_encoding) = if compress {
       let encoder = BrotliEncoderOptions::new()
         .quality(Quality::best())
-        .window_size(WindowSize::new(24)?)
+        .window_size(WindowSize::best())
         .size_hint(body.len().try_into()?)
         .build()?;
 
