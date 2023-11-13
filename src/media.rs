@@ -1,8 +1,8 @@
 use {
   super::*,
+  brotlic::CompressionMode,
   mp4::{MediaType, Mp4Reader, TrackType},
   std::{fs::File, io::BufReader},
-  brotlic::CompressionMode
 };
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -20,6 +20,7 @@ pub(crate) enum Media {
 }
 
 impl Media {
+  #[rustfmt::skip]
   const TABLE: &'static [(&'static str, CompressionMode, Media, &'static [&'static str])] = &[
     ("application/cbor", CompressionMode::Generic, Media::Unknown, &["cbor"]),
     ("application/json", CompressionMode::Text, Media::Code, &["json"]),
