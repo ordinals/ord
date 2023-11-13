@@ -1,5 +1,8 @@
 use {
-  self::batch::{Batch, Batchfile, Mode},
+  self::{
+    batch::Batch,
+    batch_file::{Batchfile, Mode},
+  },
   super::*,
   crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
   bitcoin::{
@@ -20,6 +23,7 @@ use {
 };
 
 mod batch;
+mod batch_file;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct InscriptionInfo {
@@ -244,7 +248,7 @@ impl Inscribe {
 #[cfg(test)]
 mod tests {
   use {
-    self::batch::BatchEntry,
+    self::batch_file::BatchEntry,
     super::*,
     serde_yaml::{Mapping, Value},
   };
