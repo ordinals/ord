@@ -70,7 +70,7 @@ pub(crate) struct Inscribe {
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
-  #[arg(long, help = "Compress inscription with brotli.")]
+  #[arg(long, help = "Compress inscription content with brotli.")]
   pub(crate) compress: bool,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
