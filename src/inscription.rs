@@ -1,5 +1,3 @@
-use brotlic::BlockSize;
-
 use {
   super::*,
   bitcoin::{
@@ -9,7 +7,7 @@ use {
     },
     ScriptBuf,
   },
-  brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize},
+  brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize, BlockSize},
   io::{Cursor, Write},
   std::str,
 };
@@ -83,11 +81,11 @@ impl Inscription {
 
       compressor
         .write_all(&body)
-        .with_context(|| format!("io error writing {}", path.display()))?;
+        .with_context(|| "failed to compress inscription")?;
 
       let compressed = compressor.into_inner().unwrap();
 
-      if (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0 {
+      if compressed.len() < body.len() {
         (compressed, Some(b"br".to_vec()))
       } else {
         (body, None)
