@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.11.1](https://github.com/ordinals/ord/releases/tag/0.11.1) - 2023-11-09
+--------------------------------------------------------------------------
+
+### Fixed
+- Use new RPC client in Reorg::get_block_with_retries (#2650)
+
+### Misc
+- Refactor varint encoding (#2645)
+
 [0.11.0](https://github.com/ordinals/ord/releases/tag/0.11.0) - 2023-11-07
 --------------------------------------------------------------------------
 
