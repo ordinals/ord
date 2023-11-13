@@ -1,3 +1,5 @@
+use brotlic::BlockSize;
+
 use {
   super::*,
   bitcoin::{
@@ -70,10 +72,11 @@ impl Inscription {
 
     let (body, content_encoding) = if compress {
       let encoder = BrotliEncoderOptions::new()
+        .block_size(BlockSize::best())
         .mode(mode)
         .quality(Quality::best())
-        .window_size(WindowSize::best())
         .size_hint(body.len().try_into().unwrap_or(u32::MAX))
+        .window_size(WindowSize::best())
         .build()?;
 
       let mut compressor = CompressorWriter::with_encoder(encoder, Vec::new());
