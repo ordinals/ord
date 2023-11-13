@@ -27,8 +27,8 @@ pub(crate) enum Curse {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
-  pub content_type: Option<Vec<u8>>,
   pub content_encoding: Option<Vec<u8>>,
+  pub content_type: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
   pub metadata: Option<Vec<u8>>,
