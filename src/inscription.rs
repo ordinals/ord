@@ -66,11 +66,14 @@ impl Inscription {
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
+    let (content_type, mode) = Media::content_type(path)?;
+
     let (body, content_encoding) = if compress {
       let encoder = BrotliEncoderOptions::new()
+        .mode(mode)
         .quality(Quality::best())
         .window_size(WindowSize::best())
-        .size_hint(body.len().try_into()?)
+        .size_hint(body.len().try_into().unwrap_or(u32::MAX))
         .build()?;
 
       let mut compressor = CompressorWriter::with_encoder(encoder, Vec::new());
@@ -96,8 +99,6 @@ impl Inscription {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
     }
-
-    let content_type = Media::content_type(path)?;
 
     Ok(Self {
       body: Some(body),

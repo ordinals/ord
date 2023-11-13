@@ -2,6 +2,7 @@ use {
   super::*,
   mp4::{MediaType, Mp4Reader, TrackType},
   std::{fs::File, io::BufReader},
+  brotlic::CompressionMode
 };
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -19,44 +20,44 @@ pub(crate) enum Media {
 }
 
 impl Media {
-  const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
-    ("application/cbor", Media::Unknown, &["cbor"]),
-    ("application/json", Media::Code, &["json"]),
-    ("application/pdf", Media::Pdf, &["pdf"]),
-    ("application/pgp-signature", Media::Text, &["asc"]),
-    ("application/protobuf", Media::Unknown, &["binpb"]),
-    ("application/yaml", Media::Code, &["yaml", "yml"]),
-    ("audio/flac", Media::Audio, &["flac"]),
-    ("audio/mpeg", Media::Audio, &["mp3"]),
-    ("audio/wav", Media::Audio, &["wav"]),
-    ("font/otf", Media::Unknown, &["otf"]),
-    ("font/ttf", Media::Unknown, &["ttf"]),
-    ("font/woff", Media::Unknown, &["woff"]),
-    ("font/woff2", Media::Unknown, &["woff2"]),
-    ("image/apng", Media::Image, &["apng"]),
-    ("image/avif", Media::Image, &[]),
-    ("image/gif", Media::Image, &["gif"]),
-    ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
-    ("image/png", Media::Image, &["png"]),
-    ("image/svg+xml", Media::Iframe, &["svg"]),
-    ("image/webp", Media::Image, &["webp"]),
-    ("model/gltf+json", Media::Model, &["gltf"]),
-    ("model/gltf-binary", Media::Model, &["glb"]),
-    ("model/stl", Media::Unknown, &["stl"]),
-    ("text/css", Media::Code, &["css"]),
-    ("text/html", Media::Iframe, &[]),
-    ("text/html;charset=utf-8", Media::Iframe, &["html"]),
-    ("text/javascript", Media::Code, &["js"]),
-    ("text/markdown", Media::Markdown, &[]),
-    ("text/markdown;charset=utf-8", Media::Markdown, &["md"]),
-    ("text/plain", Media::Text, &[]),
-    ("text/plain;charset=utf-8", Media::Text, &["txt"]),
-    ("text/x-python", Media::Code, &["py"]),
-    ("video/mp4", Media::Video, &["mp4"]),
-    ("video/webm", Media::Video, &["webm"]),
+  const TABLE: &'static [(&'static str, CompressionMode, Media, &'static [&'static str])] = &[
+    ("application/cbor", CompressionMode::Generic, Media::Unknown, &["cbor"]),
+    ("application/json", CompressionMode::Text, Media::Code, &["json"]),
+    ("application/pdf", CompressionMode::Generic, Media::Pdf, &["pdf"]),
+    ("application/pgp-signature", CompressionMode::Text, Media::Text, &["asc"]),
+    ("application/protobuf", CompressionMode::Generic, Media::Unknown, &["binpb"]),
+    ("application/yaml", CompressionMode::Text, Media::Code, &["yaml", "yml"]),
+    ("audio/flac", CompressionMode::Generic, Media::Audio, &["flac"]),
+    ("audio/mpeg", CompressionMode::Generic, Media::Audio, &["mp3"]),
+    ("audio/wav", CompressionMode::Generic, Media::Audio, &["wav"]),
+    ("font/otf", CompressionMode::Generic, Media::Unknown, &["otf"]),
+    ("font/ttf", CompressionMode::Generic, Media::Unknown, &["ttf"]),
+    ("font/woff", CompressionMode::Generic, Media::Unknown, &["woff"]),
+    ("font/woff2", CompressionMode::Font, Media::Unknown, &["woff2"]),
+    ("image/apng", CompressionMode::Generic, Media::Image, &["apng"]),
+    ("image/avif", CompressionMode::Generic, Media::Image, &[]),
+    ("image/gif", CompressionMode::Generic, Media::Image, &["gif"]),
+    ("image/jpeg", CompressionMode::Generic, Media::Image, &["jpg", "jpeg"]),
+    ("image/png", CompressionMode::Generic, Media::Image, &["png"]),
+    ("image/svg+xml", CompressionMode::Text, Media::Iframe, &["svg"]),
+    ("image/webp", CompressionMode::Generic, Media::Image, &["webp"]),
+    ("model/gltf+json", CompressionMode::Text, Media::Model, &["gltf"]),
+    ("model/gltf-binary", CompressionMode::Generic, Media::Model, &["glb"]),
+    ("model/stl", CompressionMode::Generic, Media::Unknown, &["stl"]),
+    ("text/css", CompressionMode::Text, Media::Code, &["css"]),
+    ("text/html", CompressionMode::Text, Media::Iframe, &[]),
+    ("text/html;charset=utf-8", CompressionMode::Text, Media::Iframe, &["html"]),
+    ("text/javascript", CompressionMode::Text, Media::Code, &["js"]),
+    ("text/markdown", CompressionMode::Text, Media::Markdown, &[]),
+    ("text/markdown;charset=utf-8", CompressionMode::Text, Media::Markdown, &["md"]),
+    ("text/plain", CompressionMode::Text, Media::Text, &[]),
+    ("text/plain;charset=utf-8", CompressionMode::Text, Media::Text, &["txt"]),
+    ("text/x-python", CompressionMode::Text, Media::Code, &["py"]),
+    ("video/mp4", CompressionMode::Generic, Media::Video, &["mp4"]),
+    ("video/webm", CompressionMode::Generic, Media::Video, &["webm"]),
   ];
 
-  pub(crate) fn content_type(path: &Path) -> Result<&'static str, Error> {
+  pub(crate) fn content_type(path: &Path) -> Result<(&'static str, CompressionMode), Error> {
     let extension = path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
@@ -69,15 +70,15 @@ impl Media {
       Media::check_mp4_codec(path)?;
     }
 
-    for (content_type, _, extensions) in Self::TABLE {
+    for (content_type, mode, _, extensions) in Self::TABLE {
       if extensions.contains(&extension.as_str()) {
-        return Ok(content_type);
+        return Ok((*content_type, *mode));
       }
     }
 
     let mut extensions = Self::TABLE
       .iter()
-      .flat_map(|(_, _, extensions)| extensions.first().cloned())
+      .flat_map(|(_, _, _, extensions)| extensions.first().cloned())
       .collect::<Vec<&str>>();
 
     extensions.sort();
@@ -116,7 +117,7 @@ impl FromStr for Media {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     for entry in Self::TABLE {
       if entry.0 == s {
-        return Ok(entry.1);
+        return Ok(entry.2);
       }
     }
 
@@ -132,17 +133,20 @@ mod tests {
   fn for_extension() {
     assert_eq!(
       Media::content_type(Path::new("pepe.jpg")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", CompressionMode::Generic)
     );
     assert_eq!(
       Media::content_type(Path::new("pepe.jpeg")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", CompressionMode::Generic)
     );
     assert_eq!(
       Media::content_type(Path::new("pepe.JPG")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", CompressionMode::Generic)
     );
-
+    assert_eq!(
+      Media::content_type(Path::new("pepe.txt")).unwrap(),
+      ("text/plain;charset=utf-8", CompressionMode::Text)
+    );
     assert_regex_match!(
       Media::content_type(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
