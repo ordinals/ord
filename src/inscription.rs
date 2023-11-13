@@ -266,6 +266,40 @@ impl Inscription {
 
     witness
   }
+
+  pub(crate) fn hidden(&self) -> bool {
+    let Some(content_type) = self.content_type() else {
+      return false;
+    };
+
+    if content_type != "text/plain" && content_type != "text/plain;charset=utf-8" {
+      return false;
+    }
+
+    let Some(body) = &self.body else {
+      return false;
+    };
+
+    let Ok(text) = str::from_utf8(body) else {
+      return false;
+    };
+
+    let trimmed = text.trim();
+
+    if trimmed.starts_with('{') && trimmed.ends_with('}') {
+      return true;
+    }
+
+    if trimmed.starts_with("gib bc1") {
+      return true;
+    }
+
+    if trimmed.ends_with(".bitmap") {
+      return true;
+    }
+
+    false
+  }
 }
 
 #[cfg(test)]
@@ -688,5 +722,39 @@ mod tests {
       Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
 
     assert_eq!(inscription.pointer, Some(vec![0, 1]));
+  }
+
+  #[test]
+  fn hidden() {
+    #[track_caller]
+    fn case(content_type: Option<&str>, body: Option<&str>, expected: bool) {
+      assert_eq!(
+        Inscription {
+          content_type: content_type.map(|content_type| content_type.as_bytes().into()),
+          body: body.map(|content_type| content_type.as_bytes().into()),
+          ..Default::default()
+        }
+        .hidden(),
+        expected
+      );
+    }
+
+    case(None, None, false);
+    case(Some("foo"), None, false);
+    case(Some("foo"), Some("{}"), false);
+    case(Some("text/plain"), None, false);
+    case(Some("text/plain"), Some("foo{}bar"), false);
+
+    case(Some("text/plain"), Some("foo.bitmap"), true);
+    case(Some("text/plain"), Some("gib bc1"), true);
+    case(Some("text/plain"), Some("{}"), true);
+    case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
+
+    assert!(!Inscription {
+      content_type: Some("text/plain".as_bytes().into()),
+      body: Some(b"{\xc3\x28}".as_slice().into()),
+      ..Default::default()
+    }
+    .hidden());
   }
 }

@@ -2,6 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
+  blocks::BlocksHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
   home::HomeHtml,
@@ -26,6 +27,7 @@ pub(crate) use {
 };
 
 pub mod block;
+mod blocks;
 mod children;
 mod clock;
 mod home;

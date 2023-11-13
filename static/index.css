@@ -234,3 +234,22 @@ a.mythic {
 .inscription > a > iframe {
   width: 100%;
 }
+
+.tabs {
+  align-items: center;
+  display: flex;
+}
+
+.tabs > a {
+  flex: 1;
+  padding: 1rem;
+  color: var(--light-fg);
+}
+
+.tabs > *:nth-child(1) {
+  text-align: right;
+}
+
+.tabs > *:nth-child(3) {
+  text-align: left;
+}
