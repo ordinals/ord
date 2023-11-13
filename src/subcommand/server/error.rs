@@ -2,10 +2,10 @@ use super::*;
 
 #[derive(Debug)]
 pub(super) enum ServerError {
-  Internal(Error),
   BadRequest(String),
-  NotFound(String),
+  Internal(Error),
   NotAcceptable(String),
+  NotFound(String),
 }
 
 pub(super) type ServerResult<T> = Result<T, ServerError>;
@@ -24,15 +24,17 @@ impl IntoResponse for ServerError {
         )
           .into_response()
       }
+      Self::NotAcceptable(content_type) => (
+        StatusCode::NOT_ACCEPTABLE,
+        format!("content type {content_type} is not acceptable"),
+      )
+        .into_response(),
       Self::NotFound(message) => (
         StatusCode::NOT_FOUND,
         [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
         message,
       )
         .into_response(),
-      Self::NotAcceptable(content_type) => {
-        (StatusCode::NOT_ACCEPTABLE, content_type).into_response()
-      }
     }
   }
 }
