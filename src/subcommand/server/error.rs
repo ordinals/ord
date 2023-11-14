@@ -26,7 +26,7 @@ impl IntoResponse for ServerError {
       }
       Self::NotAcceptable(content_type) => (
         StatusCode::NOT_ACCEPTABLE,
-        format!("content type {content_type} is not acceptable"),
+        format!("inscription content type `{content_type}` is not acceptable"),
       )
         .into_response(),
       Self::NotFound(message) => (

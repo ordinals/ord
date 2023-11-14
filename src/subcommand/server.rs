@@ -1005,7 +1005,7 @@ impl Server {
     if let Some(content_encoding) = inscription.content_encoding() {
       if encodings.contains(&content_encoding.to_string()) {
         headers.insert(
-          header::CONTENT_TYPE,
+          header::CONTENT_ENCODING,
           HeaderValue::from_str(content_encoding)
             .map_err(|err| anyhow!("Failed to set content encoding header: {err}"))?,
         );
