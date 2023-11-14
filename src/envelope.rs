@@ -397,6 +397,25 @@ mod tests {
   }
 
   #[test]
+  fn with_content_encoding() {
+    assert_eq!(
+      parse(&[envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[9],
+        b"br",
+        &[],
+        b"ord",
+      ])]),
+      vec![ParsedEnvelope {
+        payload: inscription_with_encoding("text/plain;charset=utf-8", "br", "ord"),
+        ..Default::default()
+      }]
+    );
+  }
+
+  #[test]
   fn with_unknown_tag() {
     assert_eq!(
       parse(&[envelope(&[
