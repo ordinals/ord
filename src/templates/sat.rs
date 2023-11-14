@@ -26,6 +26,13 @@ pub struct SatJson {
   pub inscriptions: Vec<InscriptionId>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionsSatJson {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: u64,
+}
+
 impl PageContent for SatHtml {
   fn title(&self) -> String {
     format!("Sat {}", self.sat)

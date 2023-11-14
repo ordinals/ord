@@ -12,8 +12,11 @@ use {
     inscription_id::InscriptionId,
     rarity::Rarity,
     templates::{
-      block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
-      output::OutputJson, sat::SatJson,
+      block::BlockJson,
+      inscription::InscriptionJson,
+      inscriptions::InscriptionsJson,
+      output::OutputJson,
+      sat::{InscriptionsSatJson, SatJson},
     },
     SatPoint,
   },

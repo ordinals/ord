@@ -10,10 +10,11 @@ use {
     runes::Rune,
     templates::{
       BlockHtml, BlockJson, ChildrenHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml,
-      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
-      OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
+      InscriptionsSatJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
+      PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml,
+      RunesHtml, SatHtml, SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -227,6 +228,11 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/inscriptions/sat/:number", get(Self::sat_inscriptions))
+        .route(
+          "/r/inscriptions/sat/:number/:from",
+          get(Self::sat_inscriptions_from),
+        )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -484,6 +490,39 @@ impl Server {
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn sat_inscriptions(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(sat_number)): Path<DeserializeFromStr<u64>>,
+  ) -> ServerResult<Response> {
+    Self::sat_inscriptions_inner(page_config, index, sat_number, 0, 100).await
+  }
+  async fn sat_inscriptions_from(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((sat_number, page_index)): Path<(u64, u64)>,
+  ) -> ServerResult<Response> {
+    Self::sat_inscriptions_inner(page_config, index, sat_number, page_index, 100).await
+  }
+
+  async fn sat_inscriptions_inner(
+    page_config: Arc<PageConfig>,
+    index: Arc<Index>,
+    sat_number: u64,
+    from: u64,
+    n: usize,
+  ) -> ServerResult<Response> {
+    let ids = index.get_inscription_ids_by_sat(Sat(sat_number))?;
+    Ok(
+      Json(InscriptionsSatJson {
+        ids,
+        page: 0,
+        more: false,
+      })
+      .into_response(),
+    )
   }
 
   async fn ordinal(Path(sat): Path<String>) -> Redirect {

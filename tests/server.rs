@@ -409,3 +409,25 @@ fn all_endpoints_in_recursive_directory_return_json() {
 
   assert!(server.request("/blockhash/2").json::<String>().is_err());
 }
+
+#[test]
+fn sat_recursive_endpoint() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(2);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  assert_eq!(
+    server
+      .request("/r/inscriptions/sat/5000000000")
+      .json::<InscriptionsSatJson>()
+      .unwrap(),
+    InscriptionsSatJson {
+      ids: vec![],
+      page: 0,
+      more: false
+    }
+  );
+}
