@@ -1108,14 +1108,8 @@ impl Server {
           .into_response(),
       ),
       Media::Text => {
-        let content = inscription
-          .body()
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
         Ok(
-          PreviewTextHtml {
-            text: str::from_utf8(content)
-              .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?,
-          }
+          PreviewTextHtml { inscription_id }
           .into_response(),
         )
       }
