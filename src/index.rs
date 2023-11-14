@@ -2348,7 +2348,9 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -2375,7 +2377,9 @@ mod tests {
 
   #[test]
   fn lost_sat_ranges_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
 
     let null_ranges = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
       List::Unspent(ranges) => ranges,
