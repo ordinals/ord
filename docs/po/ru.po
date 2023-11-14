@@ -2515,11 +2515,11 @@ msgstr "Чтобы создать надпись с контентом `FILE`, �
 #: src/guides/inscriptions.md:168
 msgid ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 msgstr ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 
 #: src/guides/inscriptions.md:172
@@ -2577,11 +2577,11 @@ msgstr "получить ID родительской надписи `<PARENT_INS
 #: src/guides/inscriptions.md:200
 msgid ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE\"\n"
+"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> --file CHILD_FILE\"\n"
 "```"
 msgstr ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE\"\n"
+"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> --file CHILD_FILE\"\n"
 "```"
 
 #: src/guides/inscriptions.md:204
@@ -3753,11 +3753,11 @@ msgstr "Inscribe в regtest с:"
 #: src/guides/testing.md:38
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 <file>\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 <file>\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 
 #: src/guides/testing.md:41
@@ -3799,11 +3799,11 @@ msgstr "При тестировании [рекурсии](../inscriptions/recur
 #: src/guides/testing.md:55
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 p5.js\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 p5.js\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 
 #: src/guides/testing.md:58
@@ -3821,11 +3821,11 @@ msgstr "Затем можно нанести рекурсивную надпис
 #: src/guides/testing.md:66
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 recursive-inscription.html\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 recursive-inscription.html\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
 "```"
 
 #: src/guides/testing.md:69

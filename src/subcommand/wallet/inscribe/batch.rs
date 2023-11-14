@@ -40,6 +40,7 @@ impl Batch {
     chain: Chain,
     index: &Index,
     client: &Client,
+    locked_utxos: &BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
@@ -53,6 +54,7 @@ impl Batch {
       .create_batch_inscription_transactions(
         wallet_inscriptions,
         chain,
+        locked_utxos.clone(),
         utxos.clone(),
         commit_tx_change,
       )?;
@@ -176,6 +178,7 @@ impl Batch {
     &self,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
+    locked_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
@@ -217,7 +220,7 @@ impl Batch {
 
       utxos
         .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint))
+        .find(|outpoint| !inscribed_utxos.contains(outpoint) && !locked_utxos.contains(outpoint))
         .map(|outpoint| SatPoint {
           outpoint: *outpoint,
           offset: 0,
@@ -321,6 +324,7 @@ impl Batch {
       satpoint,
       wallet_inscriptions,
       utxos.clone(),
+      locked_utxos.clone(),
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,

@@ -20,7 +20,7 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
-  std::collections::HashMap,
+  std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
 };
 
@@ -35,7 +35,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 9;
+const SCHEMA_VERSION: u64 = 10;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -78,6 +78,7 @@ pub enum List {
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
+  Schema = 0,
   BlessedInscriptions,
   Commits,
   CursedInscriptions,
@@ -87,7 +88,6 @@ pub(crate) enum Statistic {
   OutputsTraversed,
   Runes,
   SatRanges,
-  Schema,
   UnboundInscriptions,
 }
 
@@ -331,12 +331,28 @@ impl Index {
     })
   }
 
+  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    Ok(
+      self
+        .client
+        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+        .into_iter()
+        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
+        .collect(),
+    )
+  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -351,19 +367,18 @@ impl Index {
         }),
     );
 
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
 
-    for JsonOutPoint { txid, vout } in self
-      .client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-    {
+    for outpoint in locked_utxos {
       utxos.insert(
-        OutPoint { txid, vout },
-        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        outpoint,
+        Amount::from_sat(
+          self
+            .client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+          .value,
+        ),
       );
     }
     let rtx = self.database.begin_read()?;
@@ -778,6 +793,7 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
+  #[cfg(test)]
   pub(crate) fn get_children_by_inscription_id(
     &self,
     inscription_id: InscriptionId,
@@ -793,6 +809,35 @@ impl Index {
           .map_err(|err| err.into())
       })
       .collect()
+  }
+
+  pub(crate) fn get_children_by_inscription_id_paginated(
+    &self,
+    inscription_id: InscriptionId,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let mut children = self
+      .database
+      .begin_read()?
+      .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
+      .get(&inscription_id.store())?
+      .skip(page_index * page_size)
+      .take(page_size + 1)
+      .map(|result| {
+        result
+          .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = children.len() > page_size;
+
+    if more {
+      children.pop();
+    }
+
+    Ok((children, more))
   }
 
   pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<Rune>> {
@@ -2303,7 +2348,9 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -2330,7 +2377,9 @@ mod tests {
 
   #[test]
   fn lost_sat_ranges_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
 
     let null_ranges = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
       List::Unspent(ranges) => ranges,

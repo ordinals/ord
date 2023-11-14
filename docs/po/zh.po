@@ -4933,7 +4933,7 @@ msgstr "在regtest上铭刻"
 #: src/guides/testing.md:38
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 <file>\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 msgstr ""
 
@@ -4975,7 +4975,7 @@ msgstr ""
 #: src/guides/testing.md:55
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 p5.js\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 msgstr ""
 
@@ -5000,7 +5000,7 @@ msgstr "现在你可以使用以下命令来铭刻你的递归铭文："
 #: src/guides/testing.md:66
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 recursive-inscription.html\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
 "```"
 msgstr ""
 

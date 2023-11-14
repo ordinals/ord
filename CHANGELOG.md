@@ -1,6 +1,56 @@
 Changelog
 =========
 
+[0.11.1](https://github.com/ordinals/ord/releases/tag/0.11.1) - 2023-11-09
+--------------------------------------------------------------------------
+
+### Fixed
+- Use new RPC client in Reorg::get_block_with_retries (#2650)
+
+### Misc
+- Refactor varint encoding (#2645)
+
+[0.11.0](https://github.com/ordinals/ord/releases/tag/0.11.0) - 2023-11-07
+--------------------------------------------------------------------------
+
+### Added
+- Add a link to the Ordicord (#2629)
+- Add `/children` with pagination (#2617)
+- Add metadata recursive endpoint (#2604)
+- Add recursive directory and make all endpoints JSON (#2493)
+- Add Portuguese version of handbook (#2572)
+- Add decode just recipe (#2592)
+- Add `/block/:query` JSON API endpoint (#2423)
+- Add syntax highlighting for Python inscriptions (#2538)
+- Add publish-and-tag-crate just recipe (#2576)
+- Document teleburning handbook (#2577)
+
+### Changed
+- Clarify sat hunting guide (#2640)
+- Update docs (#2627)
+- Remove blank line in CI workflow (#2620)
+- Update README.md and zh.po (#2605)
+- Require --batch or --file for `ord wallet inscribe` (#2581)
+
+### Fixed
+- Respect locked coins (#2618)
+- Set `Cache-Control: no-store` header on 404 responses (#2637)
+- Fix statistics table and increment schema version (#2624)
+- Fix broken link in README (#2621)
+- Speed up indexing of re-inscriptions (#2608)
+- Fix docs rendering (#2612)
+- Update docs with new position of --enable-json-api (#2601)
+- Move `--enable-json-api` flag to server options (#2599)
+- Make server_runs_with_rpc_user_and_pass_as_env_vars test less flaky (#2580)
+
+### Runes
+- Implement open etchings (#2548)
+- Add more info to /rune page and link to rune from /tx (#2528)
+- Display inscription on /rune (#2542)
+- Add rune numbers (#2557)
+- Ignore non push opcodes in runestones (#2553)
+- Improve rune minimum at height (#2546)
+
 [0.10.0](https://github.com/ordinals/ord/releases/tag/0.10.0) - 2023-10-23
 --------------------------------------------------------------------------
 

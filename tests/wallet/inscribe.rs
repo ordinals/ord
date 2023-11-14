@@ -1224,3 +1224,21 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     ),
   );
 }
+
+#[test]
+fn inscribe_does_not_pick_locked_utxos() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let coinbase_tx = &rpc_server.mine_blocks(1)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+
+  rpc_server.lock(outpoint);
+
+  CommandBuilder::new("wallet inscribe --file hello.txt --fee-rate 1")
+    .rpc_server(&rpc_server)
+    .write("hello.txt", "HELLOWORLD")
+    .expected_exit_code(1)
+    .stderr_regex("error: wallet contains no cardinal utxos\n")
+    .run_and_extract_stdout();
+}
