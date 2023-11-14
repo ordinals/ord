@@ -1250,12 +1250,11 @@ fn inscribe_can_compress() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --compress --file foo.txt --fee-rate 1"
-  ))
-  .write("foo.txt", [0; 350_000])
-  .rpc_server(&rpc_server)
-  .run_and_deserialize_output();
+  let Inscribe { inscriptions, .. } =
+    CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
+      .write("foo.txt", [0; 350_000])
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
 
   let inscription = inscriptions[0].id;
 
@@ -1312,12 +1311,11 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --compress --file foo.txt --fee-rate 1"
-  ))
-  .write("foo.txt", "foo")
-  .rpc_server(&rpc_server)
-  .run_and_deserialize_output();
+  let Inscribe { inscriptions, .. } =
+    CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
+      .write("foo.txt", "foo")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
 
   let inscription = inscriptions[0].id;
 
