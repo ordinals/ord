@@ -8,6 +8,7 @@ use {
     ScriptBuf,
   },
   brotlic::{BlockSize, BrotliEncoderOptions, CompressorWriter, Quality, WindowSize},
+  http::header::HeaderValue,
   io::{Cursor, Write},
   std::str,
 };
@@ -40,14 +41,9 @@ pub struct Inscription {
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(
-    content_type: Option<Vec<u8>>,
-    content_encoding: Option<Vec<u8>>,
-    body: Option<Vec<u8>>,
-  ) -> Self {
+  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
     Self {
       content_type,
-      content_encoding,
       body,
       ..Default::default()
     }
@@ -66,7 +62,7 @@ impl Inscription {
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
-    let (content_type, compression_mode) = Media::content_type(path)?;
+    let (content_type, compression_mode) = Media::content_type_for_path(path)?;
 
     let (body, content_encoding) = if compress {
       let encoder = BrotliEncoderOptions::new()
@@ -230,8 +226,8 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
-  pub(crate) fn content_encoding(&self) -> Option<&str> {
-    str::from_utf8(self.content_encoding.as_ref()?).ok()
+  pub(crate) fn content_encoding(&self) -> Option<HeaderValue> {
+    HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
   }
 
   pub(crate) fn metadata(&self) -> Option<Value> {

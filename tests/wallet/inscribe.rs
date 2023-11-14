@@ -1,6 +1,4 @@
-use std::ops::Deref;
-
-use super::*;
+use {super::*, std::ops::Deref};
 
 #[test]
 fn inscribe_creates_inscriptions() {

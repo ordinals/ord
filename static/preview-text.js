@@ -2,7 +2,6 @@ const inscription = document.documentElement.dataset.inscription;
 
 const response = await fetch(`/content/${inscription}`);
 const text = await response.text();
-
 for (const pre of document.querySelectorAll('pre')) {
   pre.textContent = text;
 }

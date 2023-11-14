@@ -68,7 +68,7 @@
 %% }
 %% if let Some(content_encoding) = self.inscription.content_encoding() {
   <dt>content encoding</dt>
-  <dd>{{ content_encoding }}</dd>
+  <dd>{{ content_encoding.to_str().unwrap_or_default() }}</dd>
 %% }
   <dt>timestamp</dt>
   <dd><time>{{ self.timestamp }}</time></dd>

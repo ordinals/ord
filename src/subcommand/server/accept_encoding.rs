@@ -1,6 +1,6 @@
 use {super::*, axum::extract::FromRef};
-
-pub(crate) struct AcceptEncoding(pub(crate) Vec<String>);
+#[derive(Default)]
+pub(crate) struct AcceptEncoding(pub(crate) String);
 
 #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptEncoding
@@ -18,25 +18,18 @@ where
       parts
         .headers
         .get("accept-encoding")
-        .map(|value| {
-          value
-            .to_str()
-            .map(|s| {
-              s.split(',')
-                .map(|value| {
-                  value
-                    .split(';')
-                    .next()
-                    .unwrap_or_default()
-                    .trim()
-                    .to_string()
-                })
-                .collect::<Vec<String>>()
-            })
-            .unwrap_or_default()
-        })
+        .map(|value| value.to_str().unwrap_or_default().to_owned())
         .unwrap_or_default(),
     ))
+  }
+}
+
+impl AcceptEncoding {
+  pub(crate) fn accepts(self, encoding: &str) -> bool {
+    self
+      .0
+      .split(',')
+      .any(|value| value.split(';').next().unwrap_or_default().trim() == encoding)
   }
 }
 
@@ -80,7 +73,7 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, vec!["gzip"]);
+    assert_eq!(encodings.0, "gzip");
   }
 
   #[tokio::test]
@@ -99,7 +92,7 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, vec!["deflate", "gzip", "br"]);
+    assert_eq!(encodings.0, "deflate, gzip, br");
   }
 
   #[tokio::test]
@@ -118,6 +111,6 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, vec!["deflate", "gzip", "br"]);
+    assert_eq!(encodings.0, "deflate;q=0.5, gzip;q=1.0, br;q=0.8");
   }
 }

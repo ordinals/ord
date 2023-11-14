@@ -78,12 +78,12 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
+    let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
-    let parent = remove_field(&mut fields, &PARENT_TAG);
-    let pointer = remove_field(&mut fields, &POINTER_TAG);
     let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
-    let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
+    let parent = remove_field(&mut fields, &PARENT_TAG);
+    let pointer = remove_field(&mut fields, &POINTER_TAG);
 
     let unrecognized_even_field = fields
       .keys()
@@ -409,7 +409,10 @@ mod tests {
         b"ord",
       ])]),
       vec![ParsedEnvelope {
-        payload: inscription_with_encoding("text/plain;charset=utf-8", "br", "ord"),
+        payload: Inscription {
+          content_encoding: Some("br".as_bytes().to_vec()),
+          ..inscription("text/plain;charset=utf-8", "ord")
+        },
         ..Default::default()
       }]
     );

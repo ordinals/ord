@@ -982,7 +982,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding.0)?
+      Self::content_response(inscription, accept_encoding)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -990,7 +990,7 @@ impl Server {
 
   fn content_response(
     inscription: Inscription,
-    encodings: Vec<String>,
+    accept_encoding: AcceptEncoding,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
@@ -1003,14 +1003,12 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if encodings.contains(&content_encoding.to_string()) {
-        headers.insert(
-          header::CONTENT_ENCODING,
-          HeaderValue::from_str(content_encoding)
-            .map_err(|err| anyhow!("Failed to set content encoding header: {err}"))?,
-        );
+      if accept_encoding.accepts(content_encoding.to_str().unwrap_or_default()) {
+        headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
-        return Err(ServerError::NotAcceptable(content_encoding.to_string()));
+        return Err(ServerError::NotAcceptable(
+          content_encoding.to_str().unwrap_or_default().to_string(),
+        ));
       }
     }
 
@@ -1063,7 +1061,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding.0)?
+        Self::content_response(inscription, accept_encoding)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -2656,8 +2654,8 @@ mod tests {
   fn content_response_no_content() {
     assert_eq!(
       Server::content_response(
-        Inscription::new(Some("text/plain".as_bytes().to_vec()), None, None),
-        vec![]
+        Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
+        AcceptEncoding::default()
       )
       .unwrap(),
       None
@@ -2667,12 +2665,8 @@ mod tests {
   #[test]
   fn content_response_with_content() {
     let (headers, body) = Server::content_response(
-      Inscription::new(
-        Some("text/plain".as_bytes().to_vec()),
-        None,
-        Some(vec![1, 2, 3]),
-      ),
-      vec![],
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
     )
     .unwrap()
     .unwrap();
@@ -2708,10 +2702,12 @@ mod tests {
 
   #[test]
   fn content_response_no_content_type() {
-    let (headers, body) =
-      Server::content_response(Inscription::new(None, None, Some(Vec::new())), vec![])
-        .unwrap()
-        .unwrap();
+    let (headers, body) = Server::content_response(
+      Inscription::new(None, Some(Vec::new())),
+      AcceptEncoding::default(),
+    )
+    .unwrap()
+    .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
@@ -2720,8 +2716,8 @@ mod tests {
   #[test]
   fn content_response_bad_content_type() {
     let (headers, body) = Server::content_response(
-      Inscription::new(Some("\n".as_bytes().to_vec()), None, Some(Vec::new())),
-      vec![],
+      Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
+      AcceptEncoding::default(),
     )
     .unwrap()
     .unwrap();
@@ -3057,7 +3053,7 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("foo/bar".as_bytes().to_vec()), None, None).to_witness(),
+        Inscription::new(Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
       )],
       ..Default::default()
     });
@@ -3083,7 +3079,7 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("image/png".as_bytes().to_vec()), None, None).to_witness(),
+        Inscription::new(Some("image/png".as_bytes().to_vec()), None).to_witness(),
       )],
       ..Default::default()
     });

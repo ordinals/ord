@@ -58,7 +58,7 @@ impl Media {
     ("video/webm", CompressionMode::Generic, Media::Video, &["webm"]),
   ];
 
-  pub(crate) fn content_type(path: &Path) -> Result<(&'static str, CompressionMode), Error> {
+  pub(crate) fn content_type_for_path(path: &Path) -> Result<(&'static str, CompressionMode), Error> {
     let extension = path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
@@ -133,23 +133,23 @@ mod tests {
   #[test]
   fn for_extension() {
     assert_eq!(
-      Media::content_type(Path::new("pepe.jpg")).unwrap(),
+      Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
       ("image/jpeg", CompressionMode::Generic)
     );
     assert_eq!(
-      Media::content_type(Path::new("pepe.jpeg")).unwrap(),
+      Media::content_type_for_path(Path::new("pepe.jpeg")).unwrap(),
       ("image/jpeg", CompressionMode::Generic)
     );
     assert_eq!(
-      Media::content_type(Path::new("pepe.JPG")).unwrap(),
+      Media::content_type_for_path(Path::new("pepe.JPG")).unwrap(),
       ("image/jpeg", CompressionMode::Generic)
     );
     assert_eq!(
-      Media::content_type(Path::new("pepe.txt")).unwrap(),
+      Media::content_type_for_path(Path::new("pepe.txt")).unwrap(),
       ("text/plain;charset=utf-8", CompressionMode::Text)
     );
     assert_regex_match!(
-      Media::content_type(Path::new("pepe.foo")).unwrap_err(),
+      Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
     );
   }

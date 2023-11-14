@@ -125,19 +125,7 @@ impl From<InscriptionTemplate> for Inscription {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), None, Some(body.as_ref().into()))
-}
-
-pub(crate) fn inscription_with_encoding(
-  content_type: &str,
-  content_encoding: &str,
-  body: impl AsRef<[u8]>,
-) -> Inscription {
-  Inscription::new(
-    Some(content_type.into()),
-    Some(content_encoding.into()),
-    Some(body.as_ref().into()),
-  )
+  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
