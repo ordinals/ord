@@ -25,7 +25,7 @@ where
 }
 
 impl AcceptEncoding {
-  pub(crate) fn accepts(self, encoding: &str) -> bool {
+  pub(crate) fn is_acceptable(self, encoding: &str) -> bool {
     self
       .0
       .split(',')

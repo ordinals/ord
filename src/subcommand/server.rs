@@ -1003,7 +1003,7 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if accept_encoding.accepts(content_encoding.to_str().unwrap_or_default()) {
+      if accept_encoding.is_acceptable(content_encoding.to_str().unwrap_or_default()) {
         headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
         return Err(ServerError::NotAcceptable(
