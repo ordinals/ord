@@ -430,4 +430,23 @@ fn sat_recursive_endpoint() {
       more: false
     }
   );
+
+  for _ in 0..10 {
+    inscribe(&rpc_server);
+  }
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  let response = server
+    .request("/r/inscriptions/sat/5000000000")
+    .json::<InscriptionsSatJson>()
+    .unwrap();
+
+  assert_eq!(response.ids.len(), 100);
+  assert_eq!(response.more, false);
+  assert_eq!(response.page, 0);
+
+  inscribe(&rpc_server);
+
+
 }
