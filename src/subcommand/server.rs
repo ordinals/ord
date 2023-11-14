@@ -1,6 +1,6 @@
 use {
   self::{
-    accept_encoding_brotli::AcceptEncodingBrotli,
+    accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
@@ -43,7 +43,7 @@ use {
   },
 };
 
-mod accept_encoding_brotli;
+mod accept_encoding;
 mod accept_json;
 mod error;
 
@@ -971,7 +971,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
-    accept_encoding_brotli: AcceptEncodingBrotli,
+    accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
     if config.is_hidden(inscription_id) {
       return Ok(PreviewUnknownHtml.into_response());
@@ -982,7 +982,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding_brotli.0)?
+      Self::content_response(inscription, accept_encoding.0)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -990,7 +990,7 @@ impl Server {
 
   fn content_response(
     inscription: Inscription,
-    accept_encoding_brotli: bool,
+    encodings: Vec<String>,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
@@ -1003,7 +1003,7 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if content_encoding == "br" && accept_encoding_brotli {
+      if content_encoding == "br" && encodings.contains(&content_encoding.to_string()) {
         headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("br"));
       } else {
         return Err(ServerError::NotAcceptable(content_encoding.to_string()));
@@ -1036,7 +1036,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
-    accept_encoding_brotli: AcceptEncodingBrotli,
+    accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
     if config.is_hidden(inscription_id) {
       return Ok(PreviewUnknownHtml.into_response());
@@ -1059,7 +1059,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding_brotli.0)?
+        Self::content_response(inscription, accept_encoding.0)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -2659,7 +2659,7 @@ mod tests {
     assert_eq!(
       Server::content_response(
         Inscription::new(Some("text/plain".as_bytes().to_vec()), None, None),
-        false
+        vec![]
       )
       .unwrap(),
       None
@@ -2674,7 +2674,7 @@ mod tests {
         None,
         Some(vec![1, 2, 3]),
       ),
-      false,
+      vec![],
     )
     .unwrap()
     .unwrap();
@@ -2711,7 +2711,7 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) =
-      Server::content_response(Inscription::new(None, None, Some(Vec::new())), false)
+      Server::content_response(Inscription::new(None, None, Some(Vec::new())), vec![])
         .unwrap()
         .unwrap();
 
@@ -2723,7 +2723,7 @@ mod tests {
   fn content_response_bad_content_type() {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("\n".as_bytes().to_vec()), None, Some(Vec::new())),
-      false,
+      vec![],
     )
     .unwrap()
     .unwrap();
