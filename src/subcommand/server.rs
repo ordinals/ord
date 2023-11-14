@@ -1003,8 +1003,12 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if content_encoding == "br" && encodings.contains(&content_encoding.to_string()) {
-        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("br"));
+      if encodings.contains(&content_encoding.to_string()) {
+        headers.insert(
+          header::CONTENT_TYPE,
+          HeaderValue::from_str(content_encoding)
+            .map_err(|err| anyhow!("Failed to set content encoding header: {err}"))?,
+        );
       } else {
         return Err(ServerError::NotAcceptable(content_encoding.to_string()));
       }
