@@ -1,6 +1,7 @@
 use {super::*, axum::extract::FromRef};
+
 #[derive(Default)]
-pub(crate) struct AcceptEncoding(pub(crate) String);
+pub(crate) struct AcceptEncoding(Option<String>);
 
 #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptEncoding
@@ -18,8 +19,7 @@ where
       parts
         .headers
         .get("accept-encoding")
-        .map(|value| value.to_str().unwrap_or_default().to_owned())
-        .unwrap_or_default(),
+        .map(|value| value.to_str().unwrap_or_default().to_owned()),
     ))
   }
 }
@@ -28,6 +28,8 @@ impl AcceptEncoding {
   pub(crate) fn is_acceptable(&self, encoding: &str) -> bool {
     self
       .0
+      .clone()
+      .unwrap_or_default()
       .split(',')
       .any(|value| value.split(';').next().unwrap_or_default().trim() == encoding)
   }
@@ -54,7 +56,7 @@ mod tests {
     .await
     .unwrap();
 
-    assert!(encodings.0.is_empty());
+    assert!(encodings.0.is_none())
   }
 
   #[tokio::test]
@@ -73,7 +75,7 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, "gzip");
+    assert_eq!(encodings.0, Some("gzip".to_string()));
   }
 
   #[tokio::test]
@@ -92,7 +94,7 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, "deflate, gzip, br");
+    assert_eq!(encodings.0, Some("deflate, gzip, br".to_string()));
   }
 
   #[tokio::test]
@@ -111,6 +113,37 @@ mod tests {
     .await
     .unwrap();
 
-    assert_eq!(encodings.0, "deflate;q=0.5, gzip;q=1.0, br;q=0.8");
+    assert_eq!(
+      encodings.0,
+      Some("deflate;q=0.5, gzip;q=1.0, br;q=0.8".to_string())
+    );
+  }
+
+  #[tokio::test]
+  async fn accepts_encoding() {
+    let req = Request::builder()
+      .header(ACCEPT_ENCODING, "deflate;q=0.5, gzip;q=1.0, br;q=0.8")
+      .body(())
+      .unwrap();
+
+    let encodings = AcceptEncoding::from_request_parts(
+      &mut req.into_parts().0,
+      &Arc::new(ServerConfig {
+        is_json_api_enabled: false,
+      }),
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(
+      encodings.0,
+      Some("deflate;q=0.5, gzip;q=1.0, br;q=0.8".to_string())
+    );
+
+    assert!(encodings.is_acceptable("deflate"));
+    assert!(encodings.is_acceptable("gzip"));
+    assert!(encodings.is_acceptable("br"));
+
+    assert!(!encodings.is_acceptable("bzip2"));
   }
 }

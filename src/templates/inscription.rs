@@ -483,10 +483,14 @@ mod tests {
         ..Default::default()
       },
       "
+        <h1>Inscription 1</h1>
         .*
-        <dt>content encoding</dt>
-        <dd>br</dd>
-        .*
+        <dl>
+          .*
+          <dt>content encoding</dt>
+          <dd>br</dd>
+          .*
+        </dl>
       "
       .unindent()
     );
