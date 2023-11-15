@@ -160,6 +160,7 @@ impl Inscribe {
         mode = batchfile.mode;
 
         let destination_count = match batchfile.mode {
+          Mode::Reinscribe => 1,
           Mode::SharedOutput => 1,
           Mode::SeparateOutputs => inscriptions.len(),
         };

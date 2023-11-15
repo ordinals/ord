@@ -132,6 +132,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
+        Mode::Reinscribe => 0,
         Mode::SharedOutput => {
           if self.parent_info.is_some() {
             1
@@ -149,6 +150,7 @@ impl Batch {
       };
 
       let offset = match self.mode {
+        Mode::Reinscribe => 0,
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
         Mode::SeparateOutputs => 0,
       };
@@ -198,6 +200,11 @@ impl Batch {
     }
 
     match self.mode {
+      Mode::Reinscribe => assert_eq!(
+        self.destinations.len(),
+        1,
+        "invariant: reinscribe has only one destination"
+      ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
         self.inscriptions.len(),
@@ -286,6 +293,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
+          Mode::Reinscribe => self.postage.to_sat(),
           Mode::SeparateOutputs => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
@@ -520,6 +528,7 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub(crate) enum Mode {
+  Reinscribe,
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
   #[serde(rename = "shared-output")]
