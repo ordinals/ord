@@ -2290,11 +2290,11 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Ordinals</title>.*
-<div class=tabs>
+<nav class=tabs>
   <a href=/inscriptions>Inscriptions</a>
   <span>\|</span>
   <a href=/blocks>Blocks</a>
-</div>
+</nav>
 <div class=thumbnails>
   <a href=/inscription/{}>.*</a>
   (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
