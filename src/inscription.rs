@@ -748,6 +748,7 @@ mod tests {
     case(Some("text/plain"), Some("foo.bitmap"), true);
     case(Some("text/plain"), Some("gib bc1"), true);
     case(Some("text/plain"), Some("{}"), true);
+    case(Some("text/plain"), Some(" {} "), true);
     case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
 
     assert!(!Inscription {
