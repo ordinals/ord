@@ -378,13 +378,14 @@ impl<'index> Updater<'_> {
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
+    let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
+    let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
     let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
-    let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
     let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut sequence_number_to_inscription_id =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
@@ -410,24 +411,38 @@ impl<'index> Updater<'_> {
       .map(|unbound_inscriptions| unbound_inscriptions.value())
       .unwrap_or(0);
 
-    let mut inscription_updater = InscriptionUpdater::new(
-      self.height,
-      &mut inscription_id_to_children,
-      &mut inscription_id_to_satpoint,
-      value_receiver,
-      &mut inscription_id_to_inscription_entry,
-      lost_sats,
-      &mut inscription_number_to_inscription_id,
-      cursed_inscription_count,
+    let next_sequence_number = sequence_number_to_inscription_id
+      .iter()?
+      .next_back()
+      .and_then(|result| result.ok())
+      .map(|(number, _id)| number.value() + 1)
+      .unwrap_or(0);
+
+    let home_inscription_count = home_inscriptions.len()?;
+
+    let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
-      &mut sequence_number_to_inscription_id,
-      &mut outpoint_to_value,
-      &mut sat_to_inscription_id,
-      &mut satpoint_to_inscription_id,
-      block.header.time,
+      cursed_inscription_count,
+      flotsam: Vec::new(),
+      height: self.height,
+      home_inscription_count,
+      home_inscriptions: &mut home_inscriptions,
+      id_to_children: &mut inscription_id_to_children,
+      id_to_entry: &mut inscription_id_to_inscription_entry,
+      id_to_satpoint: &mut inscription_id_to_satpoint,
+      inscription_number_to_id: &mut inscription_number_to_inscription_id,
+      lost_sats,
+      next_sequence_number,
+      outpoint_to_value: &mut outpoint_to_value,
+      reward: Height(self.height).subsidy(),
+      sat_to_inscription_id: &mut sat_to_inscription_id,
+      satpoint_to_id: &mut satpoint_to_inscription_id,
+      sequence_number_to_id: &mut sequence_number_to_inscription_id,
+      timestamp: block.header.time,
       unbound_inscriptions,
       value_cache,
-    )?;
+      value_receiver,
+    };
 
     if self.index.index_sats {
       let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;

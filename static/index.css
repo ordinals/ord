@@ -38,6 +38,10 @@ h1 a {
   color: var(--light-fg);
 }
 
+h1 a:visited {
+  color: var(--light-fg);
+}
+
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
@@ -61,7 +65,7 @@ dt {
   margin-top: 0.5rem;
 }
 
-nav {
+.links {
   align-items: center;
   background-color: var(--light-bg);
   display: flex;
@@ -69,7 +73,7 @@ nav {
   padding: 1rem;
 }
 
-nav > :first-child {
+.links > :first-child {
   color: var(--light-fg);
   font-weight: bold;
 }
@@ -100,7 +104,7 @@ ol, ul {
 }
 
 @media (max-width: 38rem) {
-  nav {
+  .links {
     flex-direction: column;
   }
 }
@@ -233,4 +237,23 @@ a.mythic {
 
 .inscription > a > iframe {
   width: 100%;
+}
+
+.tabs {
+  align-items: center;
+  display: flex;
+}
+
+.tabs > a {
+  flex: 1;
+  padding: 1rem;
+  color: var(--light-fg);
+}
+
+.tabs > *:nth-child(1) {
+  text-align: right;
+}
+
+.tabs > *:nth-child(3) {
+  text-align: left;
 }
