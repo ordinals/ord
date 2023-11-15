@@ -13,8 +13,8 @@ use {
       InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
       OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatId, SatInfoJson,
-      SatJson, TransactionHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatId, SatJson, 
+      TransactionHtml,
     },
   },
   axum::{
@@ -228,7 +228,6 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/sat/:sat", get(Self::sat_info))
         .route("/r/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -491,36 +490,6 @@ impl Server {
 
   async fn ordinal(Path(sat): Path<String>) -> Redirect {
     Redirect::to(&format!("/sat/{sat}"))
-  }
-
-  async fn sat_info(
-    Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-  ) -> ServerResult<Json<SatInfoJson>> {
-    let inscriptions = index.get_inscription_ids_by_sat(sat)?;
-    let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
-      inscriptions.first().and_then(|&first_inscription_id| {
-        index
-          .get_inscription_satpoint_by_id(first_inscription_id)
-          .ok()
-          .flatten()
-      })
-    });
-    let blocktime = index.block_time(sat.height())?;
-
-    Ok(Json(SatInfoJson {
-      decimal: sat.decimal().to_string(),
-      degree: sat.degree().to_string(),
-      name: sat.name(),
-      block: sat.height().0,
-      cycle: sat.cycle(),
-      epoch: sat.epoch().0,
-      period: sat.period(),
-      offset: sat.third(),
-      rarity: sat.rarity(),
-      satpoint,
-      timestamp: blocktime.timestamp().timestamp(),
-    }))
   }
 
   async fn sat_from_n(
@@ -2131,26 +2100,6 @@ mod tests {
       StatusCode::OK,
       ".*<title>Sat 0</title>.*<h1>Sat 0</h1>.*",
     );
-  }
-
-  #[test]
-  fn sat_info_endpoint() {
-    let server = TestServer::new();
-    let response = server.get("/r/sat/0");
-    assert_eq!(response.status(), StatusCode::OK);
-    let sat_info: SatInfoJson = response.json().unwrap();
-    assert_eq!(sat_info.decimal, "0.0");
-    assert_eq!(sat_info.degree, "0°0′0″0‴");
-    assert_eq!(sat_info.name, "nvtdijuwxlp");
-    assert_eq!(sat_info.block, 0);
-    assert_eq!(sat_info.cycle, 0);
-    assert_eq!(sat_info.epoch, 0);
-    assert_eq!(sat_info.period, 0);
-    assert_eq!(sat_info.offset, 0);
-    assert_eq!(sat_info.rarity, Rarity::Mythic);
-    // TODO: get the sat point and timestamp working in test
-    // assert_eq!(sat_info.satpoint, Some(SatPoint::from_str(":0:0").unwrap()));
-    // assert_eq!(sat_info.timestamp, 1296688602);
   }
 
   #[test]
