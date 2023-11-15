@@ -38,6 +38,10 @@ h1 a {
   color: var(--light-fg);
 }
 
+h1 a:visited {
+  color: var(--light-fg);
+}
+
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
