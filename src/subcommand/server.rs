@@ -2267,13 +2267,6 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/plain", "{}").to_witness())],
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
     let mut ids = Vec::new();
 
     for i in 0..101 {
@@ -2284,6 +2277,13 @@ mod tests {
       ids.push(InscriptionId { txid, index: 0 });
       server.mine_blocks(1);
     }
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "{}").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
 
     server.assert_response_regex(
       "/",
