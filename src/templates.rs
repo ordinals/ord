@@ -2,6 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
+  blocks::BlocksHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
   home::HomeHtml,
@@ -26,6 +27,7 @@ pub(crate) use {
 };
 
 pub mod block;
+mod blocks;
 mod children;
 mod clock;
 mod home;
@@ -133,7 +135,7 @@ mod tests {
   </head>
   <body>
   <header>
-    <nav>
+    <nav class=links>
       <a href=/>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock>Clock</a>
@@ -161,7 +163,7 @@ mod tests {
         domain: None,
         index_sats: true,
       }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
@@ -173,7 +175,7 @@ mod tests {
         domain: None,
         index_sats: false,
       }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
   }
 
@@ -185,7 +187,7 @@ mod tests {
         domain: None,
         index_sats: true,
       }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
   }
 }

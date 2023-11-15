@@ -298,11 +298,14 @@ impl Api for Server {
 
     let value = Amount::from_btc(amount).expect("error converting amount to sat");
 
-    let (outpoint, utxo_amount) = state
+    let (outpoint, utxo_amount) = match state
       .utxos
       .iter()
       .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
-      .expect("failed to get a utxo");
+    {
+      Some((outpoint, utxo_amount)) => (outpoint, utxo_amount),
+      _ => return Err(Self::not_found()),
+    };
 
     let mut transaction = Transaction {
       version: 1,

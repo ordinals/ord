@@ -12,6 +12,7 @@ enum Origin {
   New {
     cursed: bool,
     fee: u64,
+    hidden: bool,
     parent: Option<InscriptionId>,
     pointer: Option<u64>,
     unbound: bool,
@@ -22,88 +23,35 @@ enum Origin {
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
-  flotsam: Vec<Flotsam>,
-  height: u64,
-  id_to_children:
+  pub(super) flotsam: Vec<Flotsam>,
+  pub(super) height: u64,
+  pub(super) home_inscription_count: u64,
+  pub(super) home_inscriptions: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) id_to_children:
     &'a mut MultimapTable<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
-  id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
-  value_receiver: &'a mut Receiver<u64>,
-  id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  pub(super) id_to_satpoint:
+    &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
+  pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) id_to_entry:
+    &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
   pub(super) cursed_inscription_count: u64,
   pub(super) blessed_inscription_count: u64,
   pub(super) next_sequence_number: u64,
-  inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
-  sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-  outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-  reward: u64,
-  sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
-  satpoint_to_id:
+  pub(super) inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+  pub(super) sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
+  pub(super) reward: u64,
+  pub(super) sat_to_inscription_id:
+    &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) satpoint_to_id:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
-  timestamp: u32,
+  pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
-  value_cache: &'a mut HashMap<OutPoint, u64>,
+  pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
-  pub(super) fn new(
-    height: u64,
-    id_to_children: &'a mut MultimapTable<
-      'db,
-      'tx,
-      &'static InscriptionIdValue,
-      &'static InscriptionIdValue,
-    >,
-    id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
-    value_receiver: &'a mut Receiver<u64>,
-    id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-    lost_sats: u64,
-    inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
-    cursed_inscription_count: u64,
-    blessed_inscription_count: u64,
-    sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-    outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-    sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
-    satpoint_to_id: &'a mut MultimapTable<
-      'db,
-      'tx,
-      &'static SatPointValue,
-      &'static InscriptionIdValue,
-    >,
-    timestamp: u32,
-    unbound_inscriptions: u64,
-    value_cache: &'a mut HashMap<OutPoint, u64>,
-  ) -> Result<Self> {
-    let next_sequence_number = sequence_number_to_id
-      .iter()?
-      .next_back()
-      .and_then(|result| result.ok())
-      .map(|(number, _id)| number.value() + 1)
-      .unwrap_or(0);
-
-    Ok(Self {
-      flotsam: Vec::new(),
-      height,
-      id_to_children,
-      id_to_satpoint,
-      value_receiver,
-      id_to_entry,
-      lost_sats,
-      cursed_inscription_count,
-      blessed_inscription_count,
-      next_sequence_number,
-      sequence_number_to_id,
-      inscription_number_to_id,
-      outpoint_to_value,
-      reward: Height(height).subsidy(),
-      sat_to_inscription_id,
-      satpoint_to_id,
-      timestamp,
-      unbound_inscriptions,
-      value_cache,
-    })
-  }
-
   pub(super) fn index_envelopes(
     &mut self,
     tx: &Transaction,
@@ -248,6 +196,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           origin: Origin::New {
             cursed,
             fee: 0,
+            hidden: inscription.payload.hidden(),
             parent: inscription.payload.parent(),
             pointer: inscription.payload.pointer(),
             unbound,
@@ -290,6 +239,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             Origin::New {
               cursed,
               fee: _,
+              hidden,
               parent,
               pointer,
               unbound,
@@ -300,8 +250,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: (total_input_value - total_output_value) / u64::from(id_counter),
               cursed,
+              fee: (total_input_value - total_output_value) / u64::from(id_counter),
+              hidden,
               parent,
               pointer,
               unbound,
@@ -444,6 +395,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         fee,
         parent,
         unbound,
+        hidden,
         ..
       } => {
         let inscription_number = if cursed {
@@ -498,6 +450,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self
             .id_to_children
             .insert(&parent.store(), &inscription_id)?;
+        }
+
+        if !hidden {
+          self
+            .home_inscriptions
+            .insert(&sequence_number, &inscription_id)?;
+
+          if self.home_inscription_count == 100 {
+            self.home_inscriptions.pop_first()?;
+          } else {
+            self.home_inscription_count += 1;
+          }
         }
 
         unbound

@@ -20,7 +20,7 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
-  std::collections::HashMap,
+  std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
 };
 
@@ -55,6 +55,7 @@ define_multimap_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &Inscriptio
 define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
+define_table! { HOME_INSCRIPTIONS, u64, &InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_RUNE, &InscriptionIdValue, u128 }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
@@ -274,6 +275,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
+        tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_RUNE)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -331,12 +333,28 @@ impl Index {
     })
   }
 
+  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    Ok(
+      self
+        .client
+        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+        .into_iter()
+        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
+        .collect(),
+    )
+  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -351,19 +369,18 @@ impl Index {
         }),
     );
 
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
 
-    for JsonOutPoint { txid, vout } in self
-      .client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-    {
+    for outpoint in locked_utxos {
       utxos.insert(
-        OutPoint { txid, vout },
-        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        outpoint,
+        Amount::from_sat(
+          self
+            .client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+          .value,
+        ),
       );
     }
     let rtx = self.database.begin_read()?;
@@ -1291,6 +1308,19 @@ impl Index {
         .collect(),
       inscription_ids.len(),
     ))
+  }
+
+  pub(crate) fn get_home_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(HOME_INSCRIPTIONS)?
+        .iter()?
+        .rev()
+        .flat_map(|result| result.map(|(_number, id)| InscriptionId::load(*id.value())))
+        .collect(),
+    )
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
@@ -2333,7 +2363,9 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -2360,7 +2392,9 @@ mod tests {
 
   #[test]
   fn lost_sat_ranges_are_tracked_correctly() {
-    let context = Context::builder().arg("--index-sats").build();
+    let context = Context::builder()
+      .args(["--index-sats", "--first-inscription-height", "10"])
+      .build();
 
     let null_ranges = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
       List::Unspent(ranges) => ranges,
