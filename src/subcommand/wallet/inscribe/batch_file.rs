@@ -51,11 +51,12 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
+    client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
-  ) -> Result<Vec<(Inscription, Option<Address>)>> {
+  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
 
     if metadata.is_some() {
@@ -68,27 +69,35 @@ impl Batchfile {
     let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
+    let mut destinations = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
-      inscriptions.push((
-        Inscription::from_file(
-          chain,
-          &entry.file,
-          self.parent,
-          if i == 0 { None } else { Some(pointer) },
-          entry.metaprotocol.clone(),
-          match &metadata {
-            Some(metadata) => Some(metadata.clone()),
-            None => entry.metadata()?,
+      inscriptions.push(Inscription::from_file(
+        chain,
+        &entry.file,
+        self.parent,
+        if i == 0 { None } else { Some(pointer) },
+        entry.metaprotocol.clone(),
+        match &metadata {
+          Some(metadata) => Some(metadata.clone()),
+          None => entry.metadata()?,
+        },
+      )?);
+
+      if !(self.mode == Mode::SharedOutput && i >= 1) {
+        destinations.push(entry.destination.as_ref().map_or_else(
+          || get_change_address(client, chain),
+          |address| {
+            address
+              .clone()
+              .require_network(chain.network())
+              .map_err(|e| e.into())
           },
-        )?,
-        entry
-          .destination
-          .map(|address| address.require_network(chain.network())),
-      ));
+        )?);
+      }
 
       pointer += postage.to_sat();
     }
 
-    Ok(inscriptions)
+    Ok((inscriptions, destinations))
   }
 }
