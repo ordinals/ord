@@ -224,42 +224,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     // still have to normalize over inscription size
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
-    let mut floating_inscriptions = floating_inscriptions
-      .into_iter()
-      .map(|flotsam| {
-        if let Flotsam {
-          inscription_id,
-          offset,
-          origin:
-            Origin::New {
-              cursed,
-              fee: _,
-              hidden,
-              parent,
-              pointer,
-              reinscription,
-              unbound,
-            },
-        } = flotsam
-        {
-          Flotsam {
-            inscription_id,
-            offset,
-            origin: Origin::New {
-              cursed,
-              fee: (total_input_value - total_output_value) / u64::from(id_counter),
-              hidden,
-              parent,
-              pointer,
-              reinscription,
-              unbound,
-            },
-          }
-        } else {
-          flotsam
-        }
-      })
-      .collect::<Vec<Flotsam>>();
+
+    for flotsam in &mut floating_inscriptions {
+      if let Flotsam {
+        origin: Origin::New { ref mut fee, .. },
+        ..
+      } = flotsam
+      {
+        *fee = (total_input_value - total_output_value) / u64::from(id_counter);
+      }
+    }
 
     let is_coinbase = tx
       .input
