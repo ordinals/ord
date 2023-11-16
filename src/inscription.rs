@@ -11,18 +11,6 @@ use {
   std::str,
 };
 
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Curse {
-  DuplicateField,
-  IncompleteField,
-  NotAtOffsetZero,
-  NotInFirstInput,
-  Pointer,
-  Pushnum,
-  Reinscription,
-  UnrecognizedEvenField,
-}
-
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,

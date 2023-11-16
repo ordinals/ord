@@ -38,6 +38,16 @@
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
+%% if self.charms != 0 {
+  <dt>charms</dt>
+  <dd>
+%% for charm in Charm::ALL {
+%%   if charm.is_set(self.charms) {
+    <span title={{charm.title()}}>{{charm.icon()}}</span>
+%%   }
+%% }
+  </dd>
+%% }
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
