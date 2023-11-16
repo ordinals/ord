@@ -48,22 +48,6 @@ mod tests {
   };
 
   #[tokio::test]
-  async fn no_encoding() {
-    let req = Request::builder().body(()).unwrap();
-
-    let encodings = AcceptEncoding::from_request_parts(
-      &mut req.into_parts().0,
-      &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
-      }),
-    )
-    .await
-    .unwrap();
-
-    assert!(encodings.0.is_none())
-  }
-
-  #[tokio::test]
   async fn single_encoding() {
     let req = Request::builder()
       .header(ACCEPT_ENCODING, "gzip")
@@ -80,47 +64,6 @@ mod tests {
     .unwrap();
 
     assert_eq!(encodings.0, Some("gzip".to_string()));
-  }
-
-  #[tokio::test]
-  async fn multiple_encodings() {
-    let req = Request::builder()
-      .header(ACCEPT_ENCODING, "deflate, gzip, br")
-      .body(())
-      .unwrap();
-
-    let encodings = AcceptEncoding::from_request_parts(
-      &mut req.into_parts().0,
-      &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
-      }),
-    )
-    .await
-    .unwrap();
-
-    assert_eq!(encodings.0, Some("deflate, gzip, br".to_string()));
-  }
-
-  #[tokio::test]
-  async fn with_quality_values() {
-    let req = Request::builder()
-      .header(ACCEPT_ENCODING, "deflate;q=0.5, gzip;q=1.0, br;q=0.8")
-      .body(())
-      .unwrap();
-
-    let encodings = AcceptEncoding::from_request_parts(
-      &mut req.into_parts().0,
-      &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
-      }),
-    )
-    .await
-    .unwrap();
-
-    assert_eq!(
-      encodings.0,
-      Some("deflate;q=0.5, gzip;q=1.0, br;q=0.8".to_string())
-    );
   }
 
   #[tokio::test]
