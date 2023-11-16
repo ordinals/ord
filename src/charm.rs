@@ -42,7 +42,7 @@ impl Charm {
       Charm::Epic => "🪻",
       Charm::Legendary => "🌝",
       Charm::Lost => "🤔",
-      Charm::Nineball => "🌅",
+      Charm::Nineball => "9️⃣",
       Charm::Rare => "🧿",
       Charm::Reinscription => "♻️",
       Charm::Unbound => "🔓",
