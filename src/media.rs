@@ -22,7 +22,6 @@ pub(crate) enum Media {
 }
 
 impl Media {
-
   #[rustfmt::skip]
   const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str])] = &[
     ("application/cbor",            BROTLI_MODE_GENERIC, Media::Unknown,  &["cbor"]),
