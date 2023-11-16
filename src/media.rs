@@ -29,6 +29,7 @@ impl Media {
     ("application/pdf",             BROTLI_MODE_GENERIC, Media::Pdf,      &["pdf"]),
     ("application/pgp-signature",   BROTLI_MODE_TEXT,    Media::Text,     &["asc"]),
     ("application/protobuf",        BROTLI_MODE_GENERIC, Media::Unknown,  &["binpb"]),
+    ("application/octet-stream",    BROTLI_MODE_GENERIC, Media::Unknown,  &["bin"]),
     ("application/yaml",            BROTLI_MODE_TEXT,    Media::Code,     &["yaml", "yml"]),
     ("audio/flac",                  BROTLI_MODE_GENERIC, Media::Audio,    &["flac"]),
     ("audio/mpeg",                  BROTLI_MODE_GENERIC, Media::Audio,    &["mp3"]),
