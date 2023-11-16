@@ -97,7 +97,7 @@ impl TestServer {
       .unwrap()
   }
 
-  fn sync_server(&self) {
+  pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 

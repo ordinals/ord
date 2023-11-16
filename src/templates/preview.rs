@@ -31,8 +31,8 @@ pub(crate) struct PreviewPdfHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
-pub(crate) struct PreviewTextHtml<'a> {
-  pub(crate) text: &'a str,
+pub(crate) struct PreviewTextHtml {
+  pub(crate) inscription_id: InscriptionId,
 }
 
 #[derive(boilerplate::Boilerplate)]
