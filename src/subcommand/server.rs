@@ -10,11 +10,12 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, ChildrenHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml,
-      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
-      OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, HomeHtml, InputHtml,
+      InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml,
+      SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -192,8 +193,14 @@ impl Server {
         .route("/blockhash", get(Self::block_hash))
         .route("/blockhash/:height", get(Self::block_hash_from_height))
         .route("/blockheight", get(Self::block_height))
+        .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
+        .route("/children/:inscription_id", get(Self::children))
+        .route(
+          "/children/:inscription_id/:page",
+          get(Self::children_paginated),
+        )
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
@@ -201,11 +208,6 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
-        .route("/children/:inscription_id", get(Self::children))
-        .route(
-          "/children/:inscription_id/:page",
-          get(Self::children_paginated),
-        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
@@ -611,6 +613,18 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
+    Ok(
+      HomeHtml {
+        inscriptions: index.get_home_inscriptions()?,
+      }
+      .page(page_config),
+    )
+  }
+
+  async fn blocks(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<BlocksHtml>> {
     let blocks = index.blocks(100)?;
     let mut featured_blocks = BTreeMap::new();
     for (height, hash) in blocks.iter().take(5) {
@@ -620,7 +634,7 @@ impl Server {
       featured_blocks.insert(*hash, inscriptions);
     }
 
-    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config))
+    Ok(BlocksHtml::new(blocks, featured_blocks).page(page_config))
   }
 
   async fn install_script() -> Redirect {
@@ -2267,14 +2281,60 @@ mod tests {
 
   #[test]
   fn home() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+
+    for i in 0..101 {
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      ids.push(InscriptionId { txid, index: 0 });
+      server.mine_blocks(1);
+    }
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "{}").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/",
+      StatusCode::OK,
+      format!(
+        r".*<title>Ordinals</title>.*
+<nav class=tabs>
+  <a href=/inscriptions>Inscriptions</a>
+  <span>\|</span>
+  <a href=/blocks>Blocks</a>
+</nav>
+<div class=thumbnails>
+  <a href=/inscription/{}>.*</a>
+  (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
+</div>
+.*
+",
+        ids[100]
+      ),
+    );
+  }
+
+  #[test]
+  fn blocks() {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(1);
 
     test_server.assert_response_regex(
-      "/",
+      "/blocks",
       StatusCode::OK,
-      ".*<title>Ordinals</title>.*
+      ".*<title>Blocks</title>.*
+<h1>Blocks</h1>
 <div class=block>
   <h2><a href=/block/1>Block 1</a></h2>
   <div class=thumbnails>
@@ -2299,16 +2359,16 @@ mod tests {
   }
 
   #[test]
-  fn home_block_limit() {
+  fn blocks_block_limit() {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(101);
 
     test_server.assert_response_regex(
-    "/",
-    StatusCode::OK,
-    ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
-  );
+      "/blocks",
+      StatusCode::OK,
+      ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
+    );
   }
 
   #[test]
