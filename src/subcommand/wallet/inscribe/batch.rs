@@ -572,6 +572,7 @@ impl Batchfile {
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
+    compress: bool,
   ) -> Result<Vec<Inscription>> {
     assert!(!self.inscriptions.is_empty());
 
@@ -596,6 +597,7 @@ impl Batchfile {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
+        compress,
       )?);
 
       pointer += postage.to_sat();
