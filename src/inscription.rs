@@ -7,7 +7,7 @@ use {
     },
     ScriptBuf,
   },
-  brotlic::{BlockSize, BrotliEncoderOptions, CompressorWriter, Quality, WindowSize},
+  brotli::enc::{backward_references::BrotliEncoderParams, writer::CompressorWriter},
   http::header::HeaderValue,
   io::{Cursor, Write},
   std::str,
@@ -65,21 +65,23 @@ impl Inscription {
     let (content_type, compression_mode) = Media::content_type_for_path(path)?;
 
     let (body, content_encoding) = if compress {
-      let encoder = BrotliEncoderOptions::new()
-        .block_size(BlockSize::best())
-        .mode(compression_mode)
-        .quality(Quality::best())
-        .size_hint(body.len().try_into().unwrap_or(u32::MAX))
-        .window_size(WindowSize::best())
-        .build()?;
+      let mut compressed = Vec::new();
 
-      let mut compressor = CompressorWriter::with_encoder(encoder, Vec::new());
-
-      compressor
-        .write_all(&body)
-        .with_context(|| "failed to compress inscription")?;
-
-      let compressed = compressor.into_inner().unwrap();
+      {
+        CompressorWriter::with_params(
+          &mut compressed,
+          4096,
+          &BrotliEncoderParams {
+            lgblock: 24,
+            lgwin: 24,
+            mode: compression_mode,
+            quality: 11,
+            size_hint: body.len(),
+            ..Default::default()
+          },
+        )
+        .write_all(&body)?;
+      }
 
       if compressed.len() < body.len() {
         (compressed, Some("br".as_bytes().to_vec()))

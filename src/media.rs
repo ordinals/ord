@@ -1,6 +1,6 @@
 use {
   super::*,
-  brotlic::CompressionMode,
+  brotli::enc::backward_references::BrotliEncoderMode,
   mp4::{MediaType, Mp4Reader, TrackType},
   std::{fs::File, io::BufReader},
 };
@@ -21,46 +21,46 @@ pub(crate) enum Media {
 
 impl Media {
   #[rustfmt::skip]
-  const TABLE: &'static [(&'static str, CompressionMode, Media, &'static [&'static str])] = &[
-    ("application/cbor", CompressionMode::Generic, Media::Unknown, &["cbor"]),
-    ("application/json", CompressionMode::Text, Media::Code, &["json"]),
-    ("application/pdf", CompressionMode::Generic, Media::Pdf, &["pdf"]),
-    ("application/pgp-signature", CompressionMode::Text, Media::Text, &["asc"]),
-    ("application/protobuf", CompressionMode::Generic, Media::Unknown, &["binpb"]),
-    ("application/yaml", CompressionMode::Text, Media::Code, &["yaml", "yml"]),
-    ("audio/flac", CompressionMode::Generic, Media::Audio, &["flac"]),
-    ("audio/mpeg", CompressionMode::Generic, Media::Audio, &["mp3"]),
-    ("audio/wav", CompressionMode::Generic, Media::Audio, &["wav"]),
-    ("font/otf", CompressionMode::Generic, Media::Unknown, &["otf"]),
-    ("font/ttf", CompressionMode::Generic, Media::Unknown, &["ttf"]),
-    ("font/woff", CompressionMode::Generic, Media::Unknown, &["woff"]),
-    ("font/woff2", CompressionMode::Font, Media::Unknown, &["woff2"]),
-    ("image/apng", CompressionMode::Generic, Media::Image, &["apng"]),
-    ("image/avif", CompressionMode::Generic, Media::Image, &[]),
-    ("image/gif", CompressionMode::Generic, Media::Image, &["gif"]),
-    ("image/jpeg", CompressionMode::Generic, Media::Image, &["jpg", "jpeg"]),
-    ("image/png", CompressionMode::Generic, Media::Image, &["png"]),
-    ("image/svg+xml", CompressionMode::Text, Media::Iframe, &["svg"]),
-    ("image/webp", CompressionMode::Generic, Media::Image, &["webp"]),
-    ("model/gltf+json", CompressionMode::Text, Media::Model, &["gltf"]),
-    ("model/gltf-binary", CompressionMode::Generic, Media::Model, &["glb"]),
-    ("model/stl", CompressionMode::Generic, Media::Unknown, &["stl"]),
-    ("text/css", CompressionMode::Text, Media::Code, &["css"]),
-    ("text/html", CompressionMode::Text, Media::Iframe, &[]),
-    ("text/html;charset=utf-8", CompressionMode::Text, Media::Iframe, &["html"]),
-    ("text/javascript", CompressionMode::Text, Media::Code, &["js"]),
-    ("text/markdown", CompressionMode::Text, Media::Markdown, &[]),
-    ("text/markdown;charset=utf-8", CompressionMode::Text, Media::Markdown, &["md"]),
-    ("text/plain", CompressionMode::Text, Media::Text, &[]),
-    ("text/plain;charset=utf-8", CompressionMode::Text, Media::Text, &["txt"]),
-    ("text/x-python", CompressionMode::Text, Media::Code, &["py"]),
-    ("video/mp4", CompressionMode::Generic, Media::Video, &["mp4"]),
-    ("video/webm", CompressionMode::Generic, Media::Video, &["webm"]),
+  const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str])] = &[
+    ("application/cbor", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["cbor"]),
+    ("application/json", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Code, &["json"]),
+    ("application/pdf", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Pdf, &["pdf"]),
+    ("application/pgp-signature", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Text, &["asc"]),
+    ("application/protobuf", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["binpb"]),
+    ("application/yaml", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Code, &["yaml", "yml"]),
+    ("audio/flac", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Audio, &["flac"]),
+    ("audio/mpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Audio, &["mp3"]),
+    ("audio/wav", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Audio, &["wav"]),
+    ("font/otf", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["otf"]),
+    ("font/ttf", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["ttf"]),
+    ("font/woff", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["woff"]),
+    ("font/woff2", BrotliEncoderMode::BROTLI_MODE_FONT, Media::Unknown, &["woff2"]),
+    ("image/apng", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &["apng"]),
+    ("image/avif", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &[]),
+    ("image/gif", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &["gif"]),
+    ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &["jpg", "jpeg"]),
+    ("image/png", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &["png"]),
+    ("image/svg+xml", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Iframe, &["svg"]),
+    ("image/webp", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Image, &["webp"]),
+    ("model/gltf+json", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Model, &["gltf"]),
+    ("model/gltf-binary", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Model, &["glb"]),
+    ("model/stl", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Unknown, &["stl"]),
+    ("text/css", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Code, &["css"]),
+    ("text/html", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Iframe, &[]),
+    ("text/html;charset=utf-8", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Iframe, &["html"]),
+    ("text/javascript", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Code, &["js"]),
+    ("text/markdown", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Markdown, &[]),
+    ("text/markdown;charset=utf-8", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Markdown, &["md"]),
+    ("text/plain", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Text, &[]),
+    ("text/plain;charset=utf-8", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Text, &["txt"]),
+    ("text/x-python", BrotliEncoderMode::BROTLI_MODE_TEXT, Media::Code, &["py"]),
+    ("video/mp4", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Video, &["mp4"]),
+    ("video/webm", BrotliEncoderMode::BROTLI_MODE_GENERIC, Media::Video, &["webm"]),
   ];
 
   pub(crate) fn content_type_for_path(
     path: &Path,
-  ) -> Result<(&'static str, CompressionMode), Error> {
+  ) -> Result<(&'static str, BrotliEncoderMode), Error> {
     let extension = path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
@@ -136,19 +136,22 @@ mod tests {
   fn for_extension() {
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
-      ("image/jpeg", CompressionMode::Generic)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpeg")).unwrap(),
-      ("image/jpeg", CompressionMode::Generic)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.JPG")).unwrap(),
-      ("image/jpeg", CompressionMode::Generic)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.txt")).unwrap(),
-      ("text/plain;charset=utf-8", CompressionMode::Text)
+      (
+        "text/plain;charset=utf-8",
+        BrotliEncoderMode::BROTLI_MODE_TEXT
+      )
     );
     assert_regex_match!(
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
