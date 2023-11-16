@@ -3221,6 +3221,7 @@ mod tests {
 
     let response = reqwest::blocking::Client::builder()
       .default_headers(headers)
+      .brotli(false)
       .build()
       .unwrap()
       .get(server.join_url("/"))
