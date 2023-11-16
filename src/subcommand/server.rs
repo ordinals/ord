@@ -502,7 +502,7 @@ impl Server {
   ) -> ServerResult<Response> {
     let list = index.list(outpoint)?;
 
-    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    let output = if outpoint == OutPoint::null() {
       let mut value = 0;
 
       if let Some(List::Unspent(ranges)) = &list {
@@ -513,6 +513,11 @@ impl Server {
 
       TxOut {
         value,
+        script_pubkey: ScriptBuf::new(),
+      }
+    } else if outpoint == unbound_outpoint() {
+      TxOut {
+        value: 0,
         script_pubkey: ScriptBuf::new(),
       }
     } else {
@@ -2575,7 +2580,7 @@ mod tests {
 
   #[test]
   fn unbound_output_receives_unbound_inscriptions() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::new_with_regtest_with_index_sats();
 
     server.mine_blocks(1);
 
