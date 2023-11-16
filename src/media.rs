@@ -26,7 +26,7 @@ impl Media {
     ("application/pgp-signature", Media::Text, &["asc"]),
     ("application/protobuf", Media::Unknown, &["binpb"]),
     ("application/yaml", Media::Code, &["yaml", "yml"]),
-    ("application/octet-stream", Media::Unknown, &[".bin"]),
+    ("application/octet-stream", Media::Unknown, &["bin"]),
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
     ("audio/wav", Media::Audio, &["wav"]),
