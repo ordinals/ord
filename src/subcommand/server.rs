@@ -501,12 +501,13 @@ impl Server {
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let list = if outpoint == unbound_outpoint() {
+      println!("here");
       None
     } else {
       index.list(outpoint)?
     };
 
-    let output = if outpoint == OutPoint::null() {
+    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(List::Unspent(ranges)) = &list {
