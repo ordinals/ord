@@ -500,11 +500,7 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let list = if outpoint == unbound_outpoint() {
-      None
-    } else {
-      index.list(outpoint)?
-    };
+    let list = index.list(outpoint)?;
 
     let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
