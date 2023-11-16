@@ -139,6 +139,7 @@ impl Entry for RuneId {
 
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
+  pub(crate) charms: u16,
   pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) inscription_number: i64,
@@ -149,6 +150,7 @@ pub(crate) struct InscriptionEntry {
 }
 
 pub(crate) type InscriptionEntryValue = (
+  u16,         // charms
   u64,         // fee
   u64,         // height
   i64,         // inscription number
@@ -162,9 +164,10 @@ impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
   fn load(
-    (fee, height, inscription_number, parent, sat, sequence_number, timestamp): InscriptionEntryValue,
+    (charms, fee, height, inscription_number, parent, sat, sequence_number, timestamp): InscriptionEntryValue,
   ) -> Self {
     Self {
+      charms,
       fee,
       height,
       inscription_number,
@@ -181,6 +184,7 @@ impl Entry for InscriptionEntry {
 
   fn store(self) -> Self::Value {
     (
+      self.charms,
       self.fee,
       self.height,
       self.inscription_number,

@@ -1155,7 +1155,8 @@ impl Server {
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let output = if satpoint.outpoint == unbound_outpoint() {
+    let output = if satpoint.outpoint == unbound_outpoint() || satpoint.outpoint == OutPoint::null()
+    {
       None
     } else {
       Some(
@@ -1182,28 +1183,39 @@ impl Server {
 
     let rune = index.get_rune_by_inscription_id(inscription_id)?;
 
+    let mut charms = entry.charms;
+
+    if satpoint.outpoint == OutPoint::null() {
+      Charm::Lost.set(&mut charms);
+    }
+
     Ok(if accept_json.0 {
-      Json(InscriptionJson::new(
-        page_config.chain,
-        children,
-        entry.fee,
-        entry.height,
-        inscription,
+      Json(InscriptionJson {
         inscription_id,
-        entry.parent,
-        next,
-        entry.inscription_number,
-        output,
-        previous,
-        entry.sat,
+        children,
+        inscription_number: entry.inscription_number,
+        genesis_height: entry.height,
+        parent: entry.parent,
+        genesis_fee: entry.fee,
+        output_value: output.as_ref().map(|o| o.value),
+        address: output
+          .as_ref()
+          .and_then(|o| page_config.chain.address_from_script(&o.script_pubkey).ok())
+          .map(|address| address.to_string()),
+        sat: entry.sat,
         satpoint,
-        timestamp(entry.timestamp),
+        content_type: inscription.content_type().map(|s| s.to_string()),
+        content_length: inscription.content_length(),
+        timestamp: timestamp(entry.timestamp).timestamp(),
+        previous,
+        next,
         rune,
-      ))
+      })
       .into_response()
     } else {
       InscriptionHtml {
         chain: page_config.chain,
+        charms,
         children,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
@@ -2254,8 +2266,7 @@ mod tests {
       format!(
         ".*<dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>
-  <dt>preview</dt>.*<dt>output</dt>
+  <dd class=monospace>{inscription_id}</dd>.*<dt>output</dt>
   <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
@@ -3880,6 +3891,255 @@ mod tests {
           .into_iter()
           .collect(),
       }
+    );
+  }
+
+  #[test]
+  fn charm_cursed() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, Witness::default()),
+        (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
+      ],
+      outputs: 2,
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_uncommon() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=uncommon>🌱</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_nineball() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(9);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(9, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=uncommon>🌱</span>
+    <span title=nineball>9️⃣</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_reinscription() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, inscription("text/plain", "bar").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_unbound() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, envelope(&[b"ord", &[128], &[0]]))],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=cursed>👹</span>
+    <span title=unbound>🔓</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_lost() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>output value</dt>
+  <dd>5000000000</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      fee: 50 * COIN_VALUE,
+      ..Default::default()
+    });
+
+    server.mine_blocks_with_subsidy(1, 0);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=lost>🤔</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
     );
   }
 }
