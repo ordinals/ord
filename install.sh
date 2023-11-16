@@ -10,7 +10,7 @@ help() {
 Install a binary release of ord hosted on GitHub
 
 USAGE:
-    install [options]
+    install.sh [options]
 
 FLAGS:
     -h, --help      Display this message
@@ -28,11 +28,7 @@ url=https://github.com/ordinals/ord
 releases=$url/releases
 
 say() {
-  echo "install.sh: $*"
-}
-
-say_err() {
-  say "$*" >&2
+  echo "install.sh: $*" >&2
 }
 
 err() {
@@ -40,7 +36,7 @@ err() {
     rm -rf $td
   fi
 
-  say_err "error: $*"
+  say "error: $*"
   exit 1
 }
 
@@ -104,9 +100,9 @@ if [ -z ${target-} ]; then
     x86_64-Darwin) target=x86_64-apple-darwin;;
     x86_64-Linux) target=x86_64-unknown-linux-gnu;;
     *)
-      say_err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
-      say_err 'Target architecture is not supported by this install script.'
-      say_err 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
+      say 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
+      say 'Target architecture is not supported by this install script.'
+      say 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
       exit 1
     ;;
   esac
@@ -114,12 +110,12 @@ fi
 
 archive="$releases/download/$tag/$crate-$tag-$target.tar.gz"
 
-say_err "Repository:  $url"
-say_err "Crate:       $crate"
-say_err "Tag:         $tag"
-say_err "Target:      $target"
-say_err "Destination: $dest"
-say_err "Archive:     $archive"
+say "Repository:  $url"
+say "Crate:       $crate"
+say "Tag:         $tag"
+say "Target:      $target"
+say "Destination: $dest"
+say "Archive:     $archive"
 
 td=$(mktemp -d || mktemp -d -t tmp)
 curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $td --strip-components 1 -xz
