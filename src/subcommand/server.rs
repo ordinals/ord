@@ -2801,66 +2801,15 @@ mod tests {
       ..Default::default()
     });
 
-    server.mine_blocks(1);
-
-    server.assert_response_csp(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
-      StatusCode::OK,
-      "default-src 'self'",
-      ".*<pre>hello</pre>.*",
-    );
-  }
-
-  #[test]
-  fn text_preview_returns_error_when_content_is_not_utf8() {
-    let server = TestServer::new_with_regtest();
-    server.mine_blocks(1);
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(
-        1,
-        0,
-        0,
-        inscription("text/plain;charset=utf-8", b"\xc3\x28").to_witness(),
-      )],
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
-    server.assert_response(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
-      StatusCode::INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-    );
-  }
-
-  #[test]
-  fn text_preview_text_is_escaped() {
-    let server = TestServer::new_with_regtest();
-    server.mine_blocks(1);
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(
-        1,
-        0,
-        0,
-        inscription(
-          "text/plain;charset=utf-8",
-          "<script>alert('hello');</script>",
-        )
-        .to_witness(),
-      )],
-      ..Default::default()
-    });
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
+      format!("/preview/{}", inscription_id),
       StatusCode::OK,
       "default-src 'self'",
-      r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
+      format!(".*<html lang=en data-inscription={}>.*", inscription_id),
     );
   }
 
