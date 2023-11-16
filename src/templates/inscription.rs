@@ -426,4 +426,32 @@ mod tests {
       .unindent()
     );
   }
+
+  #[test]
+  fn with_content_encoding() {
+    assert_regex_match!(
+      InscriptionHtml {
+        genesis_fee: 1,
+        inscription: Inscription {
+          content_encoding: Some("br".into()),
+          ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
+        },
+        inscription_id: inscription_id(1),
+        inscription_number: 1,
+        satpoint: satpoint(1, 0),
+        ..Default::default()
+      },
+      "
+        <h1>Inscription 1</h1>
+        .*
+        <dl>
+          .*
+          <dt>content encoding</dt>
+          <dd>br</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
 }
