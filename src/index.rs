@@ -1128,7 +1128,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    if !self.index_sats {
+    if !self.index_sats || outpoint == unbound_outpoint() {
       return Ok(None);
     }
 
