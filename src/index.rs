@@ -35,7 +35,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 10;
+const SCHEMA_VERSION: u64 = 11;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -55,6 +55,7 @@ define_multimap_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &Inscriptio
 define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
+define_table! { HOME_INSCRIPTIONS, u64, &InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_RUNE, &InscriptionIdValue, u128 }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
@@ -274,6 +275,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
+        tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_RUNE)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -1306,6 +1308,19 @@ impl Index {
         .collect(),
       inscription_ids.len(),
     ))
+  }
+
+  pub(crate) fn get_home_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(HOME_INSCRIPTIONS)?
+        .iter()?
+        .rev()
+        .flat_map(|result| result.map(|(_number, id)| InscriptionId::load(*id.value())))
+        .collect(),
+    )
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
