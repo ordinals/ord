@@ -4019,7 +4019,7 @@ mod tests {
   <dt>charms</dt>
   <dd>
     <span title=uncommon>🌱</span>
-    <span title=nineball>🌅</span>
+    <span title=nineball>9️⃣</span>
   </dd>
   .*
 </dl>
