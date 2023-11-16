@@ -25,7 +25,11 @@ where
 }
 
 impl AcceptEncoding {
-  pub(crate) fn is_acceptable(&self, encoding: &str) -> bool {
+  pub(crate) fn is_acceptable(&self, encoding: &HeaderValue) -> bool {
+    let Ok(encoding) = encoding.to_str() else {
+      return false;
+    };
+
     self
       .0
       .clone()
@@ -140,10 +144,10 @@ mod tests {
       Some("deflate;q=0.5, gzip;q=1.0, br;q=0.8".to_string())
     );
 
-    assert!(encodings.is_acceptable("deflate"));
-    assert!(encodings.is_acceptable("gzip"));
-    assert!(encodings.is_acceptable("br"));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("deflate")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("gzip")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("br")));
 
-    assert!(!encodings.is_acceptable("bzip2"));
+    assert!(!encodings.is_acceptable(&HeaderValue::from_static("bzip2")));
   }
 }
