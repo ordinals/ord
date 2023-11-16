@@ -7,7 +7,7 @@ use {
     },
     ScriptBuf,
   },
-  brotli::enc::{backward_references::BrotliEncoderParams, writer::CompressorWriter},
+  brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
   http::header::HeaderValue,
   io::{Cursor, Write},
   std::str,
