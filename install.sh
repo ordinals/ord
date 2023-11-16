@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+
 if [ ! -z ${GITHUB_ACTIONS-} ]; then
   set -x
 fi
@@ -32,8 +33,8 @@ say() {
 }
 
 err() {
-  if [ ! -z ${td-} ]; then
-    rm -rf $td
+  if [ ! -z ${tempdir-} ]; then
+    rm -rf $tempdir
   fi
 
   say "error: $*"
@@ -117,13 +118,13 @@ say "Target:      $target"
 say "Destination: $dest"
 say "Archive:     $archive"
 
-td=$(mktemp -d || mktemp -d -t tmp)
-curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $td --strip-components 1 -xz
+tempdir=`mktemp -d || mktemp -d -t tmp`
 
-for file in "$td"/*; do
+curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $tempdir --strip-components 1 -xz
+
+for name in `ls $tempdir`; do
+  file="$tempdir/$name"
   test -x $file || continue
-
-  name=${file##*/}
 
   if [ -e "$dest/$name" ] && [ $force = false ]; then
     err "$name already exists in $dest"
@@ -133,4 +134,4 @@ for file in "$td"/*; do
   fi
 done
 
-rm -rf $td
+rm -rf $tempdir
