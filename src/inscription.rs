@@ -1,4 +1,5 @@
 use {
+  anyhow::ensure,
   super::*,
   bitcoin::{
     blockdata::{
@@ -9,7 +10,7 @@ use {
   },
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
   http::header::HeaderValue,
-  io::{Cursor, Write},
+  io::{Cursor, Read, Write},
   std::str,
 };
 
@@ -58,7 +59,7 @@ impl Inscription {
       {
         CompressorWriter::with_params(
           &mut compressed,
-          4096,
+          body.len(),
           &BrotliEncoderParams {
             lgblock: 24,
             lgwin: 24,
@@ -69,6 +70,14 @@ impl Inscription {
           },
         )
         .write_all(&body)?;
+
+        let mut decompressor = brotli::Decompressor::new(&compressed[..], compressed.len());
+
+        let mut decompressed = Vec::new();
+
+        decompressor.read_to_end(&mut decompressed)?;
+
+        ensure!(decompressed == body, "decompression roundtrip failed");
       }
 
       if compressed.len() < body.len() {
