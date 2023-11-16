@@ -1,6 +1,6 @@
 use {
-  anyhow::ensure,
   super::*,
+  anyhow::ensure,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -71,7 +71,7 @@ impl Inscription {
         )
         .write_all(&body)?;
 
-        let mut decompressor = brotli::Decompressor::new(&compressed[..], compressed.len());
+        let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
 
         let mut decompressed = Vec::new();
 
