@@ -1,7 +1,9 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::BlockHtml,
+  block::{BlockHtml, BlockJson},
+  blocks::BlocksHtml,
+  children::ChildrenHtml,
   clock::ClockSvg,
   home::HomeHtml,
   iframe::Iframe,
@@ -9,19 +11,24 @@ pub(crate) use {
   inscription::{InscriptionHtml, InscriptionJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
+  metadata::MetadataHtml,
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
-    PreviewAudioHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
-    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
+  rune::RuneHtml,
+  runes::RunesHtml,
   sat::{SatHtml, SatJson},
   transaction::TransactionHtml,
 };
 
-mod block;
+pub mod block;
+mod blocks;
+mod children;
 mod clock;
 mod home;
 mod iframe;
@@ -29,34 +36,32 @@ mod input;
 pub mod inscription;
 pub mod inscriptions;
 mod inscriptions_block;
+mod metadata;
 pub mod output;
 mod preview;
 mod range;
 mod rare;
+mod rune;
+mod runes;
 pub mod sat;
 mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml<T: PageContent> {
   content: T,
-  has_sat_index: bool,
-  page_config: Arc<PageConfig>,
+  config: Arc<PageConfig>,
 }
 
 impl<T> PageHtml<T>
 where
   T: PageContent,
 {
-  pub(crate) fn new(content: T, page_config: Arc<PageConfig>, has_sat_index: bool) -> Self {
-    Self {
-      content,
-      has_sat_index,
-      page_config,
-    }
+  pub(crate) fn new(content: T, config: Arc<PageConfig>) -> Self {
+    Self { content, config }
   }
 
   fn og_image(&self) -> String {
-    if let Some(domain) = &self.page_config.domain {
+    if let Some(domain) = &self.config.domain {
       format!("https://{domain}/static/favicon.png")
     } else {
       "https://ordinals.com/static/favicon.png".into()
@@ -64,10 +69,10 @@ where
   }
 
   fn superscript(&self) -> String {
-    if self.page_config.chain == Chain::Mainnet {
+    if self.config.chain == Chain::Mainnet {
       "alpha".into()
     } else {
-      self.page_config.chain.to_string()
+      self.config.chain.to_string()
     }
   }
 }
@@ -75,11 +80,11 @@ where
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, page_config: Arc<PageConfig>, has_sat_index: bool) -> PageHtml<Self>
+  fn page(self, page_config: Arc<PageConfig>) -> PageHtml<Self>
   where
     Self: Sized,
   {
-    PageHtml::new(self, page_config, has_sat_index)
+    PageHtml::new(self, page_config)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -108,13 +113,11 @@ mod tests {
   #[test]
   fn page() {
     assert_regex_match!(
-      Foo.page(
-        Arc::new(PageConfig {
-          chain: Chain::Mainnet,
-          domain: Some("signet.ordinals.com".into())
-        }),
-        true
-      ),
+      Foo.page(Arc::new(PageConfig {
+        chain: Chain::Mainnet,
+        domain: Some("signet.ordinals.com".into()),
+        index_sats: true,
+      }),),
       r"<!doctype html>
 <html lang=en>
   <head>
@@ -132,7 +135,7 @@ mod tests {
   </head>
   <body>
   <header>
-    <nav>
+    <nav class=links>
       <a href=/>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock>Clock</a>
@@ -155,42 +158,36 @@ mod tests {
   #[test]
   fn page_mainnet() {
     assert_regex_match!(
-      Foo.page(
-        Arc::new(PageConfig {
-          chain: Chain::Mainnet,
-          domain: None
-        }),
-        true
-      ),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
+      Foo.page(Arc::new(PageConfig {
+        chain: Chain::Mainnet,
+        domain: None,
+        index_sats: true,
+      }),),
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
   #[test]
   fn page_no_sat_index() {
     assert_regex_match!(
-      Foo.page(
-        Arc::new(PageConfig {
-          chain: Chain::Mainnet,
-          domain: None
-        }),
-        false
-      ),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
+      Foo.page(Arc::new(PageConfig {
+        chain: Chain::Mainnet,
+        domain: None,
+        index_sats: false,
+      }),),
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
   }
 
   #[test]
   fn page_signet() {
     assert_regex_match!(
-      Foo.page(
-        Arc::new(PageConfig {
-          chain: Chain::Signet,
-          domain: None
-        }),
-        true
-      ),
-      r".*<nav>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
+      Foo.page(Arc::new(PageConfig {
+        chain: Chain::Signet,
+        domain: None,
+        index_sats: true,
+      }),),
+      r".*<nav class=links>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
   }
 }

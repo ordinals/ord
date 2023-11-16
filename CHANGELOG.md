@@ -1,6 +1,129 @@
 Changelog
 =========
 
+[0.11.1](https://github.com/ordinals/ord/releases/tag/0.11.1) - 2023-11-09
+--------------------------------------------------------------------------
+
+### Fixed
+- Use new RPC client in Reorg::get_block_with_retries (#2650)
+
+### Misc
+- Refactor varint encoding (#2645)
+
+[0.11.0](https://github.com/ordinals/ord/releases/tag/0.11.0) - 2023-11-07
+--------------------------------------------------------------------------
+
+### Added
+- Add a link to the Ordicord (#2629)
+- Add `/children` with pagination (#2617)
+- Add metadata recursive endpoint (#2604)
+- Add recursive directory and make all endpoints JSON (#2493)
+- Add Portuguese version of handbook (#2572)
+- Add decode just recipe (#2592)
+- Add `/block/:query` JSON API endpoint (#2423)
+- Add syntax highlighting for Python inscriptions (#2538)
+- Add publish-and-tag-crate just recipe (#2576)
+- Document teleburning handbook (#2577)
+
+### Changed
+- Clarify sat hunting guide (#2640)
+- Update docs (#2627)
+- Remove blank line in CI workflow (#2620)
+- Update README.md and zh.po (#2605)
+- Require --batch or --file for `ord wallet inscribe` (#2581)
+
+### Fixed
+- Respect locked coins (#2618)
+- Set `Cache-Control: no-store` header on 404 responses (#2637)
+- Fix statistics table and increment schema version (#2624)
+- Fix broken link in README (#2621)
+- Speed up indexing of re-inscriptions (#2608)
+- Fix docs rendering (#2612)
+- Update docs with new position of --enable-json-api (#2601)
+- Move `--enable-json-api` flag to server options (#2599)
+- Make server_runs_with_rpc_user_and_pass_as_env_vars test less flaky (#2580)
+
+### Runes
+- Implement open etchings (#2548)
+- Add more info to /rune page and link to rune from /tx (#2528)
+- Display inscription on /rune (#2542)
+- Add rune numbers (#2557)
+- Ignore non push opcodes in runestones (#2553)
+- Improve rune minimum at height (#2546)
+
+[0.10.0](https://github.com/ordinals/ord/releases/tag/0.10.0) - 2023-10-23
+--------------------------------------------------------------------------
+
+### Added
+- Batch inscriptions (#2504)
+- Add teleburn command to generate Ethereum teleburn addresses (#1680)
+- Add Korean version of handbook (#2560)
+- Add German version of handbook (#2441)
+- Add Arabic version of handbook (#2442)
+- Add French version of handbook (#2508)
+- Implement pointer spec (#2499)
+- Add pointer spec (#2383)
+- Add Russian version of handbook (#2468)
+- Add inscription number endpoint (#2485)
+- Allow inscriptions to include CBOR metadata (#2421)
+- Add Filipino version of handbook (#2483)
+- Add code syntax highlighting to preview (#2471)
+- Add font media types (#2464)
+- Render markdown previews (#2325)
+- Add metaprotocol field (#2449)
+- Add Spanish version of handbook (#2448)
+- Add `application/cbor` media type with extension `.cbor` (#2446)
+
+### Changed
+- Create single-directory release archives (#2537)
+- Allow fixed length encoding for parent id in child inscription (#2519)
+- Recognize inscriptions with pushnum opcodes (#2497)
+- Rename `index run` -> `index update` (#2462)
+- Refactor inscription parsing (#2461)
+- Allow running `find` on a range of sats (#1992)
+
+### Fixed
+- Fix overflow in Sat::from_name (#2500)
+- Fix issue with `--satpoint` when offset not 0 (#2466)
+
+### Misc
+- Remove paranthetical annotations (#2540)
+- Refactor index checks (#2541)
+- Don't add path component in bin/package (#2536)
+- Metadata Filipino translation (#2517)
+- Add pointer spec to docs (#2533)
+- Make inscriptions with pointer cursed (#2523)
+- Small refactor for inscribe code (#2515)
+- Pre-allocate vector size (#1960)
+- Add troubleshooting guide for syncing bitcoind (#1737)
+- Same input envelopes become reinscriptions (#2478)
+- Document JSON-API (#2484)
+- Update parent-child guide (#2487)
+- Add regtest flag to bitcoin-cli docs (#2488)
+- Update overview.md (#2456)
+- Correct donation address (#2475)
+- Fixes release tarbomb (#2473)
+- Update dependencies (#2470)
+- Add internal sequence number (#2460)
+- Update guide with parent-child and json API (#2429)
+- Update Japanese handbook version with provenance section (#2450)
+
+### Runes
+- Implement splits (#2530)
+- Add rune fuzz targets (#2526)
+- Allow searching by rune or rune ID (#2522)
+- Encode runestones with tags (#2547)
+- Edict with zero amount allocates all remaining runes (#2531)
+- Always create rune, even if none were allocated (#2543)
+- Show rune balances on /output page (#2527)
+- Delta encode Rune IDs in edicts (#2532)
+- Add test to keep track of runestone size (#2529)
+- Show etching and inscription on /rune page (#2512)
+- Track burned runes (#2511)
+- Don't encode divisibility if zero (#2510)
+- Format rune supply using divisibility (#2509)
+- Add pre-alpha unstable incomplete half-baked rune index (#2491)
+
 [0.9.0](https://github.com/ordinals/ord/releases/tag/0.9.0) - 2023-09-11
 ------------------------------------------------------------------------
 

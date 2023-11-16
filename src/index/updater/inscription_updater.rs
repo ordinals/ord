@@ -1,4 +1,16 @@
-use {super::*, inscription::Curse};
+use super::*;
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+enum Curse {
+  DuplicateField,
+  IncompleteField,
+  NotAtOffsetZero,
+  NotInFirstInput,
+  Pointer,
+  Pushnum,
+  Reinscription,
+  UnrecognizedEvenField,
+}
 
 #[derive(Debug, Clone)]
 pub(super) struct Flotsam {
@@ -12,7 +24,10 @@ enum Origin {
   New {
     cursed: bool,
     fee: u64,
+    hidden: bool,
     parent: Option<InscriptionId>,
+    pointer: Option<u64>,
+    reinscription: bool,
     unbound: bool,
   },
   Old {
@@ -21,85 +36,35 @@ enum Origin {
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
-  flotsam: Vec<Flotsam>,
-  height: u64,
-  id_to_children:
+  pub(super) flotsam: Vec<Flotsam>,
+  pub(super) height: u64,
+  pub(super) home_inscription_count: u64,
+  pub(super) home_inscriptions: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) id_to_children:
     &'a mut MultimapTable<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
-  id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
-  value_receiver: &'a mut Receiver<u64>,
-  id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  pub(super) id_to_satpoint:
+    &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
+  pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) id_to_entry:
+    &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
   pub(super) cursed_inscription_count: u64,
   pub(super) blessed_inscription_count: u64,
   pub(super) next_sequence_number: u64,
-  sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-  outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-  reward: u64,
-  sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
-  satpoint_to_id:
+  pub(super) inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+  pub(super) sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
+  pub(super) reward: u64,
+  pub(super) sat_to_inscription_id:
+    &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
+  pub(super) satpoint_to_id:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
-  timestamp: u32,
+  pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
-  value_cache: &'a mut HashMap<OutPoint, u64>,
+  pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
-  pub(super) fn new(
-    height: u64,
-    id_to_children: &'a mut MultimapTable<
-      'db,
-      'tx,
-      &'static InscriptionIdValue,
-      &'static InscriptionIdValue,
-    >,
-    id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
-    value_receiver: &'a mut Receiver<u64>,
-    id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-    lost_sats: u64,
-    cursed_inscription_count: u64,
-    blessed_inscription_count: u64,
-    sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-    outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-    sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
-    satpoint_to_id: &'a mut MultimapTable<
-      'db,
-      'tx,
-      &'static SatPointValue,
-      &'static InscriptionIdValue,
-    >,
-    timestamp: u32,
-    unbound_inscriptions: u64,
-    value_cache: &'a mut HashMap<OutPoint, u64>,
-  ) -> Result<Self> {
-    let next_sequence_number = sequence_number_to_id
-      .iter()?
-      .next_back()
-      .and_then(|result| result.ok())
-      .map(|(number, _id)| number.value() + 1)
-      .unwrap_or(0);
-
-    Ok(Self {
-      flotsam: Vec::new(),
-      height,
-      id_to_children,
-      id_to_satpoint,
-      value_receiver,
-      id_to_entry,
-      lost_sats,
-      cursed_inscription_count,
-      blessed_inscription_count,
-      next_sequence_number,
-      sequence_number_to_id,
-      outpoint_to_value,
-      reward: Height(height).subsidy(),
-      sat_to_inscription_id,
-      satpoint_to_id,
-      timestamp,
-      unbound_inscriptions,
-      value_cache,
-    })
-  }
-
   pub(super) fn index_envelopes(
     &mut self,
     tx: &Transaction,
@@ -171,6 +136,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
+        let reinscription = inscribed_offsets.contains_key(&offset);
+
         let curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
         } else if inscription.payload.duplicate_field {
@@ -181,21 +148,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::NotInFirstInput)
         } else if inscription.offset != 0 {
           Some(Curse::NotAtOffsetZero)
-        } else if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self.id_to_entry.len()?;
-
-          let sat = Self::calculate_sat(input_sat_ranges, offset);
-
-          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
-
+        } else if inscription.payload.pointer.is_some() {
+          Some(Curse::Pointer)
+        } else if inscription.pushnum {
+          Some(Curse::Pushnum)
+        } else if reinscription {
           Some(Curse::Reinscription)
         } else {
           None
         };
-
-        if curse.is_some() {
-          log::info!("found cursed inscription {inscription_id}: {:?}", curse);
-        }
 
         let cursed = if let Some(Curse::Reinscription) = curse {
           let first_reinscription = inscribed_offsets
@@ -216,33 +177,23 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             })
             .unwrap_or(false);
 
-          log::info!("{inscription_id}: is first reinscription: {first_reinscription}, initial inscription is cursed: {initial_inscription_is_cursed}");
-
           !(initial_inscription_is_cursed && first_reinscription)
         } else {
           curse.is_some()
         };
 
-        let unbound = current_input_value == 0
-          || inscription.offset != 0
-          || curse == Some(Curse::UnrecognizedEvenField);
-
-        if curse.is_some() || unbound {
-          log::info!(
-            "indexing inscription {inscription_id} with curse {:?} as cursed {} and unbound {}",
-            curse,
-            cursed,
-            unbound
-          );
-        }
+        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
+            reinscription,
             cursed,
             fee: 0,
+            hidden: inscription.payload.hidden(),
             parent: inscription.payload.parent(),
+            pointer: inscription.payload.pointer(),
             unbound,
           },
         });
@@ -273,36 +224,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     // still have to normalize over inscription size
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
-    let mut floating_inscriptions = floating_inscriptions
-      .into_iter()
-      .map(|flotsam| {
-        if let Flotsam {
-          inscription_id,
-          offset,
-          origin:
-            Origin::New {
-              cursed,
-              fee: _,
-              parent,
-              unbound,
-            },
-        } = flotsam
-        {
-          Flotsam {
-            inscription_id,
-            offset,
-            origin: Origin::New {
-              fee: (total_input_value - total_output_value) / u64::from(id_counter),
-              cursed,
-              parent,
-              unbound,
-            },
-          }
-        } else {
-          flotsam
-        }
-      })
-      .collect::<Vec<Flotsam>>();
+
+    for flotsam in &mut floating_inscriptions {
+      if let Flotsam {
+        origin: Origin::New { ref mut fee, .. },
+        ..
+      } = flotsam
+      {
+        *fee = (total_input_value - total_output_value) / u64::from(id_counter);
+      }
+    }
 
     let is_coinbase = tx
       .input
@@ -317,6 +248,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
+    let mut range_to_vout = BTreeMap::new();
+    let mut new_locations = Vec::new();
     let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
       let end = output_value + tx_out.value;
@@ -334,12 +267,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
-        self.update_inscription_location(
-          input_sat_ranges,
-          inscriptions.next().unwrap(),
-          new_satpoint,
-        )?;
+        new_locations.push((new_satpoint, inscriptions.next().unwrap()));
       }
+
+      range_to_vout.insert((output_value, end), vout.try_into().unwrap());
 
       output_value = end;
 
@@ -350,6 +281,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         },
         tx_out.value,
       );
+    }
+
+    for (new_satpoint, mut flotsam) in new_locations.into_iter() {
+      let new_satpoint = match flotsam.origin {
+        Origin::New {
+          pointer: Some(pointer),
+          ..
+        } if pointer < output_value => {
+          match range_to_vout.iter().find_map(|((start, end), vout)| {
+            (pointer >= *start && pointer < *end).then(|| (vout, pointer - start))
+          }) {
+            Some((vout, offset)) => {
+              flotsam.offset = pointer;
+              SatPoint {
+                outpoint: OutPoint { txid, vout: *vout },
+                offset,
+              }
+            }
+            _ => new_satpoint,
+          }
+        }
+        _ => new_satpoint,
+      };
+
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
     }
 
     if is_coinbase {
@@ -376,20 +332,19 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     input_offset: u64,
   ) -> Option<Sat> {
-    let mut sat = None;
-    if let Some(input_sat_ranges) = input_sat_ranges {
-      let mut offset = 0;
-      for (start, end) in input_sat_ranges {
-        let size = end - start;
-        if offset + size > input_offset {
-          let n = start + input_offset - offset;
-          sat = Some(Sat(n));
-          break;
-        }
-        offset += size;
+    let input_sat_ranges = input_sat_ranges?;
+
+    let mut offset = 0;
+    for (start, end) in input_sat_ranges {
+      let size = end - start;
+      if offset + size > input_offset {
+        let n = start + input_offset - offset;
+        return Some(Sat(n));
       }
+      offset += size;
     }
-    sat
+
+    unreachable!()
   }
 
   fn update_inscription_location(
@@ -408,7 +363,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Origin::New {
         cursed,
         fee,
+        hidden,
         parent,
+        pointer: _,
+        reinscription,
         unbound,
       } => {
         let inscription_number = if cursed {
@@ -424,6 +382,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           number
         };
 
+        self
+          .inscription_number_to_id
+          .insert(inscription_number, &inscription_id)?;
+
         let sequence_number = self.next_sequence_number;
         self.next_sequence_number += 1;
 
@@ -437,6 +399,38 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Self::calculate_sat(input_sat_ranges, flotsam.offset)
         };
 
+        let mut charms = 0;
+
+        if cursed {
+          Charm::Cursed.set(&mut charms);
+        }
+
+        if reinscription {
+          Charm::Reinscription.set(&mut charms);
+        }
+
+        if let Some(sat) = sat {
+          if sat.nineball() {
+            Charm::Nineball.set(&mut charms);
+          }
+
+          match sat.rarity() {
+            Rarity::Common | Rarity::Mythic => {}
+            Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
+            Rarity::Rare => Charm::Rare.set(&mut charms),
+            Rarity::Epic => Charm::Epic.set(&mut charms),
+            Rarity::Legendary => Charm::Legendary.set(&mut charms),
+          }
+        }
+
+        if new_satpoint.outpoint == OutPoint::null() {
+          Charm::Lost.set(&mut charms);
+        }
+
+        if unbound {
+          Charm::Unbound.set(&mut charms);
+        }
+
         if let Some(Sat(n)) = sat {
           self.sat_to_inscription_id.insert(&n, &inscription_id)?;
         }
@@ -444,12 +438,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         self.id_to_entry.insert(
           &inscription_id,
           &InscriptionEntry {
+            charms,
             fee,
             height: self.height,
             inscription_number,
-            sequence_number,
             parent,
             sat,
+            sequence_number,
             timestamp: self.timestamp,
           }
           .store(),
@@ -459,6 +454,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self
             .id_to_children
             .insert(&parent.store(), &inscription_id)?;
+        }
+
+        if !hidden {
+          self
+            .home_inscriptions
+            .insert(&sequence_number, &inscription_id)?;
+
+          if self.home_inscription_count == 100 {
+            self.home_inscriptions.pop_first()?;
+          } else {
+            self.home_inscription_count += 1;
+          }
         }
 
         unbound

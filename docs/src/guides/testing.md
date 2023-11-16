@@ -32,15 +32,15 @@ ord -r wallet receive
 ```
 Mine 101 blocks (to unlock the coinbase) with:
 ```
-bitcoin-cli generatetoaddress 101 <receive address>
+bitcoin-cli -regtest generatetoaddress 101 <receive address>
 ```
 Inscribe in regtest with:
 ```
-ord -r wallet inscribe --fee-rate 1 <file>
+ord -r wallet inscribe --fee-rate 1 --file <file>
 ```
 Mine the inscription with:
 ```
-bitcoin-cli generatetoaddress 1 <receive address>
+bitcoin-cli -regtest generatetoaddress 1 <receive address>
 ```
 View the inscription in the regtest explorer:
 ```
@@ -51,9 +51,9 @@ Testing Recursion
 -----------------
 
 When testing out [recursion](../inscriptions/recursion.md), inscribe the
-dependencies first (example with [p5.js](https://p5js.org):
+dependencies first (example with [p5.js](https://p5js.org)):
 ```
-ord -r wallet inscribe --fee-rate 1 p5.js
+ord -r wallet inscribe --fee-rate 1 --file p5.js
 ```
 This should return a `inscription_id` which you can then reference in your
 recursive inscription.
@@ -64,7 +64,7 @@ each chain.
 
 Then you can inscribe your recursive inscription with:
 ```
-ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
 ```
 Finally you will have to mine some blocks and start the server:
 ```

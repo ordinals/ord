@@ -21,6 +21,10 @@ impl List {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
+    if !index.has_sat_index() {
+      bail!("list requires index created with `--index-sats` flag");
+    }
+
     index.update()?;
 
     match index.list(self.outpoint)? {

@@ -20,6 +20,10 @@ impl Sat {
     self.epoch().starting_height() + self.epoch_position() / self.epoch().subsidy()
   }
 
+  pub(crate) fn nineball(self) -> bool {
+    self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
+  }
+
   pub(crate) fn cycle(self) -> u64 {
     Epoch::from(self).0 / CYCLE_EPOCHS
   }
@@ -81,12 +85,12 @@ impl Sat {
       match c {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
+          if x > Self::SUPPLY {
+            bail!("sat name out of range");
+          }
         }
         _ => bail!("invalid character in sat name: {c}"),
       }
-    }
-    if x > Self::SUPPLY {
-      bail!("sat name out of range");
     }
     Ok(Sat(Self::SUPPLY - x))
   }
@@ -543,6 +547,7 @@ mod tests {
     assert!(parse("(").is_err());
     assert!(parse("").is_err());
     assert!(parse("nvtdijuwxlq").is_err());
+    assert!(parse("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").is_err());
   }
 
   #[test]
@@ -590,6 +595,7 @@ mod tests {
 
   #[test]
   fn percentile_round_trip() {
+    #[track_caller]
     fn case(n: u64) {
       let expected = Sat(n);
       let actual = expected.percentile().parse::<Sat>().unwrap();
@@ -606,6 +612,7 @@ mod tests {
 
   #[test]
   fn is_common() {
+    #[track_caller]
     fn case(n: u64) {
       assert_eq!(Sat(n).is_common(), Sat(n).rarity() == Rarity::Common);
     }
@@ -618,5 +625,19 @@ mod tests {
     case(2067187500000000 - 1);
     case(2067187500000000);
     case(2067187500000000 + 1);
+  }
+
+  #[test]
+  fn nineball() {
+    for height in 0..10 {
+      let sat = Sat(height * 50 * COIN_VALUE);
+      assert_eq!(
+        sat.nineball(),
+        sat.height() == 9,
+        "nineball: {} height: {}",
+        sat.nineball(),
+        sat.height()
+      );
+    }
   }
 }

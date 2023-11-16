@@ -28,11 +28,15 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
+    let chain = options.chain();
+
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
-    let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
+    let locked_outputs = index.get_locked_outputs(Wallet::load(&options)?)?;
+
+    let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
@@ -54,8 +58,8 @@ impl Send {
     };
 
     let change = [
-      get_change_address(&client, &options)?,
-      get_change_address(&client, &options)?,
+      get_change_address(&client, chain)?,
+      get_change_address(&client, chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -68,6 +72,7 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
+      locked_outputs,
       address.clone(),
       change,
       self.fee_rate,

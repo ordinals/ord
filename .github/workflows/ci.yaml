@@ -14,14 +14,13 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES: es zh ja
+  LANGUAGES: de fr es pt ru zh ja ko fil ar hi
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
 
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1

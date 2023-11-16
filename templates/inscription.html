@@ -1,8 +1,4 @@
-%% if self.inscription_number >= 0 {
 <h1>Inscription {{ self.inscription_number }}</h1>
-%% } else {
-<h1>Inscription {{ self.inscription_number }} (unstable)</h1>
-%% }
 <div class=inscription>
 %% if let Some(previous) = self.previous {
 <a class=prev href=/inscription/{{previous}}>❮</a>
@@ -17,11 +13,40 @@
 %% }
 </div>
 <dl>
+%% if !self.children.is_empty() {
+  <dt>children</dt>
+  <dd>
+    <div class=thumbnails>
+%% for id in &self.children {
+      {{Iframe::thumbnail(*id)}}
+%% }
+    </div>
+    <div class=center>
+      <a href=/children/{{self.inscription_id}}>all</a>
+    </div>
+  </dd>
+%% }
   <dt>id</dt>
   <dd class=monospace>{{ self.inscription_id }}</dd>
+%% if let Some(metadata) = self.inscription.metadata() {
+  <dt>metadata</dt>
+  <dd>
+    {{ Trusted(MetadataHtml(&metadata)) }}
+  </dd>
+%% }
 %% if let Some(parent) = &self.parent {
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
+%% }
+%% if self.charms != 0 {
+  <dt>charms</dt>
+  <dd>
+%% for charm in Charm::ALL {
+%%   if charm.is_set(self.charms) {
+    <span title={{charm.title()}}>{{charm.icon()}}</span>
+%%   }
+%% }
+  </dd>
 %% }
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
@@ -60,25 +85,15 @@
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
   <dt>location</dt>
-%% if self.satpoint.outpoint == unbound_outpoint() {
-  <dd class=monospace>{{ self.satpoint }} (unbound)</dd>
-  <dt>output</dt>
-  <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }} (unbound)</a></dd>
-%% } else {
   <dd class=monospace>{{ self.satpoint }}</dd>
   <dt>output</dt>
   <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
-%% }
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
-%% if !self.children.is_empty() {
-  <dt>children</dt>
-  <dd>
-    <div class=thumbnails>
-%% for id in &self.children {
-      {{Iframe::thumbnail(*id)}}
-%% }
-    </div>
-  </dd>
+  <dt>ethereum teleburn address</dt>
+  <dd>{{ teleburn::Ethereum::from(self.inscription_id) }}</dd>
+%% if let Some(rune) = self.rune {
+  <dt>rune</dt>
+  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
 %% }
 </dl>

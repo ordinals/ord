@@ -1,5 +1,9 @@
 use super::*;
 
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
+}
+
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
@@ -7,7 +11,7 @@ pub(crate) struct BlockHtml {
   best_height: Height,
   block: Block,
   height: Height,
-  total_num_inscriptions: usize,
+  inscription_count: usize,
   featured_inscriptions: Vec<InscriptionId>,
 }
 
@@ -16,17 +20,43 @@ impl BlockHtml {
     block: Block,
     height: Height,
     best_height: Height,
-    total_num_inscriptions: usize,
+    inscription_count: usize,
     featured_inscriptions: Vec<InscriptionId>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())),
+      target: target_as_block_hash(block.header.target()),
       block,
       height,
       best_height,
-      total_num_inscriptions,
+      inscription_count,
       featured_inscriptions,
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockJson {
+  pub hash: BlockHash,
+  pub target: BlockHash,
+  pub best_height: u64,
+  pub height: u64,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+impl BlockJson {
+  pub(crate) fn new(
+    block: Block,
+    height: Height,
+    best_height: Height,
+    inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      hash: block.header.block_hash(),
+      target: target_as_block_hash(block.header.target()),
+      height: height.0,
+      best_height: best_height.0,
+      inscriptions,
     }
   }
 }
@@ -101,6 +131,14 @@ mod tests {
         Vec::new()
       ),
       r"<h1>Block 1</h1>.*<a class=prev href=/block/0>prev</a>\s*next.*",
+    );
+  }
+
+  #[test]
+  fn block_hash_serializes_as_hex_string() {
+    assert_eq!(
+      serde_json::to_string(&BlockHash::all_zeros()).unwrap(),
+      "\"0000000000000000000000000000000000000000000000000000000000000000\""
     );
   }
 }

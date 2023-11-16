@@ -1,0 +1,3249 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: دليل نظرية أوردينال\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2023-09-07 22:19+0200\n"
+"Last-Translator: ordinalho@gmail.com\n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.3.2\n"
+
+#: src\SUMMARY.md:2 src\introduction.md:1
+msgid "Introduction"
+msgstr "المقدمة"
+
+#: src\SUMMARY.md:3
+msgid "Overview"
+msgstr "نظرة عامة"
+
+#: src\SUMMARY.md:4 src\digital-artifacts.md:1
+msgid "Digital Artifacts"
+msgstr "التحف الرقمية"
+
+#: src\SUMMARY.md:5 src\SUMMARY.md:12 src\overview.md:221 src\inscriptions.md:1
+msgid "Inscriptions"
+msgstr "إنسكريبشين"
+
+#: src\SUMMARY.md:6 src\inscriptions/recursion.md:1
+msgid "Recursion"
+msgstr "التكرار"
+
+#: src\SUMMARY.md:7
+msgid "FAQ"
+msgstr "الأسئلة الشائعة"
+
+#: src\SUMMARY.md:8
+msgid "Contributing"
+msgstr "المساهمة"
+
+#: src\SUMMARY.md:9 src\donate.md:1
+msgid "Donate"
+msgstr "التبرع"
+
+#: src\SUMMARY.md:10
+msgid "Guides"
+msgstr "إرشادات"
+
+#: src\SUMMARY.md:11
+msgid "Explorer"
+msgstr "المتصفح"
+
+#: src\SUMMARY.md:13 src\guides/sat-hunting.md:1
+msgid "Sat Hunting"
+msgstr "جمع الساتوشي"
+
+#: src\SUMMARY.md:14 src\guides/collecting.md:1
+msgid "Collecting"
+msgstr "التجميع"
+
+#: src\SUMMARY.md:15 src\guides/sat-hunting.md:239
+msgid "Sparrow Wallet"
+msgstr "محفظة سباروو"
+
+#: src\SUMMARY.md:16 src\guides/testing.md:1
+msgid "Testing"
+msgstr "التجارب"
+
+#: src\SUMMARY.md:17 src\guides/moderation.md:1
+msgid "Moderation"
+msgstr "الإشراف"
+
+#: src\SUMMARY.md:18 src\guides/reindexing.md:1
+msgid "Reindexing"
+msgstr "إعادة الفهرسة"
+
+#: src\SUMMARY.md:19
+msgid "Bounties"
+msgstr "المكافآت"
+
+#: src\SUMMARY.md:20
+msgid "Bounty 0: 100,000 sats Claimed!"
+msgstr "جائزة 0: 100,000 ساتوشي مكتملة!"
+
+#: src\SUMMARY.md:21
+msgid "Bounty 1: 200,000 sats Claimed!"
+msgstr "جائزة 1: 200,000 ساتوشي مكتملة!"
+
+#: src\SUMMARY.md:22
+msgid "Bounty 2: 300,000 sats Claimed!"
+msgstr "جائزة 2: 300,000 ساتوشي مكتملة!"
+
+#: src\SUMMARY.md:23
+msgid "Bounty 3: 400,000 sats"
+msgstr "جائزة 3: 400,000 ساتوشي"
+
+#: src\introduction.md:4
+msgid "This handbook is a guide to ordinal theory. Ordinal theory concerns itself with satoshis, giving them individual identities and allowing them to be tracked, transferred, and imbued with meaning."
+msgstr "مقدمة هذا الكتيب هو دليل لنظرية ordinal. تعنى بتحديد بالساتوشي، حيث تمنحها هويات فردية وتسمح لها بالتتبع والإرسال، وتمنحها معنى."
+
+#: src\introduction.md:8
+msgid "Satoshis, not bitcoin, are the atomic, native currency of the Bitcoin network. One bitcoin can be sub-divided into 100,000,000 satoshis, but no further."
+msgstr "الساتوشي، وليس البيتكوين، هي العملة الذرية والأصلية لشبكة البيتكوين. يمكن تقسيم البيتكوين إلى 100,000,000 ساتوشي، ولكن لا يمكن تقسيم الساتوشي إلى مقاييس أصغر."
+
+#: src\introduction.md:11
+msgid "Ordinal theory does not require a sidechain or token aside from Bitcoin, and can be used without any changes to the Bitcoin network. It works right now."
+msgstr "نظرية الترتيب الترتيبيّ لا تحتاج إلى سلسلة فرعية أو رمز بديل إلى جانب البيتكوين، ويمكن استخدامها دون أي تغيير في شبكة البيتكوين. وهي تعمل الآن."
+
+#: src\introduction.md:14
+msgid "Ordinal theory imbues satoshis with numismatic value, allowing them to be collected and traded as curios."
+msgstr "نظرية ordinal تُضفي قيمة عملانية على الساتوشي، مما يسمح لها بالتجميع والتداول كالكنوز."
+
+#: src\introduction.md:17
+msgid ""
+"Individual satoshis can be inscribed with arbitrary content, creating unique Bitcoin-native digital artifacts that can be held in Bitcoin wallets and transferred using Bitcoin transactions. Inscriptions are as durable, immutable, secure, and decentralized as Bitcoin "
+"itself."
+msgstr "يمكن أن يتم نقش الساتوشي الفردي بمحتوى تعسفي، مما يخلق قطعًا فريدة من الأصول الرقمية الأصلية للبيتكوين يمكن الاحتفاظ بها في محافظ البيتكوين او نقلها باستخدام معاملات البيتكوين. الإنسكريبشين متينة وثابتة وآمنة ومركزية تمامًا كالبيتكوين نفسه."
+
+#: src\introduction.md:22
+msgid "Other, more unusual use-cases are possible: off-chain colored-coins, public key infrastructure with key rotation, a decentralized replacement for the DNS. For now though, such use-cases are speculative, and exist only in the minds of fringe ordinal theorists."
+msgstr "هناك استخدامات أخرى أكثر غرابة ممكنة: عملات ملونة خارج السلسلة، بنية البنية التحتية للمفتاح العام مع تدوير المفتاح، بديل لامركزي لنظام DNS. ومع ذلك، تعد مثل هذه الاستخدامات حاليًا موضوعية، وتكمن فقط في أذهان النظريين الترتيبيين المتطرفين."
+
+#: src\introduction.md:27
+msgid "For more details on ordinal theory, see the [overview](overview.md)."
+msgstr "للحصول على مزيد من التفاصيل حول نظرية ordinal ، راجع [overview](overview.md)."
+
+#: src\introduction.md:29
+msgid "For more details on inscriptions, see [inscriptions](inscriptions.md)."
+msgstr "لمزيد من التفاصيل حول الإنسكريبشين، راجع [inscriptions](inscriptions.md)."
+
+#: src\introduction.md:31
+msgid "When you're ready to get your hands dirty, a good place to start is with [inscriptions](guides/inscriptions.md), a curious species of digital artifact enabled by ordinal theory."
+msgstr "عندما تكون جاهزًا لبدء العمل، مكانًا جيدًا للبداية هو [inscriptions](guides/inscriptions.md)، وهي نوع فضولي من الأصول الرقمية digital artifact الممكّنة بواسطة نظرية أوردينالس."
+
+#: src\introduction.md:35
+msgid "Links"
+msgstr "روابط"
+
+#: src\introduction.md:38
+msgid "[GitHub](https://github.com/ordinals/ord/)"
+msgstr ""
+
+#: src\introduction.md:39
+msgid "[BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)"
+msgstr ""
+
+#: src\introduction.md:40
+msgid "[Discord](https://discord.gg/ordinals)"
+msgstr ""
+
+#: src\introduction.md:41
+msgid "[Open Ordinals Institute Website](https://ordinals.org/)"
+msgstr ""
+
+#: src\introduction.md:42
+msgid "[Open Ordinals Institute X](https://x.com/ordinalsorg)"
+msgstr ""
+
+#: src\introduction.md:43
+msgid "[Mainnet Block Explorer](https://ordinals.com)"
+msgstr ""
+
+#: src\introduction.md:44
+msgid "[Signet Block Explorer](https://signet.ordinals.com)"
+msgstr ""
+
+#: src\introduction.md:46
+msgid "Videos"
+msgstr "فيديوهات"
+
+#: src\introduction.md:49
+msgid "[Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin](https://www.youtube.com/watch?v=rSS0O2KQpsI)"
+msgstr ""
+
+#: src\introduction.md:50
+msgid "[Ordinals Workshop with Rodarmor](https://www.youtube.com/watch?v=MC_haVa6N3I)"
+msgstr ""
+
+#: src\introduction.md:51
+msgid "[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www.youtube.com/watch?v=j5V33kV3iqo)"
+msgstr ""
+
+#: src\overview.md:1
+msgid "Ordinal Theory Overview"
+msgstr "لمحة عامة عن نظرية أوردينالس"
+
+#: src\overview.md:4
+msgid ""
+"Ordinals are a numbering scheme for satoshis that allows tracking and transferring individual sats. These numbers are called [ordinal numbers](https://ordinals.com). Satoshis are numbered in the order in which they're mined, and transferred from transaction inputs to "
+"transaction outputs first-in-first-out. Both the numbering scheme and the transfer scheme rely on _order_, the numbering scheme on the _order_ in which satoshis are mined, and the transfer scheme on the _order_ of transaction inputs and outputs. Thus the name, "
+"_ordinals_."
+msgstr ""
+"الأوردينال هي نظام ترقيم للساتوشيات يسمح بتتبع ونقل الساتوشيات الفردية. يُطلق على هذه الأرقام اسم [أرقام ترتيبية](https://ordinals.com). يتم ترقيم الساتوشيات بحسب الترتيب الذي تم فيه تعدينها، ويتم نقلها من مداخل الصفقات \n"
+"إلى مخارج الصفقات بالترتيب الذي دخلت به أولاً. كل من نظام الترقيم ونظام النقل يعتمد على الترتيب، حيث يعتمد نظام الترقيم على الترتيب الذي تم به تعدين الساتوشيات، ويعتمد نظام النقل على ترتيب مداخل ومخارج الصفقات. وبالتالي يطلق عليها اسم \n"
+"_ordinals_."
+
+#: src\overview.md:13
+msgid "Technical details are available in [the BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)."
+msgstr "التفاصيل التقنية متاحة في [the BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)."
+
+#: src\overview.md:16
+msgid "Ordinal theory does not require a separate token, another blockchain, or any changes to Bitcoin. It works right now."
+msgstr "نظريه أوردينال لا تحتاج عملة مميزة منفصلة أو بلوكشين أخرى أو أي تغييرات في بيتكوين .فهي تعمل الآن."
+
+#: src\overview.md:19
+msgid "Ordinal numbers have a few different representations:"
+msgstr "أرقام أوردينال لها عدة تمثيلات مختلفة:"
+
+#: src\overview.md:21
+msgid "_Integer notation_: [`2099994106992659`](https://ordinals.com/sat/2099994106992659) The ordinal number, assigned according to the order in which the satoshi was mined."
+msgstr "تمثيل العدد الصحيح: [`2099994106992659`](https://ordinals.com/sat/2099994106992659) هو عدد ترتيبي، يتم تعيينه وفقا للترتيب الذي تم به تعدين الساتوشي."
+
+#: src\overview.md:26
+msgid "_Decimal notation_: [`3891094.16797`](https://ordinals.com/sat/3891094.16797) The first number is the block height in which the satoshi was mined, the second the offset of the satoshi within the block."
+msgstr "تمثيل العدد العشري: [`3891094.16797`](https://ordinals.com/sat/3891094.16797) الرقم الأول هو ارتفاع البلوك (block) التي تم بها تعدين الساتوشي، والرقم الثاني هو الانحراف للساتوشي داخل البلوك."
+
+#: src\overview.md:31
+msgid "_Degree notation_: [`3°111094′214″16797‴`](https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4). We'll get to that in a moment."
+msgstr "تمثيل الزاوية: [`3°111094′214″16797‴`](https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4) سنصل لذلك لاحقا."
+
+#: src\overview.md:35
+msgid "_Percentile notation_: [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25) . The satoshi's position in Bitcoin's supply, expressed as a percentage."
+msgstr "تمثيل النسبة المئوية: [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25) موضع الساتوشي في إمدادات بيتكوين، ويعبر عنه كنسبة مئوية."
+
+#: src\overview.md:39
+msgid "_Name_: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the ordinal number using the characters `a` through `z`."
+msgstr "الاسم: [`satoshi`](https://ordinals.com/sat/satoshi) . ترميز للرقم الترتيبي باستخدام الأحرف من `a` إلى `z`."
+
+#: src\overview.md:42
+msgid "Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can be attached to satoshis using ordinal numbers as stable identifiers."
+msgstr "يمكن ربط الأصول المختلفة، مثل NFTs والعملات المستقرة والحسابات والرموز الأمانية، بالساتوشيات باستخدام الأرقام الترتيبية كمُعرفات مستقرة."
+
+#: src\overview.md:45
+msgid ""
+"Ordinals is an open-source project, developed [on GitHub](https://github.com/ordinals/ord). The project consists of a BIP describing the ordinal scheme, an index that communicates with a Bitcoin Core node to track the location of all satoshis, a wallet that allows "
+"making ordinal-aware transactions, a block explorer for interactive exploration of the blockchain, functionality for inscribing satoshis with digital artifacts, and this manual."
+msgstr ""
+"أوردينالس هو مشروع مفتوح المصدر، تم تطويره على منصة [on GitHub](https://github.com/ordinals/ord). يتكون المشروع من BIP الذي يصف لنظام أوردينال، وفهرس يتواصل مع Bitcoin Core node لتتبع موقع جميع الساتوشيات، ومحفظة تسمح بإجراء صفقات ترتيبية ordinal-aware ، ومتصفح كتل "
+"لاستكشاف التفاعلي ل البلوكشين، ووظيفته تسجيل معاملات الساتوشيات بالقطع الرقمية، وهذا الدليل."
+
+#: src\overview.md:52
+msgid "Rarity"
+msgstr "الندرة"
+
+#: src\overview.md:55
+msgid "Humans are collectors, and since satoshis can now be tracked and transferred, people will naturally want to collect them. Ordinal theorists can decide for themselves which sats are rare and desirable, but there are some hints…"
+msgstr "البشر هم مجمعون، وبما أن الساتوشيات يمكن تتبعها وإرسالها الآن، سترغب الناس بشكل طبيعي في جمعهم. الجميع يمكن أن يحدد أي من الساتوشيات هي نادرة ومرغوب فيها، ولكن هناك بعض التلميحات..."
+
+#: src\overview.md:59
+msgid "Bitcoin has periodic events, some frequent, some more uncommon, and these naturally lend themselves to a system of rarity. These periodic events are:"
+msgstr "بيتكوين لديها أحداث دورية، بعضها متكرر وبعضها أقل انتظامًا، وهذه الأحداث تميل بشكل طبيعي إلى نظام ندرة. هذه الأحداث الدورية هي:"
+
+#: src\overview.md:62
+msgid "_Blocks_: A new block is mined approximately every 10 minutes, from now until the end of time."
+msgstr "_بلوكس_: يتم تعدين بلوك جديد تقريبًا كل 10 دقائق، من الآن وحتى نهاية الزمان."
+
+#: src\overview.md:65
+msgid "_Difficulty adjustments_: Every 2016 blocks, or approximately every two weeks, the Bitcoin network responds to changes in hashrate by adjusting the difficulty target which blocks must meet in order to be accepted."
+msgstr "_تعديلات الصعوبة_: كل 2016 بلوك ، أو تقريبًا كل أسبوعين، يستجيب شبكة بيتكوين للتغيرات في معدل الهاش بضبط هدف الصعوبة الذي يجب أن تلبيه البلوكس حتى يتم قبولها."
+
+#: src\overview.md:69
+msgid "_Halvings_: Every 210,000 blocks, or roughly every four years, the amount of new sats created in every block is cut in half."
+msgstr "_التقسيمات_: كل 210,000 بلوك، أو تقريبًا كل أربع سنوات، يتم قطع كمية الساتوشيات الجديدة التي تم إنشاؤها في كل كتلة إلى النصف."
+
+#: src\overview.md:72
+msgid ""
+"_Cycles_: Every six halvings, something magical happens: the halving and the difficulty adjustment coincide. This is called a conjunction, and the time period between conjunctions a cycle. A conjunction occurs roughly every 24 years. The first conjunction should happen "
+"sometime in 2032."
+msgstr "_الدورات_: كل ست تقسيمات، يحدث شيء سحري: التقسيم وتعديل الصعوبة يتزامنان. يُطلق على هذا اسم \"توازن\"، والفترة الزمنية بين التوازنات هي دورة. يحدث التوازن تقريبًا كل 24 سنة. يجب أن يحدث التوازن الأول في وقت ما بين عامي 2031 و 2032."
+
+#: src\overview.md:77
+msgid "This gives us the following rarity levels:"
+msgstr "هذا يمنحنا مستويات الندرة التالية:"
+
+#: src\overview.md:79
+msgid "`common`: Any sat that is not the first sat of its block"
+msgstr "`شائع`: أي ساتوشي ليس أول ساتوشي في البلوك الخاص به"
+
+#: src\overview.md:80
+msgid "`uncommon`: The first sat of each block"
+msgstr "`غير شائع`: أول ساتوشي في كل بلوك"
+
+#: src\overview.md:81
+msgid "`rare`: The first sat of each difficulty adjustment period"
+msgstr "`نادر`: أول ساتوشي في كل فترة تعديل للصعوبة"
+
+#: src\overview.md:82
+msgid "`epic`: The first sat of each halving epoch"
+msgstr "`ملحمي`: أول ساتوشي في كل عصر للتقسيم"
+
+#: src\overview.md:83
+msgid "`legendary`: The first sat of each cycle"
+msgstr "`أسطوري`: أول ساتوشي في كل دورة"
+
+#: src\overview.md:84
+msgid "`mythic`: The first sat of the genesis block"
+msgstr "`أسطوري بالغ`: أول ساتوشي في اول بلوك"
+
+#: src\overview.md:86
+msgid "Which brings us to degree notation, which unambiguously represents an ordinal number in a way that makes the rarity of a satoshi easy to see at a glance:"
+msgstr "وهذا يقودنا إلى تمثيل الزاوية، الذي يُمثل رقم الأوردينال بشكل لا شك فيه بطريقة تجعل ندرة الساتوشي واضحة في نظرة واحدة:"
+
+#: src\overview.md:89
+msgid ""
+"```\n"
+"A°B′C″D‴\n"
+"│ │ │ ╰─ Index of sat in the block\n"
+"│ │ ╰─── Index of block in difficulty adjustment period\n"
+"│ ╰───── Index of block in halving epoch\n"
+"╰─────── Cycle, numbered starting from 0\n"
+"```"
+msgstr ""
+
+#: src\overview.md:97
+msgid "Ordinal theorists often use the terms \"hour\", \"minute\", \"second\", and \"third\" for _A_, _B_, _C_, and _D_, respectively."
+msgstr "غالبًا ما يستخدم الناس مصطلحات «ساعة» و «دقيقة» و «ثانية» و «ثالثة» لـ A و B و C و _D_ تباعا."
+
+#: src\overview.md:100
+msgid "Now for some examples. This satoshi is common:"
+msgstr "الآن لبعض الأمثلة. هذا الساتوشي شائع :"
+
+#: src\overview.md:102
+msgid ""
+"```\n"
+"1°1′1″1‴\n"
+"│ │ │ ╰─ Not first sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── Not first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:111
+msgid "This satoshi is uncommon:"
+msgstr "هذا الساتوشي غير شائع:"
+
+#: src\overview.md:113
+msgid ""
+"```\n"
+"1°1′1″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── Not first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:121
+msgid "This satoshi is rare:"
+msgstr "هذا الساتوشي نادر:"
+
+#: src\overview.md:123
+msgid ""
+"```\n"
+"1°1′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── Not the first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:131
+msgid "This satoshi is epic:"
+msgstr "هذا الساتوشي ملحمي:"
+
+#: src\overview.md:133
+msgid ""
+"```\n"
+"1°0′1″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:141
+msgid "This satoshi is legendary:"
+msgstr "هذا الساتوشي أسطوري:"
+
+#: src\overview.md:143
+msgid ""
+"```\n"
+"1°0′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:151
+msgid "And this satoshi is mythic:"
+msgstr "هذا الساتوشي أسطوري بالغ:"
+
+#: src\overview.md:153
+msgid ""
+"```\n"
+"0°0′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── First cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:161
+msgid "If the block offset is zero, it may be omitted. This is the uncommon satoshi from above:"
+msgstr "إذا كان إزاحة block هي صفر، يمكن حذفها. هذا هو الساتوشي هو غير الشائع من أعلاه:"
+
+#: src\overview.md:164
+msgid ""
+"```\n"
+"1°1′1″\n"
+"│ │ ╰─ Not first block in difficulty adjustment period\n"
+"│ ╰─── Not first block in halving epoch\n"
+"╰───── Second cycle\n"
+"```"
+msgstr ""
+
+#: src\overview.md:171
+msgid "Rare Satoshi Supply"
+msgstr "إمدادات الساتوشي النادرة"
+
+#: src\overview.md:174
+msgid "Total Supply"
+msgstr "إجمالي الإمدادات"
+
+#: src\overview.md:176
+msgid "`common`: 2.1 quadrillion"
+msgstr "`شائع`: 2.1 كوادرليون"
+
+#: src\overview.md:177
+msgid "`uncommon`: 6,929,999"
+msgstr "`غير شائع`: 6,929,999"
+
+#: src\overview.md:178
+msgid "`rare`: 3437"
+msgstr "`نادر`: 3437"
+
+#: src\overview.md:179
+msgid "`epic`: 32"
+msgstr "`ملحمي`: 32"
+
+#: src\overview.md:180
+msgid "`legendary`: 5"
+msgstr "`أسطوري`: 5"
+
+#: src\overview.md:181 src\overview.md:190
+msgid "`mythic`: 1"
+msgstr "`أسطوري بالغ`: 1"
+
+#: src\overview.md:183
+msgid "Current Supply"
+msgstr "الإمدادات الحاليه"
+
+#: src\overview.md:185
+msgid "`common`: 1.9 quadrillion"
+msgstr "`شائع`: 1.9 كوادرليون"
+
+#: src\overview.md:186
+msgid "`uncommon`: 745,855"
+msgstr "`غير شائع`: 745,855"
+
+#: src\overview.md:187
+msgid "`rare`: 369"
+msgstr "`نادر`: 369"
+
+#: src\overview.md:188
+msgid "`epic`: 3"
+msgstr "`ملحمي`: 3"
+
+#: src\overview.md:189
+msgid "`legendary`: 0"
+msgstr "`أسطوري`: 0"
+
+#: src\overview.md:192
+msgid "At the moment, even uncommon satoshis are quite rare. As of this writing, 745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in circulation."
+msgstr "في الوقت الحالي، حتى الساتوشي غير الشائع نادر جدًا. اعتبارًا من هذه الكتابة، تم استخراج 745855 ساتوشي غير شائع - واحد لكل 25.6 بيتكوين متداول."
+
+#: src\overview.md:196
+msgid "Names"
+msgstr "الأسماء"
+
+#: src\overview.md:199
+msgid "Each satoshi has a name, consisting of the letters _A_ through _Z_, that get shorter the further into the future the satoshi was mined. They could start short and get longer, but then all the good, short names would be trapped in the unspendable genesis block."
+msgstr "لكل ساتوشي اسم مكون من الحروف من \"A\" إلى \"Z\"، وهذه الأسماء تصبح أقصر كلما تقدمنا من التعدين في المستقبل. يمكن أن تبدأ الأسماء بشكل قصير وتصبح أطول، ولكن في هذه الحالة ستصبح جميع الأسماء الجيدة والقصيرة محصورة في البلوك الأول الذي لا يمكن الوصول اليه."
+
+#: src\overview.md:204
+msgid "As an example, 1905530482684727°'s name is \"iaiufjszmoba\". The name of the last satoshi to be mined is \"a\". Every combination of 10 characters or less is out there, or will be out there, someday."
+msgstr "على سبيل المثال، اسم 1905530482684727° هو \"iaiufjszmoba\". واسم آخر ساتوشي سيتم تعدينه هو \"a\". كل تسلسل مكون من 10 أحرف أو أقل موجود، أو سيكون موجودًا يومًا ما."
+
+#: src\overview.md:208
+msgid "Exotics"
+msgstr "نوادر"
+
+#: src\overview.md:211
+msgid ""
+"Satoshis may be prized for reasons other than their name or rarity. This might be due to a quality of the number itself, like having an integer square or cube root. Or it might be due to a connection to a historical event, such as satoshis from block 477,120, the block "
+"in which SegWit activated, or 2099999997689999°, the last satoshi that will ever be mined."
+msgstr ""
+"قد يتم تقدير الساتوشيات لأسباب أخرى غير اسمها أو ندرتها. قد يكون ذلك بسبب جودة الرقم نفسه، مثل وجود جذر تربيعي أو مكعبي عددي. أو قد يكون ذلك بسبب ارتباطها بحدث تاريخي، مثل الساتوشيات من الكتلة 477،120، الكتلة التي تم فيها تفعيل سيجويت SegWit، أو 2099999997689999°،آخر "
+"ساتوشي بالعالم سيتم تعدينها."
+
+#: src\overview.md:217
+msgid "Such satoshis are termed \"exotic\". Which satoshis are exotic and what makes them so is subjective. Ordinal theorists are encouraged to seek out exotics based on criteria of their own devising."
+msgstr "تُعرف هذه الساتوشيات بـ \"الأنواع النادرة\". أي الساتوشيات التي تُعتبر غير عادية وما يجعلها كذلك هو موضوعي. يُشجع المنظرين Ordinals على البحث عن الساتوشيات الغريبة بناءً على معايير محددة."
+
+#: src\overview.md:224
+msgid ""
+"Satoshis can be inscribed with arbitrary content, creating Bitcoin-native digital artifacts. Inscribing is done by sending the satoshi to be inscribed in a transaction that reveals the inscription content on-chain. This content is then inextricably linked to that "
+"satoshi, turning it into an immutable digital artifact that can be tracked, transferred, hoarded, bought, sold, lost, and rediscovered."
+msgstr ""
+"يمكن تحديد الساتوشيات بمحتوى تقني بما يخلق القطع الفنية الرقمية الأصلية digital artifacts للبيتكوين. يتم ذلك من خلال إرسال الساتوشي المراد الكتابة عليه في عملية تداول تكشف عن محتوى الكتابة على الشبكة. يتم ربط هذا المحتوى بشكل لا يمكن فصله بالساتوشي، مما يحوله إلى قطعة "
+"فنية رقمية لا يمكن تغييرها يمكن تتبعها وتداولها وتخزينها وشرائها وبيعها ووفقدها واكتشافها مرة أخرى."
+
+#: src\overview.md:231
+msgid "Archaeology"
+msgstr "الآثار"
+
+#: src\overview.md:234
+msgid "A lively community of archaeologists devoted to cataloging and collecting early NFTs has sprung up. [Here's a great summary of historical NFTs by Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
+msgstr "قد ظهر مجتمع نشط من علماء الآثار المكرسين لتصنيف وجمع العملات الفنية الرقمية المبكرة (NFTs) مؤخرًا. [ها هو ملخص رائع لـ NFTs التاريخية من قبل Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
+
+#: src\overview.md:238
+msgid "A commonly accepted cut-off for early NFTs is March 19th, 2018, the date the first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was deployed on Ethereum."
+msgstr "تاريخ معروف عمومًا للـ NFTs المبكرة هو 19 مارس 2018، وهو تاريخ نشر أول عقد ERC-721، وهو عقد [SU SQUARES](https://tenthousandsu.com/)، على منصة إيثيريوم."
+
+#: src\overview.md:242
+msgid "Whether or not ordinals are of interest to NFT archaeologists is an open question! In one sense, ordinals were created in early 2022, when the Ordinals specification was finalized. In this sense, they are not of historical interest."
+msgstr "سواء كانت أوردينال مثيرة لاهتمام علماء الآثار لـ NFTs او لا فهو سؤال مفتوح! من ناحية، تم إنشاء أوردينالس في أوائل عام 2022، عندما تم تحديد مواصفاتها. من هذا المعنى، فهي ليست ذات أهمية تاريخية."
+
+#: src\overview.md:247
+msgid "In another sense though, ordinals were in fact created by Satoshi Nakamoto in 2009 when he mined the Bitcoin genesis block. In this sense, ordinals, and especially early ordinals, are certainly of historical interest."
+msgstr "من ناحية أخرى، تم إنشاء أوردينالس في الواقع من قبل ساتوشي ناكاموتو في عام 2009 عندما قام بتعدين genesis block للبيتكوين. من هذا المعنى، تكون أوردينالس ، وخصوصا المبكرة، من ذوي الاهتمام التاريخي بالتأكيد."
+
+#: src\overview.md:251
+msgid "Many ordinal theorists favor the latter view. This is not least because the ordinals were independently discovered on at least two separate occasions, long before the era of modern NFTs began."
+msgstr "العديد من نظريات أوردينالس تفضل الرأي الأخير. ويكون ذلك ليس على الأقل لأن تم اكتشافها بشكل مستقل في مرتين على الأقل في مناسبتين منفصلتين، وذلك قبل عصر NFTs الحديث."
+
+#: src\overview.md:255
+msgid ""
+"On August 21st, 2012, Charlie Lee [posted a proposal to add proof-of-stake to Bitcoin to the Bitcoin Talk forum](https://bitcointalk.org/index.php?topic=102355.0). This wasn't an asset scheme, but did use the ordinal algorithm, and was implemented but never deployed."
+msgstr "في 21 أغسطس 2012، قام تشارلي لي [بنشر اقتراح لإضافة إثبات حصة إلى بيتكوين](https://bitcointalk.org/index.php?topic=102355.0) على موقع Bitcoin Talk. لم يكن هذا مخطط له، ولكنه استخدم خوارزمية ordinal ، وتم تنفيذها ولكن لم يتم نشرها."
+
+#: src\overview.md:261
+msgid "On October 8th, 2012, jl2012 [posted a scheme to the same forum](https://bitcointalk.org/index.php?topic=117224.0) which uses decimal notation and has all the important properties of ordinals. The scheme was discussed but never implemented."
+msgstr "في 8 أكتوبر 2012، قام jl2012 بنشر [خطة على نفس الموقع تستخدم تدوين العددي ولديها جميع الخصائص المهمة](https://bitcointalk.org/index.php?topic=117224.0) ل أوردينال. تم مناقشة الخطة ولكن لم يتم تنفيذها."
+
+#: src\overview.md:266
+msgid ""
+"These independent inventions of ordinals indicate in some way that ordinals were discovered, or rediscovered, and not invented. The ordinals are an inevitability of the mathematics of Bitcoin, stemming not from their modern documentation, but from their ancient genesis. "
+"They are the culmination of a sequence of events set in motion with the mining of the first block, so many years ago."
+msgstr ""
+"هذه الاختراعات المستقلة ل أوردينال تشير بطريقة ما إلى أن تم اكتشافها أو اكتشافها مرة أخرى، وليس اختراعها. إن أوردينال نتيجة حتمية لرياضيات البيتكوين، وذلك لا يعود إلى وثائقها الحديثة، ولكن من نشأتهم القديمة. إنها ذروة تسلسل من الأحداث التي تم تشغيلها مع البلوك الأول، "
+"منذ سنوات عديدة."
+
+#: src\digital-artifacts.md:4
+msgid "Imagine a physical artifact. A rare coin, say, held safe for untold years in the dark, secret clutch of a Viking hoard, now dug from the earth by your grasping hands. It…"
+msgstr "تخيل تحفه أثرية في الواقع. عملة نادرة، على سبيل المثال، عمله سرية للفايكنج محفوظة بأمان لسنوات طويله و مخبأة ، ثم عثرت عليها أنت. فهي..."
+
+#: src\digital-artifacts.md:8
+msgid "…has an owner. You. As long as you keep it safe, nobody can take it from you."
+msgstr "...لديها مالك. وهو أنت. طالما أنك تحتفظ بها بأمان، لا يمكن لأحد أن يأخذها منك."
+
+#: src\digital-artifacts.md:10
+msgid "…is complete. It has no missing parts."
+msgstr "... كاملة. ليس لديها أجزاء ناقصة."
+
+#: src\digital-artifacts.md:12
+msgid "…can only be changed by you. If you were a trader, and you made your way to 18th century China, none but you could stamp it with your chop-mark."
+msgstr "... يمكن تغييرها فقط بواسطتك. إذا كنت تاجرًا، ووصلت إلى الصين في القرن الثامن عشر، لا يمكن لأحد سواك أن يختمها بعلامتك التجارية."
+
+#: src\digital-artifacts.md:15
+msgid "…can only be disposed of by you. The sale, trade, or gift is yours to make, to whomever you wish."
+msgstr "...مكن التخلص منها فقط بواسطتك. البيع، التبادل، أو الهدية لمن تشاء هو قرارك وحدك."
+
+#: src\digital-artifacts.md:18
+msgid "What are digital artifacts? Simply put, they are the digital equivalent of physical artifacts."
+msgstr "ما هي الأصول/التحف الرقمية؟ ببساطة، إنها المعادلة الرقمية للتحفة الفعلية."
+
+#: src\digital-artifacts.md:21
+msgid "For a digital thing to be a digital artifact, it must be like that coin of yours:"
+msgstr "لكي يكون الشيء الرقمي تحفة رقمية، يجب أن يكون مثل تلك العملة التي لديك:"
+
+#: src\digital-artifacts.md:24
+msgid "Digital artifacts can have owners. A number is not a digital artifact, because nobody can own it."
+msgstr "التحفه الرقمية يمكن أن تمتلك أصحابًا. الرقم ليس تحفة رقمية، لأنه لا يمكن لأحد أن يمتلكه."
+
+#: src\digital-artifacts.md:27
+msgid "Digital artifacts are complete. An NFT that points to off-chain content on IPFS or Arweave is incomplete, and thus not a digital artifact."
+msgstr "التحف الرقمية هي كاملة. ال NFT الذي  يشير إلى محتوى خارج الشبكة على IPFS أو Arweave غير كامل، وبالتالي ليس تحفة رقمية."
+
+#: src\digital-artifacts.md:30
+msgid "Digital artifacts are permissionless. An NFT which cannot be sold without paying a royalty is not permissionless, and thus not a digital artifact."
+msgstr "التحف الرقمية هي غير مقيدة بأذونات. ال NFT لا يمكن بيعها بدون دفع عمولة وبذالك هي مقيدة بأذونات، وبالتالي ليست تحفة رقمية."
+
+#: src\digital-artifacts.md:33
+msgid "Digital artifacts are uncensorable. Perhaps you can change a database entry on a centralized ledger today, but maybe not tomorrow, and thus one cannot be a digital artifact."
+msgstr "التحف الرقمية غير قابلة للرقابة. قد يكون لديك الإمكانية بتغيير قاعدة البيانات المركزي على ledger اليوم، ولكن ربما لا يمكن ذلك غدًا، وبالتالي لا يمكن أن تكون تحفه رقمية."
+
+#: src\digital-artifacts.md:37
+msgid "Digital artifacts are immutable. An NFT with an upgrade key is not a digital artifact."
+msgstr "التحف الرقمية لا تتغير. NFT مع قابليه الترقية لا تعد تحفة رقمية."
+
+#: src\digital-artifacts.md:40
+msgid "The definition of a digital artifact is intended to reflect what NFTs _should_ be, sometimes are, and what inscriptions _always_ are, by their very nature."
+msgstr "تعريف التحف الرقمية يهدف إلى اثبات ما يجب أن يكون ال NFTs، وفي بعض الأحيان ما هي عليه، والتحف هي _دائمًا_ كذلك بالطبيعة التامة."
+
+#: src\inscriptions.md:4
+msgid "Inscriptions inscribe sats with arbitrary content, creating bitcoin-native digital artifacts, more commonly known as NFTs. Inscriptions do not require a sidechain or separate token."
+msgstr "الأنسكريبشين توصف الساتوشي بمحتوى تعسفي، مما يخلق محتويات رقمية digital artifacts منشأة في البيتكوين، والمعروفة عادة باسم NFTs. وهي لا تحتاج إلى شبكه جانبية أو عملات منفصله."
+
+#: src\inscriptions.md:8
+msgid ""
+"These inscribed sats can then be transferred using bitcoin transactions, sent to bitcoin addresses, and held in bitcoin UTXOs. These transactions, addresses, and UTXOs are normal bitcoin transactions, addresses, and UTXOS in all respects, with the exception that in "
+"order to send individual sats, transactions must control the order and value of inputs and outputs according to ordinal theory."
+msgstr ""
+"هذه الساتوشي يمكن ارسالها عن طريق شبكه بيتكوين والاحتفاظ بها في محافظ البيتكوين على شكل UTXOs (مخرجات المعاملات الغير مُنفقة) في البيتكوين. هذه الصفقات والعناوين ومخرجات الصفقات هي عمليات وعناوين ومخرجات صفقات بيتكوين عادية بكل معنى الكلمة، باستثناء أنه من أجل إرسال "
+"ساتوشيات فردية، يجب أن تتحكم الصفقات في ترتيب وقيمة المدخلات والمخرجات وفقًا لنظرية أوردينال."
+
+#: src\inscriptions.md:15
+msgid ""
+"The inscription content model is that of the web. An inscription consists of a content type, also known as a MIME type, and the content itself, which is a byte string. This allows inscription content to be returned from a web server, and for creating HTML inscriptions "
+"that use and remix the content of other inscriptions."
+msgstr ""
+"نموذج محتوى أوردينال يتبع نمط الويب. يتألف كل انسكريبشين Inscription في نوع المحتوى، والمعروف أيضا باسم MIME، جنبا إلى جنب مع المحتوى نفسه بصيغة سلسلة بايت. يسمح هذا الإعداد يسمح محتوى الأنسكريبشين الى العودة من خادم الويب، مما يتيح إنشاء Inscription HTML تستخدم وتعيد "
+"تكوين محتوى Inscription أخرى."
+
+#: src\inscriptions.md:21
+msgid "Inscription content is entirely on-chain, stored in taproot script-path spend scripts. Taproot scripts have very few restrictions on their content, and additionally receive the witness discount, making inscription content storage relatively economical."
+msgstr "جميع محتوى الأنسكريبشين يتم تخزينه بالكامل على الشبكة، وذلك في البرامج النصية الخاصة بسحب مسارات تابروت (Taproot) . تتمتع برامج تابروت بقليل من القيود على محتواها وبالإضافة إلى ذلك تحصل على خصم الشاهد، مما يجعل تخزين المحتوى مكلفًا نسبيًا."
+
+#: src\inscriptions.md:26
+msgid ""
+"Since taproot script spends can only be made from existing taproot outputs, inscriptions are made using a two-phase commit/reveal procedure. First, in the commit transaction, a taproot output committing to a script containing the inscription content is created. Second, "
+"in the reveal transaction, the output created by the commit transaction is spent, revealing the inscription content on-chain."
+msgstr ""
+"نظرًا لطبيعة صفقات برامج تابروت، التي يمكن أن تتم فقط من مخرجات تابروت الموجودة بالفعل، يتم إنشاء الأنسكريبشين على مرحليتين باستخدام عملية تأكيد/كشف . في البداية، ينشئ صفقة تأكيد مخرج تابروت يلتزم ببرنامج يحتوي على محتوى الأنسكريبشين. في المرحلة التالية، تنفق عمليه الكشف "
+"المخرج الذي تم إنشاؤه في عمليه التأكيد، مما يكشف عن المحتوى على الشبكة البيانية."
+
+#: src\inscriptions.md:33
+msgid ""
+"Inscription content is serialized using data pushes within unexecuted conditionals, called \"envelopes\". Envelopes consist of an `OP_FALSE OP_IF … OP_ENDIF` wrapping any number of data pushes. Because envelopes are effectively no-ops, they do not change the semantics "
+"of the script in which they are included, and can be combined with any other locking script."
+msgstr ""
+"يتم تسلسل المحتوى باستخدام دفعات بيانات ضمن شروط غير مؤداه، والتي تُعرف بـ \"envelopes\". تتألف من أمر `OP_FALSE OP_IF … OP_ENDIF` الذي يحيط بأي عدد من دفعات البيانات. نظرًا لأنها تعمل كعمليات فارغة بفعالية، فإنها لا تغير دلالة النص البرمجي الذي يتم تضمينها فيه، ويمكن "
+"دمجها مع أي نص برمجي مقفول آخر ."
+
+#: src\inscriptions.md:39
+msgid "A text inscription containing the string \"Hello, world!\" is serialized as follows:"
+msgstr "على سبيل المثال يوجد نص انسكريبشين يحتوي على جملة : \"Hello, world!\" يتسلسل على النحو التالي:"
+
+#: src\inscriptions.md:42
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src\inscriptions.md:53
+msgid "First the string `ord` is pushed, to disambiguate inscriptions from other uses of envelopes."
+msgstr "أولاً، يتم دفع سلسلة `ord` للتفريق بين الكتابات وبين استخدامات أخرى للظروف."
+
+#: src\inscriptions.md:56
+msgid ""
+"`OP_PUSH 1` indicates that the next push contains the content type, and `OP_PUSH 0` indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data "
+"pushes may not be larger than 520 bytes."
+msgstr ""
+"مثال `OP_PUSH 1` يشير إلى أن الدفعة التالية تحتوي على نوع المحتوى، و `OP_PUSH 0` يشير إلى أن الدفعات البيانية التالية تحتوي على المحتوى نفسه. يجب استخدام دفعات البيانات المتعددة للكتابات الكبيرة، حيث أن إحدى القيود القليلة في taproot هي أن دفعات البيانات الفردية لا يمكن "
+"أن تكون أكبر من 520 bytes."
+
+#: src\inscriptions.md:61
+msgid ""
+"The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, "
+"and recovered."
+msgstr "يتم تضمين محتوى الأنسكريبشين داخل مدخل عملية الكشف، وتتم الكتابة على أول ساتوشي في المدخل. يمكن بعد ذلك تتبع هذا الساتوشي باستخدام قواعد نظرية أوردينال المعتادة، مما يسمح بنقله، وشرائه، وبيعه، وفقده بسبب الرسوم، واستعادته."
+
+#: src\inscriptions.md:66
+msgid "Content"
+msgstr "المحتوى"
+
+#: src\inscriptions.md:69
+msgid "The data model of inscriptions is that of a HTTP response, allowing inscription content to be served by a web server and viewed in a web browser."
+msgstr "نموذج بيانات الكتابات هو نفس نموذج الاستجابة HTTP، مما يتيح لمحتوى انسكريبشين أن يتم تقديمه من خلال خادم ويب وعرضه في متصفح ويب."
+
+#: src\inscriptions.md:72
+msgid "Fields"
+msgstr "الحقول"
+
+#: src\inscriptions.md:75
+msgid "Inscriptions may include fields before an optional body. Each field consists of two data pushes, a tag and a value."
+msgstr "قد تشمل الأنسكريبشين حقولًا قبل هيكل اختياري. يتألف كل حقل من توجيهين للبيانات، علامة وقيمة."
+
+#: src\inscriptions.md:78
+msgid "Currently, the only defined field is `content-type`, with a tag of `1`, whose value is the MIME type of the body."
+msgstr "حاليًا، الحقل المعرف الوحيد `content-type`, بعلامة `1 `، والذي قيمته نوع MIME للهيكل."
+
+#: src\inscriptions.md:81
+msgid "The beginning of the body and end of fields is indicated with an empty data push."
+msgstr "يتم توضيح بداية الهيكل ونهاية الحقول باستخدام دفعة بيانات فارغة."
+
+#: src\inscriptions.md:84
+msgid "Unrecognized tags are interpreted differently depending on whether they are even or odd, following the \"it's okay to be odd\" rule used by the Lightning Network."
+msgstr "العلامات غير المعترف بها تفسر بشكل مختلف اعتمادًا على ما إذا كانت زوجية أم فردية، وذلك وفقًا لقاعدة \"من الجيد أن تكون فردية\" المستخدمة في شبكة Lightning."
+
+#: src\inscriptions.md:88
+msgid "Even tags are used for fields which may affect creation, initial assignment, or transfer of an inscription. Thus, inscriptions with unrecognized even fields must be displayed as \"unbound\", that is, without a location."
+msgstr "تُستخدم العلامات الزوجية للحقول التي قد تؤثر على إنشاء الأنسكريبشين، وتعيينه الأولي، أو نقله. بالتالي، يجب عرض الأنسكريبشين ذات الحقول الزوجية غير المعترف بها على أنها \"غير مُرتبطة\"، أي بدون موقع."
+
+#: src\inscriptions.md:92
+msgid "Odd tags are used for fields which do not affect creation, initial assignment, or transfer, such as additional metadata, and thus are safe to ignore."
+msgstr "تُستخدم العلامات الفردية للحقول التي لا تؤثر على إنشاء الأنسكريبشين، وتعيينه الأولي، أو نقله، مثل البيانات الوصفية الإضافية، وبالتالي يمكن تجاهلها بأمان."
+
+#: src\inscriptions.md:95
+msgid "Inscription IDs"
+msgstr "مُعرفات الانسكريبشين"
+
+#: src\inscriptions.md:98
+msgid "The inscriptions are contained within the inputs of a reveal transaction. In order to uniquely identify them they are assigned an ID of the form:"
+msgstr "تتمثل الأنسكريبشين في المدخلات (inputs) لعملية الكشف (reveal) التي تعلن الأنسكريبشين. لتحديد هويتها بشكل فريد، يتم تعيينها بمعرف بالشكل التالي:"
+
+#: src\inscriptions.md:101
+msgid "`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`"
+msgstr ""
+
+#: src\inscriptions.md:103
+msgid "The part in front of the `i` is the transaction ID (`txid`) of the reveal transaction. The number after the `i` defines the index (starting at 0) of new inscriptions being inscribed in the reveal transaction."
+msgstr "الجزء الذي يسبق الـ `i` هو معرف المعاملة (`txid`) لعملية الكشف. العدد بعد الـ `i` يحدد المؤشر (بدءًا من 0) الأنسكريبشين الجديدة التي يتم تدوينها في عملية الكشف."
+
+#: src\inscriptions.md:107
+msgid "Inscriptions can either be located in different inputs, within the same input or a combination of both. In any case the ordering is clear, since a parser would go through the inputs consecutively and look for all inscription `envelopes`."
+msgstr "يمكن أن تكون الأنسكريبشينس موجودة إما في مدخلات مختلفة، داخل نفس المدخل أو مزيجًا من الاثنين. في أي حالة، الترتيب واضح، حيث يتابع جهاز تحليل البيانات المدخلات ويبحث عن جميع أظرف الأنسكريبشينس`envelopes`."
+
+#: src\inscriptions.md:111
+msgid "Input"
+msgstr ""
+
+#: src\inscriptions.md:111
+msgid "Inscription Count"
+msgstr ""
+
+#: src\inscriptions.md:111
+msgid "Indices"
+msgstr ""
+
+#: src\inscriptions.md:113 src\inscriptions.md:116
+msgid "0"
+msgstr ""
+
+#: src\inscriptions.md:113 src\inscriptions.md:115
+msgid "2"
+msgstr ""
+
+#: src\inscriptions.md:113
+msgid "i0, i1"
+msgstr ""
+
+#: src\inscriptions.md:114 src\inscriptions.md:117
+msgid "1"
+msgstr ""
+
+#: src\inscriptions.md:114
+msgid "i2"
+msgstr ""
+
+#: src\inscriptions.md:115 src\inscriptions.md:116
+msgid "3"
+msgstr ""
+
+#: src\inscriptions.md:115
+msgid "i3, i4, i5"
+msgstr ""
+
+#: src\inscriptions.md:117
+msgid "4"
+msgstr ""
+
+#: src\inscriptions.md:117
+msgid "i6"
+msgstr ""
+
+#: src\inscriptions.md:119
+msgid "Sandboxing"
+msgstr "عزل البيئة"
+
+#: src\inscriptions.md:122
+msgid "HTML and SVG inscriptions are sandboxed in order to prevent references to off-chain content, thus keeping inscriptions immutable and self-contained."
+msgstr "يتم عزل الأنسكريبشين HTML و SVG من أجل منع الإشارات إلى المحتوى الخارجي على الشبكة، وبالتالي الحفاظ على الأنسكريبشين بلا تغيير ومكتملة ذاتياً."
+
+#: src\inscriptions.md:125
+msgid "This is accomplished by loading HTML and SVG inscriptions inside `iframes` with the `sandbox` attribute, as well as serving inscription content with `Content-Security-Policy` headers."
+msgstr "يتم تحقيق ذلك من خلال تحميل HTML و SVG انسكريبشين داخل `iframes` مع صفة `sandbox`، بالإضافة إلى تقديم محتوى انسكريبشين باستخدام `Content-Security-Policy` ."
+
+#: src\inscriptions/recursion.md:4
+msgid "An important exception to [sandboxing](../inscriptions.md#sandboxing) is recursion: access to `ord`'s `/content` endpoint is permitted, allowing inscriptions to access the content of other inscriptions by requesting `/content/<INSCRIPTION_ID>`."
+msgstr "إستثناء مهم من تطبيق البيئة العازلة[sandboxing](../inscriptions.md#sandboxing)هو التكرار recursion: يُسمح بالوصول إلى نقطة النهاية `ord`'s `/content`، مما يتيح inscription الوصول إلى محتوى inscription آخر من خلال طلب`/content/<INSCRIPTION_ID>`."
+
+#: src\inscriptions/recursion.md:8
+msgid "This has a number of interesting use-cases:"
+msgstr "العديد من الاستخدامات المثيرة للاهتمام:"
+
+#: src\inscriptions/recursion.md:10
+msgid "Remixing the content of existing inscriptions."
+msgstr "إعادة مزج محتوى الحالي من الإنسكريبشين."
+
+#: src\inscriptions/recursion.md:12
+msgid "Publishing snippets of code, images, audio, or stylesheets as shared public resources."
+msgstr "نشر مقتطفات من الشفرة، والصور، والصوت، أو ورقات الأنماط كموارد عامة مشتركة."
+
+#: src\inscriptions/recursion.md:15
+msgid "Generative art collections where an algorithm is inscribed as JavaScript, and instantiated from multiple inscriptions with unique seeds."
+msgstr "مجموعات الفن التوليدية حيث يتم توثيق خوارزمية باستخدام JavaScript، ويتم تفعيلها من خلال إنسكريبشين متعددة ببذور فريدة."
+
+#: src\inscriptions/recursion.md:18
+msgid "Generative profile picture collections where accessories and attributes are inscribed as individual images, or in a shared texture atlas, and then combined, collage-style, in unique combinations in multiple inscriptions."
+msgstr "مجموعات صور الملف الشخصي التوليدية حيث يتم تدوين الإكسسوارات والسمات كصور فردية، أو ضمن أطلس للنسيج المشترك، ثم يتم دمجها، على طريقة التراص، في تركيبات فريدة في عدد من الإنسكريبشينس."
+
+#: src\inscriptions/recursion.md:22
+msgid "A few other endpoints that inscriptions may access are the following:"
+msgstr "نقاط أخرى التي يمكن الإنسكريبشين الوصول إليها هي كما يلي:"
+
+#: src\inscriptions/recursion.md:24
+msgid "`/blockheight`: latest block height."
+msgstr ""
+
+#: src\inscriptions/recursion.md:25
+msgid "`/blockhash`: latest block hash."
+msgstr ""
+
+#: src\inscriptions/recursion.md:26
+msgid "`/blockhash/<HEIGHT>`: block hash at given block height."
+msgstr ""
+
+#: src\inscriptions/recursion.md:27
+msgid "`/blocktime`: UNIX time stamp of latest block."
+msgstr ""
+
+#: src\faq.md:1
+msgid "Ordinal Theory FAQ"
+msgstr "الأسئلة الشائعة لنظرية أوردينال"
+
+#: src\faq.md:4
+msgid "What is ordinal theory?"
+msgstr "ما هي نظرية أوردينال؟"
+
+#: src\faq.md:7
+msgid "Ordinal theory is a protocol for assigning serial numbers to satoshis, the smallest subdivision of a bitcoin, and tracking those satoshis as they are spent by transactions."
+msgstr "نظرية أوردينال هي بروتوكول لتخصيص أرقام تسلسلية للساتوشي، وهي أصغر وحدة فرعية من البيتكوين، ويمكن تتبع تلك الساتوشي أثناء استعمالها من خلال المعاملات."
+
+#: src\faq.md:11
+msgid "These serial numbers are large numbers, like this 804766073970493. Every satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal number."
+msgstr "تلك الأرقام التسلسلية هي أرقام كبيرة، مثل هذا الرقم 804766073970493. كل ساتوشي، والذي هو واحد من أصل مليون من بيتكوين واحد، لديه رقم ترتيبي."
+
+#: src\faq.md:14
+msgid "Does ordinal theory require a side chain, a separate token, or changes to Bitcoin?"
+msgstr "هل تتطلب نظرية أوردينال شبكه فرعية (Sidechain) أو عمله منفصله (Token)، أو تغييرات في البيتكوين؟"
+
+#: src\faq.md:17
+msgid "Nope! Ordinal theory works right now, without a side chain, and the only token needed is bitcoin itself."
+msgstr "لا! نظرية أوردينال تعمل حاليًا دون الحاجة إلى شبكه فرعية أو عمله منفصله، والعملة الوحيدة المطلوبة هي بيتكوين نفسه."
+
+#: src\faq.md:20
+msgid "What is ordinal theory good for?"
+msgstr "ما فائدة نظرية أوردينال؟"
+
+#: src\faq.md:23
+msgid "Collecting, trading, and scheming. Ordinal theory assigns identities to individual satoshis, allowing them to be individually tracked and traded, as curios and for numismatic value."
+msgstr "لجمع وتداول والتخطيطات. تعني إعطاء هويه للساتوشيات الفردية Assign identities to individual satoshis، وتسمح لها بأن تتمتع بإمكانية التتبع والتداول بشكل فردي، وذلك لأغراض الفضول والقيمة النقدية."
+
+#: src\faq.md:27
+msgid "Ordinal theory also enables inscriptions, a protocol for attaching arbitrary content to individual satoshis, turning them into bitcoin-native digital artifacts."
+msgstr "تمكّن نظرية أوردينال أيضًا من الإنسكريبشين، وهو بروتوكول يتيح لربط محتوى تعسفي بالساتوشيس الفردية، مما يحولها إلى فنون رقمية (digital artifacts) من نوع بيتكوين الأصلي."
+
+#: src\faq.md:31
+msgid "How does ordinal theory work?"
+msgstr "كيف تعمل نظرية أوردينال؟"
+
+#: src\faq.md:34
+msgid "Ordinal numbers are assigned to satoshis in the order in which they are mined. The first satoshi in the first block has ordinal number 0, the second has ordinal number 1, and the last satoshi of the first block has ordinal number 4,999,999,999."
+msgstr "تُخصص أرقام أوردينال للساتوشيس بحسب ترتيب تعدينها. أول ساتوشي في البلوك الأول لديها رقم ترتيبي صفر 0، والثانية لها رقم ترتيبي 1، وآخر ساتوشي في البلوك الأول لديها رقم ترتيبي 4,999,999,999."
+
+#: src\faq.md:39
+msgid "Satoshis live in outputs, but transactions destroy outputs and create new ones, so ordinal theory uses an algorithm to determine how satoshis hop from the inputs of a transaction to its outputs."
+msgstr "الساتوشيس تعيش في output ، لكن المعاملات تدمر outputs وتصنع outputs جديدة، لذا يستخدم نظرية أوردينال خوارزمية لتحديد كيفية تنقل الساتوشيس من مداخل المعاملة إلى مخرجاتها."
+
+#: src\faq.md:43
+msgid "Fortunately, that algorithm is very simple."
+msgstr "لحسن الحظ، هذه الخوارزمية بسيطة جدًا."
+
+#: src\faq.md:45
+msgid ""
+"Satoshis transfer in first-in-first-out order. Think of the inputs to a transaction as being a list of satoshis, and the outputs as a list of slots, waiting to receive a satoshi. To assign input satoshis to slots, go through each satoshi in the inputs in order, and "
+"assign each to the first available slot in the outputs."
+msgstr ""
+"ترسل الساتوشي بترتيب الواصل الأول هو الخارج الأول. اعتبر مداخل المعاملة قائمة بالساتوشيس، والمخرجات قائمة بالفتحات، تنتظر استقبال الساتوشي. لتعيين الساتوشي المدخلة إلى الفتحات، قم بمراجعة كل ساتوشي في المداخل ب بالترتيب، وقم بتعيين كل منها إلى أول فتحة متاحة في المخرجات."
+
+#: src\faq.md:51
+msgid "Let's imagine a transaction with three inputs and two outputs. The inputs are on the left of the arrow and the outputs are on the right, all labeled with their values:"
+msgstr "لنتخيل معاملة تحتوي على ثلاثة مداخل ومخرجين. تظهر المداخل على يمين السهم والمخرجات على يساره، وكل منها مُحدد بقيمته:"
+
+#: src\faq.md:55
+msgid ""
+"```\n"
+"[2] [1] [3] → [4] [2]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:57
+msgid "Now let's label the same transaction with the ordinal numbers of the satoshis that each input contains, and question marks for each output slot. Ordinal numbers are large, so let's use letters to represent them:"
+msgstr "الآن لنضع علامات على نفس المعاملة باستخدام أرقام ترتيبية للساتوشيس في كل مدخل، وعلامات استفهام لكل فتحة خروج. الأرقام الترتيبية كبيرة، لذلك دعونا نستخدم الحروف لتمثيلها:"
+
+#: src\faq.md:61
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [? ? ? ?] [? ?]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:63
+msgid "To figure out which satoshi goes to which output, go through the input satoshis in order and assign each to a question mark:"
+msgstr "لمعرفة أي ساتوشي سيذهب إلى أي فتحة، قم بمراجعة الساتوشيس المدخلة بالترتيب وقم بتعيين كل واحد إلى علامة استفهام:"
+
+#: src\faq.md:66
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [a b c d] [e f]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:68
+msgid ""
+"What about fees, you might ask? Good question! Let's imagine the same transaction, this time with a two satoshi fee. Transactions with fees send more satoshis in the inputs than are received by the outputs, so to make our transaction into one that pays fees, we'll "
+"remove the second output:"
+msgstr "قد تسأل ماذا عن الرسوم؟ سؤال جيد! لنتخيل نفس المعاملة، وهذه المرة مع اثنان ساتوشي كرسوم. المعاملات ذات الرسوم ترسل مزيدًا من الساتوشي في المداخل مقارنة بما يتم استقباله في المخارج، لذا من أجل تحويل معاملتنا إلى معاملة تدفع رسومًا، سنقوم بإزالة الفتحة الثانية:"
+
+#: src\faq.md:73
+msgid ""
+"```\n"
+"[2] [1] [3] → [4]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:75
+msgid "The satoshis "
+msgstr ""
+
+#: src\faq.md:75
+msgid "e"
+msgstr ""
+
+#: src\faq.md:75
+msgid " and "
+msgstr ""
+
+#: src\faq.md:75
+msgid "f"
+msgstr ""
+
+#: src\faq.md:75
+msgid " now have nowhere to go in the outputs:"
+msgstr ""
+
+#: src\faq.md:78
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [a b c d]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:80
+msgid ""
+"So they go to the miner who mined the block as fees. [The BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) has the details, but in short, fees paid by transactions are treated as extra inputs to the coinbase transaction, and are ordered how their "
+"corresponding transactions are ordered in the block. The coinbase transaction of the block might look like this:"
+msgstr ""
+"لذا سيذهبون إلى عائد العامل الذي قام بتعدين الكتلة كرسوم.[The BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) المعيار المعني به هنا يمتلك التفاصيل، لكن بشكل موجز، يتم التعامل مع الرسوم التي يتم دفعها من خلال المعاملات على أنها مداخل إضافية لمعاملة العملة "
+"الأساسية، وتتم ترتيبها بناءً على ترتيب معاملاتها المقابلة في الكتلة. قد يبدو معامل العملة الأساسية في البلوك كما يلي:"
+
+#: src\faq.md:87
+msgid ""
+"```\n"
+"[SUBSIDY] [e f] → [SUBSIDY e f]\n"
+"```"
+msgstr ""
+
+#: src\faq.md:89
+msgid "Where can I find the nitty-gritty details?"
+msgstr "أين يمكنني العثور على تفاصيل البنية الدقيقة؟"
+
+#: src\faq.md:92
+msgid "[The BIP!](https://github.com/ordinals/ord/blob/master/bip.mediawiki)"
+msgstr ""
+
+#: src\faq.md:94
+msgid "Why are sat inscriptions called \"digital artifacts\" instead of \"NFTs\"?"
+msgstr "لماذا يُطلق على سات إنسكريبشين ديجاتل ارتيفاكت \"digital artifact\" بدلاً من \"الرموز غير القابلة للتماثل\" \"NFTs\"؟"
+
+#: src\faq.md:97
+msgid "An inscription is an NFT, but the term \"digital artifact\" is used instead, because it's simple, suggestive, and familiar."
+msgstr "الرسوم الرقمية digital artifact هي في الأساس NFTs، ولكن يتم استخدام مصطلح \"الآثار الرقمية\" بدلاً من ذلك؛ لأنه أكثر بساطة وتلميحيًا وعامًا."
+
+#: src\faq.md:100
+msgid "The phrase \"digital artifact\" is highly suggestive, even to someone who has never heard the term before. In comparison, NFT is an acronym, and doesn't provide any indication of what it means if you haven't heard the term before."
+msgstr "عبارة \"الآثار الرقمية\" digital artifact تحمل معانٍ قوية حتى لمن لم يسمع بهذا المصطلح من قبل. وعلى عكس ذلك، اختصار NFT هو اختصار، ولا يوفر أي مؤشر على معناه إذا لم تكن قد سمعت بهذا المصطلح من قبل."
+
+#: src\faq.md:104
+msgid "Additionally, \"NFT\" feels like financial terminology, and the both word \"fungible\" and sense of the word \"token\" as used in \"NFT\" is uncommon outside of financial contexts."
+msgstr "بالإضافة إلى ذلك، يبدو \"NFT\" كمصطلح مالي، وكلمتا \"غير قابلة للتماثل\" و\"رمز\" كما يُستخدمان في \"NFT\" غير شائعتين خارج السياقات المالية."
+
+#: src\faq.md:108
+msgid "How do sat inscriptions compare to…"
+msgstr "كيف تقارن سات إنسكريبشين مع…"
+
+#: src\faq.md:111
+msgid "Ethereum NFTs?"
+msgstr "إيثريوم (NFTs)؟"
+
+#: src\faq.md:113
+msgid "_Inscriptions are always immutable._"
+msgstr "_الأنسكريبشين غير قابلة للتغيير_"
+
+#: src\faq.md:115
+msgid "There is simply no way to for the creator of an inscription, or the owner of an inscription, to modify it after it has been created."
+msgstr "لا يوجد أي طريقة لصانع الإنسكريبشين أو مالكها لتعديلها بعد إنشائها."
+
+#: src\faq.md:118
+msgid "Ethereum NFTs _can_ be immutable, but many are not, and can be changed or deleted by the NFT contract owner."
+msgstr "قد تكون NFTs في إيثيريوم قابلة للتغيير، ويمكن تغييرها أو حذفها من قبل صاحب العقد نفسه."
+
+#: src\faq.md:121
+msgid "In order to make sure that a particular Ethereum NFT is immutable, the contract code must be audited, which requires detailed knowledge of the EVM and Solidity semantics."
+msgstr "من أجل التأكد من أن NFT معين في إيثيريوم غير قابل للتغيير، يجب مراجعة الكود الموجود في العقد، والذي يتطلب معرفة تفصيلية بشبكة EVM وسياقات Solidity."
+
+#: src\faq.md:125
+msgid ""
+"It is very hard for a non-technical user to determine whether or not a given Ethereum NFT is mutable or immutable, and Ethereum NFT platforms make no effort to distinguish whether an NFT is mutable or immutable, and whether the contract source code is available and has "
+"been audited."
+msgstr "من الصعب جدًا على المستخدم الغير الفني تحديد ما إذا كان NFT الإيثيريوم قابلًا للتغيير أم لا، ومنصات NFT في إيثيريوم لا تبذل جهدًا للتمييز بين NFT اذا هي قابلة للتغيير أو لا ، وإذا كان كود المصدر قد تمت مراجعته."
+
+#: src\faq.md:130
+msgid "_Inscription content is always on-chain._"
+msgstr "_محتوى الإنسكريبشين دائماً على السلسلة الرئيسية._"
+
+#: src\faq.md:132
+msgid "There is no way for an inscription to refer to off-chain content. This makes inscriptions more durable, because content cannot be lost, and scarcer, because inscription creators must pay fees proportional to the size of the content."
+msgstr "لا يوجد طريقة للإشارة إلى محتوى خارج السلسلة. هذا يجعل الإنسكريبشين أكثر دوامًا، لأن المحتوى لا يمكن أن يتم فقده، وأكثر ندرة، لأن صانعيه الإنسكريبشين يجب أن يدفعوا رسومًا تتناسب مع حجم المحتوى."
+
+#: src\faq.md:136
+msgid ""
+"Some Ethereum NFT content is on-chain, but much is off-chain, and is stored on platforms like IPFS or Arweave, or on traditional, fully centralized web servers. Content on IPFS is not guaranteed to continue to be available, and some NFT content stored on IPFS has "
+"already been lost. Platforms like Arweave rely on weak economic assumptions, and will likely fail catastrophically when these economic assumptions are no longer met. Centralized web servers may disappear at any time."
+msgstr ""
+"بعض محتوى NFT في إيثيريوم على الشبكة، ولكن الكثير منها خارجها، ويتم تخزينها على منصات مثل IPFS أو Arweave، أو على خوادم ويب تقليدية مركزية تمامًا. ليس هناك ضمان لاستمرارية المحتوى على IPFS، وبعض محتوى NFT المخزن على IPFS قد تم فقدانه بالفعل. تعتمد منصات مثل Arweave على "
+"افتراضات اقتصادية ضعيفة، ومن المحتمل أن تفشل بشكل كارثي عندما لا تُلبى هذه الافتراضات الاقتصادية بعد الآن. يمكن أن تختفي الخوادم المركزية في أي وقت."
+
+#: src\faq.md:144
+msgid "It is very hard for a non-technical user to determine where the content of a given Ethereum NFT is stored."
+msgstr "من الصعب جدًا على المستخدم الغير الفني تحديد مكان تخزين محتوى NFT معين في إيثيريوم."
+
+#: src\faq.md:147
+msgid "_Inscriptions are much simpler._"
+msgstr "_الإنسكريبشين بسيط جدا_"
+
+#: src\faq.md:149
+msgid "Ethereum NFTs depend on the Ethereum network and virtual machine, which are highly complex, constantly changing, and which introduce changes via backwards-incompatible hard forks."
+msgstr "إيثيريوم NFT تعتمد على شبكة إيثيريوم والجهاز الظاهري للماكينات (EVM)، والتي هي معقدة للغاية ومتغيرة باستمرار، والتي تقوم بإدخال التغييرات من خلال تشعبات صعبة غير متوافقة مع الإصدارات السابقة."
+
+#: src\faq.md:153
+msgid "Inscriptions, on the other hand, depend on the Bitcoin blockchain, which is relatively simple and conservative, and which introduces changes via backwards-compatible soft forks."
+msgstr "على الجانب الآخر، تعتمد الإنسكريبشين على شبكه البيتكوين، والتي تعتبر بسيطة ومحافظة، والتي تدخل التغييرات من خلال تفرعات ناعمة متوافقة مع الإصدارات السابقة."
+
+#: src\faq.md:157
+msgid "_Inscriptions are more secure._"
+msgstr "_الإنسكريبشين أكثر أمان_"
+
+#: src\faq.md:159
+msgid ""
+"Inscriptions inherit Bitcoin's transaction model, which allow a user to see exactly which inscriptions are being transferred by a transaction before they sign it. Inscriptions can be offered for sale using partially signed transactions, which don't require allowing a "
+"third party, such as an exchange or marketplace, to transfer them on the user's behalf."
+msgstr "الإنسكريبشين ترث نموذج المعاملات الخاص بيتكوين، الذي يتيح للمستخدم رؤية الإنسكريبشين التي يتم نقلها بالمعاملة قبل أن يوقعوها. يمكن عرضها للبيع باستخدام معاملات موقعة جزئيًا، التي لا تتطلب من المستخدم السماح لجهة ثالثة، مثل البورصة أو سوق، بنقلها نيابة عن المستخدم."
+
+#: src\faq.md:165
+msgid ""
+"By comparison, Ethereum NFTs are plagued with end-user security vulnerabilities. It is commonplace to blind-sign transactions, grant third-party apps unlimited permissions over a user's NFTs, and interact with complex and unpredictable smart contracts. This creates a "
+"minefield of hazards for Ethereum NFT users which are simply not a concern for ordinal theorists."
+msgstr ""
+"بالمقارنة، تواجه NFTs في إيثيريوم مشاكل أمان للمستخدم النهائي. من الشائع أن تُوقع عمليات موقعة ضمنية، وتُمنح لتطبيقات الطرف الثالث أذونات غير محدودة على NFTs للمستخدم، والتفاعل مع عقود ذكية معقدة وغير متوقعة. هذا يخلق ساحة ملغومة بمخاطر لمستخدمي NFT في إيثيريوم، والتي "
+"ليست هذه هي الحالة بالنسبة لمؤيدي نظرية أوردينال."
+
+#: src\faq.md:171
+msgid "_Inscriptions are scarcer._"
+msgstr "_الإنسكريبشين أكثر ندره_"
+
+#: src\faq.md:173
+msgid "Inscriptions require bitcoin to mint, transfer, and store. This seems like a downside on the surface, but the raison d'etre of digital artifacts is to be scarce and thus valuable."
+msgstr "الإنسكريبشين تتطلب بيتكوين للضبط والنقل والتخزين. قد يبدو ذلك سلبيا من الخارج، ولكن الهدف الأساسي من digital artifacts هو أن تكون نادرة وبالتالي قيمة."
+
+#: src\faq.md:177
+msgid "Ethereum NFTs, on the other hand, can be minted in virtually unlimited qualities with a single transaction, making them inherently less scarce, and thus, potentially less valuable."
+msgstr "بالمقابل، يمكن إصدار NFTs في إيثيريوم بكميات لا حصر لها بمعاملة واحدة فقط، مما يجعلها أقل ندرة من طبيعتها، وبالتالي، ربما تكون أقل قيمة."
+
+#: src\faq.md:181
+msgid "_Inscriptions do not pretend to support on-chain royalties._"
+msgstr "_الإنسكريبشين لا تُظهر دعمًا كبيرًا للفوائد على الشبكة._"
+
+#: src\faq.md:183
+msgid ""
+"On-chain royalties are a good idea in theory but not in practice. Royalty payment cannot be enforced on-chain without complex and invasive restrictions. The Ethereum NFT ecosystem is currently grappling with confusion around royalties, and is collectively coming to "
+"grips with the reality that on-chain royalties, which were messaged to artists as an advantage of NFTs, are not possible, while platforms race to the bottom and remove royalty support."
+msgstr "الفوائد على الشبكة فكرة جيدة نظريًا وليست عمليًا. لا يمكن تنفيذ دفع الفوائد على الشبكة دون قيود معقدة ومُعضِلة. يواجه نظام NFTs في إيثيريوم الآن ارتباكًا حول العوائد، ويأتي معه فيساق كل منصة إلى القاع ويزيل دعم الفوائد."
+
+#: src\faq.md:190
+msgid "Inscriptions avoid this situation entirely by making no false promises of supporting royalties on-chain, thus avoiding the confusion, chaos, and negativity of the Ethereum NFT situation."
+msgstr "تجنب الإنسكريبشين هذا الوضع بالكامل من خلال عدم إصدار وعود كاذبة بدعم العوائد على السلسلة، وبالتالي تجنب الارتباك والفوضى والسلبية المرتبطة بالوضع الحالي لـ NFTs في إيثيريوم."
+
+#: src\faq.md:194
+msgid "_Inscriptions unlock new markets._"
+msgstr "_الإنسكريبشين تفتح أسواقًا جديدة._"
+
+#: src\faq.md:196
+msgid ""
+"Bitcoin's market capitalization and liquidity are greater than Ethereum's by a large margin. Much of this liquidity is not available to Ethereum NFTs, since many Bitcoiners prefer not to interact with the Ethereum ecosystem due to concerns related to simplicity, "
+"security, and decentralization."
+msgstr "رأس المال السوقي والسيولة للبيتكوين أكبر بكثير من إيثيريوم بفارق كبير. والكثير من هذه السيولة غير متاحة لـ NFTs في إيثيريوم، حيث يفضل كثيرون من مالكي بيتكوين عدم التفاعل مع بيئة إيثيريوم بسبب مخاوف تتعلق بالبساطة والأمان واللامركزية."
+
+#: src\faq.md:201
+msgid "Such Bitcoiners may be more interested in inscriptions than Ethereum NFTs, unlocking new classes of collector."
+msgstr "قد يكون هؤلاء المالكون أكثر اهتمامًا بال قد يكون هؤلاء المالكون أكثر اهتمامًا ب الإنسكريبشين مقارنةً بـ NFTs في إيثيريوم، مما يفتح أصنافًا جديدة من المجمعين. مقارنةً بـ NFTs في إيثيريوم، مما يفتح أصنافًا جديدة من المجمعين."
+
+#: src\faq.md:204
+msgid "_Inscriptions have a richer data model._"
+msgstr "_الإنسكريبشين لديها نموذج بيانات أكثر غنى._"
+
+#: src\faq.md:206
+msgid ""
+"Inscriptions consist of a content type, also known as a MIME type, and content, which is an arbitrary byte string. This is the same data model used by the web, and allows inscription content to evolve with the web, and come to support any kind of content supported by "
+"web browsers, without requiring changes to the underlying protocol."
+msgstr ""
+"الإنسكريبشين تتألف من نوع المحتوى، المعروف أيضًا باسم نوع MIME، والمحتوى، وهو سلسلة بايت عشوائية. هذا هو نفس نموذج البيانات المستخدم في الويب، ويسمح بتطور محتوى الإنسكريبشين مع الويب، ودعم أي نوع من المحتوى المدعوم من قبل متصفحات الويب، دون الحاجة إلى تغيير البروتوكول "
+"الأساسي."
+
+#: src\faq.md:212
+msgid "RGB and Taro assets?"
+msgstr "أصول RGB و Taro ؟"
+
+#: src\faq.md:214
+msgid "RGB and Taro are both second-layer asset protocols built on Bitcoin. Compared to inscriptions, they are much more complicated, but much more featureful."
+msgstr "ال RGB وTaro هما بروتوكولين للأصول من الطبقة الثانية تم بناؤهما على بيتكوين. بالمقارنة مع ال inscriptions، فإنهما أكثر تعقيدًا بكثير، ولكنهما يتمتعان بميزات أكثر."
+
+#: src\faq.md:217
+msgid ""
+"Ordinal theory has been designed from the ground up for digital artifacts, whereas the primary use-case of RGB and Taro are fungible tokens, so the user experience for inscriptions is likely to be simpler and more polished than the user experience for RGB and Taro NFTs."
+msgstr "تم تصميم نظرية أوردينال من الألف إلى الياء digital artifacts، بينما يكمن استخدام RGB وTaro الرئيسي في الرموز المتجانسة، لذا فإن تجربة المستخدم للنقوش من المحتمل أن تكون أبسط وأكثر اتقانًا من تجربة المستخدم لرموز RGB وTaro NFT."
+
+#: src\faq.md:222
+msgid "RGB and Taro both store content off-chain, which requires additional infrastructure, and which may be lost. By contrast, inscription content is stored on-chain, and cannot be lost."
+msgstr "ال RGB وTaro يخزنان كلاهما المحتوى خارج الشبكة الرئيسية، مما يتطلب بنية تحتية إضافية، والتي قد تفقد. على العكس من ذلك، يتم تخزين محتوى الإنسكريبشين داخل الشبكة الرئيسية ولا يمكن فقده."
+
+#: src\faq.md:226
+msgid "Ordinal theory, RGB, and Taro are all very early, so this is speculation, but ordinal theory's focus may give it the edge in terms of features for digital artifacts, including a better content model, and features like globally unique symbols."
+msgstr "نظرية أوردينال، RGB، وTaro كلها في مراحل مبكرة جدًا، لذلك هذه مجرد تكهنات، ولكن تركيز نظرية أوردينال قد يمنحها ميزة فيما يتعلق بالميزات المخصصة للأشياء الرقمية، بما في ذلك نموذج المحتوى الأفضل، وميزات مثل الرموز الفريدة عالميًا."
+
+#: src\faq.md:231
+msgid "Counterparty assets?"
+msgstr "أصول Counterparty؟"
+
+#: src\faq.md:233
+msgid "Counterparty has its own token, XCP, which is required for some functionality, which makes most bitcoiners regard it as an altcoin, and not an extension or second layer for bitcoin."
+msgstr "كاونتربارتي Counterparty لديها عملتها الخاصة، XCP، والتي تُطلب لبعض الوظائف، مما يجعل معظم مالكي بيتكوين يعتبرونها عملة رقمية بديلة وليست تمديدًا أو طبقة ثانية للبيتكوين."
+
+#: src\faq.md:237
+msgid "Ordinal theory has been designed from the ground up for digital artifacts, whereas Counterparty was primarily designed for financial token issuance."
+msgstr "تم تصميم نظرية أوردينال من البداية digital artifacts، بينما تم تصميم Counterparty أساسًا لإصدار الرموز المالية."
+
+#: src\faq.md:240
+msgid "Inscriptions for…"
+msgstr "الإنسكريبشين هي ل…"
+
+#: src\faq.md:243
+msgid "Artists"
+msgstr "الفنانين"
+
+#: src\faq.md:245
+msgid "_Inscriptions are on Bitcoin._ Bitcoin is the digital currency with the highest status and greatest chance of long-term survival. If you want to guarantee that your art survives into the future, there is no better way to publish it than as inscriptions."
+msgstr "_الإنسكريبشين هي على بيتكوين_ بيتكوين هو العملة الرقمية ذات المكانة الأعلى ومن اعلى الفرص للبقاء على المدى الطويل. إذا كنت ترغب في ضمان بقاء فنك في المستقبل، فلا توجد طريقة أفضل لنشره إلا من خلال الإنسكريبشين."
+
+#: src\faq.md:250
+msgid "_Cheaper on-chain storage._ At $20,000 per BTC and the minimum relay fee of 1 satoshi per vbyte, publishing inscription content costs $50 per 1 million bytes."
+msgstr "_تخزين أرخص على الشبكة._ اذا افترضنا سعر البيتكوين عشرون الف دولار بتكلفه الرسوم تبلغ واحد ساتوشي لكل vbyte، يكلف نشر محتوى الإنسكريبشين خمسون دولار لكل مليون بايت."
+
+#: src\faq.md:254
+msgid "_Inscriptions are early!_ Inscriptions are still in development, and have not yet launched on mainnet. This gives you an opportunity to be an early adopter, and explore the medium as it evolves."
+msgstr "_الإنسكريبشين مبكره جدا!_ الإنسكريبشين مازالت في مرحلة التطوير. هذا يتيح لك فرصة أن تكون من المستخدمين المبكرين، وتستكشف هذه الوسيلة بمجرد أن تتطور."
+
+#: src\faq.md:258
+msgid "_Inscriptions are simple._ Inscriptions do not require writing or understanding smart contracts."
+msgstr "_الإنسكريبشين بسيطة._ وهي لا تتطلب كتابة أو فهم عقود ذكية."
+
+#: src\faq.md:261
+msgid "_Inscriptions unlock new liquidity._ Inscriptions are more accessible and appealing to bitcoin holders, unlocking an entirely new class of collector."
+msgstr "_الإنسكريبشين تحرر سيولة الجديدة._ وسهلة الوصول لمالكي عمله بيتكوين، مما يفتح فئة جديده تمامًا من المجمعين."
+
+#: src\faq.md:264
+msgid "_Inscriptions are designed for digital artifacts._ Inscriptions are designed from the ground up to support NFTs, and feature a better data model, and features like globally unique symbols and enhanced provenance."
+msgstr "_الإنسكريبشين صممت لدعم ديجاتيل ارتيفاكت._ تم تصميمها من نقطه الصفر لدعم NFTs، وتتميز بنموذج بيانات أفضل، وميزات مثل الرموز الفريدة عالميًا والأصول بطريقه محسنة."
+
+#: src\faq.md:268
+msgid ""
+"_Inscriptions do not support on-chain royalties._ This is negative, but only depending on how you look at it. On-chain royalties have been a boon for creators, but have also created a huge amount of confusion in the Ethereum NFT ecosystem. The ecosystem now grapples "
+"with this issue, and is engaged in a race to the bottom, towards a royalties-optional future. Inscriptions have no support for on-chain royalties, because they are technically infeasible. If you choose to create inscriptions, there are many ways you can work around this "
+"limitation: withhold a portion of your inscriptions for future sale, to benefit from future appreciation, or perhaps offer perks for users who respect optional royalties."
+msgstr ""
+"_الإنسكريبشين لا تدعم الفوائد على الشبكة_. هذا سلبي، ولكن هذا فقط يعتمد على كيفية نظرتك إليه. الفوائد على الشبكة كانت نعمة للمبدعين، ولكنها أيضًا خلقت كمية كبيرة من الارتباك في بيئة NFTs على الإيثيريوم. البيئة تتعامل الآن مع هذه المسألة، وكل يتشارك في سباق نحو القاع "
+"وإزالة دعم الفوائد المفرضه. الإنسكريبشين  ليس لها دعم للفوائد على الشبكة، لأنها تعتبر غير ممكنة تقنيًا. إذا اخترت إنشائها، يمكنك اللجوء الى عدد من الطرق: احتفظ بجزء من المجموعة للبيع في المستقبل، للاستفادة من ارتفاع المستقبلي في القيمة، أو ربما قدم مزايا للمستخدمين الذين "
+"يحترمون الفوائد الاختيارية."
+
+#: src\faq.md:279
+msgid "Collectors"
+msgstr "المجمعين"
+
+#: src\faq.md:281
+msgid "_Inscriptions are simple, clear, and have no surprises._ They are always immutable and on-chain, with no special due diligence required."
+msgstr "الإنسكريبشين بسيطة، واضحة، ولا تحمل مفاجآت. غير قابلة للتغيير وعلى الشبكة، دون الحاجة إلى الاطلاع على العقود الذكية بشكل خاص."
+
+#: src\faq.md:284
+msgid "_Inscriptions are on Bitcoin._ You can verify the location and properties of inscriptions easily with Bitcoin full node that you control."
+msgstr "الإنسكريبشين على البيتكوين ذاته . يمكنك التحقق من الموقع والخصائص بسهولة باستخدام بيتكوين نود الكامل التي تتحكم بها."
+
+#: src\faq.md:287
+msgid "Bitcoiners"
+msgstr "البيتكوينير"
+
+#: src\faq.md:289
+msgid ""
+"Let me begin this section by saying: the most important thing that the Bitcoin network does is decentralize money. All other use-cases are secondary, including ordinal theory. The developers of ordinal theory understand and acknowledge this, and believe that ordinal "
+"theory helps, at least in a small way, Bitcoin's primary mission."
+msgstr "لنبدأ هذا القسم بالقول: أهم شيء تقوم به شبكة بيتكوين هو اللامركزية للأموال. جميع الاستخدامات الأخرى هي ثانوية، بما في ذلك نظرية أوردينال. يفهم مطورو نظرية أوردينال ويقرون بذلك، ويعتقدون أن نظرية أوردينال تساعد، على الأقل بشكل طفيف، في مهمة بيتكوين الرئيسية."
+
+#: src\faq.md:295
+msgid ""
+"Unlike many other things in the altcoin space, digital artifacts have merit. There are, of course, a great deal of NFTs that are ugly, stupid, and fraudulent. However, there are many that are fantastically creative, and creating and collecting art has been a part of the "
+"human story since its inception, and predates even trade and money, which are also ancient technologies."
+msgstr ""
+"على عكس العديد من الأشياء في مجال العملات البديلة، الآثار الرقمية (digital artifacts) لديها جدارة. هناك بالطبع الكثير من NFTs التي هي قبيحة وغبية واحتيالية. ومع ذلك، هناك العديد من الأعمال الإبداعية بشكل رائع، وإنشاء وجمع الفن كان جزءًا من قصة الإنسان منذ بدايتها، وتسبق "
+"حتى التجارة والأموال، التي هي أيضًا تقنيات قديمة."
+
+#: src\faq.md:302
+msgid "Bitcoin provides an amazing platform for creating and collecting digital artifacts in a secure, decentralized way, that protects users and artists in the same way that it provides an amazing platform for sending and receiving value, and for all the same reasons."
+msgstr "تقدم بيتكوين منصة رائعة لإنشاء وجمع الآثار الرقمية بطريقة آمنة ولامركزية، تحمي المستخدمين والفنانين بنفس الطريقة التي تقدم بها منصة رائعة لإرسال واستقبال القيمة، وبالأسباب نفسها."
+
+#: src\faq.md:307
+msgid "Ordinals and inscriptions increase demand for Bitcoin block space, which increase Bitcoin's security budget, which is vital for safeguarding Bitcoin's transition to a fee-dependent security model, as the block subsidy is halved into insignificance."
+msgstr "تزيد نظرية أوردينال والآثار الرقمية من الطلب على مساحة  البلوكس في بيتكوين، مما يزيد من ميزانية الأمان للبيتكوين، وهو أمر حيوي لحماية انتقال بيتكوين إلى نموذج أمان يعتمد على الرسوم، حيث يتم تقليص مكافأة البلوك إلى الأذى."
+
+#: src\faq.md:312
+msgid ""
+"Inscription content is stored on-chain, and thus the demand for block space for use in inscriptions is unlimited. This creates a buyer of last resort for _all_ Bitcoin block space. This will help support a robust fee market, which ensures that Bitcoin remains secure."
+msgstr "محتوى الرسوم الرقمية الإنسكريبشين يُخزن على السلسلة / الشبكة ذاتها، وبالتالي فإن الطلب على مساحة البلوك لا حدود له. هذا يخلق مشتريًا من آخر فرصة لمساحة البلوكس على البيتكوين. سيساعد ذلك في دعم السوق بشكل عام ، الذي يضمن أن البيتكوين سيبقى آمنًا."
+
+#: src\faq.md:317
+msgid ""
+"Inscriptions also counter the narrative that Bitcoin cannot be extended or used for new use-cases. If you follow projects like DLCs, Fedimint, Lightning, Taro, and RGB, you know that this narrative is false, but inscriptions provide a counter argument which is easy to "
+"understand, and which targets a popular and proven use case, NFTs, which makes it highly legible."
+msgstr ""
+"الإنسكريبشين تبرهن أيضًا على السيناريو الذي يُفترض أنه لا يمكن للبيتكوين تمديدها أو استخدامها لحالات جديدة . إذا تابعت مشاريع مثل DLCs و Fedimint و Lightning و Taro و RGB، فستعرف أن هذا السيناريو غير صحيح، ولكن الإنسكريبشين تقدم حجة مضادة تكون سهلة الفهم، والتي تستهدف "
+"حالات استخدام شائعة ومثبتة، NFTs، والتي تجعلها سهلة الفهم."
+
+#: src\faq.md:323
+msgid "If inscriptions prove, as the authors hope, to be highly sought after digital artifacts with a rich history, they will serve as a powerful hook for Bitcoin adoption: come for the fun, rich art, stay for the decentralized digital money."
+msgstr "إذا ثبت أن الإنسكريبشين كما نأمل ، كي تكون بشكل كبير ولها تاريخ غني، ستكون سلاحًا قويًا لتبني بيتكوين: تأتي من أجل المتعة والفن الغني، وتبقى للنقود الرقمية المتميزة."
+
+#: src\faq.md:327
+msgid ""
+"Inscriptions are an extremely benign source of demand for block space. Unlike, for example, stablecoins, which potentially give large stablecoin issuers influence over the future of Bitcoin development, or DeFi, which might centralize mining by introducing opportunities "
+"for MEV, digital art and collectables on Bitcoin, are unlikely to produce individual entities with enough power to corrupt Bitcoin. Art is decentralized."
+msgstr ""
+"الإنسكريبشين هي مصدر طلب عالي للمساحات في البلوكس بشكل سلمي للغاية. وعلى عكس العملات المستقرة في سبيل المثال، التي قد تمنح المصدرين الكبار لعملات المستقرة نفوذًا على مستقبل تطوير بيتكوين، أو DeFi، التي قد تركز التعدين من خلال تقديم فرص للربح من الفرص، فإن الفن وجمع "
+"المجمعات على بيتكوين غير مرجح أن تنتج كيانات فردية لديها قوة كافية لتفسير بيتكوين. الفن هو لامركزي."
+
+#: src\faq.md:334
+msgid "Inscription users and service providers are incentivized to run Bitcoin full nodes, to publish and track inscriptions, and thus throw their economic weight behind the honest chain."
+msgstr "المستخدمين ومقدمي الخدمات من الإنسكريبشين متحفزون لتشغيل النود الكامل للبيتكوين، للنشر والتتبع ، وبالتالي إلقاء ثقلها الاقتصادي وراء الشبكة الصادقة."
+
+#: src\faq.md:338
+msgid "Ordinal theory and inscriptions do not meaningfully affect Bitcoin's fungibility. Bitcoin users can ignore both and be unaffected."
+msgstr "نظرية أوردينال والرسوم الرقمية الإنسكريبشين لا تؤثر بشكل كبير على تماثل البيتكوين. يمكن لمستخدمي عمله البيتكوين تجاهل كليهما ولا يتأثرون بهما."
+
+#: src\faq.md:341
+msgid "We hope that ordinal theory strengthens and enriches bitcoin, and gives it another dimension of appeal and functionality, enabling it more effectively serve its primary use case as humanity's decentralized store of value."
+msgstr "نأمل أن تقوي نظرية أوردينال وتثري بيتكوين، وتضيف لها بعدًا آخر من الجاذبية والوظائف، مما يمكنها  تحقيق مهمتها الأساسية كمتجر قيمة لامركزي للبشرية بشكل أكثر فعالية."
+
+#: src\contributing.md:1
+msgid "Contributing to `ord`"
+msgstr "المساهمة في أورد"
+
+#: src\contributing.md:4
+msgid "Suggested Steps"
+msgstr "خطوات مقترحة"
+
+#: src\contributing.md:7
+msgid "Find an issue you want to work on."
+msgstr "ابحث عن مشكلة ترغب في العمل عليها."
+
+#: src\contributing.md:8
+msgid "Figure out what would be a good first step towards resolving the issue. This could be in the form of code, research, a proposal, or suggesting that it be closed, if it's out of date or not a good idea in the first place."
+msgstr "حدد ما هي أول خطوة جيدة لحل المشكلة. يمكن أن يكون ذلك على شكل كود أو بحث أو اقتراح، أو اقتراح إغلاق المشكلة إذا كانت قديمة أو ليست فكرة جيدة من الأساس."
+
+#: src\contributing.md:11
+msgid ""
+"Comment on the issue with an outline of your suggested first step, and asking for feedback. Of course, you can dive in and start writing code or tests immediately, but this avoids potentially wasted effort, if the issue is out of date, not clearly specified, blocked on "
+"something else, or otherwise not ready to implement."
+msgstr ""
+"قم بوضع تعليق على المشكلة مع تحديد للخطوة الأولى المقترحة من قبلك، واطلب بعض الاقتراحات. بالطبع، يمكنك أن تقوم فوراً بالبدء في كتابة الكود أو الاختبارات، ولكن هذا يمكن أن يجنبك الجهد الضائع في حال كانت المشكلة قديمة أو لم يتم تحديدها بوضوح، أو محظورة من الناحية الأخرى، "
+"أو غير جاهزة للتنفيذ من الأساس."
+
+#: src\contributing.md:16
+msgid ""
+"If the issue requires a code change or bugfix, open a draft PR with tests, and ask for feedback. This makes sure that everyone is on the same page about what needs to be done, or what the first step in solving the issue should be. Also, since tests are required, writing "
+"the tests first makes it easy to confirm that the change can be tested easily."
+msgstr ""
+"إذا كانت المشكلة تتطلب تغييرًا في الكود أو إصلاحًا للأخطاء، قم بفتح PR (Pull Request) مؤقت (Draft) مع الاختبارات، واطلب بعض الاقتراحات. وهذا يأكد من أن الجميع على نفس الصفحة بشأن العمل الذي تريد القيام به، أو ما يجب أن تكون الخطوة الأولى في حل المشكلة. وأيضًا، نظرًا لأن "
+"الاختبارات مطلوبة، فإن كتابة الاختبارات أولاً يجعل من السهل التحقق من أن التغيير يمكن اختباره بسهولة."
+
+#: src\contributing.md:21
+msgid "Mash the keyboard randomly until the tests pass, and refactor until the code is ready to submit."
+msgstr "اضغط على لوحة المفاتيح بشكل عشوائي حتى تنجح الاختبارات، وقم بإعادة التنظيم حتى يكون الكود جاهزًا للإرسال."
+
+#: src\contributing.md:23
+msgid "Mark the PR as ready to review."
+msgstr "علم PR كجاهز للمراجعة."
+
+#: src\contributing.md:24
+msgid "Revise the PR as needed."
+msgstr "قم بمراجعة ال PR حسب الحاجة."
+
+#: src\contributing.md:25
+msgid "And finally, mergies!"
+msgstr "وأخيراً، دمج ال PRs!"
+
+#: src\contributing.md:27
+msgid "Start small"
+msgstr "ابدأ بشكل صغير"
+
+#: src\contributing.md:30
+msgid "Small changes will allow you to make an impact quickly, and if you take the wrong tack, you won't have wasted much time."
+msgstr "التغييرات الصغيرة ستسمح لك بإحداث تأثير بسرعة، وإذا اتخذت الطريقة الخاطئة، فلن تكون قد أضعت الكثير من الوقت."
+
+#: src\contributing.md:33
+msgid "Ideas for small issues:"
+msgstr "أفكار لمشكلات صغيرة:"
+
+#: src\contributing.md:34
+msgid "Add a new test or test case that increases test coverage"
+msgstr "أضف اختبارًا جديدًا أو اختبر حاله زياده نطاك الاختبار"
+
+#: src\contributing.md:35
+msgid "Add or improve documentation"
+msgstr "أضف أو قم بتحسين الوثائق"
+
+#: src\contributing.md:36
+msgid "Find an issue that needs more research, and do that research and summarize it in a comment"
+msgstr "ابحث عن مشكلة تحتاج إلى مزيد من البحث، وقم بذلك البحث وخصصه بإضافة تعليق"
+
+#: src\contributing.md:38
+msgid "Find an out-of-date issue and comment that it can be closed"
+msgstr "ابحث عن مشكلة قديمة وأضف تعليق على أنه يمكن إغلاقها"
+
+#: src\contributing.md:39
+msgid "Find an issue that shouldn't be done, and provide constructive feedback detailing why you think that is the case"
+msgstr "ابحث عن مشكلة يجب ألا تتم، وقدم ملاحظات مرتبه بناءً على اعتقادك"
+
+#: src\contributing.md:42
+msgid "Merge early and often"
+msgstr "قم بالدمج بشكل مبكر ومتكرر"
+
+#: src\contributing.md:45
+msgid ""
+"Break up large tasks into multiple smaller steps that individually make progress. If there's a bug, you can open a PR that adds a failing ignored test. This can be merged, and the next step can be to fix the bug and unignore the test. Do research or testing, and report "
+"on your results. Break a feature into small sub-features, and implement them one at a time."
+msgstr ""
+"قم بتقسيم المهام الكبيرة إلى خطوات صغيرة متعددة تساهم بشكل فردي في التقدم. إذا كان هناك خطأ، يمكنك فتح PR الذي يضيف اختبار فاشل تم تجاوزه. هذا يمكن دمجه ، والخطوة التالية يمكن أن تكون إصلاح الخطأ وإلغاء تجاوز الاختبار. قم بالبحث أو الاختبار، وأبلغ عن حاله نتائجك. قم "
+"بتقسيم ميزة إلى ميزات فرعية صغيرة، وقم بتنفيذها واحدة تلو الأخرى."
+
+#: src\contributing.md:51
+msgid "Figuring out how to break down a larger PR into smaller PRs where each can be merged is an art form well-worth practicing. The hard part is that each PR must itself be an improvement."
+msgstr "معرفة كيفية تقسيم PR أكبر إلى PRs أصغر حيث يمكن دمج كل منها بشكل فردي هو فن يستحق الممارسة والتعلم. الجزء الصعب هو أن كل PR يجب أن يكون في حد ذاته تحسينًا."
+
+#: src\contributing.md:55
+msgid "I strive to follow this advice myself, and am always better off when I do."
+msgstr "أسعى دائمًا لاتباع هذه النصائح بنفسي، وأكون دائمًا في وضع أفضل عندما أفعل ذلك."
+
+#: src\contributing.md:57
+msgid ""
+"Small changes are fast to write, review, and merge, which is much more fun than laboring over a single giant PR that takes forever to write, review, and merge. Small changes don't take much time, so if you need to stop working on a small change, you won't have wasted "
+"much time as compared to a larger change that represents many hours of work. Getting a PR in quickly improves the project a little bit immediately, instead of having to wait a long time for larger improvement. Small changes are less likely to accumulate merge conflict. "
+"As the Athenians said: _The fast commit what they will, the slow merge what they must._"
+msgstr ""
+"التغييرات الصغيرة تكون سريعة الكتابة والمراجعة والدمج، مما يعزز المرح أكثر من العمل على PR كبير واحد يستغرق وقتًا طويلاً للكتابة والمراجعة والدمج. التغييرات الصغيرة لا تأخذ وقتًا كبيرًا، لذا إذا كنت بحاجة للتوقف عن العمل على تغيير صغير، فلن تكون قد أضعت الكثير من الوقت "
+"مقارنة بتغيير أكبر الذي يحتاج للعديد من الساعات للعمل. الحصول على PR بسرعة يحسن المشروع بشكل سريع بعض الأحيان مباشرة ، بدلاً من الانتظار لفترة طويلة من الزمن لتحسين أكبر. التغييرات الصغيرة أقل عرضة لتراكم الأخطاء في عمليه الدمج. كما قال الأثينيون: _الذين يتماشون بسرعة ما "
+"يشاؤون، والذين يدمجون ببطء ما يجب عليهم._"
+
+#: src\contributing.md:67
+msgid "Get help"
+msgstr "اطلب المساعدة"
+
+#: src\contributing.md:70
+msgid "If you're stuck for more than 15 minutes, ask for help, like a Rust Discord, Stack Exchange, or in a project issue or discussion."
+msgstr "إذا علقت لأكثر من 15 دقيقة، اطلب المساعدة، مثل ديسكورد أو Stack Exchange أو في المشروع في قسم الاقتراحات أو المناقشة."
+
+#: src\contributing.md:73
+msgid "Practice hypothesis-driven debugging"
+msgstr "ممارسة تصحيح الأخطاء المبنية على الفرضيات"
+
+#: src\contributing.md:76
+msgid "Formulate a hypothesis as to what is causing the problem. Figure out how to test that hypothesis. Perform that tests. If it works, great, you fixed the issue or now you know how to fix the issue. If not, repeat with a new hypothesis."
+msgstr "صيغ فرضية بشأن ما الذي يتسبب في المشكلة. اكتشف كيفية اختبار تلك الفرضية. قم بأداء هذه الاختبارات. إذا نجحت، فهذا رائع، لقد حلت المشكلة و الآن تعرف كيفية حل المشكلة. إذا لم ينجح، كرر العملية مع فرضية جديدة."
+
+#: src\contributing.md:81
+msgid "Pay attention to error messages"
+msgstr "أعطي الانتباه لرسائل الخطأ"
+
+#: src\contributing.md:84
+msgid "Read all error messages and don't tolerate warnings."
+msgstr "اقرأ جميع رسائل الخطأ ولا تتسامح مع التحذيرات."
+
+#: src\donate.md:4
+msgid "Ordinals is open-source and community funded. The current lead maintainer of `ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is entirely funded by donations. If you can, please consider donating!"
+msgstr "أوردينال مشروعًا مفتوح المصدر وممولًا من قبل المجتمع. المشرف الرئيسي الحالي لـ `Ord` هو [raphjaph](https://github.com/raphjaph/). يتم تمويل عمل Raph في مشروع `Ord` بالكامل من خلال التبرعات. إذا كان بإمكانك، يُرجى النظر في التبرع!"
+
+#: src\donate.md:8
+msgid ""
+"The donation address for Bitcoin is [bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt). The donation address for inscriptions is "
+"[bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0](https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0)."
+msgstr ""
+"التبرع بعمله البيتكوين:[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt)\n"
+" التبرع بواسطه الأنسكريبشين :\n"
+" [bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0](https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0)"
+
+#: src\donate.md:11
+msgid "Both addresses are in a 2 of 4 multisig wallet with keys held by [raphjaph](https://twitter.com/raphjaph), [erin](https://twitter.com/realizingerin), [rodarmor](https://twitter.com/rodarmor), and [ordinally](https://twitter.com/veryordinally)."
+msgstr ""
+"كلا العنوانين موجودين في محفظة متعددة التوقيع 2 من 4، ويتم الاحتفاظ بهذه المفاتيح بواسطة [raphjaph](https://twitter.com/raphjaph) و [erin](https://twitter.com/realizingerin) و [rodarmor](https://twitter.com/rodarmor) و [ordinally](https://twitter.com/veryordinally)."
+
+#: src\donate.md:17
+msgid "Donations received will go towards funding maintenance and development of `ord`, as well as hosting costs for [ordinals.com](https://ordinals.com)."
+msgstr "سيتم استخدام التبرعات المستلمة لتمويل صيانة وتطوير `ord`، بالإضافة إلى تكاليف موقع [ordinals.com](https://ordinals.com)."
+
+#: src\donate.md:20
+msgid "Thank you for donating!"
+msgstr "شكرًا لك على التبرع!"
+
+#: src\guides.md:1
+msgid "Ordinal Theory Guides"
+msgstr "دليل نظرية أوردينال"
+
+#: src\guides.md:4
+msgid "See the table of contents for a list of guides, including a guide to the explorer, a guide for sat hunters, and a guide to inscriptions."
+msgstr "جدول المحتويات للحصول على قائمة في بعض المحتوى بما في ذلك دليل للموقع، ودليل لصيادي الساتوشي، ودليل الإنسكريبشين."
+
+#: src\guides/explorer.md:1
+msgid "Ordinal Explorer"
+msgstr "متصفح أوردينال"
+
+#: src\guides/explorer.md:4
+msgid "The `ord` binary includes a block explorer. We host a instance of the block explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at [signet.ordinals.com](https://signet.ordinals.com)."
+msgstr "يتضمن البرنامج الثنائي للأورد إكسبلورر كتل. نحن نستضيف مثيلًا من إكسبلورر الكتل على الشبكة الرئيسية على موقع [أوردينالs.com](https://أوردينالs.com/)، وعلى شبكة الاختبار signet على موقع [signet.أوردينالs.com](https://signet.أوردينالs.com/)."
+
+#: src\guides/explorer.md:8
+msgid "Running The Explorer"
+msgstr "تشغيل المتصفح"
+
+#: src\guides/explorer.md:9
+msgid "The server can be run locally with:"
+msgstr "يمكن تشغيل المتصفح محليا على:"
+
+#: src\guides/explorer.md:11
+msgid "`ord server`"
+msgstr ""
+
+#: src\guides/explorer.md:13
+msgid "To specify a port add the `--http-port` flag:"
+msgstr "لتحديد البورت `http-port-- `حدد:"
+
+#: src\guides/explorer.md:15
+msgid "`ord server --http-port 8080`"
+msgstr ""
+
+#: src\guides/explorer.md:17
+msgid "To test how your inscriptions will look you can run:"
+msgstr "لاختبار كيف سيبدو الإنسكريبشين يمكنك إضافة الأمر التالي:"
+
+#: src\guides/explorer.md:19
+msgid "`ord preview <FILE1> <FILE2> ...`"
+msgstr "` ...ord preview <FILE1> <FILE2>`"
+
+#: src\guides/explorer.md:21
+msgid "Search"
+msgstr "البحث"
+
+#: src\guides/explorer.md:24
+msgid "The search box accepts a variety of object representations."
+msgstr "صندوق البحث يقبل مجموعة متنوعة من تمثيلات."
+
+#: src\guides/explorer.md:26
+msgid "Blocks"
+msgstr "بلوكس"
+
+#: src\guides/explorer.md:28
+msgid "Blocks can be searched by hash, for example, the genesis block:"
+msgstr "يمكن البحث عن البلوكس عبر الهاش، على سبيل المثال، block genesis :"
+
+#: src\guides/explorer.md:30
+msgid "[000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f](https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f)"
+msgstr ""
+
+#: src\guides/explorer.md:32
+msgid "Transactions"
+msgstr "المعاملات"
+
+#: src\guides/explorer.md:34
+msgid "Transactions can be searched by hash, for example, the genesis block coinbase transaction:"
+msgstr "يمكن البحث عن المعاملات عبر الهاش، على سبيل المثال، معاملة العملات النقدية في block genesis :"
+
+#: src\guides/explorer.md:37
+msgid "[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b](https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b)"
+msgstr ""
+
+#: src\guides/explorer.md:39
+msgid "Outputs"
+msgstr "المخرجات"
+
+#: src\guides/explorer.md:41
+msgid "Transaction outputs can searched by outpoint, for example, the only output of the genesis block coinbase transaction:"
+msgstr "البحث عن مخرجات المعاملات عبر نقطة الإخراج Outputs، على سبيل المثال، الناتج الوحيد لمعاملة العملات النقدية في block genesis :"
+
+#: src\guides/explorer.md:44
+msgid "[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0](https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0)"
+msgstr ""
+
+#: src\guides/explorer.md:46
+msgid "Sats"
+msgstr "الساتس"
+
+#: src\guides/explorer.md:48
+msgid "Sats can be searched by integer, their position within the entire bitcoin supply:"
+msgstr "يمكن البحث عن الساتس (Sats) عبر العدد الصحيح، وموقعها ضمن إجمالي إمدادات البيتكوين:"
+
+#: src\guides/explorer.md:51
+msgid "[2099994106992659](https://ordinals.com/search/2099994106992659)"
+msgstr ""
+
+#: src\guides/explorer.md:53
+msgid "By decimal, their block and offset within that block:"
+msgstr "بالعشري، وموقعها في البلوك والإزاحة ضمن ذلك البلوك:"
+
+#: src\guides/explorer.md:55
+msgid "[481824.0](https://ordinals.com/search/481824.0)"
+msgstr ""
+
+#: src\guides/explorer.md:57
+msgid "By degree, their cycle, blocks since the last halving, blocks since the last difficulty adjustment, and offset within their block:"
+msgstr "بالزاوية، والدورة، بلوكس منذ آخر تقسيم و بلوكس منذ آخر تعديل للصعوبة، والإزاحة ضمن البلوك:"
+
+#: src\guides/explorer.md:60
+msgid "[1°0′0″0‴](https://ordinals.com/search/1°0′0″0‴)"
+msgstr ""
+
+#: src\guides/explorer.md:62
+msgid "By name, their base 26 representation using the letters \"a\" through \"z\":"
+msgstr "بالاسم، والتمثيل الأساسي الـ 26 باستخدام الأحرف \"a\" حتى \"z\":"
+
+#: src\guides/explorer.md:64
+msgid "[ahistorical](https://ordinals.com/search/ahistorical)"
+msgstr ""
+
+#: src\guides/explorer.md:66
+msgid "Or by percentile, the percentage of bitcoin's supply that has been or will have been issued when they are mined:"
+msgstr "أو بالنسبة المئوية، نسبة إمداد بيتكوين التي تم إصدارها أو سيتم إصدارها عندما يتم تعدينها:"
+
+#: src\guides/explorer.md:69
+msgid "[100%](https://ordinals.com/search/100%)"
+msgstr ""
+
+#: src\guides/inscriptions.md:1
+msgid "Ordinal Inscription Guide"
+msgstr "دليل صناعه الأوردينال"
+
+#: src\guides/inscriptions.md:4
+msgid "Individual sats can be inscribed with arbitrary content, creating Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and transferred using Bitcoin transactions. Inscriptions are as durable, immutable, secure, and decentralized as Bitcoin itself."
+msgstr "يمكن أن تُرسم العملات الفردية بمحتوى تعسفي، مما يُنشئ قطع فنية رقمية متناسبة مع بيتكوين يمكن الاحتفاظ بها في محفظة بيتكوين ونقلها باستخدام المعاملات المالية في بيتكوين. إن النقوش متينة وثابتة وآمنة ولامركزية تمامًا مثل بيتكوين نفسه."
+
+#: src\guides/inscriptions.md:9
+msgid "Working with inscriptions requires a Bitcoin full node, to give you a view of the current state of the Bitcoin blockchain, and a wallet that can create inscriptions and perform sat control when constructing transactions to send inscriptions to another wallet."
+msgstr "العمل مع الأنسكريبشين يتطلب وجود نود بيتكوين كاملة لمنحك نظرة على الحالة الحالية لسلسلة كتل بيتكوين، ومحفظة قادرة على إنشاء الأنسكريبشين وأداء التحكم في العملات عند بناء المعاملات لإرسالها إلى محفظة أخرى."
+
+#: src\guides/inscriptions.md:14
+msgid "Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin Core wallet cannot create inscriptions and does not perform sat control."
+msgstr "توفر Bitcoin Core كل من نود بيتكوين كاملة ومحفظة. ومع ذلك، لا يمكن لمحفظة Bitcoin Core إنشاء النقوش ولا تؤدي إلى التحكم في العملات."
+
+#: src\guides/inscriptions.md:17
+msgid "This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. `ord` doesn't implement its own wallet, so `ord wallet` subcommands interact with Bitcoin Core wallets."
+msgstr "هذا يتطلب [`ord`](https://github.com/ordinals/ord), وهو أداة ترتيبية. أورد لا تنفذ محفظة خاصة بها، لذا تفاعل أوامر محفظة أورد مع محافظ Bitcoin Core."
+
+#: src\guides/inscriptions.md:21
+msgid "This guide covers:"
+msgstr "تشمل هذه الدليل الفقرات التالية:"
+
+#: src\guides/inscriptions.md:23 src\guides/inscriptions.md:39
+msgid "Installing Bitcoin Core"
+msgstr "تثبيت Bitcoin Core"
+
+#: src\guides/inscriptions.md:24
+msgid "Syncing the Bitcoin blockchain"
+msgstr "مزامنة Bitcoin blockchain"
+
+#: src\guides/inscriptions.md:25
+msgid "Creating a Bitcoin Core wallet"
+msgstr " إنشاء محفظة Bitcoin Core"
+
+#: src\guides/inscriptions.md:26
+msgid "Using `ord wallet receive` to receive sats"
+msgstr "استخدام `ord wallet receive` لاستقبال العملات"
+
+#: src\guides/inscriptions.md:27
+msgid "Creating inscriptions with `ord wallet inscribe`"
+msgstr " إنشاء الأنسكريبشين باستخدام `ord wallet inscribe`"
+
+#: src\guides/inscriptions.md:28
+msgid "Sending inscriptions with `ord wallet send`"
+msgstr "إرسال الأنسكريبشين باستخدام `ord wallet send`"
+
+#: src\guides/inscriptions.md:29
+msgid "Receiving inscriptions with `ord wallet receive`"
+msgstr "استقبال الأنسكريبشين باستخدام `ord wallet receive`"
+
+#: src\guides/inscriptions.md:31
+msgid "Getting Help"
+msgstr "الحصول على المساعدة"
+
+#: src\guides/inscriptions.md:34
+msgid "If you get stuck, try asking for help on the [Ordinals Discord Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant [issues](https://github.com/ordinals/ord/issues) and [discussions](https://github.com/ordinals/ord/discussions)."
+msgstr "إذا واجهتك مشكلة، جرب أن تطلب المساعدة على [الديسكورد](https://discord.com/invite/87cjuz4FYg) ، أو تفقد موقع[issues](https://github.com/ordinals/ord/issues) [discussions](https://github.com/ordinals/ord/discussions) GitHub للقضايا والمناقشات ذات الصلة."
+
+#: src\guides/inscriptions.md:42
+msgid "Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) on the [download page](https://bitcoincore.org/en/download/)."
+msgstr "يتوفر Bitcoin Core من موقع [bitcoincore.org](https://bitcoincore.org/) على [صفحه التحميل](https://bitcoincore.org/en/download/)."
+
+#: src\guides/inscriptions.md:45
+msgid "Making inscriptions requires Bitcoin Core 24 or newer."
+msgstr "إن إجراء الإنسكريبشين يتطلب Bitcoin Core 24 أو الإصدارات الأحدث."
+
+#: src\guides/inscriptions.md:47
+msgid "This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run `bitcoind -version` successfully from the command line."
+msgstr "لا يتضمن هذا الدليل تفاصيل تثبيت Bitcoin Core بالتفصيل. بمجرد تثبيت Bitcoin Core، يجب أن تتمكن من تشغيل bitcoind -version بنجاح من أوامر الجهاز."
+
+#: src\guides/inscriptions.md:51
+msgid "Configuring Bitcoin Core"
+msgstr "تهيئة Bitcoin Core"
+
+#: src\guides/inscriptions.md:54
+msgid "`ord` requires Bitcoin Core's transaction index."
+msgstr "تتطلب `ord` فهرس المعاملات الخاص بـ Bitcoin Core."
+
+#: src\guides/inscriptions.md:56
+msgid "To configure your Bitcoin Core node to maintain a transaction index, add the following to your `bitcoin.conf`:"
+msgstr "لتهيئة نود Bitcoin Core الخاص بك للحفاظ على فهرس المعاملات، أضف ما يلي إلى ملف bitcoin.conf الخاص بك:"
+
+#: src\guides/inscriptions.md:59 src\guides/sat-hunting.md:30
+msgid ""
+"```\n"
+"txindex=1\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:63
+msgid "Or, run `bitcoind` with `-txindex`:"
+msgstr ""
+
+#: src\guides/inscriptions.md:65 src\guides/inscriptions.md:74
+msgid ""
+"```\n"
+"bitcoind -txindex\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:69
+msgid "Syncing the Bitcoin Blockchain"
+msgstr "مزامنة شبكه البيتكوين"
+
+#: src\guides/inscriptions.md:72
+msgid "To sync the chain, run:"
+msgstr "لبدء مزامنه السلسلة:"
+
+#: src\guides/inscriptions.md:78
+msgid "…and leave it running until `getblockcount`:"
+msgstr "...واتركها تعمل حتى يتم استدعاء الأمر `getblockcount`:"
+
+#: src\guides/inscriptions.md:80
+msgid ""
+"```\n"
+"bitcoin-cli getblockcount\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:84
+msgid "agrees with the block count on a block explorer like [the mempool.space block explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so you should leave `bitcoind` running in the background when you're using `ord`."
+msgstr "يتم قبول عدد البلوكات من خلال المتصفح مثل [the mempool.space block explorer](https://mempool.space/).ال `ord` يتفاعل مع `bitcoind` لذالك يجب أن تبقي النود فعال بلخلفيه عند استعمالك له."
+
+#: src\guides/inscriptions.md:88
+msgid "Installing `ord`"
+msgstr "تحميل برنامج أورد `ord`"
+
+#: src\guides/inscriptions.md:91
+msgid "The `ord` utility is written in Rust and can be built from [source](https://github.com/ordinals/ord). Pre-built binaries are available on the [releases page](https://github.com/ordinals/ord/releases)."
+msgstr "أدوات `ord` مكتوبه بلغه الداست ويمكن بنائها من[المصدر](https://github.com/ordinals/ord).الثنائيات المبنية مسبقًا متوفرة على [صفحه الإصدار](https://github.com/ordinals/ord/releases)."
+
+#: src\guides/inscriptions.md:95
+msgid "You can install the latest pre-built binary from the command line with:"
+msgstr "يمكنك تحميل الثنائيات المبنية مسبقًا بإعطاء الأمر التالي:"
+
+#: src\guides/inscriptions.md:97
+msgid ""
+"```sh\n"
+"curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:101
+msgid "Once `ord` is installed, you should be able to run:"
+msgstr "بمجرد الانتهاء من تحميل ال `ord`، يجب أن تكون قادرًا على تشغيل:"
+
+#: src\guides/inscriptions.md:103
+msgid ""
+"```\n"
+"ord --version\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:107
+msgid "Which prints out `ord`'s version number."
+msgstr "والذي يشير الى الإصدار `ord` الحالي."
+
+#: src\guides/inscriptions.md:109
+msgid "Creating a Bitcoin Core Wallet"
+msgstr "إنشاء محفظة بيتكوين كور"
+
+#: src\guides/inscriptions.md:112
+msgid "`ord` uses Bitcoin Core to manage private keys, sign transactions, and broadcast transactions to the Bitcoin network."
+msgstr "أورد `ord` يستخدم بيتكوين كور ليدير المفاتيح الخاصة وتواقيع المعاملات وإرسالها الى شبكه البيتكوين."
+
+#: src\guides/inscriptions.md:115
+msgid "To create a Bitcoin Core wallet named `ord` for use with `ord`, run:"
+msgstr "لإنشاء محفظة Bitcoin Core تحمل اسم `ord` واستخدامها, اعطي الأمر:"
+
+#: src\guides/inscriptions.md:117
+msgid ""
+"```\n"
+"ord wallet create\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:121
+msgid "Receiving Sats"
+msgstr "استقبال الساتس"
+
+#: src\guides/inscriptions.md:124
+msgid "Inscriptions are made on individual sats, using normal Bitcoin transactions that pay fees in sats, so your wallet will need some sats."
+msgstr "يتم إنشاء الأنسكريبشين على الساتوشيات فردية باستخدام معاملات بيتكوين العادية التي تدفع الرسوم بوحدات الساتوشي، لذا ستحتاج محفظتك إلى بعض الساتوشيات."
+
+#: src\guides/inscriptions.md:127
+msgid "Get a new address from your `ord` wallet by running:"
+msgstr "إحصل على عنوان جديد من محفظة ال `ord` من خلال الأمر التالي:"
+
+#: src\guides/inscriptions.md:129 src\guides/inscriptions.md:201 src\guides/inscriptions.md:229
+msgid ""
+"```\n"
+"ord wallet receive\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:133
+msgid "And send it some funds."
+msgstr "وأرسل لها بعض التمويل."
+
+#: src\guides/inscriptions.md:135
+msgid "You can see pending transactions with:"
+msgstr "يمكنك رؤية المعاملات المعلقة بالأمر التالي:"
+
+#: src\guides/inscriptions.md:137 src\guides/inscriptions.md:213 src\guides/inscriptions.md:240
+msgid ""
+"```\n"
+"ord wallet transactions\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:141
+msgid "Once the transaction confirms, you should be able to see the transactions outputs with `ord wallet outputs`."
+msgstr "بمجرد تأكيد الصفقة، يجب أن تكون قادرًا على رؤية المعاملات من خلال `ord wallet outputs`."
+
+#: src\guides/inscriptions.md:144
+msgid "Creating Inscription Content"
+msgstr "إنشاء محتوى إنسكريبشين"
+
+#: src\guides/inscriptions.md:147
+msgid "Sats can be inscribed with any kind of content, but the `ord` wallet only supports content types that can be displayed by the `ord` block explorer."
+msgstr "يمكن إنسكرايب الساتوشيات بأي نوع من المحتوى، ولكن محفظة `ord` تدعم فقط أنواع المحتوى التي يمكن عرضها عبر مستكشف الكتل `ord`."
+
+#: src\guides/inscriptions.md:150
+msgid "Additionally, inscriptions are included in transactions, so the larger the content, the higher the fee that the inscription transaction must pay."
+msgstr "بالإضافة إلى ذلك، تُدرج الإنسكريبشين في المعاملات، لذلك كلما زاد حجم المحتوى، زادت الرسوم التي يجب دفعها لعملية الإنسكريبشين ."
+
+#: src\guides/inscriptions.md:153
+msgid "Inscription content is included in transaction witnesses, which receive the witness discount. To calculate the approximate fee that an inscribe transaction will pay, divide the content size by four and multiply by the fee rate."
+msgstr "يتم تضمين محتوى الإنسكريبشين في شهادات المعاملات، والتي تحصل على الشاهد. لحساب الرسوم التقريبية التي ستدفعها معاملة الإنسكريبشين ، قسم حجم المحتوى على أربعة ثم اضرب الناتج بمعدل الرسوم."
+
+#: src\guides/inscriptions.md:157
+msgid ""
+"Inscription transactions must be less than 400,000 weight units, or they will not be relayed by Bitcoin Core. One byte of inscription content costs one weight unit. Since an inscription transaction includes not just the inscription content, limit inscription content to "
+"less than 400,000 weight units. 390,000 weight units should be safe."
+msgstr ""
+"يجب أن تكون المعاملات أقل من 400,000 وحدة وزنية، وإلا فلن يتم نقلها بواسطة بيتكوين كور. بايت واحد من المحتوى يكلف وحدة وزنية واحدة. نظرًا لأن المعاملات لا تشمل فقط المحتوى ، يجب تقييد محتوى الإنسكريبشين لأقل من 400,000 وحدة وزنية. 390,000 وحدة وزنية يجب أن تكون آمنة "
+"وصحيحه."
+
+#: src\guides/inscriptions.md:163
+msgid "Creating Inscriptions"
+msgstr "إنشاء الإنسكريبشينس"
+
+#: src\guides/inscriptions.md:166
+msgid "To create an inscription with the contents of `FILE`, run:"
+msgstr "لإنشاء الإنسكريبشين مع محتوى `FILE` , اعطي الأمر:"
+
+#: src\guides/inscriptions.md:168
+msgid ""
+"```\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:172
+msgid ""
+"Ord will output two transactions IDs, one for the commit transaction, and one for the reveal transaction, and the inscription ID. Inscription IDs are of the form `TXIDiN`, where `TXID` is the transaction ID of the reveal transaction, and `N` is the index of the "
+"inscription in the reveal transaction."
+msgstr "أورد سيقوم بإخراج رقمين معرّفين للمعاملات، واحد لمعاملة الالتزام، وآخر لمعاملة الكشف، وكذلك مُعرف إنسكريبشين . مُعرفات إنسكريبشين على الشكل `TXIDiN`، حيث `TXID` هو مُعرّف المعاملة لمعاملة الكشف، و `N` هو المؤشر الإنسكريبشين في معاملة الكشف."
+
+#: src\guides/inscriptions.md:177
+msgid "The commit transaction commits to a tapscript containing the content of the inscription, and the reveal transaction spends from that tapscript, revealing the content on chain and inscribing it on the first sat of the input that contains the corresponding tapscript."
+msgstr "تُؤكد معاملة الالتزام على tapscript يحتوي على محتوى الإنسكريبشين، وتقوم معاملة الكشف بإنفاق من هذا الـ tapscript، مكشفةً المحتوى على الشبكة وتسجيله على أول ساتوشي في المدخل الذي يحتوي على الـ tapscript المقابل."
+
+#: src\guides/inscriptions.md:182
+msgid "Wait for the reveal transaction to be mined. You can check the status of the commit and reveal transactions using  [the mempool.space block explorer](https://mempool.space/)."
+msgstr "إنتظر حتى يتم تعدين المعاملة. يمكنك التحقق منها من خلال[the mempool.space block explorer](https://mempool.space/)."
+
+#: src\guides/inscriptions.md:186
+msgid "Once the reveal transaction has been mined, the inscription ID should be printed when you run:"
+msgstr "بمجرد أن يتم تعدين الصفقة (reveal transaction)، يجب أن يتم طباعة معرّف الإنسكريبشين (inscription ID) عند تشغيل الأمر:"
+
+#: src\guides/inscriptions.md:189 src\guides/inscriptions.md:220 src\guides/inscriptions.md:246
+msgid ""
+"```\n"
+"ord wallet inscriptions\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:193
+msgid "And when you visit [the ordinals explorer](https://ordinals.com/) at `ordinals.com/inscription/INSCRIPTION_ID`."
+msgstr "وعند زيارتك [the ordinals explorer](https://ordinals.com/) على `ordinals.com/inscription/INSCRIPTION_ID`."
+
+#: src\guides/inscriptions.md:196
+msgid "Sending Inscriptions"
+msgstr "إرسال الإنسكريبشينس"
+
+#: src\guides/inscriptions.md:199
+msgid "Ask the recipient to generate a new address by running:"
+msgstr "أطلب من المستلم إنشاء عنوان جديد عن طريق تشغيل:"
+
+#: src\guides/inscriptions.md:205
+msgid "Send the inscription by running:"
+msgstr "أرسل الإنسكريبشين من خلال:"
+
+#: src\guides/inscriptions.md:207
+msgid ""
+"```\n"
+"ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:211 src\guides/inscriptions.md:239
+msgid "See the pending transaction with:"
+msgstr "تفقد حاله المعاملة من خلال:"
+
+#: src\guides/inscriptions.md:217
+msgid "Once the send transaction confirms, the recipient can confirm receipt by running:"
+msgstr "بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :"
+
+#: src\guides/inscriptions.md:224
+msgid "Receiving Inscriptions"
+msgstr "استقبال الإنسكريبشينس"
+
+#: src\guides/inscriptions.md:227
+msgid "Generate a new receive address using:"
+msgstr "قم بإنشاء عنوان استقبال جديد باستخدام:"
+
+#: src\guides/inscriptions.md:233
+msgid "The sender can transfer the inscription to your address using:"
+msgstr "يمكن للمرسل نقل الإنسكريبشين إلى عنوانك باستخدام:"
+
+#: src\guides/inscriptions.md:235
+msgid ""
+"```\n"
+"ord wallet send ADDRESS INSCRIPTION_ID\n"
+"```"
+msgstr ""
+
+#: src\guides/inscriptions.md:244
+msgid "Once the send transaction confirms, you can can confirm receipt by running:"
+msgstr "بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :"
+
+#: src\guides/sat-hunting.md:4
+msgid "_This guide is out of date. Since it was written, the `ord` binary was changed to only build the full satoshi index when the `--index-sats` flag is supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin Core wallet. See `ord wallet --help`._"
+msgstr "هذا الدليل غير محدّث. منذ كتابته، تم تغيير البرنامج `ord` الثنائي لبناء فهرس الساتوشي الكامل فقط عندما يتم توفير `ord` ,`--index-sats` الآن يحتوي على محفظة مدمجة تلتف حول محفظة بيتكوين الأساسية. راجع `ord wallet --help`._"
+
+#: src\guides/sat-hunting.md:9
+msgid "Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare."
+msgstr "صيد الأوردينال أمرٌ صعب ولكنه مكافئ. الشعور بامتلاك محفظة مليئة بـ UTXOs، محملة بالساتوشي النادرة والاستثنائية، لا يمكن وصفه."
+
+#: src\guides/sat-hunting.md:12
+msgid "Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi."
+msgstr "أوردينالس هي أعداد تُستخدم للساتوشي. كل ساتوشي لديه رقم ترتيبي وكل رقم ترتيبي لديه ساتوشي."
+
+#: src\guides/sat-hunting.md:15
+msgid "Preparation"
+msgstr "التحضير"
+
+#: src\guides/sat-hunting.md:18
+msgid "There are a few things you'll need before you start."
+msgstr "قبل البدء ستحتاج الى بعض الأشياء."
+
+#: src\guides/sat-hunting.md:20
+msgid "First, you'll need a synced Bitcoin Core node with a transaction index. To turn on transaction indexing, pass `-txindex` on the command-line:"
+msgstr "أولا, ستحتاج الى بيتكوين نود مزامن بالكامل. لبدأ تحميل المعاملات اعطي الأمر `txindex-`على سطر الأوامر:"
+
+#: src\guides/sat-hunting.md:23
+msgid ""
+"```sh\n"
+"bitcoind -txindex\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:27
+msgid "Or put the following in your [Bitcoin configuration file](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
+msgstr "أو استخدم [Bitcoin configuration file] و (https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
+
+#: src\guides/sat-hunting.md:34
+msgid "Launch it and wait for it to catch up to the chain tip, at which point the following command should print out the current block height:"
+msgstr "قم بتشغيله وانتظر حتى يلحق بنهاية السلسلة (chain tip)، في هذا الوقت يجب أن يتم طباعة ارتفاع الكتلة الحالي باستخدام الأمر التالي:"
+
+#: src\guides/sat-hunting.md:37
+msgid ""
+"```sh\n"
+"bitcoin-cli getblockcount\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:41
+msgid "Second, you'll need a synced `ord` index."
+msgstr "ثانيا, ستحتاج لفهرسة `ord`."
+
+#: src\guides/sat-hunting.md:43
+msgid "Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/)."
+msgstr "إحصل على نسخه من `ord` من خلال [the repo](https://github.com/ordinals/ord/)."
+
+#: src\guides/sat-hunting.md:45
+msgid "Run `RUST_LOG=info ord index`. It should connect to your bitcoin core node and start indexing."
+msgstr "قم بتشغيل الأمر `RUST_LOG=info ord index`. يجب أن يتصل بنود Bitcoin Core الخاص بك ويبدأ عملية الفهرسة."
+
+#: src\guides/sat-hunting.md:48
+msgid "Wait for it to finish indexing."
+msgstr "انتظر حتى انتهاء عملية الفهرسة."
+
+#: src\guides/sat-hunting.md:50
+msgid "Third, you'll need a wallet with UTXOs that you want to search."
+msgstr "ثالثًا، ستحتاج إلى محفظة تحتوي على مخرجات غير مُنفقة (UTXOs) التي ترغب في البحث عنها."
+
+#: src\guides/sat-hunting.md:52
+msgid "Searching for Rare Ordinals"
+msgstr "البحث عن أوردينالس نادرة"
+
+#: src\guides/sat-hunting.md:55
+msgid "Searching for Rare Ordinals in a Bitcoin Core Wallet"
+msgstr "البحث عن أوردينال النادرة في محفظة Bitcoin Core"
+
+#: src\guides/sat-hunting.md:57
+msgid "The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your wallet is named `foo`:"
+msgstr "أمر `ord wallet` هو مجرد ملف تغليفي حول واجهة برمجة تطبيقات Bitcoin Core's RPC API، لذا البحث عن الإنسكريبشين النادرة في محفظة Bitcoin Core يعتبر سهلاً. افترض أن اسم محفظتك هو `foo`:"
+
+#: src\guides/sat-hunting.md:61
+msgid "Load your wallet:"
+msgstr "قم بتحميل محفظتك:"
+
+#: src\guides/sat-hunting.md:63
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:67
+msgid "Display any rare ordinals wallet `foo`'s UTXOs:"
+msgstr "عرض أي من الساتوشي النادرة في محفظة `foo` من مخرجات UTXO:"
+
+#: src\guides/sat-hunting.md:69 src\guides/sat-hunting.md:132 src\guides/sat-hunting.md:233
+msgid ""
+"```sh\n"
+"ord wallet sats\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:73
+msgid "Searching for Rare Ordinals in a Non-Bitcoin Core Wallet"
+msgstr "البحث عن العلامات النادرة في محفظة غير تابعة لبيتكوين كور"
+
+#: src\guides/sat-hunting.md:75
+msgid "The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to import your wallet's descriptors into Bitcoin Core."
+msgstr "أمر `ord wallet` هو مجرد غلاف حول واجهة برمجة التطبيقات (RPC) لبيتكوين كور. لذا، إذا كنت ترغب في البحث عن العلامات النادرة في محفظة غير تابعة لبيتكوين كور، ستحتاج إلى استيراد مسارات محفظتك إلى بيتكوين كور."
+
+#: src\guides/sat-hunting.md:79
+msgid "[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md) describe the ways that wallets generate private keys and public keys."
+msgstr ""
+
+#: src\guides/sat-hunting.md:82
+msgid "You should only import descriptors into Bitcoin Core for your wallet's public keys, not its private keys."
+msgstr "يجب عليك استيراد الوصفات فقط في بيتكوين كور للمفاتيح العامة لمحفظتك، وليس لمفاتيحها الخاصة."
+
+#: src\guides/sat-hunting.md:85
+msgid "If your wallet's public key descriptor is compromised, an attacker will be able to see your wallet's addresses, but your funds will be safe."
+msgstr "إذا تم التعرض للخطر واكتشاف وصف المفتاح العام الخاص بمحفظتك، فإن الهاجم سيكون قادرًا على رؤية عناوين محفظتك، ولكن أموالك ستكون آمنة."
+
+#: src\guides/sat-hunting.md:88
+msgid "If your wallet's private key descriptor is compromised, an attacker can drain your wallet of funds."
+msgstr "إذا تم التعرض للخطر واكتشاف وصف المفتاح الخاص بمحفظتك، فإن الهاجم قد يستولي على أموال محفظتك."
+
+#: src\guides/sat-hunting.md:91
+msgid "Get the wallet descriptor from the wallet whose UTXOs you want to search for rare ordinals. It will look something like this:"
+msgstr "قم بالحصول على وصف المحفظة من المحفظة التي ترغب في البحث في أموالها عن الأرقام الترتيبية النادرة. سيبدو هذا التوصيف مشابهًا لهذا:"
+
+#: src\guides/sat-hunting.md:94
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:98
+msgid "Create a watch-only wallet named `foo-watch-only`:"
+msgstr "أنشئ محفظة رصدية باسم `foo-watch-only`:"
+
+#: src\guides/sat-hunting.md:100
+msgid ""
+"```sh\n"
+"bitcoin-cli createwallet foo-watch-only true true\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:104
+msgid "Feel free to give it a better name than `foo-watch-only`!"
+msgstr "لا تتردد في إعطائه اسمًا أفضل من `foo-watch-only` إذا كنت ترغب!"
+
+#: src\guides/sat-hunting.md:106
+msgid "Load the `foo-watch-only` wallet:"
+msgstr "قم بتحميل محفظة \"foo-watch-only\" باستخدام الأمر التالي:"
+
+#: src\guides/sat-hunting.md:108 src\guides/sat-hunting.md:199
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo-watch-only\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:112
+msgid "Import your wallet descriptors into `foo-watch-only`:"
+msgstr "قم بتحميل واجهات محفظتك إلى المحفظة \"foo-watch-only\" باستخدام الأمر التالي:"
+
+#: src\guides/sat-hunting.md:114
+msgid ""
+"```sh\n"
+"bitcoin-cli importdescriptors \\\n"
+"  '[{ \"desc\": \"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax\", \"timestamp\":0 }]'\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:119
+msgid "If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of `\"timestamp\"` instead of `0`. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs."
+msgstr "إذا كنت تعرف الطابع الزمني لنظام Unix عندما بدأت محفظتك في استقبال المعاملات لأول مرة، فيمكنك استخدامه كقيمة لـ \"timestamp\" بدلاً من 0. سيساعد ذلك في تقليل الوقت اللازم لبحث Bitcoin Core عن UTXOs في محفظتك."
+
+#: src\guides/sat-hunting.md:124 src\guides/sat-hunting.md:225
+msgid "Check that everything worked:"
+msgstr "تحقق مما إذا كان كل شيء عمل بشكل صحيح:"
+
+#: src\guides/sat-hunting.md:126 src\guides/sat-hunting.md:227
+msgid ""
+"```sh\n"
+"bitcoin-cli getwalletinfo\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:130 src\guides/sat-hunting.md:231
+msgid "Display your wallet's rare ordinals:"
+msgstr "عرض أوردينالس في محفظتك:"
+
+#: src\guides/sat-hunting.md:136
+msgid "Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors"
+msgstr "البحث عن الأوردينال النادرة في محفظة تصدر وصفوف مسار متعددة"
+
+#: src\guides/sat-hunting.md:138
+msgid ""
+"Some descriptors describe multiple paths in one descriptor using angle brackets, e.g., `<0;1>`. Multi-path descriptors are not yet supported by Bitcoin Core, so you'll first need to convert them into multiple descriptors, and then import those multiple descriptors into "
+"Bitcoin Core."
+msgstr "بعض الوصوف تصف مسارات متعددة في وصف واحد باستخدام الزوايا الزوجية، مثل `<0;1>`. الوصوف متعددة المسارات لا تزال غير مدعومة بواسطة Bitcoin Core حتى الآن، لذا ستحتاج أولاً إلى تحويلها إلى وصوف متعددة، ثم استيراد تلك الوصوف المتعددة إلى Bitcoin Core."
+
+#: src\guides/sat-hunting.md:143
+msgid "First get the multi-path descriptor from your wallet. It will look something like this:"
+msgstr "أولاً، قم بالحصول على الوصف المتعدد المسارات من محفظتك. سيبدو هذا على النحو التالي:"
+
+#: src\guides/sat-hunting.md:146
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/<0;1>/*)#fw76ulgt\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:150
+msgid "Create a descriptor for the receive address path:"
+msgstr "أنشئ وصفًا لمسار عنوان الاستلام:"
+
+#: src\guides/sat-hunting.md:152
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:156
+msgid "And the change address path:"
+msgstr "وأيضًا مسار عنوان التغيير:"
+
+#: src\guides/sat-hunting.md:158
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:162
+msgid "Get and note the checksum for the receive address descriptor, in this case `tpnxnxax`:"
+msgstr "احصل على وادرِ الفحص لوصف عنوان الاستلام وقم بتسجيله، في هذه الحالة هو `tpnxnxax`:"
+
+#: src\guides/sat-hunting.md:165
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:170
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": \"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29\",\n"
+"  \"checksum\": \"tpnxnxax\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:180
+msgid "And for the change address descriptor, in this case `64k8wnd7`:"
+msgstr "وكذلك لوصف عنوان التغيير، في هذه الحالة هو `64k8wnd7`:"
+
+#: src\guides/sat-hunting.md:182
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:187
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": \"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a\",\n"
+"  \"checksum\": \"64k8wnd7\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:197
+msgid "Load the wallet you want to import the descriptors into:"
+msgstr "قم بتحميل المحفظة التي تريد استيراد الوصفات إليها:"
+
+#: src\guides/sat-hunting.md:203
+msgid "Now import the descriptors, with the correct checksums, into Bitcoin Core."
+msgstr "الآن قم ب استيراد الوصفات، مع التحقق الصحيح، إلى Bitcoin Core."
+
+#: src\guides/sat-hunting.md:205
+msgid ""
+"```sh\n"
+"bitcoin-cli \\\n"
+" importdescriptors \\\n"
+" '[\n"
+"   {\n"
+"     \"desc\": \"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax\"\n"
+"     \"timestamp\":0\n"
+"   },\n"
+"   {\n"
+"     \"desc\": \"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7\",\n"
+"     \"timestamp\":0\n"
+"   }\n"
+" ]'\n"
+"```"
+msgstr ""
+
+#: src\guides/sat-hunting.md:220
+msgid "If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of the `\"timestamp\"` fields instead of `0`. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs."
+msgstr "إذا كنت تعرف الطابع الزمني (Unix timestamp) الذي بدأت فيه محفظتك استقبال المعاملات، يمكنك استخدامه كقيمة في حقول `\"timestamp\"` بدلاً من القيمة `0`. سيساعد ذلك في تقليل الوقت الذي يحتاجه Bitcoin Core للبحث عن UTXOs الخاصة بمحفظتك."
+
+#: src\guides/sat-hunting.md:237
+msgid "Exporting Descriptors"
+msgstr ""
+
+#: src\guides/sat-hunting.md:241
+msgid "Navigate to the `Settings` tab, then to `Script Policy`, and press the edit button to display the descriptor."
+msgstr "انتقل إلى علامة التبويب \"الإعدادات\" `Settings` ثم انتقل إلى \"سياسة النص\" `Script Policy` واضغط على زر التحرير (Edit) لعرض الوصف (descriptor)."
+
+#: src\guides/sat-hunting.md:244
+msgid "Transferring Ordinals"
+msgstr "إرسال الأوردينالس"
+
+#: src\guides/sat-hunting.md:246
+msgid "The `ord` wallet supports transferring specific satoshis. You can also use `bitcoin-cli` commands `createrawtransaction`, `signrawtransactionwithwallet`, and `sendrawtransaction`, how to do so is complex and outside the scope of this guide."
+msgstr "محفظة `ord` تدعم نقل الساتوشيات الخاصة. يمكنك أيضًا استخدام أوامر `bitcoin-cli` مثل `createrawtransaction` و `signrawtransactionwithwallet` و `sendrawtransaction` للقيام بذلك، وكيفية القيام بذلك هو معقد وخارج نطاق هذا الدليل."
+
+#: src\guides/collecting.md:4
+msgid "Currently, [ord](https://github.com/ordinals/ord/) is the only wallet supporting sat-control and sat-selection, which are required to safely store and send rare sats and inscriptions, hereafter ordinals."
+msgstr "حالياً، يعتبر [ord](https://github.com/ordinals/ord/) هو المحفظة الوحيدة التي تدعم التحكم في الساتوشيات واختيارها، واللذين يُعتبران ضروريين لتخزين وإرسال الساتوشيات والأشياء الرقمية النادرة بأمان، والتي ستُعرف فيما بعد بـ أوردينال."
+
+#: src\guides/collecting.md:8
+msgid "The recommended way to send, receive, and store ordinals is with `ord`, but if you are careful, it is possible to safely store, and in some cases send, ordinals with other wallets."
+msgstr "الطريقة الموصي بها لإرسال واستقبال وتخزين أوردينال هي باستخدام محفظة  `ord`، ولكن إذا كنت حذرًا، يمكنك تخزين أوردينال بأمان في محافظ أخرى، وفي بعض الحالات حتى إرسالها."
+
+#: src\guides/collecting.md:12
+msgid ""
+"As a general note, receiving ordinals in an unsupported wallet is not dangerous. Ordinals can be sent to any bitcoin address, and are safe as long as the UTXO that contains them is not spent. However, if that wallet is then used to send bitcoin, it may select the UTXO "
+"containing the ordinal as an input, and send the inscription or spend it to fees."
+msgstr ""
+"كملاحظة عامة، استقبال أوردينال في محفظة غير مدعومة ليس خطيرًا. يمكن إرسال أوردينال إلى أي عنوان بيتكوين، وهم آمنين طالما أن الإخراج الذي يحتوي عليهم لم يتم إنفاقه. ومع ذلك، إذا تم استخدام تلك المحفظة لإرسال بيتكوين، قد تختار المحفظة الإخراج الذي يحتوي على الـأوردينال "
+"كإدخال، وترسل الشهادة أو تنفقها على الرسوم."
+
+#: src\guides/collecting.md:18
+msgid "A [guide](./collecting/sparrow-wallet.md) to creating an `ord`\\-compatible wallet with [Sparrow Wallet](https://sparrowwallet.com/), is available in this handbook."
+msgstr "يتوفر [guide](./collecting/sparrow-wallet.md) لإنشاء محفظة متوافقة مع `ord` باستخدام محفظة [Sparrow Wallet](https://sparrowwallet.com/) في هذا الدليل."
+
+#: src\guides/collecting.md:21
+msgid "Please note that if you follow this guide, you should not use the wallet you create to send BTC, unless you perform manual coin-selection to avoid sending ordinals."
+msgstr "يرجى ملاحظة أنه إذا قمت باتباع هذا الدليل، يجب عليك عدم استخدام المحفظة التي تنشئها لإرسال BTC، إلا إذا قمت بإجراء اختيار يدوي للعملات لتجنب إرسال الأوردينال."
+
+#: src\guides/collecting/sparrow-wallet.md:1
+msgid "Collecting Inscriptions and Ordinals with Sparrow Wallet"
+msgstr "جمع أوردينالس و الإنسكريبشين باستخدام محفظة Sparrow"
+
+#: src\guides/collecting/sparrow-wallet.md:4
+msgid "Users who cannot or have not yet set up the [ord](https://github.com/ordinals/ord) wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are _very_ careful about how they spend from that wallet."
+msgstr "المستخدمون الذين لا يستطيعون أو لم ينشئوا محفظة ord بعد يمكنهم تلقي أوردينالس والأرقام السرية باستخدام محافظ البيتكوين البديلة، طالما أنهم يكونون حذرين جداً في كيفية إنفاق من تلك المحفظة."
+
+#: src\guides/collecting/sparrow-wallet.md:6
+msgid "This guide gives some basic steps on how to create a wallet with [Sparrow Wallet](https://sparrowwallet.com/) which is compatible with `ord` and can be later imported into `ord`"
+msgstr "يقدم هذا الدليل بعض الخطوات الأساسية حول كيفية إنشاء محفظة باستخدام محفظة [Sparrow Wallet](https://sparrowwallet.com/) والتي تكون متوافقة مع محفظة `ord` ويمكن استيرادها لاحقًا إلى محفظة `ord`"
+
+#: src\guides/collecting/sparrow-wallet.md:8
+msgid "⚠️⚠️ Warning!! ⚠️⚠️"
+msgstr "⚠️⚠️ تحذير!! ⚠️⚠️"
+
+#: src\guides/collecting/sparrow-wallet.md:9
+msgid "As a general rule if you take this approach, you should use this wallet with the Sparrow software as a receive-only wallet."
+msgstr "كقاعدة عامة، إذا اتبعت هذا النهج، يجب عليك استخدام هذه المحفظة مع برنامج Sparrow كمحفظة للتلقي فقط."
+
+#: src\guides/collecting/sparrow-wallet.md:11
+msgid "Do not spend any satoshis from this wallet unless you are sure you know what you are doing. You could very easily inadvertently lose access to your ordinals and inscriptions if you don't heed this warning."
+msgstr "لا تنفق أي ساتوشي من هذه المحفظة ما لم تكن متأكدًا من أنك تعرف ما تفعله. يمكن أن تفقد بسهولة وبشكل غير مقصود الوصول إلى الأرقام السرية والنقوش الخاصة بك إذا لم تلتزم بهذا التحذير."
+
+#: src\guides/collecting/sparrow-wallet.md:13
+msgid "Wallet Setup & Receiving"
+msgstr "إعداد المحفظة والتلقي"
+
+#: src\guides/collecting/sparrow-wallet.md:15
+msgid "Download the Sparrow Wallet from the [releases page](https://sparrowwallet.com/download/) for your particular operating system."
+msgstr "قم [بتنزيل](https://sparrowwallet.com/download/) محفظة Sparrow من صفحة الإصدارات الخاصة بنظام التشغيل الخاص بك."
+
+#: src\guides/collecting/sparrow-wallet.md:17
+msgid "Select `File -> New Wallet` and create a new wallet called `ord`."
+msgstr "اختر `File -> New Wallet` قم بإنشاء محفظة جديدة تسمى `ord`."
+
+#: src\guides/collecting/sparrow-wallet.md:19
+msgid "![](images/wallet_setup_01.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:21
+msgid "Change the `Script Type` to `Taproot (P2TR)` and select the `New or Imported Software Wallet` option."
+msgstr "قم بتغيير نوع النص إلى `Taproot (P2TR)` واختر الخيار `New or Imported Software Wallet`."
+
+#: src\guides/collecting/sparrow-wallet.md:23
+msgid "![](images/wallet_setup_02.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:25
+msgid "Select `Use 12 Words` and then click `Generate New`. Leave the passphrase blank."
+msgstr "اختر `Use 12 Words` ثم انقر فوق `Generate New`. اترك مجال العبور فارغًا."
+
+#: src\guides/collecting/sparrow-wallet.md:27
+msgid "![](images/wallet_setup_03.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:29
+msgid "A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else."
+msgstr "سيتم إنشاء عبارة مفتاح عشوائي BIP39 مكونة من 12 كلمة بالنسبة لك. اكتبها في مكان آمن حيث تعد هذه نسختك الاحتياطية للوصول إلى محفظتك. لا تشارك أو تعرض هذه العبارة لأي شخص آخر أبدًا."
+
+#: src\guides/collecting/sparrow-wallet.md:31
+msgid "Once you have written down the seed phrase click `Confirm Backup`."
+msgstr "بمجرد أن تكتب العبارة، انقر فوق `Confirm Backup`."
+
+#: src\guides/collecting/sparrow-wallet.md:33
+msgid "![](images/wallet_setup_04.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:35
+msgid "Re-enter the seed phrase which you wrote down, and then click `Create Keystore`."
+msgstr "أعد إدخال العبارة التي كتبتها، ثم انقر فوق `Create Keystore`."
+
+#: src\guides/collecting/sparrow-wallet.md:37
+msgid "![](images/wallet_setup_05.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:39
+msgid "Click `Import Keystore`."
+msgstr "انقر فوق `Import Keystore`."
+
+#: src\guides/collecting/sparrow-wallet.md:41
+msgid "![](images/wallet_setup_06.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:43
+msgid "Click `Apply`. Add a password for the wallet if you want to."
+msgstr "انقر فوق `Apply`. أضف كلمة مرور للمحفظة إذا كنت ترغب."
+
+#: src\guides/collecting/sparrow-wallet.md:45
+msgid "![](images/wallet_setup_07.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:47
+msgid "You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address."
+msgstr "لآن لديك محفظة متوافقة مع `ord`، ويمكن استيرادها إلى `ord` باستخدام عبارة البذرة BIP39. لاستقبال الأعداد أو النقوش، انقر على علامة `Receive` وانسخ عنوانًا جديدًا."
+
+#: src\guides/collecting/sparrow-wallet.md:49
+msgid "Each time you want to receive you should use a brand-new address, and not re-use existing addresses."
+msgstr "في كل مرة تريد فيها الاستقبال، يجب أن تستخدم عنوانًا جديدًا تمامًا، ولا تستخدم عناوين موجودة بالفعل."
+
+#: src\guides/collecting/sparrow-wallet.md:51
+msgid ""
+"Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addresses. You can generate a new address by clicking on the `Get Next Address` button. You can see all of your addresses in the `Addresses` tab "
+"of the app."
+msgstr "يرجى ملاحظة أن البيتكوين مختلف عن بعض المحافظ الأخرى للبلوكشين، حيث يمكن لهذه المحفظة إنشاء عدد غير محدود من العناوين الجديدة. يمكنك إنشاء عنوان جديد عن طريق النقر فوق زر `Get Next Address`. يمكنك رؤية جميع عناوينك في علامة `Addresses` في التطبيق."
+
+#: src\guides/collecting/sparrow-wallet.md:53
+msgid "You can add a label to each address, so you can keep track of what it was used for."
+msgstr "يمكنك إضافة تصنيف لكل عنوان، لتتمكن من تتبع ما تم استخدامه لأغراضه."
+
+#: src\guides/collecting/sparrow-wallet.md:55
+msgid "![](images/wallet_setup_08.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:57
+msgid "Validating / Viewing Received Inscriptions"
+msgstr "التحقق / عرض الأوردينالس المستلمة"
+
+#: src\guides/collecting/sparrow-wallet.md:59
+msgid "Once you have received an inscription you will see a new transaction in the `Transactions` tab of Sparrow, as well as a new UTXO in the `UTXOs` tab."
+msgstr "بمجرد استلامك لنقش، ستظهر صفقة جديدة في علامة `Transactions` في Sparrow، وكذلك ستظهرUTXO جديدة في علامة `UTXOs`."
+
+#: src\guides/collecting/sparrow-wallet.md:61
+msgid "Initially this transaction may have an \"Unconfirmed\" status, and you will need to wait for it to be mined into a bitcoin block before it is fully received."
+msgstr "بداية، قد تكون هذه الصفقة غير مؤكدة \"Unconfirmed\"، وسيتعين عليك الانتظار حتى تُعدد في كتلة بيتكوين قبل أن تستقبل بشكل كامل."
+
+#: src\guides/collecting/sparrow-wallet.md:63
+msgid "![](images/validating_viewing_01.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:65
+msgid "To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](https://mempool.space)."
+msgstr "لتتبع حالة صفقتك، يمكنك النقر بزر الماوس الأيمن عليها، ثم اختيار `Copy Transaction ID` ومن ثم لصق هذا المعرف في [mempool.space](https://mempool.space/)."
+
+#: src\guides/collecting/sparrow-wallet.md:67
+msgid "![](images/validating_viewing_02.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:69
+msgid ""
+"Once the transaction has confirmed, you can validate and view your inscription by heading over to the `UTXOs` tab, finding the UTXO you want to check, right-clicking on the `Output` and selecting `Copy Transaction Output`. This transaction output id can then be pasted "
+"into the [ordinals.com](https://ordinals.com) search."
+msgstr ""
+"بمجرد تأكيد الصفقة، يمكنك التحقق وعرض النقش الخاص بك عن طريق الانتقال إلى علامة `UTXOs`، والبحث عنUTXO التي ترغب في التحقق منها، ثم النقر بزر الماوس الأيمن على`Output` واختيار `Copy Transaction Output`. يمكن لكتلة الإخراج هذه أن تُلصق في محرك البحث على موقع [ordinals.com]"
+"(https://ordinals.com)."
+
+#: src\guides/collecting/sparrow-wallet.md:72
+msgid "Freezing UTXO's"
+msgstr "تجميد UTXO's"
+
+#: src\guides/collecting/sparrow-wallet.md:73
+msgid "As explained above, each of your inscriptions is stored in an Unspent Transaction Output (UTXO). You want to be very careful not to accidentally spend your inscriptions, and one way to make it harder for this to happen is to freeze the UTXO."
+msgstr "كما تم شرحه أعلاه، يتم تخزين كل من الإنسكريبشين في ناتج الصفقة غير المنفقة (UTXO). يجب أن تكون حذرًا جدًا لكي لا تنفق الإنسكريبشين عن طريق الخطأ، وطريقة لجعلها أصعب هو تجميدها."
+
+#: src\guides/collecting/sparrow-wallet.md:75
+msgid "To do this, go to the `UTXOs` tab, find the UTXO you want to freeze, right-click on the `Output` and select `Freeze UTXO`."
+msgstr "للقيام بذلك، انتقل إلى علامة \"UTXOs\"، وابحث عن نقدة التي ترغب في تجميدها، ثم انقر بزر الماوس الأيمن على الإخراج واختر \"Freeze UTXO\"."
+
+#: src\guides/collecting/sparrow-wallet.md:77
+msgid "This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until you unfreeze it."
+msgstr "ستكون هذه UTXO (الإنسكريبشين) غير قابلة للإنفاق داخل محفظة Sparrow حتى تُلغى تجميدها."
+
+#: src\guides/collecting/sparrow-wallet.md:79
+msgid "Importing into `ord` wallet"
+msgstr "استيرادها إلى محفظة `ord`"
+
+#: src\guides/collecting/sparrow-wallet.md:81
+msgid "For details on setting up Bitcoin Core and the `ord` wallet check out the [Inscriptions Guide](../inscriptions.md)"
+msgstr "للحصول على التفاصيل حول إعداد Bitcoin Core ومحفظة `ord`، تحقق من دليل[Inscriptions Guide](../inscriptions.md)"
+
+#: src\guides/collecting/sparrow-wallet.md:83
+msgid "When setting up `ord`, instead of running `ord wallet create` to create a brand-new wallet, you can import your existing wallet using `ord wallet restore \"BIP39 SEED PHRASE\"` using the seed phrase you generated with Sparrow Wallet."
+msgstr "عند إعداد `ord`، بدلاً من تشغيل `ord wallet create` لإنشاء محفظة جديدة تمامًا، يمكنك استيراد محفظتك الحالية باستخدام `\"ord wallet restore \"BIP39 SEED PHRASE`باستخدام عبارة البذرة التي أنشأتها باستخدام محفظة Sparrow."
+
+#: src\guides/collecting/sparrow-wallet.md:85
+msgid ""
+"There is currently a [bug](https://github.com/ordinals/ord/issues/1589) which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli: `bitcoin-cli -"
+"rpcwallet=ord rescanblockchain 767430`"
+msgstr ""
+"هناك [خلل](https://github.com/ordinals/ord/issues/1589) حاليًا يجعل من المحفظة المستوردة ألا تُمسح تلقائياً ضد سلسلة الكتل. للتغلب على ذلك، ستحتاج إلى تشغيل عملية مسح يدويًا باستخدام واجهة سطر الأوامر للنود البيتكوين: `bitcoin-cli -rpcwallet=ord rescanblockchain 767430`"
+
+#: src\guides/collecting/sparrow-wallet.md:88
+msgid "You can then check your wallet's inscriptions using `ord wallet inscriptions`"
+msgstr "بعد ذلك، يمكنك التحقق من الإنسكريبشين محفظتك باستخدام `ord wallet inscriptions`"
+
+#: src\guides/collecting/sparrow-wallet.md:90
+msgid ""
+"Note that if you have previously created a wallet with `ord`, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the `--wallet` parameter in all `ord` commands to reference a different "
+"wallet, eg:"
+msgstr "يرجى ملاحظة أنه إذا كنت قد أنشأت بالفعل محفظة بواسطة ord في السابق، فسيكون لديك محفظة بالاسم الافتراضي بالفعل، وستحتاج إلى تعيين اسم محفظتك المستوردة باسم مختلف. يمكنك استخدام ` wallet-- ` براميتير في جميع أوامر `ord` للإشارة إلى محفظة مختلفة، على سبيل المثال:"
+
+#: src\guides/collecting/sparrow-wallet.md:92
+msgid "`ord --wallet ord_from_sparrow wallet restore \"BIP39 SEED PHRASE\"`"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:94
+msgid "`ord --wallet ord_from_sparrow wallet inscriptions`"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:96
+msgid "`bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430`"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:98
+msgid "Sending inscriptions with Sparrow Wallet"
+msgstr "جمع الإنسكريبشين باستخدام محفظة سباروو Sparrow"
+
+#: src\guides/collecting/sparrow-wallet.md:100
+msgid "⚠️⚠️ Warning ⚠️⚠️"
+msgstr "⚠️⚠️ تحذير ⚠️⚠️"
+
+#: src\guides/collecting/sparrow-wallet.md:101
+msgid ""
+"While it is highly recommended that you set up a bitcoin core node and run the `ord` software, there are certain limited ways you can send inscriptions out of Sparrow Wallet in a safe way. Please note that this is not recommended, and you should only do this if you "
+"fully understand what you are doing."
+msgstr "على الرغم من أنه من المستحسن بشدة إعداد بيتكوين نود Bitcoin Core وتشغيل برنامج `ord`، إلا أن هناك طرقًا محدودة يمكنك من خلالها إرسال الإنسكريبشين من محفظة Sparrow بطريقة آمنة. يرجى ملاحظة أن هذا غير مستحسن ويجب أن تقوم به فقط إذا كنت تفهم تمامًا ما تقوم به."
+
+#: src\guides/collecting/sparrow-wallet.md:103
+msgid "Using the `ord` software will remove much of the complexity we are describing here, as it is able to automatically and safely handle sending inscriptions in an easy way."
+msgstr "استخدام برنامج `ord` سيقلل بشكل كبير من التعقيد الذي نصفه هنا، حيث يمكن للبرنامج التعامل تلقائيًا وبأمان مع إرسال النقاشات بطريقة سهلة."
+
+#: src\guides/collecting/sparrow-wallet.md:105
+msgid "⚠️⚠️ Additional Warning ⚠️⚠️"
+msgstr "⚠️⚠️ تحذير إضافي ⚠️⚠️"
+
+#: src\guides/collecting/sparrow-wallet.md:106
+msgid "Don't use your sparrow inscriptions wallet to do general sends of non-inscription bitcoin. You can setup a separate wallet in sparrow if you need to do normal bitcoin transactions, and keep your inscriptions wallet separate."
+msgstr "لا تستخدم محفظة Sparrow الخاصة بالتسجيلات لإرسال بيتكوين عامة غير مرتبطة بالتسجيلات. يمكنك إعداد محفظة منفصلة في Sparrow إذا كنت بحاجة إلى إجراء معاملات بيتكوين العادية، والاحتفاظ بمحفظتك للتسجيلات بشكل منفصلة."
+
+#: src\guides/collecting/sparrow-wallet.md:108
+msgid "Bitcoin's UTXO model"
+msgstr "نموذج UTXO في البيتكوين"
+
+#: src\guides/collecting/sparrow-wallet.md:109
+msgid ""
+"Before sending any transaction it's important that you have a good mental model for bitcoin's Unspent Transaction Output (UTXO) system. The way Bitcoin works is fundamentally different to many other blockchains such as Ethereum. In Ethereum generally you have a single "
+"address in which you store ETH, and you cannot differentiate between any of the ETH -  it is just all a single value of the total amount in that address. Bitcoin works very differently in that we generate a new address in the wallet for each receive, and every time you "
+"receive sats to an address in your wallet you are creating a new UTXO. Each UTXO can be seen and managed individually. You can select specific UTXO's which you want to spend, and you can choose not to spend certain UTXO's."
+msgstr ""
+"قبل إجراء أي عملية إرسال، من المهم أن يكون لديك نموذج عقلي جيد لنظام ناتج الصفقات غير المنفقة (UTXO) في البيتكوين. الطريقة التي يعمل بها البيتكوين مختلفة بشكل جوهري عن العديد من البلوكشين الأخرى مثل إيثيريوم. عمومًا في إيثيريوم، لديك عنوان واحد عادةً تقوم بتخزين ETH فيه، "
+"ولا يمكنك التمييز بين أي مبلغ من ETH - فهو مجموعة واحدة من القيمة الإجمالية في تلك العنوان. يعمل البيتكوين بطريقة مختلفة تمامًا حيث نقوم بإنشاء عنوان جديد في المحفظة لكل عملية استقبال، وفي كل مرة تستقبل فيها ساتوشي إلى عنوان في محفظتك، فأنت تقوم بإنشاء ناتج صفقة جديد. "
+"يمكن رؤية وإدارة كل ناتج صفقة غير المنفقة على حدة. يمكنك تحديد ناتج صفقة معين ترغب في الإنفاق عليه، ويمكنك اختيار عدم إنفاق بعض نواتج الصفقات."
+
+#: src\guides/collecting/sparrow-wallet.md:111
+msgid "Some Bitcoin wallets do not expose this level of detail, and they just show you a single summed up value of all the bitcoin in your wallet. However, when sending inscriptions it is important that you use a wallet like Sparrow which allows for UTXO control."
+msgstr "بعض محافظ البيتكوين لا تعرض هذا المستوى من التفاصيل، وهي تعرض لك قيمة واحدة مجمعة لجميع البيتكوين في محفظتك. ومع ذلك، عند إرسال النقوش من المهم استخدام محفظة مثل Sparrow التي تسمح بالتحكم في نواتج الصفقات."
+
+#: src\guides/collecting/sparrow-wallet.md:113
+msgid "Inspecting your inscription before sending"
+msgstr "تفحص الإنسكريبشين قبل الإرسال"
+
+#: src\guides/collecting/sparrow-wallet.md:114
+msgid ""
+"Like we have previously described inscriptions are inscribed onto sats, and sats are stored within UTXOs. UTXO's are a collection of satoshis with some particular value of the number of satoshis (the output value). Usually (but not always) the inscription will be "
+"inscribed on the first satoshi in the UTXO."
+msgstr ""
+"كما تم وصفه سابقًا، تُنقش النقوش على الساتوشي، والساتوشي تُخزن داخل ناتج الصفقة غير المنفقة (UTXO). تعد نواتج الصفقات (UTXO) مجموعة من الساتوشي مع قيمة محددة لعدد الساتوشي (قيمة الإخراج). عادةً (وليس دائمًا) ستكون الأنسكريبشين منقشه على أول ساتوشي في نواتج الصفقات ال UTXO."
+
+#: src\guides/collecting/sparrow-wallet.md:116
+msgid "When inspecting your inscription before sending the main thing you will want to check is which satoshi in the UTXO your inscription is inscribed on."
+msgstr "عند فحص تسجيلك قبل إرساله، سترغب في التحقق أساسًا من الساتوشي الذي تم تسجيله في UTXO الخاص بك."
+
+#: src\guides/collecting/sparrow-wallet.md:118
+msgid "To do this, you can follow the [Validating / Viewing Received Inscriptions](./sparrow-wallet.md#validating--viewing-received-inscriptions) described above to find the inscription page for your inscription on ordinals.com"
+msgstr "للقيام بذلك، يمكنك اتباع الخطوات الموجودة في [التحقق / عرض التسجيلات المستلمة] [Validating / Viewing Received Inscriptions](./sparrow-wallet.md#validating--viewing-received-inscriptions) الموجودة أعلاه للعثور على صفحة التسجيل الخاصة بتسجيلك على موقع ordinals.com"
+
+#: src\guides/collecting/sparrow-wallet.md:120
+msgid "There you will find some metadata about your inscription which looks like the following:"
+msgstr "ستجد هناك بعض البيانات الوصفية حول تسجيلك تبدو على النحو التالي:"
+
+#: src\guides/collecting/sparrow-wallet.md:122
+msgid "![](images/sending_01.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:124
+msgid "There is a few of important things to check here:"
+msgstr "يوجد بعض الأمور الهامة التي يجب التحقق منها هنا:"
+
+#: src\guides/collecting/sparrow-wallet.md:125
+msgid "The `output` identifier matches the identifier of the UTXO you are going to send"
+msgstr "معرف `output` يتطابق مع معرف UTXO الذي ستقوم بإرساله"
+
+#: src\guides/collecting/sparrow-wallet.md:126
+msgid "The `offset` of the inscription is `0` (this means that the inscription is located on the first sat in the UTXO)"
+msgstr "ال `offset` للإنسكريبشين هو `0` (وهذا يعني أن الإنسكريبشين موجودة في أول ساتوشي في ناتج الصفقةUTXO)"
+
+#: src\guides/collecting/sparrow-wallet.md:127
+msgid "the `output_value` has enough sats to cover the transaction fee (postage) for sending the transaction. The exact amount you will need depends on the fee rate you will select for the transaction"
+msgstr "تحتوي قيمة الإخراج `output_value` على عدد كافٍ من الساتوشي لتغطية رسوم الصفقة (البريد) لإرسال النقشة. تعتمد الكمية الدقيقة التي ستحتاجها على معدل الرسوم الذي ستختاره للصفقة"
+
+#: src\guides/collecting/sparrow-wallet.md:129
+msgid "If all of the above are true for your inscription, it should be safe for you to send it using the method below."
+msgstr "إذا كانت جميع الشروط أعلاه صحيحة بالنسبة للنقشة الخاصة بك، يجب أن يكون آمنًا لك إرسالها باستخدام الطريقة الموضحة أدناه."
+
+#: src\guides/collecting/sparrow-wallet.md:131
+msgid "⚠️⚠️ Be very careful sending your inscription particularly if the `offset` value is not `0`. It is not recommended to use this method if that is the case, as doing so you could accidentally send your inscription to a bitcoin miner unless you know what you are doing."
+msgstr "⚠️⚠️ كن حذرًا جدًا عند إرسال الإنسكريبشين، خاصة إذا كانت القيمة النسبية ليست 0. لا يوصى باستخدام هذه الطريقة إذا كانت هذه هي الحالة، حيث يمكن أن ترسل الإنسكريبشين عن طريق الخطأ إلى منقبي بيتكوين ما لم تكن تعرف ما تفعله."
+
+#: src\guides/collecting/sparrow-wallet.md:133
+msgid "Sending your inscription"
+msgstr "إرسال الإنسكريبشين"
+
+#: src\guides/collecting/sparrow-wallet.md:134
+msgid "To send an inscription navigate to the `UTXOs` tab, and find the UTXO which you previously validated contains your inscription."
+msgstr "لإرسال الإنسكريبشين، انتقل إلى علامة `UTXOs`، وابحث عن ناتج الصفقة UTXO التي قمت بالتحقق منها سابقًا."
+
+#: src\guides/collecting/sparrow-wallet.md:136
+msgid "If you previously froze the UXTO you will need to right-click on it and unfreeze it."
+msgstr "إذا كنت قد قمت بتجميد ال UTXO، سيتعين عليك النقر بزر الماوس الأيمن عليها وإلغاء تجميدها."
+
+#: src\guides/collecting/sparrow-wallet.md:138
+msgid "Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`."
+msgstr "حدد UTXO الذي ترغب في إرساله، وتأكد من أنه هو الوحيد المحدد. يجب أن ترى `UTXOs 1/1` في واجهة البرنامج. بمجرد التأكد من ذلك، يمكنك النقر على`Send Selected`."
+
+#: src\guides/collecting/sparrow-wallet.md:140
+msgid "![](images/sending_02.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:142
+msgid "You will then be presented with the transaction construction interface. There is a few things you need to check here to make sure that this is a safe send:"
+msgstr "ستُعرض لك واجهة إعداد الصفقة. هناك عدة أشياء يجب عليك التحقق منها للتأكد من أن هذا إرسال آمن:"
+
+#: src\guides/collecting/sparrow-wallet.md:144
+msgid "The transaction should have only 1 input, and this should be the UTXO with the label you want to send"
+msgstr "يجب أن تحتوي الصفقة على إدخال واحد فقط، ويجب أن يكون هذا هو ناتج الصفقة الذي تريد إرساله"
+
+#: src\guides/collecting/sparrow-wallet.md:145
+msgid "The transaction should have only 1 output, which is the address/label where you want to send the inscription"
+msgstr "يجب أن تحتوي الصفقة على إخراج واحد فقط، وهو العنوان/التصنيف الذي ترغب في إرسال الإنسكريبشين"
+
+#: src\guides/collecting/sparrow-wallet.md:147
+msgid "If your transaction looks any different, for example you have multiple inputs, or multiple outputs then this may not be a safe transfer of your inscription, and you should abandon sending until you understand more, or can import into the `ord` wallet."
+msgstr "إذا كانت الصفقة تبدو مختلفة عن ذلك، على سبيل المثال لديك إدخالات متعددة أو إخراجات متعددة، فقد لا يكون هذا إرسالًا آمنًا للإنسكريبشين، ويجب أن تترك الإرسال حتى تفهم المزيد، أو تستورد إلى محفظة `ord`."
+
+#: src\guides/collecting/sparrow-wallet.md:149
+msgid "You should set an appropriate transaction fee, Sparrow will usually recommend a reasonable one, but you can also check [mempool.space](https://mempool.space) to see what the recommended fee rate is for sending a transaction."
+msgstr "يجب أن تحدد رسوم الصفقة المناسبة، عادةً ما يقترح Sparrow معدل رسوم معقول، ولكن يمكنك أيضًا التحقق من [mempool.space](https://mempool.space) لمعرفة ما هو معدل الرسوم الموصي به لإرسال الصفقة."
+
+#: src\guides/collecting/sparrow-wallet.md:151
+msgid "You should add a label for the recipient address, a label like `alice address for inscription #123` would be ideal."
+msgstr "يجب أن تضيف تصنيفًا لعنوان المستلم، يكون التصنيف مثل `alice address for inscription #123` هو الأمثل."
+
+#: src\guides/collecting/sparrow-wallet.md:153
+msgid "Once you have checked the transaction is a safe transaction using the checks above, and you are confident to send it you can click `Create Transaction`."
+msgstr "بمجرد التحقق من أن الصفقة آمنة باستخدام الفحوصات أعلاه، وأنك واثق من إرسالها، يمكنك النقر على `Create Transaction`."
+
+#: src\guides/collecting/sparrow-wallet.md:155
+msgid "![](images/sending_03.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:157
+msgid "Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for Signing`."
+msgstr "هنا يمكنك التحقق مرة أخرى من أن الصفقة تبدو آمنة، وبمجرد أن تكون واثقًا يمكنك النقر على `Finalize Transaction for Signing`."
+
+#: src\guides/collecting/sparrow-wallet.md:159
+msgid "![](images/sending_04.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:161
+msgid "Here you can triple check everything before hitting `Sign`."
+msgstr "هنا يمكنك التحقق ثلاث مرات من كل شيء قبل النقر على `Sign`."
+
+#: src\guides/collecting/sparrow-wallet.md:163
+msgid "![](images/sending_05.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:165
+msgid "And then actually you get very very last chance to check everything before hitting `Broadcast Transaction`. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool."
+msgstr "وأخيرًا، ستحصل على فرصة أخيرة للتحقق من كل شيء قبل النقر على `Broadcast Transaction`. بمجرد بث الصفقة، ستُرسل إلى شبكة بيتكوين وتبدأ في الانتشار في mempool."
+
+#: src\guides/collecting/sparrow-wallet.md:167
+msgid "![](images/sending_06.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:169
+msgid "If you want to track the status of your transaction you can copy the `Transaction Id (Txid)` and paste that into [mempool.space](https://mempool.space)"
+msgstr "إذا كنت ترغب في تتبع حالة الصفقة، يمكنك نسخ معرف الصفقة `Transaction Id (Txid)` ولصقه في [mempool.space](https://mempool.space)"
+
+#: src\guides/collecting/sparrow-wallet.md:171
+msgid "Once the transaction has confirmed you can check the inscription page on [ordinals.com](https://ordinals.com) to validate that it has moved to the new output location and address."
+msgstr "بمجرد تأكيد الصفقة، يمكنك التحقق من صفحة الإنسكريبشين على موقع [أوردينال](https://ordinals.com) للتحقق من أنها انتقلت إلى الموقع والعنوان الجديدين."
+
+#: src\guides/collecting/sparrow-wallet.md:173
+msgid "Troubleshooting"
+msgstr "مشكلات وحلول"
+
+#: src\guides/collecting/sparrow-wallet.md:175
+msgid "Sparrow wallet is not showing a transaction/UTXO, but I can see it on mempool.space!"
+msgstr "محفظة Sparrow لا تعرض صفقة/UTXO، ولكن يمكنني رؤيتها على mempool.space!"
+
+#: src\guides/collecting/sparrow-wallet.md:177
+msgid "Make sure that your wallet is connected to a bitcoin node. To validate this, head into the `Preferences`\\-> `Server` settings, and click `Edit Existing Connection`."
+msgstr "تأكد من أن محفظتك متصلة بنود بيتكوين. للتحقق من ذلك، انتقل إلى `Preferences`\\-> `Server` ، وانقر فوق `Edit Existing Connection`."
+
+#: src\guides/collecting/sparrow-wallet.md:179
+msgid "![](images/troubleshooting_01.png)"
+msgstr ""
+
+#: src\guides/collecting/sparrow-wallet.md:181
+msgid "From there you can select a node and click `Test Connection` to validate that Sparrow is able to connect successfully."
+msgstr "من هنا، يمكنك تحديد نود والنقر على `Test Connection` للتحقق من أن Sparrow قادر على الاتصال بنجاح."
+
+#: src\guides/collecting/sparrow-wallet.md:183
+msgid "![](images/troubleshooting_02.png)"
+msgstr ""
+
+#: src\guides/testing.md:4
+msgid "Ord can be tested using the following flags to specify the test network. For more information on running Bitcoin Core for testing, see [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html)."
+msgstr "يمكن اختبار Ord باستخدام الأعلام التالية لتحديد شبكة الاختبار. لمزيد من المعلومات حول تشغيل Bitcoin Core لأغراض الاختبار، انظر [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html)."
+
+#: src\guides/testing.md:7
+msgid "Most `ord` commands in [inscriptions](inscriptions.md) and [explorer](explorer.md) can be run with the following network flags:"
+msgstr "معظم أوامر `ord` في [inscriptions](inscriptions.md) و[explorer](explorer.md) يمكن تشغيلها باستخدام الأعلام الشبكية التالية:"
+
+#: src\guides/testing.md:10
+msgid "Network"
+msgstr "Network"
+
+#: src\guides/testing.md:10
+msgid "Flag"
+msgstr "Flag"
+
+#: src\guides/testing.md:12
+msgid "Testnet"
+msgstr "Testnet"
+
+#: src\guides/testing.md:12
+msgid "`--testnet` or `-t`"
+msgstr "`testnet` or `-t--`"
+
+#: src\guides/testing.md:13
+msgid "Signet"
+msgstr "Signet"
+
+#: src\guides/testing.md:13
+msgid "`--signet` or `-s`"
+msgstr "`signet` or `-s--`"
+
+#: src\guides/testing.md:14
+msgid "Regtest"
+msgstr "Regtest"
+
+#: src\guides/testing.md:14
+msgid "`--regtest` or `-r`"
+msgstr "`regtest` or `-r--`"
+
+#: src\guides/testing.md:16
+msgid "Regtest doesn't require downloading the blockchain or indexing ord."
+msgstr "رغ تيست (Regtest) لا يتطلب تنزيل سلسلة الكتل/البلوكشين أو فهرسه الأورد."
+
+#: src\guides/testing.md:18 src\guides/reindexing.md:15
+msgid "Example"
+msgstr "مثال"
+
+#: src\guides/testing.md:21
+msgid "Run bitcoind in regtest with:"
+msgstr "تشغيل `bitcoind` في وضع الاختبار المحلي باستخدام الأمر:"
+
+#: src\guides/testing.md:22
+msgid ""
+"```\n"
+"bitcoind -regtest -txindex\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:25
+msgid "Create a wallet in regtest with:"
+msgstr "أنشئ محفظة جديدة باستخدام الأمر:"
+
+#: src\guides/testing.md:26
+msgid ""
+"```\n"
+"ord -r wallet create\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:29
+msgid "Get a regtest receive address with:"
+msgstr "أنشئ عوان للاستقبال باستخدام الأمر:"
+
+#: src\guides/testing.md:30
+msgid ""
+"```\n"
+"ord -r wallet receive\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:33
+msgid "Mine 101 blocks (to unlock the coinbase) with:"
+msgstr "إبدا بتعدين البلوكس باستخدام الأمر:"
+
+#: src\guides/testing.md:34
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 101 <receive address>\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:37
+msgid "Inscribe in regtest with:"
+msgstr "إنسكرايب بوسطه الريغيست باستخدام الأمر:"
+
+#: src\guides/testing.md:38
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:41
+msgid "Mine the inscription with:"
+msgstr "عدن الإنسكريبشين باستخدام الأمر:"
+
+#: src\guides/testing.md:42
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 1 <receive address>\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:45
+msgid "View the inscription in the regtest explorer:"
+msgstr "أعرض الإنسكريبشين باستخدام الأمر:"
+
+#: src\guides/testing.md:46
+msgid ""
+"```\n"
+"ord -r server\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:50
+msgid "Testing Recursion"
+msgstr "اختبار التكرار"
+
+#: src\guides/testing.md:53
+msgid "When testing out [recursion](../inscriptions/recursion.md), inscribe the dependencies first (example with [p5.js](https://p5js.org):"
+msgstr "عند اختبار [التكرار](../inscriptions/recursion.md)، قم بتسجيل الاعتمادات أولاً (مثال باستخدام [p5.js](https://p5js.org):"
+
+#: src\guides/testing.md:55
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:58
+msgid "This should return a `inscription_id` which you can then reference in your recursive inscription."
+msgstr "سيعيد هذا `inscription_id` الذي يمكنك بعد ذلك الرجوع إليه في الإنسكريبشين لتكراري."
+
+#: src\guides/testing.md:61
+msgid "ATTENTION: These ids will be different when inscribing on mainnet or signet, so be sure to change those in your recursive inscription for each chain."
+msgstr "تنبيه: سيكون هذه الهويات مختلفة عندما تكون الإنسكريبشين على شبكة mainnet أو signet ، لذا تأكد من تغييرها في تسجيلك التكراري لكل سلسلة."
+
+#: src\guides/testing.md:65
+msgid "Then you can inscribe your recursive inscription with:"
+msgstr "ثم يمكنك تسجيل السجل التكراري الخاص بك باستخدام الأمر:"
+
+#: src\guides/testing.md:66
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
+"```"
+msgstr ""
+
+#: src\guides/testing.md:69
+msgid "Finally you will have to mine some blocks and start the server:"
+msgstr "أخيرًا، ستحتاج إلى تعدين بعض الكتل وبدء الخادم باستخدام الأمر:"
+
+#: src\guides/testing.md:70
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 6 <receive address>\n"
+"ord -r server\n"
+"```"
+msgstr ""
+
+#: src\guides/moderation.md:4
+msgid "`ord` includes a block explorer, which you can run locally with `ord server`."
+msgstr "أورد `ord` يتضمن مستكشف كتل يمكنك تشغيله محليًا باستخدام الأمر `ord server`."
+
+#: src\guides/moderation.md:6
+msgid "The block explorer allows viewing inscriptions. Inscriptions are user-generated content, which may be objectionable or unlawful."
+msgstr "مستكشف الكتل يتيح رؤية الإنسكريبشين. الإنسكريبشين هي محتوى تم إنشاؤه من قبل المستخدمين وقد يكون مثيرًا للرفض أو غير قانوني."
+
+#: src\guides/moderation.md:9
+msgid "It is the responsibility of each individual who runs an ordinal block explorer instance to understand their responsibilities with respect to unlawful content, and decide what moderation policy is appropriate for their instance."
+msgstr "مسؤولية كل فرد يقوم بتشغيل مثيل مستكشف كتل أوردينال هي فهم مسؤولياتهم فيما يتعلق بالمحتوى غير القانوني، واتخاذ قرار بشأن السياسة الملائمة للتعديل لمثيلهم."
+
+#: src\guides/moderation.md:13
+msgid "In order to prevent particular inscriptions from being displayed on an `ord` instance, they can be included in a YAML config file, which is loaded with the `--config` option."
+msgstr "من أجل منع ظهور إنسكريبشين معينة على `ord`، يمكن تضمينها في ملف تكوين YAML، والذي يتم تحميله باستخدام الخيار `config--`."
+
+#: src\guides/moderation.md:17
+msgid "To hide inscriptions, first create a config file, with the inscription ID you want to hide:"
+msgstr "لإخفائها، أنشئ أولاً ملف تكوين، وقم بوضع المعرف الذي تريد إخفائه:"
+
+#: src\guides/moderation.md:20
+msgid ""
+"```yaml\n"
+"hidden:\n"
+"- 0000000000000000000000000000000000000000000000000000000000000000i0\n"
+"```"
+msgstr ""
+
+#: src\guides/moderation.md:25
+msgid "The suggested name for `ord` config files is `ord.yaml`, but any filename can be used."
+msgstr "الاسم المقترح لملفات تكوين `ord` هو `ord.yaml`، ولكن يمكن استخدام أي اسم ملف."
+
+#: src\guides/moderation.md:28
+msgid "Then pass the file to `--config` when starting the server:"
+msgstr "ثم قم بتمرير الملف باستخدام `config--` عند بدء تشغيل الخادم:"
+
+#: src\guides/moderation.md:30
+msgid "`ord --config ord.yaml server`"
+msgstr ""
+
+#: src\guides/moderation.md:32
+msgid "Note that the `--config` option comes after `ord` but before the `server` subcommand."
+msgstr "يرجى ملاحظة أن الخيار `config--` يأتي بعد `ord` ولكن قبل `server`."
+
+#: src\guides/moderation.md:35
+msgid "`ord` must be restarted in to load changes to the config file."
+msgstr "يجب إعادة تشغيل `ord` لتحميل التغييرات."
+
+#: src\guides/moderation.md:37
+msgid "`ordinals.com`"
+msgstr ""
+
+#: src\guides/moderation.md:40
+msgid "The `ordinals.com` instances use `systemd` to run the `ord server` service, which is called `ord`, with a config file located at `/var/lib/ord/ord.yaml`."
+msgstr "تستخدم `ordinals.com` لتشغيل خدمة `ord server`، والتي تسمى `ord`، باستخدام ملف تكوين يقع في المسار `var/lib/ord/ord.yaml/`."
+
+#: src\guides/moderation.md:43
+msgid "To hide an inscription on `ordinals.com`:"
+msgstr "لإخفاء إنسكريبشين على `ordinals.com`:"
+
+#: src\guides/moderation.md:45
+msgid "SSH into the server"
+msgstr "اتصل بخادم SSH"
+
+#: src\guides/moderation.md:46
+msgid "Add the inscription ID to `/var/lib/ord/ord.yaml`"
+msgstr "أضف معرف إنسكريبشين إلى `var/lib/ord/ord.yaml/`"
+
+#: src\guides/moderation.md:47
+msgid "Restart the service with `systemctl restart ord`"
+msgstr "أعد تشغيل الخدمة باستخدام `systemctl restart ord`"
+
+#: src\guides/moderation.md:48
+msgid "Monitor the restart with `journalctl -u ord`"
+msgstr "راقب إعادة التشغيل باستخدام `journalctl -u ord`"
+
+#: src\guides/moderation.md:50
+msgid "Currently, `ord` is slow to restart, so the site will not come back online immediately."
+msgstr "حاليًا، يستغرق إعادة تشغيل `ord` وقتًا طويلاً، لذا قد لا يعود الموقع اونلاين فورا."
+
+#: src\guides/reindexing.md:4
+msgid "Sometimes the `ord` database must be reindexed, which means deleting the database and restarting the indexing process with either `ord index run` or `ord server`. Reasons to reindex are:"
+msgstr "أحيانًا يجب إعادة فهرسة قاعدة البيانات `ord`، مما يعني حذف قاعدة البيانات وإعادة بدء عملية الفهرسة مرة أخرى باستخدام إما `ord index run` أو `ord server`. الأسباب التي تستدعي القيام بعملية إعادة الفهرسة تشمل:"
+
+#: src\guides/reindexing.md:8
+msgid "A new major release of ord, which changes the database scheme"
+msgstr "صدور إصدار جديد رئيسي لـ ord والذي يغير مخطط قاعدة البيانات"
+
+#: src\guides/reindexing.md:9
+msgid "The database got corrupted somehow"
+msgstr "تلف قاعدة البيانات بشكل ما بطريقة ما"
+
+#: src\guides/reindexing.md:11
+msgid "The database `ord` uses is called [redb](https://github.com/cberner/redb), so we give the index the default file name `index.redb`. By default we store this file in different locations depending on your operating system."
+msgstr "قاعدة البيانات التي يستخدمها `ord` تسمى [redb](https://github.com/cberner/redb)، لذا نعطي للفهرس اسم الملف الافتراضي `index.redb`. عادةً ما نخزن هذا الملف في مواقع مختلفة اعتمادًا على نظام التشغيل الخاص بك."
+
+#: src\guides/reindexing.md:15
+msgid "Platform"
+msgstr ""
+
+#: src\guides/reindexing.md:15
+msgid "Value"
+msgstr ""
+
+#: src\guides/reindexing.md:17
+msgid "Linux"
+msgstr ""
+
+#: src\guides/reindexing.md:17
+msgid "`$XDG_DATA_HOME`/ord or `$HOME`/.local/share/ord"
+msgstr ""
+
+#: src\guides/reindexing.md:17
+msgid "/home/alice/.local/share/ord"
+msgstr ""
+
+#: src\guides/reindexing.md:18
+msgid "macOS"
+msgstr ""
+
+#: src\guides/reindexing.md:18
+msgid "`$HOME`/Library/Application Support/ord"
+msgstr ""
+
+#: src\guides/reindexing.md:18
+msgid "/Users/Alice/Library/Application Support/ord"
+msgstr ""
+
+#: src\guides/reindexing.md:19
+msgid "Windows"
+msgstr ""
+
+#: src\guides/reindexing.md:19
+msgid "`{FOLDERID_RoamingAppData}`\\\\ord"
+msgstr ""
+
+#: src\guides/reindexing.md:19
+msgid "C:\\Users\\Alice\\AppData\\Roaming\\ord"
+msgstr ""
+
+#: src\guides/reindexing.md:21
+msgid "So to delete the database and reindex on MacOS you would have to run the following commands in the terminal:"
+msgstr "لحذف قاعدة البيانات وإعادة فهرستها على نظام MacOS، يمكنك تشغيل الأوامر التالية في الطرفية (الترمينال):"
+
+#: src\guides/reindexing.md:24
+msgid ""
+"```bash\n"
+"rm ~/Library/Application Support/ord/index.redb\n"
+"ord index run\n"
+"```"
+msgstr ""
+
+#: src\guides/reindexing.md:29
+msgid "You can of course also set the location of the data directory yourself with `ord --data-dir <DIR> index run` or give it a specific filename and path with `ord --index <FILENAME> index run`."
+msgstr "بالطبع، يمكنك أيضًا تعيين موقع دليل البيانات بنفسك باستخدام الأمر `ord --data-dir <DIR> index run` أو تحديد اسم ملف ومسار محدد باستخدام `ord --index <FILENAME> index run`. هذا سيسمح لك بتحديد مكان قاعدة البيانات أو اسم الملف حسب الحاجة."
+
+#: src\bounties.md:1
+msgid "Ordinal Bounty Hunting Hints"
+msgstr "نصائح لصيد جوائز أوردينال"
+
+#: src\bounties.md:4
+msgid "The `ord` wallet can send and receive specific satoshis. Additionally, ordinal theory is extremely simple. A clever hacker should be able to write code from scratch to manipulate satoshis using ordinal theory in no time."
+msgstr "محفظة `أورد` يمكنها إرسال واستقبال ساتوشي محددة. بالإضافة إلى ذلك، نظرية أوردينال بسيطة للغاية. يجب أن يكون لدى الهاكرز الذكيين القدرة على كتابة الشيفرات من البداية للتلاعب بالساتوشي باستخدام النظرية في وقت قصير جدا."
+
+#: src\bounties.md:8
+msgid ""
+"For more information about ordinal theory, check out the [FAQ](./faq.md) for an overview, the [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) for the technical details, and the [ord repo](https://github.com/ordinals/ord) for the `ord` wallet and block "
+"explorer."
+msgstr "لمزيد من المعلومات حول نظرية أوردينال، تفضل بزيارة [الأسئلة الشائعة](./faq.md) للحصول على نظرة عامة، وال [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) للتفاصيل الفنية وال [ord repo](https://github.com/ordinals/ord) لمحفظة `أورد` ومستكشف الكتل."
+
+#: src\bounties.md:14
+msgid ""
+"Satoshi was the original developer of ordinal theory. However, he knew that others would consider it heretical and dangerous, so he hid his knowledge, and it was lost to the sands of time. This potent theory is only now being rediscovered. You can help by researching "
+"rare satoshis."
+msgstr "ساتوشي هو المطور الأصلي لنظرية أوردينال. ومع ذلك، كان يعلم أن آخرين سيعتبرونها هرطقة وخطيرة، لذلك أخفى معرفته،وضاعت هذه المعرفة في زمن النسيان. هذه النظرية الفعّالة تم اكتشافها من جديد فقط الآن. يمكنك المساعدة من خلال البحث عن الساتوشي النادرة."
+
+#: src\bounties.md:19
+msgid "Good luck and godspeed!"
+msgstr "حظًا موفقًا!"
+
+#: src\bounty/0.md:1
+msgid "Ordinal Bounty 0"
+msgstr "جائزة أوردينال 0"
+
+#: src\bounty/0.md:4 src\bounty/1.md:4 src\bounty/2.md:4 src\bounty/3.md:4
+msgid "Criteria"
+msgstr "الشروط"
+
+#: src\bounty/0.md:7
+msgid "Send a sat whose ordinal number ends with a zero to the submission address:"
+msgstr "أرسل ساتوشي الذي يحمل رقم ترتيبي ينتهي بصفر إلى عنوان التقديم:"
+
+#: src\bounty/0.md:9
+msgid "✅: [1857578125803250](https://ordinals.com/ordinal/1857578125803250)"
+msgstr "✅: [1857578125803250](https://ordinals.com/ordinal/1857578125803250)"
+
+#: src\bounty/0.md:11
+msgid "❌: [1857578125803251](https://ordinals.com/ordinal/1857578125803251)"
+msgstr ""
+
+#: src\bounty/0.md:13
+msgid "The sat must be the first sat of the output you send."
+msgstr "يجب أن يكون الساتوشي هو أول ساتوشي في الإخراج الذي ترسله."
+
+#: src\bounty/0.md:15 src\bounty/1.md:14 src\bounty/2.md:15 src\bounty/3.md:63
+msgid "Reward"
+msgstr "المكافأة"
+
+#: src\bounty/0.md:18
+msgid "100,000 sats"
+msgstr ""
+
+#: src\bounty/0.md:20 src\bounty/1.md:19 src\bounty/2.md:20 src\bounty/3.md:70
+msgid "Submission Address"
+msgstr "عنوان التقديم"
+
+#: src\bounty/0.md:23
+msgid "[`1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3`](https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3)"
+msgstr ""
+
+#: src\bounty/0.md:25 src\bounty/1.md:24 src\bounty/2.md:25 src\bounty/3.md:75
+msgid "Status"
+msgstr "الحالة"
+
+#: src\bounty/0.md:28
+msgid "Claimed by [@count_null](https://twitter.com/rodarmor/status/1560793241473400833)!"
+msgstr "تم الاستحواذ عليها من قِبَل [@count_null](https://twitter.com/rodarmor/status/1560793241473400833)!"
+
+#: src\bounty/1.md:1
+msgid "Ordinal Bounty 1"
+msgstr "جائزة أوردينال 1"
+
+#: src\bounty/1.md:7
+msgid "The transaction that submits a UTXO containing the oldest sat, i.e., that with the lowest number, amongst all submitted UTXOs will be judged the winner."
+msgstr "سيتم اختيار الصفقة التي تقدم UTXO يحتوي على أقدم ساتوشي، أي الذي يحمل أقل رقم، من بين جميع الـ UTXO المقدمة كالفائزة."
+
+#: src\bounty/1.md:10
+msgid "The bounty is open for submissions until block 753984—the first block of difficulty adjustment period 374. Submissions included in block 753984 or later will not be considered."
+msgstr "الجائزة متاحة للتقديم حتى الكتلة رقم 753984—، وهي أول كتلة في فترة ضبط الصعوبة رقم 374. لن يتم النظر في التقديمات المدرجة في الكتلة رقم 753984 أو فيما بعدها ."
+
+#: src\bounty/1.md:17
+msgid "200,000 sats"
+msgstr ""
+
+#: src\bounty/1.md:22
+msgid "[`145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap`](https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap)"
+msgstr ""
+
+#: src\bounty/1.md:27
+msgid "Claimed by [@ordinalsindex](https://twitter.com/rodarmor/status/1569883266508853251)!"
+msgstr "تم الاستحواذ عليها من قِبَل [@ordinalsindex](https://twitter.com/rodarmor/status/1569883266508853251)!"
+
+#: src\bounty/2.md:1
+msgid "Ordinal Bounty 2"
+msgstr "جائزة أوردينال 2"
+
+#: src\bounty/2.md:7
+msgid "Send an "
+msgstr ""
+
+#: src\bounty/2.md:7
+msgid "uncommon"
+msgstr ""
+
+#: src\bounty/2.md:7
+msgid " sat to the submission address:"
+msgstr ""
+
+#: src\bounty/2.md:9
+msgid "✅: [347100000000000](https://ordinals.com/sat/347100000000000)"
+msgstr ""
+
+#: src\bounty/2.md:11
+msgid "❌: [6685000001337](https://ordinals.com/sat/6685000001337)"
+msgstr ""
+
+#: src\bounty/2.md:13
+msgid "Confirm that the submission address has not received transactions before submitting your entry. Only the first successful submission will be rewarded."
+msgstr "تأكد من أن عنوان التقديم لم يستقبل معاملات من قبل تقديم إدخالك. سيتم مكافأة التقديم الناجح الأول فقط."
+
+#: src\bounty/2.md:18
+msgid "300,000 sats"
+msgstr ""
+
+#: src\bounty/2.md:23
+msgid "[`1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH`](https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH)"
+msgstr ""
+
+#: src\bounty/2.md:28
+msgid "Claimed by [@utxoset](https://twitter.com/rodarmor/status/1582424455615172608)!"
+msgstr "تم الاستحواذ عليها من قِبَل [@utxoset](https://twitter.com/rodarmor/status/1582424455615172608)!"
+
+#: src\bounty/3.md:1
+msgid "Ordinal Bounty 3"
+msgstr "جائزة أوردينال 3"
+
+#: src\bounty/3.md:7
+msgid ""
+"Ordinal bounty 3 has two parts, both of which are based on _ordinal names_. Ordinal names are a modified base-26 encoding of ordinal numbers. To avoid locking short names inside the unspendable genesis block coinbase reward, ordinal names get _shorter_ as the ordinal "
+"number gets _longer_. The name of sat 0, the first sat to be mined is `nvtdijuwxlp` and the name of sat 2,099,999,997,689,999, the last sat to be mined, is `a`."
+msgstr ""
+"جائزة أوردينال 3 لها جزأين، وكليهما مستندان إلى أسماء أوردينالس._أسماء أوردينالس_. هي ترميز معدل بنظام الـ 26 استنادًا إلى أرقامهم . لتجنب قفل الأسماء القصيرة داخل مكافأة كوينبيس genesis block التي لا يمكن إنفاقها، تقصر أسماء Ordinal كلما زاد الرقم Ordinal في الطول. اسم "
+"السات 0، وهو أول سات تم تعدينه، هو `nvtdijuwxlp`، واسم سات 2,099,999,997,689,999، وهو آخر سات سيتم تعدينه، هو `a`."
+
+#: src\bounty/3.md:14
+msgid "The bounty is open for submissions until block 840000—the first block after the fourth halvening. Submissions included in block 840000 or later will not be considered."
+msgstr "الجائزة متاحة للتقديم حتى الكتلة رقم 840000 - أول كتلة بعد الحدث التقسيمي الرابع. لن يتم النظر في التقديمات التي تم تضمينها في الكتلة 840000 أو بعد ذلك."
+
+#: src\bounty/3.md:18
+msgid ""
+"Both parts use [frequency.tsv](frequency.tsv), a list of words and the number of times they occur in the [Google Books Ngram dataset](http://storage.googleapis.com/books/ngrams/books/datasetsv2.html). filtered to only include the names of sats which will have been mined "
+"by the end of the submission period, that appear at least 5000 times in the corpus."
+msgstr ""
+"كلا الجزءين يستخدمان [frequency.tsv](frequency.tsv)، وهو قائمة بالكلمات وعدد المرات التي تظهر في [Google Books Ngram dataset](http://storage.googleapis.com/books/ngrams/books/datasetsv2.html). حيث تم تصفيتها لتشمل فقط أسماء الساتوشي التي سيتم تعدينها بحلول نهاية فترة "
+"التقديم، والتي تظهر على الأقل 5000 مرة في النصوص."
+
+#: src\bounty/3.md:24
+msgid "`frequency.tsv` is a file of tab-separated values. The first column is the word, and the second is the number of times it appears in the corpus. The entries are sorted from least-frequently occurring to most-frequently occurring."
+msgstr "ملف `frequency.tsv` هو ملف يحتوي على قيم مفصولة بعلامات التبويب. العمود الأول هو الكلمة، والعمود الثاني هو عدد مرات ظهورها في النص. القيم مرتبة من أقل تكرار إلى أعلى تكرار."
+
+#: src\bounty/3.md:29
+msgid "`frequency.tsv` was compiled using [this program](https://github.com/casey/onegrams)."
+msgstr "تم تجميع `frequency.tsv` باستخدام هذا [this program](https://github.com/casey/onegrams)."
+
+#: src\bounty/3.md:32
+msgid "To search an `ord` wallet for sats with a name in `frequency.tsv`, use the following [`ord`](https://github.com/ordinals/ord) command:"
+msgstr "للبحث في محفظة ord عن ساتوشي بأسماء موجودة في `frequency.tsv`، استخدم أمر [`ord`](https://github.com/ordinals/ord) التالي:"
+
+#: src\bounty/3.md:35
+msgid ""
+"```\n"
+"ord wallet sats --tsv frequency.tsv\n"
+"```"
+msgstr ""
+
+#: src\bounty/3.md:39
+msgid "This command requires the sat index, so `--index-sats` must be passed to ord when first creating the index."
+msgstr "هذا الأمر يتطلب فهرسة الساتوشي، لذا يجب تمرير`index-sats--` إلى ord عند إنشاء الفهرس للمرة الأولى."
+
+#: src\bounty/3.md:42
+msgid "Part 0"
+msgstr "الجزء 0"
+
+#: src\bounty/3.md:44
+msgid "_Rare sats pair best with rare words._"
+msgstr "_السات النادر يتناسب مع الكلمات النادرة._"
+
+#: src\bounty/3.md:46
+msgid "The transaction that submits the UTXO containing the sat whose name appears with the lowest number of occurrences in `frequency.tsv` shall be the winner of part 0."
+msgstr "سيكون الفائز في الجزء 0 هو التقديم الذي يحتوي على ساتوشي مع اسم يظهر بأدنى عدد من المرات في `frequency.tsv.`."
+
+#: src\bounty/3.md:50
+msgid "Part 1"
+msgstr "الجزء 1"
+
+#: src\bounty/3.md:52
+msgid "_Popularity is the font of value._"
+msgstr "_الشهره هي مصدر القيمة._"
+
+#: src\bounty/3.md:54
+msgid "The transaction that submits the UTXO containing the sat whose name appears with the highest number of occurrences in `frequency.tsv` shall be the winner of part 1."
+msgstr "سيكون الفائز في الجزء 1 هو التقديم الذي يحتوي على ساتوشي مع اسم يظهر بأعلى عدد من المرات في`frequency.tsv`."
+
+#: src\bounty/3.md:58
+msgid "Tie Breaking"
+msgstr "التعادل"
+
+#: src\bounty/3.md:60
+msgid "In the case of a tie, where two submissions occur with the same frequency, the earlier submission shall be the winner."
+msgstr "في حالة التعادل، حيث يتم التقديم بنفس التكرار، سيتم اعتبار المقدم الأول كفائز."
+
+#: src\bounty/3.md:66
+msgid "Part 0: 200,000 sats"
+msgstr "الجزء 0: 200,000 ساتس"
+
+#: src\bounty/3.md:67
+msgid "Part 1: 200,000 sats"
+msgstr "الجزء 1: 200,000 ساتس"
+
+#: src\bounty/3.md:68
+msgid "Total: 400,000 sats"
+msgstr "الإجمالي: 400,000 ساتس"
+
+#: src\bounty/3.md:73
+msgid "[`17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg`](https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg)"
+msgstr ""
+
+#: src\bounty/3.md:78
+msgid "Unclaimed!"
+msgstr "لم يتم الاستحواذ عليها!"
