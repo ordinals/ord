@@ -501,7 +501,6 @@ impl Server {
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let list = if outpoint == unbound_outpoint() {
-      println!("here");
       None
     } else {
       index.list(outpoint)?
