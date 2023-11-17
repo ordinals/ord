@@ -117,6 +117,8 @@ Once built, the `ord` binary can be found at `./target/release/ord`.
 Contributing
 ------------
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=437485701&ref=master&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsWest)
+
 If you wish to contribute there are a couple things that are helpful to know. We
 put a lot of emphasis on proper testing in the code base, with three broad
 categories of tests: unit, integration and fuzz. Unit tests can usually be found at
@@ -160,6 +162,9 @@ use tests as a way to get visibility into the code. Tests have to run fast for t
 reason so that the feedback loop between making a change, running the test and
 seeing the result is small. To facilitate that we created a mocked Bitcoin Core
 instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc).
+
+We also have the environment set up for [GitHub Codespaces](https://github.com/codespaces).
+To try it out, simply click the badge above.
 
 Syncing
 -------
@@ -255,8 +260,15 @@ To align your translated version of the Handbook with reference to commit
 commands to assist you. It is assumed that your local environment is already
 well-configured with [Python](https://www.python.org/),
 [Mdbook](https://github.com/rust-lang/mdBook),
-[mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers) and that you've clone
-this repo.
+[mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers),
+[MDBook Link-Check](https://github.com/Michael-F-Bryan/mdbook-linkcheck)
+and that you've clone this repo.
+
+```
+cargo install mdbook
+cargo install mdbook-i18n-helpers
+cargo install mdbook-linkcheck
+```
 
 
 1. Run the following command to generate a new `pot` file, which is named as
