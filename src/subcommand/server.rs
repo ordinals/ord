@@ -12,7 +12,7 @@ use {
     templates::{
       BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, HomeHtml, InputHtml,
       InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
-      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
       PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
       PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml,
       SatJson, TransactionHtml,
@@ -1073,6 +1073,15 @@ impl Server {
           PreviewCodeHtml { inscription_id },
         )
           .into_response(),
+      ),
+      Media::Font => Ok(
+        (
+          [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
+          )],
+          PreviewFontHtml { inscription_id }
+        ).into_response(),
       ),
       Media::Iframe => Ok(
         Self::content_response(inscription, accept_encoding)?
@@ -3193,6 +3202,26 @@ mod tests {
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
       format!(r".*<audio .*>\s*<source src=/content/{inscription_id}>.*"),
+    );
+  }
+
+  #[test]
+  fn font_preview() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("font/ttf", "hello").to_witness())],
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
     );
   }
 

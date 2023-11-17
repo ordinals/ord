@@ -1,0 +1,9 @@
+textarea {
+    background-color: #292c2f;
+    color: #98a3ad;
+    border: 1px solid #292c2f;
+    width: 90vw;
+    height: 90vh;
+    resize: none;
+    padding: 20px;
+}
