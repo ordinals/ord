@@ -1,0 +1,22 @@
+version: '3'
+services:
+  ord:
+    image: ord
+    container_name: ord
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /ordinals:/ordinals:rw
+      - ~/.bitcoin:/root/.bitcoin
+    environment:
+      RPC_HOST: "127.0.0.1"
+      RPC_PORT: "8332"
+      COOKIE_FILE: "/root/.bitcoin/.cookie"
+      DATA_DIR: "/ordinals/index-data"
+      HTTP_PORT: "8080"
+      RUST_LOG: "INFO"
+      RUST_BACKTRACE: "FULL"
+    network_mode: host
+    expose:
+      - "8080"
