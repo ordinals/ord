@@ -17,17 +17,10 @@ style.innerHTML = `
 @font-face {
     font-family: 'CustomFont';
     src: url(${URL.createObjectURL(fontFile)}) format('${fontType}');
-}
-
-textarea {
-    font-family: 'CustomFont';
 }`;
 
 document.head.appendChild(style);
 
 const textBox = document.createElement('textarea');
-textBox.style.fontSize = '24px';
 textBox.value = 'The Quick Brown Fox Jumped Over The Lazy Dog';
 document.body.appendChild(textBox);
-
-
