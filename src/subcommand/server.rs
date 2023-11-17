@@ -12,10 +12,10 @@ use {
     templates::{
       BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, HomeHtml, InputHtml,
       InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
-      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
-      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml,
-      SatJson, TransactionHtml,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml,
+      RunesHtml, SatHtml, SatJson, TransactionHtml,
     },
   },
   axum::{
