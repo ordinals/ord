@@ -8,10 +8,10 @@ services:
       dockerfile: Dockerfile
     volumes:
 #     You can use any of these paths to store the index data on your host machine (or any other path you like) 
-#     Default paths for each os are listed below
+#     Default paths for each os are listed below - just comment / uncomment as needed
       - ~/.local/share/ord:/ordinals:rw # linux
 #      - /roaming/ord:/ordinals:rw # windows
-#      - ~/Library/Application Support/ord:/ordinals:rw
+#      - ~/Library/Application Support/ord:/ordinals:rw # OS X
       - ~/.bitcoin:/root/.bitcoin
     environment:
       RPC_HOST: "127.0.0.1"
