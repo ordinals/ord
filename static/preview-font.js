@@ -22,5 +22,5 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 const textBox = document.createElement('textarea');
-textBox.value = 'The Quick Brown Fox Jumped Over The Lazy Dog';
+textBox.value = 'The Quick Brown Fox Jumps Over The Lazy Dog';
 document.body.appendChild(textBox);
