@@ -795,6 +795,34 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
+  pub(crate) fn get_collections_paginated(
+    &self,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let mut collections = self
+      .database
+      .begin_read()?
+      .open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?
+      .iter()?
+      .skip(page_index * page_size)
+      .take(page_size + 1)
+      .map(|result| {
+        result
+          .map(|(key, _value)| InscriptionId::load(*key.value()))
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = collections.len() > page_size;
+
+    if more {
+      collections.pop();
+    }
+
+    Ok((collections, more))
+  }
+
   #[cfg(test)]
   pub(crate) fn get_children_by_inscription_id(
     &self,
