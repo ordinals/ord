@@ -11,6 +11,11 @@ pub(crate) struct PreviewCodeHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewFontHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewImageHtml {
   pub(crate) inscription_id: InscriptionId,
 }
@@ -31,8 +36,8 @@ pub(crate) struct PreviewPdfHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
-pub(crate) struct PreviewTextHtml<'a> {
-  pub(crate) text: &'a str,
+pub(crate) struct PreviewTextHtml {
+  pub(crate) inscription_id: InscriptionId,
 }
 
 #[derive(boilerplate::Boilerplate)]

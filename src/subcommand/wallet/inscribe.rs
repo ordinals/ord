@@ -70,6 +70,8 @@ pub(crate) struct Inscribe {
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
+  #[arg(long, help = "Compress inscription content with brotli.")]
+  pub(crate) compress: bool,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Don't sign or broadcast transactions.")]
@@ -115,6 +117,8 @@ impl Inscribe {
 
     let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
+    let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
+
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let chain = options.chain();
@@ -136,6 +140,7 @@ impl Inscribe {
           None,
           self.metaprotocol,
           metadata,
+          self.compress,
         )?];
         mode = Mode::SeparateOutputs;
         destinations = vec![match self.destination.clone() {
@@ -153,6 +158,7 @@ impl Inscribe {
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
           postage,
+          self.compress,
         )?;
 
         mode = batchfile.mode;
@@ -183,7 +189,7 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
     }
-    .inscribe(chain, &index, &client, &utxos)
+    .inscribe(chain, &index, &client, &locked_utxos, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -271,6 +277,7 @@ mod tests {
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
     )
@@ -310,6 +317,7 @@ mod tests {
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
     )
@@ -352,6 +360,7 @@ mod tests {
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -401,6 +410,7 @@ mod tests {
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -444,6 +454,7 @@ mod tests {
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -524,6 +535,7 @@ mod tests {
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -604,6 +616,7 @@ mod tests {
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -660,6 +673,7 @@ mod tests {
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -698,6 +712,7 @@ mod tests {
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
     )
@@ -866,6 +881,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -961,6 +977,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1034,6 +1051,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     );
@@ -1070,6 +1088,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1121,6 +1140,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1196,6 +1216,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )

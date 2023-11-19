@@ -34,6 +34,8 @@ impl Send {
 
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
+    let locked_outputs = index.get_locked_outputs(Wallet::load(&options)?)?;
+
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
     let satpoint = match self.outgoing {
@@ -70,6 +72,7 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
+      locked_outputs,
       address.clone(),
       change,
       self.fee_rate,
