@@ -195,10 +195,17 @@ impl Buy {
     let mut setup_txid = None;
 
     if let Some(tx) = &signed_setup_tx {
-      setup_txid = Some(tx.txid());
+      if self.dry_run {
+        setup_txid = Some(tx.txid());
+      } else {
+        setup_txid = Some(client.send_raw_transaction(tx)?)
+      }
     }
 
-    let purchase_txid = client.send_raw_transaction(&signed_purchase_tx)?;
+    let purchase_txid = match self.dry_run {
+      false => client.send_raw_transaction(&signed_purchase_tx)?,
+      true => signed_purchase_tx.txid(),
+    };
 
     Ok(Box::new(Output {
       setup_txid,
