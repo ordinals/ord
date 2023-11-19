@@ -31,11 +31,7 @@ impl Sell {
 
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
-        for inscription_satpoint in inscriptions.keys() {
-          if satpoint == *inscription_satpoint {
-            bail!("inscriptions must be sent by inscription ID");
-          }
-        }
+        // TODO : check if you actually own this satpoint
         satpoint
       }
       Outgoing::InscriptionId(id) => index
