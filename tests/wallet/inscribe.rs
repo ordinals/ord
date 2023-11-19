@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::ops::Deref};
 
 #[test]
 fn inscribe_creates_inscriptions() {
@@ -1241,4 +1241,105 @@ fn inscribe_does_not_pick_locked_utxos() {
     .expected_exit_code(1)
     .stderr_regex("error: wallet contains no cardinal utxos\n")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn inscribe_can_compress() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let Inscribe { inscriptions, .. } =
+    CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
+      .write("foo.txt", [0; 350_000])
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
+
+  rpc_server.mine_blocks(1);
+
+  let test_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  test_server.sync_server();
+
+  let client = reqwest::blocking::Client::builder()
+    .brotli(false)
+    .build()
+    .unwrap();
+
+  let response = client
+    .get(
+      test_server
+        .url()
+        .join(format!("/content/{inscription}",).as_ref())
+        .unwrap(),
+    )
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
+  assert_regex_match!(
+    response.text().unwrap(),
+    "inscription content type `br` is not acceptable"
+  );
+
+  let client = reqwest::blocking::Client::builder()
+    .brotli(true)
+    .build()
+    .unwrap();
+
+  let response = client
+    .get(
+      test_server
+        .url()
+        .join(format!("/content/{inscription}",).as_ref())
+        .unwrap(),
+    )
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.bytes().unwrap().deref(), [0; 350_000]);
+}
+
+#[test]
+fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let Inscribe { inscriptions, .. } =
+    CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
+      .write("foo.txt", "foo")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
+
+  rpc_server.mine_blocks(1);
+
+  let test_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  test_server.sync_server();
+
+  let client = reqwest::blocking::Client::builder()
+    .brotli(false)
+    .build()
+    .unwrap();
+
+  let response = client
+    .get(
+      test_server
+        .url()
+        .join(format!("/content/{inscription}",).as_ref())
+        .unwrap(),
+    )
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.text().unwrap(), "foo");
 }

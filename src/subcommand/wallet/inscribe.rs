@@ -74,6 +74,8 @@ pub(crate) struct Inscribe {
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
+  #[arg(long, help = "Compress inscription content with brotli.")]
+  pub(crate) compress: bool,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Don't sign or broadcast transactions.")]
@@ -142,6 +144,7 @@ impl Inscribe {
           None,
           self.metaprotocol,
           metadata,
+          self.compress,
         )?];
 
         mode = Mode::SeparateOutputs;
@@ -162,6 +165,7 @@ impl Inscribe {
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
           postage,
+          self.compress,
         )?;
 
         mode = batchfile.mode;

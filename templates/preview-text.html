@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang=en>
+<html lang=en data-inscription={{self.inscription_id}}>
   <head>
     <meta charset=utf-8>
     <meta name=format-detection content='telephone=no'>
     <link href=/static/preview-text.css rel=stylesheet>
-    <script src=/static/preview-text.js defer></script>
+    <script src=/static/preview-text.js type=module defer></script>
   </head>
   <body>
-    <pre>{{self.text}}</pre>
+    <pre></pre>
     <noscript>
-      <pre>{{self.text}}</pre>
+      <pre></pre>
     </noscript>
   </body>
 </html>
