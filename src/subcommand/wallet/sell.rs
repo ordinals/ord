@@ -41,7 +41,7 @@ impl Sell {
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
-      Outgoing::Amount(amount) => bail!("Only able to list satpoints and inscriptions for sale"),
+      Outgoing::Amount(_) => bail!("Only able to list satpoints and inscriptions for sale"),
     };
 
     let receive_address = get_change_address(&client, chain)?;
@@ -61,18 +61,24 @@ impl Sell {
       }],
     };
 
-    // TODO : add witness utxo to psbt so buyer can sign
     let mut psbt = Psbt::from_unsigned_tx(unsigned_tx)?;
-    psbt.inputs[0].sighash_type = Some(TapSighashType::SinglePlusAnyoneCanPay.into());
+    let non_witness_utxo = client.get_raw_transaction(&satpoint.outpoint.txid, None)?;
+    let witness_utxo = non_witness_utxo.output[satpoint.outpoint.vout as usize].clone();
 
-    // TODO : use walletprocesspsbt rpc for signing
-    let mut signed_tx = client
-      .sign_raw_transaction_with_wallet(&psbt.extract_tx(), None, None)?
+    psbt.inputs[0].sighash_type = Some(TapSighashType::SinglePlusAnyoneCanPay.into());
+    psbt.inputs[0].non_witness_utxo = Some(non_witness_utxo.clone());
+    psbt.inputs[0].witness_utxo = Some(witness_utxo);
+
+    // TODO : should we use walletprocesspsbt rpc for signing?
+    let signed_tx = client
+      .sign_raw_transaction_with_wallet(&psbt.clone().extract_tx(), None, None)?
       .transaction()?;
 
-    psbt.inputs[0].final_script_witness = Some(signed_tx.input[0].witness);
+    psbt.inputs[0].final_script_witness = Some(signed_tx.input[0].witness.clone());
 
-    // TODO : optionally publish the psbt somewhere everyone can access
+    // TODO : optionally publish the psbt somewhere everyone can access. Giving the option of
+    // keeping psbt private vs publishing it is desired. If you publish it publicly, in order to
+    // delist the item, you will need to transfer the inscription/satpoint to yourself
 
     Ok(Box::new(psbt.serialize_hex()))
   }
