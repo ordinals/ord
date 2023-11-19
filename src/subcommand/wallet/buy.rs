@@ -11,6 +11,8 @@ use {
 pub struct Output {
   pub setup_txid: Option<Txid>,
   pub purchase_txid: Txid,
+  pub total_fees: u64,
+  pub total_cost: u64,
 }
 
 const BUMP_SATS: u64 = 600;
@@ -65,8 +67,11 @@ impl Buy {
 
     let mut signed_setup_tx = None;
 
+    let mut total_fees = 0;
+
     if bump_utxos.len() < 2 {
-      let setup_tx = Buy::build_setup_tx(&client, chain, fund_utxos, &self.fee_rate)?;
+      let (setup_tx, fees) = Buy::build_setup_tx(&client, chain, fund_utxos, &self.fee_rate)?;
+      total_fees = fees;
 
       fund_utxos = vec![(
         OutPoint {
@@ -179,6 +184,7 @@ impl Buy {
     };
 
     let fee_sats = Buy::get_fee_sats(&client, &purchase_tx, self.fee_rate.n())?;
+    total_fees = total_fees + fee_sats;
     let change_sats =
       fund_utxos.iter().map(|e| e.1.to_sat()).sum::<u64>() - fee_sats - seller_txout.value;
     purchase_tx.output[3].value = change_sats;
@@ -210,6 +216,8 @@ impl Buy {
     Ok(Box::new(Output {
       setup_txid,
       purchase_txid,
+      total_fees,
+      total_cost: total_fees + seller_txout.value,
     }))
   }
 
@@ -226,7 +234,7 @@ impl Buy {
     chain: Chain,
     fund_utxos: Vec<(OutPoint, Amount)>,
     fee_rate: &FeeRate,
-  ) -> Result<Transaction> {
+  ) -> Result<(Transaction, u64)> {
     let mut tx = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -260,10 +268,11 @@ impl Buy {
       fund_utxos.iter().map(|e| e.1.to_sat()).sum::<u64>() - (BUMP_SATS * 2) - fee_sats;
     tx.output[2].value = change_sats;
 
-    Ok(
+    Ok((
       client
         .sign_raw_transaction_with_wallet(&tx, None, None)?
         .transaction()?,
-    )
+      fee_sats,
+    ))
   }
 }
