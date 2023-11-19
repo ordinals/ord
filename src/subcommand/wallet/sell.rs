@@ -1,11 +1,11 @@
 use {
   super::*,
-  crate::wallet::Wallet,
   bitcoin::{
     blockdata::{locktime::absolute::LockTime, witness::Witness},
     psbt::Psbt,
-    sighash::TapSighashType,
+    sighash::{EcdsaSighashType, TapSighashType},
   },
+  bitcoincore_rpc::json::SigHashType,
 };
 
 #[derive(Debug, Parser, Clone)]
@@ -25,8 +25,6 @@ impl Sell {
     index.update()?;
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
-    let inscriptions = index.get_inscriptions(&unspent_outputs)?;
     let chain = options.chain();
 
     let satpoint = match self.outgoing {
@@ -62,12 +60,14 @@ impl Sell {
     let witness_utxo = non_witness_utxo.output[satpoint.outpoint.vout as usize].clone();
 
     psbt.inputs[0].sighash_type = Some(TapSighashType::SinglePlusAnyoneCanPay.into());
-    psbt.inputs[0].non_witness_utxo = Some(non_witness_utxo.clone());
     psbt.inputs[0].witness_utxo = Some(witness_utxo);
 
-    // TODO : should we use walletprocesspsbt rpc for signing?
     let signed_tx = client
-      .sign_raw_transaction_with_wallet(&psbt.clone().extract_tx(), None, None)?
+      .sign_raw_transaction_with_wallet(
+        &psbt.clone().extract_tx(),
+        None,
+        Some(SigHashType::from(EcdsaSighashType::SinglePlusAnyoneCanPay)),
+      )?
       .transaction()?;
 
     psbt.inputs[0].final_script_witness = Some(signed_tx.input[0].witness.clone());
