@@ -20,6 +20,8 @@ pub(crate) struct Buy {
   pub psbt: String,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
+  #[arg(long, help = "Don't broadcast transactions.")]
+  pub(crate) dry_run: bool,
 }
 
 impl Buy {
@@ -64,45 +66,14 @@ impl Buy {
     let mut signed_setup_tx = None;
 
     if bump_utxos.len() < 2 {
-      let mut setup_tx = Transaction {
-        version: 2,
-        lock_time: LockTime::ZERO,
-        input: fund_utxos
-          .iter()
-          .map(|e| TxIn {
-            previous_output: e.0.clone(),
-            script_sig: ScriptBuf::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::new(),
-          })
-          .collect::<Vec<_>>(),
-        output: vec![
-          TxOut {
-            script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
-            value: BUMP_SATS,
-          },
-          TxOut {
-            script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
-            value: BUMP_SATS,
-          },
-          TxOut {
-            script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
-            value: 0,
-          },
-        ],
-      };
-
-      let fee_sats = Buy::get_fee_sats(&client, &setup_tx, self.fee_rate.n())?;
-      let change_sats =
-        fund_utxos.iter().map(|e| e.1.to_sat()).sum::<u64>() - (BUMP_SATS * 2) - fee_sats;
-      setup_tx.output[2].value = change_sats;
+      let setup_tx = Buy::build_setup_tx(&client, chain, fund_utxos, &self.fee_rate)?;
 
       fund_utxos = vec![(
         OutPoint {
           txid: setup_tx.txid(),
           vout: 2,
         },
-        Amount::from_sat(change_sats),
+        Amount::from_sat(setup_tx.output[2].value),
       )];
 
       bump_utxos = vec![
@@ -241,5 +212,51 @@ impl Buy {
       .transaction()?;
     let fee_sats = (tx.weight().to_vbytes_ceil() as f64 * fee_rate) as u64;
     Ok(fee_sats)
+  }
+
+  pub fn build_setup_tx(
+    client: &Client,
+    chain: Chain,
+    fund_utxos: Vec<(OutPoint, Amount)>,
+    fee_rate: &FeeRate,
+  ) -> Result<Transaction> {
+    let mut tx = Transaction {
+      version: 2,
+      lock_time: LockTime::ZERO,
+      input: fund_utxos
+        .iter()
+        .map(|e| TxIn {
+          previous_output: e.0.clone(),
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect::<Vec<_>>(),
+      output: vec![
+        TxOut {
+          script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
+          value: BUMP_SATS,
+        },
+        TxOut {
+          script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
+          value: BUMP_SATS,
+        },
+        TxOut {
+          script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
+          value: 0,
+        },
+      ],
+    };
+
+    let fee_sats = Buy::get_fee_sats(&client, &tx, fee_rate.n())?;
+    let change_sats =
+      fund_utxos.iter().map(|e| e.1.to_sat()).sum::<u64>() - (BUMP_SATS * 2) - fee_sats;
+    tx.output[2].value = change_sats;
+
+    Ok(
+      client
+        .sign_raw_transaction_with_wallet(&tx, None, None)?
+        .transaction()?,
+    )
   }
 }

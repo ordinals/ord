@@ -10,6 +10,10 @@ use {
 
 #[derive(Debug, Parser, Clone)]
 pub(crate) struct Sell {
+  #[arg(
+    long,
+    help = "The amount of sats to sell your inscription or rare sats for."
+  )]
   pub amount: Amount,
   pub outgoing: Outgoing,
 }
@@ -28,10 +32,7 @@ impl Sell {
     let chain = options.chain();
 
     let satpoint = match self.outgoing {
-      Outgoing::SatPoint(satpoint) => {
-        // TODO : check if you actually own this satpoint
-        satpoint
-      }
+      Outgoing::SatPoint(satpoint) => satpoint,
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
@@ -71,10 +72,6 @@ impl Sell {
       .transaction()?;
 
     psbt.inputs[0].final_script_witness = Some(signed_tx.input[0].witness.clone());
-
-    // TODO : optionally publish the psbt somewhere everyone can access. Giving the option of
-    // keeping psbt private vs publishing it is desired. If you publish it publicly, in order to
-    // delist the item, you will need to transfer the inscription/satpoint to yourself
 
     Ok(Box::new(psbt.serialize_hex()))
   }
