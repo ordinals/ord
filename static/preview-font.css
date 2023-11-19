@@ -1,0 +1,20 @@
+html {
+    background-color: #292c2f;
+  }
+  
+  textarea {
+    font-family: 'Font';
+    background-color: #292c2f;
+    color: #98a3ad;
+    border: 0px;
+    width: 90vw;
+    height: 90vh;
+    resize: none;
+    padding: 10px;
+    font-size: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
