@@ -1,10 +1,26 @@
 <!doctype html>
-<html lang=en data-inscription={{self.inscription_id}}>
+<html lang=en >
   <head>
     <meta charset=utf-8>
-    <link rel=stylesheet href=/static/preview-font.css></link>
-    <script src=/static/preview-font.js defer type=module></script>
+    <style>
+      @font-face {
+        font-family: 'Font';
+        src: url(/content/{{self.inscription_id}});
+      }
+      textarea {
+        font-family: 'Font';
+        background-color: #292c2f;
+        color: #98a3ad;
+        border: 0px;
+        width: 90vw;
+        height: 90vh;
+        resize: none;
+        padding: 10px;
+        font-size: 24px;
+    }
+    </style>
   </head>
   <body>
+    <textarea>Sphinx of black quartz, judge my vow.</textarea>
   </body>
 </html>

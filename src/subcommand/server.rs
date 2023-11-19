@@ -3221,7 +3221,7 @@ mod tests {
     server.assert_response_regex(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
+      format!(r".*src: url\(/content/{inscription_id}\).*"),
     );
   }
 
