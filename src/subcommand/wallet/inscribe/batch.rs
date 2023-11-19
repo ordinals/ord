@@ -577,6 +577,14 @@ impl Batchfile {
     compress: bool,
   ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
+    assert!(
+      !(self
+        .inscriptions
+        .iter()
+        .any(|entry| entry.destination.is_some())
+        && self.mode == Mode::SharedOutput),
+      "invariant: destination field cannot be used in shared-output mode"
+    );
 
     if metadata.is_some() {
       assert!(self
