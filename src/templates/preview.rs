@@ -12,6 +12,11 @@ pub(crate) struct PreviewCodeHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewFontHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewImageHtml {
   pub(crate) inscription_id: InscriptionId,
 }
