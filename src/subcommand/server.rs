@@ -10,12 +10,12 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, HomeHtml, InputHtml,
-      InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
-      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
-      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
-      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml,
-      RunesHtml, SatHtml, SatJson, TransactionHtml,
+      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+      InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml,
+      InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
+      PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+      PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
+      RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -202,6 +202,8 @@ impl Server {
           get(Self::children_paginated),
         )
         .route("/clock", get(Self::clock))
+        .route("/collections", get(Self::collections))
+        .route("/collections/:page", get(Self::collections_paginated))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
@@ -1243,6 +1245,35 @@ impl Server {
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn collections(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Self::collections_paginated(Extension(page_config), Extension(index), Path(0)).await
+  }
+
+  async fn collections_paginated(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
+  ) -> ServerResult<Response> {
+    let (collections, more_collections) = index.get_collections_paginated(100, page_index)?;
+
+    let prev = page_index.checked_sub(1);
+
+    let next = more_collections.then_some(page_index + 1);
+
+    Ok(
+      CollectionsHtml {
+        inscriptions: collections,
+        prev,
+        next,
+      }
+      .page(page_config)
+      .into_response(),
+    )
   }
 
   async fn children(
@@ -2684,6 +2715,8 @@ mod tests {
   <a href=/inscriptions>Inscriptions</a>
   <span>\|</span>
   <a href=/blocks>Blocks</a>
+  <span>\|</span>
+  <a href=/collections>Collections</a>
 </nav>
 <div class=thumbnails>
   <a href=/inscription/{}>.*</a>
@@ -3578,6 +3611,84 @@ mod tests {
       "/inscriptions/0",
       StatusCode::OK,
       ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+    );
+  }
+
+  #[test]
+  fn collections_page_prev_and_next() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    let mut parent_ids = Vec::new();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+
+      parent_ids.push(InscriptionId {
+        txid: server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+          ..Default::default()
+        }),
+        index: 0,
+      });
+    }
+
+    for (i, parent_id) in parent_ids.iter().enumerate().take(101) {
+      server.mine_blocks(1);
+
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (i + 2, 1, 0, Default::default()),
+          (
+            i + 102,
+            0,
+            0,
+            Inscription {
+              content_type: Some("text/plain".into()),
+              body: Some("hello".into()),
+              parent: Some(parent_id.parent_value()),
+              ..Default::default()
+            }
+            .to_witness(),
+          ),
+        ],
+        outputs: 2,
+        output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      r".*
+<h1>Collections</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){99}
+</div>
+<div class=center>
+prev
+<a class=next href=/collections/1>next</a>
+</div>.*"
+        .to_string()
+        .unindent(),
+    );
+
+    server.assert_response_regex(
+      "/collections/1",
+      StatusCode::OK,
+      ".*
+<h1>Collections</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+</div>
+<div class=center>
+<a class=prev href=/collections/0>prev</a>
+next
+</div>.*"
+        .unindent(),
     );
   }
 

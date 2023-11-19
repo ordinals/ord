@@ -5,6 +5,7 @@ pub(crate) use {
   blocks::BlocksHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
+  collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -30,6 +31,7 @@ pub mod block;
 mod blocks;
 mod children;
 mod clock;
+pub mod collections;
 mod home;
 mod iframe;
 mod input;
