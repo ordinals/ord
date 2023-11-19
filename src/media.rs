@@ -51,10 +51,11 @@ impl Media {
   const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str])] = &[
     ("application/cbor",            BROTLI_MODE_GENERIC, Media::Unknown,                    &["cbor"]),
     ("application/json",            BROTLI_MODE_TEXT,    Media::Code(Language::Json),       &["json"]),
+    ("application/octet-stream",    BROTLI_MODE_GENERIC, Media::Unknown,                    &["bin"]),
     ("application/pdf",             BROTLI_MODE_GENERIC, Media::Pdf,                        &["pdf"]),
     ("application/pgp-signature",   BROTLI_MODE_TEXT,    Media::Text,                       &["asc"]),
     ("application/protobuf",        BROTLI_MODE_GENERIC, Media::Unknown,                    &["binpb"]),
-    ("application/octet-stream",    BROTLI_MODE_GENERIC, Media::Unknown,                    &["bin"]),
+    ("application/x-javascript",    BROTLI_MODE_TEXT,    Media::Code(Language::JavaScript), &[]),
     ("application/yaml",            BROTLI_MODE_TEXT,    Media::Code(Language::Yaml),       &["yaml", "yml"]),
     ("audio/flac",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["flac"]),
     ("audio/mpeg",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["mp3"]),
@@ -195,5 +196,15 @@ mod tests {
   #[test]
   fn av1_in_mp4_is_rejected() {
     assert!(Media::check_mp4_codec(Path::new("examples/av1.mp4")).is_err(),);
+  }
+
+  #[test]
+  fn no_duplicate_exensions() {
+    let mut set = HashSet::new();
+    for (_, _, _, extensions) in Media::TABLE {
+      for extension in *extensions {
+        assert!(set.insert(extension), "duplicate extension `{extension}`");
+      }
+    }
   }
 }
