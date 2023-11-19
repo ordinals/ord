@@ -15,6 +15,7 @@ use {
 };
 
 pub mod balance;
+pub mod buy;
 pub mod cardinals;
 pub mod create;
 pub mod inscribe;
@@ -23,6 +24,7 @@ pub mod outputs;
 pub mod receive;
 mod restore;
 pub mod sats;
+pub mod sell;
 pub mod send;
 pub mod transaction_builder;
 pub mod transactions;
@@ -51,6 +53,10 @@ pub(crate) enum Wallet {
   Outputs,
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
+  #[command(about = "List and ordinal for sale")]
+  Sell(sell::Sell),
+  #[command(about = "Purchase an ordinal")]
+  Buy(buy::Buy),
 }
 
 impl Wallet {
@@ -67,6 +73,8 @@ impl Wallet {
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
       Self::Cardinals => cardinals::run(options),
+      Self::Buy(buy) => buy.run(options),
+      Self::Sell(sell) => sell.run(options),
     }
   }
 }
