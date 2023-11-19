@@ -153,7 +153,8 @@ impl Inscribe {
 
         parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
 
-        inscriptions = batchfile.inscriptions(
+        (inscriptions, destinations) = batchfile.inscriptions(
+          &client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
@@ -162,15 +163,6 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
-
-        let destination_count = match batchfile.mode {
-          Mode::SharedOutput => 1,
-          Mode::SeparateOutputs => inscriptions.len(),
-        };
-
-        destinations = (0..destination_count)
-          .map(|_| get_change_address(&client, chain))
-          .collect::<Result<Vec<Address>>>()?;
       }
       _ => unreachable!(),
     }
