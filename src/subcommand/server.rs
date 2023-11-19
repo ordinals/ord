@@ -1066,24 +1066,28 @@ impl Server {
 
     match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
-      Media::Code => Ok(
+      Media::Code(language) => Ok(
         (
           [(
             header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net; href-src 'self' https://cdn.jsdelivr.net",
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
           )],
-          PreviewCodeHtml { inscription_id },
+          PreviewCodeHtml {
+            inscription_id,
+            language,
+          },
         )
           .into_response(),
       ),
       Media::Font => Ok(
         (
           [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
           )],
-          PreviewFontHtml { inscription_id }
-        ).into_response(),
+          PreviewFontHtml { inscription_id },
+        )
+          .into_response(),
       ),
       Media::Iframe => Ok(
         Self::content_response(inscription, accept_encoding)?
@@ -1130,12 +1134,7 @@ impl Server {
         )
           .into_response(),
       ),
-      Media::Text => {
-        Ok(
-          PreviewTextHtml { inscription_id }
-          .into_response(),
-        )
-      }
+      Media::Text => Ok(PreviewTextHtml { inscription_id }.into_response()),
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     }
@@ -3161,7 +3160,7 @@ mod tests {
     server.assert_response_regex(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
+      format!(r".*<html lang=en data-inscription={inscription_id} data-language=javascript>.*"),
     );
   }
 
