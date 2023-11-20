@@ -1014,13 +1014,13 @@ fn batch_in_same_output_with_non_default_postage() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml --postage 777sat")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+      "mode: shared-output\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -1168,13 +1168,13 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
 
   let parent_id = parent_output.inscriptions[0].id;
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml --postage 777sat")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parent: {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
