@@ -14,6 +14,7 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
+    charm::Charm,
     config::Config,
     decimal::Decimal,
     degree::Degree,
@@ -108,6 +109,7 @@ macro_rules! tprintln {
 mod arguments;
 mod blocktime;
 mod chain;
+mod charm;
 mod config;
 mod decimal;
 mod degree;
