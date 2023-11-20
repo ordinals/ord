@@ -55,7 +55,7 @@ pub(crate) struct Inscribe {
     long,
     help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
-      "file", "destination", "cbor_metadata", "json_metadata", "satpoint", "reinscribe", "metaprotocol", "parent"
+      "cbor_metadata", "destination", "file", "json_metadata", "metaprotocol", "parent", "postage", "reinscribe", "satpoint"
     ]
   )]
   pub(crate) batch: Option<PathBuf>,
@@ -123,8 +123,7 @@ impl Inscribe {
 
     let chain = options.chain();
 
-    let postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
-
+    let postage;
     let destinations;
     let inscriptions;
     let mode;
@@ -133,6 +132,9 @@ impl Inscribe {
     match (self.file, self.batch) {
       (Some(file), None) => {
         parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+
+        postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+
         inscriptions = vec![Inscription::from_file(
           chain,
           file,
@@ -142,7 +144,9 @@ impl Inscribe {
           metadata,
           self.compress,
         )?];
+
         mode = Mode::SeparateOutputs;
+
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => get_change_address(&client, chain)?,
@@ -152,6 +156,11 @@ impl Inscribe {
         let batchfile = Batchfile::load(&batch)?;
 
         parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
+
+        postage = batchfile
+          .postage
+          .map(Amount::from_sat)
+          .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
           &client,
@@ -789,7 +798,7 @@ inscriptions:
           }
         ],
         parent: Some(parent),
-        mode: Mode::SeparateOutputs,
+        ..Default::default()
       }
     );
   }

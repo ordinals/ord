@@ -518,8 +518,9 @@ impl Batch {
   }
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
   #[serde(rename = "shared-output")]
@@ -548,12 +549,13 @@ impl BatchEntry {
   }
 }
 
-#[derive(Deserialize, PartialEq, Debug, Clone)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Batchfile {
   pub(crate) inscriptions: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
+  pub(crate) postage: Option<u64>,
 }
 
 impl Batchfile {
