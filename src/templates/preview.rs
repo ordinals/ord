@@ -8,6 +8,7 @@ pub(crate) struct PreviewAudioHtml {
 #[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewCodeHtml {
   pub(crate) inscription_id: InscriptionId,
+  pub(crate) language: media::Language,
 }
 
 #[derive(boilerplate::Boilerplate)]
