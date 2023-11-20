@@ -5,6 +5,7 @@ pub(crate) use {
   blocks::BlocksHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
+  collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -15,8 +16,8 @@ pub(crate) use {
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
-    PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
@@ -30,6 +31,7 @@ pub mod block;
 mod blocks;
 mod children;
 mod clock;
+pub mod collections;
 mod home;
 mod iframe;
 mod input;
