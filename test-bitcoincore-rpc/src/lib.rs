@@ -31,7 +31,7 @@ use {
   server::Server,
   state::State,
   std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
@@ -241,6 +241,10 @@ impl Handle {
 
   pub fn loaded_wallets(&self) -> BTreeSet<String> {
     self.state().loaded_wallets.clone()
+  }
+
+  pub fn get_change_addresses(&self) -> Vec<Address> {
+    self.state().change_addresses.clone()
   }
 }
 

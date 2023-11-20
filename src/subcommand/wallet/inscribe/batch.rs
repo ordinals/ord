@@ -530,10 +530,10 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
+  pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
-  pub(crate) destination: Option<Address<NetworkUnchecked>>,
 }
 
 impl BatchEntry {
@@ -579,14 +579,17 @@ impl Batchfile {
     compress: bool,
   ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
-    assert!(
-      !(self
-        .inscriptions
-        .iter()
-        .any(|entry| entry.destination.is_some())
-        && self.mode == Mode::SharedOutput),
-      "invariant: destination field cannot be used in shared-output mode"
-    );
+
+    if self
+      .inscriptions
+      .iter()
+      .any(|entry| entry.destination.is_some())
+      && self.mode == Mode::SharedOutput
+    {
+      return Err(anyhow!(
+        "destination field cannot be used in shared-output mode"
+      ));
+    }
 
     if metadata.is_some() {
       assert!(self

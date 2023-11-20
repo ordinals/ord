@@ -1345,25 +1345,27 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 }
 
 #[test]
-fn batch_inscribe_fails_if_invalid_destination_address() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+fn batch_inscribe_fails_if_invalid_network_destination_address() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
   rpc_server.mine_blocks(1);
 
   assert_eq!(rpc_server.descriptors().len(), 0);
 
   create_wallet(&rpc_server);
 
-  CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+  CommandBuilder::new("--regtest wallet inscribe --fee-rate 2.1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
-    .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t")
+    .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
     .rpc_server(&rpc_server)
-    .stderr_regex(".*bech32 address encoding error.*")
+    .stderr_regex("error: address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 belongs to network bitcoin which is different from required regtest\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
 
 #[test]
-#[should_panic(expected = "invariant: destination field cannot be used in shared-output mode")]
 fn batch_inscribe_fails_with_shared_output_and_destination_set() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
@@ -1378,6 +1380,7 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
     .write("batch.yaml", "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
+    .stderr_regex("error: destination field cannot be used in shared-output mode\n")
     .run_and_extract_stdout();
 }
 
@@ -1405,21 +1408,26 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     ".*
   <dt>address</dt>
   <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>.*",
   );
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+  ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    ".*
+    format!(
+      ".*
   <dt>address</dt>
-  <dd class=monospace>.*</dd>.*",
+  <dd class=monospace>{}</dd>.*",
+      rpc_server.get_change_addresses()[0]
+    ),
   );
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+  ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     ".*
   <dt>address</dt>
