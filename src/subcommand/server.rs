@@ -15,7 +15,7 @@ use {
       InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
       PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
       PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-      RuneHtml, RunesHtml, SatHtml, SatId, SatJson, TransactionHtml,
+      RuneHtml, RunesHtml, SatHtml, SatInscription, SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -233,7 +233,7 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/sat/:sat/:page_index", get(Self::sat_from_n))
+        .route("/r/sat/:sat_number/:page_index", get(Self::sat_inscription))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -497,25 +497,31 @@ impl Server {
     Redirect::to(&format!("/sat/{sat}"))
   }
 
-  async fn sat_from_n(
+  async fn sat_inscription(
     Extension(index): Extension<Arc<Index>>,
-    Path((DeserializeFromStr(sat), DeserializeFromStr(n))): Path<(
-      DeserializeFromStr<Sat>,
-      DeserializeFromStr<i64>,
-    )>,
-  ) -> ServerResult<Json<SatId>> {
-    let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
-    let n_usize = if n < 0 {
-      inscriptions.reverse();
-      usize::try_from((-n - 1).abs())
-    } else {
-      usize::try_from(n)
+    Path((sat_number, page_index)): Path<(i64, i64)>,
+  ) -> ServerResult<Json<SatInscription>> {
+
+    if sat_number >= 2099999997690000 {
+      return Err(ServerError::BadRequest("Invalid URL: invalid sat".to_string()));
     }
+    if sat_number <= -1 {
+      return Err(ServerError::BadRequest("Invalid URL: invalid digit found in string".to_string()));
+    }
+    let sat = Sat::from(sat::Sat(sat_number as u64));
+    let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
+    let page_index_usize = if page_index < 0 {
+      inscriptions.reverse();
+      usize::try_from((-page_index - 1).abs())
+    } else {
+      usize::try_from(page_index)
+    }
+    
     .map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?;
     let inscription_id = inscriptions
-      .get(n_usize)
+      .get(page_index_usize)
       .ok_or_else(|| ServerError::NotFound("Inscription not found".to_string()))?;
-    Ok(Json(SatId {
+    Ok(Json(SatInscription {
       id: inscription_id.to_string(),
     }))
   }
@@ -2526,7 +2532,7 @@ mod tests {
   }
 
   #[test]
-  fn sat_from_n_endpoint() {
+  fn sat_inscription_endpoint() {
     let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
@@ -2550,6 +2556,25 @@ mod tests {
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
+
+    TestServer::new().assert_response(
+      "/r/sat/5000000001/1",
+      StatusCode::NOT_FOUND,
+      "Inscription not found",
+    );
+
+    TestServer::new().assert_response(
+      "/r/sat/2099999997690000/-1",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: invalid sat",
+    );
+
+    TestServer::new().assert_response(
+      "/r/sat/-1/-1",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: invalid digit found in string",
+    );
+
   }
 
   #[test]

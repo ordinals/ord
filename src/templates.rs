@@ -23,7 +23,7 @@ pub(crate) use {
   rare::RareTxt,
   rune::RuneHtml,
   runes::RunesHtml,
-  sat::{SatHtml, SatId, SatJson},
+  sat::{SatHtml, SatInscription, SatJson},
   transaction::TransactionHtml,
 };
 

@@ -27,7 +27,7 @@ pub struct SatJson {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SatId {
+pub struct SatInscription {
   pub id: String,
 }
 
