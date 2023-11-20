@@ -38,7 +38,7 @@ impl Chain {
     }
   }
 
-  pub(crate) fn first_inscription_height(self) -> u64 {
+  pub(crate) fn first_inscription_height(self) -> u32 {
     match self {
       Self::Mainnet => 767430,
       Self::Regtest => 0,

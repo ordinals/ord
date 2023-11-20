@@ -2,18 +2,18 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsBlockHtml {
-  pub(crate) block: u64,
+  pub(crate) block: u32,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev_block: Option<u64>,
-  pub(crate) next_block: Option<u64>,
+  pub(crate) prev_block: Option<u32>,
+  pub(crate) next_block: Option<u32>,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
 }
 
 impl InscriptionsBlockHtml {
   pub(crate) fn new(
-    block: u64,
-    current_blockheight: u64,
+    block: u32,
+    current_blockheight: u32,
     inscriptions: Vec<InscriptionId>,
     page_index: usize,
   ) -> Result<Self> {
