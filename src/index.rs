@@ -17,8 +17,8 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
-    TableDefinition, WriteTransaction,
+    Database, DatabaseError, MultimapTable, MultimapTableDefinition, ReadableMultimapTable,
+    ReadableTable, StorageError, Table, TableDefinition, WriteTransaction,
   },
   std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
@@ -261,7 +261,9 @@ impl Index {
 
         database
       }
-      Err(_) => {
+      Err(DatabaseError::Storage(StorageError::Io(error)))
+        if error.kind() == io::ErrorKind::NotFound =>
+      {
         let database = Database::builder()
           .set_cache_size(db_cache_size)
           .create(&path)?;
@@ -312,6 +314,7 @@ impl Index {
 
         database
       }
+      Err(error) => bail!("failed to open index: {error}"),
     };
 
     let genesis_block_coinbase_transaction =
