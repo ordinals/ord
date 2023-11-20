@@ -159,7 +159,7 @@ impl Inscribe {
 
         postage = batchfile
           .postage
-          .map(|sat| Amount::from_sat(sat))
+          .map(Amount::from_sat)
           .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
 
         inscriptions = batchfile.inscriptions(
