@@ -76,7 +76,6 @@ use {
   },
   sysinfo::{System, SystemExt},
   tempfile::TempDir,
-  tikv_jemallocator::Jemalloc,
   tokio::{runtime::Runtime, task},
 };
 
@@ -109,7 +108,7 @@ macro_rules! tprintln {
 
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 mod arguments;
 mod blocktime;
