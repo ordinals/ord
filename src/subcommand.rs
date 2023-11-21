@@ -3,8 +3,7 @@ use super::*;
 pub mod decode;
 pub mod epochs;
 pub mod find;
-mod index;
-pub mod info;
+pub mod index;
 pub mod list;
 pub mod parse;
 mod preview;
@@ -25,8 +24,6 @@ pub(crate) enum Subcommand {
   Find(find::Find),
   #[command(subcommand, about = "Index commands")]
   Index(index::IndexSubcommand),
-  #[command(about = "Display index statistics")]
-  Info(info::Info),
   #[command(about = "List the satoshis in an output")]
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
@@ -54,7 +51,6 @@ impl Subcommand {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
-      Self::Info(info) => info.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Preview(preview) => preview.run(),
