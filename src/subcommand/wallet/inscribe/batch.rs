@@ -530,6 +530,7 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
+  pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
@@ -570,13 +571,25 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
+    client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
     compress: bool,
-  ) -> Result<Vec<Inscription>> {
+  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
+
+    if self
+      .inscriptions
+      .iter()
+      .any(|entry| entry.destination.is_some())
+      && self.mode == Mode::SharedOutput
+    {
+      return Err(anyhow!(
+        "individual inscription destinations cannot be set in shared-output mode"
+      ));
+    }
 
     if metadata.is_some() {
       assert!(self
@@ -605,6 +618,25 @@ impl Batchfile {
       pointer += postage.to_sat();
     }
 
-    Ok(inscriptions)
+    let destinations = match self.mode {
+      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SeparateOutputs => self
+        .inscriptions
+        .iter()
+        .map(|entry| {
+          entry.destination.as_ref().map_or_else(
+            || get_change_address(client, chain),
+            |address| {
+              address
+                .clone()
+                .require_network(chain.network())
+                .map_err(|e| e.into())
+            },
+          )
+        })
+        .collect::<Result<Vec<_>, _>>()?,
+    };
+
+    Ok((inscriptions, destinations))
   }
 }

@@ -479,6 +479,7 @@ impl Api for Server {
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+    self.state().change_addresses.push(address.clone());
 
     Ok(address)
   }

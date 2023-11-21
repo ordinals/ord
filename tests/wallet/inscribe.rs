@@ -1343,3 +1343,94 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(response.text().unwrap(), "foo");
 }
+
+#[test]
+fn batch_inscribe_fails_if_invalid_network_destination_address() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("--regtest wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+    .rpc_server(&rpc_server)
+    .stderr_regex("error: address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 belongs to network bitcoin which is different from required regtest\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_fails_with_shared_output_and_destination_set() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", "")
+    .write("batch.yaml", "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex("error: individual inscription destinations cannot be set in shared-output mode\n")
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png\n- file: meow.wav\n  destination: bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k\n"
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 3);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    ".*
+  <dt>address</dt>
+  <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>.*",
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(
+      ".*
+  <dt>address</dt>
+  <dd class=monospace>{}</dd>.*",
+      rpc_server.get_change_addresses()[0]
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[2].id),
+    ".*
+  <dt>address</dt>
+  <dd class=monospace>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</dd>.*",
+  );
+}
