@@ -1044,13 +1044,7 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
-    if self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
-      .get(&inscription_id.store())?
-      .is_none()
-    {
+    if !self.inscription_exists(inscription_id)? {
       return Ok(None);
     }
 
