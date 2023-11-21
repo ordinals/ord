@@ -45,7 +45,7 @@ pub(super) type RuneEntryValue = (
   u64,          // number
   u128,         // rune
   u128,         // supply
-  Option<u32>,  // symbol
+  Option<char>, // symbol
   u32,          // timestamp
 );
 
@@ -90,7 +90,7 @@ impl Entry for RuneEntry {
       number,
       rune: Rune(rune),
       supply,
-      symbol: symbol.map(|symbol| char::from_u32(symbol).unwrap()),
+      symbol,
       timestamp,
     }
   }
@@ -117,7 +117,7 @@ impl Entry for RuneEntry {
       self.number,
       self.rune.0,
       self.supply,
-      self.symbol.map(u32::from),
+      self.symbol,
       self.timestamp,
     )
   }
@@ -417,7 +417,7 @@ mod tests {
       5,
       6,
       7,
-      Some(u32::from('a')),
+      Some('a'),
       6,
     );
 
