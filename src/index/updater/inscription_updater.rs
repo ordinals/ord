@@ -85,11 +85,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
 
       // find existing inscriptions on input (transfers of inscriptions)
-      for (old_satpoint, inscription_id) in Index::inscriptions_on_output_ordered(
-        self.id_to_entry,
-        self.satpoint_to_id,
-        tx_in.previous_output,
-      )? {
+      for (old_satpoint, inscription_id) in
+        Index::inscriptions_on_output(self.id_to_entry, self.satpoint_to_id, tx_in.previous_output)?
+      {
         let offset = total_input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
           offset,

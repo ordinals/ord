@@ -1018,7 +1018,7 @@ impl Index {
     let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
 
-    Self::inscriptions_on_output_ordered(&inscription_id_to_entry, &sat_to_id, outpoint)
+    Self::inscriptions_on_output(&inscription_id_to_entry, &sat_to_id, outpoint)
   }
 
   pub(crate) fn get_inscriptions_on_output(
@@ -1225,9 +1225,15 @@ impl Index {
 
     let mut result = BTreeMap::new();
 
-    let table = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let satpoint_to_inscription_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+
     for utxo in utxos.keys() {
-      result.extend(Self::inscriptions_on_output_unordered(&table, *utxo)?);
+      result.extend(Self::inscriptions_on_output(
+        &inscription_id_to_entry,
+        &satpoint_to_inscription_id,
+        *utxo,
+      )?);
     }
 
     Ok(result)
@@ -1510,10 +1516,11 @@ impl Index {
     }
   }
 
-  fn inscriptions_on_output_unordered<'a: 'tx, 'tx>(
+  fn inscriptions_on_output<'a: 'tx, 'tx>(
+    inscription_id_to_entry: &'a impl ReadableTable<&'static InscriptionIdValue, InscriptionEntryValue>,
     satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
-  ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let start = SatPoint {
       outpoint,
       offset: 0,
@@ -1526,43 +1533,27 @@ impl Index {
     }
     .store();
 
-    let mut inscriptions = Vec::new();
+    let mut inscriptions: Vec<(u64, SatPoint, InscriptionId)> = Vec::new();
 
     for range in satpoint_to_id.range::<&[u8; 44]>(&start..=&end)? {
       let (satpoint, ids) = range?;
       for id_result in ids {
-        let id = id_result?;
-        inscriptions.push((Entry::load(*satpoint.value()), Entry::load(*id.value())));
+        let id = InscriptionId::load(*id_result?.value());
+        let sequence_number =
+          InscriptionEntry::load(inscription_id_to_entry.get(&id.store())?.unwrap().value())
+            .sequence_number;
+        inscriptions.push((sequence_number, Entry::load(*satpoint.value()), id));
       }
     }
 
-    Ok(inscriptions.into_iter())
-  }
+    inscriptions.sort_by_key(|(sequence_number, _satpoint, _id)| *sequence_number);
 
-  fn inscriptions_on_output_ordered<'a: 'tx, 'tx>(
-    inscription_id_to_entry: &'a impl ReadableTable<&'static InscriptionIdValue, InscriptionEntryValue>,
-    satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
-    outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    let mut result = Self::inscriptions_on_output_unordered(satpoint_to_id, outpoint)?
-      .collect::<Vec<(SatPoint, InscriptionId)>>();
-
-    if result.len() <= 1 {
-      return Ok(result);
-    }
-
-    result.sort_by_key(|(_satpoint, inscription_id)| {
-      match inscription_id_to_entry
-        .get(&inscription_id.store())
-        .unwrap()
-        .map(|entry| InscriptionEntry::load(entry.value()))
-      {
-        Some(entry) => entry.sequence_number + 1, // remove at next index refactor
-        None => 0,
-      }
-    });
-
-    Ok(result)
+    Ok(
+      inscriptions
+        .into_iter()
+        .map(|(_sequence_number, satpoint, id)| (satpoint, id))
+        .collect(),
+    )
   }
 }
 
