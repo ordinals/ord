@@ -601,7 +601,6 @@ impl Batchfile {
     let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
-    let mut destinations = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
@@ -616,19 +615,27 @@ impl Batchfile {
         compress,
       )?);
 
-      if !(self.mode == Mode::SharedOutput && i >= 1) {
-        destinations.push(entry.destination.as_ref().map_or_else(
-          || get_change_address(client, chain),
-          |address| {
-            address
-              .clone()
-              .require_network(chain.network())
-              .map_err(|e| e.into())
-          },
-        )?);
-      }
       pointer += postage.to_sat();
     }
+
+    let destinations = match self.mode {
+      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SeparateOutputs => self
+        .inscriptions
+        .iter()
+        .map(|entry| {
+          entry.destination.as_ref().map_or_else(
+            || get_change_address(client, chain),
+            |address| {
+              address
+                .clone()
+                .require_network(chain.network())
+                .map_err(|e| e.into())
+            },
+          )
+        })
+        .collect::<Result<Vec<_>, _>>()?,
+    };
 
     Ok((inscriptions, destinations))
   }
