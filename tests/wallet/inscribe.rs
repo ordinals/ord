@@ -1380,7 +1380,7 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
     .write("batch.yaml", "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: destination field cannot be used in shared-output mode\n")
+    .stderr_regex("error: individual inscription destinations cannot be set in shared-output mode\n")
     .run_and_extract_stdout();
 }
 
