@@ -107,6 +107,7 @@ macro_rules! tprintln {
     };
 }
 
+#[cfg(not(windows))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
