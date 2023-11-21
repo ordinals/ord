@@ -812,8 +812,8 @@ impl Index {
     let mut collections = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
       .iter()?
-      .skip(page_index * page_size)
-      .take(page_size + 1)
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
       .map(|result| {
         result
           .and_then(|(parent, _children)| {
