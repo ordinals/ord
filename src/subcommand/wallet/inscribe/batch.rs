@@ -587,7 +587,7 @@ impl Batchfile {
       && self.mode == Mode::SharedOutput
     {
       return Err(anyhow!(
-        "destination field cannot be used in shared-output mode"
+        "individual inscription destinations cannot be set in shared-output mode"
       ));
     }
 
