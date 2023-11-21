@@ -122,28 +122,28 @@ mod tests {
     assert_eq!(Sat(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
 
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL)).rarity(),
       Rarity::Rare
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) + 1).rarity(),
       Rarity::Common
     );
 
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL)).rarity(),
       Rarity::Epic
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) + 1).rarity(),
       Rarity::Common
     );
 

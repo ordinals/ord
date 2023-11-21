@@ -91,7 +91,7 @@ impl Runestone {
         .and_then(char::from_u32),
       term: fields
         .remove(&TAG_TERM)
-        .and_then(|term| u64::try_from(term).ok()),
+        .and_then(|term| u32::try_from(term).ok()),
     });
 
     Ok(Some(Self {

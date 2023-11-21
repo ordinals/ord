@@ -39,8 +39,8 @@ impl BlockHtml {
 pub struct BlockJson {
   pub hash: BlockHash,
   pub target: BlockHash,
-  pub best_height: u64,
-  pub height: u64,
+  pub best_height: u32,
+  pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
 }
 

@@ -55,7 +55,7 @@ pub struct ServerConfig {
 
 enum InscriptionQuery {
   Id(InscriptionId),
-  Number(i64),
+  Number(i32),
 }
 
 impl FromStr for InscriptionQuery {
@@ -71,7 +71,7 @@ impl FromStr for InscriptionQuery {
 }
 
 enum BlockQuery {
-  Height(u64),
+  Height(u32),
   Hash(BlockHash),
 }
 
@@ -672,7 +672,7 @@ impl Server {
           .get_block_by_hash(hash)?
           .ok_or_not_found(|| format!("block {hash}"))?;
 
-        (block, info.height as u64)
+        (block, u32::try_from(info.height).unwrap())
       }
     };
 
@@ -924,7 +924,7 @@ impl Server {
 
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<String> {
     Ok(
       index
@@ -936,7 +936,7 @@ impl Server {
 
   async fn block_hash_from_height_json(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<Json<String>> {
     Ok(Json(
       index
@@ -958,7 +958,7 @@ impl Server {
   async fn input(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(path): Path<(u64, usize, usize)>,
+    Path(path): Path<(u32, usize, usize)>,
   ) -> Result<PageHtml<InputHtml>, ServerError> {
     let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
@@ -1208,9 +1208,14 @@ impl Server {
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let (children, _more_children) =
-      index.get_children_by_inscription_id_paginated(inscription_id, 4, 0)?;
+      index.get_children_by_sequence_number_paginated(entry.sequence_number, 4, 0)?;
 
-    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+    let rune = index.get_rune_by_sequence_number(entry.sequence_number)?;
+
+    let parent = match entry.parent {
+      Some(parent) => index.get_inscription_id_by_sequence_number(parent)?,
+      None => None,
+    };
 
     let mut charms = entry.charms;
 
@@ -1224,7 +1229,7 @@ impl Server {
         children,
         inscription_number: entry.inscription_number,
         genesis_height: entry.height,
-        parent: entry.parent,
+        parent,
         genesis_fee: entry.fee,
         output_value: output.as_ref().map(|o| o.value),
         address: output
@@ -1253,7 +1258,7 @@ impl Server {
         inscription_number: entry.inscription_number,
         next,
         output,
-        parent: entry.parent,
+        parent,
         previous,
         rune,
         sat: entry.sat,
@@ -1312,13 +1317,14 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    let parent_number = index
+    let entry = index
       .get_inscription_entry(parent)?
-      .ok_or_not_found(|| format!("inscription {parent}"))?
-      .inscription_number;
+      .ok_or_not_found(|| format!("inscription {parent}"))?;
+
+    let parent_number = entry.inscription_number;
 
     let (children, more_children) =
-      index.get_children_by_inscription_id_paginated(parent, 100, page)?;
+      index.get_children_by_sequence_number_paginated(entry.sequence_number, 100, page)?;
 
     let prev_page = page.checked_sub(1);
 
@@ -1348,7 +1354,7 @@ impl Server {
   async fn inscriptions_in_block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(block_height): Path<u64>,
+    Path(block_height): Path<u32>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_from_page(
@@ -1363,7 +1369,7 @@ impl Server {
   async fn inscriptions_in_block_from_page(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page)): Path<(u64, usize)>,
+    Path((block_height, page)): Path<(u32, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscriptions_in_block(block_height)?;
@@ -1385,7 +1391,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
+    Path(from): Path<u32>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
@@ -1394,7 +1400,7 @@ impl Server {
   async fn inscriptions_from_n(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(u64, usize)>,
+    Path((from, n)): Path<(u32, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
@@ -1403,7 +1409,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<u64>,
+    from: Option<u32>,
     n: usize,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
