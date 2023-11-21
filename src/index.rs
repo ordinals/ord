@@ -17,8 +17,9 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, DatabaseError, MultimapTable, MultimapTableDefinition, ReadableMultimapTable,
-    ReadableTable, StorageError, Table, TableDefinition, WriteTransaction,
+    Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
+    ReadableMultimapTable, ReadableTable, StorageError, Table, TableDefinition, TableHandle,
+    WriteTransaction,
   },
   std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
@@ -106,20 +107,31 @@ impl From<Statistic> for u64 {
 
 #[derive(Serialize)]
 pub(crate) struct Info {
-  pub(crate) blocks_indexed: u32,
-  pub(crate) branch_pages: u64,
-  pub(crate) fragmented_bytes: u64,
-  pub(crate) index_file_size: u64,
-  pub(crate) index_path: PathBuf,
-  pub(crate) leaf_pages: u64,
-  pub(crate) metadata_bytes: u64,
-  pub(crate) outputs_traversed: u64,
-  pub(crate) page_size: usize,
-  pub(crate) sat_ranges: u64,
-  pub(crate) stored_bytes: u64,
+  blocks_indexed: u32,
+  branch_pages: u64,
+  fragmented_bytes: u64,
+  index_file_size: u64,
+  index_path: PathBuf,
+  leaf_pages: u64,
+  metadata_bytes: u64,
+  outputs_traversed: u64,
+  page_size: usize,
+  sat_ranges: u64,
+  stored_bytes: u64,
+  tables: BTreeMap<String, TableInfo>,
   pub(crate) transactions: Vec<TransactionInfo>,
-  pub(crate) tree_height: u32,
-  pub(crate) utxos_indexed: u64,
+  tree_height: u32,
+  utxos_indexed: u64,
+}
+
+#[derive(Serialize)]
+pub(crate) struct TableInfo {
+  branch_pages: u64,
+  fragmented_bytes: u64,
+  leaf_pages: u64,
+  metadata_bytes: u64,
+  stored_bytes: u64,
+  tree_height: u32,
 }
 
 #[derive(Serialize)]
@@ -419,9 +431,73 @@ impl Index {
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
+    macro_rules! insert_table_info {
+      ($wtx:ident, $tables:ident, $table:ident) => {{
+        let stats = $wtx.open_table($table).unwrap().stats().unwrap();
+
+        $tables.insert(
+          $table.name().into(),
+          TableInfo {
+            tree_height: stats.tree_height(),
+            leaf_pages: stats.leaf_pages(),
+            branch_pages: stats.branch_pages(),
+            stored_bytes: stats.stored_bytes(),
+            metadata_bytes: stats.metadata_bytes(),
+            fragmented_bytes: stats.fragmented_bytes(),
+          },
+        );
+      }};
+    }
+
+    macro_rules! insert_multimap_table_info {
+      ($wtx:ident, $tables:ident, $table:ident) => {{
+        let stats = $wtx.open_multimap_table($table).unwrap().stats().unwrap();
+
+        $tables.insert(
+          $table.name().into(),
+          TableInfo {
+            tree_height: stats.tree_height(),
+            leaf_pages: stats.leaf_pages(),
+            branch_pages: stats.branch_pages(),
+            stored_bytes: stats.stored_bytes(),
+            metadata_bytes: stats.metadata_bytes(),
+            fragmented_bytes: stats.fragmented_bytes(),
+          },
+        );
+      }};
+    }
+
     let wtx = self.begin_write()?;
 
     let stats = wtx.stats()?;
+
+    let mut tables: BTreeMap<String, TableInfo> = BTreeMap::new();
+
+    insert_multimap_table_info!(wtx, tables, SATPOINT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info!(wtx, tables, SAT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_CHILDREN);
+    insert_table_info!(wtx, tables, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info!(wtx, tables, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info!(wtx, tables, HEIGHT_TO_LAST_SEQUENCE_NUMBER);
+    insert_table_info!(wtx, tables, HOME_INSCRIPTIONS);
+    insert_table_info!(wtx, tables, INSCRIPTION_ID_TO_SEQUENCE_NUMBER);
+    insert_table_info!(wtx, tables, INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER);
+    insert_table_info!(wtx, tables, OUTPOINT_TO_RUNE_BALANCES);
+    insert_table_info!(wtx, tables, OUTPOINT_TO_SAT_RANGES);
+    insert_table_info!(wtx, tables, OUTPOINT_TO_VALUE);
+    insert_table_info!(wtx, tables, RUNE_ID_TO_RUNE_ENTRY);
+    insert_table_info!(wtx, tables, RUNE_TO_RUNE_ID);
+    insert_table_info!(wtx, tables, SAT_TO_SATPOINT);
+    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY);
+    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_RUNE);
+    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_SATPOINT);
+    insert_table_info!(wtx, tables, STATISTIC_TO_COUNT);
+    insert_table_info!(wtx, tables, TRANSACTION_ID_TO_RUNE);
+    insert_table_info!(
+      wtx,
+      tables,
+      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP
+    );
 
     let info = {
       let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
@@ -451,6 +527,7 @@ impl Index {
         outputs_traversed,
         page_size: stats.page_size(),
         stored_bytes: stats.stored_bytes(),
+        tables,
         transactions: wtx
           .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
           .range(0..)?
