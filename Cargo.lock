@@ -2399,7 +2399,7 @@ dependencies = [
 [[package]]
 name = "redb"
 version = "1.3.0"
-source = "git+https://github.com/cberner/redb.git#c29eed6f866d50a2c79042fe55cf898a5aba1579"
+source = "git+https://github.com/cberner/redb.git?rev=c29eed6f866d50a2c79042fe55cf898a5aba1579#c29eed6f866d50a2c79042fe55cf898a5aba1579"
 dependencies = [
  "libc",
 ]
