@@ -76,6 +76,7 @@ use {
   },
   sysinfo::{System, SystemExt},
   tempfile::TempDir,
+  tikv_jemallocator::Jemalloc,
   tokio::{runtime::Runtime, task},
 };
 
@@ -105,6 +106,9 @@ macro_rules! tprintln {
       }
     };
 }
+
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 mod arguments;
 mod blocktime;
