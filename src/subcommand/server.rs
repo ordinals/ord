@@ -134,7 +134,7 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[arg(
     long,
-    help = "Origin to use for the content-security-policy header. Set this to the fully-qualified domain name of your ord instance. [default: <ACME_DOMAIN>]"
+    help = "Origin to use for the content-security-policy header. Set this to the fully-qualified domain name of your ord instance. [default: None]"
   )]
   content_security_policy_origin: Option<String>,
   #[arg(
@@ -184,17 +184,12 @@ impl Server {
 
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
-      let content_security_policy_origin = self
-        .content_security_policy_origin
-        .clone()
-        .or_else(|| acme_domains.first().cloned())
-        .or(None);
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        content_security_policy_origin,
+        content_security_policy_origin: self.content_security_policy_origin.clone(),
       });
 
       let router = Router::new()
