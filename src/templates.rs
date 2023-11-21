@@ -119,6 +119,7 @@ mod tests {
         chain: Chain::Mainnet,
         domain: Some("signet.ordinals.com".into()),
         index_sats: true,
+        content_security_policy_origin: Some("https://signet.ordinals.com".into()),
       }),),
       r"<!doctype html>
 <html lang=en>
@@ -164,6 +165,7 @@ mod tests {
         chain: Chain::Mainnet,
         domain: None,
         index_sats: true,
+        content_security_policy_origin: None,
       }),),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
@@ -176,6 +178,7 @@ mod tests {
         chain: Chain::Mainnet,
         domain: None,
         index_sats: false,
+        content_security_policy_origin: None
       }),),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
@@ -188,6 +191,7 @@ mod tests {
         chain: Chain::Signet,
         domain: None,
         index_sats: true,
+        content_security_policy_origin: None,
       }),),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
