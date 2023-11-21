@@ -1,11 +1,15 @@
-use {super::*, crate::index::entry::Entry, sha3::Digest, sha3::Keccak256};
+use {super::*, sha3::Digest, sha3::Keccak256};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Ethereum(String);
 
 impl From<InscriptionId> for Ethereum {
   fn from(inscription_id: InscriptionId) -> Self {
-    let digest = bitcoin::hashes::sha256::Hash::hash(&inscription_id.store());
+    let mut array = [0; 36];
+    let (txid, index) = array.split_at_mut(32);
+    txid.copy_from_slice(inscription_id.txid.as_ref());
+    index.copy_from_slice(&inscription_id.index.to_be_bytes());
+    let digest = bitcoin::hashes::sha256::Hash::hash(&array);
     Self(create_address_with_checksum(&hex::encode(&digest[0..20])))
   }
 }

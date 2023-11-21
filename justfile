@@ -162,6 +162,19 @@ benchmark-revision rev:
   rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
   ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
 
+benchmark-branch branch:
+  #/usr/bin/env bash
+  # rm -f master.redb
+  rm -f {{branch}}.redb
+  # git checkout master
+  # cargo build --release
+  # time ./target/release/ord --index master.redb index update
+  # ll master.redb
+  git checkout {{branch}}
+  cargo build --release
+  time ./target/release/ord --index {{branch}}.redb index update
+  ll {{branch}}.redb
+
 build-snapshots:
   #!/usr/bin/env bash
   set -euxo pipefail
