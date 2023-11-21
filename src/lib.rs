@@ -107,7 +107,7 @@ macro_rules! tprintln {
     };
 }
 
-#[cfg(not(windows))]
+#[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 

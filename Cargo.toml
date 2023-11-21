@@ -56,11 +56,13 @@ serde_yaml = "0.9.17"
 sha3 = "0.10.8"
 sysinfo = "0.29.2"
 tempfile = "3.2.0"
-tikv-jemallocator = "0.5.4"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5.4"
 
 [dev-dependencies]
 executable-path = "1.0.0"
