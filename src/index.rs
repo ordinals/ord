@@ -1552,19 +1552,6 @@ impl Index {
     }
   }
 
-  #[cfg(test)]
-  fn assert_non_existence_of_inscription(&self, inscription_id: InscriptionId) {
-    assert!(self
-      .database
-      .begin_read()
-      .unwrap()
-      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)
-      .unwrap()
-      .get(&inscription_id.store())
-      .unwrap()
-      .is_none());
-  }
-
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     satpoint_to_sequence_number: &'a impl ReadableMultimapTable<&'static SatPointValue, u32>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
@@ -3911,7 +3898,7 @@ mod tests {
         .index
         .assert_inscription_location(first_id, first_location, Some(50 * COIN_VALUE));
 
-      context.index.assert_non_existence_of_inscription(second_id);
+      assert!(!context.index.inscription_exists(second_id).unwrap());
     }
   }
 
@@ -3966,7 +3953,7 @@ mod tests {
 
       context.mine_blocks(4);
 
-      context.index.assert_non_existence_of_inscription(second_id);
+      assert!(!context.index.inscription_exists(second_id).unwrap());
 
       context.rpc_server.invalidate_tip();
 
@@ -4031,7 +4018,7 @@ mod tests {
 
       context.mine_blocks(9);
 
-      context.index.assert_non_existence_of_inscription(second_id);
+      assert!(!context.index.inscription_exists(second_id).unwrap());
 
       context
         .index
