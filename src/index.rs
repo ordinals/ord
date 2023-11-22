@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use {
   self::{
     entry::{
@@ -22,8 +21,11 @@ use {
     ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
     TableHandle, WriteTransaction,
   },
-  std::collections::{BTreeSet, HashMap},
-  std::io::{BufWriter, Write},
+  std::{
+    collections::{BTreeSet, HashMap},
+    io::{BufWriter, Write},
+    sync::Once,
+  },
 };
 
 pub(crate) use self::entry::RuneEntry;
@@ -216,16 +218,14 @@ impl Index {
     let index_runes;
     let index_sats;
 
-    let message_displayed = Cell::new(false);
-    let path2 = path.clone();
-
+    let index_path = path.clone();
+    let once = Once::new();
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
       .set_repair_callback(move |_| {
-        if !message_displayed.get() {
-          message_displayed.set(true);
-          println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path2);
-        }
+        once.call_once(|| {
+          println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display());
+        })
       })
       .open(&path)
     {
