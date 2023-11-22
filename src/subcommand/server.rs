@@ -241,7 +241,7 @@ impl Server {
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:number", get(Self::sat_inscriptions))
         .route(
-          "/r/sat/:number/:index",
+          "/r/sat/:number/:page",
           get(Self::sat_inscriptions_paginated),
         )
         .route(
