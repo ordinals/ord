@@ -150,7 +150,7 @@ mod tests {
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1).rarity(),
       Rarity::BlackRare
     );
     assert_eq!(
@@ -167,7 +167,7 @@ mod tests {
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) - 1).rarity(),
       Rarity::BlackEpic
     );
     assert_eq!(
