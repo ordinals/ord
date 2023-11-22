@@ -212,7 +212,6 @@ fn get_inscriptions() {
   assert_eq!(inscriptions_json.page_size, 100);
   assert_eq!(inscriptions_json.page_index, 0);
 
-  // get all inscriptions
   let response = server.json_request("/inscriptions/1");
   assert_eq!(response.status(), StatusCode::OK);
   let inscriptions_json: InscriptionsJson =
