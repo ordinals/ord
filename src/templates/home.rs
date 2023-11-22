@@ -23,14 +23,10 @@ mod tests {
       }
       .to_string()
       .unindent(),
-      "<nav class=tabs>
-        <a href=/inscriptions>Inscriptions</a>
-        <span>|</span>
-        <a href=/blocks>Blocks</a>
-      </nav>
+      "<h1>Latest Inscriptions</h1>
       <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+        <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+        <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
       </div>
       "
       .unindent(),

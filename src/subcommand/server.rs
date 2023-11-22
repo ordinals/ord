@@ -2741,13 +2741,7 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Ordinals</title>.*
-<nav class=tabs>
-  <a href=/inscriptions>Inscriptions</a>
-  <span>\|</span>
-  <a href=/blocks>Blocks</a>
-  <span>\|</span>
-  <a href=/collections>Collections</a>
-</nav>
+<h1>Latest Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{}>.*</a>
   (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
@@ -2789,7 +2783,7 @@ mod tests {
     TestServer::new_with_regtest().assert_response_regex(
       "/",
       StatusCode::OK,
-      ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",
+      ".*<a href=/ title=home>Ordinals<sup>regtest</sup></a>.*",
     );
   }
 
@@ -2962,9 +2956,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=/rare.txt title=rare>.*</a>.*",
     );
   }
 
@@ -2983,8 +2976,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=https://docs.ordinals.com/.*",
     );
   }
 
