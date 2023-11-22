@@ -226,7 +226,8 @@ fn splitting_merged_inscriptions_is_possible() {
 
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+  let server =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", reveal_txid));
   assert_eq!(response.status(), StatusCode::OK);
@@ -505,4 +506,21 @@ fn wallet_send_with_fee_rate_and_target_postage() {
 
   pretty_assert_eq!(fee_rate, 2.0);
   pretty_assert_eq!(tx.output[0].value, 77_000);
+}
+
+#[test]
+fn send_btc_does_not_send_locked_utxos() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let coinbase_tx = &rpc_server.mine_blocks(1)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+
+  rpc_server.lock(outpoint);
+
+  CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex("error:.*")
+    .run_and_extract_stdout();
 }

@@ -17,11 +17,16 @@ impl Sat {
   }
 
   pub(crate) fn height(self) -> Height {
-    self.epoch().starting_height() + self.epoch_position() / self.epoch().subsidy()
+    self.epoch().starting_height()
+      + u32::try_from(self.epoch_position() / self.epoch().subsidy()).unwrap()
   }
 
-  pub(crate) fn cycle(self) -> u64 {
+  pub(crate) fn cycle(self) -> u32 {
     Epoch::from(self).0 / CYCLE_EPOCHS
+  }
+
+  pub(crate) fn nineball(self) -> bool {
+    self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
   }
 
   pub(crate) fn percentile(self) -> String {
@@ -32,7 +37,7 @@ impl Sat {
     self.into()
   }
 
-  pub(crate) fn period(self) -> u64 {
+  pub(crate) fn period(self) -> u32 {
     self.height().n() / DIFFCHANGE_INTERVAL
   }
 
@@ -95,12 +100,12 @@ impl Sat {
     let (cycle_number, rest) = degree
       .split_once('°')
       .ok_or_else(|| anyhow!("missing degree symbol"))?;
-    let cycle_number = cycle_number.parse::<u64>()?;
+    let cycle_number = cycle_number.parse::<u32>()?;
 
     let (epoch_offset, rest) = rest
       .split_once('′')
       .ok_or_else(|| anyhow!("missing minute symbol"))?;
-    let epoch_offset = epoch_offset.parse::<u64>()?;
+    let epoch_offset = epoch_offset.parse::<u32>()?;
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
       bail!("invalid epoch offset");
     }
@@ -108,14 +113,14 @@ impl Sat {
     let (period_offset, rest) = rest
       .split_once('″')
       .ok_or_else(|| anyhow!("missing second symbol"))?;
-    let period_offset = period_offset.parse::<u64>()?;
+    let period_offset = period_offset.parse::<u32>()?;
     if period_offset >= DIFFCHANGE_INTERVAL {
       bail!("invalid period offset");
     }
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    const HALVING_INCREMENT: u64 = SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL;
+    const HALVING_INCREMENT: u32 = SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL;
 
     // For valid degrees the relationship between epoch_offset and period_offset
     // will increment by 336 every halving.
@@ -287,37 +292,37 @@ mod tests {
     assert_eq!(Sat(50 * COIN_VALUE).degree().to_string(), "0°1′1″0‴");
     assert_eq!(Sat(50 * COIN_VALUE + 1).degree().to_string(), "0°1′1″1‴");
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1)
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1)
         .degree()
         .to_string(),
       "0°2015′2015″4999999999‴"
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL)
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL))
         .degree()
         .to_string(),
       "0°2016′0″0‴"
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1)
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) + 1)
         .degree()
         .to_string(),
       "0°2016′0″1‴"
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) - 1)
         .degree()
         .to_string(),
       "0°209999′335″4999999999‴"
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL))
         .degree()
         .to_string(),
       "0°0′336″0‴"
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) + 1)
         .degree()
         .to_string(),
       "0°0′336″1‴"
@@ -371,7 +376,10 @@ mod tests {
   fn epoch() {
     assert_eq!(Sat(0).epoch(), 0);
     assert_eq!(Sat(1).epoch(), 0);
-    assert_eq!(Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(), 1);
+    assert_eq!(
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL)).epoch(),
+      1
+    );
     assert_eq!(Sat(2099999997689999).epoch(), 32);
   }
 
@@ -591,6 +599,7 @@ mod tests {
 
   #[test]
   fn percentile_round_trip() {
+    #[track_caller]
     fn case(n: u64) {
       let expected = Sat(n);
       let actual = expected.percentile().parse::<Sat>().unwrap();
@@ -607,6 +616,7 @@ mod tests {
 
   #[test]
   fn is_common() {
+    #[track_caller]
     fn case(n: u64) {
       assert_eq!(Sat(n).is_common(), Sat(n).rarity() == Rarity::Common);
     }
@@ -619,5 +629,19 @@ mod tests {
     case(2067187500000000 - 1);
     case(2067187500000000);
     case(2067187500000000 + 1);
+  }
+
+  #[test]
+  fn nineball() {
+    for height in 0..10 {
+      let sat = Sat(height * 50 * COIN_VALUE);
+      assert_eq!(
+        sat.nineball(),
+        sat.height() == 9,
+        "nineball: {} height: {}",
+        sat.nineball(),
+        sat.height()
+      );
+    }
   }
 }

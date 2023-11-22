@@ -13,6 +13,19 @@
 %% }
 </div>
 <dl>
+%% if !self.children.is_empty() {
+  <dt>children</dt>
+  <dd>
+    <div class=thumbnails>
+%% for id in &self.children {
+      {{Iframe::thumbnail(*id)}}
+%% }
+    </div>
+    <div class=center>
+      <a href=/children/{{self.inscription_id}}>all</a>
+    </div>
+  </dd>
+%% }
   <dt>id</dt>
   <dd class=monospace>{{ self.inscription_id }}</dd>
 %% if let Some(metadata) = self.inscription.metadata() {
@@ -24,6 +37,16 @@
 %% if let Some(parent) = &self.parent {
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
+%% }
+%% if self.charms != 0 {
+  <dt>charms</dt>
+  <dd>
+%% for charm in Charm::ALL {
+%%   if charm.is_set(self.charms) {
+    <span title={{charm.title()}}>{{charm.icon()}}</span>
+%%   }
+%% }
+  </dd>
 %% }
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
@@ -53,6 +76,10 @@
   <dt>content type</dt>
   <dd>{{ content_type }}</dd>
 %% }
+%% if let Some(content_encoding) = self.inscription.content_encoding() {
+  <dt>content encoding</dt>
+  <dd>{{ content_encoding.to_str().unwrap_or_default() }}</dd>
+%% }
   <dt>timestamp</dt>
   <dd><time>{{ self.timestamp }}</time></dd>
   <dt>genesis height</dt>
@@ -69,16 +96,6 @@
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
   <dd>{{ teleburn::Ethereum::from(self.inscription_id) }}</dd>
-%% if !self.children.is_empty() {
-  <dt>children</dt>
-  <dd>
-    <div class=thumbnails>
-%% for id in &self.children {
-      {{Iframe::thumbnail(*id)}}
-%% }
-    </div>
-  </dd>
-%% }
 %% if let Some(rune) = self.rune {
   <dt>rune</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>

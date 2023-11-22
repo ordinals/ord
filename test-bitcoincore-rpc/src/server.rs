@@ -298,11 +298,14 @@ impl Api for Server {
 
     let value = Amount::from_btc(amount).expect("error converting amount to sat");
 
-    let (outpoint, utxo_amount) = state
+    let (outpoint, utxo_amount) = match state
       .utxos
       .iter()
       .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
-      .expect("failed to get a utxo");
+    {
+      Some((outpoint, utxo_amount)) => (outpoint, utxo_amount),
+      _ => return Err(Self::not_found()),
+    };
 
     let mut transaction = Transaction {
       version: 1,
@@ -476,6 +479,7 @@ impl Api for Server {
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+    self.state().change_addresses.push(address.clone());
 
     Ok(address)
   }

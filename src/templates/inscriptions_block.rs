@@ -2,18 +2,18 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsBlockHtml {
-  pub(crate) block: u64,
+  pub(crate) block: u32,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev_block: Option<u64>,
-  pub(crate) next_block: Option<u64>,
+  pub(crate) prev_block: Option<u32>,
+  pub(crate) next_block: Option<u32>,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
 }
 
 impl InscriptionsBlockHtml {
   pub(crate) fn new(
-    block: u64,
-    current_blockheight: u64,
+    block: u32,
+    current_blockheight: u32,
     inscriptions: Vec<InscriptionId>,
     page_index: usize,
   ) -> Result<Self> {
@@ -72,7 +72,7 @@ mod tests {
         next_page: None,
       },
       "
-        <h1 class=light-fg>Inscriptions in <a href=/block/21>Block 21</a></h1>
+        <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -98,7 +98,7 @@ mod tests {
         prev_page: Some(1),
       },
       "
-        <h1 class=light-fg>Inscriptions in <a href=/block/21>Block 21</a></h1>
+        <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>

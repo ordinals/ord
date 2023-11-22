@@ -1,4 +1,7 @@
-use {super::*, crate::command_builder::ToArgs, ord::subcommand::wallet::send::Output};
+use {
+  super::*, crate::command_builder::ToArgs, ciborium::value::Integer,
+  ord::subcommand::wallet::send::Output,
+};
 
 #[test]
 fn run() {
@@ -184,10 +187,59 @@ fn inscription_content() {
       .collect::<Vec<&http::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
-      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:",
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
+}
+
+#[test]
+fn inscription_metadata() {
+  let metadata = r#"{"foo":"bar","baz":1}"#;
+  let mut encoded_metadata = Vec::new();
+  let cbor_map = ciborium::value::Value::Map(vec![
+    (
+      ciborium::value::Value::Text("foo".into()),
+      ciborium::value::Value::Text("bar".into()),
+    ),
+    (
+      ciborium::value::Value::Text("baz".into()),
+      ciborium::value::Value::Integer(Integer::from(1)),
+    ),
+  ]);
+  ciborium::ser::into_writer(&cbor_map, &mut encoded_metadata).unwrap();
+
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = CommandBuilder::new(
+    "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file foo.txt",
+  )
+  .write("foo.txt", "FOO")
+  .write("metadata.json", metadata)
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>()
+  .inscriptions
+  .get(0)
+  .unwrap()
+  .id;
+
+  rpc_server.mine_blocks(1);
+
+  let response =
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/r/metadata/{inscription_id}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(
+    response.headers().get("content-type").unwrap(),
+    "application/json"
+  );
+  assert_eq!(
+    response.text().unwrap(),
+    format!("\"{}\"", hex::encode(encoded_metadata))
+  );
 }
 
 #[test]
@@ -328,4 +380,32 @@ fn missing_credentials() {
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc user specified\n")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn all_endpoints_in_recursive_directory_return_json() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(2);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  assert_eq!(server.request("/r/blockheight").json::<u64>().unwrap(), 2);
+
+  assert_eq!(server.request("/r/blocktime").json::<u64>().unwrap(), 2);
+
+  assert_eq!(
+    server.request("/r/blockhash").json::<String>().unwrap(),
+    "70a93647a8d559c7e7ff2df9bd875f5b726a2ff8ca3562003d257df5a4c47ae2"
+  );
+
+  assert_eq!(
+    server.request("/r/blockhash/0").json::<String>().unwrap(),
+    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+  );
+
+  assert!(server.request("/blockhash").json::<String>().is_err());
+
+  assert!(server.request("/blockhash/2").json::<String>().is_err());
 }

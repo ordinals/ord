@@ -14,6 +14,7 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
+    charm::Charm,
     config::Config,
     decimal::Decimal,
     degree::Degree,
@@ -108,6 +109,7 @@ macro_rules! tprintln {
 mod arguments;
 mod blocktime;
 mod chain;
+mod charm;
 mod config;
 mod decimal;
 mod degree;
@@ -137,10 +139,9 @@ mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
-const SUBSIDY_HALVING_INTERVAL: u64 =
-  bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL as u64;
-const CYCLE_EPOCHS: u64 = 6;
+const DIFFCHANGE_INTERVAL: u32 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL;
+const SUBSIDY_HALVING_INTERVAL: u32 = bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL;
+const CYCLE_EPOCHS: u32 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());

@@ -14,6 +14,7 @@ pub(crate) const POINTER_TAG: [u8; 1] = [2];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
 pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
+pub(crate) const CONTENT_ENCODING_TAG: [u8; 1] = [9];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
@@ -77,11 +78,12 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
+    let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
+    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
+    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let pointer = remove_field(&mut fields, &POINTER_TAG);
-    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
-    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
 
     let unrecognized_even_field = fields
       .keys()
@@ -96,14 +98,15 @@ impl From<RawEnvelope> for ParsedEnvelope {
             .cloned()
             .collect()
         }),
+        content_encoding,
         content_type,
+        duplicate_field,
+        incomplete_field,
+        metadata,
+        metaprotocol,
         parent,
         pointer,
         unrecognized_even_field,
-        duplicate_field,
-        incomplete_field,
-        metaprotocol,
-        metadata,
       },
       input: envelope.input,
       offset: envelope.offset,
@@ -394,13 +397,35 @@ mod tests {
   }
 
   #[test]
-  fn with_unknown_tag() {
+  fn with_content_encoding() {
     assert_eq!(
       parse(&[envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
         &[9],
+        b"br",
+        &[],
+        b"ord",
+      ])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          content_encoding: Some("br".as_bytes().to_vec()),
+          ..inscription("text/plain;charset=utf-8", "ord")
+        },
+        ..Default::default()
+      }]
+    );
+  }
+
+  #[test]
+  fn with_unknown_tag() {
+    assert_eq!(
+      parse(&[envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[11],
         b"bar",
         &[],
         b"ord",
@@ -730,7 +755,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[9], &[0]])]),
+      parse(&[envelope(&[b"ord", &[11], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()

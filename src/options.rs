@@ -37,9 +37,9 @@ pub(crate) struct Options {
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
-  pub(crate) first_inscription_height: Option<u64>,
+  pub(crate) first_inscription_height: Option<u32>,
   #[arg(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
-  pub(crate) height_limit: Option<u64>,
+  pub(crate) height_limit: Option<u32>,
   #[arg(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
   #[arg(
@@ -59,8 +59,6 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
-  #[arg(long, short = 'j', help = "Enable JSON API.")]
-  pub(crate) enable_json_api: bool,
 }
 
 impl Options {
@@ -76,7 +74,7 @@ impl Options {
     }
   }
 
-  pub(crate) fn first_inscription_height(&self) -> u64 {
+  pub(crate) fn first_inscription_height(&self) -> u32 {
     if self.chain() == Chain::Regtest {
       self.first_inscription_height.unwrap_or(0)
     } else if integration_test() {

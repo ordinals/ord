@@ -34,6 +34,14 @@ h1 {
   width: 100%;
 }
 
+h1 a {
+  color: var(--light-fg);
+}
+
+h1 a:visited {
+  color: var(--light-fg);
+}
+
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
@@ -57,7 +65,7 @@ dt {
   margin-top: 0.5rem;
 }
 
-nav {
+.links {
   align-items: center;
   background-color: var(--light-bg);
   display: flex;
@@ -65,7 +73,7 @@ nav {
   padding: 1rem;
 }
 
-nav > :first-child {
+.links > :first-child {
   color: var(--light-fg);
   font-weight: bold;
 }
@@ -96,7 +104,7 @@ ol, ul {
 }
 
 @media (max-width: 38rem) {
-  nav {
+  .links {
     flex-direction: column;
   }
 }
@@ -124,9 +132,6 @@ ol, ul {
   margin: 1%;
 }
 
-.light-fg a {
-  color: var(--light-fg);
-}
 .center {
   text-align: center;
 }
@@ -232,4 +237,24 @@ a.mythic {
 
 .inscription > a > iframe {
   width: 100%;
+}
+
+.tabs {
+  align-items: center;
+  display: flex;
+}
+
+.tabs > a {
+  color: var(--light-fg);
+  padding: 1rem;
+}
+
+.tabs > *:first-child {
+  flex: 1;
+  text-align: right;
+}
+
+.tabs > *:last-child {
+  flex: 1;
+  text-align: left;
 }

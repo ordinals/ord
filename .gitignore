@@ -1,3 +1,4 @@
+/*.redb
 /.idea/
 /.vagrant
 /docs/build
@@ -5,7 +6,6 @@
 /fuzz/corpus
 /fuzz/coverage
 /fuzz/target
-/index.redb
 /ord.log
 /target
 /test-times.txt

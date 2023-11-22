@@ -29,6 +29,9 @@ mod tests {
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
           symbol: Some('$'),
+          limit: Some(1000000001),
+          end: Some(11),
+          timestamp: 0,
         },
         id: RuneId {
           height: 10,
@@ -46,6 +49,16 @@ mod tests {
   <dd>10/9</dd>
   <dt>number</dt>
   <dd>25</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/10>10</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>9</dd>
+  <dt>open etching end</dt>
+  <dd><a href=/block/11>11</a></dd>
+  <dt>open etching limit</dt>
+  <dd>\$1.000000001</dd>
   <dt>supply</dt>
   <dd>\$123456789.123456789</dd>
   <dt>burned</dt>
