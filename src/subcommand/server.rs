@@ -187,9 +187,9 @@ impl Server {
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
+        csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        csp_origin: self.csp_origin.clone(),
       });
 
       let router = Router::new()
