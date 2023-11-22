@@ -1114,7 +1114,7 @@ impl Index {
     if inscription_index < 0 {
       sat_to_sequence_number
         .get(&sat.n())?
-        .nth_back(inscription_index.abs_diff(0))
+        .nth_back((inscription_index + 1).abs_diff(0))
     } else {
       sat_to_sequence_number
         .get(&sat.n())?

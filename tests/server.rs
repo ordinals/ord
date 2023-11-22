@@ -485,7 +485,25 @@ fn sat_recursive_endpoints() {
 
   assert_eq!(
     server
+      .request("/r/sat/5000000000/at/-111")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[0])
+  );
+
+  assert_eq!(
+    server
       .request("/r/sat/5000000000/at/110")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[110])
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/5000000000/at/-1")
       .json::<SatInscriptionJson>()
       .unwrap()
       .id,
