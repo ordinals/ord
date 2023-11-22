@@ -189,7 +189,7 @@ impl Server {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        content_security_policy_origin: self.csp_origin.clone(),
+        csp_origin: self.csp_origin.clone(),
       });
 
       let router = Router::new()
@@ -1035,7 +1035,7 @@ impl Server {
       }
     }
 
-    match &page_config.content_security_policy_origin {
+    match &page_config.csp_origin {
       None => {
         headers.insert(
           header::CONTENT_SECURITY_POLICY,
@@ -3194,7 +3194,7 @@ mod tests {
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
       &PageConfig {
-        content_security_policy_origin: Some("https://ordinals.com".into()),
+        csp_origin: Some("https://ordinals.com".into()),
         ..Default::default()
       },
     )
