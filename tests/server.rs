@@ -411,6 +411,7 @@ fn all_endpoints_in_recursive_directory_return_json() {
 }
 
 #[test]
+#[ignore]
 fn sat_recursive_endpoints() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 

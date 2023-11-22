@@ -1464,11 +1464,7 @@ impl Server {
 
     let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page)?;
 
-    Ok(Json(SatInscriptionsJson {
-      ids,
-      more,
-      page,
-    }))
+    Ok(Json(SatInscriptionsJson { ids, more, page }))
   }
 
   async fn sat_inscription_at_index(
