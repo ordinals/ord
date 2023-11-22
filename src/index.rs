@@ -1065,8 +1065,8 @@ impl Index {
   pub(crate) fn get_inscription_ids_by_sat_paginated(
     &self,
     sat: Sat,
-    page_size: usize,
-    page_index: usize,
+    page_size: u64,
+    page_index: u64,
   ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
@@ -1086,11 +1086,11 @@ impl Index {
           })
           .map_err(|err| err.into())
       })
-      .skip(page_index.saturating_mul(page_size))
-      .take(page_size.saturating_add(1))
+      .skip(page_index.saturating_mul(page_size).try_into().unwrap())
+      .take(page_size.saturating_add(1).try_into().unwrap())
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more = ids.len() > page_size;
+    let more = ids.len() > page_size.try_into().unwrap();
 
     if more {
       ids.pop();

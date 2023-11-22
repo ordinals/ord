@@ -238,9 +238,10 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/inscriptions/:number", get(Self::sat_inscriptions))
         .route(
-          "/r/ids/sat/:number/:index",
-          get(Self::sat_inscriptions_index),
+          "/r/inscriptions/:number/:index",
+          get(Self::sat_inscriptions_paginated),
         )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -1445,13 +1446,24 @@ impl Server {
     })
   }
 
-  async fn sat_inscriptions_index(
+  async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, inscription_index)): Path<(u64, isize)>,
+    Path(sat): Path<u64>,
   ) -> ServerResult<Json<InscriptionsSatJson>> {
-    let ids = index.get_inscription_id_by_sat_indexed(Sat(sat), inscription_index)?;
+    Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
+  }
 
-    todo!()
+  async fn sat_inscriptions_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((sat, page_index)): Path<(u64, u64)>,
+  ) -> ServerResult<Json<InscriptionsSatJson>> {
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page_index)?;
+
+    Ok(Json(InscriptionsSatJson {
+      ids,
+      more,
+      page: page_index,
+    }))
   }
 
   async fn redirect_http_to_https(
