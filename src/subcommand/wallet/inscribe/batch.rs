@@ -1,4 +1,5 @@
 use super::*;
+use bitcoincore_rpc::RawTx;
 
 pub(super) struct Batch {
   pub(super) commit_fee_rate: FeeRate,
@@ -168,6 +169,109 @@ impl Batch {
     super::Output {
       commit,
       reveal,
+      total_fees,
+      parent: self.parent_info.clone().map(|info| info.id),
+      inscriptions: inscriptions_output,
+    }
+  }
+
+  pub(crate) fn inscribe_for_outside_sign(
+    &self,
+    chain: Chain,
+    index: &Index,
+    client: &Client,
+    locked_utxos: &BTreeSet<OutPoint>,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> SubcommandResult {
+    let wallet_inscriptions = index.get_inscriptions(utxos)?;
+
+    let commit_tx_change = [
+      get_change_address(client, chain)?,
+      get_change_address(client, chain)?,
+    ];
+
+    let (unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
+      .create_batch_inscription_transactions(
+        wallet_inscriptions,
+        chain,
+        locked_utxos.clone(),
+        utxos.clone(),
+        commit_tx_change,
+      )?;
+
+    if self.dry_run {
+      return Ok(Box::new(self.output(
+        unsigned_commit_tx.txid(),
+        reveal_tx.txid(),
+        total_fees,
+        self.inscriptions.clone(),
+      )));
+    }
+
+    if !self.no_backup {
+      Self::backup_recovery_key(client, recovery_key_pair, chain.network())?;
+    }
+
+    Ok(Box::new(self.output_for_outside_sign(
+      unsigned_commit_tx,
+      reveal_tx,
+      total_fees,
+      self.inscriptions.clone(),
+    )))
+  }
+
+  fn output_for_outside_sign(
+    &self,
+    unsigned_commit_tx: Transaction,
+    signed_reveal_tx: Transaction,
+    total_fees: u64,
+    inscriptions: Vec<Inscription>,
+  ) -> super::OutputForOutsideSign {
+    let reveal_tx_id = signed_reveal_tx.txid();
+    let mut inscriptions_output = Vec::new();
+    for index in 0..inscriptions.len() {
+      let index = u32::try_from(index).unwrap();
+
+      let vout = match self.mode {
+        Mode::SharedOutput => {
+          if self.parent_info.is_some() {
+            1
+          } else {
+            0
+          }
+        }
+        Mode::SeparateOutputs => {
+          if self.parent_info.is_some() {
+            index + 1
+          } else {
+            index
+          }
+        }
+      };
+
+      let offset = match self.mode {
+        Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
+        Mode::SeparateOutputs => 0,
+      };
+
+      inscriptions_output.push(InscriptionInfo {
+        id: InscriptionId {
+          txid: reveal_tx_id,
+          index,
+        },
+        location: SatPoint {
+          outpoint: OutPoint {
+            txid: reveal_tx_id,
+            vout,
+          },
+          offset,
+        },
+      });
+    }
+
+    super::OutputForOutsideSign {
+      unsigned_commit_raw_tx_hex: unsigned_commit_tx.raw_hex(),
+      signed_reveal_raw_tx_hex: signed_reveal_tx.raw_hex(),
       total_fees,
       parent: self.parent_info.clone().map(|info| info.id),
       inscriptions: inscriptions_output,

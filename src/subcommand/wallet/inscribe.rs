@@ -36,6 +36,15 @@ pub struct Output {
   pub total_fees: u64,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct OutputForOutsideSign {
+  pub unsigned_commit_raw_tx_hex: String,
+  pub inscriptions: Vec<InscriptionInfo>,
+  pub parent: Option<InscriptionId>,
+  pub signed_reveal_raw_tx_hex: String,
+  pub total_fees: u64,
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct ParentInfo {
   destination: Address,
@@ -76,6 +85,8 @@ pub(crate) struct Inscribe {
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[arg(long, help = "Sign by outside wallet.")]
+  pub(crate) sign_by_outside: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   pub(crate) fee_rate: FeeRate,
   #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
@@ -176,7 +187,7 @@ impl Inscribe {
       _ => unreachable!(),
     }
 
-    Batch {
+    let batch = Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
       destinations,
       dry_run: self.dry_run,
@@ -189,8 +200,13 @@ impl Inscribe {
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
+    };
+
+    if self.sign_by_outside {
+      batch.inscribe_for_outside_sign(chain, &index, &client, &locked_utxos, &utxos)
+    } else {
+      batch.inscribe(chain, &index, &client, &locked_utxos, &utxos)
     }
-    .inscribe(chain, &index, &client, &locked_utxos, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
