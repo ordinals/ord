@@ -134,7 +134,7 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[arg(
     long,
-    help = "Origin to use for the content-security-policy header. Set this to the fully-qualified domain name of your ord instance. [default: None]"
+    help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
   )]
   csp_origin: Option<String>,
   #[arg(
