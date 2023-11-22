@@ -134,6 +134,11 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[arg(
     long,
+    help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
+  )]
+  csp_origin: Option<String>,
+  #[arg(
+    long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
   )]
   http_port: Option<u16>,
@@ -182,6 +187,7 @@ impl Server {
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
+        csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
       });
@@ -985,6 +991,7 @@ impl Server {
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -997,7 +1004,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding)?
+      Self::content_response(inscription, accept_encoding, &page_config)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -1006,6 +1013,7 @@ impl Server {
   fn content_response(
     inscription: Inscription,
     accept_encoding: AcceptEncoding,
+    page_config: &PageConfig,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
@@ -1027,15 +1035,25 @@ impl Server {
       }
     }
 
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
+    match &page_config.csp_origin {
+      None => {
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+        headers.append(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+      }
+      Some(origin) => {
+        let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
+        );
+      }
+    }
 
     headers.insert(
       header::CACHE_CONTROL,
@@ -1052,6 +1070,7 @@ impl Server {
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -1089,7 +1108,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding)?
+        Self::content_response(inscription, accept_encoding, &page_config)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -3131,7 +3150,8 @@ mod tests {
     assert_eq!(
       Server::content_response(
         Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
-        AcceptEncoding::default()
+        AcceptEncoding::default(),
+        &PageConfig::default(),
       )
       .unwrap(),
       None
@@ -3143,12 +3163,45 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "text/plain");
     assert_eq!(body, vec![1, 2, 3]);
+  }
+
+  #[test]
+  fn content_security_policy_no_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &PageConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(
+      headers["content-security-policy"],
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:")
+    );
+  }
+
+  #[test]
+  fn content_security_policy_with_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &PageConfig {
+        csp_origin: Some("https://ordinals.com".into()),
+        ..Default::default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(headers["content-security-policy"], HeaderValue::from_static("default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"));
   }
 
   #[test]
@@ -3181,6 +3234,7 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(None, Some(Vec::new())),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3194,6 +3248,7 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
