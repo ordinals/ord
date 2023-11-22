@@ -10,7 +10,7 @@ fn claim(id: u128) -> Option<u128> {
 struct Allocation {
   balance: u128,
   divisibility: u8,
-  end: Option<u64>,
+  end: Option<u32>,
   id: u128,
   limit: Option<u128>,
   rune: Rune,
@@ -18,56 +18,20 @@ struct Allocation {
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
-  height: u64,
-  id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
-  inscription_id_to_inscription_entry:
-    &'a Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-  inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
-  minimum: Rune,
-  outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
-  runes: u64,
-  statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
-  timestamp: u32,
-  transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  pub(super) height: u32,
+  pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+  pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) minimum: Rune,
+  pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  pub(super) runes: u64,
+  pub(super) sequence_number_to_rune: &'a mut Table<'db, 'tx, u32, u128>,
+  pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+  pub(super) timestamp: u32,
+  pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
-  pub(super) fn new(
-    height: u64,
-    id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
-    inscription_id_to_inscription_entry: &'a Table<
-      'db,
-      'tx,
-      &'static InscriptionIdValue,
-      InscriptionEntryValue,
-    >,
-    inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
-    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-    rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
-    statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
-    timestamp: u32,
-    transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
-  ) -> Result<Self> {
-    let runes = statistic_to_count
-      .get(&Statistic::Runes.into())?
-      .map(|x| x.value())
-      .unwrap_or(0);
-    Ok(Self {
-      height,
-      id_to_entry,
-      inscription_id_to_inscription_entry,
-      inscription_id_to_rune,
-      minimum: Rune::minimum_at_height(Height(height)),
-      outpoint_to_balances,
-      rune_to_id,
-      runes,
-      statistic_to_count,
-      timestamp,
-      transaction_id_to_rune,
-    })
-  }
-
   pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
@@ -303,14 +267,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
         let inscription_id = InscriptionId { txid, index: 0 };
 
-        if self
-          .inscription_id_to_inscription_entry
+        if let Some(sequence_number) = self
+          .inscription_id_to_sequence_number
           .get(&inscription_id.store())?
-          .is_some()
         {
           self
-            .inscription_id_to_rune
-            .insert(&inscription_id.store(), rune.0)?;
+            .sequence_number_to_rune
+            .insert(sequence_number.value(), rune.0)?;
         }
       }
     }
