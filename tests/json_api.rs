@@ -208,7 +208,7 @@ fn get_inscriptions() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
-  assert_eq!(inscriptions_json.more, true);
+  assert!(inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 0);
 
   let response = server.json_request("/inscriptions/1");
@@ -217,7 +217,7 @@ fn get_inscriptions() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 50);
-  assert_eq!(inscriptions_json.more, false);
+  assert!(!inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 1);
 }
 

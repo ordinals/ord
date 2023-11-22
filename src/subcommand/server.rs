@@ -1352,7 +1352,7 @@ impl Server {
     Ok(if accept_json.0 {
       Json(InscriptionsJson {
         inscriptions,
-        page_index: page_index.try_into().unwrap(),
+        page_index,
         more: more_inscriptions,
       })
       .into_response()

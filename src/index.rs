@@ -2798,7 +2798,7 @@ mod tests {
 
       let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
       assert_eq!(inscriptions, &[inscription_id]);
-      assert_eq!(more, false);
+      assert!(!more);
     }
   }
 
