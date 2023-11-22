@@ -1099,6 +1099,42 @@ impl Index {
     Ok((ids, more))
   }
 
+  pub(crate) fn get_inscription_id_by_sat_indexed(
+    &self,
+    sat: Sat,
+    inscription_index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let sat_to_sequence_number = rtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
+
+    Ok(
+      if inscription_index < 0 {
+        sat_to_sequence_number
+          .get(&sat.n())?
+          .nth_back(inscription_index.abs_diff(0))
+      } else {
+        sat_to_sequence_number
+          .get(&sat.n())?
+          .nth(inscription_index.abs_diff(0))
+      }
+      .map(|result| {
+        result
+          .and_then(|sequence_number| {
+            let sequence_number = sequence_number.value();
+            sequence_number_to_inscription_entry
+              .get(sequence_number)
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          })
+          .map_err(|err| anyhow!(err.to_string()))
+      })
+      .transpose()?,
+    )
+  }
+
   pub(crate) fn get_inscription_id_by_sequence_number(
     &self,
     n: u32,

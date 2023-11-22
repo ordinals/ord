@@ -16,7 +16,7 @@ use {
       inscription::InscriptionJson,
       inscriptions::InscriptionsJson,
       output::OutputJson,
-      sat::{InscriptionsSatJson, SatJson},
+      sat::{SatInscriptionJson, SatInscriptionsJson, SatJson},
     },
     SatPoint,
   },
@@ -70,7 +70,7 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) 
   (output.inscriptions[0].id, output.reveal)
 }
 
-fn reinscribe(rpc_server: &test_bitcoincore_rpc::Handle, n: usize) -> Vec<(InscriptionId, Txid)> {
+fn reinscribe(rpc_server: &test_bitcoincore_rpc::Handle, n: usize) -> Vec<InscriptionId> {
   let mut inscriptions = Vec::new();
 
   let mut output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
@@ -78,7 +78,7 @@ fn reinscribe(rpc_server: &test_bitcoincore_rpc::Handle, n: usize) -> Vec<(Inscr
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
-  inscriptions.push((output.inscriptions[0].id, output.reveal));
+  inscriptions.push(output.inscriptions[0].id);
 
   rpc_server.mine_blocks(1);
 
@@ -91,7 +91,7 @@ fn reinscribe(rpc_server: &test_bitcoincore_rpc::Handle, n: usize) -> Vec<(Inscr
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
-    inscriptions.push((output.inscriptions[0].id, output.reveal));
+    inscriptions.push(output.inscriptions[0].id);
 
     rpc_server.mine_blocks(1);
   }

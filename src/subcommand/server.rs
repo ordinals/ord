@@ -12,10 +12,11 @@ use {
     templates::{
       BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
       InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml,
-      InscriptionsJson, InscriptionsSatJson, OutputHtml, OutputJson, PageContent, PageHtml,
-      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
+      PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+      PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
+      RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson,
+      TransactionHtml,
     },
   },
   axum::{
@@ -238,10 +239,14 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/ids/sat/:number", get(Self::sat_inscriptions))
+        .route("/r/sat/:number", get(Self::sat_inscriptions))
         .route(
-          "/r/ids/sat/:number/:index",
+          "/r/sat/:number/:index",
           get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/sat/:number/at/:index",
+          get(Self::sat_inscriptions_indexed),
         )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -1449,14 +1454,14 @@ impl Server {
   async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
     Path(sat): Path<u64>,
-  ) -> ServerResult<Json<InscriptionsSatJson>> {
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
     Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
   }
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
     Path((sat, page_index)): Path<(u64, u64)>,
-  ) -> ServerResult<Json<InscriptionsSatJson>> {
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
         "this server has no sat index".to_string(),
@@ -1465,11 +1470,26 @@ impl Server {
 
     let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page_index)?;
 
-    Ok(Json(InscriptionsSatJson {
+    Ok(Json(SatInscriptionsJson {
       ids,
       more,
       page: page_index,
     }))
+  }
+
+  async fn sat_inscriptions_indexed(
+    Extension(index): Extension<Arc<Index>>,
+    Path((sat, inscription_index)): Path<(u64, isize)>,
+  ) -> ServerResult<Json<SatInscriptionJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
+    let id = index.get_inscription_id_by_sat_indexed(Sat(sat), inscription_index)?;
+
+    Ok(Json(SatInscriptionJson { id }))
   }
 
   async fn redirect_http_to_https(

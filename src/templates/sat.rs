@@ -27,10 +27,15 @@ pub struct SatJson {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InscriptionsSatJson {
+pub struct SatInscriptionsJson {
   pub ids: Vec<InscriptionId>,
   pub more: bool,
   pub page: u64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatInscriptionJson {
+  pub id: Option<InscriptionId>,
 }
 
 impl PageContent for SatHtml {
