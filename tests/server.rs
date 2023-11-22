@@ -413,15 +413,16 @@ fn all_endpoints_in_recursive_directory_return_json() {
 #[test]
 fn sat_recursive_endpoint() {
   let rpc_server = test_bitcoincore_rpc::spawn();
+
   create_wallet(&rpc_server);
 
-  rpc_server.mine_blocks(2);
+  rpc_server.mine_blocks(1);
 
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   assert_eq!(
     server
-      .request("/r/inscriptions/5000000000")
+      .request("/r/ids/sat/5000000000")
       .json::<InscriptionsSatJson>()
       .unwrap(),
     InscriptionsSatJson {
@@ -431,22 +432,18 @@ fn sat_recursive_endpoint() {
     }
   );
 
-  for _ in 0..10 {
-    inscribe(&rpc_server);
-  }
+  reinscribe(&rpc_server, 11);
 
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   let response = server
-    .request("/r/inscriptions/5000000000")
+    .request("/r/ids/sat/5000000000")
     .json::<InscriptionsSatJson>()
     .unwrap();
 
-  assert_eq!(response.ids.len(), 100);
-  assert_eq!(response.more, false);
+  assert_eq!(response.ids.len(), 11);
+  assert!(!response.more);
   assert_eq!(response.page, 0);
 
   inscribe(&rpc_server);
-
-
 }

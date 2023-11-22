@@ -238,9 +238,9 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/inscriptions/:number", get(Self::sat_inscriptions))
+        .route("/r/ids/sat/:number", get(Self::sat_inscriptions))
         .route(
-          "/r/inscriptions/:number/:index",
+          "/r/ids/sat/:number/:index",
           get(Self::sat_inscriptions_paginated),
         )
         .route("/range/:start/:end", get(Self::range))
