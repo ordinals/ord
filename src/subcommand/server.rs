@@ -246,7 +246,7 @@ impl Server {
         )
         .route(
           "/r/sat/:number/at/:index",
-          get(Self::sat_inscriptions_indexed),
+          get(Self::sat_inscription_at_index),
         )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -1477,7 +1477,7 @@ impl Server {
     }))
   }
 
-  async fn sat_inscriptions_indexed(
+  async fn sat_inscription_at_index(
     Extension(index): Extension<Arc<Index>>,
     Path((sat, inscription_index)): Path<(u64, isize)>,
   ) -> ServerResult<Json<SatInscriptionJson>> {
