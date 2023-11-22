@@ -252,7 +252,7 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
-      ".*<h1>Inscriptions</h1>
+      ".*<h1>All Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{inscription}>.*</a>
 </div>

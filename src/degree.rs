@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(PartialEq, Debug)]
 pub(crate) struct Degree {
-  pub(crate) hour: u64,
-  pub(crate) minute: u64,
-  pub(crate) second: u64,
+  pub(crate) hour: u32,
+  pub(crate) minute: u32,
+  pub(crate) second: u32,
   pub(crate) third: u64,
 }
 
@@ -34,7 +34,7 @@ impl From<Sat> for Degree {
 mod tests {
   use super::*;
 
-  fn case(sat: u64, hour: u64, minute: u64, second: u64, third: u64) {
+  fn case(sat: u64, hour: u32, minute: u32, second: u32, third: u64) {
     assert_eq!(
       Degree::from(Sat(sat)),
       Degree {
@@ -52,20 +52,22 @@ mod tests {
     case(1, 0, 0, 0, 1);
     case(5_000_000_000, 0, 1, 1, 0);
     case(
-      5_000_000_000 * DIFFCHANGE_INTERVAL,
+      5_000_000_000 * u64::from(DIFFCHANGE_INTERVAL),
       0,
       DIFFCHANGE_INTERVAL,
       0,
       0,
     );
-    case(5_000_000_000 * SUBSIDY_HALVING_INTERVAL, 0, 0, 336, 0);
     case(
-      5_000_000_000 * SUBSIDY_HALVING_INTERVAL
-        + 2_500_000_000 * SUBSIDY_HALVING_INTERVAL
-        + 1_250_000_000 * SUBSIDY_HALVING_INTERVAL
-        + 625_000_000 * SUBSIDY_HALVING_INTERVAL
-        + 312_500_000 * SUBSIDY_HALVING_INTERVAL
-        + 156_250_000 * SUBSIDY_HALVING_INTERVAL,
+      5_000_000_000 * u64::from(SUBSIDY_HALVING_INTERVAL),
+      0,
+      0,
+      336,
+      0,
+    );
+    case(
+      (5_000_000_000 + 2_500_000_000 + 1_250_000_000 + 625_000_000 + 312_500_000 + 156_250_000)
+        * u64::from(SUBSIDY_HALVING_INTERVAL),
       1,
       0,
       0,

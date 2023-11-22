@@ -55,7 +55,7 @@ pub struct ServerConfig {
 
 enum InscriptionQuery {
   Id(InscriptionId),
-  Number(i64),
+  Number(i32),
 }
 
 impl FromStr for InscriptionQuery {
@@ -71,7 +71,7 @@ impl FromStr for InscriptionQuery {
 }
 
 enum BlockQuery {
-  Height(u64),
+  Height(u32),
   Hash(BlockHash),
 }
 
@@ -134,6 +134,11 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[arg(
     long,
+    help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
+  )]
+  csp_origin: Option<String>,
+  #[arg(
+    long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
   )]
   http_port: Option<u16>,
@@ -182,6 +187,7 @@ impl Server {
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
+        csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
       });
@@ -211,15 +217,14 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/:from", get(Self::inscriptions_from))
-        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
+        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
           get(Self::inscriptions_in_block),
         )
         .route(
           "/inscriptions/block/:height/:page",
-          get(Self::inscriptions_in_block_from_page),
+          get(Self::inscriptions_in_block_paginated),
         )
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
@@ -696,7 +701,7 @@ impl Server {
           .get_block_by_hash(hash)?
           .ok_or_not_found(|| format!("block {hash}"))?;
 
-        (block, info.height as u64)
+        (block, u32::try_from(info.height).unwrap())
       }
     };
 
@@ -948,7 +953,7 @@ impl Server {
 
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<String> {
     Ok(
       index
@@ -960,7 +965,7 @@ impl Server {
 
   async fn block_hash_from_height_json(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<Json<String>> {
     Ok(Json(
       index
@@ -982,7 +987,7 @@ impl Server {
   async fn input(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(path): Path<(u64, usize, usize)>,
+    Path(path): Path<(u32, usize, usize)>,
   ) -> Result<PageHtml<InputHtml>, ServerError> {
     let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
@@ -1016,6 +1021,7 @@ impl Server {
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -1028,7 +1034,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding)?
+      Self::content_response(inscription, accept_encoding, &page_config)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -1037,6 +1043,7 @@ impl Server {
   fn content_response(
     inscription: Inscription,
     accept_encoding: AcceptEncoding,
+    page_config: &PageConfig,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
@@ -1058,15 +1065,25 @@ impl Server {
       }
     }
 
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
+    match &page_config.csp_origin {
+      None => {
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+        headers.append(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+      }
+      Some(origin) => {
+        let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
+        );
+      }
+    }
 
     headers.insert(
       header::CACHE_CONTROL,
@@ -1083,6 +1100,7 @@ impl Server {
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -1120,7 +1138,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding)?
+        Self::content_response(inscription, accept_encoding, &page_config)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -1219,9 +1237,14 @@ impl Server {
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let (children, _more_children) =
-      index.get_children_by_inscription_id_paginated(inscription_id, 4, 0)?;
+      index.get_children_by_sequence_number_paginated(entry.sequence_number, 4, 0)?;
 
-    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+    let rune = index.get_rune_by_sequence_number(entry.sequence_number)?;
+
+    let parent = match entry.parent {
+      Some(parent) => index.get_inscription_id_by_sequence_number(parent)?,
+      None => None,
+    };
 
     let mut charms = entry.charms;
 
@@ -1235,7 +1258,7 @@ impl Server {
         children,
         inscription_number: entry.inscription_number,
         genesis_height: entry.height,
-        parent: entry.parent,
+        parent,
         genesis_fee: entry.fee,
         output_value: output.as_ref().map(|o| o.value),
         address: output
@@ -1264,7 +1287,7 @@ impl Server {
         inscription_number: entry.inscription_number,
         next,
         output,
-        parent: entry.parent,
+        parent,
         previous,
         rune,
         sat: entry.sat,
@@ -1323,13 +1346,14 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    let parent_number = index
+    let entry = index
       .get_inscription_entry(parent)?
-      .ok_or_not_found(|| format!("inscription {parent}"))?
-      .inscription_number;
+      .ok_or_not_found(|| format!("inscription {parent}"))?;
+
+    let parent_number = entry.inscription_number;
 
     let (children, more_children) =
-      index.get_children_by_inscription_id_paginated(parent, 100, page)?;
+      index.get_children_by_sequence_number_paginated(entry.sequence_number, 100, page)?;
 
     let prev_page = page.checked_sub(1);
 
@@ -1353,16 +1377,52 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, None, 100, accept_json).await
+    Self::inscriptions_paginated(
+      Extension(page_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn inscriptions_paginated(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
+
+    let prev = page_index.checked_sub(1);
+
+    let next = more_inscriptions.then_some(page_index + 1);
+
+    Ok(if accept_json.0 {
+      Json(InscriptionsJson {
+        inscriptions,
+        page_index,
+        more: more_inscriptions,
+      })
+      .into_response()
+    } else {
+      InscriptionsHtml {
+        inscriptions,
+        next,
+        prev,
+      }
+      .page(page_config)
+      .into_response()
+    })
   }
 
   async fn inscriptions_in_block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(block_height): Path<u64>,
+    Path(block_height): Path<u32>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_in_block_from_page(
+    Self::inscriptions_in_block_paginated(
       Extension(page_config),
       Extension(index),
       Path((block_height, 0)),
@@ -1371,70 +1431,41 @@ impl Server {
     .await
   }
 
-  async fn inscriptions_in_block_from_page(
+  async fn inscriptions_in_block_paginated(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page)): Path<(u64, usize)>,
+    Path((block_height, page_index)): Path<(u32, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index.get_inscriptions_in_block(block_height)?;
+    let page_size = 100;
+
+    let mut inscriptions = index
+      .get_inscriptions_in_block(block_height)?
+      .into_iter()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+      .collect::<Vec<InscriptionId>>();
+
+    let more = inscriptions.len() > page_size;
+
+    if more {
+      inscriptions.pop();
+    }
 
     Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
+      Json(InscriptionsJson {
+        inscriptions,
+        page_index,
+        more,
+      })
+      .into_response()
     } else {
       InscriptionsBlockHtml::new(
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
-        page,
+        page_index,
       )?
-      .page(page_config)
-      .into_response()
-    })
-  }
-
-  async fn inscriptions_from(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
-  }
-
-  async fn inscriptions_from_n(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(u64, usize)>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
-  }
-
-  async fn inscriptions_inner(
-    page_config: Arc<PageConfig>,
-    index: Arc<Index>,
-    from: Option<u64>,
-    n: usize,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    let (inscriptions, prev, next, lowest, highest) =
-      index.get_latest_inscriptions_with_prev_and_next(n, from)?;
-    Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(
-        inscriptions,
-        prev,
-        next,
-        Some(lowest),
-        Some(highest),
-      ))
-      .into_response()
-    } else {
-      InscriptionsHtml {
-        inscriptions,
-        next,
-        prev,
-      }
       .page(page_config)
       .into_response()
     })
@@ -2786,13 +2817,7 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Ordinals</title>.*
-<nav class=tabs>
-  <a href=/inscriptions>Inscriptions</a>
-  <span>\|</span>
-  <a href=/blocks>Blocks</a>
-  <span>\|</span>
-  <a href=/collections>Collections</a>
-</nav>
+<h1>Latest Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{}>.*</a>
   (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
@@ -2834,7 +2859,7 @@ mod tests {
     TestServer::new_with_regtest().assert_response_regex(
       "/",
       StatusCode::OK,
-      ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",
+      ".*<a href=/ title=home>Ordinals<sup>regtest</sup></a>.*",
     );
   }
 
@@ -3007,9 +3032,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=/rare.txt title=rare>.*</a>.*",
     );
   }
 
@@ -3028,8 +3052,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=https://docs.ordinals.com/.*",
     );
   }
 
@@ -3195,7 +3219,8 @@ mod tests {
     assert_eq!(
       Server::content_response(
         Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
-        AcceptEncoding::default()
+        AcceptEncoding::default(),
+        &PageConfig::default(),
       )
       .unwrap(),
       None
@@ -3207,12 +3232,45 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "text/plain");
     assert_eq!(body, vec![1, 2, 3]);
+  }
+
+  #[test]
+  fn content_security_policy_no_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &PageConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(
+      headers["content-security-policy"],
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:")
+    );
+  }
+
+  #[test]
+  fn content_security_policy_with_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &PageConfig {
+        csp_origin: Some("https://ordinals.com".into()),
+        ..Default::default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(headers["content-security-policy"], HeaderValue::from_static("default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"));
   }
 
   #[test]
@@ -3245,6 +3303,7 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(None, Some(Vec::new())),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3258,6 +3317,7 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
       AcceptEncoding::default(),
+      &PageConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3662,7 +3722,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/inscriptions",
+      "/inscriptions/1",
       StatusCode::OK,
       ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
     );
@@ -3685,7 +3745,7 @@ mod tests {
     server.assert_response_regex(
       "/inscriptions/0",
       StatusCode::OK,
-      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+      ".*prev\n<a class=next href=/inscriptions/1>next</a>.*",
     );
   }
 

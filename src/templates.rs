@@ -117,6 +117,7 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: Some("https://signet.ordinals.com".into()),
         domain: Some("signet.ordinals.com".into()),
         index_sats: true,
       }),),
@@ -137,14 +138,15 @@ mod tests {
   </head>
   <body>
   <header>
-    <nav class=links>
-      <a href=/>Ordinals<sup>alpha</sup></a>
+    <nav>
+      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
       .*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
+      <a href=/clock title=clock>.*</a>
+      <a href=/rare.txt title=rare>.*</a>
+      .*
       <form action=/search method=get>
         <input type=text .*>
-        <input type=submit value=Search>
+        <input class=icon type=image .*>
       </form>
     </nav>
   </header>
@@ -162,10 +164,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
-      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
@@ -174,10 +177,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: false,
-      }),),
-      r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 
@@ -186,10 +190,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Signet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
-      r".*<nav class=links>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>signet</sup></a>.*"
     );
   }
 }
