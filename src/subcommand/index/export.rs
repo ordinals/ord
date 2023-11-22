@@ -2,11 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Export {
-  #[arg(
-    long,
-    default_value = "inscription_number_to_id.tsv",
-    help = "<TSV> file to write to"
-  )]
+  #[arg(long, help = "<TSV> file to write to")]
   tsv: String,
   #[arg(long, help = "Whether to include addresses in export")]
   include_addresses: bool,
