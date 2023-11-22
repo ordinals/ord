@@ -17,11 +17,15 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, DatabaseError, MultimapTable, MultimapTableDefinition, ReadableMultimapTable,
-    ReadableTable, StorageError, Table, TableDefinition, WriteTransaction,
+    Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
+    ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
+    TableHandle, WriteTransaction,
   },
-  std::collections::{BTreeSet, HashMap},
-  std::io::{BufWriter, Read, Write},
+  std::{
+    collections::{BTreeSet, HashMap},
+    io::{BufWriter, Write},
+    sync::Once,
+  },
 };
 
 pub(crate) use self::entry::RuneEntry;
@@ -35,7 +39,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 12;
+const SCHEMA_VERSION: u64 = 13;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -106,20 +110,31 @@ impl From<Statistic> for u64 {
 
 #[derive(Serialize)]
 pub(crate) struct Info {
-  pub(crate) blocks_indexed: u32,
-  pub(crate) branch_pages: u64,
-  pub(crate) fragmented_bytes: u64,
-  pub(crate) index_file_size: u64,
-  pub(crate) index_path: PathBuf,
-  pub(crate) leaf_pages: u64,
-  pub(crate) metadata_bytes: u64,
-  pub(crate) outputs_traversed: u64,
-  pub(crate) page_size: usize,
-  pub(crate) sat_ranges: u64,
-  pub(crate) stored_bytes: u64,
+  blocks_indexed: u32,
+  branch_pages: u64,
+  fragmented_bytes: u64,
+  index_file_size: u64,
+  index_path: PathBuf,
+  leaf_pages: u64,
+  metadata_bytes: u64,
+  outputs_traversed: u64,
+  page_size: usize,
+  sat_ranges: u64,
+  stored_bytes: u64,
+  tables: BTreeMap<String, TableInfo>,
   pub(crate) transactions: Vec<TransactionInfo>,
-  pub(crate) tree_height: u32,
-  pub(crate) utxos_indexed: u64,
+  tree_height: u32,
+  utxos_indexed: u64,
+}
+
+#[derive(Serialize)]
+pub(crate) struct TableInfo {
+  branch_pages: u64,
+  fragmented_bytes: u64,
+  leaf_pages: u64,
+  metadata_bytes: u64,
+  stored_bytes: u64,
+  tree_height: u32,
 }
 
 #[derive(Serialize)]
@@ -192,20 +207,6 @@ impl Index {
       }
     };
 
-    if let Ok(mut file) = fs::OpenOptions::new().read(true).open(&path) {
-      // use cberner's quick hack to check the redb recovery bit
-      // https://github.com/cberner/redb/issues/639#issuecomment-1628037591
-      const MAGICNUMBER: [u8; 9] = [b'r', b'e', b'd', b'b', 0x1A, 0x0A, 0xA9, 0x0D, 0x0A];
-      const RECOVERY_REQUIRED: u8 = 2;
-
-      let mut buffer = [0; MAGICNUMBER.len() + 1];
-      file.read_exact(&mut buffer).unwrap();
-
-      if buffer[MAGICNUMBER.len()] & RECOVERY_REQUIRED != 0 {
-        println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path);
-      }
-    }
-
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
     let durability = if cfg!(test) {
@@ -217,8 +218,15 @@ impl Index {
     let index_runes;
     let index_sats;
 
+    let index_path = path.clone();
+    let once = Once::new();
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
+      .set_repair_callback(move |_| {
+        once.call_once(|| {
+          println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display());
+        })
+      })
       .open(&path)
     {
       Ok(database) => {
@@ -419,9 +427,87 @@ impl Index {
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
+    fn insert_table_info<K: RedbKey + 'static, V: RedbValue + 'static>(
+      tables: &mut BTreeMap<String, TableInfo>,
+      wtx: &WriteTransaction,
+      definition: TableDefinition<K, V>,
+    ) {
+      let stats = wtx.open_table(definition).unwrap().stats().unwrap();
+      tables.insert(
+        definition.name().into(),
+        TableInfo {
+          tree_height: stats.tree_height(),
+          leaf_pages: stats.leaf_pages(),
+          branch_pages: stats.branch_pages(),
+          stored_bytes: stats.stored_bytes(),
+          metadata_bytes: stats.metadata_bytes(),
+          fragmented_bytes: stats.fragmented_bytes(),
+        },
+      );
+    }
+
+    fn insert_multimap_table_info<K: RedbKey + 'static, V: RedbValue + RedbKey + 'static>(
+      tables: &mut BTreeMap<String, TableInfo>,
+      wtx: &WriteTransaction,
+      definition: MultimapTableDefinition<K, V>,
+    ) {
+      let stats = wtx
+        .open_multimap_table(definition)
+        .unwrap()
+        .stats()
+        .unwrap();
+      tables.insert(
+        definition.name().into(),
+        TableInfo {
+          tree_height: stats.tree_height(),
+          leaf_pages: stats.leaf_pages(),
+          branch_pages: stats.branch_pages(),
+          stored_bytes: stats.stored_bytes(),
+          metadata_bytes: stats.metadata_bytes(),
+          fragmented_bytes: stats.fragmented_bytes(),
+        },
+      );
+    }
+
     let wtx = self.begin_write()?;
 
     let stats = wtx.stats()?;
+
+    let mut tables: BTreeMap<String, TableInfo> = BTreeMap::new();
+
+    insert_multimap_table_info(&mut tables, &wtx, SATPOINT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info(&mut tables, &wtx, SAT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_CHILDREN);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_LAST_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, HOME_INSCRIPTIONS);
+    insert_table_info(&mut tables, &wtx, INSCRIPTION_ID_TO_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_RUNE_BALANCES);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_SAT_RANGES);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_VALUE);
+    insert_table_info(&mut tables, &wtx, RUNE_ID_TO_RUNE_ENTRY);
+    insert_table_info(&mut tables, &wtx, RUNE_TO_RUNE_ID);
+    insert_table_info(&mut tables, &wtx, SAT_TO_SATPOINT);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_RUNE);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_SATPOINT);
+    insert_table_info(&mut tables, &wtx, STATISTIC_TO_COUNT);
+    insert_table_info(&mut tables, &wtx, TRANSACTION_ID_TO_RUNE);
+    insert_table_info(
+      &mut tables,
+      &wtx,
+      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP,
+    );
+
+    for table in wtx.list_tables()? {
+      assert!(tables.contains_key(table.name()));
+    }
+
+    for table in wtx.list_multimap_tables()? {
+      assert!(tables.contains_key(table.name()));
+    }
 
     let info = {
       let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
@@ -451,6 +537,7 @@ impl Index {
         outputs_traversed,
         page_size: stats.page_size(),
         stored_bytes: stats.stored_bytes(),
+        tables,
         transactions: wtx
           .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
           .range(0..)?
@@ -1301,55 +1388,31 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
+  pub(crate) fn get_inscriptions_paginated(
     &self,
-    n: usize,
-    from: Option<u32>,
-  ) -> Result<(Vec<InscriptionId>, Option<u32>, Option<u32>, u32, u32)> {
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let highest = match sequence_number_to_inscription_entry.iter()?.next_back() {
-      Some(Ok((number, _entry))) => number.value(),
-      Some(Err(_)) | None => return Ok(Default::default()),
-    };
-
-    let lowest = match sequence_number_to_inscription_entry.iter()?.next() {
-      Some(Ok((number, _entry))) => number.value(),
-      Some(Err(_)) | None => return Ok(Default::default()),
-    };
-
-    let from = from.unwrap_or(highest);
-
-    let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
-      sequence_number_to_inscription_entry
-        .get(&prev)?
-        .map(|_| prev)
-    } else {
-      None
-    };
-
-    let next = if from < highest {
-      Some(
-        from
-          .checked_add(n.try_into()?)
-          .unwrap_or(highest)
-          .min(highest),
-      )
-    } else {
-      None
-    };
-
-    let inscriptions = sequence_number_to_inscription_entry
-      .range(..=from)?
+    let mut inscriptions = sequence_number_to_inscription_entry
+      .iter()?
       .rev()
-      .take(n)
+      .skip(page_size.saturating_mul(page_index))
+      .take(page_size.saturating_add(1))
       .flat_map(|result| result.map(|(_number, entry)| InscriptionEntry::load(entry.value()).id))
-      .collect();
+      .collect::<Vec<InscriptionId>>();
 
-    Ok((inscriptions, prev, next, lowest, highest))
+    let more = inscriptions.len() > page_size;
+
+    if more {
+      inscriptions.pop();
+    }
+
+    Ok((inscriptions, more))
   }
 
   pub(crate) fn get_inscriptions_in_block(&self, block_height: u32) -> Result<Vec<InscriptionId>> {
@@ -2820,59 +2883,9 @@ mod tests {
 
       context.mine_blocks(1);
 
-      let (inscriptions, prev, next, _, _) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, None)
-        .unwrap();
+      let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
       assert_eq!(inscriptions, &[inscription_id]);
-      assert_eq!(prev, None);
-      assert_eq!(next, None);
-    }
-  }
-
-  #[test]
-  fn get_latest_inscriptions_with_prev_and_next() {
-    for context in Context::configurations() {
-      context.mine_blocks(1);
-
-      let mut ids = Vec::new();
-
-      for i in 0..103 {
-        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
-          ..Default::default()
-        });
-        ids.push(InscriptionId { txid, index: 0 });
-        context.mine_blocks(1);
-      }
-
-      ids.reverse();
-
-      let (inscriptions, prev, next, lowest, highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, None)
-        .unwrap();
-      assert_eq!(inscriptions, &ids[..100]);
-      assert_eq!(prev, Some(2));
-      assert_eq!(next, None);
-      assert_eq!(highest, 102);
-      assert_eq!(lowest, 0);
-
-      let (inscriptions, prev, next, _lowest, _highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, Some(101))
-        .unwrap();
-      assert_eq!(inscriptions, &ids[1..101]);
-      assert_eq!(prev, Some(1));
-      assert_eq!(next, Some(102));
-
-      let (inscriptions, prev, next, _lowest, _highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, Some(0))
-        .unwrap();
-      assert_eq!(inscriptions, &ids[102..103]);
-      assert_eq!(prev, None);
-      assert_eq!(next, Some(100));
+      assert!(!more);
     }
   }
 
