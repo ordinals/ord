@@ -10,9 +10,8 @@ pub(crate) struct InscriptionsHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionsJson {
   pub inscriptions: Vec<InscriptionId>,
-  pub page_index: usize,
-  pub page_size: usize,
   pub more: bool,
+  pub page_index: usize,
 }
 
 impl PageContent for InscriptionsHtml {

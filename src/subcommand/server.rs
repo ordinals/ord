@@ -1353,7 +1353,6 @@ impl Server {
       Json(InscriptionsJson {
         inscriptions,
         page_index: page_index.try_into().unwrap(),
-        page_size: 100,
         more: more_inscriptions,
       })
       .into_response()
@@ -1408,7 +1407,6 @@ impl Server {
       Json(InscriptionsJson {
         inscriptions,
         page_index,
-        page_size,
         more,
       })
       .into_response()
