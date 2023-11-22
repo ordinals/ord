@@ -421,7 +421,7 @@ fn sat_recursive_endpoint() {
 
   assert_eq!(
     server
-      .request("/r/inscriptions/sat/5000000000")
+      .request("/r/inscriptions/5000000000")
       .json::<InscriptionsSatJson>()
       .unwrap(),
     InscriptionsSatJson {
@@ -438,7 +438,7 @@ fn sat_recursive_endpoint() {
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   let response = server
-    .request("/r/inscriptions/sat/5000000000")
+    .request("/r/inscriptions/5000000000")
     .json::<InscriptionsSatJson>()
     .unwrap();
 
