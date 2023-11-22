@@ -239,15 +239,9 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/sat/:number", get(Self::sat_inscriptions))
-        .route(
-          "/r/sat/:number/:page",
-          get(Self::sat_inscriptions_paginated),
-        )
-        .route(
-          "/r/sat/:number/at/:index",
-          get(Self::sat_inscription_at_index),
-        )
+        .route("/r/sat/:sat", get(Self::sat_inscriptions))
+        .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
+        .route("/r/sat/:sat/at/:index", get(Self::sat_inscription_at_index))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -1453,14 +1447,14 @@ impl Server {
 
   async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
-    Path(sat): Path<u64>,
+    Path(sat): Path<Sat>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
     Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
   }
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, page_index)): Path<(u64, u64)>,
+    Path((sat, page_index)): Path<(Sat, u64)>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -1468,7 +1462,7 @@ impl Server {
       ));
     }
 
-    let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page_index)?;
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page_index)?;
 
     Ok(Json(SatInscriptionsJson {
       ids,
@@ -1479,7 +1473,7 @@ impl Server {
 
   async fn sat_inscription_at_index(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, inscription_index)): Path<(u64, isize)>,
+    Path((sat, inscription_index)): Path<(Sat, isize)>,
   ) -> ServerResult<Json<SatInscriptionJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -1487,7 +1481,7 @@ impl Server {
       ));
     }
 
-    let id = index.get_inscription_id_by_sat_indexed(Sat(sat), inscription_index)?;
+    let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
 
     Ok(Json(SatInscriptionJson { id }))
   }
