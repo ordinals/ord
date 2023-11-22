@@ -5,10 +5,10 @@ pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) genesis_fee: u64,
-  pub(crate) genesis_height: u64,
+  pub(crate) genesis_height: u32,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
-  pub(crate) inscription_number: i64,
+  pub(crate) inscription_number: i32,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
@@ -17,6 +17,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
+  pub(crate) charms: u16,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -26,9 +27,9 @@ pub struct InscriptionJson {
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
   pub genesis_fee: u64,
-  pub genesis_height: u64,
+  pub genesis_height: u32,
   pub inscription_id: InscriptionId,
-  pub inscription_number: i64,
+  pub inscription_number: i32,
   pub next: Option<InscriptionId>,
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
@@ -37,48 +38,6 @@ pub struct InscriptionJson {
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
-}
-
-impl InscriptionJson {
-  pub fn new(
-    chain: Chain,
-    children: Vec<InscriptionId>,
-    genesis_fee: u64,
-    genesis_height: u64,
-    inscription: Inscription,
-    inscription_id: InscriptionId,
-    parent: Option<InscriptionId>,
-    next: Option<InscriptionId>,
-    inscription_number: i64,
-    output: Option<TxOut>,
-    previous: Option<InscriptionId>,
-    sat: Option<Sat>,
-    satpoint: SatPoint,
-    timestamp: DateTime<Utc>,
-    rune: Option<Rune>,
-  ) -> Self {
-    Self {
-      inscription_id,
-      children,
-      inscription_number,
-      genesis_height,
-      parent,
-      genesis_fee,
-      output_value: output.as_ref().map(|o| o.value),
-      address: output
-        .as_ref()
-        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok())
-        .map(|address| address.to_string()),
-      sat,
-      satpoint,
-      content_type: inscription.content_type().map(|s| s.to_string()),
-      content_length: inscription.content_length(),
-      timestamp: timestamp.timestamp(),
-      previous,
-      next,
-      rune,
-    }
-  }
 }
 
 impl PageContent for InscriptionHtml {
@@ -462,6 +421,34 @@ mod tests {
           .*
           <dt>rune</dt>
           <dd><a href=/rune/A>A</a></dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_content_encoding() {
+    assert_regex_match!(
+      InscriptionHtml {
+        genesis_fee: 1,
+        inscription: Inscription {
+          content_encoding: Some("br".into()),
+          ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
+        },
+        inscription_id: inscription_id(1),
+        inscription_number: 1,
+        satpoint: satpoint(1, 0),
+        ..Default::default()
+      },
+      "
+        <h1>Inscription 1</h1>
+        .*
+        <dl>
+          .*
+          <dt>content encoding</dt>
+          <dd>br</dd>
+          .*
         </dl>
       "
       .unindent()

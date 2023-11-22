@@ -245,15 +245,16 @@ a.mythic {
 }
 
 .tabs > a {
-  flex: 1;
-  padding: 1rem;
   color: var(--light-fg);
+  padding: 1rem;
 }
 
-.tabs > *:nth-child(1) {
+.tabs > *:first-child {
+  flex: 1;
   text-align: right;
 }
 
-.tabs > *:nth-child(3) {
+.tabs > *:last-child {
+  flex: 1;
   text-align: left;
 }

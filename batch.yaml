@@ -8,6 +8,9 @@ mode: separate-outputs
 # parent inscription:
 parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 
+# postage for each inscription:
+postage: 12345
+
 # inscriptions to inscribe
 #
 # each inscription has the following fields:
@@ -25,6 +28,7 @@ inscriptions:
         metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
         mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
         dolor et luctus euismod.
+    destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
 
   - file: token.json
     metaprotocol: brc-20
@@ -32,3 +36,4 @@ inscriptions:
   - file: tulip.png
     metadata:
       author: Satoshi Nakamoto
+    destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6

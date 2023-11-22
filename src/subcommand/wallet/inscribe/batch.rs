@@ -518,8 +518,9 @@ impl Batch {
   }
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
   #[serde(rename = "shared-output")]
@@ -529,6 +530,7 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
+  pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
@@ -547,12 +549,13 @@ impl BatchEntry {
   }
 }
 
-#[derive(Deserialize, PartialEq, Debug, Clone)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Batchfile {
   pub(crate) inscriptions: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
+  pub(crate) postage: Option<u64>,
 }
 
 impl Batchfile {
@@ -568,12 +571,25 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
+    client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
-  ) -> Result<Vec<Inscription>> {
+    compress: bool,
+  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
+
+    if self
+      .inscriptions
+      .iter()
+      .any(|entry| entry.destination.is_some())
+      && self.mode == Mode::SharedOutput
+    {
+      return Err(anyhow!(
+        "individual inscription destinations cannot be set in shared-output mode"
+      ));
+    }
 
     if metadata.is_some() {
       assert!(self
@@ -596,11 +612,31 @@ impl Batchfile {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
+        compress,
       )?);
 
       pointer += postage.to_sat();
     }
 
-    Ok(inscriptions)
+    let destinations = match self.mode {
+      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SeparateOutputs => self
+        .inscriptions
+        .iter()
+        .map(|entry| {
+          entry.destination.as_ref().map_or_else(
+            || get_change_address(client, chain),
+            |address| {
+              address
+                .clone()
+                .require_network(chain.network())
+                .map_err(|e| e.into())
+            },
+          )
+        })
+        .collect::<Result<Vec<_>, _>>()?,
+    };
+
+    Ok((inscriptions, destinations))
   }
 }

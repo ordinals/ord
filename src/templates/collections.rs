@@ -1,22 +1,15 @@
 use super::*;
 
 #[derive(Boilerplate)]
-pub(crate) struct InscriptionsHtml {
+pub(crate) struct CollectionsHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) prev: Option<usize>,
   pub(crate) next: Option<usize>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InscriptionsJson {
-  pub inscriptions: Vec<InscriptionId>,
-  pub more: bool,
-  pub page_index: usize,
-}
-
-impl PageContent for InscriptionsHtml {
+impl PageContent for CollectionsHtml {
   fn title(&self) -> String {
-    "Inscriptions".into()
+    "Collections".into()
   }
 }
 
@@ -27,13 +20,13 @@ mod tests {
   #[test]
   fn without_prev_and_next() {
     assert_regex_match!(
-      InscriptionsHtml {
+      CollectionsHtml {
         inscriptions: vec![inscription_id(1), inscription_id(2)],
         prev: None,
         next: None,
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>Collections</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -50,20 +43,20 @@ mod tests {
   #[test]
   fn with_prev_and_next() {
     assert_regex_match!(
-      InscriptionsHtml {
+      CollectionsHtml {
         inscriptions: vec![inscription_id(1), inscription_id(2)],
         prev: Some(1),
         next: Some(2),
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>Collections</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
         </div>
         .*
-        <a class=prev href=/inscriptions/1>prev</a>
-        <a class=next href=/inscriptions/2>next</a>
+        <a class=prev href=/collections/1>prev</a>
+        <a class=next href=/collections/2>next</a>
         .*
       "
       .unindent()

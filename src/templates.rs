@@ -5,6 +5,7 @@ pub(crate) use {
   blocks::BlocksHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
+  collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -15,8 +16,8 @@ pub(crate) use {
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
-    PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
@@ -30,6 +31,7 @@ pub mod block;
 mod blocks;
 mod children;
 mod clock;
+pub mod collections;
 mod home;
 mod iframe;
 mod input;
@@ -115,6 +117,7 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: Some("https://signet.ordinals.com".into()),
         domain: Some("signet.ordinals.com".into()),
         index_sats: true,
       }),),
@@ -160,9 +163,10 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
+      })),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
   }
@@ -172,9 +176,10 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: false,
-      }),),
+      })),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
   }
@@ -184,9 +189,10 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Signet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
+      })),
       r".*<nav class=links>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
   }
