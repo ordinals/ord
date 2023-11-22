@@ -1457,6 +1457,12 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((sat, page_index)): Path<(u64, u64)>,
   ) -> ServerResult<Json<InscriptionsSatJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
     let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page_index)?;
 
     Ok(Json(InscriptionsSatJson {
