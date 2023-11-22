@@ -136,7 +136,7 @@ pub(crate) struct Server {
     long,
     help = "Origin to use for the content-security-policy header. Set this to the fully-qualified domain name of your ord instance. [default: None]"
   )]
-  content_security_policy_origin: Option<String>,
+  csp_origin: Option<String>,
   #[arg(
     long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
@@ -189,7 +189,7 @@ impl Server {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        content_security_policy_origin: self.content_security_policy_origin.clone(),
+        content_security_policy_origin: self.csp_origin.clone(),
       });
 
       let router = Router::new()
