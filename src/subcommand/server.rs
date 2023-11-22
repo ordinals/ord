@@ -1454,7 +1454,7 @@ impl Server {
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, page_index)): Path<(Sat, u64)>,
+    Path((sat, page)): Path<(Sat, u64)>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -1462,12 +1462,12 @@ impl Server {
       ));
     }
 
-    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page_index)?;
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page)?;
 
     Ok(Json(SatInscriptionsJson {
       ids,
       more,
-      page: page_index,
+      page,
     }))
   }
 
