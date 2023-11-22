@@ -10,6 +10,10 @@ repository = "https://github.com/ordinals/ord"
 autobins = false
 rust-version = "1.67"
 
+[package.metadata.deb]
+copyright = "The Ord Maintainers"
+maintainer = "The Ord Maintainers"
+
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
 

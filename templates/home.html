@@ -1,10 +1,4 @@
-<nav class=tabs>
-  <a href=/inscriptions>Inscriptions</a>
-  <span>|</span>
-  <a href=/blocks>Blocks</a>
-  <span>|</span>
-  <a href=/collections>Collections</a>
-</nav>
+<h1>Latest Inscriptions</h1>
 <div class=thumbnails>
 %% for inscription in &self.inscriptions {
   {{ Iframe::thumbnail(*inscription) }}
