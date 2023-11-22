@@ -176,7 +176,7 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
-        csp_origin: None
+        csp_origin: None,
         domain: None,
         index_sats: false,
       })),
