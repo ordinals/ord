@@ -4,11 +4,11 @@ on:
   push:
     branches:
     - master
-    - 6.x
+    - dev
   pull_request:
     branches:
     - master
-    - 6.x
+    - dev
 
 defaults:
   run:
