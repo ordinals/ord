@@ -18,8 +18,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadableMultimapTable, ReadableTable, StorageError, Table, TableDefinition, TableHandle,
-    WriteTransaction,
+    ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
+    TableHandle, WriteTransaction,
   },
   std::collections::{BTreeSet, HashMap},
   std::io::{BufWriter, Read, Write},
@@ -431,40 +431,46 @@ impl Index {
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
-    macro_rules! insert_table_info {
-      ($wtx:ident, $tables:ident, $table:ident) => {{
-        let stats = $wtx.open_table($table).unwrap().stats().unwrap();
-
-        $tables.insert(
-          $table.name().into(),
-          TableInfo {
-            tree_height: stats.tree_height(),
-            leaf_pages: stats.leaf_pages(),
-            branch_pages: stats.branch_pages(),
-            stored_bytes: stats.stored_bytes(),
-            metadata_bytes: stats.metadata_bytes(),
-            fragmented_bytes: stats.fragmented_bytes(),
-          },
-        );
-      }};
+    fn insert_table_info<K: RedbKey + 'static, V: RedbValue + 'static>(
+      tables: &mut BTreeMap<String, TableInfo>,
+      wtx: &WriteTransaction,
+      definition: TableDefinition<K, V>,
+    ) {
+      let stats = wtx.open_table(definition).unwrap().stats().unwrap();
+      tables.insert(
+        definition.name().into(),
+        TableInfo {
+          tree_height: stats.tree_height(),
+          leaf_pages: stats.leaf_pages(),
+          branch_pages: stats.branch_pages(),
+          stored_bytes: stats.stored_bytes(),
+          metadata_bytes: stats.metadata_bytes(),
+          fragmented_bytes: stats.fragmented_bytes(),
+        },
+      );
     }
 
-    macro_rules! insert_multimap_table_info {
-      ($wtx:ident, $tables:ident, $table:ident) => {{
-        let stats = $wtx.open_multimap_table($table).unwrap().stats().unwrap();
-
-        $tables.insert(
-          $table.name().into(),
-          TableInfo {
-            tree_height: stats.tree_height(),
-            leaf_pages: stats.leaf_pages(),
-            branch_pages: stats.branch_pages(),
-            stored_bytes: stats.stored_bytes(),
-            metadata_bytes: stats.metadata_bytes(),
-            fragmented_bytes: stats.fragmented_bytes(),
-          },
-        );
-      }};
+    fn insert_multimap_table_info<K: RedbKey + 'static, V: RedbValue + RedbKey + 'static>(
+      tables: &mut BTreeMap<String, TableInfo>,
+      wtx: &WriteTransaction,
+      definition: MultimapTableDefinition<K, V>,
+    ) {
+      let stats = wtx
+        .open_multimap_table(definition)
+        .unwrap()
+        .stats()
+        .unwrap();
+      tables.insert(
+        definition.name().into(),
+        TableInfo {
+          tree_height: stats.tree_height(),
+          leaf_pages: stats.leaf_pages(),
+          branch_pages: stats.branch_pages(),
+          stored_bytes: stats.stored_bytes(),
+          metadata_bytes: stats.metadata_bytes(),
+          fragmented_bytes: stats.fragmented_bytes(),
+        },
+      );
     }
 
     let wtx = self.begin_write()?;
@@ -473,31 +479,39 @@ impl Index {
 
     let mut tables: BTreeMap<String, TableInfo> = BTreeMap::new();
 
-    insert_multimap_table_info!(wtx, tables, SATPOINT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info!(wtx, tables, SAT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_CHILDREN);
-    insert_table_info!(wtx, tables, HEIGHT_TO_BLOCK_HASH);
-    insert_table_info!(wtx, tables, HEIGHT_TO_BLOCK_HASH);
-    insert_table_info!(wtx, tables, HEIGHT_TO_LAST_SEQUENCE_NUMBER);
-    insert_table_info!(wtx, tables, HOME_INSCRIPTIONS);
-    insert_table_info!(wtx, tables, INSCRIPTION_ID_TO_SEQUENCE_NUMBER);
-    insert_table_info!(wtx, tables, INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER);
-    insert_table_info!(wtx, tables, OUTPOINT_TO_RUNE_BALANCES);
-    insert_table_info!(wtx, tables, OUTPOINT_TO_SAT_RANGES);
-    insert_table_info!(wtx, tables, OUTPOINT_TO_VALUE);
-    insert_table_info!(wtx, tables, RUNE_ID_TO_RUNE_ENTRY);
-    insert_table_info!(wtx, tables, RUNE_TO_RUNE_ID);
-    insert_table_info!(wtx, tables, SAT_TO_SATPOINT);
-    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY);
-    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_RUNE);
-    insert_table_info!(wtx, tables, SEQUENCE_NUMBER_TO_SATPOINT);
-    insert_table_info!(wtx, tables, STATISTIC_TO_COUNT);
-    insert_table_info!(wtx, tables, TRANSACTION_ID_TO_RUNE);
-    insert_table_info!(
-      wtx,
-      tables,
-      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP
+    insert_multimap_table_info(&mut tables, &wtx, SATPOINT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info(&mut tables, &wtx, SAT_TO_SEQUENCE_NUMBER);
+    insert_multimap_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_CHILDREN);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_BLOCK_HASH);
+    insert_table_info(&mut tables, &wtx, HEIGHT_TO_LAST_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, HOME_INSCRIPTIONS);
+    insert_table_info(&mut tables, &wtx, INSCRIPTION_ID_TO_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_RUNE_BALANCES);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_SAT_RANGES);
+    insert_table_info(&mut tables, &wtx, OUTPOINT_TO_VALUE);
+    insert_table_info(&mut tables, &wtx, RUNE_ID_TO_RUNE_ENTRY);
+    insert_table_info(&mut tables, &wtx, RUNE_TO_RUNE_ID);
+    insert_table_info(&mut tables, &wtx, SAT_TO_SATPOINT);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_RUNE);
+    insert_table_info(&mut tables, &wtx, SEQUENCE_NUMBER_TO_SATPOINT);
+    insert_table_info(&mut tables, &wtx, STATISTIC_TO_COUNT);
+    insert_table_info(&mut tables, &wtx, TRANSACTION_ID_TO_RUNE);
+    insert_table_info(
+      &mut tables,
+      &wtx,
+      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP,
     );
+
+    for table in wtx.list_tables()? {
+      assert!(tables.contains_key(table.name()));
+    }
+
+    for table in wtx.list_multimap_tables()? {
+      assert!(tables.contains_key(table.name()));
+    }
 
     let info = {
       let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
