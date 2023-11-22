@@ -243,39 +243,6 @@ fn get_inscriptions() {
     inscriptions_json.inscriptions,
     inscriptions.iter().cloned().rev().collect::<Vec<_>>()
   );
-
-  let (lowest, highest) = (
-    inscriptions_json.lowest.unwrap(),
-    inscriptions_json.highest.unwrap(),
-  );
-
-  for i in lowest..=highest {
-    let response = server.json_request(format!("/inscriptions/{}/1", i));
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let inscriptions_json: InscriptionsJson =
-      serde_json::from_str(&response.text().unwrap()).unwrap();
-
-    assert_eq!(inscriptions_json.inscriptions.len(), 1);
-    assert_eq!(
-      inscriptions_json.inscriptions[0],
-      inscriptions[(i - lowest) as usize]
-    );
-
-    let response = server.json_request(format!(
-      "/inscription/{}",
-      inscriptions_json.inscriptions[0]
-    ));
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let inscription_json: InscriptionJson =
-      serde_json::from_str(&response.text().unwrap()).unwrap();
-
-    assert_eq!(
-      inscription_json.inscription_id,
-      inscriptions_json.inscriptions[0]
-    );
-  }
 }
 
 #[test]

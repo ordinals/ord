@@ -1301,55 +1301,31 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
+  pub(crate) fn get_inscriptions_paginated(
     &self,
-    n: usize,
-    from: Option<u32>,
-  ) -> Result<(Vec<InscriptionId>, Option<u32>, Option<u32>, u32, u32)> {
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let highest = match sequence_number_to_inscription_entry.iter()?.next_back() {
-      Some(Ok((number, _entry))) => number.value(),
-      Some(Err(_)) | None => return Ok(Default::default()),
-    };
-
-    let lowest = match sequence_number_to_inscription_entry.iter()?.next() {
-      Some(Ok((number, _entry))) => number.value(),
-      Some(Err(_)) | None => return Ok(Default::default()),
-    };
-
-    let from = from.unwrap_or(highest);
-
-    let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
-      sequence_number_to_inscription_entry
-        .get(&prev)?
-        .map(|_| prev)
-    } else {
-      None
-    };
-
-    let next = if from < highest {
-      Some(
-        from
-          .checked_add(n.try_into()?)
-          .unwrap_or(highest)
-          .min(highest),
-      )
-    } else {
-      None
-    };
-
-    let inscriptions = sequence_number_to_inscription_entry
-      .range(..=from)?
+    let mut inscriptions = sequence_number_to_inscription_entry
+      .iter()?
       .rev()
-      .take(n)
+      .skip(page_size.saturating_mul(page_index))
+      .take(page_size.saturating_add(1))
       .flat_map(|result| result.map(|(_number, entry)| InscriptionEntry::load(entry.value()).id))
-      .collect();
+      .collect::<Vec<InscriptionId>>();
 
-    Ok((inscriptions, prev, next, lowest, highest))
+    let more = inscriptions.len() > page_size;
+
+    if more {
+      inscriptions.pop();
+    }
+
+    Ok((inscriptions, more))
   }
 
   pub(crate) fn get_inscriptions_in_block(&self, block_height: u32) -> Result<Vec<InscriptionId>> {
@@ -2820,59 +2796,9 @@ mod tests {
 
       context.mine_blocks(1);
 
-      let (inscriptions, prev, next, _, _) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, None)
-        .unwrap();
+      let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
       assert_eq!(inscriptions, &[inscription_id]);
-      assert_eq!(prev, None);
-      assert_eq!(next, None);
-    }
-  }
-
-  #[test]
-  fn get_latest_inscriptions_with_prev_and_next() {
-    for context in Context::configurations() {
-      context.mine_blocks(1);
-
-      let mut ids = Vec::new();
-
-      for i in 0..103 {
-        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
-          ..Default::default()
-        });
-        ids.push(InscriptionId { txid, index: 0 });
-        context.mine_blocks(1);
-      }
-
-      ids.reverse();
-
-      let (inscriptions, prev, next, lowest, highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, None)
-        .unwrap();
-      assert_eq!(inscriptions, &ids[..100]);
-      assert_eq!(prev, Some(2));
-      assert_eq!(next, None);
-      assert_eq!(highest, 102);
-      assert_eq!(lowest, 0);
-
-      let (inscriptions, prev, next, _lowest, _highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, Some(101))
-        .unwrap();
-      assert_eq!(inscriptions, &ids[1..101]);
-      assert_eq!(prev, Some(1));
-      assert_eq!(next, Some(102));
-
-      let (inscriptions, prev, next, _lowest, _highest) = context
-        .index
-        .get_latest_inscriptions_with_prev_and_next(100, Some(0))
-        .unwrap();
-      assert_eq!(inscriptions, &ids[102..103]);
-      assert_eq!(prev, None);
-      assert_eq!(next, Some(100));
+      assert_eq!(more, false);
     }
   }
 

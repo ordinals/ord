@@ -3,35 +3,16 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev: Option<u32>,
-  pub(crate) next: Option<u32>,
+  pub(crate) prev: Option<usize>,
+  pub(crate) next: Option<usize>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionsJson {
   pub inscriptions: Vec<InscriptionId>,
-  pub prev: Option<u32>,
-  pub next: Option<u32>,
-  pub lowest: Option<u32>,
-  pub highest: Option<u32>,
-}
-
-impl InscriptionsJson {
-  pub fn new(
-    inscriptions: Vec<InscriptionId>,
-    prev: Option<u32>,
-    next: Option<u32>,
-    lowest: Option<u32>,
-    highest: Option<u32>,
-  ) -> Self {
-    Self {
-      inscriptions,
-      prev,
-      next,
-      lowest,
-      highest,
-    }
-  }
+  pub page_index: usize,
+  pub page_size: usize,
+  pub more: bool,
 }
 
 impl PageContent for InscriptionsHtml {

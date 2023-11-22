@@ -211,15 +211,14 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/:from", get(Self::inscriptions_from))
-        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
+        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
           get(Self::inscriptions_in_block),
         )
         .route(
           "/inscriptions/block/:height/:page",
-          get(Self::inscriptions_in_block_from_page),
+          get(Self::inscriptions_in_block_paginated),
         )
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
@@ -1329,7 +1328,44 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, None, 100, accept_json).await
+    Self::inscriptions_paginated(
+      Extension(page_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn inscriptions_paginated(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
+
+    let prev = page_index.checked_sub(1);
+
+    let next = more_inscriptions.then_some(page_index + 1);
+
+    Ok(if accept_json.0 {
+      Json(InscriptionsJson {
+        inscriptions,
+        page_index: page_index.try_into().unwrap(),
+        page_size: 100,
+        more: more_inscriptions,
+      })
+      .into_response()
+    } else {
+      InscriptionsHtml {
+        inscriptions,
+        next,
+        prev,
+      }
+      .page(page_config)
+      .into_response()
+    })
   }
 
   async fn inscriptions_in_block(
@@ -1338,7 +1374,7 @@ impl Server {
     Path(block_height): Path<u32>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_in_block_from_page(
+    Self::inscriptions_in_block_paginated(
       Extension(page_config),
       Extension(index),
       Path((block_height, 0)),
@@ -1347,70 +1383,42 @@ impl Server {
     .await
   }
 
-  async fn inscriptions_in_block_from_page(
+  async fn inscriptions_in_block_paginated(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page)): Path<(u32, usize)>,
+    Path((block_height, page_index)): Path<(u32, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index.get_inscriptions_in_block(block_height)?;
+    let page_size = 100;
+
+    let mut inscriptions = index
+      .get_inscriptions_in_block(block_height)?
+      .into_iter()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+      .collect::<Vec<InscriptionId>>();
+
+    let more = inscriptions.len() > page_size;
+
+    if more {
+      inscriptions.pop();
+    }
 
     Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
+      Json(InscriptionsJson {
+        inscriptions,
+        page_index,
+        page_size,
+        more,
+      })
+      .into_response()
     } else {
       InscriptionsBlockHtml::new(
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
-        page,
+        page_index,
       )?
-      .page(page_config)
-      .into_response()
-    })
-  }
-
-  async fn inscriptions_from(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u32>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
-  }
-
-  async fn inscriptions_from_n(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(u32, usize)>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
-  }
-
-  async fn inscriptions_inner(
-    page_config: Arc<PageConfig>,
-    index: Arc<Index>,
-    from: Option<u32>,
-    n: usize,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    let (inscriptions, prev, next, lowest, highest) =
-      index.get_latest_inscriptions_with_prev_and_next(n, from)?;
-    Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(
-        inscriptions,
-        prev,
-        next,
-        Some(lowest),
-        Some(highest),
-      ))
-      .into_response()
-    } else {
-      InscriptionsHtml {
-        inscriptions,
-        next,
-        prev,
-      }
       .page(page_config)
       .into_response()
     })
@@ -3592,7 +3600,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/inscriptions",
+      "/inscriptions/1",
       StatusCode::OK,
       ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
     );
@@ -3615,7 +3623,7 @@ mod tests {
     server.assert_response_regex(
       "/inscriptions/0",
       StatusCode::OK,
-      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+      ".*prev\n<a class=next href=/inscriptions/1>next</a>.*",
     );
   }
 
