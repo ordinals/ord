@@ -697,7 +697,13 @@ impl TransactionBuilder {
         current_value >= target_value && is_closer
       };
 
-      if is_preference_and_closer || not_preference_but_closer {
+      let newly_meets_preference = if prefer_under {
+        best_value > target_value && current_value <= target_value
+      } else {
+        best_value < target_value && current_value >= target_value
+      };
+
+      if is_preference_and_closer || not_preference_but_closer || newly_meets_preference {
         best_match = Some((*utxo, current_value))
       }
     }
