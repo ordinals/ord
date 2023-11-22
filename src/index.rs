@@ -21,8 +21,11 @@ use {
     ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
     TableHandle, WriteTransaction,
   },
-  std::collections::{BTreeSet, HashMap},
-  std::io::{BufWriter, Read, Write},
+  std::{
+    collections::{BTreeSet, HashMap},
+    io::{BufWriter, Write},
+    sync::Once,
+  },
 };
 
 pub(crate) use self::entry::RuneEntry;
@@ -204,20 +207,6 @@ impl Index {
       }
     };
 
-    if let Ok(mut file) = fs::OpenOptions::new().read(true).open(&path) {
-      // use cberner's quick hack to check the redb recovery bit
-      // https://github.com/cberner/redb/issues/639#issuecomment-1628037591
-      const MAGICNUMBER: [u8; 9] = [b'r', b'e', b'd', b'b', 0x1A, 0x0A, 0xA9, 0x0D, 0x0A];
-      const RECOVERY_REQUIRED: u8 = 2;
-
-      let mut buffer = [0; MAGICNUMBER.len() + 1];
-      file.read_exact(&mut buffer).unwrap();
-
-      if buffer[MAGICNUMBER.len()] & RECOVERY_REQUIRED != 0 {
-        println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path);
-      }
-    }
-
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
     let durability = if cfg!(test) {
@@ -229,8 +218,15 @@ impl Index {
     let index_runes;
     let index_sats;
 
+    let index_path = path.clone();
+    let once = Once::new();
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
+      .set_repair_callback(move |_| {
+        once.call_once(|| {
+          println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display());
+        })
+      })
       .open(&path)
     {
       Ok(database) => {
