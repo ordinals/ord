@@ -167,12 +167,17 @@ fn get_inscription() {
   )
 }
 
-fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<InscriptionId> {
+#[test]
+fn get_inscriptions() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
   let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
   let mut inscriptions = Vec::new();
 
-  // Create 150 inscriptions, 50 non-cursed and 100 cursed
+  // Create 150 inscriptions
   for i in 0..50 {
     rpc_server.mine_blocks(1);
     rpc_server.mine_blocks(1);
@@ -194,32 +199,6 @@ fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<Ins
 
   rpc_server.mine_blocks(1);
 
-  // Create another 60 non cursed
-  for _ in 0..60 {
-    let Inscribe { reveal, .. } =
-      CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
-        .write("foo.txt", "FOO")
-        .rpc_server(rpc_server)
-        .run_and_deserialize_output();
-    rpc_server.mine_blocks(1);
-    inscriptions.push(InscriptionId {
-      txid: reveal,
-      index: 0,
-    });
-  }
-
-  rpc_server.mine_blocks(1);
-
-  inscriptions
-}
-
-#[test]
-fn get_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-
-  create_wallet(&rpc_server);
-  let inscriptions = create_210_inscriptions(&rpc_server);
-
   let server =
     TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
@@ -228,21 +207,20 @@ fn get_inscriptions() {
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  // 100 latest (blessed) inscriptions
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
+  assert_eq!(inscriptions_json.more, true);
+  assert_eq!(inscriptions_json.page_size, 100);
+  assert_eq!(inscriptions_json.page_index, 0);
 
   // get all inscriptions
-  let response = server.json_request(format!("/inscriptions/{}/{}", 500, 400));
+  let response = server.json_request("/inscriptions/1");
   assert_eq!(response.status(), StatusCode::OK);
-
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), inscriptions.len());
-  pretty_assert_eq!(
-    inscriptions_json.inscriptions,
-    inscriptions.iter().cloned().rev().collect::<Vec<_>>()
-  );
+  assert_eq!(inscriptions_json.inscriptions.len(), 50);
+  assert_eq!(inscriptions_json.more, false);
+  assert_eq!(inscriptions_json.page_index, 1);
 }
 
 #[test]
