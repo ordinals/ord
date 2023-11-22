@@ -33,7 +33,7 @@ mod tests {
         next: None,
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>All Inscriptions</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -56,7 +56,7 @@ mod tests {
         next: Some(2),
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>All Inscriptions</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
