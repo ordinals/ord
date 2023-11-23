@@ -28,7 +28,7 @@ The recursive endpoints are:
 - `/r/blocktime`: UNIX time stamp of latest block.
 - `/r/metadata/<INSCRIPTION_ID>`: returns a JSON string containing the hex-encoded CBOR metadata.
 
-For backwards compatibility these additional endpoints are supported.
+Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.
 
 - `/blockheight`: latest block height.
 - `/blockhash`: latest block hash.
