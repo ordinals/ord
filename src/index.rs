@@ -1044,6 +1044,35 @@ impl Index {
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
+    let ids = rtx
+      .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
+      .get(&sat.n())?
+      .map(|result| {
+        result
+          .and_then(|sequence_number| {
+            let sequence_number = sequence_number.value();
+            sequence_number_to_inscription_entry
+              .get(sequence_number)
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          })
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    Ok(ids)
+  }
+
+  pub(crate) fn get_inscription_ids_by_sat_paginated(
+    &self,
+    sat: Sat,
+    page_size: u64,
+    page_index: u64,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
     let mut ids = rtx
       .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
       .get(&sat.n())?
@@ -1053,20 +1082,55 @@ impl Index {
             let sequence_number = sequence_number.value();
             sequence_number_to_inscription_entry
               .get(sequence_number)
-              .map(|entry| {
-                (
-                  sequence_number,
-                  InscriptionEntry::load(entry.unwrap().value()).id,
-                )
-              })
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
           })
           .map_err(|err| err.into())
       })
-      .collect::<Result<Vec<(u32, InscriptionId)>>>()?;
+      .skip(page_index.saturating_mul(page_size).try_into().unwrap())
+      .take(page_size.saturating_add(1).try_into().unwrap())
+      .collect::<Result<Vec<InscriptionId>>>()?;
 
-    ids.sort_by_key(|(sequence_number, _id)| *sequence_number);
+    let more = ids.len() > page_size.try_into().unwrap();
 
-    Ok(ids.into_iter().map(|(_sequence_number, id)| id).collect())
+    if more {
+      ids.pop();
+    }
+
+    Ok((ids, more))
+  }
+
+  pub(crate) fn get_inscription_id_by_sat_indexed(
+    &self,
+    sat: Sat,
+    inscription_index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let sat_to_sequence_number = rtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
+
+    if inscription_index < 0 {
+      sat_to_sequence_number
+        .get(&sat.n())?
+        .nth_back((inscription_index + 1).abs_diff(0))
+    } else {
+      sat_to_sequence_number
+        .get(&sat.n())?
+        .nth(inscription_index.abs_diff(0))
+    }
+    .map(|result| {
+      result
+        .and_then(|sequence_number| {
+          let sequence_number = sequence_number.value();
+          sequence_number_to_inscription_entry
+            .get(sequence_number)
+            .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+        })
+        .map_err(|err| anyhow!(err.to_string()))
+    })
+    .transpose()
   }
 
   pub(crate) fn get_inscription_id_by_sequence_number(
