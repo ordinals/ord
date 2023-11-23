@@ -10,13 +10,13 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-      InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml,
-      InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-      PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-      PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-      RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson,
-      TransactionHtml, ChildrenJson,
+      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ChildrenJson, ClockSvg, CollectionsHtml,
+      HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml,
+      InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
+      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+      RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
+      SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -239,7 +239,10 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
-        .route("/r/children/:inscription_id/:page", get(Self::children_recursive_paginated))
+        .route(
+          "/r/children/:inscription_id/:page",
+          get(Self::children_recursive_paginated),
+        )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat", get(Self::sat_inscriptions))
         .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
@@ -1352,26 +1355,29 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    Self::children_recursive_paginated(
-      Extension(index),
-      Path((inscription_id, 0)),
-    )
-    .await
+    Self::children_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
   }
 
   async fn children_recursive_paginated(
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    let parent_number = index
+    let parent_sequence_number = index
       .get_inscription_entry(parent)?
       .ok_or_not_found(|| format!("inscription {parent}"))?
       .sequence_number;
 
     let (children, more_children) =
-      index.get_children_by_sequence_number_paginated(parent_number, 100, page)?;
+      index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
 
-    Ok(Json(ChildrenJson{ids: children, more: more_children, page}).into_response())
+    Ok(
+      Json(ChildrenJson {
+        ids: children,
+        more: more_children,
+        page,
+      })
+      .into_response(),
+    )
   }
 
   async fn inscriptions(
@@ -2565,11 +2571,12 @@ mod tests {
 
     let child_inscription_id = InscriptionId { txid, index: 0 };
 
-    server.assert_response_regex(
-      format!("/r/children/{parent_inscription_id}"),
-      StatusCode::OK,
-      format!(".*[{child_inscription_id}].*"),
-    );
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
+
+    assert_eq!(children_json.ids[0], child_inscription_id);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 0);
   }
 
   #[test]
