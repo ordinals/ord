@@ -1447,14 +1447,14 @@ impl Server {
 
   async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
+    Path(sat): Path<u64>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
-    Self::sat_inscriptions_paginated(Extension(index), Path((DeserializeFromStr(sat), 0))).await
+    Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
   }
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
-    Path((DeserializeFromStr(sat), page)): Path<(DeserializeFromStr<Sat>, u64)>,
+    Path((sat, page)): Path<(u64, u64)>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -1462,7 +1462,7 @@ impl Server {
       ));
     }
 
-    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page)?;
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
 
     Ok(Json(SatInscriptionsJson { ids, more, page }))
   }
@@ -4392,5 +4392,109 @@ next
 "
       ),
     );
+  }
+
+  #[test]
+  fn sat_recursive_endpoints() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    assert_eq!(
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000"),
+      SatInscriptionsJson {
+        ids: vec![],
+        page: 0,
+        more: false
+      }
+    );
+
+    assert_eq!(
+      server.get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0"),
+      SatInscriptionJson { id: None }
+    );
+
+    let ids = Vec::new();
+    for i in 0..111 {
+      server.mine_blocks(1);
+
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, i, 0, inscription("text/plain", "foo").to_witness())],
+        ..Default::default()
+      });
+
+      ids.push(InscriptionId { txid, index: 0 });
+    }
+
+    let paginated_response = server
+      .request("/r/sat/5000000000")
+      .json::<SatInscriptionsJson>()
+      .unwrap();
+
+    let equivalent_paginated_response = server
+      .request("/r/sat/nvtcsezkbth/0")
+      .json::<SatInscriptionsJson>()
+      .unwrap();
+
+    assert_eq!(paginated_response.ids.len(), 100);
+    assert!(paginated_response.more);
+    assert_eq!(paginated_response.page, 0);
+
+    assert_eq!(
+      paginated_response.ids.len(),
+      equivalent_paginated_response.ids.len()
+    );
+    assert_eq!(paginated_response.more, equivalent_paginated_response.more);
+    assert_eq!(paginated_response.page, equivalent_paginated_response.page);
+
+    let paginated_response = server
+      .request("/r/sat/5000000000/1")
+      .json::<SatInscriptionsJson>()
+      .unwrap();
+
+    assert_eq!(paginated_response.ids.len(), 11);
+    assert!(!paginated_response.more);
+    assert_eq!(paginated_response.page, 1);
+
+    assert_eq!(
+      server
+        .request("/r/sat/nvtcsezkbth/at/0")
+        .json::<SatInscriptionJson>()
+        .unwrap()
+        .id,
+      Some(inscriptions[0])
+    );
+
+    assert_eq!(
+      server
+        .request("/r/sat/5000000000/at/-111")
+        .json::<SatInscriptionJson>()
+        .unwrap()
+        .id,
+      Some(inscriptions[0])
+    );
+
+    assert_eq!(
+      server
+        .request("/r/sat/5000000000/at/110")
+        .json::<SatInscriptionJson>()
+        .unwrap()
+        .id,
+      Some(inscriptions[110])
+    );
+
+    assert_eq!(
+      server
+        .request("/r/sat/0°1′1″0‴/at/-1")
+        .json::<SatInscriptionJson>()
+        .unwrap()
+        .id,
+      Some(inscriptions[110])
+    );
+
+    assert!(server
+      .request("/r/sat/5000000000/at/111")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id
+      .is_none());
   }
 }
