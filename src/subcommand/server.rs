@@ -4418,14 +4418,25 @@ next
       SatInscriptionJson { id: None }
     );
 
-    let mut ids = Vec::new();
-    for i in 0..111 {
-      server.mine_blocks(1);
+    server.mine_blocks(1);
 
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+    ids.push(InscriptionId { txid, index: 0 });
+
+    for i in 1..111 {
       let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(i + 1, i, 0, inscription("text/plain", "foo").to_witness())],
+        inputs: &[(i + 1, 1, 0, inscription("text/plain", "foo").to_witness())],
         ..Default::default()
       });
+
+      server.mine_blocks(1);
 
       ids.push(InscriptionId { txid, index: 0 });
     }
