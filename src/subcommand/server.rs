@@ -1447,14 +1447,14 @@ impl Server {
 
   async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
-    Path(sat): Path<Sat>,
+    Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
-    Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
+    Self::sat_inscriptions_paginated(Extension(index), Path((DeserializeFromStr(sat), 0))).await
   }
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, page)): Path<(Sat, u64)>,
+    Path((DeserializeFromStr(sat), page)): Path<(DeserializeFromStr<Sat>, u64)>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -1469,7 +1469,7 @@ impl Server {
 
   async fn sat_inscription_at_index(
     Extension(index): Extension<Arc<Index>>,
-    Path((sat, inscription_index)): Path<(Sat, isize)>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
   ) -> ServerResult<Json<SatInscriptionJson>> {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(

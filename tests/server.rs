@@ -423,6 +423,18 @@ fn sat_recursive_endpoints() {
 
   assert_eq!(
     server
+      .request("/r/sat/nvtcsezkbth")
+      .json::<SatInscriptionsJson>()
+      .unwrap(),
+    SatInscriptionsJson {
+      ids: vec![],
+      page: 0,
+      more: false
+    }
+  );
+
+  assert_eq!(
+    server
       .request("/r/sat/5000000000")
       .json::<SatInscriptionsJson>()
       .unwrap(),
@@ -451,7 +463,7 @@ fn sat_recursive_endpoints() {
     .unwrap();
 
   let equivalent_paginated_response = server
-    .request("/r/sat/5000000000/0")
+    .request("/r/sat/nvtcsezkbth/0")
     .json::<SatInscriptionsJson>()
     .unwrap();
 
@@ -477,7 +489,7 @@ fn sat_recursive_endpoints() {
 
   assert_eq!(
     server
-      .request("/r/sat/5000000000/at/0")
+      .request("/r/sat/nvtcsezkbth/at/0")
       .json::<SatInscriptionJson>()
       .unwrap()
       .id,
@@ -504,7 +516,7 @@ fn sat_recursive_endpoints() {
 
   assert_eq!(
     server
-      .request("/r/sat/5000000000/at/-1")
+      .request("/r/sat/0°1′1″0‴/at/-1")
       .json::<SatInscriptionJson>()
       .unwrap()
       .id,
