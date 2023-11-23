@@ -230,7 +230,6 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
-        .route("/children/:inscription_id", get(Self::children))
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
@@ -239,6 +238,8 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/children/:inscription_id", get(Self::children))
+        .route("/r/children/:inscription_id/:page", get(Self::children_paginated))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat", get(Self::sat_inscriptions))
         .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
@@ -957,14 +958,6 @@ impl Server {
         .unix_timestamp()
         .to_string(),
     )
-  }
-
-  async fn children(
-    Extension(index): Extension<Arc<Index>>,
-    Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<Json<Vec<InscriptionId>>> {
-    let children = index.get_children_by_inscription_id(inscription_id)?;
-    Ok(Json(children))
   }
 
   async fn input(
@@ -2533,6 +2526,7 @@ mod tests {
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
             unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         ),
