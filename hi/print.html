@@ -604,7 +604,15 @@ OP_ENDIF
 <p>प्रजनक प्रोफ़ाइल चित्र संग्रह जहां सहायक विषय-वस्‍तु और गुणों को अलग-अलग चित्रों के रूप में, या एक साझा बनावट एटलस में उत्‍कीर्ण किया जाता है, और उसके बाद कई इंस्‍क्रि‍प्‍शंस में अद्वितीय संयोजनों में, समुच्चित चित्र-शैली में संयोजित किया जाता है।</p>
 </li>
 </ul>
-<p>इंस्‍क्रि‍प्‍शंस द्वारा संपर्क किए जा सकने वाले कुछ अन्य अंतिम बिंदु निम्नलिखित हैं:</p>
+<p>The recursive endpoints are:</p>
+<ul>
+<li><code>/r/blockheight</code>: latest block height.</li>
+<li><code>/r/blockhash</code>: latest block hash.</li>
+<li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
+<li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
+<li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: returns a JSON string containing the hex-encoded CBOR metadata.</li>
+</ul>
+<p>Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.</p>
 <ul>
 <li><code>/blockheight</code>: नवीनतम ब्लॉक ऊंचाई</li>
 <li><code>/blockhash</code>: नवीनतम ब्लॉक हैश</li>

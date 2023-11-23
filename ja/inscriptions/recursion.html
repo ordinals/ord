@@ -263,7 +263,15 @@
 <p>アクセサリーやプロパティを含むプロファイル画像セットを生成し、個別の画像として書き込むか、共有テクスチャマップセットに書き込み、の組み合わせ、コラージュスタイル、複数の銘文の中で独特の組み合わせで。</p>
 </li>
 </ul>
-<p>銘文がアクセスできる他のいくつかのエンドポイントは以下の通りです：</p>
+<p>The recursive endpoints are:</p>
+<ul>
+<li><code>/r/blockheight</code>: latest block height.</li>
+<li><code>/r/blockhash</code>: latest block hash.</li>
+<li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
+<li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
+<li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: returns a JSON string containing the hex-encoded CBOR metadata.</li>
+</ul>
+<p>Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.</p>
 <ul>
 <li><code>/blockheight</code>：最新のブロック高度。</li>
 <li><code>/blockhash</code>：最新のブロックハッシュ。</li>
