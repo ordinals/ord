@@ -20,7 +20,15 @@ This has a number of interesting use-cases:
   inscribed as individual images, or in a shared texture atlas, and then
   combined, collage-style, in unique combinations in multiple inscriptions.
 
-A few other endpoints that inscriptions may access are the following:
+The recursive endpoints are:
+
+- `/r/blockheight`: latest block height.
+- `/r/blockhash`: latest block hash.
+- `/r/blockhash/<HEIGHT>`: block hash at given block height.
+- `/r/blocktime`: UNIX time stamp of latest block.
+- `/r/metadata/<INSCRIPTION_ID>`: returns a JSON string containing the hex-encoded CBOR metadata.
+
+Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.
 
 - `/blockheight`: latest block height.
 - `/blockhash`: latest block hash.
