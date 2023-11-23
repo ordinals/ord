@@ -239,9 +239,15 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/sat/:sat", get(Self::sat_inscriptions))
-        .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
-        .route("/r/sat/:sat/at/:index", get(Self::sat_inscription_at_index))
+        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+        .route(
+          "/r/sat/:sat_number/:page",
+          get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/sat/:sat_number/at/:index",
+          get(Self::sat_inscription_at_index),
+        )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
