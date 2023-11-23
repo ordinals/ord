@@ -20,7 +20,7 @@ This has a number of interesting use-cases:
   inscribed as individual images, or in a shared texture atlas, and then
   combined, collage-style, in unique combinations in multiple inscriptions.
 
-The following other recursive endpoints return JSON:
+The recursive endpoints are:
 
 - `/r/blockheight`: latest block height.
 - `/r/blockhash`: latest block hash.
