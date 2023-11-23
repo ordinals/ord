@@ -4418,7 +4418,7 @@ next
       SatInscriptionJson { id: None }
     );
 
-    let ids = Vec::new();
+    let mut ids = Vec::new();
     for i in 0..111 {
       server.mine_blocks(1);
 
@@ -4430,15 +4430,10 @@ next
       ids.push(InscriptionId { txid, index: 0 });
     }
 
-    let paginated_response = server
-      .request("/r/sat/5000000000")
-      .json::<SatInscriptionsJson>()
-      .unwrap();
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000");
 
-    let equivalent_paginated_response = server
-      .request("/r/sat/nvtcsezkbth/0")
-      .json::<SatInscriptionsJson>()
-      .unwrap();
+    let equivalent_paginated_response =
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/0");
 
     assert_eq!(paginated_response.ids.len(), 100);
     assert!(paginated_response.more);
@@ -4451,10 +4446,7 @@ next
     assert_eq!(paginated_response.more, equivalent_paginated_response.more);
     assert_eq!(paginated_response.page, equivalent_paginated_response.page);
 
-    let paginated_response = server
-      .request("/r/sat/5000000000/1")
-      .json::<SatInscriptionsJson>()
-      .unwrap();
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/1");
 
     assert_eq!(paginated_response.ids.len(), 11);
     assert!(!paginated_response.more);
@@ -4462,44 +4454,34 @@ next
 
     assert_eq!(
       server
-        .request("/r/sat/nvtcsezkbth/at/0")
-        .json::<SatInscriptionJson>()
-        .unwrap()
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0")
         .id,
-      Some(inscriptions[0])
+      Some(ids[0])
     );
 
     assert_eq!(
       server
-        .request("/r/sat/5000000000/at/-111")
-        .json::<SatInscriptionJson>()
-        .unwrap()
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-111")
         .id,
-      Some(inscriptions[0])
+      Some(ids[0])
     );
 
     assert_eq!(
       server
-        .request("/r/sat/5000000000/at/110")
-        .json::<SatInscriptionJson>()
-        .unwrap()
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/110")
         .id,
-      Some(inscriptions[110])
+      Some(ids[110])
     );
 
     assert_eq!(
       server
-        .request("/r/sat/0°1′1″0‴/at/-1")
-        .json::<SatInscriptionJson>()
-        .unwrap()
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-1")
         .id,
-      Some(inscriptions[110])
+      Some(ids[110])
     );
 
     assert!(server
-      .request("/r/sat/5000000000/at/111")
-      .json::<SatInscriptionJson>()
-      .unwrap()
+      .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/111")
       .id
       .is_none());
   }
