@@ -16,7 +16,7 @@ use {
       PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
       PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
       RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson,
-      TransactionHtml,
+      TransactionHtml, ChildrenJson,
     },
   },
   axum::{
@@ -238,8 +238,8 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/children/:inscription_id", get(Self::children))
-        .route("/r/children/:inscription_id/:page", get(Self::children_paginated))
+        .route("/r/children/:inscription_id", get(Self::children_recursive))
+        .route("/r/children/:inscription_id/:page", get(Self::children_recursive_paginated))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat", get(Self::sat_inscriptions))
         .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
@@ -1346,6 +1346,32 @@ impl Server {
       .page(page_config)
       .into_response(),
     )
+  }
+
+  async fn children_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::children_recursive_paginated(
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn children_recursive_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    let parent_number = index
+      .get_inscription_entry(parent)?
+      .ok_or_not_found(|| format!("inscription {parent}"))?
+      .sequence_number;
+
+    let (children, more_children) =
+      index.get_children_by_sequence_number_paginated(parent_number, 100, page)?;
+
+    Ok(Json(ChildrenJson{ids: children, more: more_children, page}).into_response())
   }
 
   async fn inscriptions(
@@ -2499,7 +2525,7 @@ mod tests {
   }
 
   #[test]
-  fn children_endpoint() {
+  fn children_recursive_endpoint() {
     let server = TestServer::new_with_regtest_with_json_api();
     server.mine_blocks(1);
 
@@ -2540,7 +2566,7 @@ mod tests {
     let child_inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      format!("/inscription/{parent_inscription_id}"),
+      format!("/r/children/{parent_inscription_id}"),
       StatusCode::OK,
       format!(".*[{child_inscription_id}].*"),
     );
