@@ -12,8 +12,11 @@ use {
     inscription_id::InscriptionId,
     rarity::Rarity,
     templates::{
-      block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
-      output::OutputJson, sat::SatJson,
+      block::BlockJson,
+      inscription::InscriptionJson,
+      inscriptions::InscriptionsJson,
+      output::OutputJson,
+      sat::{SatInscriptionJson, SatInscriptionsJson, SatJson},
     },
     SatPoint,
   },
@@ -65,6 +68,37 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) 
   assert_eq!(output.inscriptions.len(), 1);
 
   (output.inscriptions[0].id, output.reveal)
+}
+
+fn reinscribe(rpc_server: &test_bitcoincore_rpc::Handle, n: usize) -> Vec<InscriptionId> {
+  let mut inscriptions = Vec::new();
+
+  let mut output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+    .write("foo.txt", "FOO")
+    .rpc_server(rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  inscriptions.push(output.inscriptions[0].id);
+
+  rpc_server.mine_blocks(1);
+
+  for _ in 1..n {
+    output = CommandBuilder::new(format!(
+      "wallet inscribe --reinscribe --satpoint {} --fee-rate 1 --file foo.txt",
+      output.inscriptions[0].location
+    ))
+    .write("foo.txt", "FOO")
+    .rpc_server(rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+    inscriptions.push(output.inscriptions[0].id);
+
+    rpc_server.mine_blocks(1);
+  }
+
+  assert_eq!(inscriptions.len(), n);
+
+  inscriptions
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {

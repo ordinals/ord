@@ -15,7 +15,8 @@ use {
       InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
       PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
       PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-      RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson,
+      TransactionHtml,
     },
   },
   axum::{
@@ -238,6 +239,9 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/sat/:sat", get(Self::sat_inscriptions))
+        .route("/r/sat/:sat/:page", get(Self::sat_inscriptions_paginated))
+        .route("/r/sat/:sat/at/:index", get(Self::sat_inscription_at_index))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -1439,6 +1443,43 @@ impl Server {
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn sat_inscriptions(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    Self::sat_inscriptions_paginated(Extension(index), Path((DeserializeFromStr(sat), 0))).await
+  }
+
+  async fn sat_inscriptions_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(sat), page)): Path<(DeserializeFromStr<Sat>, u64)>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page)?;
+
+    Ok(Json(SatInscriptionsJson { ids, more, page }))
+  }
+
+  async fn sat_inscription_at_index(
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
+  ) -> ServerResult<Json<SatInscriptionJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
+    let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
+
+    Ok(Json(SatInscriptionJson { id }))
   }
 
   async fn redirect_http_to_https(
