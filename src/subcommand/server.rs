@@ -2547,36 +2547,50 @@ mod tests {
       index: 0,
     };
 
+    let mut builder = script::Builder::new();
+
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parent: Some(parent_inscription_id.parent_value()),
+        unrecognized_even_field: false,
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[
-        (
-          2,
-          0,
-          0,
-          Inscription {
-            content_type: Some("text/plain".into()),
-            body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
-            ..Default::default()
-          }
-          .to_witness(),
-        ),
-        (2, 1, 0, Default::default()),
-      ],
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
       ..Default::default()
     });
 
     server.mine_blocks(1);
 
-    let child_inscription_id = InscriptionId { txid, index: 0 };
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
 
     let children_json =
       server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
 
-    assert_eq!(children_json.ids[0], child_inscription_id);
-    assert!(!children_json.more);
+    assert_eq!(children_json.ids.len(), 100);
+    assert_eq!(children_json.ids[0], first_child_inscription_id);
+    assert_eq!(children_json.ids[99], hundredth_child_inscription_id);
+    assert!(children_json.more);
     assert_eq!(children_json.page, 0);
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}/1"));
+
+    assert_eq!(children_json.ids.len(), 11);
+    assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);
+    assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 1);
   }
 
   #[test]
