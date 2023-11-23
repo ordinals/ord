@@ -8,12 +8,11 @@ use opentelemetry::{
 pub(crate) async fn tracing_layer<B>(request: Request<B>, next: Next<B>) -> Response {
   let tracer = global::tracer("ord-kafka");
   let cx = opentelemetry::Context::current();
-  let route = request
-    .extensions()
-    .get::<MatchedPath>()
-    .unwrap()
-    .as_str()
-    .to_string();
+  let route = if let Some(matched) = request.extensions().get::<MatchedPath>() {
+    matched.as_str().to_string()
+  } else {
+    "unknown_path".to_string()
+  };
   let uri = request.uri();
   let host = uri.host().unwrap_or_default();
   let path = uri.path();
