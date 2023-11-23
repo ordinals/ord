@@ -218,7 +218,7 @@ Creating Inscriptions
 To create an inscription with the contents of `FILE`, run:
 
 ```
-ord wallet inscribe --fee-rate FEE_RATE FILE
+ord wallet inscribe --fee-rate FEE_RATE --file FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
@@ -255,7 +255,7 @@ and copy the inscription id (`<PARENT_INSCRIPTION_ID>`).
 Now inscribe the child inscription and specify the parent like so:
 
 ```
-ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE
+ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> --file CHILD_FILE
 ```
 
 This relationship cannot be added retroactively, the parent has to be

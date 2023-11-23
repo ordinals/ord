@@ -1,18 +1,6 @@
-%% for (i, hash) in self.blocks.iter().enumerate() {
-%% if let Some(inscription_ids) = &self.featured_blocks.get(hash) {
-<div class=block>
-  <h2><a href=/block/{{ self.last - i as u64 }}>Block {{ self.last - i as u64 }}</a></h2>
-  <div class=thumbnails>
-%% for id in *inscription_ids {
-    {{ Iframe::thumbnail(*id) }}
+<h1>Latest Inscriptions</h1>
+<div class=thumbnails>
+%% for inscription in &self.inscriptions {
+  {{ Iframe::thumbnail(*inscription) }}
 %% }
-  </div>
 </div>
-%% } else {
-%% if i == self.featured_blocks.len() {
-<ol start={{ self.last - self.featured_blocks.len() as u64 }} reversed class=block-list>
-%% }
-  <li><a href=/block/{{ hash }}>{{ hash }}</a></li>
-%% }
-%% }
-</ol>

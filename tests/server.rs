@@ -252,7 +252,7 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
-      ".*<h1>Inscriptions</h1>
+      ".*<h1>All Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{inscription}>.*</a>
 </div>
@@ -408,4 +408,146 @@ fn all_endpoints_in_recursive_directory_return_json() {
   assert!(server.request("/blockhash").json::<String>().is_err());
 
   assert!(server.request("/blockhash/2").json::<String>().is_err());
+}
+
+#[test]
+#[ignore]
+fn sat_recursive_endpoints() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  assert_eq!(
+    server
+      .request("/r/sat/nvtcsezkbth")
+      .json::<SatInscriptionsJson>()
+      .unwrap(),
+    SatInscriptionsJson {
+      ids: vec![],
+      page: 0,
+      more: false
+    }
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/5000000000")
+      .json::<SatInscriptionsJson>()
+      .unwrap(),
+    SatInscriptionsJson {
+      ids: vec![],
+      page: 0,
+      more: false
+    }
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/5000000000/at/0")
+      .json::<SatInscriptionJson>()
+      .unwrap(),
+    SatInscriptionJson { id: None }
+  );
+
+  let inscriptions = reinscribe(&rpc_server, 111);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  let paginated_response = server
+    .request("/r/sat/5000000000")
+    .json::<SatInscriptionsJson>()
+    .unwrap();
+
+  let equivalent_paginated_response = server
+    .request("/r/sat/nvtcsezkbth/0")
+    .json::<SatInscriptionsJson>()
+    .unwrap();
+
+  assert_eq!(paginated_response.ids.len(), 100);
+  assert!(paginated_response.more);
+  assert_eq!(paginated_response.page, 0);
+
+  assert_eq!(
+    paginated_response.ids.len(),
+    equivalent_paginated_response.ids.len()
+  );
+  assert_eq!(paginated_response.more, equivalent_paginated_response.more);
+  assert_eq!(paginated_response.page, equivalent_paginated_response.page);
+
+  let paginated_response = server
+    .request("/r/sat/5000000000/1")
+    .json::<SatInscriptionsJson>()
+    .unwrap();
+
+  assert_eq!(paginated_response.ids.len(), 11);
+  assert!(!paginated_response.more);
+  assert_eq!(paginated_response.page, 1);
+
+  assert_eq!(
+    server
+      .request("/r/sat/nvtcsezkbth/at/0")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[0])
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/5000000000/at/-111")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[0])
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/5000000000/at/110")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[110])
+  );
+
+  assert_eq!(
+    server
+      .request("/r/sat/0°1′1″0‴/at/-1")
+      .json::<SatInscriptionJson>()
+      .unwrap()
+      .id,
+    Some(inscriptions[110])
+  );
+
+  assert!(server
+    .request("/r/sat/5000000000/at/111")
+    .json::<SatInscriptionJson>()
+    .unwrap()
+    .id
+    .is_none());
+}
+
+#[test]
+fn sat_recursive_endpoints_without_sat_index_return_404() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &[""]);
+
+  assert_eq!(
+    server.request("/r/sat/5000000000").status(),
+    StatusCode::NOT_FOUND,
+  );
+
+  assert_eq!(
+    server.request("/r/sat/5000000000/at/1").status(),
+    StatusCode::NOT_FOUND,
+  );
 }

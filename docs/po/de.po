@@ -3149,11 +3149,11 @@ msgstr "Um eine Inschrift mit dem Inhalt von `FILE` zu erstellen, führen:"
 #: src\guides/inscriptions.md:168
 msgid ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 msgstr ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 
 #: src\guides/inscriptions.md:172
@@ -4779,11 +4779,11 @@ msgstr "Inscribe im Regtest mit:"
 #: src\guides/testing.md:38
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 <file>\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 <file>\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 
 #: src\guides/testing.md:41
@@ -4830,11 +4830,11 @@ msgstr ""
 #: src\guides/testing.md:55
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 p5.js\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 p5.js\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 
 #: src\guides/testing.md:58
@@ -4861,11 +4861,11 @@ msgstr "Dann können Sie Ihre rekursive inscribe einschreiben mit:"
 #: src\guides/testing.md:66
 msgid ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 recursive-inscription.html\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
 "```"
 msgstr ""
 "```\n"
-"ord -r wallet inscribe --fee-rate 1 recursive-inscription.html\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
 "```"
 
 #: src\guides/testing.md:69

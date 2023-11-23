@@ -162,6 +162,19 @@ benchmark-revision rev:
   rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
   ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
 
+benchmark-branch branch:
+  #/usr/bin/env bash
+  # rm -f master.redb
+  rm -f {{branch}}.redb
+  # git checkout master
+  # cargo build --release
+  # time ./target/release/ord --index master.redb index update
+  # ll master.redb
+  git checkout {{branch}}
+  cargo build --release
+  time ./target/release/ord --index {{branch}}.redb index update
+  ll {{branch}}.redb
+
 build-snapshots:
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -189,7 +202,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar"; do
+  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar" "hi"; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang

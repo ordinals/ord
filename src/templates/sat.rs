@@ -14,16 +14,28 @@ pub struct SatJson {
   pub decimal: String,
   pub degree: String,
   pub name: String,
-  pub block: u64,
-  pub cycle: u64,
-  pub epoch: u64,
-  pub period: u64,
+  pub block: u32,
+  pub cycle: u32,
+  pub epoch: u32,
+  pub period: u32,
   pub offset: u64,
   pub rarity: Rarity,
   pub percentile: String,
   pub satpoint: Option<SatPoint>,
   pub timestamp: i64,
   pub inscriptions: Vec<InscriptionId>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatInscriptionsJson {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: u64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatInscriptionJson {
+  pub id: Option<InscriptionId>,
 }
 
 impl PageContent for SatHtml {

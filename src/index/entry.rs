@@ -26,7 +26,7 @@ impl Entry for BlockHash {
 pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) divisibility: u8,
-  pub(crate) end: Option<u64>,
+  pub(crate) end: Option<u32>,
   pub(crate) etching: Txid,
   pub(crate) limit: Option<u128>,
   pub(crate) number: u64,
@@ -39,13 +39,13 @@ pub(crate) struct RuneEntry {
 pub(super) type RuneEntryValue = (
   u128,         // burned
   u8,           // divisibility
-  u64,          // end
+  Option<u32>,  // end
   (u128, u128), // etching
-  u128,         // limit
+  Option<u128>, // limit
   u64,          // number
   u128,         // rune
   u128,         // supply
-  u32,          // symbol
+  Option<char>, // symbol
   u32,          // timestamp
 );
 
@@ -75,7 +75,7 @@ impl Entry for RuneEntry {
     Self {
       burned,
       divisibility,
-      end: (end != u64::max_value()).then_some(end),
+      end,
       etching: {
         let low = etching.0.to_le_bytes();
         let high = etching.1.to_le_bytes();
@@ -86,11 +86,11 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
-      limit: (limit != u128::max_value()).then_some(limit),
+      limit,
       number,
       rune: Rune(rune),
       supply,
-      symbol: char::from_u32(symbol),
+      symbol,
       timestamp,
     }
   }
@@ -99,7 +99,7 @@ impl Entry for RuneEntry {
     (
       self.burned,
       self.divisibility,
-      self.end.unwrap_or(u64::max_value()),
+      self.end,
       {
         let bytes = self.etching.to_byte_array();
         (
@@ -113,11 +113,11 @@ impl Entry for RuneEntry {
           ]),
         )
       },
-      self.limit.unwrap_or(u128::max_value()),
+      self.limit,
       self.number,
       self.rune.0,
       self.supply,
-      self.symbol.map(u32::from).unwrap_or(u32::max_value()),
+      self.symbol,
       self.timestamp,
     )
   }
@@ -139,41 +139,54 @@ impl Entry for RuneId {
 
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
+  pub(crate) charms: u16,
   pub(crate) fee: u64,
-  pub(crate) height: u64,
-  pub(crate) inscription_number: i64,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) height: u32,
+  pub(crate) id: InscriptionId,
+  pub(crate) inscription_number: i32,
+  pub(crate) parent: Option<u32>,
   pub(crate) sat: Option<Sat>,
-  pub(crate) sequence_number: u64,
+  pub(crate) sequence_number: u32,
   pub(crate) timestamp: u32,
 }
 
 pub(crate) type InscriptionEntryValue = (
-  u64,         // fee
-  u64,         // height
-  i64,         // inscription number
-  ParentValue, // parent
-  u64,         // sat
-  u64,         // sequence number
-  u32,         // timestamp
+  u16,                // charms
+  u64,                // fee
+  u32,                // height
+  InscriptionIdValue, // inscription id
+  i32,                // inscription number
+  Option<u32>,        // parent
+  Option<u64>,        // sat
+  u32,                // sequence number
+  u32,                // timestamp
 );
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
+  #[rustfmt::skip]
   fn load(
-    (fee, height, inscription_number, parent, sat, sequence_number, timestamp): InscriptionEntryValue,
-  ) -> Self {
-    Self {
+    (
+      charms,
       fee,
       height,
+      id,
       inscription_number,
-      parent: ParentEntry::load(parent),
-      sat: if sat == u64::MAX {
-        None
-      } else {
-        Some(Sat(sat))
-      },
+      parent,
+      sat,
+      sequence_number,
+      timestamp,
+    ): InscriptionEntryValue,
+  ) -> Self {
+    Self {
+      charms,
+      fee,
+      height,
+      id: InscriptionId::load(id),
+      inscription_number,
+      parent,
+      sat: sat.map(Sat),
       sequence_number,
       timestamp,
     }
@@ -181,108 +194,74 @@ impl Entry for InscriptionEntry {
 
   fn store(self) -> Self::Value {
     (
+      self.charms,
       self.fee,
       self.height,
+      self.id.store(),
       self.inscription_number,
-      self.parent.store(),
-      match self.sat {
-        Some(sat) => sat.n(),
-        None => u64::MAX,
-      },
+      self.parent,
+      self.sat.map(Sat::n),
       self.sequence_number,
       self.timestamp,
     )
   }
 }
 
-pub(super) type InscriptionIdValue = [u8; 36];
+pub(crate) type InscriptionIdValue = (u128, u128, u32);
 
 impl Entry for InscriptionId {
   type Value = InscriptionIdValue;
 
   fn load(value: Self::Value) -> Self {
-    let (txid, index) = value.split_at(32);
+    let (head, tail, index) = value;
+    let head_array = head.to_le_bytes();
+    let tail_array = tail.to_le_bytes();
+    let array = [
+      head_array[0],
+      head_array[1],
+      head_array[2],
+      head_array[3],
+      head_array[4],
+      head_array[5],
+      head_array[6],
+      head_array[7],
+      head_array[8],
+      head_array[9],
+      head_array[10],
+      head_array[11],
+      head_array[12],
+      head_array[13],
+      head_array[14],
+      head_array[15],
+      tail_array[0],
+      tail_array[1],
+      tail_array[2],
+      tail_array[3],
+      tail_array[4],
+      tail_array[5],
+      tail_array[6],
+      tail_array[7],
+      tail_array[8],
+      tail_array[9],
+      tail_array[10],
+      tail_array[11],
+      tail_array[12],
+      tail_array[13],
+      tail_array[14],
+      tail_array[15],
+    ];
+
     Self {
-      txid: Txid::from_raw_hash(Hash::from_slice(txid).unwrap()),
-      index: u32::from_be_bytes(index.try_into().unwrap()),
+      txid: Txid::from_byte_array(array),
+      index,
     }
   }
 
   fn store(self) -> Self::Value {
-    let mut value = [0; 36];
-    let (txid, index) = value.split_at_mut(32);
-    txid.copy_from_slice(self.txid.as_ref());
-    index.copy_from_slice(&self.index.to_be_bytes());
-    value
-  }
-}
-
-type ParentValue = (u128, u128, u32);
-type ParentEntry = Option<InscriptionId>;
-
-impl Entry for ParentEntry {
-  type Value = ParentValue;
-
-  fn load(value: Self::Value) -> Self {
-    if (0, 0, 0) == value {
-      None
-    } else {
-      let (head, tail, index) = value;
-      let head_array = head.to_le_bytes();
-      let tail_array = tail.to_le_bytes();
-      let index_array = index.to_be_bytes();
-      let array = [
-        head_array[0],
-        head_array[1],
-        head_array[2],
-        head_array[3],
-        head_array[4],
-        head_array[5],
-        head_array[6],
-        head_array[7],
-        head_array[8],
-        head_array[9],
-        head_array[10],
-        head_array[11],
-        head_array[12],
-        head_array[13],
-        head_array[14],
-        head_array[15],
-        tail_array[0],
-        tail_array[1],
-        tail_array[2],
-        tail_array[3],
-        tail_array[4],
-        tail_array[5],
-        tail_array[6],
-        tail_array[7],
-        tail_array[8],
-        tail_array[9],
-        tail_array[10],
-        tail_array[11],
-        tail_array[12],
-        tail_array[13],
-        tail_array[14],
-        tail_array[15],
-        index_array[0],
-        index_array[1],
-        index_array[2],
-        index_array[3],
-      ];
-
-      Some(InscriptionId::load(array))
-    }
-  }
-
-  fn store(self) -> Self::Value {
-    if let Some(inscription_id) = self {
-      let txid_entry = inscription_id.txid.store();
-      let little_end = u128::from_le_bytes(txid_entry[..16].try_into().unwrap());
-      let big_end = u128::from_le_bytes(txid_entry[16..].try_into().unwrap());
-      (little_end, big_end, inscription_id.index)
-    } else {
-      (0, 0, 0)
-    }
+    let txid_entry = self.txid.store();
+    let little_end = u128::from_le_bytes(txid_entry[..16].try_into().unwrap());
+    let big_end = u128::from_le_bytes(txid_entry[16..].try_into().unwrap());
+    (little_end, big_end, self.index)
   }
 }
 
@@ -364,47 +343,10 @@ mod tests {
   use super::*;
 
   #[test]
-  fn parent_entry() {
-    let inscription_id: Option<InscriptionId> = None;
-
-    assert_eq!(inscription_id.store(), (0, 0, 0));
-    assert_eq!(
-      <Option<InscriptionId> as Entry>::load((0, 0, 0)),
-      inscription_id
-    );
-
-    let inscription_id = Some(
-      "0000000000000000000000000000000000000000000000000000000000000000i1"
-        .parse::<InscriptionId>()
-        .unwrap(),
-    );
-
-    assert_eq!(inscription_id.store(), (0, 0, 1));
-    assert_eq!(
-      <Option<InscriptionId> as Entry>::load((0, 0, 1)),
-      inscription_id
-    );
-
-    let inscription_id = Some(
-      "ffffffffffffffffffffffffffffffff00000000000000000000000000000000i0"
-        .parse::<InscriptionId>()
-        .unwrap(),
-    );
-
-    assert_eq!(inscription_id.store(), (0, u128::MAX, 0));
-    assert_eq!(
-      <Option<InscriptionId> as Entry>::load((0, u128::MAX, 0)),
-      inscription_id
-    );
-  }
-
-  #[test]
-  fn parent_entry_individual_byte_order() {
-    let inscription_id = Some(
-      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi0"
-        .parse::<InscriptionId>()
-        .unwrap(),
-    );
+  fn inscription_id_entry() {
+    let inscription_id = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi0"
+      .parse::<InscriptionId>()
+      .unwrap();
 
     assert_eq!(
       inscription_id.store(),
@@ -416,7 +358,7 @@ mod tests {
     );
 
     assert_eq!(
-      <Option<InscriptionId> as Entry>::load((
+      InscriptionId::load((
         0x0123456789abcdef0123456789abcdef,
         0x0123456789abcdef0123456789abcdef,
         0
@@ -427,23 +369,26 @@ mod tests {
 
   #[test]
   fn parent_entry_index() {
-    let inscription_id = Some(
-      "0000000000000000000000000000000000000000000000000000000000000000i1"
-        .parse::<InscriptionId>()
-        .unwrap(),
-    );
+    let inscription_id = "0000000000000000000000000000000000000000000000000000000000000000i1"
+      .parse::<InscriptionId>()
+      .unwrap();
 
     assert_eq!(inscription_id.store(), (0, 0, 1));
 
-    assert_eq!(
-      <Option<InscriptionId> as Entry>::load((0, 0, 1)),
-      inscription_id
-    );
+    assert_eq!(InscriptionId::load((0, 0, 1)), inscription_id);
+
+    let inscription_id = "0000000000000000000000000000000000000000000000000000000000000000i256"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    assert_eq!(inscription_id.store(), (0, 0, 256));
+
+    assert_eq!(InscriptionId::load((0, 0, 256)), inscription_id);
   }
 
   #[test]
   fn rune_entry() {
-    let rune_entry = RuneEntry {
+    let entry = RuneEntry {
       burned: 1,
       divisibility: 2,
       end: Some(3),
@@ -460,88 +405,24 @@ mod tests {
       timestamp: 6,
     };
 
-    assert_eq!(
-      rune_entry.store(),
+    let value = (
+      1,
+      2,
+      Some(3),
       (
-        1,
-        2,
-        3,
-        (
-          0x0F0E0D0C0B0A09080706050403020100,
-          0x1F1E1D1C1B1A19181716151413121110
-        ),
-        4,
-        5,
-        6,
-        7,
-        u32::from('a'),
-        6,
-      )
+        0x0F0E0D0C0B0A09080706050403020100,
+        0x1F1E1D1C1B1A19181716151413121110,
+      ),
+      Some(4),
+      5,
+      6,
+      7,
+      Some('a'),
+      6,
     );
 
-    assert_eq!(
-      RuneEntry::load((
-        1,
-        2,
-        3,
-        (
-          0x0F0E0D0C0B0A09080706050403020100,
-          0x1F1E1D1C1B1A19181716151413121110
-        ),
-        4,
-        5,
-        6,
-        7,
-        u32::from('a'),
-        6,
-      )),
-      rune_entry
-    );
-
-    let rune_entry = RuneEntry {
-      symbol: None,
-      limit: None,
-      end: None,
-      ..rune_entry
-    };
-
-    assert_eq!(
-      rune_entry.store(),
-      (
-        1,
-        2,
-        u64::max_value(),
-        (
-          0x0F0E0D0C0B0A09080706050403020100,
-          0x1F1E1D1C1B1A19181716151413121110
-        ),
-        u128::max_value(),
-        5,
-        6,
-        7,
-        u32::max_value(),
-        6,
-      )
-    );
-
-    assert_eq!(
-      RuneEntry::load((
-        1,
-        2,
-        u64::max_value(),
-        (
-          0x0F0E0D0C0B0A09080706050403020100,
-          0x1F1E1D1C1B1A19181716151413121110
-        ),
-        u128::max_value(),
-        5,
-        6,
-        7,
-        u32::max_value(),
-        6,
-      )),
-      rune_entry
-    );
+    assert_eq!(entry.store(), value);
+    assert_eq!(RuneEntry::load(value), entry);
   }
 
   #[test]
