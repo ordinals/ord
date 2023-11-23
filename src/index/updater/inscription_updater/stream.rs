@@ -299,7 +299,7 @@ impl StreamEvent {
           .and_then(|txout| {
             Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
               .map_err(|e| {
-                error!(
+                warn!(
                   "StreamEvent::with_transfer could not parse old_owner address: {}",
                   e
                 );

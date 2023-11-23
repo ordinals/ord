@@ -187,13 +187,13 @@ mod tests {
       rare_sats(vec![(
         outpoint(1),
         vec![(
-          50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1,
-          50 * COIN_VALUE * DIFFCHANGE_INTERVAL
+          50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1,
+          50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL)
         )],
       )]),
       vec![(
         outpoint(1),
-        Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1),
+        Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1),
         0,
         Rarity::BlackRare
       )]
