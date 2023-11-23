@@ -23,12 +23,61 @@ This has a number of interesting use-cases:
 The recursive endpoints are:
 
 - `/r/blockheight`: latest block height.
-- `/r/blockhash`: latest block hash.
-- `/r/blockhash/<HEIGHT>`: block hash at given block height.
-- `/r/blocktime`: UNIX time stamp of latest block.
-- `/r/metadata/<INSCRIPTION_ID>`: returns a JSON string containing the hex-encoded CBOR metadata.
 
-Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.
+```json
+777000
+```
+
+- `/r/blockhash`: latest block hash.
+
+```json
+"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+```
+
+- `/r/blockhash/<HEIGHT>`: block hash at given block height.
+
+- `/r/blocktime`: UNIX time stamp of latest block.
+
+```json
+1700770905
+```
+
+- `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the
+  hex-encoded CBOR metadata.
+
+```json
+"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74"
+```
+
+- `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
+
+```json
+{
+   "ids":[
+      "17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
+   ],
+   "more":false,
+   "page":0
+}
+```
+
+- `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
+- `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all
+  inscriptions on a sat.
+
+```json
+{
+   "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
+}
+```
+
+Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
+notations like degree, percentile or decimal. We may expand to allow those in
+the future.
+
+Responses from the above recursive endpoints are JSON. For backwards
+compatibility additional endpoints are supported, some of which return
+plain-text responses.
 
 - `/blockheight`: latest block height.
 - `/blockhash`: latest block hash.
