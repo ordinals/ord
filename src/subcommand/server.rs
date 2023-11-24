@@ -1373,17 +1373,10 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {parent}"))?
       .sequence_number;
 
-    let (children, more_children) =
+    let (ids, more) =
       index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
 
-    Ok(
-      Json(ChildrenJson {
-        ids: children,
-        more: more_children,
-        page,
-      })
-      .into_response(),
-    )
+    Ok(Json(ChildrenJson { ids, more, page }).into_response())
   }
 
   async fn inscriptions(
