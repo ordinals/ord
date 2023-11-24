@@ -270,7 +270,15 @@ OP_ENDIF
 <p>इंस्‍क्रि‍प्‍शंस का डेटा मॉडल एक HTTP प्रतिक्रिया है, जो इंस्‍क्रि‍प्‍शंस विषय-वस्‍तु को वेब सर्वर द्वारा प्रस्तुत करने और एक वेब ब्राउज़र में देखने की अनुमति देता है।</p>
 <h2 id="फीलडस"><a class="header" href="#फीलडस">फील्‍ड्स</a></h2>
 <p>वैकल्पिक निकाय से पहले इंस्‍क्रि‍प्‍शंस में फ़ील्ड शामिल हो सकते हैं। प्रत्येक फ़ील्ड में दो डेटा पुश, एक टैग और एक मूल्‍य सम्मिलित होता है।</p>
-<p>वर्तमान में, <code>1</code> टैग के साथ एकमात्र परिभाषित फ़ील्ड <code>content-type</code> है, जिसका मूल्‍य बॉडी का MIME प्रकार है।</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>बॉडी का प्रारम्‍भ और फील्‍ड के अंत को रिक्‍त डेटा पुश के साथ दर्शाया गया है।</p>
 <p>लाइटनिंग नेटवर्क द्वारा उपयोग किए जाने वाले &quot;विषम होना ठीक है&quot; नियम का अनुसरण करके सम और विषम पर निर्भर करते हुए अज्ञात टैग्‍स की व्‍याख्‍या अलग-अलग प्रकार से की जा सकती है।</p>
 <p>यहां तक कि टैग का उपयोग उन फ़ील्ड के लिए भी किया जाता है जो किसी इंस्‍क्रि‍प्‍शंस के निर्माण, प्रारंभिक नियत कार्य या स्थानांतरण को प्रभावित कर सकते हैं। इस प्रकार, अज्ञात सम फ़ील्ड वाले इंस्‍क्रि‍प्‍शंस को &quot;अनबाउंड&quot; यानि‍ अबाध के रूप में प्रदर्शित किया जाना चाहिए, अर्थात, बिना किसी स्थान के।</p>

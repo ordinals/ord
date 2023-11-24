@@ -303,8 +303,15 @@ content to be served by a web server and viewed in a web browser.</p>
 <h2 id="fields"><a class="header" href="#fields">Fields</a></h2>
 <p>Inscriptions may include fields before an optional body. Each field consists of
 two data pushes, a tag and a value.</p>
-<p>Currently, the only defined field is <code>content-type</code>, with a tag of <code>1</code>, whose
-value is the MIME type of the body.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>The beginning of the body and end of fields is indicated with an empty data
 push.</p>
 <p>Unrecognized tags are interpreted differently depending on whether they are

@@ -270,7 +270,15 @@ OP_ENDIF
 <p>O modelo de dados das inscrições é o de uma resposta HTTP, permitindo que os conteúdos de inscrições sejam servidos por um servidor web e visualizados em um navegador web.</p>
 <h2 id="campos"><a class="header" href="#campos">Campos</a></h2>
 <p>As inscrições podem incluir campos antes de um corpo opcional. Cada campo consiste em dois envios de dados, uma tag e um valor.</p>
-<p>Atualmente, o único campo definido é <code>content-type</code>, com a tag <code>1</code>, cujo valor é o tipo MIME do corpo.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>O início do corpo e o final dos campos são indicados com um push de dados vazio.</p>
 <p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra &quot;não há problema ser ímpar&quot; usada pelRede Lightning.</p>
 <p>Etiquetas pares são usadas para campos que podem afetar a criação, atribuição inicial ou transferência de uma inscrição. Assim, inscrições com campos pares não reconhecidos devem ser exibidas como &quot;não vinculadas&quot;, ou seja, sem localização.</p>

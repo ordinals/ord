@@ -466,7 +466,15 @@ OP_ENDIF
 <p>铭文的数据模型是 HTTP 响应的数据模型，允许铭文由网络服务器提供服务并在网络浏览器中查看的内容。</p>
 <h2 id="字段"><a class="header" href="#字段">字段</a></h2>
 <p>铭文可以在可选主体之前包含字段。每个字段都包含两个数据推送，一个标签和一个值。</p>
-<p>目前，唯一定义的字段是‘content-type’，标签为‘1’，其值是正文的 MIME 类型。</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>正文的开头和字段的结尾用'空数据'指示推送。</p>
 <p>无法识别的标签的解释不同，取决于它们是否是偶数或奇数，遵循闪电网络&quot;可以是奇数&quot;的规则。</p>
 <p>甚至标签也用于可能影响创建、初始分配的字段，或铭文的转移。因此，即使无法识别的铭文，字段也必须显示为&quot;未绑定&quot;，即没有位置。</p>

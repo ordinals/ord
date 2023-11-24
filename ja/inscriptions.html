@@ -270,7 +270,15 @@ OP_ENDIF
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
 <p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
-<p>現在、定義されている唯一のフィールドは『content-type』です。タグは「1」、その値は本文のMI MEタイプです。</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>本文の先頭とフィールドの末尾には &quot;空のデータ&quot;でプッシュが表示されます。</p>
 <p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク&quot;は奇数&quot;にすることができるというルールに従います。</p>
 <p>ラベルさえも、作成、初期割り当て、または銘文の転送に影響を及ぼす可能性のあるフィールドのために使用されます。だから、識別できない銘文でも、フィールドも&quot;未バインド&quot;として表示されなければなりません。つまり、場所がありません。</p>

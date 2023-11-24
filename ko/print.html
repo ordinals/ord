@@ -466,7 +466,15 @@ OP_ENDIF
 <p>인스크립션의 데이터 모델은 웹 서버에서 인스크립션 콘텐츠를 제공하고 웹 브라우저에서 볼 수 있도록 하는 HTTP 응답의 데이터 모델이다.</p>
 <h2 id="필드"><a class="header" href="#필드">필드</a></h2>
 <p>인스크립션은 optional body 앞에 필드를 포함할 수 있다. 각 필드는 두 개의 데이터 푸시, 즉 태그 및 값으로 구성된다.</p>
-<p>현재 정의된 유일한 필드는 'content-type'이며, 태그는 '1'이며, 값은 body에 MIME 유형이다.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Body의 시작과 필드의 끝은 빈 데이터 푸시로 표시된다.</p>
 <p>인식되지 않는 태그는 라이트닝 네트워크에서 사용하는 &quot;홀수여도 괜찮아&quot; 규칙에 따라 짝수인지 홀수인지에 따라 다르게 해석된다.</p>
 <p>인스크립션 생성, 초기 할당 또는 전송에 영향을 줄 수 있는 필드에는 짝수 태그가 사용된다. 따라서 인식할 수 없는 짝수 필드가 있는 인스크립션은 “unbound”, 즉 위치가 없는 상태로 표시되어야 한다.</p>

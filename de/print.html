@@ -466,7 +466,15 @@ OP_ENDIF
 <p>Das Datenmodell von inscriptions ist das einer HTTP-Antwort, sodass inscription inhalte von einem Webserver bereitgestellt und in einem Webbrowser angezeigt werden können.</p>
 <h2 id="felder"><a class="header" href="#felder">Felder</a></h2>
 <p>Inscriptions können Felder vor einem optionalen Text enthalten. Jedes Feld besteht aus zwei Daten-Pushs, einem Tag und einem Wert.</p>
-<p>Derzeit ist das einzige definierte Feld <code>content-type</code> mit dem Tag <code>1</code>, dessen Wert der MIME-Typ des Körpers ist.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Der Anfang des Hauptteils und das Ende der Felder werden durch einen leeren Daten-Push angezeigt.</p>
 <p>Nicht erkannte Tags werden unterschiedlich interpretiert, je nachdem, ob sie gerade oder ungerade sind. Dabei gilt die vom Lightning Network verwendete Regel &quot;Es ist in Ordnung, ungerade zu sein&quot;.</p>
 <p>Sogar Tags werden für Felder verwendet, die sich auf die Erstellung, Erstzuweisung oder Übertragung einer inscription auswirken können. So müssen inscription mit nicht erkannten geraden Feldern als &quot;ungebunden“, also ohne Ortsangabe, angezeigt werden.</p>

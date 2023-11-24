@@ -466,7 +466,15 @@ OP_ENDIF
 <p>Модель данных надписей представляет собой HTTP-ответ, что позволяет обслуживать содержимое надписей на веб-сервере и просматривать его в браузере.</p>
 <h2 id="Поля"><a class="header" href="#Поля">Поля</a></h2>
 <p>Надписи могут включать поля перед необязательным текстом. Каждое поле состоит из двух push данных - тега и значения.</p>
-<p>В настоящее время единственным определяемым полем является <code>content-type</code>, с тегом <code>1</code>, значением которого является тип-MIME текста.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Начало основного текста и конец полей обозначаются пустым вводом данных.</p>
 <p>Нераспознанные метки интерпретируются по-разному в зависимости от того, четные они или нечетные, в соответствии с правилом &quot;нормально быть нечетным&quot;, используемым в Lightning Network.</p>
 <p>Четные метки используются для полей, которые могут повлиять на создание, первичное присвоение или перенос надписи. Таким образом, надписи с нераспознанными четными полями должны отображаться как &quot;несвязанные&quot;, т.е. без указания местоположения.</p>

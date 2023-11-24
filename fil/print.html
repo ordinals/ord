@@ -466,7 +466,15 @@ OP_ENDIF
 <p>Ang data model ng mga inskripsiyon ay isang HTTP response, na nagbibigay-daan sa nilalaman ng inskripsiyon na maipakita gamit ang web server at nang web browser.</p>
 <h2 id="fields"><a class="header" href="#fields">Fields</a></h2>
 <p>Ang inskripsiyon ay maaring magkaroon ng fields bago ang optional body. Ang bawat field ay binubuo ng dalawang data pushes, isang tag at isang value.</p>
-<p>Sa itaas na halimbawa, ang tanging tinukoy na field ay <code>content-type</code>, na may tag na <code>1</code>, na ang halaga ay ang uri ng MIME ng body (text/plain;charset=utf-8).</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
 <p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang &quot;it's okay to be odd&quot; na ginagamit ng Lightning Network.</p>
 <p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang &quot;unbound&quot;, iyon ay, walang lokasyon.</p>

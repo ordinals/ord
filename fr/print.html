@@ -466,7 +466,15 @@ OP_ENDIF
 <p>Le modèle de données pour les inscriptions est celui d’une réponse HTTP, permettant au contenu de l’inscription d’être récupéré via un serveur web et affiché dans un navigateur web.</p>
 <h2 id="champs"><a class="header" href="#champs">Champs</a></h2>
 <p>Les entrées peuvent inclure des champs avant un corps optionnel. Chaque champ se compose de deux pushs de données, une étiquette et une valeur.</p>
-<p>Actuellement, le seul champ défini est <code>content-type</code>, avec une étiquette <code>1</code>,, dont la valeur est le type MIME du corps.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Le début du corps et la fin des champs sont indiqués par un push de données vide.</p>
 <p>Les étiquettes non reconnues sont interprétées différemment en fonction de leur caractère pair ou impair, conformément à la règle « il est acceptable d’être impair » utilisée par le réseau Lightning.</p>
 <p>Les étiquettes paires sont utilisées pour les champs qui peuvent affecter la création, l’assignation initiale ou le transfert d’une inscription. Par conséquent, les inscriptions avec des champs pairs non reconnus doivent être affichées comme « non liées », c’est-à-dire sans emplacement.</p>

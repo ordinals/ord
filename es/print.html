@@ -466,7 +466,15 @@ OP_ENDIF
 <p>El modelo de datos de las inscripciones es el de una respuesta HTTP, permitiendo que el contenido de la inscripción sea obtenido a través de un servidor web y visualizado en un navegador web.</p>
 <h2 id="campos"><a class="header" href="#campos">Campos</a></h2>
 <p>Las inscripciones pueden incluir campos antes de un cuerpo opcional. Cada campo consta de dos push de datos, una etiqueta y un valor.</p>
-<p>Actualmente, el único campo definido es <code>content-type</code>, con una etiqueta de <code>1</code>, cuyo valor es el tipo MIME del cuerpo.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
 <p>Para indicar el principio del cuerpo y el final de los campos se hace un push de datos vacío.</p>
 <p>Las etiquetas no reconocidas se interpretan de forma diferente según sean pares o impares, siguiendo la regla &quot;está bien que sean impares&quot; utilizada por la Lightning Network.</p>
 <p>Las etiquetas pares se utilizan para campos que pueden afectar a la creación, asignación inicial o transferencia de una inscripción. Por esto, las inscripciones con campos pares no reconocidos deben mostrarse como &quot;no vinculadas&quot;, es decir, sin ubicación.</p>
