@@ -816,13 +816,14 @@ mod tests {
     case(Some("foo"), Some("{}"), false);
     case(Some("text/plain"), None, false);
     case(Some("text/plain"), Some("foo{}bar"), false);
+    case(Some("text/plain"), Some("foo.btc"), true);
 
     case(Some("text/plain"), Some("foo.bitmap"), true);
     case(Some("text/plain"), Some("gib bc1"), true);
     case(Some("text/plain"), Some("{}"), true);
     case(Some("text/plain"), Some(" {} "), true);
     case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
-    case(Some("text/plain;charset=cn-big5"), Some("foo.btc"), true);
+    case(Some("text/plain;charset=cn-big5"), Some("foo.bitmap"), true);
     case(Some("application/json"), Some("foo"), true);
 
     assert!(!Inscription {
