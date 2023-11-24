@@ -312,7 +312,11 @@ impl Inscription {
       return false;
     };
 
-    if content_type != "text/plain" && content_type != "text/plain;charset=utf-8" {
+    if content_type.starts_with("application/json") {
+      return true;
+    }
+
+    if !content_type.starts_with("text/plain") {
       return false;
     }
 
@@ -335,6 +339,10 @@ impl Inscription {
     }
 
     if trimmed.ends_with(".bitmap") {
+      return true;
+    }
+
+    if trimmed.ends_with(".btc") {
       return true;
     }
 
