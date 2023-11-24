@@ -22,19 +22,16 @@ This has a number of interesting use-cases:
 
 The recursive endpoints are:
 
-- `/r/blockheight`: latest block height.
-- `/r/blockhash`: latest block hash.
 - `/r/blockhash/<HEIGHT>`: block hash at given block height.
+- `/r/blockhash`: latest block hash.
+- `/r/blockheight`: latest block height.
 - `/r/blocktime`: UNIX time stamp of latest block.
-- `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the
-  hex-encoded CBOR metadata.
-- `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
-- `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
-- `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all
-  inscriptions on a sat. `<INDEX>` may be a negative number to index from the
-  back. `0` being the first and `-1` being the most recent for example.
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
+- `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
+- `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
+- `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
+- `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example.
 
 Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
 notations like degree, percentile or decimal. We may expand to allow those in
@@ -103,39 +100,7 @@ Examples
    "ids":[
       "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
       "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4902",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4903",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4904",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4905",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4906",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4907",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4908",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4909",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4910",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4911",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4912",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4913",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4914",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4915",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4916",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4917",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4918",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4919",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4920",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4921",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4922",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4923",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4924",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4925",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4926",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4927",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4928",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4929",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4930",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4931",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4932",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4933",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4934",
+      ...
       "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935",
       "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936"
    ],
