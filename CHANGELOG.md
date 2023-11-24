@@ -1,6 +1,57 @@
 Changelog
 =========
 
+[0.12.0](https://github.com/ordinals/ord/releases/tag/0.12.0) - 2023-11-24
+--------------------------------------------------------------------------
+
+### Added
+- Add /r/children recursive endpoint (#2431)
+- Add sat recursive endpoints with index and pagination (#2680)
+- Allow setting CSP origin (#2708)
+- Add destination field to batch (#2701)
+- Preview font inscriptions (#2692)
+- Add /collections Page (#2561)
+- Add inscription compression (#1713)
+- Add inscription charms (#2681)
+- Hide protocol inscriptions (#2674)
+- Hide JSON and .btc (#2744)
+- Add Hindi version of handbook (#2648)
+
+### Changed
+- Use icons in nav bar (#2722)
+- Remove default file path from `ord index export --tsv` (#2717)
+- Display table stats in `ord index info` (#2711)
+- Move postage into batch file (#2705)
+
+### Performance
+- Use sequence numbers database keys (#2664)
+
+### Misc
+- Add docs for child recursive endpoint (#2743)
+- Update docs to include all fields, including content-encoding (#2740)
+- Ignore flaky test (#2742)
+- Add docs and examples for sat recursive endpoint (#2735)
+- Remove `RUNE` from `<h1>` on /rune (#2728)
+- Add docs for metadata recursive endpoint (#2734)
+- Fix typo in docs/src/inscriptions/metadata.md (#2731)
+- Only accept sat number in recursive endpoint (#2732)
+- Add Homebrew install instructions to readme (#2726)
+- Add Debian packaging instructions (#2725)
+- Use redb's recovery callback API (#2584)
+- Refactor inscriptions paginations (#2715)
+- Update redb to 1.4.0 (#2714)
+- Only try to create the database if it wasn't found (#2703)
+- Only load used language highlight module in code preview (#2696)
+- Clean up install.sh (#2669)
+- Add binary media type (#2671)
+- Fix unbound outpoint server error (#2479)
+- Update schema version for charms (#2687)
+- Fix media table formatting (#2686)
+- Group rune server tests (#2685)
+- Don't color links in headers (#2678)
+- Remove Index::index_block_inscription_numbers (#2667)
+- Fix lost sats bug (#2666)
+
 [0.11.1](https://github.com/ordinals/ord/releases/tag/0.11.1) - 2023-11-09
 --------------------------------------------------------------------------
 
