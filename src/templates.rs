@@ -3,7 +3,7 @@ use {super::*, boilerplate::Boilerplate};
 pub(crate) use {
   block::{BlockHtml, BlockJson},
   blocks::BlocksHtml,
-  children::ChildrenHtml,
+  children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
   collections::CollectionsHtml,
   home::HomeHtml,
