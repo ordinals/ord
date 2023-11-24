@@ -312,7 +312,11 @@ impl Inscription {
       return false;
     };
 
-    if content_type != "text/plain" && content_type != "text/plain;charset=utf-8" {
+    if content_type.starts_with("application/json") {
+      return true;
+    }
+
+    if !content_type.starts_with("text/plain") {
       return false;
     }
 
@@ -335,6 +339,10 @@ impl Inscription {
     }
 
     if trimmed.ends_with(".bitmap") {
+      return true;
+    }
+
+    if trimmed.ends_with(".btc") {
       return true;
     }
 
@@ -808,12 +816,15 @@ mod tests {
     case(Some("foo"), Some("{}"), false);
     case(Some("text/plain"), None, false);
     case(Some("text/plain"), Some("foo{}bar"), false);
+    case(Some("text/plain"), Some("foo.btc"), true);
 
     case(Some("text/plain"), Some("foo.bitmap"), true);
     case(Some("text/plain"), Some("gib bc1"), true);
     case(Some("text/plain"), Some("{}"), true);
     case(Some("text/plain"), Some(" {} "), true);
     case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
+    case(Some("text/plain;charset=cn-big5"), Some("foo.bitmap"), true);
+    case(Some("application/json"), Some("foo"), true);
 
     assert!(!Inscription {
       content_type: Some("text/plain".as_bytes().into()),
