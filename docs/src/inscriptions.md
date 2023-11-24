@@ -83,8 +83,7 @@ Currently, there are six defined fields:
 - `parent`, with a tag of `3`, see [provenance](./inscriptions/provenance.md).
 - `metadata`, with a tag of `5`, see [metadata](./inscriptions/metadata.md).
 - `metaprotocol`, with a tag of `7`, whose value is the metaprotocol identifier.
-- `content_encoding`, with a tag of `9`, whose value is the an encoding like
-  `br` or `gzip`.
+- `content_encoding`, with a tag of `9`, whose value is the encoding of the body.
 
 The beginning of the body and end of fields is indicated with an empty data
 push.
