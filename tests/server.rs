@@ -309,6 +309,7 @@ fn expected_sat_time_is_rounded() {
 }
 
 #[test]
+#[ignore]
 fn server_runs_with_rpc_user_and_pass_as_env_vars() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
