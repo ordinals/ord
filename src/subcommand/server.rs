@@ -2202,7 +2202,7 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Rune AAAAAAAAAAAAA</title>.*
-<h1>Rune AAAAAAAAAAAAA</h1>
+<h1>AAAAAAAAAAAAA</h1>
 <iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
