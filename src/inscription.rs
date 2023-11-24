@@ -822,6 +822,8 @@ mod tests {
     case(Some("text/plain"), Some("{}"), true);
     case(Some("text/plain"), Some(" {} "), true);
     case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
+    case(Some("text/plain;charset=CN-BIG5"), Some("foo.btc"), true);
+    case(Some("application/json"), Some("foo"), true);
 
     assert!(!Inscription {
       content_type: Some("text/plain".as_bytes().into()),
