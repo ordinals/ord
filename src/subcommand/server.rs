@@ -4242,7 +4242,7 @@ next
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
   <dd>
-    <span title=uncommon>🌱</span>
+    <span title=uncommon>💎</span>
   </dd>
   .*
 </dl>
@@ -4277,7 +4277,7 @@ next
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
   <dd>
-    <span title=uncommon>🌱</span>
+    <span title=uncommon>💎</span>
     <span title=nineball>9️⃣</span>
   </dd>
   .*
