@@ -235,7 +235,7 @@ impl Batch {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
-    let mut reinscription = false || self.mode == Mode::Reinscribe;
+    let mut reinscription = self.mode == Mode::Reinscribe;
 
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {

@@ -1453,8 +1453,14 @@ fn batch_reinscribe() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
-  assert_eq!(output.inscriptions[0].location, output.inscriptions[1].location);
-  assert_eq!(output.inscriptions[1].location, output.inscriptions[2].location);
+  assert_eq!(
+    output.inscriptions[0].location,
+    output.inscriptions[1].location
+  );
+  assert_eq!(
+    output.inscriptions[1].location,
+    output.inscriptions[2].location
+  );
 
   rpc_server.mine_blocks(1);
 

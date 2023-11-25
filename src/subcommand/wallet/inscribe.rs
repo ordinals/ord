@@ -1369,19 +1369,16 @@ inscriptions:
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(0),
-        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(0),
-        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(0),
-        ..Default::default()
       }
       .into(),
     ];

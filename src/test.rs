@@ -121,7 +121,9 @@ impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
       parent: template.parent.map(|id| id.parent_value()),
-      pointer: template.pointer.map(inscription::Inscription::pointer_value),
+      pointer: template
+        .pointer
+        .map(inscription::Inscription::pointer_value),
       ..Default::default()
     }
   }
