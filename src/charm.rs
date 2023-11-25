@@ -46,7 +46,7 @@ impl Charm {
       Charm::Rare => "🧿",
       Charm::Reinscription => "♻️",
       Charm::Unbound => "🔓",
-      Charm::Uncommon => "🌱",
+      Charm::Uncommon => "💎",
     }
   }
 
