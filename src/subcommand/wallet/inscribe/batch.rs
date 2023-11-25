@@ -235,7 +235,7 @@ impl Batch {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
-    let mut reinscription = false;
+    let mut reinscription = false || self.mode == Mode::Reinscribe;
 
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
@@ -528,6 +528,7 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[serde(rename = "reinscribe")]
   Reinscribe,
   #[default]
   #[serde(rename = "separate-outputs")]
@@ -628,7 +629,7 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::Reinscribe => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()
