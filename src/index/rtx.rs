@@ -15,7 +15,7 @@ impl Rtx<'_> {
     )
   }
 
-  pub(crate) fn block_count(&self) -> Result<u64> {
+  pub(crate) fn block_count(&self) -> Result<u32> {
     Ok(
       self
         .0
@@ -28,7 +28,7 @@ impl Rtx<'_> {
     )
   }
 
-  pub(crate) fn block_hash(&self, height: Option<u64>) -> Result<Option<BlockHash>> {
+  pub(crate) fn block_hash(&self, height: Option<u32>) -> Result<Option<BlockHash>> {
     match height {
       Some(height) => Ok(
         self

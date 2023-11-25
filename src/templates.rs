@@ -2,8 +2,10 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
-  children::ChildrenHtml,
+  blocks::BlocksHtml,
+  children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
+  collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -14,20 +16,22 @@ pub(crate) use {
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
-    PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
   rune::RuneHtml,
   runes::RunesHtml,
-  sat::{SatHtml, SatJson},
+  sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   transaction::TransactionHtml,
 };
 
 pub mod block;
+mod blocks;
 mod children;
 mod clock;
+pub mod collections;
 mod home;
 mod iframe;
 mod input;
@@ -113,6 +117,7 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: Some("https://signet.ordinals.com".into()),
         domain: Some("signet.ordinals.com".into()),
         index_sats: true,
       }),),
@@ -134,13 +139,14 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals<sup>alpha</sup></a>
+      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
       .*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
+      <a href=/clock title=clock>.*</a>
+      <a href=/rare.txt title=rare>.*</a>
+      .*
       <form action=/search method=get>
         <input type=text .*>
-        <input type=submit value=Search>
+        <input class=icon type=image .*>
       </form>
     </nav>
   </header>
@@ -158,10 +164,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
@@ -170,10 +177,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Mainnet,
+        csp_origin: None,
         domain: None,
         index_sats: false,
-      }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 
@@ -182,10 +190,11 @@ mod tests {
     assert_regex_match!(
       Foo.page(Arc::new(PageConfig {
         chain: Chain::Signet,
+        csp_origin: None,
         domain: None,
         index_sats: true,
-      }),),
-      r".*<nav>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
+      })),
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>signet</sup></a>.*"
     );
   }
 }

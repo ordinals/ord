@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.11.1"
+version = "0.12.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -9,6 +9,10 @@ homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 autobins = false
 rust-version = "1.67"
+
+[package.metadata.deb]
+copyright = "The Ord Maintainers"
+maintainer = "The Ord Maintainers"
 
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
@@ -23,6 +27,7 @@ bech32 = "0.9.1"
 bip39 = "2.0.0"
 bitcoin = { version = "0.30.1", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
+brotli = "3.4.0"
 chrono = "0.4.19"
 ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
@@ -43,7 +48,7 @@ mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.1"
-redb = "1.0.5"
+redb = "1.4.0"
 regex = "1.6.0"
 rss = "2.0.1"
 rust-embed = "8.0.0"
@@ -63,7 +68,7 @@ tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzi
 [dev-dependencies]
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
-reqwest = { version = "0.11.10", features = ["blocking", "json"] }
+reqwest = { version = "0.11.10", features = ["blocking", "brotli", "json"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.2.1"
 

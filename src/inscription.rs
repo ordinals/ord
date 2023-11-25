@@ -1,5 +1,6 @@
 use {
   super::*,
+  anyhow::ensure,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -7,25 +8,16 @@ use {
     },
     ScriptBuf,
   },
-  io::Cursor,
+  brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
+  http::header::HeaderValue,
+  io::{Cursor, Read, Write},
   std::str,
 };
-
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Curse {
-  DuplicateField,
-  IncompleteField,
-  NotAtOffsetZero,
-  NotInFirstInput,
-  Pointer,
-  Pushnum,
-  Reinscription,
-  UnrecognizedEvenField,
-}
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
+  pub content_encoding: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
@@ -53,10 +45,49 @@ impl Inscription {
     pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
+    compress: bool,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+
+    let (content_type, compression_mode) = Media::content_type_for_path(path)?;
+
+    let (body, content_encoding) = if compress {
+      let mut compressed = Vec::new();
+
+      {
+        CompressorWriter::with_params(
+          &mut compressed,
+          body.len(),
+          &BrotliEncoderParams {
+            lgblock: 24,
+            lgwin: 24,
+            mode: compression_mode,
+            quality: 11,
+            size_hint: body.len(),
+            ..Default::default()
+          },
+        )
+        .write_all(&body)?;
+
+        let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+
+        let mut decompressed = Vec::new();
+
+        decompressor.read_to_end(&mut decompressed)?;
+
+        ensure!(decompressed == body, "decompression roundtrip failed");
+      }
+
+      if compressed.len() < body.len() {
+        (compressed, Some("br".as_bytes().to_vec()))
+      } else {
+        (body, None)
+      }
+    } else {
+      (body, None)
+    };
 
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = body.len();
@@ -65,11 +96,10 @@ impl Inscription {
       }
     }
 
-    let content_type = Media::content_type_for_path(path)?;
-
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      content_encoding,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
@@ -101,6 +131,12 @@ impl Inscription {
       builder = builder
         .push_slice(envelope::CONTENT_TYPE_TAG)
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
+    }
+
+    if let Some(content_encoding) = self.content_encoding.clone() {
+      builder = builder
+        .push_slice(envelope::CONTENT_ENCODING_TAG)
+        .push_slice(PushBytesBuf::try_from(content_encoding).unwrap());
     }
 
     if let Some(protocol) = self.metaprotocol.clone() {
@@ -189,6 +225,10 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  pub(crate) fn content_encoding(&self) -> Option<HeaderValue> {
+    HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
+  }
+
   pub(crate) fn metadata(&self) -> Option<Value> {
     ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
   }
@@ -265,6 +305,48 @@ impl Inscription {
     witness.push([]);
 
     witness
+  }
+
+  pub(crate) fn hidden(&self) -> bool {
+    let Some(content_type) = self.content_type() else {
+      return false;
+    };
+
+    if content_type.starts_with("application/json") {
+      return true;
+    }
+
+    if !content_type.starts_with("text/plain") {
+      return false;
+    }
+
+    let Some(body) = &self.body else {
+      return false;
+    };
+
+    let Ok(text) = str::from_utf8(body) else {
+      return false;
+    };
+
+    let trimmed = text.trim();
+
+    if trimmed.starts_with('{') && trimmed.ends_with('}') {
+      return true;
+    }
+
+    if trimmed.starts_with("gib bc1") {
+      return true;
+    }
+
+    if trimmed.ends_with(".bitmap") {
+      return true;
+    }
+
+    if trimmed.ends_with(".btc") {
+      return true;
+    }
+
+    false
   }
 }
 
@@ -670,23 +752,85 @@ mod tests {
     write!(file, "foo").unwrap();
 
     let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None).unwrap();
+      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None, false).unwrap();
 
     assert_eq!(inscription.pointer, None);
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(0), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      file.path(),
+      None,
+      Some(0),
+      None,
+      None,
+      false,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(Vec::new()));
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(1), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      file.path(),
+      None,
+      Some(1),
+      None,
+      None,
+      false,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(vec![1]));
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      file.path(),
+      None,
+      Some(256),
+      None,
+      None,
+      false,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(vec![0, 1]));
+  }
+
+  #[test]
+  fn hidden() {
+    #[track_caller]
+    fn case(content_type: Option<&str>, body: Option<&str>, expected: bool) {
+      assert_eq!(
+        Inscription {
+          content_type: content_type.map(|content_type| content_type.as_bytes().into()),
+          body: body.map(|content_type| content_type.as_bytes().into()),
+          ..Default::default()
+        }
+        .hidden(),
+        expected
+      );
+    }
+
+    case(None, None, false);
+    case(Some("foo"), None, false);
+    case(Some("foo"), Some("{}"), false);
+    case(Some("text/plain"), None, false);
+    case(Some("text/plain"), Some("foo{}bar"), false);
+    case(Some("text/plain"), Some("foo.btc"), true);
+
+    case(Some("text/plain"), Some("foo.bitmap"), true);
+    case(Some("text/plain"), Some("gib bc1"), true);
+    case(Some("text/plain"), Some("{}"), true);
+    case(Some("text/plain"), Some(" {} "), true);
+    case(Some("text/plain;charset=utf-8"), Some("foo.bitmap"), true);
+    case(Some("text/plain;charset=cn-big5"), Some("foo.bitmap"), true);
+    case(Some("application/json"), Some("foo"), true);
+
+    assert!(!Inscription {
+      content_type: Some("text/plain".as_bytes().into()),
+      body: Some(b"{\xc3\x28}".as_slice().into()),
+      ..Default::default()
+    }
+    .hidden());
   }
 }

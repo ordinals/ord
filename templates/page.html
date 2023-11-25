@@ -16,17 +16,20 @@
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals<sup>{{ self.superscript() }}</sup></a>
-      <a href=https://docs.ordinals.com/>Handbook</a>
-      <a href=https://github.com/ordinals/ord>Wallet</a>
-      <a href=https://discord.com/invite/ordinals>Discord</a>
-      <a href=/clock>Clock</a>
+      <a href=/ title=home>Ordinals<sup>{{ self.superscript() }}</sup></a>
+      <a href=/inscriptions title=inscriptions><img class=icon src=/static/images.svg></a>
+      <a href=/collections title=collections><img class=icon src=/static/diagram-project.svg></a>
+      <a href=/blocks title=blocks><img class=icon src=/static/cubes.svg></a>
+      <a href=/clock title=clock><img class=icon src=/static/clock.svg></a>
 %% if self.config.index_sats {
-      <a href=/rare.txt>rare.txt</a>
+      <a href=/rare.txt title=rare><img class=icon src=/static/gem.svg></a>
 %% }
+      <a href=https://docs.ordinals.com/ title=handbook><img class=icon src=/static/book.svg></a>
+      <a href=https://github.com/ordinals/ord title=github><img class=icon src=/static/github.svg></a>
+      <a href=https://discord.com/invite/ordinals title=discord><img class=icon src=/static/discord.svg></a>
       <form action=/search method=get>
         <input type=text autocapitalize=off autocomplete=off autocorrect=off name=query spellcheck=false>
-        <input type=submit value=Search>
+        <input class=icon type=image src=/static/magnifying-glass.svg alt=Search>
       </form>
     </nav>
   </header>

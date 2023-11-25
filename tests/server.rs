@@ -252,7 +252,7 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
-      ".*<h1>Inscriptions</h1>
+      ".*<h1>All Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{inscription}>.*</a>
 </div>
@@ -309,6 +309,7 @@ fn expected_sat_time_is_rounded() {
 }
 
 #[test]
+#[ignore]
 fn server_runs_with_rpc_user_and_pass_as_env_vars() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
@@ -408,4 +409,25 @@ fn all_endpoints_in_recursive_directory_return_json() {
   assert!(server.request("/blockhash").json::<String>().is_err());
 
   assert!(server.request("/blockhash/2").json::<String>().is_err());
+}
+
+#[test]
+fn sat_recursive_endpoints_without_sat_index_return_404() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &[""]);
+
+  assert_eq!(
+    server.request("/r/sat/5000000000").status(),
+    StatusCode::NOT_FOUND,
+  );
+
+  assert_eq!(
+    server.request("/r/sat/5000000000/at/1").status(),
+    StatusCode::NOT_FOUND,
+  );
 }

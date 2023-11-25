@@ -242,6 +242,10 @@ impl Handle {
   pub fn loaded_wallets(&self) -> BTreeSet<String> {
     self.state().loaded_wallets.clone()
   }
+
+  pub fn get_change_addresses(&self) -> Vec<Address> {
+    self.state().change_addresses.clone()
+  }
 }
 
 impl Drop for Handle {

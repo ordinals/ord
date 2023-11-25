@@ -5,7 +5,7 @@ pub struct Rune(pub u128);
 
 impl Rune {
   pub(crate) fn minimum_at_height(height: Height) -> Self {
-    let length = 13u64
+    let length = 13u32
       .saturating_sub(height.0 / (DIFFCHANGE_INTERVAL * 2))
       .max(1);
 
@@ -146,7 +146,7 @@ mod tests {
   #[allow(clippy::zero_prefixed_literal)]
   fn minimum_at_height() {
     #[track_caller]
-    fn case(height: u64, minimum: &str) {
+    fn case(height: u32, minimum: &str) {
       assert_eq!(Rune::minimum_at_height(Height(height)).to_string(), minimum);
     }
 
@@ -191,7 +191,7 @@ mod tests {
     case(2016 * 2 * 13 - 1, "A");
     case(2016 * 2 * 13 + 0, "A");
     case(2016 * 2 * 13 + 1, "A");
-    case(u64::max_value(), "A");
+    case(u32::max_value(), "A");
   }
 
   #[test]

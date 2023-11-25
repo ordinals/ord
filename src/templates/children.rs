@@ -3,10 +3,17 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct ChildrenHtml {
   pub(crate) parent: InscriptionId,
-  pub(crate) parent_number: i64,
+  pub(crate) parent_number: i32,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildrenJson {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: usize,
 }
 
 impl PageContent for ChildrenHtml {
