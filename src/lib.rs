@@ -73,6 +73,7 @@ use {
     },
     thread,
     time::{Duration, Instant, SystemTime},
+    unreachable,
   },
   sysinfo::{System, SystemExt},
   tempfile::TempDir,

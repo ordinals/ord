@@ -1,5 +1,3 @@
-use std::unreachable;
-
 use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
