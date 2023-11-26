@@ -21,8 +21,11 @@ fn preview_single_file() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {port} file alert.html"))
-    .write("alert.html", "<script>alert('LFG!')</script>");
+  let builder = CommandBuilder::new(format!(
+    "preview --http-port {port} file alert.html inscription.txt"
+  ))
+  .write("inscription.txt", "Hello World")
+  .write("alert.html", "<script>alert('LFG!')</script>");
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -46,7 +49,7 @@ fn preview_single_file() {
       .unwrap()
       .text()
       .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", 1)
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 2)
   );
 }
 
@@ -59,14 +62,20 @@ fn preview_batch_file() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {port} batch batch.yaml"))
-    .write("inscription.txt", "Hello World")
-    .write("tulip.png", [0; 555])
-    .write("meow.wav", [0; 2048])
-    .write(
-      "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
-    );
+  let builder = CommandBuilder::new(format!(
+    "preview --http-port {port} batch batch_1.yaml batch_2.yaml"
+  ))
+  .write("inscription.txt", "Hello World")
+  .write("tulip.png", [0; 555])
+  .write("meow.wav", [0; 2048])
+  .write(
+    "batch_1.yaml",
+    "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n",
+  )
+  .write(
+    "batch_2.yaml",
+    "mode: shared-output\ninscriptions:\n- file: meow.wav\n",
+  );
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 

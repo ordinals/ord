@@ -157,6 +157,8 @@ impl Preview {
       }
     };
 
+    rpc_client.generate_to_address(1, &address)?;
+
     Arguments {
       options,
       subcommand: Subcommand::Server(self.server),
