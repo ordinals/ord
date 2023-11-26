@@ -1,10 +1,24 @@
+use std::unreachable;
+
 use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
+#[clap(
+  group = ArgGroup::new("source")
+      .required(true)
+      .args(&["file", "batch"]),
+)]
 pub(crate) struct Preview {
   #[command(flatten)]
   server: super::server::Server,
-  inscriptions: Vec<PathBuf>,
+  #[arg(
+    long,
+    help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
+    conflicts_with_all = &["file"]
+  )]
+  batch: Option<PathBuf>,
+  #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
+  file: Option<PathBuf>,
 }
 
 struct KillOnDrop(process::Child);
@@ -74,8 +88,8 @@ impl Preview {
 
     rpc_client.generate_to_address(101, &address)?;
 
-    for file in self.inscriptions {
-      Arguments {
+    match (self.file, self.batch) {
+      (Some(file), None) => Arguments {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
@@ -98,10 +112,34 @@ impl Preview {
           },
         )),
       }
-      .run()?;
+      .run()?,
 
-      rpc_client.generate_to_address(1, &address)?;
-    }
+      (None, Some(batch)) => Arguments {
+        options: options.clone(),
+        subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
+          super::wallet::inscribe::Inscribe {
+            batch: Some(batch),
+            cbor_metadata: None,
+            commit_fee_rate: None,
+            compress: false,
+            destination: None,
+            dry_run: false,
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            file: None,
+            json_metadata: None,
+            metaprotocol: None,
+            no_backup: true,
+            no_limit: false,
+            parent: None,
+            postage: Some(TransactionBuilder::TARGET_POSTAGE),
+            reinscribe: false,
+            satpoint: None,
+          },
+        )),
+      }
+      .run()?,
+      _ => unreachable!(),
+    };
 
     rpc_client.generate_to_address(1, &address)?;
 
