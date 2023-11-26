@@ -17,7 +17,11 @@ pub(crate) struct Preview {
     conflicts_with_all = &["file"]
   )]
   batch: Option<PathBuf>,
-  #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
+  #[arg(
+    long,
+    help = "Inscribe sat with contents of <FILE>.",
+    conflicts_with_all = &["batch"]
+  )]
   file: Option<PathBuf>,
 }
 
