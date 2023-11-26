@@ -346,6 +346,10 @@ impl Inscription {
       return true;
     }
 
+    if trimmed.ends_with(".element") {
+      return true;
+    }
+
     false
   }
 }
@@ -817,6 +821,7 @@ mod tests {
     case(Some("text/plain"), None, false);
     case(Some("text/plain"), Some("foo{}bar"), false);
     case(Some("text/plain"), Some("foo.btc"), true);
+    case(Some("text/plain"), Some("foo.element"), true);
 
     case(Some("text/plain"), Some("foo.bitmap"), true);
     case(Some("text/plain"), Some("gib bc1"), true);
