@@ -21,15 +21,8 @@ fn preview_single_file() {
     .unwrap()
     .port();
 
-  let args = vec![
-    "preview".to_string(),
-    "--http-port".to_string(),
-    port.to_string(),
-    "--file".to_string(),
-    "examples/alert.html".to_string(),
-  ];
-
-  let builder = CommandBuilder::new(args);
+  let builder = CommandBuilder::new(format!("preview --http-port {port} --file alert.html"))
+    .write("alert.html", "<script>alert('LFG!')</script>");
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
