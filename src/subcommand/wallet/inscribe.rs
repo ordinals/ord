@@ -106,6 +106,8 @@ pub(crate) struct Inscribe {
   pub(crate) reinscribe: bool,
   #[arg(long, help = "Inscribe <SATPOINT>.")]
   pub(crate) satpoint: Option<SatPoint>,
+  #[arg(long, help = "Inscribe <SAT>.")]
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Inscribe {
