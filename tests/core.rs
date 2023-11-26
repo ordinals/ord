@@ -40,6 +40,7 @@ fn preview() {
     "preview".to_string(),
     "--http-port".to_string(),
     port.to_string(),
+    "--file".to_string(),
   ];
   args.extend(examples.clone());
 
