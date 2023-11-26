@@ -21,7 +21,7 @@ fn preview_single_file() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {port} --file alert.html"))
+  let builder = CommandBuilder::new(format!("preview --http-port {port} file alert.html"))
     .write("alert.html", "<script>alert('LFG!')</script>");
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
@@ -59,7 +59,7 @@ fn preview_batch_file() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {port} --batch batch.yaml"))
+  let builder = CommandBuilder::new(format!("preview --http-port {port} batch batch.yaml"))
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
