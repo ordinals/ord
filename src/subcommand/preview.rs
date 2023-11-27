@@ -7,10 +7,10 @@ pub(crate) struct Preview {
   #[arg(
     num_args = 0..,
     long,
-    help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>."
+    help = "Inscribe inscriptions defined in <BATCHES>."
   )]
   batches: Option<Vec<PathBuf>>,
-  #[arg(num_args = 0.., long, help = "Inscribe sat with contents of <FILE>.")]
+  #[arg(num_args = 0.., long, help = "Inscribe sat with contents of <FILES>.")]
   files: Option<Vec<PathBuf>>,
 }
 
