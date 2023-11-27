@@ -1,6 +1,9 @@
 use crate::subcommand::traits::Output;
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, warn};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 use super::*;
 use rdkafka::{
@@ -18,6 +21,7 @@ lazy_static! {
 struct StreamClient {
   producer: ThreadedProducer<DefaultProducerContext>,
   topic: String,
+  transaction_cache: Cache<Txid, Option<Transaction>>,
 }
 
 impl StreamClient {
@@ -40,6 +44,7 @@ impl StreamClient {
       )
       .expect("failed to create kafka producer"),
       topic: env::var("KAFKA_TOPIC").unwrap_or("ord-stream".to_owned()),
+      transaction_cache: Cache::new(Some(Duration::from_secs(60))),
     }
   }
 }
@@ -290,23 +295,29 @@ impl StreamEvent {
 
   pub(crate) fn with_transfer(&mut self, old_satpoint: SatPoint, index: &Index) -> &mut Self {
     self.old_location = Some(old_satpoint);
-    self.old_owner = index
-      .get_transaction(old_satpoint.outpoint.txid)
-      .unwrap_or(None)
-      .and_then(|tx| {
-        tx.output
-          .get(old_satpoint.outpoint.vout as usize)
-          .and_then(|txout| {
-            Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
-              .map_err(|e| {
-                warn!(
-                  "StreamEvent::with_transfer could not parse old_owner address: {}",
-                  e
-                );
-              })
-              .ok()
-          })
-      });
+
+    let txid = old_satpoint.outpoint.txid;
+    let transaction = CLIENT.transaction_cache.get(&txid).unwrap_or_else(|| {
+      let transaction = index.get_transaction(txid).unwrap_or(None);
+      CLIENT.transaction_cache.set(txid, transaction.clone());
+      transaction
+    });
+
+    self.old_owner = transaction.and_then(|tx| {
+      tx.output
+        .get(old_satpoint.outpoint.vout as usize)
+        .and_then(|txout| {
+          Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
+            .map_err(|e| {
+              warn!(
+                "StreamEvent::with_transfer could not parse old_owner address: {}",
+                e
+              )
+            })
+            .ok()
+        })
+    });
+
     match index
       .get_inscription_by_id_unsafe(self.inscription_id)
       .unwrap_or(None)
@@ -387,5 +398,52 @@ impl StreamEvent {
     }
 
     Ok(())
+  }
+}
+
+pub struct CacheEntry<V> {
+  value: V,
+  expires_at: Instant,
+}
+
+pub struct Cache<K, V> {
+  map: Mutex<HashMap<K, CacheEntry<V>>>,
+  ttl: Duration,
+}
+
+impl<K, V> Cache<K, V>
+where
+  K: Eq + std::hash::Hash + Clone,
+  V: Clone,
+{
+  fn new(ttl: Option<Duration>) -> Cache<K, V> {
+    let ttl = ttl.unwrap_or(Duration::from_secs(60)); // Default to 1 minute
+    Cache {
+      map: Mutex::new(HashMap::new()),
+      ttl,
+    }
+  }
+
+  pub fn set(&self, key: K, value: V) {
+    let mut map = self.map.lock().unwrap();
+    let entry = CacheEntry {
+      value,
+      expires_at: Instant::now() + self.ttl,
+    };
+    map.insert(key, entry);
+  }
+
+  pub fn get(&self, key: &K) -> Option<V> {
+    let mut map = self.map.lock().unwrap();
+    let now = Instant::now();
+    map.retain(|_, v| v.expires_at > now); // Clean up expired entries
+
+    map.get(key).and_then(|entry| {
+      if entry.expires_at > now {
+        Some(entry.value.clone())
+      } else {
+        None
+      }
+    })
   }
 }
