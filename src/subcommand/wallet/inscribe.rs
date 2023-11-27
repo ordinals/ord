@@ -106,7 +106,7 @@ pub(crate) struct Inscribe {
   pub(crate) reinscribe: bool,
   #[arg(long, help = "Inscribe <SATPOINT>.")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[arg(long, help = "Inscribe <SAT>.")]
+  #[arg(long, help = "Inscribe <SAT>.", conflicts_with = "satpoint")]
   pub(crate) sat: Option<Sat>,
 }
 
@@ -116,6 +116,12 @@ impl Inscribe {
 
     let index = Index::open(&options)?;
     index.update()?;
+
+    let satpoint = if let Some(sat) = self.sat {
+      index.find(sat.0)?
+    } else {
+      self.satpoint
+    };
 
     let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
@@ -190,7 +196,7 @@ impl Inscribe {
       postage,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
-      satpoint: self.satpoint,
+      satpoint,
     }
     .inscribe(chain, &index, &client, &locked_utxos, &utxos)
   }
