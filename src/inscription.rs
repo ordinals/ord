@@ -308,6 +308,10 @@ impl Inscription {
   }
 
   pub(crate) fn hidden(&self) -> bool {
+    lazy_static! {
+      static ref DOMAINS: Regex = Regex::new(r"\..*$").unwrap();
+    }
+
     let Some(content_type) = self.content_type() else {
       return false;
     };
@@ -338,15 +342,7 @@ impl Inscription {
       return true;
     }
 
-    if trimmed.ends_with(".bitmap") {
-      return true;
-    }
-
-    if trimmed.ends_with(".btc") {
-      return true;
-    }
-
-    if trimmed.ends_with(".element") {
+    if DOMAINS.is_match(trimmed) {
       return true;
     }
 
