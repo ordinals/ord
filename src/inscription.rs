@@ -788,7 +788,11 @@ mod tests {
     case(None, None, true);
     case(Some("foo"), None, false);
     case(Some("text/plain"), None, true);
-    case(Some("text/plain"), Some("The fox jumped. The cow danced."), true);
+    case(
+      Some("text/plain"),
+      Some("The fox jumped. The cow danced."),
+      true,
+    );
     case(Some("text/plain;charset=utf-8"), Some("foo"), true);
     case(Some("text/plain;charset=cn-big5"), Some("foo"), true);
     case(Some("application/json"), Some("foo"), true);
