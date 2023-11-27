@@ -132,6 +132,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
+        Mode::Reinscribe => 0,
         Mode::SharedOutput => {
           if self.parent_info.is_some() {
             1
@@ -149,6 +150,7 @@ impl Batch {
       };
 
       let offset = match self.mode {
+        Mode::Reinscribe => 0,
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
         Mode::SeparateOutputs => 0,
       };
@@ -198,6 +200,11 @@ impl Batch {
     }
 
     match self.mode {
+      Mode::Reinscribe => assert_eq!(
+        self.destinations.len(),
+        1,
+        "invariant: reinscribe has only one destination"
+      ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
         self.inscriptions.len(),
@@ -228,7 +235,7 @@ impl Batch {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
-    let mut reinscription = false;
+    let mut reinscription = self.mode == Mode::Reinscribe;
 
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
@@ -286,6 +293,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
+          Mode::Reinscribe => self.postage.to_sat(),
           Mode::SeparateOutputs => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
@@ -520,6 +528,8 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[serde(rename = "reinscribe")]
+  Reinscribe,
   #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
@@ -620,7 +630,7 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::Reinscribe => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()

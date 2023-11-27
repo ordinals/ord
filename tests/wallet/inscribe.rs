@@ -1434,3 +1434,66 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
   <dd class=monospace>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</dd>.*",
   );
 }
+
+#[test]
+fn batch_reinscribe() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: reinscribe\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(
+    output.inscriptions[0].location,
+    output.inscriptions[1].location
+  );
+  assert_eq!(
+    output.inscriptions[1].location,
+    output.inscriptions[2].location
+  );
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  let outpoint = output.inscriptions[0].location.outpoint;
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      outpoint
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      outpoint
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[2].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      outpoint
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/output/{}", output.inscriptions[0].location.outpoint),
+    format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
+  );
+}

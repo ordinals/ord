@@ -111,14 +111,19 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
+#[derive(Default)]
 pub(crate) struct InscriptionTemplate {
   pub(crate) parent: Option<InscriptionId>,
+  pub(crate) pointer: Option<u64>,
 }
 
 impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
       parent: template.parent.map(|id| id.parent_value()),
+      pointer: template
+        .pointer
+        .map(inscription::Inscription::pointer_value),
       ..Default::default()
     }
   }
