@@ -235,7 +235,7 @@ impl Batch {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
-    let mut reinscription = self.mode == Mode::Reinscribe;
+    let mut reinscription = false;
 
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
@@ -255,7 +255,7 @@ impl Batch {
       }
     }
 
-    if self.reinscribe && !reinscription {
+    if self.reinscribe && !reinscription && self.mode != Mode::Reinscribe {
       return Err(anyhow!(
         "reinscribe flag set but this would not be a reinscription"
       ));
@@ -629,7 +629,8 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput | Mode::Reinscribe => vec![get_change_address(client, chain)?],
+      Mode::Reinscribe => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()

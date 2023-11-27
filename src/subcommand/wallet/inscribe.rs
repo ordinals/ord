@@ -128,6 +128,7 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let reinscribe;
 
     match (self.file, self.batch) {
       (Some(file), None) => {
@@ -146,6 +147,8 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
+
+        reinscribe = self.reinscribe;
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -172,11 +175,15 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
+
+        reinscribe = mode == Mode::Reinscribe;
+
+        if reinscribe && batchfile.parent.is_some() {
+          return Err(anyhow!("reinscribe mode cannot be used with parent"));
+        }
       }
       _ => unreachable!(),
     }
-
-    let reinscribe = mode == Mode::Reinscribe || self.reinscribe;
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
@@ -1336,83 +1343,5 @@ inscriptions:
         .to_string()
         .contains("error: the following required arguments were not provided:\n  <--file <FILE>|--batch <BATCH>>")
     );
-  }
-
-  #[test]
-  fn batch_reinscribe_with_parent() {
-    let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(80_000)),
-    ];
-
-    let parent = inscription_id(1);
-
-    let parent_info = ParentInfo {
-      destination: change(3),
-      id: parent,
-      location: SatPoint {
-        outpoint: outpoint(1),
-        offset: 0,
-      },
-      tx_out: TxOut {
-        script_pubkey: change(0).script_pubkey(),
-        value: 10000,
-      },
-    };
-
-    let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
-
-    let destinations = vec![recipient()];
-
-    let inscriptions = vec![
-      InscriptionTemplate {
-        parent: Some(parent),
-        pointer: Some(0),
-      }
-      .into(),
-      InscriptionTemplate {
-        parent: Some(parent),
-        pointer: Some(0),
-      }
-      .into(),
-      InscriptionTemplate {
-        parent: Some(parent),
-        pointer: Some(0),
-      }
-      .into(),
-    ];
-
-    let mode = Mode::Reinscribe;
-
-    let fee_rate = 4.0.try_into().unwrap();
-
-    let (_commit_tx, reveal_tx, _private_key, _) = Batch {
-      satpoint: None,
-      parent_info: None,
-      inscriptions,
-      destinations,
-      commit_fee_rate: fee_rate,
-      reveal_fee_rate: fee_rate,
-      no_limit: false,
-      reinscribe: true,
-      postage: Amount::from_sat(10_000),
-      mode,
-      ..Default::default()
-    }
-    .create_batch_inscription_transactions(
-      wallet_inscriptions,
-      Chain::Signet,
-      BTreeSet::new(),
-      utxos.into_iter().collect(),
-      [change(1), change(2)],
-    )
-    .unwrap();
-
-    assert_eq!(reveal_tx.output.len(), 1);
-    assert!(reveal_tx
-      .output
-      .iter()
-      .all(|output| output.value == TransactionBuilder::TARGET_POSTAGE.to_sat()));
   }
 }

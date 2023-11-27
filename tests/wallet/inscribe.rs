@@ -1497,3 +1497,33 @@ fn batch_reinscribe() {
     format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
   );
 }
+
+#[test]
+fn batch_reinscribe_cannot_be_used_with_parent() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let parent_output = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let parent_id = parent_output.inscriptions[0].id;
+
+  CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("mode: reinscribe\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: reinscribe mode cannot be used with parent\n")
+    .run_and_extract_stdout();
+}
