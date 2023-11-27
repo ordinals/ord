@@ -20,7 +20,8 @@ struct Allocation {
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
-  pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) inscription_id_to_sequence_number:
+    &'a Table<'db, 'tx, &'static InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,

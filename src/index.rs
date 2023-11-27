@@ -59,8 +59,8 @@ define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_table! { HEIGHT_TO_BLOCK_HASH, u32, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
-define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
-define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
+define_table! { HOME_INSCRIPTIONS, u32, &InscriptionIdValue }
+define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, &InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
@@ -1675,7 +1675,10 @@ impl Index {
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     satpoint_to_sequence_number: &'a impl ReadableMultimapTable<&'static SatPointValue, u32>,
-    sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
+    sequence_number_to_inscription_entry: &'a impl ReadableTable<
+      u32,
+      &'static InscriptionEntryValue<'static>,
+    >,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let start = SatPoint {

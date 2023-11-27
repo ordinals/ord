@@ -150,20 +150,20 @@ pub(crate) struct InscriptionEntry {
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (
-  u16,                // charms
-  u64,                // fee
-  u32,                // height
-  InscriptionIdValue, // inscription id
-  i32,                // inscription number
-  Option<u32>,        // parent
-  Option<u64>,        // sat
-  u32,                // sequence number
-  u32,                // timestamp
+pub(crate) type InscriptionEntryValue<'a> = (
+  u16,                    // charms
+  u64,                    // fee
+  u32,                    // height
+  &'a InscriptionIdValue, // inscription id
+  i32,                    // inscription number
+  Option<u32>,            // parent
+  Option<u64>,            // sat
+  u32,                    // sequence number
+  u32,                    // timestamp
 );
 
 impl Entry for InscriptionEntry {
-  type Value = InscriptionEntryValue;
+  type Value<'a> = InscriptionEntryValue<'a>;
 
   #[rustfmt::skip]
   fn load(
@@ -207,7 +207,7 @@ impl Entry for InscriptionEntry {
   }
 }
 
-pub(crate) type InscriptionIdValue = (u128, u128, u32);
+pub(crate) type InscriptionIdValue = [u8; 36];
 
 impl Entry for InscriptionId {
   type Value = InscriptionIdValue;
