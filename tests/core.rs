@@ -22,7 +22,7 @@ fn preview() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    "preview --http-port {port} --files file alert.html inscription.txt --batches batch_1.yaml batch_2.yaml"
+    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml"
   ))
   .write("inscription.txt", "Hello World")
   .write("alert.html", "<script>alert('LFG!')</script>")
