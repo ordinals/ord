@@ -31,7 +31,7 @@ fn preview() {
   .write("meow.wav", [0; 2048])
   .write(
     "batch_1.yaml",
-    "mode: shared-output\ninscriptions:\n- file: poem\n- file: tulip.png\n",
+    "mode: shared-output\ninscriptions:\n- file: poem.txt\n- file: tulip.png\n",
   )
   .write(
     "batch_2.yaml",
