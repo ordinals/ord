@@ -10,7 +10,7 @@ pub(crate) struct Preview {
     help = "Inscribe inscriptions defined in <BATCHES>."
   )]
   batches: Option<Vec<PathBuf>>,
-  #[arg(num_args = 0.., long, help = "Inscribe sat with contents of <FILES>.")]
+  #[arg(num_args = 0.., long, help = "Inscribe contents of <FILES>.")]
   files: Option<Vec<PathBuf>>,
 }
 
