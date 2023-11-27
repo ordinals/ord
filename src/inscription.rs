@@ -108,7 +108,7 @@ impl Inscription {
     })
   }
 
-  fn pointer_value(pointer: u64) -> Vec<u8> {
+  pub(crate) fn pointer_value(pointer: u64) -> Vec<u8> {
     let mut bytes = pointer.to_le_bytes().to_vec();
 
     while bytes.last().copied() == Some(0) {
