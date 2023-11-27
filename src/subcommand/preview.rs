@@ -95,6 +95,7 @@ impl Preview {
             postage: Some(TransactionBuilder::TARGET_POSTAGE),
             reinscribe: false,
             satpoint: None,
+            sat: None,
           },
         )),
       }

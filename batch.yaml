@@ -4,6 +4,7 @@
 # - `separate-outputs`: place all inscriptions in separate postage-sized outputs
 # - `shared-output`: place inscriptions in a single output separated by postage
 mode: separate-outputs
+sat: 5000000000
 
 # parent inscription:
 parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0

@@ -117,12 +117,6 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let satpoint = if let Some(sat) = self.sat {
-      index.find(sat.0)?
-    } else {
-      self.satpoint
-    };
-
     let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
@@ -136,6 +130,7 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let mut sat = None;
 
     match (self.file, self.batch) {
       (Some(file), None) => {
@@ -154,6 +149,7 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
+        sat = self.sat;
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -180,9 +176,16 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
+        sat = batchfile.sat;
       }
       _ => unreachable!(),
     }
+
+    let satpoint = if let Some(sat) = sat {
+      index.find(sat.0)?
+    } else {
+      self.satpoint
+    };
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),

@@ -556,6 +556,7 @@ pub(crate) struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Batchfile {
