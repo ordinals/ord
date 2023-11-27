@@ -10,7 +10,7 @@ pub(crate) struct Preview {
 
 #[derive(Debug, Parser)]
 pub(crate) enum PreviewSubcommand {
-  #[command(about = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.")]
+  #[command(about = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>.")]
   Batch(Batch),
   #[command(about = "Inscribe sat with contents of <FILE>.")]
   File(File),
