@@ -14,36 +14,18 @@ impl Drop for KillOnDrop {
 
 #[test]
 #[ignore]
-fn preview() {
+fn preview_single_file() {
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
     .local_addr()
     .unwrap()
     .port();
 
-  let examples = fs::read_dir("examples")
-    .unwrap()
-    .map(|entry| {
-      entry
-        .unwrap()
-        .path()
-        .canonicalize()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .into()
-    })
-    .filter(|example| example != "examples/av1.mp4")
-    .collect::<Vec<String>>();
-
-  let mut args = vec![
-    "preview".to_string(),
-    "--http-port".to_string(),
-    port.to_string(),
-  ];
-  args.extend(examples.clone());
-
-  let builder = CommandBuilder::new(args);
+  let builder = CommandBuilder::new(format!(
+    "preview --http-port {port} file alert.html inscription.txt"
+  ))
+  .write("inscription.txt", "Hello World")
+  .write("alert.html", "<script>alert('LFG!')</script>");
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -67,6 +49,56 @@ fn preview() {
       .unwrap()
       .text()
       .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", examples.len())
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 2)
+  );
+}
+
+#[test]
+#[ignore]
+fn preview_batch_file() {
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let builder = CommandBuilder::new(format!(
+    "preview --http-port {port} batch batch_1.yaml batch_2.yaml"
+  ))
+  .write("inscription.txt", "Hello World")
+  .write("tulip.png", [0; 555])
+  .write("meow.wav", [0; 2048])
+  .write(
+    "batch_1.yaml",
+    "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n",
+  )
+  .write(
+    "batch_2.yaml",
+    "mode: shared-output\ninscriptions:\n- file: meow.wav\n",
+  );
+
+  let _child = KillOnDrop(builder.command().spawn().unwrap());
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "OK");
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(500));
+  }
+
+  assert_regex_match!(
+    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 3)
   );
 }
