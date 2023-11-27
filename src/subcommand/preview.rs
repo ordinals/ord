@@ -5,12 +5,12 @@ pub(crate) struct Preview {
   #[command(flatten)]
   server: super::server::Server,
   #[arg(
-    num_args(0..),
+    num_args = 0..,
     long,
     help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>."
   )]
   batches: Option<Vec<PathBuf>>,
-  #[arg(num_args(0..), long, help = "Inscribe sat with contents of <FILE>.")]
+  #[arg(num_args = 0.., long, help = "Inscribe sat with contents of <FILE>.")]
   files: Option<Vec<PathBuf>>,
 }
 
