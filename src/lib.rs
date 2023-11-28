@@ -28,11 +28,11 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::{Pile, Rune, RuneId},
+    runes::{Edict, Etching, Pile, Runestone},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
-  anyhow::{anyhow, bail, Context, Error},
+  anyhow::{anyhow, bail, ensure, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
     address::{Address, NetworkUnchecked},
@@ -56,7 +56,7 @@ use {
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp,
-    collections::{BTreeMap, HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
@@ -79,11 +79,12 @@ use {
   tokio::{runtime::Runtime, task},
 };
 
-pub use crate::{
+pub use self::{
   fee_rate::FeeRate,
   inscription::Inscription,
   object::Object,
   rarity::Rarity,
+  runes::{Rune, RuneId},
   sat::Sat,
   sat_point::SatPoint,
   subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
@@ -147,13 +148,15 @@ static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
 
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
 fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
     .map(|value| value.len() > 0)
     .unwrap_or(false)
 }
 
-fn timestamp(seconds: u32) -> DateTime<Utc> {
+pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
 

@@ -41,6 +41,7 @@ impl Batch {
     index: &Index,
     client: &Client,
     locked_utxos: &BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
@@ -55,6 +56,7 @@ impl Batch {
         wallet_inscriptions,
         chain,
         locked_utxos.clone(),
+        runic_utxos,
         utxos.clone(),
         commit_tx_change,
       )?;
@@ -179,6 +181,7 @@ impl Batch {
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
@@ -224,9 +227,14 @@ impl Batch {
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint) && !locked_utxos.contains(outpoint))
-        .map(|outpoint| SatPoint {
+        .iter()
+        .find(|(outpoint, amount)| {
+          amount.to_sat() > 0
+            && !inscribed_utxos.contains(outpoint)
+            && !locked_utxos.contains(outpoint)
+            && !runic_utxos.contains(outpoint)
+        })
+        .map(|(outpoint, _amount)| SatPoint {
           outpoint: *outpoint,
           offset: 0,
         })
@@ -330,6 +338,7 @@ impl Batch {
       wallet_inscriptions,
       utxos.clone(),
       locked_utxos.clone(),
+      runic_utxos,
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,

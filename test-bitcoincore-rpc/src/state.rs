@@ -106,13 +106,15 @@ impl State {
       }
 
       for (vout, txout) in tx.output.iter().enumerate() {
-        self.utxos.insert(
-          OutPoint {
-            txid: tx.txid(),
-            vout: vout.try_into().unwrap(),
-          },
-          Amount::from_sat(txout.value),
-        );
+        if !txout.script_pubkey.is_op_return() {
+          self.utxos.insert(
+            OutPoint {
+              txid: tx.txid(),
+              vout: vout.try_into().unwrap(),
+            },
+            Amount::from_sat(txout.value),
+          );
+        }
       }
     }
 

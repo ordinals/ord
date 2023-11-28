@@ -217,6 +217,12 @@ impl Options {
         "Using credentials from cookie file at `{}`",
         cookie_file.display()
       );
+
+      ensure!(
+        cookie_file.is_file(),
+        "cookie file `{}` does not exist",
+        cookie_file.display()
+      );
     }
 
     let client = Client::new(&rpc_url, auth)
@@ -532,15 +538,10 @@ mod tests {
       .network(Network::Testnet)
       .build();
 
-    let tempdir = TempDir::new().unwrap();
-
-    let cookie_file = tempdir.path().join(".cookie");
-    fs::write(&cookie_file, "username:password").unwrap();
-
     let options = Options::try_parse_from([
       "ord",
       "--cookie-file",
-      cookie_file.to_str().unwrap(),
+      rpc_server.cookie_file().to_str().unwrap(),
       "--rpc-url",
       &rpc_server.url(),
     ])
