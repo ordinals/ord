@@ -3,6 +3,7 @@
 # there are two modes:
 # - `separate-outputs`: place all inscriptions in separate postage-sized outputs
 # - `shared-output`: place inscriptions in a single output separated by postage
+# - `same-sat`: place inscriptions on the same sat
 mode: separate-outputs
 
 # parent inscription:
