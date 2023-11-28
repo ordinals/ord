@@ -4,7 +4,24 @@ use {super::*, fee_rate::FeeRate};
 pub(crate) struct Preview {
   #[command(flatten)]
   server: super::server::Server,
-  inscriptions: Vec<PathBuf>,
+  #[arg(
+    num_args = 0..,
+    long,
+    help = "Inscribe inscriptions defined in <BATCHES>."
+  )]
+  batches: Option<Vec<PathBuf>>,
+  #[arg(num_args = 0.., long, help = "Inscribe contents of <FILES>.")]
+  files: Option<Vec<PathBuf>>,
+}
+
+#[derive(Debug, Parser)]
+pub(crate) struct Batch {
+  batch_files: Vec<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+pub(crate) struct File {
+  files: Vec<PathBuf>,
 }
 
 struct KillOnDrop(process::Child);
@@ -74,33 +91,66 @@ impl Preview {
 
     rpc_client.generate_to_address(101, &address)?;
 
-    for file in self.inscriptions {
-      Arguments {
-        options: options.clone(),
-        subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-          super::wallet::inscribe::Inscribe {
-            batch: None,
-            cbor_metadata: None,
-            commit_fee_rate: None,
-            compress: false,
-            destination: None,
-            dry_run: false,
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
-            file: Some(file),
-            json_metadata: None,
-            metaprotocol: None,
-            no_backup: true,
-            no_limit: false,
-            parent: None,
-            postage: Some(TransactionBuilder::TARGET_POSTAGE),
-            reinscribe: false,
-            satpoint: None,
-          },
-        )),
-      }
-      .run()?;
+    if let Some(files) = self.files {
+      for file in files {
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
+            super::wallet::inscribe::Inscribe {
+              batch: None,
+              cbor_metadata: None,
+              commit_fee_rate: None,
+              compress: false,
+              destination: None,
+              dry_run: false,
+              fee_rate: FeeRate::try_from(1.0).unwrap(),
+              file: Some(file),
+              json_metadata: None,
+              metaprotocol: None,
+              no_backup: true,
+              no_limit: false,
+              parent: None,
+              postage: Some(TransactionBuilder::TARGET_POSTAGE),
+              reinscribe: false,
+              satpoint: None,
+            },
+          )),
+        }
+        .run()?;
 
-      rpc_client.generate_to_address(1, &address)?;
+        rpc_client.generate_to_address(1, &address)?;
+      }
+    }
+
+    if let Some(batches) = self.batches {
+      for batch in batches {
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
+            super::wallet::inscribe::Inscribe {
+              batch: Some(batch),
+              cbor_metadata: None,
+              commit_fee_rate: None,
+              compress: false,
+              destination: None,
+              dry_run: false,
+              fee_rate: FeeRate::try_from(1.0).unwrap(),
+              file: None,
+              json_metadata: None,
+              metaprotocol: None,
+              no_backup: true,
+              no_limit: false,
+              parent: None,
+              postage: Some(TransactionBuilder::TARGET_POSTAGE),
+              reinscribe: false,
+              satpoint: None,
+            },
+          )),
+        }
+        .run()?;
+
+        rpc_client.generate_to_address(1, &address)?;
+      }
     }
 
     rpc_client.generate_to_address(1, &address)?;

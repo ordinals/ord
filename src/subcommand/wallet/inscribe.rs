@@ -53,7 +53,7 @@ pub(crate) struct ParentInfo {
 pub(crate) struct Inscribe {
   #[arg(
     long,
-    help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
+    help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
       "cbor_metadata", "destination", "file", "json_metadata", "metaprotocol", "parent", "postage", "reinscribe", "satpoint"
     ]

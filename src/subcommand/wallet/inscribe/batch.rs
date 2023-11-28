@@ -132,7 +132,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
-        Mode::SharedOutput => {
+        Mode::SharedOutput | Mode::SameSat => {
           if self.parent_info.is_some() {
             1
           } else {
@@ -150,7 +150,7 @@ impl Batch {
 
       let offset = match self.mode {
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
-        Mode::SeparateOutputs => 0,
+        Mode::SeparateOutputs | Mode::SameSat => 0,
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -198,6 +198,11 @@ impl Batch {
     }
 
     match self.mode {
+      Mode::SameSat => assert_eq!(
+        self.destinations.len(),
+        1,
+        "invariant: same-sat has only one destination"
+      ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
         self.inscriptions.len(),
@@ -286,7 +291,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs => self.postage.to_sat(),
+          Mode::SeparateOutputs | Mode::SameSat => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
       })
@@ -520,6 +525,8 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[serde(rename = "same-sat")]
+  SameSat,
   #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
@@ -619,7 +626,7 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()
