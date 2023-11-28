@@ -149,9 +149,8 @@ impl Batch {
       };
 
       let offset = match self.mode {
-        Mode::SameSat => 0,
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
-        Mode::SeparateOutputs => 0,
+        Mode::SeparateOutputs | Mode::SameSat => 0,
       };
 
       inscriptions_output.push(InscriptionInfo {
