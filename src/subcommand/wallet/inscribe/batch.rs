@@ -605,7 +605,7 @@ impl Batchfile {
         .all(|entry| entry.metadata.is_none()));
     }
 
-    let mut pointer = parent_value.or(Some(0));
+    let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
@@ -613,7 +613,7 @@ impl Batchfile {
         chain,
         &entry.file,
         self.parent,
-        if i == 0 { None } else { pointer },
+        if i == 0 { None } else { Some(pointer) },
         entry.metaprotocol.clone(),
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
@@ -622,7 +622,7 @@ impl Batchfile {
         compress,
       )?);
 
-      pointer = pointer.map(|value| value + postage.to_sat());
+      pointer += postage.to_sat();
     }
 
     let destinations = match self.mode {
