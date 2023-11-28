@@ -1584,12 +1584,6 @@ fn inscribe_with_sat_arg() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(2);
 
-  CommandBuilder::new("wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1")
-    .write("foo.txt", "FOO")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: run with --index-sats to use the --sat argument\n");
-
   let Inscribe { inscriptions, .. } = CommandBuilder::new(
     "--index-sats wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1",
   )
@@ -1608,4 +1602,24 @@ fn inscribe_with_sat_arg() {
 
   TestServer::spawn_with_args(&rpc_server, &[])
     .assert_response_regex(format!("/content/{inscription}",), "FOO");
+}
+
+#[test]
+fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1")
+    .write("foo.txt", "FOO")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: index must be built with `--index-sats` to use `--sat`\n")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new("--index-sats wallet inscribe --sat 5000000000 --file foo.txt --fee-rate 1")
+    .write("foo.txt", "FOO")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: could not find sat 5000000000\n")
+    .run_and_extract_stdout();
 }

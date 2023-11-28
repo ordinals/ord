@@ -119,9 +119,14 @@ impl Inscribe {
 
     let satpoint = if let Some(sat) = self.sat {
       if !index.has_sat_index() {
-        return Err(anyhow!("run with --index-sats to use the --sat argument"));
+        return Err(anyhow!(
+          "index must be built with `--index-sats` to use `--sat`"
+        ));
       }
-      index.find(sat.0)?
+      match index.find(sat)? {
+        Some(satpoint) => Some(satpoint),
+        None => return Err(anyhow!(format!("could not find sat {}", sat))),
+      }
     } else {
       self.satpoint
     };
