@@ -118,6 +118,9 @@ impl Inscribe {
     index.update()?;
 
     let satpoint = if let Some(sat) = self.sat {
+      if !index.has_sat_index() {
+        return Err(anyhow!("run with --index-sats to use the --sat argument"));
+      }
       index.find(sat.0)?
     } else {
       self.satpoint
@@ -1328,6 +1331,27 @@ inscriptions:
         .unwrap_err()
         .to_string()
         .contains("error: the following required arguments were not provided:\n  <--file <FILE>|--batch <BATCH>>")
+    );
+  }
+
+  #[test]
+  fn satpoint_and_sat_flags_conflict() {
+    assert_regex_match!(
+      Arguments::try_parse_from([
+        "ord",
+        "--index-sats",
+        "wallet",
+        "inscribe",
+        "--sat",
+        "50000000000",
+        "--satpoint",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00:1:0",
+        "--file",
+        "baz",
+      ])
+      .unwrap_err()
+      .to_string(),
+      ".*--sat.*cannot be used with.*--satpoint.*"
     );
   }
 }

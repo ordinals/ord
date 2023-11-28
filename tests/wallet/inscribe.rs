@@ -1577,3 +1577,35 @@ fn batch_same_sat_with_parent() {
     format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
   );
 }
+
+#[test]
+fn inscribe_with_sat_arg() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(2);
+
+  CommandBuilder::new("wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1")
+    .write("foo.txt", "FOO")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: run with --index-sats to use the --sat argument\n");
+
+  let Inscribe { inscriptions, .. } = CommandBuilder::new(
+    "--index-sats wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1",
+  )
+  .write("foo.txt", "FOO")
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
+    "/sat/5010000000",
+    format!(".*<a href=/inscription/{inscription}>.*"),
+  );
+
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex(format!("/content/{inscription}",), "FOO");
+}
