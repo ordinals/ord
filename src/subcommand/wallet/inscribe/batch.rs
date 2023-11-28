@@ -201,7 +201,7 @@ impl Batch {
       Mode::SameSat => assert_eq!(
         self.destinations.len(),
         1,
-        "invariant: reinscribe has only one destination"
+        "invariant: same-sat has only one destination"
       ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
@@ -291,8 +291,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SameSat => self.postage.to_sat(),
-          Mode::SeparateOutputs => self.postage.to_sat(),
+          Mode::SeparateOutputs | Mode::SameSat => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
       })
