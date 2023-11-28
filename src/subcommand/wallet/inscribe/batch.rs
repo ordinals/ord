@@ -610,12 +610,12 @@ impl Batchfile {
     let mut pointer = parent_value.or(Some(0));
 
     let mut inscriptions = Vec::new();
-    for entry in self.inscriptions.iter() {
+    for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
         &entry.file,
         self.parent,
-        pointer,
+        if i == 0 { None } else { pointer },
         entry.metaprotocol.clone(),
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
@@ -628,8 +628,7 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SameSat => vec![get_change_address(client, chain)?],
-      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()
