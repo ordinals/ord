@@ -962,6 +962,26 @@ mod tests {
 
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+      vec![ParsedEnvelope {
+        payload: Default::default(),
+        stutter: true,
+        ..Default::default()
+      }],
+    );
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_AND)
       .push_opcode(opcodes::OP_FALSE)
