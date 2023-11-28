@@ -132,8 +132,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
-        Mode::Reinscribe => 0,
-        Mode::SharedOutput => {
+        Mode::SharedOutput | Mode::SameSat => {
           if self.parent_info.is_some() {
             1
           } else {
@@ -150,7 +149,7 @@ impl Batch {
       };
 
       let offset = match self.mode {
-        Mode::Reinscribe => 0,
+        Mode::SameSat => 0,
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
         Mode::SeparateOutputs => 0,
       };
@@ -200,7 +199,7 @@ impl Batch {
     }
 
     match self.mode {
-      Mode::Reinscribe => assert_eq!(
+      Mode::SameSat => assert_eq!(
         self.destinations.len(),
         1,
         "invariant: reinscribe has only one destination"
@@ -255,7 +254,7 @@ impl Batch {
       }
     }
 
-    if self.reinscribe && !reinscription && self.mode != Mode::Reinscribe {
+    if self.reinscribe && !reinscription {
       return Err(anyhow!(
         "reinscribe flag set but this would not be a reinscription"
       ));
@@ -293,7 +292,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::Reinscribe => self.postage.to_sat(),
+          Mode::SameSat => self.postage.to_sat(),
           Mode::SeparateOutputs => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
@@ -528,8 +527,8 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
-  #[serde(rename = "reinscribe")]
-  Reinscribe,
+  #[serde(rename = "same-sat")]
+  SameSat,
   #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
@@ -608,15 +607,15 @@ impl Batchfile {
         .all(|entry| entry.metadata.is_none()));
     }
 
-    let mut pointer = parent_value.unwrap_or_default();
+    let mut pointer = parent_value.or(Some(0));
 
     let mut inscriptions = Vec::new();
-    for (i, entry) in self.inscriptions.iter().enumerate() {
+    for entry in self.inscriptions.iter() {
       inscriptions.push(Inscription::from_file(
         chain,
         &entry.file,
         self.parent,
-        if i == 0 { None } else { Some(pointer) },
+        pointer,
         entry.metaprotocol.clone(),
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
@@ -625,11 +624,11 @@ impl Batchfile {
         compress,
       )?);
 
-      pointer += postage.to_sat();
+      pointer = pointer.map(|value| value + postage.to_sat());
     }
 
     let destinations = match self.mode {
-      Mode::Reinscribe => vec![get_change_address(client, chain)?],
+      Mode::SameSat => vec![get_change_address(client, chain)?],
       Mode::SharedOutput => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions

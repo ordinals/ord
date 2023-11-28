@@ -128,7 +128,6 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
-    let reinscribe;
 
     match (self.file, self.batch) {
       (Some(file), None) => {
@@ -147,8 +146,6 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
-
-        reinscribe = self.reinscribe;
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -175,12 +172,6 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
-
-        reinscribe = mode == Mode::Reinscribe;
-
-        if reinscribe && batchfile.parent.is_some() {
-          return Err(anyhow!("reinscribe mode cannot be used with parent"));
-        }
       }
       _ => unreachable!(),
     }
@@ -195,7 +186,7 @@ impl Inscribe {
       no_limit: self.no_limit,
       parent_info,
       postage,
-      reinscribe,
+      reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
     }

@@ -1436,7 +1436,7 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
 }
 
 #[test]
-fn batch_reinscribe() {
+fn batch_same_sat() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
@@ -1448,7 +1448,7 @@ fn batch_reinscribe() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "mode: reinscribe\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+      "mode: same-sat\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -1499,7 +1499,7 @@ fn batch_reinscribe() {
 }
 
 #[test]
-fn batch_reinscribe_cannot_be_used_with_parent() {
+fn batch_same_sat_with_parent() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
@@ -1514,16 +1514,67 @@ fn batch_reinscribe_cannot_be_used_with_parent() {
 
   let parent_id = parent_output.inscriptions[0].id;
 
-  CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: reinscribe\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("mode: same-sat\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: reinscribe mode cannot be used with parent\n")
-    .run_and_extract_stdout();
+    .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(
+    output.inscriptions[0].location,
+    output.inscriptions[1].location
+  );
+  assert_eq!(
+    output.inscriptions[1].location,
+    output.inscriptions[2].location
+  );
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  let txid = output.inscriptions[0].location.outpoint.txid;
+  let inscriptions_location = output.inscriptions[0].location;
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", parent_id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
+      txid
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      inscriptions_location
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      inscriptions_location
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[2].id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      inscriptions_location
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/output/{}", output.inscriptions[0].location.outpoint),
+    format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
+  );
 }
