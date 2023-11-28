@@ -111,7 +111,7 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub(crate) struct InscriptionTemplate {
   pub(crate) parent: Option<InscriptionId>,
 }
