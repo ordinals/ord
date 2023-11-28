@@ -1,14 +1,32 @@
-use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
+use {
+  super::*,
+  crate::{
+    subcommand::wallet::transaction_builder::{OutputScript, Target},
+    wallet::Wallet,
+  },
+};
 
 #[derive(Debug, Parser, Clone)]
+#[clap(
+group = ArgGroup::new("output")
+.required(true)
+.args(&["address", "burn"]),
+)]
 pub(crate) struct Send {
-  address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
+  #[arg(long, conflicts_with = "burn", help = "Recipient address")]
+  address: Option<Address<NetworkUnchecked>>,
+  #[arg(
+  long,
+  conflicts_with = "address",
+  help = "Message to append when burning sats"
+  )]
+  burn: Option<String>,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
-    long,
-    help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
+  long,
+  help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
 }
@@ -20,10 +38,7 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let address = self
-      .address
-      .clone()
-      .require_network(options.chain().network())?;
+    let output = self.get_output(&options)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -44,15 +59,24 @@ impl Send {
       index.get_runic_outputs(&unspent_outputs.keys().cloned().collect::<Vec<OutPoint>>())?;
 
     let satpoint = match self.outgoing {
-      Outgoing::Amount(amount) => {
-        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
-        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
-        return Ok(Box::new(Output { transaction }));
-      }
+      Outgoing::Amount(amount) => match output {
+        OutputScript::OpReturn(_) => bail!("refusing to burn amount"),
+        OutputScript::PubKey(address) => {
+            Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+            let txid = Self::send_amount(&client, amount, address, self.fee_rate)?;
+            return Ok(Box::new(Output { transaction: txid }));
+        }
+      },
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("inscription {id} not found"))?,
       Outgoing::Rune { decimal, rune } => {
+        let address = self
+            .address
+            .unwrap()
+            .clone()
+            .require_network(options.chain().network())?;
+
         let transaction = Self::send_runes(
           address,
           chain,
@@ -100,12 +124,12 @@ impl Send {
       unspent_outputs,
       locked_outputs,
       runic_outputs,
-      address.clone(),
+      output,
       change,
       self.fee_rate,
       postage,
     )
-    .build_transaction()?;
+      .build_transaction()?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
@@ -114,6 +138,17 @@ impl Send {
     let txid = client.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
+  }
+
+  fn get_output(&self, options: &Options) -> Result<OutputScript, Error> {
+    if let Some(address) = &self.address {
+      let address = address.clone().require_network(options.chain().network())?;
+      Ok(OutputScript::PubKey(address))
+    } else if let Some(msg) = &self.burn {
+      Ok(OutputScript::OpReturn(Vec::from(msg.clone())))
+    } else {
+      bail!("no valid output given")
+    }
   }
 
   fn lock_non_cardinal_outputs(

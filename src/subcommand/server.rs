@@ -29,6 +29,10 @@ use {
   },
   axum_server::Handle,
   brotli::Decompressor,
+  bitcoin::blockdata::script::Instruction::{
+    Op, PushBytes
+  },
+  bitcoin::blockdata::opcodes::all::OP_RETURN,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -1242,11 +1246,32 @@ impl Server {
       Charm::Lost.set(&mut charms);
     }
 
+    let mut is_burned = false;
+    let burn_payload = output.as_ref().and_then(|o| {
+      let mut instructions = o.script_pubkey.instructions();
+
+      // Check if the first instruction is OP_RETURN
+      if let Some(Ok(Op(OP_RETURN))) = instructions.next() {
+        is_burned = true;
+        // Extract the payload if it exists
+        instructions.filter_map(|instr| {
+          if let Ok(PushBytes(data)) = instr {
+            String::from_utf8(data.as_bytes().to_vec()).ok()
+          } else {
+            None
+          }
+        }).next()
+      } else {
+        None
+      }
+    });
+
     Ok(if accept_json.0 {
       Json(InscriptionJson {
         inscription_id,
         children,
         inscription_number: entry.inscription_number,
+        is_burned: Some(is_burned),
         genesis_height: entry.height,
         parent,
         genesis_fee: entry.fee,
@@ -1268,10 +1293,12 @@ impl Server {
         previous,
         next,
         rune,
+        burn_payload
       })
       .into_response()
     } else {
       InscriptionHtml {
+        burn_payload,
         chain: server_config.chain,
         charms,
         children,
@@ -1280,6 +1307,7 @@ impl Server {
         inscription,
         inscription_id,
         inscription_number: entry.inscription_number,
+        is_burned: Some(is_burned),
         next,
         output,
         parent,

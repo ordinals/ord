@@ -33,6 +33,11 @@
 
 use {
   super::*,
+  bitcoin::{
+    blockdata::{locktime::absolute::LockTime, witness::Witness},
+    script::PushBytesBuf,
+    Amount, ScriptBuf,
+  },
   std::cmp::{max, min},
 };
 
@@ -59,6 +64,33 @@ pub enum Target {
   Value(Amount),
   Postage,
   ExactPostage(Amount),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum OutputScript {
+  PubKey(Address),
+  OpReturn(Vec<u8>),
+}
+
+impl OutputScript {
+  fn script(&self) -> ScriptBuf {
+    match self {
+      OutputScript::PubKey(address) => address.script_pubkey(),
+      OutputScript::OpReturn(data) => ScriptBuf::new_op_return(
+        &PushBytesBuf::try_from(data.clone()).expect("burn payload too large"),
+      ),
+    }
+  }
+
+  fn dust_value(&self) -> Amount {
+    self.script().dust_value()
+  }
+}
+
+impl From<Address> for OutputScript {
+  fn from(value: Address) -> Self {
+    OutputScript::PubKey(value)
+  }
 }
 
 impl fmt::Display for Error {
@@ -99,8 +131,8 @@ pub struct TransactionBuilder {
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   locked_utxos: BTreeSet<OutPoint>,
   outgoing: SatPoint,
-  outputs: Vec<(Address, Amount)>,
-  recipient: Address,
+  outputs: Vec<(OutputScript, Amount)>,
+  recipient: OutputScript,
   runic_utxos: BTreeSet<OutPoint>,
   target: Target,
   unused_change_addresses: Vec<Address>,
@@ -115,13 +147,13 @@ impl TransactionBuilder {
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
   pub(crate) const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
 
-  pub fn new(
+  pub fn new<U: Into<OutputScript>>(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
-    recipient: Address,
+    recipient: U,
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
@@ -136,7 +168,7 @@ impl TransactionBuilder {
       locked_utxos,
       outgoing,
       outputs: Vec::new(),
-      recipient,
+      recipient: recipient.into(),
       runic_utxos,
       target,
       unused_change_addresses: change.to_vec(),
@@ -150,13 +182,15 @@ impl TransactionBuilder {
       ));
     }
 
-    if self.change_addresses.contains(&self.recipient) {
-      return Err(Error::DuplicateAddress(self.recipient));
+    if let OutputScript::PubKey(address) = &self.recipient {
+      if self.change_addresses.contains(address) {
+        return Err(Error::DuplicateAddress(address.clone()));
+      }
     }
 
     match self.target {
       Target::Value(output_value) | Target::ExactPostage(output_value) => {
-        let dust_value = self.recipient.script_pubkey().dust_value();
+        let dust_value = self.recipient.dust_value();
 
         if output_value < dust_value {
           return Err(Error::Dust {
@@ -242,7 +276,8 @@ impl TransactionBuilder {
           self
             .unused_change_addresses
             .pop()
-            .expect("not enough change addresses"),
+            .expect("not enough change addresses")
+            .into(),
           Amount::from_sat(sat_offset),
         ),
       );
@@ -287,7 +322,7 @@ impl TransactionBuilder {
     let estimated_fee = self.estimate_fee();
 
     let min_value = match self.target {
-      Target::Postage => self.outputs.last().unwrap().0.script_pubkey().dust_value(),
+      Target::Postage => self.outputs.last().unwrap().0.dust_value(),
       Target::Value(value) | Target::ExactPostage(value) => value,
     };
 
@@ -352,15 +387,15 @@ impl TransactionBuilder {
 
       if excess > max
         && value.checked_sub(target).unwrap()
-          > self
-            .unused_change_addresses
-            .last()
-            .unwrap()
-            .script_pubkey()
-            .dust_value()
-            + self
-              .fee_rate
-              .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
+        > self
+        .unused_change_addresses
+        .last()
+        .unwrap()
+        .script_pubkey()
+        .dust_value()
+        + self
+        .fee_rate
+        .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
         tprintln!("stripped {} sats", (value - target).to_sat());
         self.outputs.last_mut().expect("no outputs found").1 = target;
@@ -368,7 +403,8 @@ impl TransactionBuilder {
           self
             .unused_change_addresses
             .pop()
-            .expect("not enough change addresses"),
+            .expect("not enough change addresses")
+            .into(),
           value - target,
         ));
       }
@@ -420,13 +456,13 @@ impl TransactionBuilder {
       self
         .outputs
         .iter()
-        .map(|(address, _amount)| address)
+        .map(|(recipient, _amount)| recipient)
         .cloned()
         .collect(),
     )
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<Address>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: Vec<OutputScript>) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -440,13 +476,13 @@ impl TransactionBuilder {
         .collect(),
       output: outputs
         .into_iter()
-        .map(|address| TxOut {
+        .map(|recipient| TxOut {
           value: 0,
-          script_pubkey: address.script_pubkey(),
+          script_pubkey: recipient.script(),
         })
         .collect(),
     }
-    .vsize()
+      .vsize()
   }
 
   fn estimate_fee(&self) -> Amount {
@@ -454,7 +490,7 @@ impl TransactionBuilder {
   }
 
   fn build(self) -> Result<Transaction> {
-    let recipient = self.recipient.script_pubkey();
+    let recipient = self.recipient.script();
     let transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -471,9 +507,9 @@ impl TransactionBuilder {
       output: self
         .outputs
         .iter()
-        .map(|(address, amount)| TxOut {
+        .map(|(output, amount)| TxOut {
           value: amount.to_sat(),
-          script_pubkey: address.script_pubkey(),
+          script_pubkey: output.script(),
         })
         .collect(),
     };
@@ -531,7 +567,7 @@ impl TransactionBuilder {
       transaction
         .output
         .iter()
-        .filter(|tx_out| tx_out.script_pubkey == self.recipient.script_pubkey())
+        .filter(|tx_out| tx_out.script_pubkey == self.recipient.script())
         .count(),
       1,
       "invariant: recipient address appears exactly once in outputs",
@@ -552,7 +588,7 @@ impl TransactionBuilder {
 
     let mut offset = 0;
     for output in &transaction.output {
-      if output.script_pubkey == self.recipient.script_pubkey() {
+      if output.script_pubkey == self.recipient.script() {
         let slop = self.fee_rate.fee(Self::ADDITIONAL_OUTPUT_VBYTES);
 
         match self.target {
@@ -572,12 +608,12 @@ impl TransactionBuilder {
             assert!(
               Amount::from_sat(output.value).checked_sub(value).unwrap()
                 <= self
-                  .change_addresses
-                  .iter()
-                  .map(|address| address.script_pubkey().dust_value())
-                  .max()
-                  .unwrap_or_default()
-                  + slop,
+                .change_addresses
+                .iter()
+                .map(|address| address.script_pubkey().dust_value())
+                .max()
+                .unwrap_or_default()
+                + slop,
               "invariant: output equals target value",
             );
           }
@@ -739,8 +775,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap();
+      .select_outgoing()
+      .unwrap();
 
     utxos.remove(1);
     assert_eq!(
@@ -751,7 +787,7 @@ mod tests {
     assert_eq!(
       tx_builder.outputs,
       [(
-        recipient(),
+        recipient().into(),
         Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE)
       )]
     )
@@ -772,14 +808,14 @@ mod tests {
       inscriptions: BTreeMap::new(),
       locked_utxos: BTreeSet::new(),
       runic_utxos: BTreeSet::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_724)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(5_000)),
+        (change(1).into(), Amount::from_sat(1_724)),
       ],
       target: Target::Postage,
     };
@@ -814,9 +850,9 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .build_transaction()
-    .unwrap()
-    .is_explicitly_rbf())
+      .build_transaction()
+      .unwrap()
+      .is_explicitly_rbf())
   }
 
   #[test]
@@ -861,11 +897,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .align_outgoing()
-    .strip_value()
-    .deduct_fee();
+      .select_outgoing()
+      .unwrap()
+      .align_outgoing()
+      .strip_value()
+      .deduct_fee();
   }
 
   #[test]
@@ -991,8 +1027,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .build()
-    .unwrap();
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1011,8 +1047,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .build()
-    .unwrap();
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1031,8 +1067,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .build()
-    .unwrap();
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1051,13 +1087,14 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap();
+      .select_outgoing()
+      .unwrap();
 
     builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
       .parse::<Address<NetworkUnchecked>>()
       .unwrap()
-      .assume_checked();
+      .assume_checked()
+      .into();
 
     builder.build().unwrap();
   }
@@ -1078,8 +1115,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap();
+      .select_outgoing()
+      .unwrap();
 
     builder.outputs[0].1 = Amount::from_sat(0);
 
@@ -1131,10 +1168,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .build()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1208,13 +1245,13 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .align_outgoing()
-    .add_value()
-    .unwrap()
-    .strip_value()
-    .deduct_fee();
+      .select_outgoing()
+      .unwrap()
+      .align_outgoing()
+      .add_value()
+      .unwrap()
+      .strip_value()
+      .deduct_fee();
 
     builder.change_addresses = BTreeSet::new();
 
@@ -1237,15 +1274,15 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .align_outgoing()
-    .add_value()
-    .unwrap()
-    .strip_value()
-    .deduct_fee()
-    .build()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .align_outgoing()
+      .add_value()
+      .unwrap()
+      .strip_value()
+      .deduct_fee()
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1264,12 +1301,12 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .strip_value()
-    .deduct_fee()
-    .build()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .strip_value()
+      .deduct_fee()
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1288,11 +1325,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .select_outgoing()
-    .unwrap()
-    .strip_value()
-    .build()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .strip_value()
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1311,19 +1348,19 @@ mod tests {
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (recipient(), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_774)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(1).into(), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
     }
-    .build()
-    .unwrap();
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1342,19 +1379,19 @@ mod tests {
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(1_774)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
     }
-    .build()
-    .unwrap();
+      .build()
+      .unwrap();
   }
 
   #[test]
@@ -1447,8 +1484,8 @@ mod tests {
       fee_rate,
       Target::Postage,
     )
-    .build_transaction()
-    .unwrap();
+      .build_transaction()
+      .unwrap();
 
     let fee =
       fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
@@ -1607,7 +1644,8 @@ mod tests {
         "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
           .parse::<Address<NetworkUnchecked>>()
           .unwrap()
-          .assume_checked(),
+          .assume_checked()
+          .into(),
       ],
     );
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_OUTPUT_VBYTES);
@@ -1828,10 +1866,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-    .select_outgoing()
-    .unwrap()
-    .add_value()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .add_value()
+      .unwrap();
 
     utxos.remove(4);
     utxos.remove(3);
@@ -1847,7 +1885,10 @@ mod tests {
     ); // value inputs are pushed at the end
     assert_eq!(
       tx_builder.outputs,
-      [(recipient(), Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001))]
+      [(
+        recipient().into(),
+        Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001)
+      )]
     )
   }
 
@@ -1874,11 +1915,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-    .select_outgoing()
-    .unwrap()
-    .align_outgoing()
-    .pad_alignment_output()
-    .unwrap();
+      .select_outgoing()
+      .unwrap()
+      .align_outgoing()
+      .pad_alignment_output()
+      .unwrap();
 
     utxos.remove(5);
     utxos.remove(2);
@@ -1895,8 +1936,8 @@ mod tests {
     assert_eq!(
       tx_builder.outputs,
       [
-        (change(1), Amount::from_sat(101 + 104 + 105 + 1)),
-        (recipient(), Amount::from_sat(19_999))
+        (change(1).into(), Amount::from_sat(101 + 104 + 105 + 1)),
+        (recipient().into(), Amount::from_sat(19_999))
       ]
     )
   }
@@ -1983,8 +2024,8 @@ mod tests {
       fee_rate,
       Target::ExactPostage(Amount::from_sat(66_000)),
     )
-    .build_transaction()
-    .unwrap();
+      .build_transaction()
+      .unwrap();
 
     let fee =
       fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
@@ -2109,5 +2150,40 @@ mod tests {
         .0,
       outpoint(2),
     );
+  }
+
+  #[test]
+  fn burn_has_op_return_script() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+
+    let msg = b"let it burn".to_vec();
+
+    pretty_assert_eq!(
+      TransactionBuilder::new(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        utxos.into_iter().collect(),
+        BTreeSet::new(),
+        OutputScript::OpReturn(msg.clone()),
+        [change(0), change(1)],
+        FeeRate::try_from(1.0).unwrap(),
+        Target::Value(Amount::from_sat(1000))
+      )
+      .build_transaction(),
+      Ok(Transaction {
+        version: 1,
+        lock_time: LockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![
+          TxOut {
+            value: 1000,
+            script_pubkey: ScriptBuf::new_op_return(
+              &PushBytesBuf::try_from(msg.clone()).expect("burn message should fit")
+            )
+          },
+          tx_out(3879, change(1))
+        ],
+      })
+    )
   }
 }

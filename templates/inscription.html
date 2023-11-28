@@ -48,6 +48,12 @@
 %% }
   </dd>
 %% }
+%% if let Some(is_burned) = self.is_burned {
+%%   if is_burned {
+  <dt>address</dt>
+  <dd class=monospace>burned 🔥</dd>
+%%   }
+%% }
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
@@ -92,6 +98,10 @@
   <dd class=monospace>{{ self.satpoint }}</dd>
   <dt>output</dt>
   <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
+%% if let Some(burn_payload) = &self.burn_payload {
+  <dt>burn payload</dt>
+  <dd class=monospace>{{ burn_payload }}</dd>
+%% }
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>

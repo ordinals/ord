@@ -46,7 +46,7 @@ pub(crate) enum Wallet {
   Restore(restore::Restore),
   #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
-  #[command(about = "Send sat or inscription")]
+  #[command(about = "Send sat or inscription (option to burn)")]
   Send(send::Send),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),

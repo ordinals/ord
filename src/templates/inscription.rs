@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Boilerplate, Default)]
 pub(crate) struct InscriptionHtml {
+  pub(crate) burn_payload: Option<String>,
   pub(crate) chain: Chain,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) genesis_fee: u64,
@@ -9,6 +10,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription_number: i32,
+  pub(crate) is_burned: Option<bool>,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
@@ -23,6 +25,7 @@ pub(crate) struct InscriptionHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
   pub address: Option<String>,
+  pub burn_payload: Option<String>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -30,6 +33,7 @@ pub struct InscriptionJson {
   pub genesis_height: u32,
   pub inscription_id: InscriptionId,
   pub inscription_number: i32,
+  pub is_burned: Option<bool>,
   pub next: Option<InscriptionId>,
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
@@ -451,6 +455,39 @@ mod tests {
           .*
           <dt>content encoding</dt>
           <dd>br</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn burned() {
+    assert_regex_match!(
+      InscriptionHtml {
+        genesis_fee: 1,
+        inscription: Inscription {
+          content_encoding: Some("br".into()),
+          ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
+        },
+        inscription_id: inscription_id(1),
+        inscription_number: 1,
+        satpoint: satpoint(1, 0),
+        is_burned: Some(true.into()),
+        burn_payload: Some("0xdeadbeef".into()),
+        ..Default::default()
+      },
+      "
+        <h1>Inscription 1</h1>
+        .*
+        <dl>
+          .*
+          <dt>address</dt>
+          <dd class=monospace>burned 🔥</dd>
+          .*
+          <dt>burn payload</dt>
+          <dd class=monospace>0xdeadbeef</dd>
           .*
         </dl>
       "
