@@ -1539,7 +1539,6 @@ fn batch_same_sat_with_parent() {
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
 
   let txid = output.inscriptions[0].location.outpoint.txid;
-  let inscriptions_location = output.inscriptions[0].location;
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", parent_id),
@@ -1552,24 +1551,24 @@ fn batch_same_sat_with_parent() {
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-      inscriptions_location
+      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
+      txid
     ),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-      inscriptions_location
+      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
+      txid
     ),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-      inscriptions_location
+      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
+      txid
     ),
   );
 
