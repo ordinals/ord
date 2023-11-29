@@ -321,7 +321,7 @@ fn send_amount_does_not_select_runic_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1sat")
+  CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 600sat")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: JSON-RPC error: .*")
