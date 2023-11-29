@@ -263,7 +263,7 @@ impl Api for Server {
       previous_output: *outpoint,
       script_sig: ScriptBuf::new(),
       sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      witness: Witness::new(),
+      witness: Witness::default(),
     });
 
     let change_position = transaction.output.len() as i32;
@@ -275,8 +275,8 @@ impl Api for Server {
 
     let fee = if let Some(fee_rate) = options.and_then(|options| options.fee_rate) {
       // increase vsize to account for the witness that `fundrawtransaction` will add
-      let funded_vsize = transaction.vsize() as f64 + 68.0;
-      let funded_kwu = funded_vsize / 4.0 / 1000.0;
+      let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
+      let funded_kwu = funded_vsize / 1000.0;
       let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
       transaction.output.last_mut().unwrap().value -= fee;
       fee
