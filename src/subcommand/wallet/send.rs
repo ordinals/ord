@@ -32,11 +32,16 @@ impl Send {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let wallet = Wallet::load(&options)?;
 
-    let locked_outputs = index.get_locked_outputs(Wallet::load(&options)?)?;
+    let unspent_outputs = index.get_unspent_outputs(wallet)?;
+
+    let locked_outputs = index.get_locked_outputs(wallet)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
+
+    let runic_outputs =
+      index.get_runic_outputs(&unspent_outputs.keys().cloned().collect::<Vec<OutPoint>>())?;
 
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
@@ -45,13 +50,19 @@ impl Send {
             bail!("inscriptions must be sent by inscription ID");
           }
         }
+
+        ensure!(
+          !runic_outputs.contains(&satpoint.outpoint),
+          "runic outpoints may not be sent by satpoint"
+        );
+
         satpoint
       }
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
-        Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
+        Self::lock_inscriptions(&client, inscriptions, runic_outputs, unspent_outputs)?;
         let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
         return Ok(Box::new(Output { transaction: txid }));
       }
@@ -73,6 +84,7 @@ impl Send {
       inscriptions,
       unspent_outputs,
       locked_outputs,
+      runic_outputs,
       address.clone(),
       change,
       self.fee_rate,
@@ -92,21 +104,23 @@ impl Send {
   fn lock_inscriptions(
     client: &Client,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    unspent_outputs: BTreeMap<bitcoin::OutPoint, bitcoin::Amount>,
+    runic_outputs: BTreeSet<OutPoint>,
+    unspent_outputs: BTreeMap<OutPoint, bitcoin::Amount>,
   ) -> Result {
     let all_inscription_outputs = inscriptions
       .keys()
       .map(|satpoint| satpoint.outpoint)
       .collect::<HashSet<OutPoint>>();
 
-    let wallet_inscription_outputs = unspent_outputs
+    let locked_outputs = unspent_outputs
       .keys()
       .filter(|utxo| all_inscription_outputs.contains(utxo))
+      .chain(runic_outputs.iter())
       .cloned()
       .collect::<Vec<OutPoint>>();
 
-    if !client.lock_unspent(&wallet_inscription_outputs)? {
-      bail!("failed to lock ordinal UTXOs");
+    if !client.lock_unspent(&locked_outputs)? {
+      bail!("failed to lock UTXOs");
     }
 
     Ok(())

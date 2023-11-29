@@ -16,7 +16,6 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
   bitcoincore_rpc::Client,
-  std::collections::BTreeSet,
 };
 
 mod batch;
@@ -117,9 +116,13 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let wallet = Wallet::load(&options)?;
 
-    let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
+    let utxos = index.get_unspent_outputs(wallet)?;
+
+    let locked_utxos = index.get_locked_outputs(wallet)?;
+
+    let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
@@ -136,7 +139,7 @@ impl Inscribe {
       (Some(file), None) => {
         parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
 
-        postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+        postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
         inscriptions = vec![Inscription::from_file(
           chain,
@@ -165,7 +168,7 @@ impl Inscribe {
         postage = batchfile
           .postage
           .map(Amount::from_sat)
-          .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+          .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
           &client,
@@ -215,7 +218,7 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint,
     }
-    .inscribe(chain, &index, &client, &locked_utxos, &utxos)
+    .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -296,13 +299,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
@@ -336,13 +340,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
@@ -379,13 +384,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -429,13 +435,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -473,13 +480,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -554,13 +562,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
@@ -635,13 +644,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -692,13 +702,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -731,13 +742,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: true,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -908,6 +920,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1004,6 +1017,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1078,6 +1092,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     );
@@ -1114,6 +1129,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
@@ -1167,6 +1183,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1176,7 +1193,7 @@ inscriptions:
     assert!(reveal_tx
       .output
       .iter()
-      .all(|output| output.value == TransactionBuilder::TARGET_POSTAGE.to_sat()));
+      .all(|output| output.value == TARGET_POSTAGE.to_sat()));
   }
 
   #[test]
@@ -1242,6 +1259,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],

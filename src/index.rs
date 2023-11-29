@@ -260,6 +260,7 @@ impl Index {
             .unwrap()
             .value()
             != 0;
+
           index_sats = statistics
             .get(&Statistic::IndexSats.key())?
             .unwrap()
@@ -312,9 +313,11 @@ impl Index {
 
           statistics.insert(
             &Statistic::IndexRunes.key(),
-            &u64::from(options.index_runes()),
+            &u64::from(index_runes),
           )?;
-          statistics.insert(&Statistic::IndexSats.key(), &u64::from(options.index_sats))?;
+
+          statistics.insert(&Statistic::IndexSats.key(), &u64::from(index_sats))?;
+
           statistics.insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
         }
 
@@ -420,6 +423,10 @@ impl Index {
         None => bail!("index has not seen {outpoint}"),
       })
       .collect()
+  }
+
+  pub(crate) fn has_rune_index(&self) -> bool {
+    self.index_runes
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {
@@ -828,6 +835,22 @@ impl Index {
     }
 
     Ok(balances)
+  }
+
+  pub(crate) fn get_runic_outputs(&self, outpoints: &[OutPoint]) -> Result<BTreeSet<OutPoint>> {
+    let rtx = self.database.begin_read()?;
+
+    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+
+    let mut runic = BTreeSet::new();
+
+    for outpoint in outpoints {
+      if outpoint_to_balances.get(&outpoint.store())?.is_some() {
+        runic.insert(*outpoint);
+      }
+    }
+
+    Ok(runic)
   }
 
   #[cfg(test)]
