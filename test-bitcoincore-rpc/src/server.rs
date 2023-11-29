@@ -263,7 +263,7 @@ impl Api for Server {
       previous_output: *outpoint,
       script_sig: ScriptBuf::new(),
       sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      witness: Witness::from_slice(&[&[0; 64]]),
+      witness: Witness::new(),
     });
 
     let change_position = transaction.output.len() as i32;
@@ -274,7 +274,8 @@ impl Api for Server {
     });
 
     let fee = if let Some(fee_rate) = options.and_then(|options| options.fee_rate) {
-      let fee = (transaction.vsize() as f64 / 1000.0 * fee_rate.to_sat() as f64) as u64;
+      let fee =
+        ((transaction.vsize() as f64 + 68.0 / 4.0) / 1000.0 * fee_rate.to_sat() as f64) as u64;
       transaction.output.last_mut().unwrap().value -= fee;
       fee
     } else {
