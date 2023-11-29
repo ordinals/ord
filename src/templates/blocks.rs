@@ -2,14 +2,14 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct BlocksHtml {
-  last: u64,
+  last: u32,
   blocks: Vec<BlockHash>,
   featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
 }
 
 impl BlocksHtml {
   pub(crate) fn new(
-    blocks: Vec<(u64, BlockHash)>,
+    blocks: Vec<(u32, BlockHash)>,
     featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
   ) -> Self {
     Self {

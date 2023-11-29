@@ -53,9 +53,9 @@ pub(crate) struct ParentInfo {
 pub(crate) struct Inscribe {
   #[arg(
     long,
-    help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
+    help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
-      "file", "destination", "cbor_metadata", "json_metadata", "satpoint", "reinscribe", "metaprotocol", "parent"
+      "cbor_metadata", "destination", "file", "json_metadata", "metaprotocol", "parent", "postage", "reinscribe", "satpoint"
     ]
   )]
   pub(crate) batch: Option<PathBuf>,
@@ -106,6 +106,8 @@ pub(crate) struct Inscribe {
   pub(crate) reinscribe: bool,
   #[arg(long, help = "Inscribe <SATPOINT>.")]
   pub(crate) satpoint: Option<SatPoint>,
+  #[arg(long, help = "Inscribe <SAT>.", conflicts_with = "satpoint")]
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Inscribe {
@@ -115,6 +117,20 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
+    let satpoint = if let Some(sat) = self.sat {
+      if !index.has_sat_index() {
+        return Err(anyhow!(
+          "index must be built with `--index-sats` to use `--sat`"
+        ));
+      }
+      match index.find(sat)? {
+        Some(satpoint) => Some(satpoint),
+        None => return Err(anyhow!(format!("could not find sat {}", sat))),
+      }
+    } else {
+      self.satpoint
+    };
+
     let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
@@ -123,8 +139,7 @@ impl Inscribe {
 
     let chain = options.chain();
 
-    let postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
-
+    let postage;
     let destinations;
     let inscriptions;
     let mode;
@@ -133,6 +148,9 @@ impl Inscribe {
     match (self.file, self.batch) {
       (Some(file), None) => {
         parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+
+        postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+
         inscriptions = vec![Inscription::from_file(
           chain,
           file,
@@ -142,7 +160,9 @@ impl Inscribe {
           metadata,
           self.compress,
         )?];
+
         mode = Mode::SeparateOutputs;
+
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => get_change_address(&client, chain)?,
@@ -153,7 +173,13 @@ impl Inscribe {
 
         parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
 
-        inscriptions = batchfile.inscriptions(
+        postage = batchfile
+          .postage
+          .map(Amount::from_sat)
+          .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+
+        (inscriptions, destinations) = batchfile.inscriptions(
+          &client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
@@ -162,15 +188,6 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
-
-        let destination_count = match batchfile.mode {
-          Mode::SharedOutput => 1,
-          Mode::SeparateOutputs => inscriptions.len(),
-        };
-
-        destinations = (0..destination_count)
-          .map(|_| get_change_address(&client, chain))
-          .collect::<Result<Vec<Address>>>()?;
       }
       _ => unreachable!(),
     }
@@ -187,7 +204,7 @@ impl Inscribe {
       postage,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
-      satpoint: self.satpoint,
+      satpoint,
     }
     .inscribe(chain, &index, &client, &locked_utxos, &utxos)
   }
@@ -797,7 +814,7 @@ inscriptions:
           }
         ],
         parent: Some(parent),
-        mode: Mode::SeparateOutputs,
+        ..Default::default()
       }
     );
   }
@@ -1319,6 +1336,27 @@ inscriptions:
         .unwrap_err()
         .to_string()
         .contains("error: the following required arguments were not provided:\n  <--file <FILE>|--batch <BATCH>>")
+    );
+  }
+
+  #[test]
+  fn satpoint_and_sat_flags_conflict() {
+    assert_regex_match!(
+      Arguments::try_parse_from([
+        "ord",
+        "--index-sats",
+        "wallet",
+        "inscribe",
+        "--sat",
+        "50000000000",
+        "--satpoint",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00:1:0",
+        "--file",
+        "baz",
+      ])
+      .unwrap_err()
+      .to_string(),
+      ".*--sat.*cannot be used with.*--satpoint.*"
     );
   }
 }

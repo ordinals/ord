@@ -32,7 +32,7 @@ impl From<Block> for BlockData {
 
 pub(crate) struct Updater<'index> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
-  height: u64,
+  height: u32,
   index: &'index Index,
   sat_ranges_since_flush: u64,
   outputs_cached: u64,
@@ -55,7 +55,7 @@ impl<'index> Updater<'_> {
 
   pub(crate) fn update_index(&mut self) -> Result {
     let mut wtx = self.index.begin_write()?;
-    let starting_height = self.index.client.get_block_count()? + 1;
+    let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
 
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
@@ -74,8 +74,8 @@ impl<'index> Updater<'_> {
     {
       None
     } else {
-      let progress_bar = ProgressBar::new(starting_height);
-      progress_bar.set_position(self.height);
+      let progress_bar = ProgressBar::new(starting_height.into());
+      progress_bar.set_position(self.height.into());
       progress_bar.set_style(
         ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
       );
@@ -158,7 +158,7 @@ impl<'index> Updater<'_> {
 
   fn fetch_blocks_from(
     index: &Index,
-    mut height: u64,
+    mut height: u32,
     index_sats: bool,
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
@@ -197,14 +197,14 @@ impl<'index> Updater<'_> {
 
   fn get_block_with_retries(
     client: &Client,
-    height: u64,
+    height: u32,
     index_sats: bool,
-    first_inscription_height: u64,
+    first_inscription_height: u32,
   ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
       match client
-        .get_block_hash(height)
+        .get_block_hash(height.into())
         .into_option()
         .and_then(|option| {
           option
@@ -379,16 +379,16 @@ impl<'index> Updater<'_> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
-    let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
-    let mut inscription_id_to_inscription_entry =
-      wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
-    let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-    let mut inscription_number_to_inscription_id =
-      wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-    let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
-    let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
-    let mut sequence_number_to_inscription_id =
-      wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
+    let mut inscription_id_to_sequence_number =
+      wtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+    let mut inscription_number_to_sequence_number =
+      wtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
+    let mut sat_to_sequence_number = wtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
+    let mut satpoint_to_sequence_number = wtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
+    let mut sequence_number_to_children = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+    let mut sequence_number_to_inscription_entry =
+      wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
 
     let mut lost_sats = statistic_to_count
@@ -411,7 +411,7 @@ impl<'index> Updater<'_> {
       .map(|unbound_inscriptions| unbound_inscriptions.value())
       .unwrap_or(0);
 
-    let next_sequence_number = sequence_number_to_inscription_id
+    let next_sequence_number = sequence_number_to_inscription_entry
       .iter()?
       .next_back()
       .and_then(|result| result.ok())
@@ -427,17 +427,17 @@ impl<'index> Updater<'_> {
       height: self.height,
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,
-      id_to_children: &mut inscription_id_to_children,
-      id_to_entry: &mut inscription_id_to_inscription_entry,
-      id_to_satpoint: &mut inscription_id_to_satpoint,
-      inscription_number_to_id: &mut inscription_number_to_inscription_id,
+      id_to_sequence_number: &mut inscription_id_to_sequence_number,
+      inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
       next_sequence_number,
       outpoint_to_value: &mut outpoint_to_value,
       reward: Height(self.height).subsidy(),
-      sat_to_inscription_id: &mut sat_to_inscription_id,
-      satpoint_to_id: &mut satpoint_to_inscription_id,
-      sequence_number_to_id: &mut sequence_number_to_inscription_id,
+      sat_to_sequence_number: &mut sat_to_sequence_number,
+      satpoint_to_sequence_number: &mut satpoint_to_sequence_number,
+      sequence_number_to_children: &mut sequence_number_to_children,
+      sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
+      sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
       timestamp: block.header.time,
       unbound_inscriptions,
       value_cache,
@@ -573,19 +573,28 @@ impl<'index> Updater<'_> {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
-      let mut inscription_id_to_rune = wtx.open_table(INSCRIPTION_ID_TO_RUNE)?;
+      let mut sequence_number_to_rune = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
-      let mut rune_updater = RuneUpdater::new(
-        self.height,
-        &mut rune_id_to_rune_entry,
-        &inscription_id_to_inscription_entry,
-        &mut inscription_id_to_rune,
-        &mut outpoint_to_rune_balances,
-        &mut rune_to_rune_id,
-        &mut statistic_to_count,
-        block.header.time,
-        &mut transaction_id_to_rune,
-      )?;
+
+      let runes = statistic_to_count
+        .get(&Statistic::Runes.into())?
+        .map(|x| x.value())
+        .unwrap_or(0);
+
+      let mut rune_updater = RuneUpdater {
+        height: self.height,
+        id_to_entry: &mut rune_id_to_rune_entry,
+        inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
+        minimum: Rune::minimum_at_height(Height(self.height)),
+        outpoint_to_balances: &mut outpoint_to_rune_balances,
+        rune_to_id: &mut rune_to_rune_id,
+        runes,
+        sequence_number_to_rune: &mut sequence_number_to_rune,
+        statistic_to_count: &mut statistic_to_count,
+        timestamp: block.header.time,
+        transaction_id_to_rune: &mut transaction_id_to_rune,
+      };
+
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;
       }

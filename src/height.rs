@@ -1,10 +1,10 @@
 use super::*;
 
 #[derive(Copy, Clone, Debug, Display, FromStr, Ord, Eq, Serialize, PartialEq, PartialOrd)]
-pub(crate) struct Height(pub(crate) u64);
+pub(crate) struct Height(pub(crate) u32);
 
 impl Height {
-  pub(crate) fn n(self) -> u64 {
+  pub(crate) fn n(self) -> u32 {
     self.0
   }
 
@@ -16,32 +16,32 @@ impl Height {
     let epoch = Epoch::from(self);
     let epoch_starting_sat = epoch.starting_sat();
     let epoch_starting_height = epoch.starting_height();
-    epoch_starting_sat + (self - epoch_starting_height.n()).n() * epoch.subsidy()
+    epoch_starting_sat + u64::from(self.n() - epoch_starting_height.n()) * epoch.subsidy()
   }
 
-  pub(crate) fn period_offset(self) -> u64 {
+  pub(crate) fn period_offset(self) -> u32 {
     self.0 % DIFFCHANGE_INTERVAL
   }
 }
 
-impl Add<u64> for Height {
+impl Add<u32> for Height {
   type Output = Self;
 
-  fn add(self, other: u64) -> Height {
+  fn add(self, other: u32) -> Height {
     Self(self.0 + other)
   }
 }
 
-impl Sub<u64> for Height {
+impl Sub<u32> for Height {
   type Output = Self;
 
-  fn sub(self, other: u64) -> Height {
+  fn sub(self, other: u32) -> Height {
     Self(self.0 - other)
   }
 }
 
-impl PartialEq<u64> for Height {
-  fn eq(&self, other: &u64) -> bool {
+impl PartialEq<u32> for Height {
+  fn eq(&self, other: &u32) -> bool {
     self.0 == *other
   }
 }
@@ -95,18 +95,18 @@ mod tests {
     assert_eq!(Height(1).starting_sat(), 5000000000);
     assert_eq!(
       Height(SUBSIDY_HALVING_INTERVAL - 1).starting_sat(),
-      (SUBSIDY_HALVING_INTERVAL - 1) * 5000000000
+      (u64::from(SUBSIDY_HALVING_INTERVAL) - 1) * 5000000000
     );
     assert_eq!(
       Height(SUBSIDY_HALVING_INTERVAL).starting_sat(),
-      SUBSIDY_HALVING_INTERVAL * 5000000000
+      u64::from(SUBSIDY_HALVING_INTERVAL) * 5000000000
     );
     assert_eq!(
       Height(SUBSIDY_HALVING_INTERVAL + 1).starting_sat(),
-      SUBSIDY_HALVING_INTERVAL * 5000000000 + 2500000000
+      u64::from(SUBSIDY_HALVING_INTERVAL) * 5000000000 + 2500000000
     );
     assert_eq!(
-      Height(u64::max_value()).starting_sat(),
+      Height(u32::max_value()).starting_sat(),
       *Epoch::STARTING_SATS.last().unwrap()
     );
   }

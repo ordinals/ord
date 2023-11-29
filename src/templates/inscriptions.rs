@@ -3,35 +3,15 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev: Option<u64>,
-  pub(crate) next: Option<u64>,
+  pub(crate) prev: Option<usize>,
+  pub(crate) next: Option<usize>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionsJson {
   pub inscriptions: Vec<InscriptionId>,
-  pub prev: Option<u64>,
-  pub next: Option<u64>,
-  pub lowest: Option<u64>,
-  pub highest: Option<u64>,
-}
-
-impl InscriptionsJson {
-  pub fn new(
-    inscriptions: Vec<InscriptionId>,
-    prev: Option<u64>,
-    next: Option<u64>,
-    lowest: Option<u64>,
-    highest: Option<u64>,
-  ) -> Self {
-    Self {
-      inscriptions,
-      prev,
-      next,
-      lowest,
-      highest,
-    }
-  }
+  pub more: bool,
+  pub page_index: usize,
 }
 
 impl PageContent for InscriptionsHtml {
@@ -53,7 +33,7 @@ mod tests {
         next: None,
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>All Inscriptions</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -76,7 +56,7 @@ mod tests {
         next: Some(2),
       },
       "
-        <h1>Inscriptions</h1>
+        <h1>All Inscriptions</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
