@@ -274,8 +274,10 @@ impl Api for Server {
     });
 
     let fee = if let Some(fee_rate) = options.and_then(|options| options.fee_rate) {
-      let fee =
-        ((transaction.vsize() as f64 + 68.0 / 4.0) / 1000.0 * fee_rate.to_sat() as f64) as u64;
+      // increase vsize to account for the witness that `fundrawtransaction` will add
+      let funded_vsize = transaction.vsize() as f64 + 68.0;
+      let funded_kwu = funded_vsize / 4.0 / 1000.0;
+      let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
       transaction.output.last_mut().unwrap().value -= fee;
       fee
     } else {
