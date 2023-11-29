@@ -116,20 +116,6 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let satpoint = if let Some(sat) = self.sat {
-      if !index.has_sat_index() {
-        return Err(anyhow!(
-          "index must be built with `--index-sats` to use `--sat`"
-        ));
-      }
-      match index.find(sat)? {
-        Some(satpoint) => Some(satpoint),
-        None => return Err(anyhow!(format!("could not find sat {}", sat))),
-      }
-    } else {
-      self.satpoint
-    };
-
     let wallet = Wallet::load(&options)?;
 
     let utxos = index.get_unspent_outputs(wallet)?;
@@ -147,6 +133,7 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let sat;
 
     match (self.file, self.batch) {
       (Some(file), None) => {
@@ -165,6 +152,8 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
+
+        sat = self.sat;
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -191,9 +180,29 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
+
+        if batchfile.sat.is_some() && mode != Mode::SameSat {
+          return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
+        }
+
+        sat = batchfile.sat;
       }
       _ => unreachable!(),
     }
+
+    let satpoint = if let Some(sat) = sat {
+      if !index.has_sat_index() {
+        return Err(anyhow!(
+          "index must be built with `--index-sats` to use `--sat`"
+        ));
+      }
+      match index.find(sat)? {
+        Some(satpoint) => Some(satpoint),
+        None => return Err(anyhow!(format!("could not find sat `{sat}`"))),
+      }
+    } else {
+      self.satpoint
+    };
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
