@@ -81,7 +81,7 @@ pub(crate) struct Inscribe {
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
-    help = "Include JSON in file at <METADATA> convered to CBOR as inscription metadata",
+    help = "Include JSON in file at <METADATA> converted to CBOR as inscription metadata",
     conflicts_with = "cbor_metadata"
   )]
   pub(crate) json_metadata: Option<PathBuf>,
@@ -315,7 +315,7 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_tansactions_opt_in_to_rbf() {
+  fn inscribe_transactions_opt_in_to_rbf() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
