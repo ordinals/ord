@@ -159,7 +159,7 @@ fn runes_can_be_etched() {
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
-  assert_eq!(output.runes[&Rune(RUNE)], 1000);
+  assert_eq!(output.runes.unwrap()[&Rune(RUNE)], 1000);
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn inscribe_does_not_select_runic_utxos() {
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 0);
-  assert_eq!(output.runic, 10000);
+  assert_eq!(output.runic, Some(10000));
 
   CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet inscribe --fee-rate 0 --file foo.txt")
     .write("foo.txt", "FOO")
@@ -389,7 +389,7 @@ fn send_inscription_does_not_select_runic_utxos() {
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 10000);
-  assert_eq!(output.runic, 10000);
+  assert_eq!(output.runic, Some(10000));
 
   CommandBuilder::new(format!("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --postage 10001sat --fee-rate 0 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}", inscribe.inscriptions[0].id))
     .rpc_server(&rpc_server)

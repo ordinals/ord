@@ -1362,6 +1362,20 @@ mod tests {
       let payload = Runestone::payload(&transaction).unwrap().unwrap();
 
       assert_eq!(Runestone::integers(&payload).unwrap(), expected);
+
+      let runestone = {
+        let mut edicts = runestone.edicts;
+        edicts.sort_by_key(|edict| edict.id);
+        Runestone {
+          edicts,
+          ..runestone
+        }
+      };
+
+      assert_eq!(
+        Runestone::from_transaction(&transaction).unwrap(),
+        runestone
+      );
     }
 
     case(Runestone::default(), &[]);

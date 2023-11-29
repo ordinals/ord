@@ -22,8 +22,8 @@ fn wallet_balance() {
     Output {
       cardinal: 50 * COIN_VALUE,
       ordinal: 0,
-      runic: 0,
-      runes: BTreeMap::new(),
+      runic: None,
+      runes: None,
       total: 50 * COIN_VALUE,
     }
   );
@@ -42,8 +42,8 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
     Output {
       cardinal: 0,
       ordinal: 0,
-      runic: 0,
-      runes: BTreeMap::new(),
+      runic: None,
+      runes: None,
       total: 0,
     }
   );
@@ -57,8 +57,8 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
     Output {
       cardinal: 100 * COIN_VALUE - 10_000,
       ordinal: 10_000,
-      runic: 0,
-      runes: BTreeMap::new(),
+      runic: None,
+      runes: None,
       total: 100 * COIN_VALUE,
     }
   );
@@ -79,8 +79,8 @@ fn runic_utxos_are_deducted_from_cardinal() {
     Output {
       cardinal: 0,
       ordinal: 0,
-      runic: 0,
-      runes: BTreeMap::new(),
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
       total: 0,
     }
   );
@@ -94,8 +94,8 @@ fn runic_utxos_are_deducted_from_cardinal() {
     Output {
       cardinal: 100 * COIN_VALUE - 10_000,
       ordinal: 0,
-      runic: 10_000,
-      runes: vec![(Rune(RUNE), 1000)].into_iter().collect(),
+      runic: Some(10_000),
+      runes: Some(vec![(Rune(RUNE), 1000)].into_iter().collect()),
       total: 100 * COIN_VALUE,
     }
   );
