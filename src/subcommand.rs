@@ -31,7 +31,7 @@ pub(crate) enum Subcommand {
   Parse(parse::Parse),
   #[command(about = "Run an explorer server populated with inscriptions")]
   Preview(preview::Preview),
-  #[command(about = "List etched runes")]
+  #[command(about = "List all runes")]
   Runes,
   #[command(about = "Run the explorer server")]
   Server(server::Server),
