@@ -1985,4 +1985,58 @@ mod tests {
       outpoint(2),
     );
   }
+
+  #[test]
+  fn prefer_further_away_utxos_if_they_are_newly_under_target() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(510)),
+      (outpoint(2), Amount::from_sat(400)),
+    ];
+
+    let mut tx_builder = TransactionBuilder::new(
+      satpoint(0, 0),
+      BTreeMap::new(),
+      utxos.into_iter().collect(),
+      BTreeSet::new(),
+      recipient(),
+      [change(0), change(1)],
+      FeeRate::try_from(1.0).unwrap(),
+      Target::Value(Amount::from_sat(10_000)),
+    );
+
+    assert_eq!(
+      tx_builder
+        .select_cardinal_utxo(Amount::from_sat(500), true)
+        .unwrap()
+        .0,
+      outpoint(2),
+    );
+  }
+
+  #[test]
+  fn prefer_further_away_utxos_if_they_are_newly_over_target() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(490)),
+      (outpoint(2), Amount::from_sat(600)),
+    ];
+
+    let mut tx_builder = TransactionBuilder::new(
+      satpoint(0, 0),
+      BTreeMap::new(),
+      utxos.into_iter().collect(),
+      BTreeSet::new(),
+      recipient(),
+      [change(0), change(1)],
+      FeeRate::try_from(1.0).unwrap(),
+      Target::Value(Amount::from_sat(10_000)),
+    );
+
+    assert_eq!(
+      tx_builder
+        .select_cardinal_utxo(Amount::from_sat(500), false)
+        .unwrap()
+        .0,
+      outpoint(2),
+    );
+  }
 }
