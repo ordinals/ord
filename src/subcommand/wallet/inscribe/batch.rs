@@ -189,14 +189,6 @@ impl Batch {
         .all(|inscription| inscription.parent().unwrap() == parent_info.id))
     }
 
-    if self.satpoint.is_some() {
-      assert_eq!(
-        self.inscriptions.len(),
-        1,
-        "invariant: satpoint may only be specified when making a single inscription",
-      );
-    }
-
     match self.mode {
       Mode::SameSat => assert_eq!(
         self.destinations.len(),
@@ -563,6 +555,7 @@ pub(crate) struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Batchfile {
