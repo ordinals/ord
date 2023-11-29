@@ -195,7 +195,7 @@ impl Inscribe {
       }
       match index.find(sat)? {
         Some(satpoint) => Some(satpoint),
-        None => return Err(anyhow!(format!("could not find sat {}", sat))),
+        None => return Err(anyhow!(format!("could not find sat `{sat}`"))),
       }
     } else {
       self.satpoint
