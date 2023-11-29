@@ -1623,3 +1623,66 @@ fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
     .expected_stderr("error: could not find sat 5000000000\n")
     .run_and_extract_stdout();
 }
+
+#[test]
+fn batch_inscribe_with_sat_argument_with_parent() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  let parent_output =
+    CommandBuilder::new("--index-sats wallet inscribe --fee-rate 5.0 --file parent.png")
+      .write("parent.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 3);
+
+  let parent_id = parent_output.inscriptions[0].id;
+
+  let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parent: {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
+    "/sat/5000111111",
+    format!(
+      ".*<a href=/inscription/{}>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
+      output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id
+    ),
+  );
+}
+
+#[test]
+fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: shared-output\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+    )
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: `sat` can only be set in `same-sat` mode\n")
+    .run_and_extract_stdout();
+}
