@@ -1044,6 +1044,35 @@ impl Index {
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
+    let ids = rtx
+      .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
+      .get(&sat.n())?
+      .map(|result| {
+        result
+          .and_then(|sequence_number| {
+            let sequence_number = sequence_number.value();
+            sequence_number_to_inscription_entry
+              .get(sequence_number)
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          })
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    Ok(ids)
+  }
+
+  pub(crate) fn get_inscription_ids_by_sat_paginated(
+    &self,
+    sat: Sat,
+    page_size: u64,
+    page_index: u64,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
     let mut ids = rtx
       .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
       .get(&sat.n())?
@@ -1053,20 +1082,55 @@ impl Index {
             let sequence_number = sequence_number.value();
             sequence_number_to_inscription_entry
               .get(sequence_number)
-              .map(|entry| {
-                (
-                  sequence_number,
-                  InscriptionEntry::load(entry.unwrap().value()).id,
-                )
-              })
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
           })
           .map_err(|err| err.into())
       })
-      .collect::<Result<Vec<(u32, InscriptionId)>>>()?;
+      .skip(page_index.saturating_mul(page_size).try_into().unwrap())
+      .take(page_size.saturating_add(1).try_into().unwrap())
+      .collect::<Result<Vec<InscriptionId>>>()?;
 
-    ids.sort_by_key(|(sequence_number, _id)| *sequence_number);
+    let more = ids.len() > page_size.try_into().unwrap();
 
-    Ok(ids.into_iter().map(|(_sequence_number, id)| id).collect())
+    if more {
+      ids.pop();
+    }
+
+    Ok((ids, more))
+  }
+
+  pub(crate) fn get_inscription_id_by_sat_indexed(
+    &self,
+    sat: Sat,
+    inscription_index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let sat_to_sequence_number = rtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
+
+    if inscription_index < 0 {
+      sat_to_sequence_number
+        .get(&sat.n())?
+        .nth_back((inscription_index + 1).abs_diff(0))
+    } else {
+      sat_to_sequence_number
+        .get(&sat.n())?
+        .nth(inscription_index.abs_diff(0))
+    }
+    .map(|result| {
+      result
+        .and_then(|sequence_number| {
+          let sequence_number = sequence_number.value();
+          sequence_number_to_inscription_entry
+            .get(sequence_number)
+            .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+        })
+        .map_err(|err| anyhow!(err.to_string()))
+    })
+    .transpose()
   }
 
   pub(crate) fn get_inscription_id_by_sequence_number(
@@ -1218,7 +1282,8 @@ impl Index {
     )
   }
 
-  pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
+  pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
+    let sat = sat.0;
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? <= Sat(sat).height().n() {
@@ -1247,9 +1312,11 @@ impl Index {
 
   pub(crate) fn find_range(
     &self,
-    range_start: u64,
-    range_end: u64,
+    range_start: Sat,
+    range_end: Sat,
   ) -> Result<Option<Vec<FindRangeOutput>>> {
+    let range_start = range_start.0;
+    let range_end = range_end.0;
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? < Sat(range_end - 1).height().n() + 1 {
@@ -1965,7 +2032,7 @@ mod tests {
   fn find_first_sat() {
     let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
-      context.index.find(0).unwrap().unwrap(),
+      context.index.find(Sat(0)).unwrap().unwrap(),
       SatPoint {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
@@ -1979,7 +2046,7 @@ mod tests {
   fn find_second_sat() {
     let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
-      context.index.find(1).unwrap().unwrap(),
+      context.index.find(Sat(1)).unwrap().unwrap(),
       SatPoint {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
@@ -1994,7 +2061,7 @@ mod tests {
     let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     assert_eq!(
-      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: "30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0"
           .parse()
@@ -2007,7 +2074,7 @@ mod tests {
   #[test]
   fn find_unmined_sat() {
     let context = Context::builder().arg("--index-sats").build();
-    assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
+    assert_eq!(context.index.find(Sat(50 * COIN_VALUE)).unwrap(), None);
   }
 
   #[test]
@@ -2021,7 +2088,7 @@ mod tests {
     });
     context.mine_blocks(1);
     assert_eq!(
-      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint::new(spend_txid, 0),
         offset: 0,
@@ -3053,7 +3120,45 @@ mod tests {
   }
 
   #[test]
+  fn inscriptions_with_stutter_are_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
   // https://github.com/ordinals/ord/issues/2062
+  #[test]
   fn zero_value_transaction_inscription_not_cursed_but_unbound() {
     for context in Context::configurations() {
       context.mine_blocks(1);

@@ -21,29 +21,22 @@ fn preview() {
     .unwrap()
     .port();
 
-  let examples = fs::read_dir("examples")
-    .unwrap()
-    .map(|entry| {
-      entry
-        .unwrap()
-        .path()
-        .canonicalize()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .into()
-    })
-    .filter(|example| example != "examples/av1.mp4")
-    .collect::<Vec<String>>();
-
-  let mut args = vec![
-    "preview".to_string(),
-    "--http-port".to_string(),
-    port.to_string(),
-  ];
-  args.extend(examples.clone());
-
-  let builder = CommandBuilder::new(args);
+  let builder = CommandBuilder::new(format!(
+    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml"
+  ))
+  .write("inscription.txt", "Hello World")
+  .write("alert.html", "<script>alert('LFG!')</script>")
+  .write("poem.txt", "Sphinx of black quartz, judge my vow.")
+  .write("tulip.png", [0; 555])
+  .write("meow.wav", [0; 2048])
+  .write(
+    "batch_1.yaml",
+    "mode: shared-output\ninscriptions:\n- file: poem.txt\n- file: tulip.png\n",
+  )
+  .write(
+    "batch_2.yaml",
+    "mode: shared-output\ninscriptions:\n- file: meow.wav\n",
+  );
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -67,6 +60,6 @@ fn preview() {
       .unwrap()
       .text()
       .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", examples.len())
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
   );
 }

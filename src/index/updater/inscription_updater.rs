@@ -9,6 +9,7 @@ enum Curse {
   Pointer,
   Pushnum,
   Reinscription,
+  Stutter,
   UnrecognizedEvenField,
 }
 
@@ -148,6 +149,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::Pointer)
         } else if inscription.pushnum {
           Some(Curse::Pushnum)
+        } else if inscription.stutter {
+          Some(Curse::Stutter)
         } else if let Some((id, count)) = inscribed_offset {
           if *count > 1 {
             Some(Curse::Reinscription)

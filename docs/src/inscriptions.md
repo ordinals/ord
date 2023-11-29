@@ -76,8 +76,14 @@ Fields
 Inscriptions may include fields before an optional body. Each field consists of
 two data pushes, a tag and a value.
 
-Currently, the only defined field is `content-type`, with a tag of `1`, whose
-value is the MIME type of the body.
+Currently, there are six defined fields:
+
+- `content_type`, with a tag of `1`, whose value is the MIME type of the body.
+- `pointer`, with a tag of `2`, see [pointer docs](./inscriptions/pointer.md).
+- `parent`, with a tag of `3`, see [provenance](./inscriptions/provenance.md).
+- `metadata`, with a tag of `5`, see [metadata](./inscriptions/metadata.md).
+- `metaprotocol`, with a tag of `7`, whose value is the metaprotocol identifier.
+- `content_encoding`, with a tag of `9`, whose value is the encoding of the body.
 
 The beginning of the body and end of fields is indicated with an empty data
 push.

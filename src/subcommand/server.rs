@@ -10,12 +10,13 @@ use {
     page_config::PageConfig,
     runes::Rune,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-      InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml,
-      InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-      PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-      PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-      RuneHtml, RunesHtml, SatHtml, SatJson, TransactionHtml,
+      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ChildrenJson, ClockSvg, CollectionsHtml,
+      HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml,
+      InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
+      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+      RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
+      SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -237,7 +238,21 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/children/:inscription_id", get(Self::children_recursive))
+        .route(
+          "/r/children/:inscription_id/:page",
+          get(Self::children_recursive_paginated),
+        )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+        .route(
+          "/r/sat/:sat_number/:page",
+          get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/sat/:sat_number/at/:index",
+          get(Self::sat_inscription_at_index),
+        )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -1342,6 +1357,28 @@ impl Server {
     )
   }
 
+  async fn children_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::children_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+  }
+
+  async fn children_recursive_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    let parent_sequence_number = index
+      .get_inscription_entry(parent)?
+      .ok_or_not_found(|| format!("inscription {parent}"))?
+      .sequence_number;
+
+    let (ids, more) =
+      index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
+
+    Ok(Json(ChildrenJson { ids, more, page }).into_response())
+  }
+
   async fn inscriptions(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -1439,6 +1476,43 @@ impl Server {
       .page(page_config)
       .into_response()
     })
+  }
+
+  async fn sat_inscriptions(
+    Extension(index): Extension<Arc<Index>>,
+    Path(sat): Path<u64>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
+  }
+
+  async fn sat_inscriptions_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((sat, page)): Path<(u64, u64)>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
+
+    Ok(Json(SatInscriptionsJson { ids, more, page }))
+  }
+
+  async fn sat_inscription_at_index(
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
+  ) -> ServerResult<Json<SatInscriptionJson>> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
+    let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
+
+    Ok(Json(SatInscriptionJson { id }))
   }
 
   async fn redirect_http_to_https(
@@ -2155,7 +2229,7 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Rune AAAAAAAAAAAAA</title>.*
-<h1>Rune AAAAAAAAAAAAA</h1>
+<h1>AAAAAAAAAAAAA</h1>
 <iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
@@ -2722,7 +2796,7 @@ mod tests {
 
     for i in 0..101 {
       let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        inputs: &[(i + 1, 0, 0, inscription("foo", "hello").to_witness())],
         ..Default::default()
       });
       ids.push(InscriptionId { txid, index: 0 });
@@ -4351,5 +4425,174 @@ next
 "
       ),
     );
+  }
+
+  #[test]
+  fn sat_recursive_endpoints() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    assert_eq!(
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000"),
+      SatInscriptionsJson {
+        ids: vec![],
+        page: 0,
+        more: false
+      }
+    );
+
+    assert_eq!(
+      server.get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0"),
+      SatInscriptionJson { id: None }
+    );
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+    ids.push(InscriptionId { txid, index: 0 });
+
+    for i in 1..111 {
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 1, 0, inscription("text/plain", "foo").to_witness())],
+        ..Default::default()
+      });
+
+      server.mine_blocks(1);
+
+      ids.push(InscriptionId { txid, index: 0 });
+    }
+
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000");
+
+    let equivalent_paginated_response =
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/0");
+
+    assert_eq!(paginated_response.ids.len(), 100);
+    assert!(paginated_response.more);
+    assert_eq!(paginated_response.page, 0);
+
+    assert_eq!(
+      paginated_response.ids.len(),
+      equivalent_paginated_response.ids.len()
+    );
+    assert_eq!(paginated_response.more, equivalent_paginated_response.more);
+    assert_eq!(paginated_response.page, equivalent_paginated_response.page);
+
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/1");
+
+    assert_eq!(paginated_response.ids.len(), 11);
+    assert!(!paginated_response.more);
+    assert_eq!(paginated_response.page, 1);
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0")
+        .id,
+      Some(ids[0])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-111")
+        .id,
+      Some(ids[0])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/110")
+        .id,
+      Some(ids[110])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-1")
+        .id,
+      Some(ids[110])
+    );
+
+    assert!(server
+      .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/111")
+      .id
+      .is_none());
+  }
+
+  #[test]
+  fn children_recursive_endpoint() {
+    let server = TestServer::new_with_regtest_with_json_api();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/children/{parent_inscription_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
+    assert_eq!(children_json.ids.len(), 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parent: Some(parent_inscription_id.parent_value()),
+        unrecognized_even_field: false,
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
+
+    assert_eq!(children_json.ids.len(), 100);
+    assert_eq!(children_json.ids[0], first_child_inscription_id);
+    assert_eq!(children_json.ids[99], hundredth_child_inscription_id);
+    assert!(children_json.more);
+    assert_eq!(children_json.page, 0);
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}/1"));
+
+    assert_eq!(children_json.ids.len(), 11);
+    assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);
+    assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 1);
   }
 }

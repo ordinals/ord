@@ -42,7 +42,7 @@ mod tests {
           index: 0,
         }),
       },
-      r"<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+      r"<h1>BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
 <dl>
   <dt>id</dt>

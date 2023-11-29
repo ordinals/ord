@@ -3,7 +3,7 @@ use {super::*, boilerplate::Boilerplate};
 pub(crate) use {
   block::{BlockHtml, BlockJson},
   blocks::BlocksHtml,
-  children::ChildrenHtml,
+  children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
   collections::CollectionsHtml,
   home::HomeHtml,
@@ -23,7 +23,7 @@ pub(crate) use {
   rare::RareTxt,
   rune::RuneHtml,
   runes::RunesHtml,
-  sat::{SatHtml, SatJson},
+  sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   transaction::TransactionHtml,
 };
 
