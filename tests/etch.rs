@@ -163,7 +163,7 @@ fn runes_can_be_etched() {
 }
 
 #[test]
-fn etch_sets_fee_rate_correctly() {
+fn etch_sets_integer_fee_rate_correctly() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -189,6 +189,35 @@ fn etch_sets_fee_rate_correctly() {
   let output = tx.output.iter().map(|tx_out| tx_out.value).sum::<u64>();
 
   assert_eq!(output, 50 * COIN_VALUE - tx.vsize() as u64 * 100);
+}
+
+#[test]
+fn etch_sets_decimal_fee_rate_correctly() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(
+    format!(
+    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 100.5 --supply 1000 --symbol ¢",
+    Rune(RUNE),
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let tx = rpc_server.tx(2, 1);
+
+  assert_eq!(tx.txid(), output.transaction);
+
+  let output = tx.output.iter().map(|tx_out| tx_out.value).sum::<u64>();
+
+  assert_eq!(output, 50 * COIN_VALUE - (tx.vsize() as f64 * 100.5) as u64);
 }
 
 #[test]
