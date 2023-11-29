@@ -826,4 +826,19 @@ mod tests {
       .options
       .index_runes(),);
   }
+
+  #[test]
+  fn cookie_file_does_not_exist_error() {
+    assert_eq!(
+      Options {
+        cookie_file: Some("/foo/bar/baz/qux/.cookie".into()),
+        ..Default::default()
+      }
+      .bitcoin_rpc_client()
+      .map(|_| "")
+      .unwrap_err()
+      .to_string(),
+      "cookie file `/foo/bar/baz/qux/.cookie` does not exist"
+    );
+  }
 }
