@@ -110,9 +110,10 @@ impl Preview {
               no_backup: true,
               no_limit: false,
               parent: None,
-              postage: Some(TransactionBuilder::TARGET_POSTAGE),
+              postage: Some(TARGET_POSTAGE),
               reinscribe: false,
               satpoint: None,
+              sat: None,
             },
           )),
         }
@@ -141,9 +142,10 @@ impl Preview {
               no_backup: true,
               no_limit: false,
               parent: None,
-              postage: Some(TransactionBuilder::TARGET_POSTAGE),
+              postage: Some(TARGET_POSTAGE),
               reinscribe: false,
               satpoint: None,
+              sat: None,
             },
           )),
         }

@@ -41,6 +41,7 @@ impl Batch {
     index: &Index,
     client: &Client,
     locked_utxos: &BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
@@ -55,6 +56,7 @@ impl Batch {
         wallet_inscriptions,
         chain,
         locked_utxos.clone(),
+        runic_utxos,
         utxos.clone(),
         commit_tx_change,
       )?;
@@ -132,7 +134,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
-        Mode::SharedOutput => {
+        Mode::SharedOutput | Mode::SameSat => {
           if self.parent_info.is_some() {
             1
           } else {
@@ -150,7 +152,7 @@ impl Batch {
 
       let offset = match self.mode {
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
-        Mode::SeparateOutputs => 0,
+        Mode::SeparateOutputs | Mode::SameSat => 0,
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -179,6 +181,7 @@ impl Batch {
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
@@ -189,15 +192,12 @@ impl Batch {
         .all(|inscription| inscription.parent().unwrap() == parent_info.id))
     }
 
-    if self.satpoint.is_some() {
-      assert_eq!(
-        self.inscriptions.len(),
-        1,
-        "invariant: satpoint may only be specified when making a single inscription",
-      );
-    }
-
     match self.mode {
+      Mode::SameSat => assert_eq!(
+        self.destinations.len(),
+        1,
+        "invariant: same-sat has only one destination"
+      ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
         self.inscriptions.len(),
@@ -219,9 +219,14 @@ impl Batch {
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint) && !locked_utxos.contains(outpoint))
-        .map(|outpoint| SatPoint {
+        .iter()
+        .find(|(outpoint, amount)| {
+          amount.to_sat() > 0
+            && !inscribed_utxos.contains(outpoint)
+            && !locked_utxos.contains(outpoint)
+            && !runic_utxos.contains(outpoint)
+        })
+        .map(|(outpoint, _amount)| SatPoint {
           outpoint: *outpoint,
           offset: 0,
         })
@@ -286,7 +291,7 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs => self.postage.to_sat(),
+          Mode::SeparateOutputs | Mode::SameSat => self.postage.to_sat(),
           Mode::SharedOutput => total_postage.to_sat(),
         },
       })
@@ -325,6 +330,7 @@ impl Batch {
       wallet_inscriptions,
       utxos.clone(),
       locked_utxos.clone(),
+      runic_utxos,
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
@@ -520,6 +526,8 @@ impl Batch {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[serde(rename = "same-sat")]
+  SameSat,
   #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
@@ -556,6 +564,7 @@ pub(crate) struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Batchfile {
@@ -619,7 +628,7 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()

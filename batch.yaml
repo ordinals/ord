@@ -1,8 +1,9 @@
 # example batch file
 
 # there are two modes:
-# - `separate-outputs`: place all inscriptions in separate postage-sized outputs
-# - `shared-output`: place inscriptions in a single output separated by postage
+# - `separate-outputs`: inscribe on separate postage-sized outputs
+# - `shared-output`: inscribe on a single output separated by postage
+# - `same-sat`: inscribe on the same sat
 mode: separate-outputs
 
 # parent inscription:
@@ -10,6 +11,9 @@ parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 
 # postage for each inscription:
 postage: 12345
+
+# sat to inscribe on, can only be used with `same-sat`:
+# sat: 5000000000
 
 # inscriptions to inscribe
 #

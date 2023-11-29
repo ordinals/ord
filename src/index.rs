@@ -260,6 +260,7 @@ impl Index {
             .unwrap()
             .value()
             != 0;
+
           index_sats = statistics
             .get(&Statistic::IndexSats.key())?
             .unwrap()
@@ -312,9 +313,11 @@ impl Index {
 
           statistics.insert(
             &Statistic::IndexRunes.key(),
-            &u64::from(options.index_runes()),
+            &u64::from(index_runes),
           )?;
-          statistics.insert(&Statistic::IndexSats.key(), &u64::from(options.index_sats))?;
+
+          statistics.insert(&Statistic::IndexSats.key(), &u64::from(index_sats))?;
+
           statistics.insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
         }
 
@@ -420,6 +423,10 @@ impl Index {
         None => bail!("index has not seen {outpoint}"),
       })
       .collect()
+  }
+
+  pub(crate) fn has_rune_index(&self) -> bool {
+    self.index_runes
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {
@@ -828,6 +835,22 @@ impl Index {
     }
 
     Ok(balances)
+  }
+
+  pub(crate) fn get_runic_outputs(&self, outpoints: &[OutPoint]) -> Result<BTreeSet<OutPoint>> {
+    let rtx = self.database.begin_read()?;
+
+    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+
+    let mut runic = BTreeSet::new();
+
+    for outpoint in outpoints {
+      if outpoint_to_balances.get(&outpoint.store())?.is_some() {
+        runic.insert(*outpoint);
+      }
+    }
+
+    Ok(runic)
   }
 
   #[cfg(test)]
@@ -1282,7 +1305,8 @@ impl Index {
     )
   }
 
-  pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
+  pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
+    let sat = sat.0;
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? <= Sat(sat).height().n() {
@@ -1311,9 +1335,11 @@ impl Index {
 
   pub(crate) fn find_range(
     &self,
-    range_start: u64,
-    range_end: u64,
+    range_start: Sat,
+    range_end: Sat,
   ) -> Result<Option<Vec<FindRangeOutput>>> {
+    let range_start = range_start.0;
+    let range_end = range_end.0;
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? < Sat(range_end - 1).height().n() + 1 {
@@ -2029,7 +2055,7 @@ mod tests {
   fn find_first_sat() {
     let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
-      context.index.find(0).unwrap().unwrap(),
+      context.index.find(Sat(0)).unwrap().unwrap(),
       SatPoint {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
@@ -2043,7 +2069,7 @@ mod tests {
   fn find_second_sat() {
     let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
-      context.index.find(1).unwrap().unwrap(),
+      context.index.find(Sat(1)).unwrap().unwrap(),
       SatPoint {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
@@ -2058,7 +2084,7 @@ mod tests {
     let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     assert_eq!(
-      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: "30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0"
           .parse()
@@ -2071,7 +2097,7 @@ mod tests {
   #[test]
   fn find_unmined_sat() {
     let context = Context::builder().arg("--index-sats").build();
-    assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
+    assert_eq!(context.index.find(Sat(50 * COIN_VALUE)).unwrap(), None);
   }
 
   #[test]
@@ -2085,7 +2111,7 @@ mod tests {
     });
     context.mine_blocks(1);
     assert_eq!(
-      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint::new(spend_txid, 0),
         offset: 0,
@@ -3117,7 +3143,45 @@ mod tests {
   }
 
   #[test]
+  fn inscriptions_with_stutter_are_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
   // https://github.com/ordinals/ord/issues/2062
+  #[test]
   fn zero_value_transaction_inscription_not_cursed_but_unbound() {
     for context in Context::configurations() {
       context.mine_blocks(1);

@@ -50,6 +50,14 @@ pub trait Api {
     avoid_reuse: Option<bool>,
   ) -> Result<LoadWalletResult, jsonrpc_core::Error>;
 
+  #[rpc(name = "fundrawtransaction")]
+  fn fund_raw_transaction(
+    &self,
+    tx: String,
+    options: Option<FundRawTransactionOptions>,
+    is_witness: Option<bool>,
+  ) -> Result<FundRawTransactionResult, jsonrpc_core::Error>;
+
   #[rpc(name = "signrawtransactionwithwallet")]
   fn sign_raw_transaction_with_wallet(
     &self,

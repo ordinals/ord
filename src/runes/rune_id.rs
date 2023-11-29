@@ -1,9 +1,9 @@
 use {super::*, std::num::TryFromIntError};
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
-pub(crate) struct RuneId {
-  pub(crate) height: u32,
-  pub(crate) index: u16,
+pub struct RuneId {
+  pub height: u32,
+  pub index: u16,
 }
 
 impl TryFrom<u128> for RuneId {
@@ -41,6 +41,24 @@ impl FromStr for RuneId {
       height: height.parse()?,
       index: index.parse()?,
     })
+  }
+}
+
+impl Serialize for RuneId {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for RuneId {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 
@@ -99,5 +117,16 @@ mod tests {
     );
 
     assert!(RuneId::try_from(0x07060504030201).is_err());
+  }
+
+  #[test]
+  fn serde() {
+    let rune_id = RuneId {
+      height: 1,
+      index: 2,
+    };
+    let json = "\"1/2\"";
+    assert_eq!(serde_json::to_string(&rune_id).unwrap(), json);
+    assert_eq!(serde_json::from_str::<RuneId>(json).unwrap(), rune_id);
   }
 }

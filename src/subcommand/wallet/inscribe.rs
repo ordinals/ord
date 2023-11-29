@@ -16,7 +16,6 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
   bitcoincore_rpc::Client,
-  std::collections::BTreeSet,
 };
 
 mod batch;
@@ -82,7 +81,7 @@ pub(crate) struct Inscribe {
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
-    help = "Include JSON in file at <METADATA> convered to CBOR as inscription metadata",
+    help = "Include JSON in file at <METADATA> converted to CBOR as inscription metadata",
     conflicts_with = "cbor_metadata"
   )]
   pub(crate) json_metadata: Option<PathBuf>,
@@ -106,6 +105,8 @@ pub(crate) struct Inscribe {
   pub(crate) reinscribe: bool,
   #[arg(long, help = "Inscribe <SATPOINT>.")]
   pub(crate) satpoint: Option<SatPoint>,
+  #[arg(long, help = "Inscribe <SAT>.", conflicts_with = "satpoint")]
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Inscribe {
@@ -115,9 +116,13 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let wallet = Wallet::load(&options)?;
 
-    let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
+    let utxos = index.get_unspent_outputs(wallet)?;
+
+    let locked_utxos = index.get_locked_outputs(wallet)?;
+
+    let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
@@ -128,12 +133,13 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let sat;
 
     match (self.file, self.batch) {
       (Some(file), None) => {
         parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
 
-        postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+        postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
         inscriptions = vec![Inscription::from_file(
           chain,
@@ -146,6 +152,8 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
+
+        sat = self.sat;
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -160,7 +168,7 @@ impl Inscribe {
         postage = batchfile
           .postage
           .map(Amount::from_sat)
-          .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+          .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
           &client,
@@ -172,9 +180,29 @@ impl Inscribe {
         )?;
 
         mode = batchfile.mode;
+
+        if batchfile.sat.is_some() && mode != Mode::SameSat {
+          return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
+        }
+
+        sat = batchfile.sat;
       }
       _ => unreachable!(),
     }
+
+    let satpoint = if let Some(sat) = sat {
+      if !index.has_sat_index() {
+        return Err(anyhow!(
+          "index must be built with `--index-sats` to use `--sat`"
+        ));
+      }
+      match index.find(sat)? {
+        Some(satpoint) => Some(satpoint),
+        None => return Err(anyhow!(format!("could not find sat `{sat}`"))),
+      }
+    } else {
+      self.satpoint
+    };
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
@@ -188,9 +216,9 @@ impl Inscribe {
       postage,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
-      satpoint: self.satpoint,
+      satpoint,
     }
-    .inscribe(chain, &index, &client, &locked_utxos, &utxos)
+    .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -271,13 +299,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
@@ -295,7 +324,7 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_tansactions_opt_in_to_rbf() {
+  fn inscribe_transactions_opt_in_to_rbf() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
@@ -311,13 +340,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       change,
@@ -354,13 +384,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -404,13 +435,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -448,13 +480,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -529,13 +562,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
@@ -610,13 +644,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -667,13 +702,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -706,13 +742,14 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: true,
       reinscribe: false,
-      postage: TransactionBuilder::TARGET_POSTAGE,
+      postage: TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
     .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
@@ -883,6 +920,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -979,6 +1017,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1053,6 +1092,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     );
@@ -1089,6 +1129,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
@@ -1142,6 +1183,7 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
+      BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
     )
@@ -1151,7 +1193,7 @@ inscriptions:
     assert!(reveal_tx
       .output
       .iter()
-      .all(|output| output.value == TransactionBuilder::TARGET_POSTAGE.to_sat()));
+      .all(|output| output.value == TARGET_POSTAGE.to_sat()));
   }
 
   #[test]
@@ -1217,6 +1259,7 @@ inscriptions:
     .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
+      BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
@@ -1320,6 +1363,27 @@ inscriptions:
         .unwrap_err()
         .to_string()
         .contains("error: the following required arguments were not provided:\n  <--file <FILE>|--batch <BATCH>>")
+    );
+  }
+
+  #[test]
+  fn satpoint_and_sat_flags_conflict() {
+    assert_regex_match!(
+      Arguments::try_parse_from([
+        "ord",
+        "--index-sats",
+        "wallet",
+        "inscribe",
+        "--sat",
+        "50000000000",
+        "--satpoint",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00:1:0",
+        "--file",
+        "baz",
+      ])
+      .unwrap_err()
+      .to_string(),
+      ".*--sat.*cannot be used with.*--satpoint.*"
     );
   }
 }

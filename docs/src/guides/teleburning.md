@@ -9,7 +9,7 @@ Teleburning an asset means something like, "I'm out. Find me on Bitcoin."
 
 Teleburn addresses are derived from inscription IDs. They have no corresponding
 private key, so assets sent to a teleburn address are burned. Currently, only
-Ethereum teleburn addresses are suppported. Pull requests adding teleburn
+Ethereum teleburn addresses are supported. Pull requests adding teleburn
 addresses for other chains are welcome.
 
 Ethereum

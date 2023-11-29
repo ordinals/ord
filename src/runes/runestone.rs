@@ -64,14 +64,7 @@ impl Runestone {
       return Ok(None);
     };
 
-    let mut integers = Vec::new();
-    let mut i = 0;
-
-    while i < payload.len() {
-      let (integer, length) = varint::decode(&payload[i..])?;
-      integers.push(integer);
-      i += length;
-    }
+    let integers = Runestone::integers(&payload)?;
 
     let Message { mut fields, body } = Message::from_integers(&integers);
 
@@ -101,7 +94,6 @@ impl Runestone {
     }))
   }
 
-  #[cfg(test)]
   pub(crate) fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
@@ -109,7 +101,7 @@ impl Runestone {
       varint::encode_to_vec(TAG_RUNE, &mut payload);
       varint::encode_to_vec(etching.rune.0, &mut payload);
 
-      if etching.divisibility != 0 && etching.divisibility <= MAX_DIVISIBILITY {
+      if etching.divisibility != 0 {
         varint::encode_to_vec(TAG_DIVISIBILITY, &mut payload);
         varint::encode_to_vec(etching.divisibility.into(), &mut payload);
       }
@@ -186,6 +178,19 @@ impl Runestone {
     }
 
     Ok(None)
+  }
+
+  fn integers(payload: &[u8]) -> Result<Vec<u128>> {
+    let mut integers = Vec::new();
+    let mut i = 0;
+
+    while i < payload.len() {
+      let (integer, length) = varint::decode(&payload[i..])?;
+      integers.push(integer);
+      i += length;
+    }
+
+    Ok(integers)
   }
 }
 
@@ -1336,5 +1341,143 @@ mod tests {
         ..Default::default()
       }))
     );
+  }
+
+  #[test]
+  fn encipher() {
+    #[track_caller]
+    fn case(runestone: Runestone, expected: &[u128]) {
+      let script_pubkey = runestone.encipher();
+
+      let transaction = Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey,
+          value: 0,
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      };
+
+      let payload = Runestone::payload(&transaction).unwrap().unwrap();
+
+      assert_eq!(Runestone::integers(&payload).unwrap(), expected);
+
+      let runestone = {
+        let mut edicts = runestone.edicts;
+        edicts.sort_by_key(|edict| edict.id);
+        Runestone {
+          edicts,
+          ..runestone
+        }
+      };
+
+      assert_eq!(
+        Runestone::from_transaction(&transaction).unwrap(),
+        runestone
+      );
+    }
+
+    case(Runestone::default(), &[]);
+
+    case(
+      Runestone {
+        etching: Some(Etching {
+          divisibility: 1,
+          limit: Some(2),
+          symbol: Some('@'),
+          rune: Rune(3),
+          term: Some(4),
+        }),
+        edicts: vec![
+          Edict {
+            amount: 8,
+            id: 9,
+            output: 10,
+          },
+          Edict {
+            amount: 5,
+            id: 6,
+            output: 7,
+          },
+        ],
+        burn: false,
+      },
+      &[
+        TAG_RUNE,
+        3,
+        TAG_DIVISIBILITY,
+        1,
+        TAG_SYMBOL,
+        '@'.into(),
+        TAG_LIMIT,
+        2,
+        TAG_TERM,
+        4,
+        TAG_BODY,
+        6,
+        5,
+        7,
+        3,
+        8,
+        10,
+      ],
+    );
+
+    case(
+      Runestone {
+        etching: Some(Etching {
+          divisibility: 0,
+          limit: None,
+          symbol: None,
+          rune: Rune(3),
+          term: None,
+        }),
+        burn: false,
+        ..Default::default()
+      },
+      &[TAG_RUNE, 3],
+    );
+
+    case(
+      Runestone {
+        burn: true,
+        ..Default::default()
+      },
+      &[TAG_BURN, 0],
+    );
+  }
+
+  #[test]
+  fn runestone_payload_is_chunked() {
+    let script = Runestone {
+      edicts: vec![
+        Edict {
+          id: 0,
+          amount: 0,
+          output: 0
+        };
+        173
+      ],
+      ..Default::default()
+    }
+    .encipher();
+
+    assert_eq!(script.instructions().count(), 3);
+
+    let script = Runestone {
+      edicts: vec![
+        Edict {
+          id: 0,
+          amount: 0,
+          output: 0
+        };
+        174
+      ],
+      ..Default::default()
+    }
+    .encipher();
+
+    assert_eq!(script.instructions().count(), 4);
   }
 }

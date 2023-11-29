@@ -330,7 +330,7 @@ fn send_btc_with_fee_rate() {
 
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new(
+  CommandBuilder::new(
     "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
   )
   .rpc_server(&rpc_server)
@@ -351,13 +351,6 @@ fn send_btc_with_fee_rate() {
   let fee_rate = fee as f64 / tx.vsize() as f64;
 
   assert!(f64::abs(fee_rate - 13.3) < 0.1);
-
-  assert_eq!(
-    output.transaction,
-    "0000000000000000000000000000000000000000000000000000000000000000"
-      .parse()
-      .unwrap()
-  );
 
   assert_eq!(
     rpc_server.sent(),
@@ -381,17 +374,9 @@ fn send_btc_locks_inscriptions() {
 
   let (_, reveal) = inscribe(&rpc_server);
 
-  let output =
-    CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<Output>();
-
-  assert_eq!(
-    output.transaction,
-    "0000000000000000000000000000000000000000000000000000000000000000"
-      .parse()
-      .unwrap()
-  );
+  CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     rpc_server.sent(),
@@ -420,7 +405,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
 
   CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: failed to lock ordinal UTXOs\n")
+    .expected_stderr("error: failed to lock UTXOs\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

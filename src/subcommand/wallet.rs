@@ -17,6 +17,7 @@ use {
 pub mod balance;
 pub mod cardinals;
 pub mod create;
+pub mod etch;
 pub mod inscribe;
 pub mod inscriptions;
 pub mod outputs;
@@ -33,6 +34,8 @@ pub(crate) enum Wallet {
   Balance,
   #[command(about = "Create new wallet")]
   Create(create::Create),
+  #[command(about = "Create rune")]
+  Etch(etch::Etch),
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
@@ -58,6 +61,7 @@ impl Wallet {
     match self {
       Self::Balance => balance::run(options),
       Self::Create(create) => create.run(options),
+      Self::Etch(etch) => etch.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
