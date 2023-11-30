@@ -3044,6 +3044,63 @@ mod tests {
   }
 
   #[test]
+  fn inscriptions_are_uncursed_after_jubilee() {
+    for context in Context::configurations() {
+      context.mine_blocks(108);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[1],
+        b"text/plain;charset=utf-8",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness.clone())],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(context.rpc_server.height(), 109);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(context.rpc_server.height(), 110);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        0
+      );
+    }
+  }
+
+  #[test]
   fn duplicate_field_inscriptions_are_cursed() {
     for context in Context::configurations() {
       context.mine_blocks(1);
