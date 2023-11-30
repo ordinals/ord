@@ -1,4 +1,4 @@
-FROM docker.io/library/rust:1.67.0 as builder
+FROM docker.io/library/rust:1.74.0 as builder
 
 WORKDIR /build
 
@@ -21,3 +21,4 @@ ENV RUST_BACKTRACE=1
 ENV RUST_LOG=info
 
 ENTRYPOINT ["ord"]
+
