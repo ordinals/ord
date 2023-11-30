@@ -1072,7 +1072,7 @@ impl Server {
 
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_static("max-age=31536000, immutable"),
+      HeaderValue::from_static("public, max-age=31536000, immutable"),
     );
 
     let Some(body) = inscription.into_body() else {
@@ -3679,7 +3679,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
-      "max-age=31536000, immutable"
+      "public, max-age=31536000, immutable"
     );
   }
 
