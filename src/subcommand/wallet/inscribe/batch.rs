@@ -282,7 +282,12 @@ impl Batch {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = self.postage * u64::try_from(self.inscriptions.len()).unwrap();
+    let total_postage = match self.mode {
+      Mode::SameSat => self.postage,
+      Mode::SharedOutput | Mode::SeparateOutputs => {
+        self.postage * u64::try_from(self.inscriptions.len()).unwrap()
+      }
+    };
 
     let mut reveal_inputs = vec![OutPoint::null()];
     let mut reveal_outputs = self
@@ -291,8 +296,8 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs | Mode::SameSat => self.postage.to_sat(),
-          Mode::SharedOutput => total_postage.to_sat(),
+          Mode::SeparateOutputs => self.postage.to_sat(),
+          Mode::SharedOutput | Mode::SameSat => total_postage.to_sat(),
         },
       })
       .collect::<Vec<TxOut>>();

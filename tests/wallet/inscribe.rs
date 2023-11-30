@@ -1686,3 +1686,56 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .expected_stderr("error: `sat` can only be set in `same-sat` mode\n")
     .run_and_extract_stdout();
 }
+
+#[test]
+fn batch_inscribe_with_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(2);
+
+  let set_fee_rate = 1.0;
+
+  let output = CommandBuilder::new(format!("--index-sats wallet inscribe --fee-rate {set_fee_rate} --batch batch.yaml"))
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  let commit_tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &commit_tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &commit_tx.output {
+    fee -= output.value;
+  }
+  let fee_rate = fee as f64 / commit_tx.vsize() as f64;
+  pretty_assert_eq!(fee_rate, set_fee_rate);
+
+  let reveal_tx = &rpc_server.mempool()[1];
+  let mut fee = 0;
+  for input in &reveal_tx.input {
+    fee += &commit_tx.output[input.previous_output.vout as usize].value;
+  }
+  for output in &reveal_tx.output {
+    fee -= output.value;
+  }
+  let fee_rate = fee as f64 / reveal_tx.vsize() as f64;
+  pretty_assert_eq!(fee_rate, set_fee_rate);
+
+  assert_eq!(
+    ord::FeeRate::try_from(set_fee_rate)
+      .unwrap()
+      .fee(commit_tx.vsize() + reveal_tx.vsize())
+      .to_sat(),
+    output.total_fees
+  );
+}
