@@ -117,7 +117,7 @@ Once built, the `ord` binary can be found at `./target/release/ord`.
 Or, you can build a Docker image:
 
 ```
-docker build -t casey/ord .
+docker build -t ordinals/ord .
 ```
 
 ### Homebrew
