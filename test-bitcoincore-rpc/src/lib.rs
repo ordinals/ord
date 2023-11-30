@@ -223,6 +223,10 @@ impl Handle {
     self.state().broadcast_tx(template)
   }
 
+  pub fn height(&self) -> u64 {
+    u64::try_from(self.state().blocks.len()).unwrap() - 1
+  }
+
   pub fn invalidate_tip(&self) -> BlockHash {
     self.state().pop_block()
   }
