@@ -1,0 +1,43 @@
+# example batch file
+
+# there are two modes:
+# - `separate-outputs`: inscribe on separate postage-sized outputs
+# - `shared-output`: inscribe on a single output separated by postage
+# - `same-sat`: inscribe on the same sat
+mode: separate-outputs
+
+# parent inscription:
+parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+
+# postage for each inscription:
+postage: 12345
+
+# sat to inscribe on, can only be used with `same-sat`:
+# sat: 5000000000
+
+# inscriptions to inscribe
+#
+# each inscription has the following fields:
+#
+# `inscription`: path to inscription contents
+# `metadata`: inscription metadata (optional)
+# `metaprotocol`: inscription metaprotocol (optional)
+inscriptions:
+  - file: mango.avif
+    metadata:
+      title: Delicious Mangos
+      description: >
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper,
+        ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit
+        metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
+        mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
+        dolor et luctus euismod.
+    destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+
+  - file: token.json
+    metaprotocol: brc-20
+
+  - file: tulip.png
+    metadata:
+      author: Satoshi Nakamoto
+    destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6

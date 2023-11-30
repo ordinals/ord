@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Copy, Clone)]
 pub(crate) struct Wallet {
   _private: (),
 }

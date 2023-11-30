@@ -1,9 +1,9 @@
-use {super::*, ord::subcommand::info::TransactionsOutput};
+use {super::*, ord::subcommand::index::info::TransactionsOutput};
 
 #[test]
 fn json_with_satoshi_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("--index-sats info")
+  CommandBuilder::new("--index-sats index info")
     .rpc_server(&rpc_server)
     .stdout_regex(
       r#"\{
@@ -18,6 +18,7 @@ fn json_with_satoshi_index() {
   "page_size": \d+,
   "sat_ranges": 1,
   "stored_bytes": \d+,
+  "tables": .*,
   "transactions": \[
     \{
       "starting_block_count": 0,
@@ -29,13 +30,13 @@ fn json_with_satoshi_index() {
 \}
 "#,
     )
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
 fn json_without_satoshi_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("info")
+  CommandBuilder::new("index info")
     .rpc_server(&rpc_server)
     .stdout_regex(
       r#"\{
@@ -50,6 +51,7 @@ fn json_without_satoshi_index() {
   "page_size": \d+,
   "sat_ranges": 0,
   "stored_bytes": \d+,
+  "tables": .*,
   "transactions": \[
     \{
       "starting_block_count": 0,
@@ -61,7 +63,7 @@ fn json_without_satoshi_index() {
 \}
 "#,
     )
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -73,21 +75,21 @@ fn transactions() {
   let index_path = tempdir.path().join("index.redb");
 
   assert!(CommandBuilder::new(format!(
-    "--index {} info --transactions",
+    "--index {} index info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>()
+  .run_and_deserialize_output::<Vec<TransactionsOutput>>()
   .is_empty());
 
   rpc_server.mine_blocks(10);
 
   let output = CommandBuilder::new(format!(
-    "--index {} info --transactions",
+    "--index {} index info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>();
+  .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[0].start, 0);
   assert_eq!(output[0].end, 1);
@@ -96,11 +98,11 @@ fn transactions() {
   rpc_server.mine_blocks(10);
 
   let output = CommandBuilder::new(format!(
-    "--index {} info --transactions",
+    "--index {} index info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>();
+  .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[1].start, 1);
   assert_eq!(output[1].end, 11);

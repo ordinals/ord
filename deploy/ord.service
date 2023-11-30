@@ -16,6 +16,7 @@ ExecStart=/usr/local/bin/ord \
   --index-sats \
   server \
   --acme-contact mailto:casey@rodarmor.com \
+  --csp-origin https://ordinals.com \
   --http \
   --https
 Group=ord

@@ -2,11 +2,11 @@ use {super::*, clap::ValueEnum};
 
 #[derive(Default, ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub(crate) enum Chain {
+pub enum Chain {
   #[default]
-  #[clap(alias("main"))]
+  #[value(alias("main"))]
   Mainnet,
-  #[clap(alias("test"))]
+  #[value(alias("test"))]
   Testnet,
   Signet,
   Regtest,
@@ -38,12 +38,21 @@ impl Chain {
     }
   }
 
-  pub(crate) fn first_inscription_height(self) -> u64 {
+  pub(crate) fn first_inscription_height(self) -> u32 {
     match self {
       Self::Mainnet => 767430,
       Self::Regtest => 0,
       Self::Signet => 112402,
       Self::Testnet => 2413343,
+    }
+  }
+
+  pub(crate) fn jubilee_height(self) -> u32 {
+    match self {
+      Self::Mainnet => 824544,
+      Self::Regtest => 110,
+      Self::Signet => 175392,
+      Self::Testnet => 2544192,
     }
   }
 
@@ -54,7 +63,7 @@ impl Chain {
   pub(crate) fn address_from_script(
     self,
     script: &Script,
-  ) -> Result<Address, bitcoin::util::address::Error> {
+  ) -> Result<Address, bitcoin::address::Error> {
     Address::from_script(script, self.network())
   }
 

@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InputHtml {
-  pub(crate) path: (u64, usize, usize),
+  pub(crate) path: (u32, usize, usize),
   pub(crate) input: TxIn,
 }
 
@@ -30,7 +30,7 @@ mod tests {
           previous_output: "0000000000000000000000000000000000000000000000000000000000000000:0"
             .parse()
             .unwrap(),
-          script_sig: script::Builder::new().push_slice("foo".as_bytes()).into_script(),
+          script_sig: ScriptBuf::builder().push_slice(b"foo").into_script(),
           sequence: Sequence::MAX,
           witness,
         }

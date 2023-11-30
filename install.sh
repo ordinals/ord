@@ -11,7 +11,7 @@ help() {
 Install a binary release of ord hosted on GitHub
 
 USAGE:
-    install [options]
+    install.sh [options]
 
 FLAGS:
     -h, --help      Display this message
@@ -24,25 +24,20 @@ OPTIONS:
 EOF
 }
 
-git=casey/ord
 crate=ord
-url=https://github.com/casey/ord
+url=https://github.com/ordinals/ord
 releases=$url/releases
 
 say() {
-  echo "install: $@"
-}
-
-say_err() {
-  say "$@" >&2
+  echo "install.sh: $*" >&2
 }
 
 err() {
-  if [ ! -z ${td-} ]; then
-    rm -rf $td
+  if [ ! -z ${tempdir-} ]; then
+    rm -rf $tempdir
   fi
 
-  say_err "error: $@"
+  say "error: $*"
   exit 1
 }
 
@@ -87,18 +82,12 @@ need mkdir
 need mktemp
 need tar
 
-# Optional dependencies
+dest=${dest-"$HOME/bin"}
+
 if [ -z ${tag-} ]; then
   need cut
-  need rev
-fi
 
-if [ -z ${dest-} ]; then
-  dest="$HOME/bin"
-fi
-
-if [ -z ${tag-} ]; then
-  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/casey/ord/releases/latest |
+  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/ordinals/ord/releases/latest |
     grep tag_name |
     cut -d'"' -f4
   )
@@ -112,33 +101,37 @@ if [ -z ${target-} ]; then
     x86_64-Darwin) target=x86_64-apple-darwin;;
     x86_64-Linux) target=x86_64-unknown-linux-gnu;;
     *)
-      err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
-      err 'Please try building from source: https://github.com/casey/ord#building'
+      say 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
+      say 'Target architecture is not supported by this install script.'
+      say 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
+      exit 1
     ;;
   esac
 fi
 
 archive="$releases/download/$tag/$crate-$tag-$target.tar.gz"
 
-say_err "Repository:  $url"
-say_err "Crate:       $crate"
-say_err "Tag:         $tag"
-say_err "Target:      $target"
-say_err "Destination: $dest"
-say_err "Archive:     $archive"
+say "Repository:  $url"
+say "Crate:       $crate"
+say "Tag:         $tag"
+say "Target:      $target"
+say "Destination: $dest"
+say "Archive:     $archive"
 
-td=$(mktemp -d || mktemp -d -t tmp)
-curl --proto =https --tlsv1.2 -sSfL $archive | tar -C $td -xz
+tempdir=`mktemp -d || mktemp -d -t tmp`
 
-for f in $(ls $td); do
-  test -x $td/$f || continue
+curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $tempdir --strip-components 1 -xz
 
-  if [ -e "$dest/$f" ] && [ $force = false ]; then
-    err "$f already exists in $dest"
+for name in `ls $tempdir`; do
+  file="$tempdir/$name"
+  test -x $file || continue
+
+  if [ -e "$dest/$name" ] && [ $force = false ]; then
+    err "$name already exists in $dest"
   else
     mkdir -p $dest
-    install -m 755 $td/$f $dest
+    install -m 755 $file $dest
   fi
 done
 
-rm -rf $td
+rm -rf $tempdir

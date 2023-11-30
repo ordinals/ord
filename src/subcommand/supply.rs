@@ -5,10 +5,10 @@ pub struct Output {
   pub supply: u64,
   pub first: u64,
   pub last: u64,
-  pub last_mined_in_block: u64,
+  pub last_mined_in_block: u32,
 }
 
-pub(crate) fn run() -> Result {
+pub(crate) fn run() -> SubcommandResult {
   let mut last = 0;
 
   loop {
@@ -18,12 +18,10 @@ pub(crate) fn run() -> Result {
     last += 1;
   }
 
-  print_json(Output {
+  Ok(Box::new(Output {
     supply: Sat::SUPPLY,
     first: 0,
     last: Sat::SUPPLY - 1,
     last_mined_in_block: last,
-  })?;
-
-  Ok(())
+  }))
 }

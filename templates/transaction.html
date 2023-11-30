@@ -5,12 +5,16 @@
 {{ Iframe::thumbnail(id) }}
 </div>
 %% }
-%% if let Some(blockhash) = self.blockhash {
 <dl>
+%% if let Some(blockhash) = self.blockhash {
   <dt>block</dt>
   <dd><a href=/block/{{ blockhash }} class=monospace>{{ blockhash }}</a></dd>
-</dl>
 %% }
+%% if let Some(rune) = self.etching {
+  <dt>etching</dt>
+  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
+%% }
+</dl>
 <h2>{{"Input".tally(self.transaction.input.len())}}</h2>
 <ul>
 %% for input in &self.transaction.input {
@@ -27,7 +31,7 @@
     </a>
     <dl>
       <dt>value</dt><dd>{{ output.value }}</dd>
-      <dt>script pubkey</dt><dd class=monospace>{{ output.script_pubkey.asm() }}</dd>
+      <dt>script pubkey</dt><dd class=monospace>{{ output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
       <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }

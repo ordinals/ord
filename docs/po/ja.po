@@ -1,0 +1,5121 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 序数理論マニュアル\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2023-09-06 10:03+0800\n"
+"Last-Translator: Dr.JingLee @ordjingle <j@ordinals.foundation>\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/SUMMARY.md:2 src/introduction.md:1
+msgid "Introduction"
+msgstr "紹介"
+
+#: src/SUMMARY.md:3
+msgid "Overview"
+msgstr "概要"
+
+#: src/SUMMARY.md:4 src/digital-artifacts.md:1
+msgid "Digital Artifacts"
+msgstr "数字文物"
+
+#: src/SUMMARY.md:5 src/SUMMARY.md:13 src/overview.md:221 src/inscriptions.md:1
+msgid "Inscriptions"
+msgstr "銘文"
+
+#: src/SUMMARY.md:6 src/inscriptions/provenance.md:1
+msgid "Provenance"
+msgstr "出所"
+
+#: src/SUMMARY.md:7 src/inscriptions/recursion.md:1
+msgid "Recursion"
+msgstr "再帰"
+
+#: src/SUMMARY.md:8
+msgid "FAQ"
+msgstr "一般的問題"
+
+#: src/SUMMARY.md:9
+msgid "Contributing"
+msgstr "貢献"
+
+#: src/SUMMARY.md:10 src/donate.md:1
+msgid "Donate"
+msgstr "寄付"
+
+#: src/SUMMARY.md:11
+msgid "Guides"
+msgstr "ガイド"
+
+#: src/SUMMARY.md:12
+msgid "Explorer"
+msgstr "ブラウザ"
+
+#: src/SUMMARY.md:14 src/guides/sat-hunting.md:1
+msgid "Sat Hunting"
+msgstr "聡狩り"
+
+#: src/SUMMARY.md:15 src/guides/collecting.md:1
+msgid "Collecting"
+msgstr "コレクション"
+
+#: src/SUMMARY.md:16 src/guides/sat-hunting.md:239
+msgid "Sparrow Wallet"
+msgstr "雀のウォレット"
+
+#: src/SUMMARY.md:17 src/guides/testing.md:1
+msgid "Testing"
+msgstr "テスティング"
+
+#: src/SUMMARY.md:18 src/guides/moderation.md:1
+msgid "Moderation"
+msgstr "調節"
+
+#: src/SUMMARY.md:19 src/guides/reindexing.md:1
+msgid "Reindexing"
+msgstr "再インデックス"
+
+#: src/SUMMARY.md:20
+msgid "Bounties"
+msgstr "賞金"
+
+#: src/SUMMARY.md:21
+msgid "Bounty 0: 100,000 sats Claimed!"
+msgstr "ミッション 0: 100,000 sats 完成!"
+
+#: src/SUMMARY.md:22
+msgid "Bounty 1: 200,000 sats Claimed!"
+msgstr "ミッション 1: 200,000 sats 完成!"
+
+#: src/SUMMARY.md:23
+msgid "Bounty 2: 300,000 sats Claimed!"
+msgstr "ミッション 2: 300,000 sats 完成!"
+
+#: src/SUMMARY.md:24
+msgid "Bounty 3: 400,000 sats"
+msgstr "ミッション 3: 400,000 sats"
+
+#: src/introduction.md:4
+msgid ""
+"This handbook is a guide to ordinal theory. Ordinal theory concerns itself "
+"with satoshis, giving them individual identities and allowing them to be "
+"tracked, transferred, and imbued with meaning."
+msgstr ""
+"このマニュアルは序数理論の（Ordinals Theory）ガイドです。 序数理論は聡を注目"
+"され（Satoshi）、彼らに独立な身分を付与され、追跡され、移行され、意義を付与さ"
+"れます。"
+
+#: src/introduction.md:8
+msgid ""
+"Satoshis, not bitcoin, are the atomic, native currency of the Bitcoin "
+"network. One bitcoin can be sub-divided into 100,000,000 satoshis, but no "
+"further."
+msgstr ""
+"聡は（Satoshi），ビットコインではなく、ビットコインのインタネットのネイティブ"
+"貨幣と最小の単位です。一つのビットコインは100,000,000聡を細分されますが、これ"
+"以上細分できません。"
+
+#: src/introduction.md:11
+msgid ""
+"Ordinal theory does not require a sidechain or token aside from Bitcoin, and "
+"can be used without any changes to the Bitcoin network. It works right now."
+msgstr ""
+"序数理論はビットコインブロックチェーン以外のサイドチェーンまたはトークンが必"
+"要ではなく、ビットコインインターネットに何も変更しない場合にも使うことができ"
+"ます。すぐに使うことができます。"
+
+#: src/introduction.md:14
+msgid ""
+"Ordinal theory imbues satoshis with numismatic value, allowing them to be "
+"collected and traded as curios."
+msgstr ""
+"序数理論は聡にコレックション価値に与えられ、骨董品としてコレックションし、取"
+"引をすることができます。"
+
+#: src/introduction.md:17
+msgid ""
+"Individual satoshis can be inscribed with arbitrary content, creating unique "
+"Bitcoin-native digital artifacts that can be held in Bitcoin wallets and "
+"transferred using Bitcoin transactions. Inscriptions are as durable, "
+"immutable, secure, and decentralized as Bitcoin itself."
+msgstr ""
+"一つの聡はどんな内容でも刻むことができます。独特なビットコインネイティブ数字"
+"文物（Digital Artifact）を作り上げ、ビットコインウォレットの中に保存して、"
+"ビットコインの取引で送信することができます。銘文（Inscription）はビットコイン"
+"のように一样長持ちして、永久、安全と分散化されます。"
+
+#: src/introduction.md:22
+msgid ""
+"Other, more unusual use-cases are possible: off-chain colored-coins, public "
+"key infrastructure with key rotation, a decentralized replacement for the "
+"DNS. For now though, such use-cases are speculative, and exist only in the "
+"minds of fringe ordinal theorists."
+msgstr ""
+"他の非正規の応用でも可能となり、チェーンの下の染色コインはシークレットキー交"
+"替の公開キーのインフラがあります。DNSの分散化の代替品などです。 今のところこ"
+"ういう応用は推測的で、非主流の序数の理論家の頭だけに存在しています"
+
+#: src/introduction.md:27
+msgid "For more details on ordinal theory, see the [overview](overview.md)."
+msgstr ""
+"序数理論のより多くの詳細な情報について，  [概述](overview.md)を閲見してくださ"
+"い。"
+
+#: src/introduction.md:29
+msgid "For more details on inscriptions, see [inscriptions](inscriptions.md)."
+msgstr ""
+"銘文のより多くの詳細な情報について、 [銘文](inscriptions.md)を閲見してくださ"
+"い。"
+
+#: src/introduction.md:31
+msgid ""
+"When you're ready to get your hands dirty, a good place to start is with "
+"[inscriptions](guides/inscriptions.md), a curious species of digital "
+"artifact enabled by ordinal theory."
+msgstr ""
+"準備ができて、自分でする時に、銘文は良いなスタートです。[銘文](guides/"
+"inscriptions.md)序数理論で支持した独特な数字文物です。"
+
+#: src/introduction.md:35
+msgid "Links"
+msgstr "リンク"
+
+#: src/introduction.md:38
+msgid "[GitHub](https://github.com/ordinals/ord/)"
+msgstr "[GitHub倉庫](https://github.com/ordinals/ord/)"
+
+#: src/introduction.md:39
+msgid "[BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)"
+msgstr "[BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)"
+
+#: src/introduction.md:40
+msgid "[Discord](https://discord.gg/ordinals)"
+msgstr "[Discord](https://discord.gg/ordinals)"
+
+#: src/introduction.md:41
+msgid "[Open Ordinals Institute Website](https://ordinals.org/)"
+msgstr "[Open Ordinals Institute ウェブサイト](https://ordinals.org/)"
+
+#: src/introduction.md:42
+msgid "[Open Ordinals Institute X](https://x.com/ordinalsorg)"
+msgstr "[Open Ordinals Institute Xアカウント](https://x.com/ordinalsorg)"
+
+#: src/introduction.md:43
+msgid "[Mainnet Block Explorer](https://ordinals.com)"
+msgstr "[メインネットブロック](https://ordinals.com)"
+
+#: src/introduction.md:44
+msgid "[Signet Block Explorer](https://signet.ordinals.com)"
+msgstr "[Signetブロックブラウザ](https://signet.ordinals.com)"
+
+#: src/introduction.md:46
+msgid "Videos"
+msgstr "動画"
+
+#: src/introduction.md:49
+msgid ""
+"[Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin]"
+"(https://www.youtube.com/watch?v=rSS0O2KQpsI)"
+msgstr ""
+"[序数理論を解釈して: 聡のシリアル番号とビットコインでのNFT](https://www."
+"youtube.com/watch?v=rSS0O2KQpsI)"
+
+#: src/introduction.md:50
+msgid ""
+"[Ordinals Workshop with Rodarmor](https://www.youtube.com/watch?"
+"v=MC_haVa6N3I)"
+msgstr ""
+"[CaseyRodarmorの序数理論のワークショップ ](https://www.youtube.com/watch?"
+"v=MC_haVa6N3I)"
+
+#: src/introduction.md:51
+msgid ""
+"[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www."
+"youtube.com/watch?v=j5V33kV3iqo)"
+msgstr ""
+"[序数の芸術：ビットコインの上で自分のNFTを鋳造します。 w/ @rodarmor](https://"
+"www.youtube.com/watch?v=j5V33kV3iqo)"
+
+#: src/overview.md:1
+msgid "Ordinal Theory Overview"
+msgstr "序数理論の概要"
+
+#: src/overview.md:4
+msgid ""
+"Ordinals are a numbering scheme for satoshis that allows tracking and "
+"transferring individual sats. These numbers are called [ordinal numbers]"
+"(https://ordinals.com). Satoshis are numbered in the order in which they're "
+"mined, and transferred from transaction inputs to transaction outputs first-"
+"in-first-out. Both the numbering scheme and the transfer scheme rely on "
+"_order_, the numbering scheme on the _order_ in which satoshis are mined, "
+"and the transfer scheme on the _order_ of transaction inputs and outputs. "
+"Thus the name, _ordinals_."
+msgstr ""
+"序数は一つのビットコインの番号プランであり、一つの聡を追跡し、移転することが"
+"できます。これらの数字はシリアル番号といいます。(https://ordinals.com)。ビッ"
+"トコインはそれらの発掘した順序により番号を書いて、取引輸入から取引輸出まで移"
+"行します（先入れ先出しの原則に従います）。番号プランと転送プランは順序に依存"
+"して、番号プランはビットコインが発掘された順序に依存し、転送プランは取引の輸"
+"入と輸出に順序に依存します。ここで_序数と呼ばれます（Ordinals_。"
+
+#: src/overview.md:13
+msgid ""
+"Technical details are available in [the BIP](https://github.com/ordinals/ord/"
+"blob/master/bip.mediawiki)."
+msgstr ""
+"技術的な詳細は[the BIP](https://github.com/ordinals/ord/blob/master/bip."
+"mediawiki)で獲得することができます."
+
+#: src/overview.md:16
+msgid ""
+"Ordinal theory does not require a separate token, another blockchain, or any "
+"changes to Bitcoin. It works right now."
+msgstr ""
+"序数理論は独特なトークン、独特なブロックチェーン、またはビットコインにどんな"
+"変更でも必要ではなくて、すぐに有効的に運行することができません。"
+
+#: src/overview.md:19
+msgid "Ordinal numbers have a few different representations:"
+msgstr "シリアル番号はいくつか異なる表示方式があります"
+
+#: src/overview.md:21
+msgid ""
+"_Integer notation_: [`2099994106992659`](https://ordinals.com/"
+"sat/2099994106992659) The ordinal number, assigned according to the order in "
+"which the satoshi was mined."
+msgstr ""
+"_整数符号_:[`2099994106992659`](https://ordinals.com/sat/2099994106992659) こ"
+"のシリアル番号は発掘された聡の順序に従って分配されます。"
+
+#: src/overview.md:26
+msgid ""
+"_Decimal notation_: [`3891094.16797`](https://ordinals.com/"
+"sat/3891094.16797) The first number is the block height in which the satoshi "
+"was mined, the second the offset of the satoshi within the block."
+msgstr ""
+"_十進法符号n_: [`3891094.16797`](https://ordinals.com/sat/3891094.16797) 最初"
+"の数字は聡のブロック高度を発掘され、 二番目の数字はブロック内の聡の定常偏差で"
+"す。"
+
+#: src/overview.md:31
+msgid ""
+"_Degree notation_: [`3°111094′214″16797‴`](https://ordinals.com/"
+"sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4). We'll get to that in "
+"a moment."
+msgstr ""
+"_度数符号_: [`3°111094′214″16797‴`](https://ordinals.com/"
+"sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4). それについてはすぐに説"
+"明します。"
+
+#: src/overview.md:35
+msgid ""
+"_Percentile notation_: [`99.99971949060254%`](https://ordinals.com/"
+"sat/99.99971949060254%25) . The satoshi's position in Bitcoin's supply, "
+"expressed as a percentage."
+msgstr ""
+"_パーセント_: [`99.99971949060254%`](https://ordinals.com/"
+"sat/99.99971949060254%25) . パーセントで聡がビットコイン供給の中の位置を示し"
+"ます"
+
+#: src/overview.md:39
+msgid ""
+"_Name_: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the "
+"ordinal number using the characters `a` through `z`."
+msgstr ""
+"_名前_: [`satoshi`](https://ordinals.com/sat/satoshi). 一つのアルファベットa"
+"からbまでのシリアル番号にコーディングを書く方法です。"
+
+#: src/overview.md:42
+msgid ""
+"Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins "
+"can be attached to satoshis using ordinal numbers as stable identifiers."
+msgstr ""
+"任意の資産、例えばNFT、セキュリティトークン、アカウントまたは安定した貨幣、 "
+"序数を使って、安定した標識符号として、聡に付けます。"
+
+#: src/overview.md:45
+msgid ""
+"Ordinals is an open-source project, developed [on GitHub](https://github.com/"
+"ordinals/ord). The project consists of a BIP describing the ordinal scheme, "
+"an index that communicates with a Bitcoin Core node to track the location of "
+"all satoshis, a wallet that allows making ordinal-aware transactions, a "
+"block explorer for interactive exploration of the blockchain, functionality "
+"for inscribing satoshis with digital artifacts, and this manual."
+msgstr ""
+"Ordinalsはオープンソースプロジェクトです、[on GitHub](https://github.com/"
+"ordinals/ord)に配置されます. このプロジェクトは序数プランを記述するBIPを含ま"
+"れます。 ビットコインのコアノードと通信して、すべての聡を追跡した索引ですシリ"
+"アル番号の感知取引を許可するウォレットです。 ブロックチェーンインタラクティブ"
+"な探索のブロック資源管理プログラム、数字文物で聡の機能及びこのマニュアルを嵌"
+"めます。 "
+
+#: src/overview.md:52
+msgid "Rarity"
+msgstr "希少度"
+
+#: src/overview.md:55
+msgid ""
+"Humans are collectors, and since satoshis can now be tracked and "
+"transferred, people will naturally want to collect them. Ordinal theorists "
+"can decide for themselves which sats are rare and desirable, but there are "
+"some hints…"
+msgstr ""
+"人間はコレクターです。現在、聡は追跡、移行されることができて、人々は聡をコレ"
+"クションしたいです。 序数理論家は自分でどちらの聡が珍しい聡と合意的な聡である"
+"ことを決めます。 ヒントがあります…"
+
+#: src/overview.md:59
+msgid ""
+"Bitcoin has periodic events, some frequent, some more uncommon, and these "
+"naturally lend themselves to a system of rarity. These periodic events are:"
+msgstr ""
+"ビットコインは周期的な事件があり、頻繫的なのはあるし、一般的なのはあります。"
+"これらの事件は自然にレア度システムが形成されます。この周期的な事件は:"
+
+#: src/overview.md:62
+msgid ""
+"_Blocks_: A new block is mined approximately every 10 minutes, from now "
+"until the end of time."
+msgstr "_ブロック_: 現在から終わるまで10分ごとに新たなブロックを発掘されます。"
+
+#: src/overview.md:65
+msgid ""
+"_Difficulty adjustments_: Every 2016 blocks, or approximately every two "
+"weeks, the Bitcoin network responds to changes in hashrate by adjusting the "
+"difficulty target which blocks must meet in order to be accepted."
+msgstr ""
+"_難易度調整_: 2016個ごとのブロック、または約二週間ごとです ビットコインイン"
+"ターネットはブロックが難易度の目標に満足させることを調整して、ハッシュレート"
+"の変化に対応します。 "
+
+#: src/overview.md:69
+msgid ""
+"_Halvings_: Every 210,000 blocks, or roughly every four years, the amount of "
+"new sats created in every block is cut in half."
+msgstr ""
+"_半減_: 21万のブロックごとに、または約4年ごとに，各ブロックが生じた新たな聡の"
+"数が半減になります。 "
+
+#: src/overview.md:72
+msgid ""
+"_Cycles_: Every six halvings, something magical happens: the halving and the "
+"difficulty adjustment coincide. This is called a conjunction, and the time "
+"period between conjunctions a cycle. A conjunction occurs roughly every 24 "
+"years. The first conjunction should happen sometime in 2032."
+msgstr ""
+"_周期＿6回ごとに半減にするたび不思議なことが起こります。半分にすることと難易"
+"度の調整は同時に起こります。これは相合と言います。相合の時間周期は一周期で"
+"す。 ほぼ24年ごとに一回の相合が起こります、最初の相合は2032年のある時に起こる"
+"はずです。  "
+
+#: src/overview.md:77
+msgid "This gives us the following rarity levels:"
+msgstr "以下の希少度のレベルを与えられました:"
+
+#: src/overview.md:79
+msgid "`common`: Any sat that is not the first sat of its block"
+msgstr "`普通`: 全てのそのブロック最初の聡ではないの聡"
+
+#: src/overview.md:80
+msgid "`uncommon`: The first sat of each block"
+msgstr "`普通ではない`: 各ブロックの最初の聡"
+
+#: src/overview.md:81
+msgid "`rare`: The first sat of each difficulty adjustment period"
+msgstr "`珍しく`: 各難易度の調整周期の最初の聡"
+
+#: src/overview.md:82
+msgid "`epic`: The first sat of each halving epoch"
+msgstr "`史詩`: 各半減周期の最初の聡"
+
+#: src/overview.md:83
+msgid "`legendary`: The first sat of each cycle"
+msgstr "`伝奇`: 各循環周期の最初の聡"
+
+#: src/overview.md:84
+msgid "`mythic`: The first sat of the genesis block"
+msgstr "`神話`: 創世ブロックの最初の聡"
+
+#: src/overview.md:86
+msgid ""
+"Which brings us to degree notation, which unambiguously represents an "
+"ordinal number in a way that makes the rarity of a satoshi easy to see at a "
+"glance:"
+msgstr ""
+"これは私たちに度数表記法をもたらしました。それは聡の希少性を一目で見ることが"
+"できる方法で序数を明確に表しています "
+
+#: src/overview.md:89
+msgid ""
+"```\n"
+"A°B′C″D‴\n"
+"│ │ │ ╰─ Index of sat in the block\n"
+"│ │ ╰─── Index of block in difficulty adjustment period\n"
+"│ ╰───── Index of block in halving epoch\n"
+"╰─────── Cycle, numbered starting from 0\n"
+"```"
+msgstr ""
+"```\n"
+"A°B′C″D‴\n"
+"│ │ │ ╰─ 聡の索引位置\n"
+"│ │ ╰─── 難易度調整期のブロックの位置\n"
+"│ ╰───── 半減周期ブロックの索引位置\n"
+"╰─────── 循環周期、０の数字からスタートします。\n"
+"```"
+
+#: src/overview.md:97
+msgid ""
+"Ordinal theorists often use the terms \"hour\", \"minute\", \"second\", and "
+"\"third\" for _A_, _B_, _C_, and _D_, respectively."
+msgstr ""
+"序理論家通常使用 \"時間\",\"分\"、\"秒\"、そして\"3\" などの対応を専用の言叶"
+"は、a、b、_c、と_d_。 "
+
+#: src/overview.md:100
+msgid "Now for some examples. This satoshi is common:"
+msgstr "いくつか例をお見せしましょうこれは普通の聡です"
+
+#: src/overview.md:102
+msgid ""
+"```\n"
+"1°1′1″1‴\n"
+"│ │ │ ╰─ Not first sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── Not first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°1′1″1‴\n"
+"│ │ │ ╰─ ブロック最初の聡ではない\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:111
+msgid "This satoshi is uncommon:"
+msgstr "これは一般的な聡ではない"
+
+#: src/overview.md:113
+msgid ""
+"```\n"
+"1°1′1″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── Not first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°1′1″0‴\n"
+"│ │ │ ╰─ ブロック最初の聡\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:121
+msgid "This satoshi is rare:"
+msgstr "珍しい聡です。"
+
+#: src/overview.md:123
+msgid ""
+"```\n"
+"1°1′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── Not the first block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°1′0″0‴\n"
+"│ │ │ ╰─ ブロック最初の聡\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:131
+msgid "This satoshi is epic:"
+msgstr "史詩レベルの聡です"
+
+#: src/overview.md:133
+msgid ""
+"```\n"
+"1°0′1″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── Not first block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°0′1″0‴\n"
+"│ │ │ ╰─ ブロック最初の聡\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:141
+msgid "This satoshi is legendary:"
+msgstr "伝奇レベルの聡です。"
+
+#: src/overview.md:143
+msgid ""
+"```\n"
+"1°0′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°0′0″0‴\n"
+"│ │ │ ╰─ ブロック最初の聡\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:151
+msgid "And this satoshi is mythic:"
+msgstr "神話レベルの聡です:"
+
+#: src/overview.md:153
+msgid ""
+"```\n"
+"0°0′0″0‴\n"
+"│ │ │ ╰─ First sat in block\n"
+"│ │ ╰─── First block in difficulty adjustment period\n"
+"│ ╰───── First block in halving epoch\n"
+"╰─────── First cycle\n"
+"```"
+msgstr ""
+"```\n"
+"0°0′0″0‴\n"
+"│ │ │ ╰─ ブロック最初の聡\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:161
+msgid ""
+"If the block offset is zero, it may be omitted. This is the uncommon satoshi "
+"from above:"
+msgstr ""
+"ブロック オフセットがゼロの場合は省略できます。こちらは上から見た珍しいサトシ"
+"です。"
+
+#: src/overview.md:164
+msgid ""
+"```\n"
+"1°1′1″\n"
+"│ │ ╰─ Not first block in difficulty adjustment period\n"
+"│ ╰─── Not first block in halving epoch\n"
+"╰───── Second cycle\n"
+"```"
+msgstr ""
+"```\n"
+"1°1′1″\n"
+"│ │ ╰─── 難易度調整周期の最初の聡ではない\n"
+"│ ╰───── 半減周期の最初の聡ではない\n"
+"╰─────── 二番目の循環周期\n"
+"```"
+
+#: src/overview.md:171
+msgid "Rare Satoshi Supply"
+msgstr "珍しい聡の総供給量"
+
+#: src/overview.md:174
+msgid "Total Supply"
+msgstr "総供給量"
+
+#: src/overview.md:176
+msgid "`common`: 2.1 quadrillion"
+msgstr "`普通`: 2千100万亿"
+
+#: src/overview.md:177
+msgid "`uncommon`: 6,929,999"
+msgstr "`普通ではない`: 6,929,999"
+
+#: src/overview.md:178
+msgid "`rare`: 3437"
+msgstr "`珍しく`: 3437"
+
+#: src/overview.md:179
+msgid "`epic`: 32"
+msgstr "`史詩`: 32"
+
+#: src/overview.md:180
+msgid "`legendary`: 5"
+msgstr "`伝奇`: 5"
+
+#: src/overview.md:181 src/overview.md:190
+msgid "`mythic`: 1"
+msgstr "`神話`: 1"
+
+#: src/overview.md:183
+msgid "Current Supply"
+msgstr "現有の供給量"
+
+#: src/overview.md:185
+msgid "`common`: 1.9 quadrillion"
+msgstr "`普通`: 1千900万亿"
+
+#: src/overview.md:186
+msgid "`uncommon`: 745,855"
+msgstr "`普通ではない`: 745,855"
+
+#: src/overview.md:187
+msgid "`rare`: 369"
+msgstr "`珍しく`: 369"
+
+#: src/overview.md:188
+msgid "`epic`: 3"
+msgstr "`史詩`: 3"
+
+#: src/overview.md:189
+msgid "`legendary`: 0"
+msgstr "`伝奇`: 0"
+
+#: src/overview.md:192
+msgid ""
+"At the moment, even uncommon satoshis are quite rare. As of this writing, "
+"745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in "
+"circulation."
+msgstr ""
+"今は普通ではないの聡にもとても珍しいです。 この文を書くまで， もう745,855の普"
+"通ではないの聡を発掘され、およそ25.6の流通ビットコインのうちに一つがありま"
+"す。 "
+
+#: src/overview.md:196
+msgid "Names"
+msgstr "名前"
+
+#: src/overview.md:199
+msgid ""
+"Each satoshi has a name, consisting of the letters _A_ through _Z_, that get "
+"shorter the further into the future the satoshi was mined. They could start "
+"short and get longer, but then all the good, short names would be trapped in "
+"the unspendable genesis block."
+msgstr ""
+"それぞれの聡は名前があり、アルファベットAからZまで構成されます 随着聪被开采的"
+"时间越长聡の発掘された時間が長いほど、名前が短いです。 短い名前から始めて、ま"
+"すます長くなると、それでは、すべての良い、短い名前は使用できない創世ブロック"
+"に閉じ込められます。 "
+
+#: src/overview.md:204
+msgid ""
+"As an example, 1905530482684727°'s name is \"iaiufjszmoba\". The name of the "
+"last satoshi to be mined is \"a\". Every combination of 10 characters or "
+"less is out there, or will be out there, someday."
+msgstr ""
+"例えば、1905530482684727°'の名前は\"iaiufjszmoba\".最後に発掘された聡の名前は"
+"\"a\"になります。10文字以下の文字の組み合わせが存在するか、いつか存在します。"
+
+#: src/overview.md:208
+msgid "Exotics"
+msgstr "きけいです。"
+
+#: src/overview.md:211
+msgid ""
+"Satoshis may be prized for reasons other than their name or rarity. This "
+"might be due to a quality of the number itself, like having an integer "
+"square or cube root. Or it might be due to a connection to a historical "
+"event, such as satoshis from block 477,120, the block in which SegWit "
+"activated, or 2099999997689999°, the last satoshi that will ever be mined."
+msgstr ""
+"彼らの名前や希少性以外にも、聡は他の理由で重視されているかもしれない。これ"
+"は、整数の平方根や立方根を持つような数値自体の性質によるものかもしれません。"
+"またはそれは、ブロック477,120（SegWitによって活性化されたブロック）からのよう"
+"な歴史的なイベントに関連していますは2099999997689999°で、これが最後に掘り出さ"
+"れた聡です。"
+
+#: src/overview.md:217
+msgid ""
+"Such satoshis are termed \"exotic\". Which satoshis are exotic and what "
+"makes them so is subjective. Ordinal theorists are encouraged to seek out "
+"exotics based on criteria of their own devising."
+msgstr ""
+"このビットコインは「奇妙な」と呼ばれています。どの聡が「変わった」のですか？"
+"何がそんなに重要視されているのか？」順序理論家は、彼ら自身が設計した基準に基"
+"づいて「奇妙な」コングを探すことを奨励されています。"
+
+#: src/overview.md:224
+msgid ""
+"Satoshis can be inscribed with arbitrary content, creating Bitcoin-native "
+"digital artifacts. Inscribing is done by sending the satoshi to be inscribed "
+"in a transaction that reveals the inscription content on-chain. This content "
+"is then inextricably linked to that satoshi, turning it into an immutable "
+"digital artifact that can be tracked, transferred, hoarded, bought, sold, "
+"lost, and rediscovered."
+msgstr ""
+"コングは、ビットコインネイティブのデジタルアーティファクト（デジタルアート）"
+"を作成するために、任意のコンテンツを刻印することができます。「刻印は、刻印す"
+"る内容を取引に送ることで行われます。この取引はチェーンに銘文の内容を表示しま"
+"す。」は銘文の内容が聡と不可分なつながりを持っているため、から変えられないデ"
+"ジタル人工製品を創造した。このデジタル遺物は、追跡、移転、保管、購入、販売、"
+"紛失、再発見することができます。"
+
+#: src/overview.md:231
+msgid "Archaeology"
+msgstr "考古"
+
+#: src/overview.md:234
+msgid ""
+"A lively community of archaeologists devoted to cataloging and collecting "
+"early NFTs has sprung up. [Here's a great summary of historical NFTs by "
+"Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-"
+"N29oF4iwCgX3lacrvaG9Kjko)"
+msgstr ""
+"初期のNFTのカタログ作成と収集に取り組む活発な考古学者コミュニティが雨後の筍の"
+"ように出現しました[Chainleftによる歴史NFTの素晴らしいまとめ](https://mirror."
+"xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
+
+#: src/overview.md:238
+msgid ""
+"A commonly accepted cut-off for early NFTs is March 19th, 2018, the date the "
+"first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was "
+"deployed on Ethereum."
+msgstr ""
+"一般的に受け入れられている古いNFTの締め切りは2018年3月19日、つまり最初の"
+"ERC-721契約、[SU SQUARES](https://tenthousandsu.com/),がイーサリアムに配備さ"
+"れた時間です。"
+
+#: src/overview.md:242
+msgid ""
+"Whether or not ordinals are of interest to NFT archaeologists is an open "
+"question! In one sense, ordinals were created in early 2022, when the "
+"Ordinals specification was finalized. In this sense, they are not of "
+"historical interest."
+msgstr ""
+"NFT考古学者が序数に興味を持っているかどうかは未解決の問題です！ある意味で、序"
+"数は2022年初頭に作成され、当時序数規範がに制定されています。"
+
+#: src/overview.md:247
+msgid ""
+"In another sense though, ordinals were in fact created by Satoshi Nakamoto "
+"in 2009 when he mined the Bitcoin genesis block. In this sense, ordinals, "
+"and especially early ordinals, are certainly of historical interest."
+msgstr ""
+"そういう意味では歴史的な意味がありませんしかし、別の意味では、序数は実際には"
+"中本聡が2009年にビットコイン創世ブロックを採掘した時に作られました。この意味"
+"で、序数、特に初期の序数は、もちろん歴史的な意味を持っています。"
+
+#: src/overview.md:251
+msgid ""
+"Many ordinal theorists favor the latter view. This is not least because the "
+"ordinals were independently discovered on at least two separate occasions, "
+"long before the era of modern NFTs began."
+msgstr ""
+"多くの順序理論家は後者の見方に賛成しています。これは単に序数が少なくとも2つの"
+"異なる場面で独立して発見されたからではありません。は現代のNFT時代よりはるかに"
+"早く始まった。"
+
+#: src/overview.md:255
+msgid ""
+"On August 21st, 2012, Charlie Lee [posted a proposal to add proof-of-stake "
+"to Bitcoin to the Bitcoin Talk forum](https://bitcointalk.org/index.php?"
+"topic=102355.0). This wasn't an asset scheme, but did use the ordinal "
+"algorithm, and was implemented but never deployed."
+msgstr ""
+"2012年8月21日、Charlie LeeでCharlie Lee[Bitcoin Talkフォーラムに投稿する」"
+"ビットコイン権益証明Pro of-of-stake追加の提案](https://bitcointalk.org/index."
+"php?topic=102355.0）.これは資産シナリオではありませんが、序数アルゴリズムが使"
+"用されており、実装されていますが、導入されたことはありません。"
+
+#: src/overview.md:261
+msgid ""
+"On October 8th, 2012, jl2012 [posted a scheme to the same forum](https://"
+"bitcointalk.org/index.php?topic=117224.0) which uses decimal notation and "
+"has all the important properties of ordinals. The scheme was discussed but "
+"never implemented."
+msgstr ""
+"2012年10月8日、jl 2012は[同じフォーラムで案を発表しました](https://"
+"bitcointalk.org/index.php?topic=117224.0)このスキームは、10進表記法を使用し、"
+"序数を持つすべての重要な属性。その計画は議論されたが、決して実施されませんで"
+"した"
+
+#: src/overview.md:266
+msgid ""
+"These independent inventions of ordinals indicate in some way that ordinals "
+"were discovered, or rediscovered, and not invented. The ordinals are an "
+"inevitability of the mathematics of Bitcoin, stemming not from their modern "
+"documentation, but from their ancient genesis. They are the culmination of a "
+"sequence of events set in motion with the mining of the first block, so many "
+"years ago."
+msgstr ""
+"これらの序数の独立した発明は、序数が発見されたことをある程度示しています。ま"
+"たは再発見されたもので、発明されたものではありません。順序数はビットコイン数"
+"学の必然性でありますはそれらの現代の文書からではなく、それらの古い起源から来"
+"ています。彼らは何年も前に最初のブロックの採掘とともに始まった一連の出来事の"
+"クライマックスです"
+
+#: src/digital-artifacts.md:4
+msgid ""
+"Imagine a physical artifact. A rare coin, say, held safe for untold years in "
+"the dark, secret clutch of a Viking hoard, now dug from the earth by your "
+"grasping hands. It…"
+msgstr ""
+"実体のある人工物を想像してください。例えば、珍しいコインの場合、バイキングの"
+"宝庫の闇の中で何年も秘密に保管されています今、あなたの手で地下から掘り出され"
+"ました。それ…"
+
+#: src/digital-artifacts.md:8
+msgid ""
+"…has an owner. You. As long as you keep it safe, nobody can take it from you."
+msgstr ""
+"……一人の主人がいます。それはあなたです。あなたが大切に保管していれば、誰もあ"
+"なたからそれを奪うことはできません。"
+
+#: src/digital-artifacts.md:10
+msgid "…is complete. It has no missing parts."
+msgstr "…完全です。漏れている部分はありません。"
+
+#: src/digital-artifacts.md:12
+msgid ""
+"…can only be changed by you. If you were a trader, and you made your way to "
+"18th century China, none but you could stamp it with your chop-mark."
+msgstr ""
+"…あなたしか変えることができません。もしあなたがビジネスマンで、あなたが来たな"
+"らの18世紀の中国では、あなた以外に印鑑を押す人はいません。"
+
+#: src/digital-artifacts.md:15
+msgid ""
+"…can only be disposed of by you. The sale, trade, or gift is yours to make, "
+"to whomever you wish."
+msgstr ""
+"……あなたしか処分するすることができません。販売、取引、または贈り物はあなたの"
+"決定であり、誰にあげたいかは誰にでもあげます。 "
+
+#: src/digital-artifacts.md:18
+msgid ""
+"What are digital artifacts? Simply put, they are the digital equivalent of "
+"physical artifacts."
+msgstr ""
+"デジタル文化財（デジタル工作物、デジタル人工物）とは？は簡単に言えば、物理的"
+"人工物のデジタル等価物であります。"
+
+#: src/digital-artifacts.md:21
+msgid ""
+"For a digital thing to be a digital artifact, it must be like that coin of "
+"yours:"
+msgstr ""
+"デジタル化されたものをデジタルアーティファクトにするには、あなたのコインのよ"
+"うでなければなりません。"
+
+#: src/digital-artifacts.md:24
+msgid ""
+"Digital artifacts can have owners. A number is not a digital artifact, "
+"because nobody can own it."
+msgstr ""
+"デジタル文化財には所有者がいることができるので、デジタル文化財とは異なりま"
+"す。誰も数字を持つことができないからです。"
+
+#: src/digital-artifacts.md:27
+msgid ""
+"Digital artifacts are complete. An NFT that points to off-chain content on "
+"IPFS or Arweave is incomplete, and thus not a digital artifact."
+msgstr ""
+"デジタル文化財は完全であり、IP FSまたはArweave上のチェーンの下のコンテンツを"
+"指すNFTは不完全であるため、デジタル文化財ではありません。"
+
+#: src/digital-artifacts.md:30
+msgid ""
+"Digital artifacts are permissionless. An NFT which cannot be sold without "
+"paying a royalty is not permissionless, and thus not a digital artifact."
+msgstr ""
+"デジタル文化財は許可が必要なく、印税を支払わなければ販売できないNFTは許可が必"
+"要ないわけではないので、デジタル文化財ではありません。"
+
+#: src/digital-artifacts.md:33
+msgid ""
+"Digital artifacts are uncensorable. Perhaps you can change a database entry "
+"on a centralized ledger today, but maybe not tomorrow, and thus one cannot "
+"be a digital artifact."
+msgstr ""
+"デジタル文化財は審査不可能です。今日は集中元帳のデータベースエントリを変更で"
+"きるかもしれませんが、明日はできないかもしれません。そのため、デジタル文化財"
+"ではありません。"
+
+#: src/digital-artifacts.md:37
+msgid ""
+"Digital artifacts are immutable. An NFT with an upgrade key is not a digital "
+"artifact."
+msgstr ""
+"デジタルコンテンツは改ざんできません。アップグレードキーを持つNFTはデジタルコ"
+"ンテンツではありません。"
+
+#: src/digital-artifacts.md:40
+msgid ""
+"The definition of a digital artifact is intended to reflect what NFTs "
+"_should_ be, sometimes are, and what inscriptions _always_ are, by their "
+"very nature."
+msgstr ""
+"デジタル文化財の定義は、その特定の性質からNFTを反映することを目的としています"
+"_べき_は何か、時には何か、そして銘文_終始_は何ですか "
+
+#: src/inscriptions.md:4
+msgid ""
+"Inscriptions inscribe sats with arbitrary content, creating bitcoin-native "
+"digital artifacts, more commonly known as NFTs. Inscriptions do not require "
+"a sidechain or separate token."
+msgstr ""
+"銘文には任意の内容が刻まれ、ビットコインネイティブのデジタル人工製品が作られ"
+"ました。通常NFTと呼ばれています。の銘文には側鎖や個別のトークンは必要ありませ"
+"ん。 "
+
+#: src/inscriptions.md:8
+msgid ""
+"These inscribed sats can then be transferred using bitcoin transactions, "
+"sent to bitcoin addresses, and held in bitcoin UTXOs. These transactions, "
+"addresses, and UTXOs are normal bitcoin transactions, addresses, and UTXOS "
+"in all respects, with the exception that in order to send individual sats, "
+"transactions must control the order and value of inputs and outputs "
+"according to ordinal theory."
+msgstr ""
+"これらの刻まれたコングは、ビットコイン取引転送を使用してビットコインアドレス"
+"に送信され、ビットコインUTXOに保存されます。これらの取引、アドレス、UTXOはす"
+"べての点で通常のビットコイン取引、アドレス、UTXOです。は単一の聡を送るために"
+"加えて、取引は序数理論に基づいて入力と出力の順序と値を制御しなければなりませ"
+"ん"
+
+#: src/inscriptions.md:15
+msgid ""
+"The inscription content model is that of the web. An inscription consists of "
+"a content type, also known as a MIME type, and the content itself, which is "
+"a byte string. This allows inscription content to be returned from a web "
+"server, and for creating HTML inscriptions that use and remix the content of "
+"other inscriptions."
+msgstr ""
+"銘文の内容はワールドワイドウェブ基準に基づいている。銘文はコンテンツタイプ"
+"（MI MEタイプとも呼ばれる）とコンテンツ自体（バイト列）で構成されています。こ"
+"れにより、Webサーバーから銘文コンテンツを返すことができ、HTML銘文を作成して使"
+"用し、他の銘文コンテンツを再混合するために使用されます。"
+
+#: src/inscriptions.md:21
+msgid ""
+"Inscription content is entirely on-chain, stored in taproot script-path "
+"spend scripts. Taproot scripts have very few restrictions on their content, "
+"and additionally receive the witness discount, making inscription content "
+"storage relatively economical."
+msgstr ""
+"銘文の内容は完全にチェーン上にあり、保存されているtaproot script-path spendス"
+"クリプト内。のTaprootスクリプトはその内容に対する制限が少なく、証人割引を追加"
+"で受けることで、銘文内容の保存が比較的経済的になります。"
+
+#: src/inscriptions.md:26
+msgid ""
+"Since taproot script spends can only be made from existing taproot outputs, "
+"inscriptions are made using a two-phase commit/reveal procedure. First, in "
+"the commit transaction, a taproot output committing to a script containing "
+"the inscription content is created. Second, in the reveal transaction, the "
+"output created by the commit transaction is spent, revealing the inscription "
+"content on-chain."
+msgstr ""
+"taproot script-path spendスクリプトは既存のtaproot出力からしか生成できないた"
+"め、そのため、は2段階のcommit/revealプロセスを使用して刻印されます。まず、"
+"commitでは、銘文の内容を含むスクリプトに提出するtaproot出力を作成します。次"
+"に、reveal取引では、commit取引による出力を使用して、チェーン上の銘文の内容を"
+"表示します。"
+
+#: src/inscriptions.md:33
+msgid ""
+"Inscription content is serialized using data pushes within unexecuted "
+"conditionals, called \"envelopes\". Envelopes consist of an `OP_FALSE OP_IF "
+"… OP_ENDIF` wrapping any number of data pushes. Because envelopes are "
+"effectively no-ops, they do not change the semantics of the script in which "
+"they are included, and can be combined with any other locking script."
+msgstr ""
+"銘文の内容は、実行されていない条件のデータプッシュを使用してシリアル化され "
+"\"エンベロープ\"と呼ばれます。封筒はOP_FALSE OP_IF…OP_ENDIF任意の数のデータ"
+"プッシュを構成し、ラップします。エンベロープは実際には空の操作なので、それら"
+"を含むスクリプトのセマンティクスは変更されません。となり、他のロックスクリプ"
+"トと組み合わせて使用できます。"
+
+#: src/inscriptions.md:39
+msgid ""
+"A text inscription containing the string \"Hello, world!\" is serialized as "
+"follows:"
+msgstr ""
+"文字列「Hello,world！」を含むのテキスト銘文を以下のようにシリアル化されていま"
+"す："
+
+#: src/inscriptions.md:42
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions.md:53
+msgid ""
+"First the string `ord` is pushed, to disambiguate inscriptions from other "
+"uses of envelopes."
+msgstr ""
+"まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。"
+
+#: src/inscriptions.md:56
+msgid ""
+"`OP_PUSH 1` indicates that the next push contains the content type, and "
+"`OP_PUSH 0`indicates that subsequent data pushes contain the content itself. "
+"Multiple data pushes must be used for large inscriptions, as one of "
+"taproot's few restrictions is that individual data pushes may not be larger "
+"than 520 bytes."
+msgstr ""
+"`OP_PUSH 1'は、次のプッシュにコンテンツタイプが含まれていることを示しま"
+"す。'OP_PUSH 0'は、後続のデータプッシュがコンテンツ自体を含むことを示す。の大"
+"規模な銘文は複数回のデータプッシュを使用しなければならない。taprootの少数の制"
+"限の一つは、単一のデータプッシュが520バイトを超えないことであります。"
+
+#: src/inscriptions.md:62
+msgid ""
+"The inscription content is contained within the input of a reveal "
+"transaction, and the inscription is made on the first sat of its input. This "
+"sat can then be tracked using the familiar rules of ordinal theory, allowing "
+"it to be transferred, bought, sold, lost to fees, and recovered."
+msgstr ""
+"銘文の内容はreveal取引の入力に含まれ、銘文はその最初の出力の最初の聡"
+"（Satoshi）に刻まれている。私たちはよく知っている序数理論のルールを使ってこの"
+"聡satを追跡することができます。移転、購入、販売、紛失、回復を許可します。"
+
+#: src/inscriptions.md:67
+msgid "Content"
+msgstr "内容"
+
+#: src/inscriptions.md:70
+msgid ""
+"The data model of inscriptions is that of a HTTP response, allowing "
+"inscription content to be served by a web server and viewed in a web browser."
+msgstr ""
+"銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによって"
+"サービスされ、ウェブブラウザで閲覧することを可能にします。"
+
+#: src/inscriptions.md:73
+msgid "Fields"
+msgstr "フィールド"
+
+#: src/inscriptions.md:76
+msgid ""
+"Inscriptions may include fields before an optional body. Each field consists "
+"of two data pushes, a tag and a value."
+msgstr ""
+"銘文には、オプションの本文の前にフィールドを含めることができます。各フィール"
+"ドにはの2つのデータプッシュ、1つのラベルと1つの値。"
+
+#: src/inscriptions.md:79
+msgid ""
+"Currently, the only defined field is `content-type`, with a tag of `1`, "
+"whose value is the MIME type of the body."
+msgstr ""
+"現在、定義されている唯一のフィールドは『content-type』です。タグは「1」、その"
+"値は本文のMI MEタイプです。"
+
+#: src/inscriptions.md:82
+msgid ""
+"The beginning of the body and end of fields is indicated with an empty data "
+"push."
+msgstr ""
+"本文の先頭とフィールドの末尾には \"空のデータ\"でプッシュが表示されます。"
+
+#: src/inscriptions.md:85
+msgid ""
+"Unrecognized tags are interpreted differently depending on whether they are "
+"even or odd, following the \"it's okay to be odd\" rule used by the "
+"Lightning Network."
+msgstr ""
+"認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク\"は"
+"奇数\"にすることができるというルールに従います。"
+
+#: src/inscriptions.md:89
+msgid ""
+"Even tags are used for fields which may affect creation, initial assignment, "
+"or transfer of an inscription. Thus, inscriptions with unrecognized even "
+"fields must be displayed as \"unbound\", that is, without a location."
+msgstr ""
+"ラベルさえも、作成、初期割り当て、または銘文の転送に影響を及ぼす可能性のある"
+"フィールドのために使用されます。だから、識別できない銘文でも、フィールドも"
+"\"未バインド\"として表示されなければなりません。つまり、場所がありません。"
+
+#: src/inscriptions.md:93
+msgid ""
+"Odd tags are used for fields which do not affect creation, initial "
+"assignment, or transfer, such as additional metadata, and thus are safe to "
+"ignore."
+msgstr ""
+"奇数タグは、追加のメタデータなど、作成、初期フィールド、割り当て、または転送"
+"に影響を与えないために使用され、したがって、無視することが安全であることを選"
+"択します。"
+
+#: src/inscriptions.md:96
+msgid "Inscription IDs"
+msgstr "銘文の身分ID"
+
+#: src/inscriptions.md:99
+msgid ""
+"The inscriptions are contained within the inputs of a reveal transaction. In "
+"order to uniquely identify them they are assigned an ID of the form:"
+msgstr ""
+"銘文は取引を明らかにする入力に含まれている。彼らを一意に識別するために、彼ら"
+"には以下の形式のIDが割り当てられています："
+
+#: src/inscriptions.md:102
+msgid "`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`"
+msgstr ""
+
+#: src/inscriptions.md:104
+msgid ""
+"The part in front of the `i` is the transaction ID (`txid`) of the reveal "
+"transaction. The number after the `i` defines the index (starting at 0) of "
+"new inscriptions being inscribed in the reveal transaction."
+msgstr ""
+" ’i’の先頭部分は、トランザクションID（’txid’）である。`i`の後の数字はを定義し"
+"ます。新しい銘文は、取引で常に銘記されたインデックスの位置(0から開始)"
+
+#: src/inscriptions.md:108
+msgid ""
+"Inscriptions can either be located in different inputs, within the same "
+"input or a combination of both. In any case the ordering is clear, since a "
+"parser would go through the inputs consecutively and look for all "
+"inscription `envelopes`."
+msgstr ""
+"銘文は、入力の中の異なる入力の中にあってもよく、同じ入力であってもよく、ある"
+"いは両者の組み合わせであってもよい。いずれにしても、パーサーは入力を連続的に"
+"チェックし、すべての銘文『封筒を検索するため、順序は明確です"
+
+#: src/inscriptions.md:112
+msgid "Input"
+msgstr ""
+
+#: src/inscriptions.md:112
+msgid "Inscription Count"
+msgstr ""
+
+#: src/inscriptions.md:112
+msgid "Indices"
+msgstr ""
+
+#: src/inscriptions.md:114 src/inscriptions.md:117
+msgid "0"
+msgstr ""
+
+#: src/inscriptions.md:114 src/inscriptions.md:116
+msgid "2"
+msgstr ""
+
+#: src/inscriptions.md:114
+msgid "i0, i1"
+msgstr ""
+
+#: src/inscriptions.md:115 src/inscriptions.md:118
+msgid "1"
+msgstr ""
+
+#: src/inscriptions.md:115
+msgid "i2"
+msgstr ""
+
+#: src/inscriptions.md:116 src/inscriptions.md:117
+msgid "3"
+msgstr ""
+
+#: src/inscriptions.md:116
+msgid "i3, i4, i5"
+msgstr ""
+
+#: src/inscriptions.md:118
+msgid "4"
+msgstr ""
+
+#: src/inscriptions.md:118
+msgid "i6"
+msgstr ""
+
+#: src/inscriptions.md:120
+msgid "Sandboxing"
+msgstr "サンドボックス化"
+
+#: src/inscriptions.md:123
+msgid ""
+"HTML and SVG inscriptions are sandboxed in order to prevent references to "
+"off-chain content, thus keeping inscriptions immutable and self-contained."
+msgstr ""
+"HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないように"
+"して、銘文の不変性と独立性を保ちます。"
+
+#: src/inscriptions.md:126
+msgid ""
+"This is accomplished by loading HTML and SVG inscriptions inside `iframes` "
+"with the `sandbox` attribute, as well as serving inscription content with "
+"`Content-Security-Policy` headers."
+msgstr ""
+"これは、HTMLとSVGの銘文を `iframes` にロードし、銘文コンテンツを提供すること"
+"によって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。"
+
+#: src/inscriptions/provenance.md:4
+msgid ""
+"The owner of an inscription can create child inscriptions, trustlessly "
+"establishing the provenance of those children on-chain as having been "
+"created by the owner of the parent inscription. This can be used for "
+"collections, with the children of a parent inscription being members of the "
+"same collection."
+msgstr ""
+"銘文の所有者は子銘文を作り上げられ、チェーンの上で自由にこれらの子銘文の'遡源'を作り上げ、"
+"父の銘文の所有者から作り上げたことを証明します。集合に用いられて、父の銘文の子銘文は同じ集合のメンバーとなります。"
+
+#: src/inscriptions/provenance.md:9
+msgid ""
+"Children can themselves have children, allowing for complex hierarchies. For "
+"example, an artist might create an inscription representing themselves, with "
+"sub inscriptions representing collections that they create, with the "
+"children of those sub inscriptions being items in those collections."
+msgstr ""
+"子銘文も自分の子銘文を作成することができ、様々な階層構造が形成ます。"
+"例えば、ある芸術家は自分を代表する銘文を作成して、子銘文は彼らが作成したコレクションを代表"
+"し、この銘文のそれぞれのサブプロジェクトはコレクションの中のプロジェクトです。"
+
+#: src/inscriptions/provenance.md:14
+msgid "Specification"
+msgstr "規範"
+
+#: src/inscriptions/provenance.md:16
+msgid "To create a child inscription C with parent inscription P:"
+msgstr ""
+"父の銘文Pのために子銘文Cを作り上げます。"
+
+#: src/inscriptions/provenance.md:18
+msgid "Create an inscribe transaction T as usual for C."
+msgstr "通常通りCに常用の刻銘取引Tを作り上げます。"
+
+#: src/inscriptions/provenance.md:19
+msgid "Spend the parent P in one of the inputs of T."
+msgstr "铭文P一つの入力中のTに父の銘文Pを加えます"
+
+#: src/inscriptions/provenance.md:20
+msgid ""
+"Include tag `3`, i.e. `OP_PUSH 3`, in C, with the value of the serialized "
+"binary inscription ID of P, serialized as the 32-byte `TXID`, followed by "
+"the four-byte little-endian `INDEX`, with trailing zeroes omitted."
+msgstr ""
+"`Cの中にはラベル'３'が含まれ、`OP_PUSH 3`ということです。数値はPのシリーズ化のバイナリー銘文IDのシリーズ化は32バイトの`TXID`です。"
+"後は4バイトのスモールエンドの`INDEX`で、最後の0が含まれません"
+
+#: src/inscriptions/provenance.md:24
+msgid ""
+"_NB_ The bytes of a bitcoin transaction ID are reversed in their text "
+"representation, so the serialized transaction ID will be in the opposite "
+"order."
+msgstr ""
+"ビットコイの取引IDのバイトは文の中での表現形式は逆的であり、ですのでシリーズ化の取引IDは逆の順序で呈していることをご注意ください。"
+
+#: src/inscriptions/provenance.md:27 src/guides/testing.md:18
+#: src/guides/reindexing.md:15
+msgid "Example"
+msgstr "例を挙げます"
+
+#: src/inscriptions/provenance.md:29
+msgid ""
+"An example of a child inscription of "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
+msgstr ""
+"子銘文の例 "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
+
+#: src/inscriptions/provenance.md:32
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 3\n"
+"  OP_PUSH "
+"0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/provenance.md:45
+msgid ""
+"Note that the value of tag `3` is binary, not hex, and that for the child "
+"inscription to be recognized as a child, "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0` must be "
+"spent as one of the inputs of the inscribe transaction."
+msgstr ""
+"ラベル3の数値は2進数で、16進数ではなく、主に子銘文を識別されます。"
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`ひとつの銘文取引の入力とする必要があります。"
+
+#: src/inscriptions/provenance.md:50
+msgid ""
+"Example encoding of inscription ID "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255`:"
+msgstr ""
+"銘文IDのコードの例 "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255`:"
+
+#: src/inscriptions/provenance.md:53
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  …\n"
+"  OP_PUSH 3\n"
+"  OP_PUSH "
+"0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff\n"
+"  …\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/provenance.md:63
+msgid ""
+"And of inscription ID "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256`:"
+msgstr ""
+"以及铭文 ID "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256`:"
+
+#: src/inscriptions/provenance.md:65
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  …\n"
+"  OP_PUSH 3\n"
+"  OP_PUSH "
+"0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001\n"
+"  …\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/provenance.md:75
+msgid "Notes"
+msgstr "注釈"
+
+#: src/inscriptions/provenance.md:77
+msgid ""
+"The tag `3` is used because it is the first available odd tag. Unrecognized "
+"odd tags do not make an inscription unbound, so child inscriptions would be "
+"recognized and tracked by old versions of `ord`."
+msgstr ""
+"ラベル `3` を使用されたのは使用できる奇数のラベルです"
+"識別されなかった奇数ラベルは銘文にバインドできないようなことはしません。"
+"ですので古いバージョンのordは依然として子銘文を識別し、追跡できます"
+
+#: src/inscriptions/provenance.md:81
+msgid ""
+"A collection can be closed by burning the collection's parent inscription, "
+"which guarantees that no more items in the collection can be issued."
+msgstr ""
+"処分された父の銘文を通して、一つの集合を閉じることができます。この集合の中のより多くの発行されない項目を保証しております。 "
+
+#: src/inscriptions/recursion.md:4
+msgid ""
+"An important exception to [sandboxing](../inscriptions.md#sandboxing) is "
+"recursion: access to `ord`'s `/content` endpoint is permitted, allowing "
+"inscriptions to access the content of other inscriptions by requesting `/"
+"content/<INSCRIPTION_ID>`."
+msgstr ""
+"[サンドボックス化](../inscriptions.md#sandboxing)の重要な例外は再帰です："
+"`ord`の /content`エンドポイントへのアクセスが許可され、碑文が`/content/"
+"<INSCRIPTION_ID>`をリクエストすることで他の碑文のコンテンツにアクセスできるよ"
+"うになります。"
+
+#: src/inscriptions/recursion.md:9
+msgid "This has a number of interesting use-cases:"
+msgstr "ここは面白い用例がとても多いです："
+
+#: src/inscriptions/recursion.md:11
+msgid "Remixing the content of existing inscriptions."
+msgstr "既存の銘文の内容を再混合します。"
+
+#: src/inscriptions/recursion.md:13
+msgid ""
+"Publishing snippets of code, images, audio, or stylesheets as shared public "
+"resources."
+msgstr ""
+"コード、イメージ、オーディオ、またはスタイルシートフラグメントを共通の共有ア"
+"セットとしてパブリッシュします。"
+
+#: src/inscriptions/recursion.md:16
+msgid ""
+"Generative art collections where an algorithm is inscribed as JavaScript, "
+"and instantiated from multiple inscriptions with unique seeds."
+msgstr ""
+"アルゴリズムがJava Scriptを使用して刻印され、ユニークなシードを持つ複数の銘文"
+"からインスタンス化されたアートコレクションを生成します。"
+
+#: src/inscriptions/recursion.md:19
+msgid ""
+"Generative profile picture collections where accessories and attributes are "
+"inscribed as individual images, or in a shared texture atlas, and then "
+"combined, collage-style, in unique combinations in multiple inscriptions."
+msgstr ""
+"アクセサリーやプロパティを含むプロファイル画像セットを生成し、個別の画像とし"
+"て書き込むか、共有テクスチャマップセットに書き込み、の組み合わせ、コラージュ"
+"スタイル、複数の銘文の中で独特の組み合わせで。"
+
+#: src/inscriptions/recursion.md:23
+msgid "A few other endpoints that inscriptions may access are the following:"
+msgstr "銘文がアクセスできる他のいくつかのエンドポイントは以下の通りです："
+
+#: src/inscriptions/recursion.md:25
+msgid "`/blockheight`: latest block height."
+msgstr "`/blockheight`：最新のブロック高度。"
+
+#: src/inscriptions/recursion.md:26
+msgid "`/blockhash`: latest block hash."
+msgstr "`/blockhash`：最新のブロックハッシュ。"
+
+#: src/inscriptions/recursion.md:27
+msgid "`/blockhash/<HEIGHT>`: block hash at given block height."
+msgstr "`/blockhash/<HEIGHT>`：指定されたブロック高さのブロックハッシュ。"
+
+#: src/inscriptions/recursion.md:28
+msgid "`/blocktime`: UNIX time stamp of latest block."
+msgstr "`/blocktime`：最新のブロックのUNIXタイムスタンプ。"
+
+#: src/faq.md:1
+msgid "Ordinal Theory FAQ"
+msgstr "序数理論のよくある質問"
+
+#: src/faq.md:4
+msgid "What is ordinal theory?"
+msgstr "序数理論はなんですか"
+
+#: src/faq.md:7
+msgid ""
+"Ordinal theory is a protocol for assigning serial numbers to satoshis, the "
+"smallest subdivision of a bitcoin, and tracking those satoshis as they are "
+"spent by transactions."
+msgstr ""
+"序数理論は、聡（satoshi、以下は「聡」と書きます。ビットコインの最小単位）シリ"
+"アル番号を割り当てるプロトコル、と取引中にこれらの聡を追跡します。"
+
+#: src/faq.md:11
+msgid ""
+"These serial numbers are large numbers, like this 804766073970493. Every "
+"satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal number."
+msgstr ""
+"これらの番号はすべて大きな数字で、例えば、804766073970493.すべての聡satoshi、"
+"もビットコインの¹⁄₁₀₀₀₀₀₀₀₀はすべて序数番号を持っています"
+
+#: src/faq.md:14
+msgid ""
+"Does ordinal theory require a side chain, a separate token, or changes to "
+"Bitcoin?"
+msgstr ""
+"序数理論はサイドチェーン、個別のトークン、またはビットコインに変更を加える必"
+"要がありますか?"
+
+#: src/faq.md:17
+msgid ""
+"Nope! Ordinal theory works right now, without a side chain, and the only "
+"token needed is bitcoin itself."
+msgstr ""
+"全然いりません！序数理論は現在有効に利用可能で、サイドチェーンがなく、唯一必"
+"要なトークンはビットコイン自体であります。"
+
+#: src/faq.md:20
+msgid "What is ordinal theory good for?"
+msgstr "序数理論はどんな用途がありますか？"
+
+#: src/faq.md:23
+msgid ""
+"Collecting, trading, and scheming. Ordinal theory assigns identities to "
+"individual satoshis, allowing them to be individually tracked and traded, as "
+"curios and for numismatic value."
+msgstr ""
+"収集、取引、企画。序数理論は身分を個々の聡に割り当て、骨董品や貨幣価値として"
+"個別に追跡され取引されることを可能にします。"
+
+#: src/faq.md:27
+msgid ""
+"Ordinal theory also enables inscriptions, a protocol for attaching arbitrary "
+"content to individual satoshis, turning them into bitcoin-native digital "
+"artifacts."
+msgstr ""
+"序数理論はまた、任意の内容を単一のコングに付加し、ビットコインのネイティブデ"
+"ジタルアーティファクトにするプロトコルである銘文を与えます。"
+
+#: src/faq.md:31
+msgid "How does ordinal theory work?"
+msgstr "序数理論はどのように機能しますか？"
+
+#: src/faq.md:34
+msgid ""
+"Ordinal numbers are assigned to satoshis in the order in which they are "
+"mined. The first satoshi in the first block has ordinal number 0, the second "
+"has ordinal number 1, and the last satoshi of the first block has ordinal "
+"number 4,999,999,999."
+msgstr ""
+"序数は採掘の順序に従って聡に割り当てられた。最初のブロックの最初のリスニング"
+"の序数は0で、2番目のリスニングの序数は1です。最初のブロックの最後のセグメント"
+"の序数は4,999,999,999です。"
+
+#: src/faq.md:39
+msgid ""
+"Satoshis live in outputs, but transactions destroy outputs and create new "
+"ones, so ordinal theory uses an algorithm to determine how satoshis hop from "
+"the inputs of a transaction to its outputs."
+msgstr ""
+"コングは出力に存在しますが、トランザクションは出力を破壊し、新しい出力を作成"
+"します。したがって、序数理論では、取引の入力から出力にどのようにジャンプする"
+"かを決定するアルゴリズムを使用します。"
+
+#: src/faq.md:43
+msgid "Fortunately, that algorithm is very simple."
+msgstr "幸いなことに、このアルゴリズムはとても簡単です。"
+
+#: src/faq.md:45
+msgid ""
+"Satoshis transfer in first-in-first-out order. Think of the inputs to a "
+"transaction as being a list of satoshis, and the outputs as a list of slots, "
+"waiting to receive a satoshi. To assign input satoshis to slots, go through "
+"each satoshi in the inputs in order, and assign each to the first available "
+"slot in the outputs."
+msgstr ""
+"聡は先入れ先出しの順に振り込みを行う。トランザクションの入力をスマートリスト"
+"として、出力をスロットスロットリストとして、聡の受信を待つ。入力セグメントを"
+"スロットに割り当てるには、入力セグメントの各セグメントを順番にチェックしま"
+"す。と表示され、出力の最初の使用可能なスロットに各スマートが割り当てられま"
+"す。。"
+
+#: src/faq.md:51
+msgid ""
+"Let's imagine a transaction with three inputs and two outputs. The inputs "
+"are on the left of the arrow and the outputs are on the right, all labeled "
+"with their values:"
+msgstr ""
+"3つの入力と2つの出力を持つ取引を想像してみましょう。入力は矢印の左側にあり、"
+"出力は右側にあり、値のラベルが付いています："
+
+#: src/faq.md:55
+msgid ""
+"```\n"
+"[2] [1] [3] → [4] [2]\n"
+"```"
+msgstr ""
+
+#: src/faq.md:57
+msgid ""
+"Now let's label the same transaction with the ordinal numbers of the "
+"satoshis that each input contains, and question marks for each output slot. "
+"Ordinal numbers are large, so let's use letters to represent them:"
+msgstr ""
+"今は、各入力に含まれる小数点以下の番号で同じトランザクションをマークし、各出"
+"力スロットに疑問符をマークします。序数は大きいので、それらをアルファベットで"
+"表します："
+
+#: src/faq.md:61
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [? ? ? ?] [? ?]\n"
+"```"
+msgstr ""
+
+#: src/faq.md:63
+msgid ""
+"To figure out which satoshi goes to which output, go through the input "
+"satoshis in order and assign each to a question mark:"
+msgstr ""
+"どの出力からどの出力への出力かを確認するには、入力の出力を順番にチェックし、"
+"各出力に疑問符を割り当てます："
+
+#: src/faq.md:66
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [a b c d] [e f]\n"
+"```"
+msgstr ""
+
+#: src/faq.md:68
+msgid ""
+"What about fees, you might ask? Good question! Let's imagine the same "
+"transaction, this time with a two satoshi fee. Transactions with fees send "
+"more satoshis in the inputs than are received by the outputs, so to make our "
+"transaction into one that pays fees, we'll remove the second output:"
+msgstr ""
+"取引費用を聞くかもしれませんか？いい質問だ！同じ取引を想像してみましょう。今"
+"回は2人の聡の費用です。有料取引は、で送信された音声が出力で受信された音声より"
+"多いので、私たちの取引を料金を支払う取引にするために、2番目の出力を削除しま"
+"す:"
+
+#: src/faq.md:73
+msgid ""
+"```\n"
+"[2] [1] [3] → [4]\n"
+"```"
+msgstr ""
+
+#: src/faq.md:75
+msgid "The satoshis "
+msgstr "聡"
+
+#: src/faq.md:75
+msgid "e"
+msgstr ""
+
+#: src/faq.md:75
+msgid " and "
+msgstr " と "
+
+#: src/faq.md:75
+msgid "f"
+msgstr ""
+
+#: src/faq.md:75
+msgid " now have nowhere to go in the outputs:"
+msgstr "今は輸出しているので、どこへも行けません"
+
+#: src/faq.md:78
+msgid ""
+"```\n"
+"[a b] [c] [d e f] → [a b c d]\n"
+"```"
+msgstr ""
+"```\n"
+"[a b] [c] [d e f] → [a b c d]\n"
+"```"
+
+#: src/faq.md:80
+msgid ""
+"So they go to the miner who mined the block as fees. [The BIP](https://"
+"github.com/ordinals/ord/blob/master/bip.mediawiki) has the details, but in "
+"short, fees paid by transactions are treated as extra inputs to the coinbase "
+"transaction, and are ordered how their corresponding transactions are "
+"ordered in the block. The coinbase transaction of the block might look like "
+"this:"
+msgstr ""
+"だから彼らは「費用」としてこのブロックを掘っている鉱山労働者のところに行きま"
+"す。[The BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)には"
+"もっと詳しい説明があります。しかし、簡単に言えば、取引によって支払われる料金"
+"は、Coinbase取引への追加入力とみなされ、その対応する取引に応じてブロック内に"
+"ありますの順にソートされます。ブロックのCoinbaseトランザクションは次のように"
+"なる可能性があります:"
+
+#: src/faq.md:87
+msgid ""
+"```\n"
+"[SUBSIDY] [e f] → [SUBSIDY e f]\n"
+"```"
+msgstr ""
+
+#: src/faq.md:89
+msgid "Where can I find the nitty-gritty details?"
+msgstr "これらの詳細な情報はどこで見つけることができますか"
+
+#: src/faq.md:92
+msgid "[The BIP!](https://github.com/ordinals/ord/blob/master/bip.mediawiki)"
+msgstr ""
+
+#: src/faq.md:94
+msgid ""
+"Why are sat inscriptions called \"digital artifacts\" instead of \"NFTs\"?"
+msgstr "なぜ聡の銘文は「NFT」ではなく「デジタル文化財」と呼ばれていますか？"
+
+#: src/faq.md:97
+msgid ""
+"An inscription is an NFT, but the term \"digital artifact\" is used instead, "
+"because it's simple, suggestive, and familiar."
+msgstr ""
+"銘文もNFTの一種です。しかし、その代わりに「デジタル文化財」という用語が使われ"
+"ています。それは簡単で、啓発的で、なじみがあるからです"
+
+#: src/faq.md:100
+msgid ""
+"The phrase \"digital artifact\" is highly suggestive, even to someone who "
+"has never heard the term before. In comparison, NFT is an acronym, and "
+"doesn't provide any indication of what it means if you haven't heard the "
+"term before."
+msgstr ""
+"\"デジタル文化財\"（デジタル工作物、デジタル人工物）これらの言葉は強い暗示性"
+"を持っている。「これまでこの言葉を聞いたことがない人にとってもそうだ」に比べ"
+"て、NFTは頭文字の略語で、以前この用語を聞いたことがなければ、意味を説明できま"
+"せん。"
+
+#: src/faq.md:104
+msgid ""
+"Additionally, \"NFT\" feels like financial terminology, and the both word "
+"\"fungible\" and sense of the word \"token\" as used in \"NFT\" is uncommon "
+"outside of financial contexts."
+msgstr ""
+"さらに、\"NFT\"は金融用語のような気がします。\"NFT\"で使われている\"同質化"
+"\"という言葉と\"トークン\"という言葉の意味は金融の文脈の外では一般的ではあり"
+"ません。"
+
+#: src/faq.md:108
+msgid "How do sat inscriptions compare to…"
+msgstr "聡は他のルーンと比較します"
+
+#: src/faq.md:111
+msgid "Ethereum NFTs?"
+msgstr "エセリウムNFT"
+
+#: src/faq.md:113
+msgid "_Inscriptions are always immutable._"
+msgstr "_銘文は永遠に変わりません_"
+
+#: src/faq.md:115
+msgid ""
+"There is simply no way to for the creator of an inscription, or the owner of "
+"an inscription, to modify it after it has been created."
+msgstr "銘文の作成者や所有者は、銘文を作成した後に修正することはできません。"
+
+#: src/faq.md:118
+msgid ""
+"Ethereum NFTs _can_ be immutable, but many are not, and can be changed or "
+"deleted by the NFT contract owner."
+msgstr ""
+"エセリウムNFTs_は変更不可能であることができますが、多くはそうではなく、NFT契"
+"約者によって変更または削除することができます。。"
+
+#: src/faq.md:121
+msgid ""
+"In order to make sure that a particular Ethereum NFT is immutable, the "
+"contract code must be audited, which requires detailed knowledge of the EVM "
+"and Solidity semantics."
+msgstr ""
+"特定のエセリウムNFTが不変であることを確実にするためには、契約コードを監査しな"
+"ければなりません。これにはEVMとSolidityセマンティクスの詳細な理解が必要です。"
+
+#: src/faq.md:125
+msgid ""
+"It is very hard for a non-technical user to determine whether or not a given "
+"Ethereum NFT is mutable or immutable, and Ethereum NFT platforms make no "
+"effort to distinguish whether an NFT is mutable or immutable, and whether "
+"the contract source code is available and has been audited."
+msgstr ""
+"技術ユーザーではない人にとって、あるイーサリアムNFTが可変かどうかを判断するこ"
+"とは困難であり、イーサリアムNFTプラットフォームもNFTが可変かどうかを区別する"
+"努力をしていません。と、契約ソースコードが利用可能で監査されているかどうかを"
+"確認します。"
+
+#: src/faq.md:130
+msgid "_Inscription content is always on-chain._"
+msgstr "_銘文の内容は永遠にコンタクトします_"
+
+#: src/faq.md:132
+msgid ""
+"There is no way for an inscription to refer to off-chain content. This makes "
+"inscriptions more durable, because content cannot be lost, and scarcer, "
+"because inscription creators must pay fees proportional to the size of the "
+"content."
+msgstr ""
+"銘文はチェーンの下の内容を引用できない。内容が失われないので、銘文はより長持"
+"ちします。また、コンテンツのサイズに比例した費用を銘文作成者に支払わなければ"
+"なりません。"
+
+#: src/faq.md:136
+msgid ""
+"Some Ethereum NFT content is on-chain, but much is off-chain, and is stored "
+"on platforms like IPFS or Arweave, or on traditional, fully centralized web "
+"servers. Content on IPFS is not guaranteed to continue to be available, and "
+"some NFT content stored on IPFS has already been lost. Platforms like "
+"Arweave rely on weak economic assumptions, and will likely fail "
+"catastrophically when these economic assumptions are no longer met. "
+"Centralized web servers may disappear at any time."
+msgstr ""
+"イーサリアムのNFTコンテンツの中にはチェーン上にあるものもありますが、ほとんど"
+"のコンテンツはチェーンの下にあり、IP FSやArweaveなどのプラットフォームに保存"
+"されています。または従来の完全に中心化されたネットワークサーバー上で。IP FSの"
+"コンテンツは引き続き利用できることを保証していません。IP FSに保存されている"
+"NFTコンテンツの一部は失われました。Arweaveのようなプラットフォームは弱い経済"
+"的仮定に依存しており、これらの経済的仮定が満たされなくなったときは壊滅的な失"
+"敗を起こす可能性が高い。一元化されたネットワークサーバはいつでも消える可能性"
+"があ。"
+
+#: src/faq.md:144
+msgid ""
+"It is very hard for a non-technical user to determine where the content of a "
+"given Ethereum NFT is stored."
+msgstr ""
+"技術ユーザーではない人にとって、イーサリアムNFTのコンテンツがどこに保存されて"
+"いるかを特定することは困難です。"
+
+#: src/faq.md:147
+msgid "_Inscriptions are much simpler._"
+msgstr "_めいぶんはよりかんたんであります_"
+
+#: src/faq.md:149
+msgid ""
+"Ethereum NFTs depend on the Ethereum network and virtual machine, which are "
+"highly complex, constantly changing, and which introduce changes via "
+"backwards-incompatible hard forks."
+msgstr ""
+"イーサリアムNFTはイーサリアムネットワークと仮想マシンに依存しており、高度に複"
+"雑で変化し続け、下位互換性のないハードフォークによって変化をもたらします。"
+
+#: src/faq.md:153
+msgid ""
+"Inscriptions, on the other hand, depend on the Bitcoin blockchain, which is "
+"relatively simple and conservative, and which introduces changes via "
+"backwards-compatible soft forks."
+msgstr ""
+"対照的に、銘文はビットコインブロックチェーンに依存しており、比較的単純で保守"
+"的であり、後方互換性のあるソフトフォークによって変化を導入しています。"
+
+#: src/faq.md:157
+msgid "_Inscriptions are more secure._"
+msgstr "_銘文はより安全です_"
+
+#: src/faq.md:159
+msgid ""
+"Inscriptions inherit Bitcoin's transaction model, which allow a user to see "
+"exactly which inscriptions are being transferred by a transaction before "
+"they sign it. Inscriptions can be offered for sale using partially signed "
+"transactions, which don't require allowing a third party, such as an "
+"exchange or marketplace, to transfer them on the user's behalf."
+msgstr ""
+"銘文はビットコインの取引モデルを継承しており、ユーザーは署名する前に取引でど"
+"の銘文が転送されたかを正確に見ることができる。銘文は署名取引の一部を使用して"
+"販売することができ、取引所や市場などの第三者がユーザーの代わりにそれらを譲渡"
+"することを許可する必要はありません。"
+
+#: src/faq.md:165
+msgid ""
+"By comparison, Ethereum NFTs are plagued with end-user security "
+"vulnerabilities. It is commonplace to blind-sign transactions, grant third-"
+"party apps unlimited permissions over a user's NFTs, and interact with "
+"complex and unpredictable smart contracts. This creates a minefield of "
+"hazards for Ethereum NFT users which are simply not a concern for ordinal "
+"theorists."
+msgstr ""
+"対照的に、イーサリアムNFTはエンドユーザーのセキュリティホールに悩まされていま"
+"す。ブラインドサイン取引、ユーザーにNFTの第三者アプリケーションを付与の無限の"
+"権限と、複雑で予測不可能なスマートコントラクトとのやり取りは当たり前のことで"
+"す。これはイーサリアムNFTユーザーのために作られた危険地雷原をしていますが、こ"
+"れらは番号理論家にとっては心配する必要はありません。"
+
+#: src/faq.md:171
+msgid "_Inscriptions are scarcer._"
+msgstr "_銘文はより珍しいです_"
+
+#: src/faq.md:173
+msgid ""
+"Inscriptions require bitcoin to mint, transfer, and store. This seems like a "
+"downside on the surface, but the raison d'etre of digital artifacts is to be "
+"scarce and thus valuable."
+msgstr ""
+"銘文は鋳造、移転、保存するためにビットコインが必要です。表面的には、これは障"
+"害のように見えるが、デジタル文化財の存在の価値目的は希少であります。"
+
+#: src/faq.md:177
+msgid ""
+"Ethereum NFTs, on the other hand, can be minted in virtually unlimited "
+"qualities with a single transaction, making them inherently less scarce, and "
+"thus, potentially less valuable."
+msgstr ""
+"一方、イーサリアムNFTは1回の取引でほぼ無限の品質で鋳造することができ、本質的"
+"にそれほど希少ではないです。そのため、あまり価値がないかもしれません。"
+
+#: src/faq.md:181
+msgid "_Inscriptions do not pretend to support on-chain royalties._"
+msgstr "_銘文はチェーン上の版税を支持するふりをしません_"
+
+#: src/faq.md:183
+msgid ""
+"On-chain royalties are a good idea in theory but not in practice. Royalty "
+"payment cannot be enforced on-chain without complex and invasive "
+"restrictions. The Ethereum NFT ecosystem is currently grappling with "
+"confusion around royalties, and is collectively coming to grips with the "
+"reality that on-chain royalties, which were messaged to artists as an "
+"advantage of NFTs, are not possible, while platforms race to the bottom and "
+"remove royalty support."
+msgstr ""
+"「チェーン上の版税」は理論的には良い考えですが、実際にはうまくいきません。複"
+"雑で侵入的な制限がなければチェーン上の版税の支払いを強制することはできませ"
+"ん。イーサリアムNFTエコシステムは、版税をめぐる問題を解決するために努力してい"
+"ます。そして、は共に一つの現実に直面しています。つまり、NFTチェーン上の版税と"
+"いう利器を芸術家に伝えることは実際には不可能です。同時に、複数のプラット"
+"フォームが版税のサポートを削除するために競争しています"
+
+#: src/faq.md:190
+msgid ""
+"Inscriptions avoid this situation entirely by making no false promises of "
+"supporting royalties on-chain, thus avoiding the confusion, chaos, and "
+"negativity of the Ethereum NFT situation."
+msgstr ""
+"銘文はこの状況を完全に迴避し、チェーン上のロイヤリティをサポートすることを虚"
+"偽で約束していません。はイーサリアムNFTのような混乱と消極的な状況を避けまし"
+"た。"
+
+#: src/faq.md:194
+msgid "_Inscriptions unlock new markets._"
+msgstr "_銘文は新たな市場を開きました_"
+
+#: src/faq.md:196
+msgid ""
+"Bitcoin's market capitalization and liquidity are greater than Ethereum's by "
+"a large margin. Much of this liquidity is not available to Ethereum NFTs, "
+"since many Bitcoiners prefer not to interact with the Ethereum ecosystem due "
+"to concerns related to simplicity, security, and decentralization."
+msgstr ""
+"ビットコインの市場価格と流動性はイーサリアムを大きく上回っている。イーサリア"
+"ムNFTはこのような流動性の大部分を得ることができません。多くのビットコインユー"
+"ザーは、シンプルさ、安全性、分散化の観点から、イーサリアムのエコシステムと対"
+"話することを望んでいないからです。"
+
+#: src/faq.md:201
+msgid ""
+"Such Bitcoiners may be more interested in inscriptions than Ethereum NFTs, "
+"unlocking new classes of collector."
+msgstr ""
+"イーサリアムNFTと比較して、そのようなビットコインの支持者は、新しいカテゴリの"
+"コレクターをロック解除するために、碑文に興味を持っている可能性があります。"
+
+#: src/faq.md:204
+msgid "_Inscriptions have a richer data model._"
+msgstr "_铭文有更丰富的数据模型_"
+
+#: src/faq.md:206
+msgid ""
+"Inscriptions consist of a content type, also known as a MIME type, and "
+"content, which is an arbitrary byte string. This is the same data model used "
+"by the web, and allows inscription content to evolve with the web, and come "
+"to support any kind of content supported by web browsers, without requiring "
+"changes to the underlying protocol."
+msgstr ""
+"銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ）任意のバイト文"
+"字列）で構成される。これは、Webで使用されるデータモデルと同じです。銘文コンテ"
+"ンツをウェブの発展に合わせて発展させ、基盤となるプロトコルを変更することな"
+"く、ウェブブラウザがサポートするあらゆる種類のコンテンツをサポートすることを"
+"可能に"
+
+#: src/faq.md:212
+msgid "RGB and Taro assets?"
+msgstr "RGB 和 Taro 資産？"
+
+#: src/faq.md:214
+msgid ""
+"RGB and Taro are both second-layer asset protocols built on Bitcoin. "
+"Compared to inscriptions, they are much more complicated, but much more "
+"featureful."
+msgstr ""
+"RGBとTaroはいずれもビットコインの上に構築された二層資産協定である。銘文に比べ"
+"て、それらはずっと複雑ですが、より特色があります。"
+
+#: src/faq.md:217
+msgid ""
+"Ordinal theory has been designed from the ground up for digital artifacts, "
+"whereas the primary use-case of RGB and Taro are fungible tokens, so the "
+"user experience for inscriptions is likely to be simpler and more polished "
+"than the user experience for RGB and Taro NFTs."
+msgstr ""
+"シリアル番号理論はデジタルアーティファクト用に設計されていますが、RGBとTaroの"
+"主なユースケースは代替トークンです。そのため、銘文のユーザー体験はRGBやTaro "
+"NFTのユーザー体験よりも簡単で完璧かもしれません。"
+
+#: src/faq.md:222
+msgid ""
+"RGB and Taro both store content off-chain, which requires additional "
+"infrastructure, and which may be lost. By contrast, inscription content is "
+"stored on-chain, and cannot be lost."
+msgstr ""
+"RGBとTaroはどちらもチェーンの下にコンテンツを保存します。これには追加のインフ"
+"ラが必要で、紛失する可能性があります。に比べて、銘文の内容はチェーンに保存さ"
+"れ、失われることはありません。"
+
+#: src/faq.md:226
+msgid ""
+"Ordinal theory, RGB, and Taro are all very early, so this is speculation, "
+"but ordinal theory's focus may give it the edge in terms of features for "
+"digital artifacts, including a better content model, and features like "
+"globally unique symbols."
+msgstr ""
+"序数理論、RGB、Taroは非常に初期のものなので、これは推測にすぎませんが、序数理"
+"論の重点はデジタル芸術品のにあるかもしれませんの特性には、より良いコンテンツ"
+"モデルや、世界で唯一のシンボルのような特性などの利点があります。"
+
+#: src/faq.md:231
+msgid "Counterparty assets?"
+msgstr "Counterparty资产"
+
+#: src/faq.md:233
+msgid ""
+"Counterparty has its own token, XCP, which is required for some "
+"functionality, which makes most bitcoiners regard it as an altcoin, and not "
+"an extension or second layer for bitcoin."
+msgstr ""
+"Counterpartyは独自のトークンXCPを持っています。これはいくつかの機能に必要で、"
+"ほとんどのビットコイン保有者はそれをパクリ通貨と見なしています。ビットコイン"
+"の拡張や第二層ではありません"
+
+#: src/faq.md:237
+msgid ""
+"Ordinal theory has been designed from the ground up for digital artifacts, "
+"whereas Counterparty was primarily designed for financial token issuance."
+msgstr ""
+"序数理論はデジタル文化財のために最初から設計されたのに対し、Counterpartyは主"
+"に金融トークン発行のために設計されました。"
+
+#: src/faq.md:240
+msgid "Inscriptions for…"
+msgstr "銘文は..."
+
+#: src/faq.md:243
+msgid "Artists"
+msgstr "芸術家になれます"
+
+#: src/faq.md:245
+msgid ""
+"_Inscriptions are on Bitcoin._ Bitcoin is the digital currency with the "
+"highest status and greatest chance of long-term survival. If you want to "
+"guarantee that your art survives into the future, there is no better way to "
+"publish it than as inscriptions."
+msgstr ""
+"_ビットコインの銘文_ビットコインは現在最も地位が高く、長期生存の機会が最も大"
+"きいデジタル通貨であります。はあなたの芸術作品が未来に伝わることを保証したい"
+"なら、銘文より良い発表方法はありません。"
+
+#: src/faq.md:250
+msgid ""
+"_Cheaper on-chain storage._ At $20,000 per BTC and the minimum relay fee of "
+"1 satoshi per vbyte, publishing inscription content costs $50 per 1 million "
+"bytes."
+msgstr ""
+"_チェーン上のストレージはより安価です_ビットコインあたり2万ドルとvbyteあたり1"
+"聡の最低中継料金で計算します。碑文の内容を公開するためのコストは100万バイトあ"
+"たり50ドルです。"
+
+#: src/faq.md:254
+msgid ""
+"_Inscriptions are early!_ Inscriptions are still in development, and have "
+"not yet launched on mainnet. This gives you an opportunity to be an early "
+"adopter, and explore the medium as it evolves."
+msgstr ""
+"_铭文还处于项目早期_ 铭文仍在开发中，尚未在主网上发布（建议更新）。 这使您有"
+"机会成为早期采用者，并随着媒体的发展探索它。"
+
+#: src/faq.md:258
+msgid ""
+"_Inscriptions are simple._ Inscriptions do not require writing or "
+"understanding smart contracts."
+msgstr "_铭文很简单_ 铭文不需要你编写或理解智能合约。"
+
+#: src/faq.md:261
+msgid ""
+"_Inscriptions unlock new liquidity._ Inscriptions are more accessible and "
+"appealing to bitcoin holders, unlocking an entirely new class of collector."
+msgstr ""
+"_銘文ロック解除新しい流動性_ビットコインの所有者にとって、銘文はより簡単に入"
+"手でき、より魅力的で、新しいコレクションをもたらします。"
+
+#: src/faq.md:264
+msgid ""
+"_Inscriptions are designed for digital artifacts._ Inscriptions are designed "
+"from the ground up to support NFTs, and feature a better data model, and "
+"features like globally unique symbols and enhanced provenance."
+msgstr ""
+"_銘文はデジタル文化財のために設計されています_新しいデザインの銘文はNFTをサ"
+"ポートし、より良いデータモデルを持っています,や、世界的にユニークなシンボルや"
+"拡張ソースなどの機能です。"
+
+#: src/faq.md:268
+msgid ""
+"_Inscriptions do not support on-chain royalties._ This is negative, but only "
+"depending on how you look at it. On-chain royalties have been a boon for "
+"creators, but have also created a huge amount of confusion in the Ethereum "
+"NFT ecosystem. The ecosystem now grapples with this issue, and is engaged in "
+"a race to the bottom, towards a royalties-optional future. Inscriptions have "
+"no support for on-chain royalties, because they are technically infeasible. "
+"If you choose to create inscriptions, there are many ways you can work "
+"around this limitation: withhold a portion of your inscriptions for future "
+"sale, to benefit from future appreciation, or perhaps offer perks for users "
+"who respect optional royalties."
+msgstr ""
+"_銘文はチェーン上のロイヤリティを奨励しない_これは良いニュースではないかもし"
+"れませんが、それをどう見るかによっても異なります。チェーン上のロイヤリティは"
+"常にクリエイターにとっての福音ですしかし、はイーサリアムNFT生態系にも大きな混"
+"乱をもたらした。イーサリアムは今この問題を解決しようと努力しています。底をつ"
+"いた競争でもあります。は「オプションのロイヤリティ」の未来を実現する。銘文は"
+"チェーン上のロイヤリティをサポートしていません。技術的に不可能だからです。」"
+"銘文を作成することを選択した場合、この制限を迴避する方法はたくさんあります。"
+"銘文の一部を将来の販売のために残して、将来の上昇から利益を得ます。またはオプ"
+"ションのロイヤリティを尊重するユーザーに追加の手当を提供します。"
+
+#: src/faq.md:279
+msgid "Collectors"
+msgstr "コレクター"
+
+#: src/faq.md:281
+msgid ""
+"_Inscriptions are simple, clear, and have no surprises._ They are always "
+"immutable and on-chain, with no special due diligence required."
+msgstr ""
+"_銘文は簡単です_、はっきりしていて事故はありません*それらは常に不変でチェーン"
+"上にあり、特別なデューデリジェンスは必要ありません。"
+
+#: src/faq.md:284
+msgid ""
+"_Inscriptions are on Bitcoin._ You can verify the location and properties of "
+"inscriptions easily with Bitcoin full node that you control."
+msgstr ""
+"_ビットコイン上の銘文_あなたが制御するビットコインのフルノードを使用して、銘"
+"文の位置と属性を簡単に検証できます。"
+
+#: src/faq.md:287
+msgid "Bitcoiners"
+msgstr "ビットコインの信仰者"
+
+#: src/faq.md:289
+msgid ""
+"Let me begin this section by saying: the most important thing that the "
+"Bitcoin network does is decentralize money. All other use-cases are "
+"secondary, including ordinal theory. The developers of ordinal theory "
+"understand and acknowledge this, and believe that ordinal theory helps, at "
+"least in a small way, Bitcoin's primary mission."
+msgstr ""
+"冒頭で説明しましょう。ビットコインネットワークが行っている最も重要なことは、"
+"通貨の中心化です。の他のすべてのユースケースは、序数理論を含む副次的なもので"
+"す。序数理論の開発者はこれを理解し、認めています。そして、序数理論はビットコ"
+"インの主要な課題に少なくともわずかに寄与すると信じています。"
+
+#: src/faq.md:295
+msgid ""
+"Unlike many other things in the altcoin space, digital artifacts have merit. "
+"There are, of course, a great deal of NFTs that are ugly, stupid, and "
+"fraudulent. However, there are many that are fantastically creative, and "
+"creating and collecting art has been a part of the human story since its "
+"inception, and predates even trade and money, which are also ancient "
+"technologies."
+msgstr ""
+"他のパクリ通貨分野のものとは異なり、デジタル文化財には利点がある。もちろん、"
+"多くのNFTは醜い、愚か、詐欺的です。しかし、素晴らしいアイデアはたくさんありま"
+"す。芸術を創造し、収蔵することはもともと人間の物語の一部です。は貿易やお金と"
+"いった同じ古い技術よりも早いです。"
+
+#: src/faq.md:302
+msgid ""
+"Bitcoin provides an amazing platform for creating and collecting digital "
+"artifacts in a secure, decentralized way, that protects users and artists in "
+"the same way that it provides an amazing platform for sending and receiving "
+"value, and for all the same reasons."
+msgstr ""
+"ビットコインは、安全で分散化された方法でデジタルアーティファクトを作成し、収"
+"集するための素晴らしいプラットフォームを提供しています。も同様にユーザーと"
+"アーティストを保護し、同時に価値を送受信する優れたプラットフォームを提供して"
+"います。"
+
+#: src/faq.md:307
+msgid ""
+"Ordinals and inscriptions increase demand for Bitcoin block space, which "
+"increase Bitcoin's security budget, which is vital for safeguarding "
+"Bitcoin's transition to a fee-dependent security model, as the block subsidy "
+"is halved into insignificance."
+msgstr ""
+"序数と銘文はビットコインのブロックスペースの必要性を高め、ビットコインのセ"
+"キュリティ予算を増加させた。はビットコインが費用依存型のセキュリティモデルに"
+"移行することを保障するために重要であります。ブロック補助金の半減はわずかに"
+"なったからであります。"
+
+#: src/faq.md:312
+msgid ""
+"Inscription content is stored on-chain, and thus the demand for block space "
+"for use in inscriptions is unlimited. This creates a buyer of last resort "
+"for _all_ Bitcoin block space. This will help support a robust fee market, "
+"which ensures that Bitcoin remains secure."
+msgstr ""
+"銘文の内容はチェーンに保存されているので、銘文のためのブロック空間の需要は無"
+"限であります。これにより、すべてのビットコインのブロックスペースに最後の買い"
+"手が生まれます。これは強力な有料市場をサポートし、ビットコインが常に安全であ"
+"ることを保証するのに役立ちます。"
+
+#: src/faq.md:317
+msgid ""
+"Inscriptions also counter the narrative that Bitcoin cannot be extended or "
+"used for new use-cases. If you follow projects like DLCs, Fedimint, "
+"Lightning, Taro, and RGB, you know that this narrative is false, but "
+"inscriptions provide a counter argument which is easy to understand, and "
+"which targets a popular and proven use case, NFTs, which makes it highly "
+"legible."
+msgstr ""
+"銘文はまた、ビットコインは拡張できない、または新しいユースケースに使用できな"
+"いという説に反論した。DLC、Fedimint、Lightning、に注目するとTaroやRGBなどのプ"
+"ロジェクトをすると、この言い方が間違っていることがわかります。碑文は、理解し"
+"やすい反論を提供しています。そして、一般的で実証済みのユースケースについて:"
+"NFT,これにより、非常に理解しやすくなります。"
+
+#: src/faq.md:323
+msgid ""
+"If inscriptions prove, as the authors hope, to be highly sought after "
+"digital artifacts with a rich history, they will serve as a powerful hook "
+"for Bitcoin adoption: come for the fun, rich art, stay for the decentralized "
+"digital money."
+msgstr ""
+"作者が望むように、銘文が豊富な歴史を持つデジタル文化財であることが証明され、"
+"高く支持されていればそれらはビットコインに採用される強力な魅力になります：楽"
+"しさ、豊かな芸術に惹かれて、脱中心化されたデジタル通貨のためにも残りたいで"
+"す。"
+
+#: src/faq.md:327
+msgid ""
+"Inscriptions are an extremely benign source of demand for block space. "
+"Unlike, for example, stablecoins, which potentially give large stablecoin "
+"issuers influence over the future of Bitcoin development, or DeFi, which "
+"might centralize mining by introducing opportunities for MEV, digital art "
+"and collectables on Bitcoin, are unlikely to produce individual entities "
+"with enough power to corrupt Bitcoin. Art is decentralized."
+msgstr ""
+"銘文はブロック空間需要の極めて健全な源であり、安定通貨とは異なり、大手発行者"
+"がビットコインの未来をする可能性があります発展に影響を与えて；DeFiとは異な"
+"り、ビットコインにMEV、デジタルアート、コレクションを導入する機会を通じて、マ"
+"イニングを集中化することができます。芸術は脱中心化されており、いかなる実体も"
+"権力を使ってビットコインを破壊することはできません。"
+
+#: src/faq.md:334
+msgid ""
+"Inscription users and service providers are incentivized to run Bitcoin full "
+"nodes, to publish and track inscriptions, and thus throw their economic "
+"weight behind the honest chain."
+msgstr ""
+"銘文ユーザーとサービスプロバイダーは、ビットコインのフルノードを実行し、追跡"
+"銘文を発行して、彼らの経済的重みを正直なチェーンに向けるように動機付けられて"
+"います。"
+
+#: src/faq.md:338
+msgid ""
+"Ordinal theory and inscriptions do not meaningfully affect Bitcoin's "
+"fungibility. Bitcoin users can ignore both and be unaffected."
+msgstr ""
+"序数理論と銘文はビットコインの代替可能性に大きな影響を与えない。ビットコイン"
+"ユーザーはこの2つを無視しても影響を受けません。"
+
+#: src/faq.md:341
+msgid ""
+"We hope that ordinal theory strengthens and enriches bitcoin, and gives it "
+"another dimension of appeal and functionality, enabling it more effectively "
+"serve its primary use case as humanity's decentralized store of value."
+msgstr ""
+"序数理論がビットコインを強化し、豊かにし、別の次元の魅力と機能を与えることを"
+"望んでいます。人間の分散化された価値ストレージとしての主要なユースケースによ"
+"り効率的にサービスを提供できるようにします。"
+
+#: src/contributing.md:1
+msgid "Contributing to `ord`"
+msgstr "どのように`ord`のために貢献しますか"
+
+#: src/contributing.md:4
+msgid "Suggested Steps"
+msgstr "お勧めの手順"
+
+#: src/contributing.md:7
+msgid "Find an issue you want to work on."
+msgstr "解決したい問題を見つけました。"
+
+#: src/contributing.md:8
+msgid ""
+"Figure out what would be a good first step towards resolving the issue. This "
+"could be in the form of code, research, a proposal, or suggesting that it be "
+"closed, if it's out of date or not a good idea in the first place."
+msgstr ""
+"この問題を解決するための良い第一歩とは何かを明らかにします。これはコード、研"
+"究、提案の形にすることができます。またはは、それが古くなった場合、または最初"
+"から良いアイデアではない場合は、それを閉じることをお勧めします。"
+
+#: src/contributing.md:11
+msgid ""
+"Comment on the issue with an outline of your suggested first step, and "
+"asking for feedback. Of course, you can dive in and start writing code or "
+"tests immediately, but this avoids potentially wasted effort, if the issue "
+"is out of date, not clearly specified, blocked on something else, or "
+"otherwise not ready to implement."
+msgstr ""
+"提案した最初のステップの概要を説明し、問題についてコメントし、フィードバック"
+"を求めます。もちろん、すぐに投入して始めることもできますコードを書いたり、テ"
+"ストしたりする。しかし、問題がすでに時代遅れ、明確に制定されていなく、他の理"
+"由で妨げられていて、または準備ができていない場合はよく実施され、このステップ"
+"は潜在的なエネルギーの浪費を避けることができます。"
+
+#: src/contributing.md:16
+msgid ""
+"If the issue requires a code change or bugfix, open a draft PR with tests, "
+"and ask for feedback. This makes sure that everyone is on the same page "
+"about what needs to be done, or what the first step in solving the issue "
+"should be. Also, since tests are required, writing the tests first makes it "
+"easy to confirm that the change can be tested easily."
+msgstr ""
+"コードの変更やエラーの修正が必要な場合は、テストPRのドラフトを開き、フィード"
+"バックを求めてください。これは保証されます誰もが同期して何をすべきか、あるい"
+"はこの問題を解決する最初のステップは何かを知っています。同様に、デバッグは必"
+"須なので、まずテストドラフトを作成し、更新が容易にテストできることを確認しま"
+"す。"
+
+#: src/contributing.md:21
+msgid ""
+"Mash the keyboard randomly until the tests pass, and refactor until the code "
+"is ready to submit."
+msgstr ""
+"テストに合格するまでキーボードをランダムにタップし、コードをコミットする準備"
+"ができるまでリファクタリングします。"
+
+#: src/contributing.md:23
+msgid "Mark the PR as ready to review."
+msgstr "PRをレビュー準備完了としてマーク。"
+
+#: src/contributing.md:24
+msgid "Revise the PR as needed."
+msgstr "必要であれば PRを直します 。"
+
+#: src/contributing.md:25
+msgid "And finally, mergies!"
+msgstr "最後のの一歩！"
+
+#: src/contributing.md:27
+msgid "Start small"
+msgstr "塵を重ねば、山となる"
+
+#: src/contributing.md:30
+msgid ""
+"Small changes will allow you to make an impact quickly, and if you take the "
+"wrong tack, you won't have wasted much time."
+msgstr ""
+"小さな変化はあなたに迅速に影響力を与えることができ、間違った戦略をとっても、"
+"あまり時間を無駄にしません。"
+
+#: src/contributing.md:33
+msgid "Ideas for small issues:"
+msgstr "いくつかの小さな問題の考え:"
+
+#: src/contributing.md:34
+msgid "Add a new test or test case that increases test coverage"
+msgstr "新しいテストまたはテストケースを追加して、テストのカバー率を高めます。"
+
+#: src/contributing.md:35
+msgid "Add or improve documentation"
+msgstr "ドキュメントの追加または改善"
+
+#: src/contributing.md:36
+msgid ""
+"Find an issue that needs more research, and do that research and summarize "
+"it in a comment"
+msgstr "より多くの研究が必要な問題を見つけ、研究を行い、コメントにまとめます"
+
+#: src/contributing.md:38
+msgid "Find an out-of-date issue and comment that it can be closed"
+msgstr "古い質問を見つけ、コメントして閉じます。"
+
+#: src/contributing.md:39
+msgid ""
+"Find an issue that shouldn't be done, and provide constructive feedback "
+"detailing why you think that is the case"
+msgstr ""
+"本来すべきではない問題を見つけ、建設的なフィードバックを提供して、このような"
+"状況が発生すると考えられる理由を詳しく説明します"
+
+#: src/contributing.md:42
+msgid "Merge early and often"
+msgstr "早く合併し、よく合併します"
+
+#: src/contributing.md:45
+msgid ""
+"Break up large tasks into multiple smaller steps that individually make "
+"progress. If there's a bug, you can open a PR that adds a failing ignored "
+"test. This can be merged, and the next step can be to fix the bug and "
+"unignore the test. Do research or testing, and report on your results. Break "
+"a feature into small sub-features, and implement them one at a time."
+msgstr ""
+"大規模なタスクを複数の小さなステップに分け、これらのステップが個別に取ること"
+"ができる進展。プログラムエラーがある場合は、PRを開くこともできます。失敗した"
+"無視テストを追加します。これはマージすることができ、次のステップでエラーを修"
+"正することができますとテストを無視します。あなたの研究またはテスト結果を報告"
+"します。大きな機能を小さなサブ機能に分解します。そして、それらを一度に1つずつ"
+"段階的に実現します。"
+
+#: src/contributing.md:51
+msgid ""
+"Figuring out how to break down a larger PR into smaller PRs where each can "
+"be merged is an art form well-worth practicing. The hard part is that each "
+"PR must itself be an improvement."
+msgstr ""
+"大きなPRを小さなPRに分解する方法を明らかにし、すべてのPRが統合できるのは非常"
+"に練習価値があります。これもプログラミングの芸術です。難しい部分は、各PR自体"
+"が改善でなければならないことです。"
+
+#: src/contributing.md:55
+msgid ""
+"I strive to follow this advice myself, and am always better off when I do."
+msgstr ""
+"私は自分でこのアドバイスに従うように努力しています。そして、私がそうすると、"
+"私はいつももっと上手にできます。"
+
+#: src/contributing.md:57
+msgid ""
+"Small changes are fast to write, review, and merge, which is much more fun "
+"than laboring over a single giant PR that takes forever to write, review, "
+"and merge. Small changes don't take much time, so if you need to stop "
+"working on a small change, you won't have wasted much time as compared to a "
+"larger change that represents many hours of work. Getting a PR in quickly "
+"improves the project a little bit immediately, instead of having to wait a "
+"long time for larger improvement. Small changes are less likely to "
+"accumulate merge conflict. As the Athenians said: _The fast commit what they "
+"will, the slow merge what they must._"
+msgstr ""
+"小さな変更は、迅速に作成、レビュー、マージすることができます。これは、永遠に"
+"作成、レビュー、マージする必要がある大規模なPRの仕事はもっと面白いです。小さ"
+"な変更にはあまり時間がかからないので、小さな変更の処理を中止する必要がある場"
+"合は、何時間もの仕事を表す大きな変化に比べて、あまり時間を無駄にしません。迅"
+"速なPR獲得はプロジェクトをすぐに改善することができます。はより大きな改善を行"
+"うために長い時間を待つ必要はありません。小さな変更ではマージの競合が累積する"
+"可能性は低くなります。はアテネ人が言ったように、_速い者はその望みを尽くし、遅"
+"い者はその必要を併合します。_"
+
+#: src/contributing.md:67
+msgid "Get help"
+msgstr "助けを求めます。"
+
+#: src/contributing.md:70
+msgid ""
+"If you're stuck for more than 15 minutes, ask for help, like a Rust Discord, "
+"Stack Exchange, or in a project issue or discussion."
+msgstr ""
+"15分以上困っている場合は、例えば、助けを求めてくださいRust Discord、Stack "
+"Exchange,またはプロジェクトの問題や議論で助けを求めます。"
+
+#: src/contributing.md:73
+msgid "Practice hypothesis-driven debugging"
+msgstr "「仮説駆動型」のデバッグを実践します。"
+
+#: src/contributing.md:76
+msgid ""
+"Formulate a hypothesis as to what is causing the problem. Figure out how to "
+"test that hypothesis. Perform that tests. If it works, great, you fixed the "
+"issue or now you know how to fix the issue. If not, repeat with a new "
+"hypothesis."
+msgstr ""
+"問題の原因について仮説を立てる。この仮説をどのように検証するかを明らかにす"
+"る。テストを実行します。効果があれば、それは素晴らしいことです。は問題を解決"
+"しました。または、問題を解決する方法を知っています。そうでなければ、新しい仮"
+"定を繰り返してください。。"
+
+#: src/contributing.md:81
+msgid "Pay attention to error messages"
+msgstr "エラーメッセージを注目します"
+
+#: src/contributing.md:84
+msgid "Read all error messages and don't tolerate warnings."
+msgstr "すべてのエラーメッセージを読み、警告を容認しないでください。"
+
+#: src/donate.md:4
+msgid ""
+"Ordinals is open-source and community funded. The current lead maintainer of "
+"`ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is "
+"entirely funded by donations. If you can, please consider donating!"
+msgstr ""
+"Ordinals序数はオープンソースで、コミュニティが資金を提供するプロジェクトで"
+"す。現在の『ord』のチーフメンテナンス担当者は[raphjaph](https://github.com/"
+"raphjaph/).「Raphの『ord』でのメンテナンスはすべて寄付金で行われました。よろ"
+"しければ、寄付を検討してください！！"
+
+#: src/donate.md:8
+msgid ""
+"The donation address for Bitcoin is "
+"[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://"
+"mempool.space/address/"
+"bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt). The "
+"donation address for inscriptions is "
+"[bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0](https://"
+"mempool.space/address/"
+"bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0)."
+msgstr ""
+"寄与のアドレスは "
+"[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://"
+"mempool.space/address/"
+"bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt). 銘文の寄与の"
+"アドレスは [bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0]"
+"(https://mempool.space/address/"
+"bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0)."
+
+#: src/donate.md:11
+msgid ""
+"Both addresses are in a 2 of 4 multisig wallet with keys held by [raphjaph]"
+"(https://twitter.com/raphjaph), [erin](https://twitter.com/realizingerin), "
+"[rodarmor](https://twitter.com/rodarmor), and [ordinally](https://twitter."
+"com/veryordinally)."
+msgstr ""
+"上記の2つの住所は以下の多署名者（2/4）が保有管理しています。[raphjaph]： "
+"[raphjaph](https://twitter.com/raphjaph), [erin](https://twitter.com/"
+"realizingerin), [rodarmor](https://twitter.com/rodarmor), and [ordinally]"
+"(https://twitter.com/veryordinally)."
+
+#: src/donate.md:17
+msgid ""
+"Donations received will go towards funding maintenance and development of "
+"`ord`, as well as hosting costs for [ordinals.com](https://ordinals.com)."
+msgstr ""
+"受け取った寄付金は『ord』の維持と更なる開発に資金を提供するために使われます。"
+"は同時に[ordinals.com]（https://ordinals.com)のホスト費用を支払います。"
+
+#: src/donate.md:20
+msgid "Thank you for donating!"
+msgstr "ご寄与を感謝いたします！"
+
+#: src/guides.md:1
+msgid "Ordinal Theory Guides"
+msgstr "序数理論の指導"
+
+#: src/guides.md:4
+msgid ""
+"See the table of contents for a list of guides, including a guide to the "
+"explorer, a guide for sat hunters, and a guide to inscriptions."
+msgstr ""
+"ガイドの一覧については、カタログを参照してください。これには、ブロックブラウ"
+"ザガイド、スマートフォンガイド、銘文ガイドなどがあります。"
+
+#: src/guides/explorer.md:1
+msgid "Ordinal Explorer"
+msgstr "序数ブラウザ"
+
+#: src/guides/explorer.md:4
+msgid ""
+"The `ord` binary includes a block explorer. We host a instance of the block "
+"explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet "
+"at [signet.ordinals.com](https://signet.ordinals.com)."
+msgstr ""
+"`ord` ファイルにはブロックブラウザが含まれています。当社のメインネットワーク"
+"ブロックチェーンは [ordinals.com](https://ordinals.com), signet[signet."
+"ordinals.com](https://signet.ordinals.com)に配置します。"
+
+#: src/guides/explorer.md:8
+msgid "Running The Explorer"
+msgstr "運行ブラウザ"
+
+#: src/guides/explorer.md:9
+msgid "The server can be run locally with:"
+msgstr "サーバはローカルで運行可能："
+
+#: src/guides/explorer.md:11
+msgid "`ord server`"
+msgstr ""
+
+#: src/guides/explorer.md:13
+msgid "To specify a port add the `--http-port` flag:"
+msgstr "指定されたポートは、'--http-port'タグを使用します。"
+
+#: src/guides/explorer.md:15
+msgid "`ord server --http-port 8080`"
+msgstr ""
+
+#: src/guides/explorer.md:17
+msgid "To test how your inscriptions will look you can run:"
+msgstr "銘文をテストして、運行できます："
+
+#: src/guides/explorer.md:19
+msgid "`ord preview <FILE1> <FILE2> ...`"
+msgstr ""
+
+#: src/guides/explorer.md:21
+msgid "Search"
+msgstr "検索"
+
+#: src/guides/explorer.md:24
+msgid "The search box accepts a variety of object representations."
+msgstr "検索ボックスではさまざまなオブジェクトを使用できます："
+
+#: src/guides/explorer.md:26
+msgid "Blocks"
+msgstr "ブロック"
+
+#: src/guides/explorer.md:28
+msgid "Blocks can be searched by hash, for example, the genesis block:"
+msgstr "ブロックはハッシュで見つけることができます。例えば、創世ブロックです："
+
+#: src/guides/explorer.md:30
+msgid ""
+"[000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f](https://"
+"ordinals.com/"
+"search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f)"
+msgstr ""
+
+#: src/guides/explorer.md:32
+msgid "Transactions"
+msgstr "取引"
+
+#: src/guides/explorer.md:34
+msgid ""
+"Transactions can be searched by hash, for example, the genesis block "
+"coinbase transaction:"
+msgstr ""
+"創世記ブロックのcoinbaseトランザクションなど、ハッシュによってトランザクショ"
+"ンを見つけることができます。："
+
+#: src/guides/explorer.md:37
+msgid ""
+"[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b](https://"
+"ordinals.com/"
+"search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b)"
+msgstr ""
+
+#: src/guides/explorer.md:39
+msgid "Outputs"
+msgstr "輸出"
+
+#: src/guides/explorer.md:41
+msgid ""
+"Transaction outputs can searched by outpoint, for example, the only output "
+"of the genesis block coinbase transaction:"
+msgstr ""
+"アウトポイントを使用して、創世ブロックcoinbaseトランザクションのユニークな出"
+"力などのトランザクション出力を検索できます："
+
+#: src/guides/explorer.md:44
+msgid ""
+"[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0](https://"
+"ordinals.com/"
+"search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0)"
+msgstr ""
+
+#: src/guides/explorer.md:46
+msgid "Sats"
+msgstr "聡"
+
+#: src/guides/explorer.md:48
+msgid ""
+"Sats can be searched by integer, their position within the entire bitcoin "
+"supply:"
+msgstr ""
+"聡は整数で検索することができ、ビットコインの供給全体の中のそれらの位置："
+
+#: src/guides/explorer.md:51
+msgid "[2099994106992659](https://ordinals.com/search/2099994106992659)"
+msgstr ""
+
+#: src/guides/explorer.md:53
+msgid "By decimal, their block and offset within that block:"
+msgstr "10進数では、そのブロックとそのブロック内のオフセット："
+
+#: src/guides/explorer.md:55
+msgid "[481824.0](https://ordinals.com/search/481824.0)"
+msgstr ""
+
+#: src/guides/explorer.md:57
+msgid ""
+"By degree, their cycle, blocks since the last halving, blocks since the last "
+"difficulty adjustment, and offset within their block:"
+msgstr ""
+"度数、それらの週期、前回の半減以来のブロック、前回の難易度調整以来のブロッ"
+"ク、そしてブロック内のオフセット："
+
+#: src/guides/explorer.md:60
+msgid "[1°0′0″0‴](https://ordinals.com/search/1°0′0″0‴)"
+msgstr ""
+
+#: src/guides/explorer.md:62
+msgid ""
+"By name, their base 26 representation using the letters \"a\" through \"z\":"
+msgstr "名前に応じて、文字\"a\"~\"z\"の26文字の組み合わせで表されます："
+
+#: src/guides/explorer.md:64
+msgid "[ahistorical](https://ordinals.com/search/ahistorical)"
+msgstr ""
+
+#: src/guides/explorer.md:66
+msgid ""
+"Or by percentile, the percentage of bitcoin's supply that has been or will "
+"have been issued when they are mined:"
+msgstr ""
+"または百分率で、採掘時にすでに発行された、または発行される予定のビットコイン"
+"の供給量のパーセント："
+
+#: src/guides/explorer.md:69
+msgid "[100%](https://ordinals.com/search/100%)"
+msgstr ""
+
+#: src/guides/inscriptions.md:1
+msgid "Ordinal Inscription Guide"
+msgstr "銘文のガイド"
+
+#: src/guides/inscriptions.md:4
+msgid ""
+"Individual sats can be inscribed with arbitrary content, creating Bitcoin-"
+"native digital artifacts that can be held in a Bitcoin wallet and "
+"transferred using Bitcoin transactions. Inscriptions are as durable, "
+"immutable, secure, and decentralized as Bitcoin itself."
+msgstr ""
+"単一のコングは、ビットコインウォレットに保存され、ビットコイントランザクショ"
+"ンを使用して転送されるビットコインネイティブデジタルアーティファクトを作成す"
+"るために、任意のコンテンツを刻印することができます。の銘文はビットコイン自体"
+"と同じくらい持続的で、不変で、安全で、分散化されています。"
+
+#: src/guides/inscriptions.md:9
+msgid ""
+"Working with inscriptions requires a Bitcoin full node, to give you a view "
+"of the current state of the Bitcoin blockchain, and a wallet that can create "
+"inscriptions and perform sat control when constructing transactions to send "
+"inscriptions to another wallet."
+msgstr ""
+"銘文を使用するには、ビットコインのブロックチェーンの現在の状態を知ることがで"
+"きるビットコインの完全なノードが必要です。また、銘文を作成し、取引を構築する"
+"ことができます」他のウォレットに銘文を送信するときにスマートコントロールを実"
+"行するウォレット。"
+
+#: src/guides/inscriptions.md:14
+msgid ""
+"Bitcoin Core provides both a Bitcoin full node and wallet. However, the "
+"Bitcoin Core wallet cannot create inscriptions and does not perform sat "
+"control."
+msgstr ""
+"Bitcoin Core ビットコインのフルノードとウォレットを提供します。しかし，"
+"Bitcoin Coreウォレットは碑文を作成できず、スマートコントロールを実行しませ"
+"ん。"
+
+#: src/guides/inscriptions.md:17
+msgid ""
+"This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. "
+"`ord` doesn't implement its own wallet, so `ord wallet` subcommands interact "
+"with Bitcoin Core wallets."
+msgstr ""
+"これには['ord'](https://github.com/ordinals/ord),序数ユーティリティ。'ord'は"
+"自分のウォレットを持っていないので、'ord wallet'サブコマンドはBitcoin Core"
+"ウォレットと対話します。"
+
+#: src/guides/inscriptions.md:21
+msgid "This guide covers:"
+msgstr "このガイドの含まれ："
+
+#: src/guides/inscriptions.md:23 src/guides/inscriptions.md:39
+msgid "Installing Bitcoin Core"
+msgstr " Bitcoin Coreを取り付けます。"
+
+#: src/guides/inscriptions.md:24
+msgid "Syncing the Bitcoin blockchain"
+msgstr "ビットコインのブロックを同期します。"
+
+#: src/guides/inscriptions.md:25
+msgid "Creating a Bitcoin Core wallet"
+msgstr "Bitcoin Core ウォレットを作り上げます。"
+
+#: src/guides/inscriptions.md:26
+msgid "Using `ord wallet receive` to receive sats"
+msgstr " `ord wallet receive`を使って聡を取り受けます。"
+
+#: src/guides/inscriptions.md:27
+msgid "Creating inscriptions with `ord wallet inscribe`"
+msgstr "`ord wallet inscribe`を使って、銘文を作り上げます。"
+
+#: src/guides/inscriptions.md:28
+msgid "Sending inscriptions with `ord wallet send`"
+msgstr "`ord wallet send`を使って`銘文を発送します"
+
+#: src/guides/inscriptions.md:29
+msgid "Receiving inscriptions with `ord wallet receive`"
+msgstr "`ord wallet receive`を使って`銘文を受け取ります。"
+
+#: src/guides/inscriptions.md:31
+msgid "Getting Help"
+msgstr "助けを求めます。"
+
+#: src/guides/inscriptions.md:34
+msgid ""
+"If you get stuck, try asking for help on the [Ordinals Discord Server]"
+"(https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant "
+"[issues](https://github.com/ordinals/ord/issues) and [discussions](https://"
+"github.com/ordinals/ord/discussions)."
+msgstr ""
+"困ったことがあったら、[Ordinals Discord Server](https://discord.com/"
+"invite/87cjuz4FYg),またはGithubの関連内容をチェックする[質問](https://github."
+"com/ordinals/ord/issues)と[ディスカッション](https://github.com/ordinals/ord/"
+"discussions)."
+
+#: src/guides/inscriptions.md:42
+msgid ""
+"Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) "
+"on the [download page](https://bitcoincore.org/en/download/)."
+msgstr ""
+"[bitcoincore.org](https://bitcoincore.org/)で」の[ダウンロードページ]"
+"(https://bitcoincore.org/en/download/)"
+
+#: src/guides/inscriptions.md:45
+msgid "Making inscriptions requires Bitcoin Core 24 or newer."
+msgstr "銘文を作成するにはBitcoin Core 24以降が必要です。"
+
+#: src/guides/inscriptions.md:47
+msgid ""
+"This guide does not cover installing Bitcoin Core in detail. Once Bitcoin "
+"Core is installed, you should be able to run `bitcoind -version` "
+"successfully from the command line."
+msgstr ""
+"このガイドには、Bitcoin Coreの詳細なインストール方法は含まれていません。"
+"Bitcoin Coreのインストールに成功した後、コマンドラインで'bitcoind-version'コ"
+"マンドを使うことができます。"
+
+#: src/guides/inscriptions.md:51
+msgid "Configuring Bitcoin Core"
+msgstr " Bitcoin Coreを配置します。"
+
+#: src/guides/inscriptions.md:54
+msgid "`ord` requires Bitcoin Core's transaction index."
+msgstr "`ord` Bitcoin Core の取引索引が必要です。"
+
+#: src/guides/inscriptions.md:56
+msgid ""
+"To configure your Bitcoin Core node to maintain a transaction index, add the "
+"following to your `bitcoin.conf`:"
+msgstr ""
+"トランザクションインデックスを配置するためにBitcoin Coreフェーズを設定しま"
+"す,'bitcoin.conf'に追加する必要があります::"
+
+#: src/guides/inscriptions.md:59 src/guides/sat-hunting.md:30
+msgid ""
+"```\n"
+"txindex=1\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:63
+msgid "Or, run `bitcoind` with `-txindex`:"
+msgstr "または,  `bitcoind` 和 `-txindex`を運行します:"
+
+#: src/guides/inscriptions.md:65 src/guides/inscriptions.md:74
+msgid ""
+"```\n"
+"bitcoind -txindex\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:69
+msgid "Syncing the Bitcoin Blockchain"
+msgstr "ビットコインのブロックを同期にします。"
+
+#: src/guides/inscriptions.md:72
+msgid "To sync the chain, run:"
+msgstr "ブロックを同期にして、運行します："
+
+#: src/guides/inscriptions.md:78
+msgid "…and leave it running until `getblockcount`:"
+msgstr "… `getblockcount運行するまで`:"
+
+#: src/guides/inscriptions.md:80
+msgid ""
+"```\n"
+"bitcoin-cli getblockcount\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:84
+msgid ""
+"agrees with the block count on a block explorer like [the mempool.space "
+"block explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so "
+"you should leave `bitcoind` running in the background when you're using "
+"`ord`."
+msgstr ""
+"ブロックチェーンブラウザのように[the mempool.space block explorer]（https://"
+"mempool.space/)のようにブロックを記述する...`ord`は'bitcoind'と相互作用するの"
+"で、'ord'を使用するときは'bitcoind'をバックグラウンドで実行する必要がありま"
+"す。"
+
+#: src/guides/inscriptions.md:88
+msgid "Installing `ord`"
+msgstr " `ord取り付けます。`"
+
+#: src/guides/inscriptions.md:91
+msgid ""
+"The `ord` utility is written in Rust and can be built from [source](https://"
+"github.com/ordinals/ord). Pre-built binaries are available on the [releases "
+"page](https://github.com/ordinals/ord/releases)."
+msgstr ""
+"`ord` プログラムはRust言語で書かれており、[ソースコード](https://github.com/"
+"ordinals/ord)インストール.事前に作成されたファイルは、[バージョンリリースペー"
+"ジ](https://github.com/ordinals/ord/releases))からダウンロードできます。"
+
+#: src/guides/inscriptions.md:95
+msgid "You can install the latest pre-built binary from the command line with:"
+msgstr ""
+"コマンドラインで次のコマンドを使用して、最新のファイルをインストールすること"
+"もできます。："
+
+#: src/guides/inscriptions.md:97
+msgid ""
+"```sh\n"
+"curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash "
+"-s\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:101
+msgid "Once `ord` is installed, you should be able to run:"
+msgstr "'ord'が正常にインストールされた後、あなたは実行することができます :"
+
+#: src/guides/inscriptions.md:103
+msgid ""
+"```\n"
+"ord --version\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:107
+msgid "Which prints out `ord`'s version number."
+msgstr "これにより、「ord」のバージョン番号が出力されます。"
+
+#: src/guides/inscriptions.md:109
+msgid "Creating a Bitcoin Core Wallet"
+msgstr "『ord』という名前のBitcoin Coreウォレットを作成します。"
+
+#: src/guides/inscriptions.md:112
+msgid ""
+"`ord` uses Bitcoin Core to manage private keys, sign transactions, and "
+"broadcast transactions to the Bitcoin network."
+msgstr ""
+"`ord` Bitcoin Coreを使用して秘密鍵を管理し、トランザクションに署名し、ビット"
+"コインネットワークにトランザクションをブロードキャストします。。"
+
+#: src/guides/inscriptions.md:115
+msgid "To create a Bitcoin Core wallet named `ord` for use with `ord`, run:"
+msgstr "『ord』という名前のBitcoin Coreウォレットを作成し、運行します:"
+
+#: src/guides/inscriptions.md:117
+msgid ""
+"```\n"
+"ord wallet create\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:121
+msgid "Receiving Sats"
+msgstr "聡を取り受けます。"
+
+#: src/guides/inscriptions.md:124
+msgid ""
+"Inscriptions are made on individual sats, using normal Bitcoin transactions "
+"that pay fees in sats, so your wallet will need some sats."
+msgstr ""
+"銘文は、単一のコングに作成され、通常のビットコイン取引のためにコングを使用し"
+"て料金を支払うので、あなたの財布はいくつかのコング（ビットコイン）を必要とし"
+"ます。"
+
+#: src/guides/inscriptions.md:127
+msgid "Get a new address from your `ord` wallet by running:"
+msgstr "'ord'ウォレットの新しいアドレスを作成して、実行します::"
+
+#: src/guides/inscriptions.md:129 src/guides/inscriptions.md:201
+#: src/guides/inscriptions.md:229
+msgid ""
+"```\n"
+"ord wallet receive\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:133
+msgid "And send it some funds."
+msgstr "上記の住所に資金を発送します。"
+
+#: src/guides/inscriptions.md:135
+msgid "You can see pending transactions with:"
+msgstr "以下のコマンドで取引状況を見ることができます："
+
+#: src/guides/inscriptions.md:137 src/guides/inscriptions.md:213
+#: src/guides/inscriptions.md:240
+msgid ""
+"```\n"
+"ord wallet transactions\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:141
+msgid ""
+"Once the transaction confirms, you should be able to see the transactions "
+"outputs with `ord wallet outputs`."
+msgstr ""
+"取引が確認されたら、'ord wallet outputs'を使って取引の輸出を見ることができる"
+"はずです；"
+
+#: src/guides/inscriptions.md:144
+msgid "Creating Inscription Content"
+msgstr "銘文の内容を作成します。"
+
+#: src/guides/inscriptions.md:147
+msgid ""
+"Sats can be inscribed with any kind of content, but the `ord` wallet only "
+"supports content types that can be displayed by the `ord` block explorer."
+msgstr ""
+"聡の上ではあらゆる種類のコンテンツを書き込むことができますが、'ord'ウォレット"
+"は'ord'ブロックブラウザで表示できる種類のコンテンツしかサポートしていません。"
+
+#: src/guides/inscriptions.md:150
+msgid ""
+"Additionally, inscriptions are included in transactions, so the larger the "
+"content, the higher the fee that the inscription transaction must pay."
+msgstr ""
+"また、銘文は取引に含まれているため、内容が大きいほど銘文取引にかかる費用が高"
+"くなります。"
+
+#: src/guides/inscriptions.md:153
+msgid ""
+"Inscription content is included in transaction witnesses, which receive the "
+"witness discount. To calculate the approximate fee that an inscribe "
+"transaction will pay, divide the content size by four and multiply by the "
+"fee rate."
+msgstr ""
+"銘文の内容は取引証言に含まれ、証言割引を受ける。トランザクションへの書き込み"
+"で支払われる費用の概算を計算するには、コンテンツサイズを4で割ってから、レート"
+"を掛けてください。"
+
+#: src/guides/inscriptions.md:157
+msgid ""
+"Inscription transactions must be less than 400,000 weight units, or they "
+"will not be relayed by Bitcoin Core. One byte of inscription content costs "
+"one weight unit. Since an inscription transaction includes not just the "
+"inscription content, limit inscription content to less than 400,000 weight "
+"units. 390,000 weight units should be safe."
+msgstr ""
+"銘文取引は400,000重量測定単位未満でなければならない。そうでなければ、Bitcoin "
+"Coreに中継されないの1バイトの銘文内容には重み測定単位が必要です。銘文取引は銘"
+"文の内容だけではないので、銘文の内容は400、000重量計量単位以内に制限されてい"
+"る。390、000の重み測定単位は安全でなければならなりません。"
+
+#: src/guides/inscriptions.md:163
+msgid "Creating Inscriptions"
+msgstr "銘文を作成します。"
+
+#: src/guides/inscriptions.md:166
+msgid "To create an inscription with the contents of `FILE`, run:"
+msgstr "『FILE』の内容で銘文を作成し、実行する必要があります:"
+
+#: src/guides/inscriptions.md:168
+msgid ""
+"```\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:172
+msgid ""
+"Ord will output two transactions IDs, one for the commit transaction, and "
+"one for the reveal transaction, and the inscription ID. Inscription IDs are "
+"of the form `TXIDiN`, where `TXID` is the transaction ID of the reveal "
+"transaction, and `N` is the index of the inscription in the reveal "
+"transaction."
+msgstr ""
+"Ordは2つの取引IDが出力されます。1つはcommit取引、もう1つはreveal取引、そして"
+"銘文IDです。銘文IDのフォーマットは、'TXIDiN'であり、'TXID'は、取引を開示する"
+"取引IDであり、'N'は、取引における銘文を開示するインデックスであ。"
+
+#: src/guides/inscriptions.md:177
+msgid ""
+"The commit transaction commits to a tapscript containing the content of the "
+"inscription, and the reveal transaction spends from that tapscript, "
+"revealing the content on chain and inscribing it on the first sat of the "
+"input that contains the corresponding tapscript."
+msgstr ""
+"CommitCommitトランザクションは銘文の内容を含むtapscriptに提出され、revealトラ"
+"ンザクションはそのtapscriptから費やされます。チェーン上のコンテンツを表示し、"
+"revealトランザクションの最初の出力の最初のsatにそれらをマークします。"
+
+#: src/guides/inscriptions.md:182
+msgid ""
+"Wait for the reveal transaction to be mined. You can check the status of the "
+"commit and reveal transactions using  [the mempool.space block explorer]"
+"(https://mempool.space/)."
+msgstr ""
+"reveal取引が記録されるのを待っている間、あなたは使用することができます[the "
+"mempool.space block explorer]（https://mempool.space/)は取引の状態をチェック"
+"します。"
+
+#: src/guides/inscriptions.md:186
+msgid ""
+"Once the reveal transaction has been mined, the inscription ID should be "
+"printed when you run:"
+msgstr ""
+"reveal取引が記帳を完了したら、以下のコマンドを使用して銘文IDを照会できます"
+
+#: src/guides/inscriptions.md:189 src/guides/inscriptions.md:220
+#: src/guides/inscriptions.md:246
+msgid ""
+"```\n"
+"ord wallet inscriptions\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:193
+msgid ""
+"And when you visit [the ordinals explorer](https://ordinals.com/) at "
+"`ordinals.com/inscription/INSCRIPTION_ID`."
+msgstr ""
+"[the ordinals explorer]（https://ordinals.com/)で以下の形式で銘文にアクセスで"
+"きます`."
+
+#: src/guides/inscriptions.md:196
+msgid "Sending Inscriptions"
+msgstr "銘文を発送します"
+
+#: src/guides/inscriptions.md:199
+msgid "Ask the recipient to generate a new address by running:"
+msgstr "銘文受信者は次のコマンドを使って住所を生成する"
+
+#: src/guides/inscriptions.md:205
+msgid "Send the inscription by running:"
+msgstr "コマンドを使用して銘文を発送します："
+
+#: src/guides/inscriptions.md:207
+msgid ""
+"```\n"
+"ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:211 src/guides/inscriptions.md:239
+msgid "See the pending transaction with:"
+msgstr "できなかった取引状況を検査します："
+
+#: src/guides/inscriptions.md:217
+msgid ""
+"Once the send transaction confirms, the recipient can confirm receipt by "
+"running:"
+msgstr ""
+"取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることがで"
+"きます"
+
+#: src/guides/inscriptions.md:224
+msgid "Receiving Inscriptions"
+msgstr "銘文を受け取ります"
+
+#: src/guides/inscriptions.md:227
+msgid "Generate a new receive address using:"
+msgstr "次のコマンドを使用して新しい受信アドレスを生成する"
+
+#: src/guides/inscriptions.md:233
+msgid "The sender can transfer the inscription to your address using:"
+msgstr "送信者はコマンドを使用してあなたの住所に銘文を送信します"
+
+#: src/guides/inscriptions.md:235
+msgid ""
+"```\n"
+"ord wallet send ADDRESS INSCRIPTION_ID\n"
+"```"
+msgstr ""
+
+#: src/guides/inscriptions.md:244
+msgid ""
+"Once the send transaction confirms, you can can confirm receipt by running:"
+msgstr ""
+"取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることがで"
+"きます"
+
+#: src/guides/sat-hunting.md:4
+msgid ""
+"_This guide is out of date. Since it was written, the `ord` binary was "
+"changed to only build the full satoshi index when the `--index-sats` flag is "
+"supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin "
+"Core wallet. See `ord wallet --help`._"
+msgstr ""
+"_このガイドは時代遅れです。書かれて以来、'ord'インストールファイルが変更され"
+"ました。「--index-sats」フラグが指定されている場合にのみ、完全なスマートイン"
+"デックスが作成されます。さらに「ord」には現在、ビットコインのコアウォレットを"
+"含むウォレットが内蔵されていて、ord wallet --help`を参照してください。_"
+
+#: src/guides/sat-hunting.md:9
+msgid ""
+"Ordinal hunting is difficult but rewarding. The feeling of owning a wallet "
+"full of UTXOs, redolent with the scent of rare and exotic sats, is beyond "
+"compare."
+msgstr ""
+
+#: src/guides/sat-hunting.md:12
+msgid ""
+"Ordinals are numbers for satoshis. Every satoshi has an ordinal number and "
+"every ordinal number has a satoshi."
+msgstr ""
+
+#: src/guides/sat-hunting.md:15
+msgid "Preparation"
+msgstr ""
+
+#: src/guides/sat-hunting.md:18
+msgid "There are a few things you'll need before you start."
+msgstr ""
+
+#: src/guides/sat-hunting.md:20
+msgid ""
+"First, you'll need a synced Bitcoin Core node with a transaction index. To "
+"turn on transaction indexing, pass `-txindex` on the command-line:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:23
+msgid ""
+"```sh\n"
+"bitcoind -txindex\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:27
+msgid ""
+"Or put the following in your [Bitcoin configuration file](https://github.com/"
+"bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
+msgstr ""
+
+#: src/guides/sat-hunting.md:34
+msgid ""
+"Launch it and wait for it to catch up to the chain tip, at which point the "
+"following command should print out the current block height:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:37
+msgid ""
+"```sh\n"
+"bitcoin-cli getblockcount\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:41
+msgid "Second, you'll need a synced `ord` index."
+msgstr ""
+
+#: src/guides/sat-hunting.md:43
+msgid "Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/)."
+msgstr ""
+
+#: src/guides/sat-hunting.md:45
+msgid ""
+"Run `RUST_LOG=info ord index`. It should connect to your bitcoin core node "
+"and start indexing."
+msgstr ""
+
+#: src/guides/sat-hunting.md:48
+msgid "Wait for it to finish indexing."
+msgstr ""
+
+#: src/guides/sat-hunting.md:50
+msgid "Third, you'll need a wallet with UTXOs that you want to search."
+msgstr ""
+
+#: src/guides/sat-hunting.md:52
+msgid "Searching for Rare Ordinals"
+msgstr ""
+
+#: src/guides/sat-hunting.md:55
+msgid "Searching for Rare Ordinals in a Bitcoin Core Wallet"
+msgstr ""
+
+#: src/guides/sat-hunting.md:57
+msgid ""
+"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
+"searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your "
+"wallet is named `foo`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:61
+msgid "Load your wallet:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:63
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:67
+msgid "Display any rare ordinals wallet `foo`'s UTXOs:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:69 src/guides/sat-hunting.md:132
+#: src/guides/sat-hunting.md:233
+msgid ""
+"```sh\n"
+"ord wallet sats\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:73
+msgid "Searching for Rare Ordinals in a Non-Bitcoin Core Wallet"
+msgstr ""
+
+#: src/guides/sat-hunting.md:75
+msgid ""
+"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
+"to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to "
+"import your wallet's descriptors into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:79
+msgid ""
+"[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors."
+"md) describe the ways that wallets generate private keys and public keys."
+msgstr ""
+
+#: src/guides/sat-hunting.md:82
+msgid ""
+"You should only import descriptors into Bitcoin Core for your wallet's "
+"public keys, not its private keys."
+msgstr ""
+
+#: src/guides/sat-hunting.md:85
+msgid ""
+"If your wallet's public key descriptor is compromised, an attacker will be "
+"able to see your wallet's addresses, but your funds will be safe."
+msgstr ""
+
+#: src/guides/sat-hunting.md:88
+msgid ""
+"If your wallet's private key descriptor is compromised, an attacker can "
+"drain your wallet of funds."
+msgstr ""
+
+#: src/guides/sat-hunting.md:91
+msgid ""
+"Get the wallet descriptor from the wallet whose UTXOs you want to search for "
+"rare ordinals. It will look something like this:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:94
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#csvefu29\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:98
+msgid "Create a watch-only wallet named `foo-watch-only`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:100
+msgid ""
+"```sh\n"
+"bitcoin-cli createwallet foo-watch-only true true\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:104
+msgid "Feel free to give it a better name than `foo-watch-only`!"
+msgstr ""
+
+#: src/guides/sat-hunting.md:106
+msgid "Load the `foo-watch-only` wallet:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:108 src/guides/sat-hunting.md:199
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo-watch-only\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:112
+msgid "Import your wallet descriptors into `foo-watch-only`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:114
+msgid ""
+"```sh\n"
+"bitcoin-cli importdescriptors \\\n"
+"  '[{ \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#tpnxnxax\", \"timestamp\":0 }]'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:119
+msgid ""
+"If you know the Unix timestamp when your wallet first started receive "
+"transactions, you may use it for the value of `\"timestamp\"` instead of "
+"`0`. This will reduce the time it takes for Bitcoin Core to search for your "
+"wallet's UTXOs."
+msgstr ""
+
+#: src/guides/sat-hunting.md:124 src/guides/sat-hunting.md:225
+msgid "Check that everything worked:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:126 src/guides/sat-hunting.md:227
+msgid ""
+"```sh\n"
+"bitcoin-cli getwalletinfo\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:130 src/guides/sat-hunting.md:231
+msgid "Display your wallet's rare ordinals:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:136
+msgid ""
+"Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors"
+msgstr ""
+
+#: src/guides/sat-hunting.md:138
+msgid ""
+"Some descriptors describe multiple paths in one descriptor using angle "
+"brackets, e.g., `<0;1>`. Multi-path descriptors are not yet supported by "
+"Bitcoin Core, so you'll first need to convert them into multiple "
+"descriptors, and then import those multiple descriptors into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:143
+msgid ""
+"First get the multi-path descriptor from your wallet. It will look something "
+"like this:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:146
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/"
+"<0;1>/*)#fw76ulgt\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:150
+msgid "Create a descriptor for the receive address path:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:152
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:156
+msgid "And the change address path:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:158
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:162
+msgid ""
+"Get and note the checksum for the receive address descriptor, in this case "
+"`tpnxnxax`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:165
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:170
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": "
+"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#csvefu29\",\n"
+"  \"checksum\": \"tpnxnxax\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:180
+msgid "And for the change address descriptor, in this case `64k8wnd7`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:182
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:187
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": "
+"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)#fyfc5f6a\",\n"
+"  \"checksum\": \"64k8wnd7\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:197
+msgid "Load the wallet you want to import the descriptors into:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:203
+msgid ""
+"Now import the descriptors, with the correct checksums, into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:205
+msgid ""
+"```sh\n"
+"bitcoin-cli \\\n"
+" importdescriptors \\\n"
+" '[\n"
+"   {\n"
+"     \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#tpnxnxax\"\n"
+"     \"timestamp\":0\n"
+"   },\n"
+"   {\n"
+"     \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)#64k8wnd7\",\n"
+"     \"timestamp\":0\n"
+"   }\n"
+" ]'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:220
+msgid ""
+"If you know the Unix timestamp when your wallet first started receive "
+"transactions, you may use it for the value of the `\"timestamp\"` fields "
+"instead of `0`. This will reduce the time it takes for Bitcoin Core to "
+"search for your wallet's UTXOs."
+msgstr ""
+
+#: src/guides/sat-hunting.md:237
+msgid "Exporting Descriptors"
+msgstr ""
+
+#: src/guides/sat-hunting.md:241
+msgid ""
+"Navigate to the `Settings` tab, then to `Script Policy`, and press the edit "
+"button to display the descriptor."
+msgstr ""
+
+#: src/guides/sat-hunting.md:244
+msgid "Transferring Ordinals"
+msgstr ""
+
+#: src/guides/sat-hunting.md:246
+msgid ""
+"The `ord` wallet supports transferring specific satoshis. You can also use "
+"`bitcoin-cli` commands `createrawtransaction`, "
+"`signrawtransactionwithwallet`, and `sendrawtransaction`, how to do so is "
+"complex and outside the scope of this guide."
+msgstr ""
+
+#: src/guides/collecting.md:4
+msgid ""
+"Currently, [ord](https://github.com/ordinals/ord/) is the only wallet "
+"supporting sat-control and sat-selection, which are required to safely store "
+"and send rare sats and inscriptions, hereafter ordinals."
+msgstr ""
+"現在、[ord](https://github.com/ordinals/ord/)はsat-controlとsat-selectionをサ"
+"ポートする唯一のものですの財布、これは希少なsatsと銘文（以下、序数と略称す"
+"る）を安全に保存して送るために必要です。"
+
+#: src/guides/collecting.md:8
+msgid ""
+"The recommended way to send, receive, and store ordinals is with `ord`, but "
+"if you are careful, it is possible to safely store, and in some cases send, "
+"ordinals with other wallets."
+msgstr ""
+"送信、受信、シーケンス番号の格納方法としては、'ord'を用いることが推奨される。"
+"しかし、注意すれば安全に保管できます。場合によっては、別のウォレットを使用し"
+"てシリアル番号を送信します。"
+
+#: src/guides/collecting.md:12
+msgid ""
+"As a general note, receiving ordinals in an unsupported wallet is not "
+"dangerous. Ordinals can be sent to any bitcoin address, and are safe as long "
+"as the UTXO that contains them is not spent. However, if that wallet is then "
+"used to send bitcoin, it may select the UTXO containing the ordinal as an "
+"input, and send the inscription or spend it to fees."
+msgstr ""
+"一般的な説明として、サポートされていないウォレットでシーケンス番号を受信する"
+"ことは危険ではありません。シリアル番号は任意のビットコインアドレスに送信でき"
+"ます。はそれらを含むUTXOが使われていない限り、安全です。しかし、ウォレットが"
+"その後ビットコインを送信するために使用された場合、はシリアル番号を含むUTXOを"
+"入力として選択し、銘文を送ったり、費用に使用したりすることがあります。。"
+
+#: src/guides/collecting.md:18
+msgid ""
+"A [guide](./collecting/sparrow-wallet.md) to creating an `ord`\\-compatible "
+"wallet with [Sparrow Wallet](https://sparrowwallet.com/), is available in "
+"this handbook."
+msgstr ""
+"このマニュアルでは、[Sparrow Wallet](https://sparrowwallet.com/)作成'ord'と互"
+"換性のある財布の[ガイド](./collecting/sparrow-wallet.md).。"
+
+#: src/guides/collecting.md:21
+msgid ""
+"Please note that if you follow this guide, you should not use the wallet you "
+"create to send BTC, unless you perform manual coin-selection to avoid "
+"sending ordinals."
+msgstr ""
+"このガイドに従う場合は、シリアル番号の送信を避けるために手動コイン選択を実行"
+"しない限り、作成したウォレットを使用してBTCを送信しないでください。。"
+
+#: src/guides/collecting/sparrow-wallet.md:1
+msgid "Collecting Inscriptions and Ordinals with Sparrow Wallet"
+msgstr "スズメのSparrow財布を使って銘文をコレクションします。"
+
+#: src/guides/collecting/sparrow-wallet.md:4
+msgid ""
+"Users who cannot or have not yet set up the [ord](https://github.com/"
+"ordinals/ord) wallet can receive inscriptions and ordinals with alternative "
+"bitcoin wallets, as long as they are _very_ careful about how they spend "
+"from that wallet."
+msgstr ""
+"それらの生きていられないまだ設定されていない[ord](https://github.com/"
+"ordinals/ord)ウォレットのユーザーは、ウォレットを使用する際に細心の注意を払っ"
+"ていれば、他のビットコインウォレットを使用して銘文と序数を受け取ることができ"
+"ます。。"
+
+#: src/guides/collecting/sparrow-wallet.md:6
+msgid ""
+"This guide gives some basic steps on how to create a wallet with [Sparrow "
+"Wallet](https://sparrowwallet.com/) which is compatible with `ord` and can "
+"be later imported into `ord`"
+msgstr ""
+"このガイドでは、[Sparrow Wallet](https://sparrowwallet.com/)の使用方法を説明"
+"します。'ord'と互換性のあるウォレットを作成し、後で'ord'にインポートできま"
+"す。`"
+
+#: src/guides/collecting/sparrow-wallet.md:8
+msgid "⚠️⚠️ Warning!! ⚠️⚠️"
+msgstr "⚠️⚠️ 警告!! ⚠️⚠️"
+
+#: src/guides/collecting/sparrow-wallet.md:9
+msgid ""
+"As a general rule if you take this approach, you should use this wallet with "
+"the Sparrow software as a receive-only wallet."
+msgstr ""
+"一般的に、この方法を選ぶなら、この財布をお金を受け取る財布として、Sparrowソフ"
+"トウェアを使うべきです"
+
+#: src/guides/collecting/sparrow-wallet.md:11
+msgid ""
+"Do not spend any satoshis from this wallet unless you are sure you know what "
+"you are doing. You could very easily inadvertently lose access to your "
+"ordinals and inscriptions if you don't heed this warning."
+msgstr ""
+"自分が何をしているか分からない限り、この財布からビットコインを使わないでくだ"
+"さい。この警告に注意しなければ、うっかり序数や銘文へのアクセスを失いやすいか"
+"もしれません"
+
+#: src/guides/collecting/sparrow-wallet.md:13
+msgid "Wallet Setup & Receiving"
+msgstr "ウォレットの設置と取り受け"
+
+#: src/guides/collecting/sparrow-wallet.md:15
+msgid ""
+"Download the Sparrow Wallet from the [releases page](https://sparrowwallet."
+"com/download/) for your particular operating system."
+msgstr ""
+"オペレーティングシステムに応じて[リリースページ]から(https://sparrowwallet."
+"com/download/)ダウンロードSparrowウォレット。"
+
+#: src/guides/collecting/sparrow-wallet.md:17
+msgid "Select `File -> New Wallet` and create a new wallet called `ord`."
+msgstr ""
+"『File->New Wallet』を選択し、『ord』という名前の新しいウォレットを作成しま"
+"す。"
+
+#: src/guides/collecting/sparrow-wallet.md:19
+msgid "![](images/wallet_setup_01.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:21
+msgid ""
+"Change the `Script Type` to `Taproot (P2TR)` and select the `New or Imported "
+"Software Wallet` option."
+msgstr ""
+"'Script Type'を'Taproot(P 2 TR)'に変更します。そして、New or Imported "
+"Software Wallet'オプションを選択します。"
+
+#: src/guides/collecting/sparrow-wallet.md:23
+msgid "![](images/wallet_setup_02.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:25
+msgid ""
+"Select `Use 12 Words` and then click `Generate New`. Leave the passphrase "
+"blank."
+msgstr ""
+"『Use 12 Words』を選択し、『Generate New』をクリックします。パスフレーズは空"
+"白のままにします。。"
+
+#: src/guides/collecting/sparrow-wallet.md:27
+msgid "![](images/wallet_setup_03.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:29
+msgid ""
+"A new 12 word BIP39 seed phrase will be generated for you. Write this down "
+"somewhere safe as this is your backup to get access to your wallet. NEVER "
+"share or show this seed phrase to anyone else."
+msgstr ""
+"あなたのために新しい12語BIP 39シードフレーズが生成されます。このフレーズを安"
+"全な場所に書いてください。これはウォレットへのアクセス権を取得するためのバッ"
+"クアップです。このシードフレーズを他の人と共有したり表示したりしないでくださ"
+"い"
+
+#: src/guides/collecting/sparrow-wallet.md:31
+msgid "Once you have written down the seed phrase click `Confirm Backup`."
+msgstr ""
+"シードフレーズを書いたら、`Confirm Backup`をクリックしてください' `Confirm "
+"Backup`."
+
+#: src/guides/collecting/sparrow-wallet.md:33
+msgid "![](images/wallet_setup_04.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:35
+msgid ""
+"Re-enter the seed phrase which you wrote down, and then click `Create "
+"Keystore`."
+msgstr ""
+"メモしたシードフレーズを再入力して、'Create Key storeをクリックしてください。"
+"`."
+
+#: src/guides/collecting/sparrow-wallet.md:37
+msgid "![](images/wallet_setup_05.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:39
+msgid "Click `Import Keystore`."
+msgstr " `Import Keystoreをクリックします`."
+
+#: src/guides/collecting/sparrow-wallet.md:41
+msgid "![](images/wallet_setup_06.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:43
+msgid "Click `Apply`. Add a password for the wallet if you want to."
+msgstr ""
+"『Apply』をクリックします。もしあなたが望むなら、財布にパスワードを追加しても"
+"いいです。。"
+
+#: src/guides/collecting/sparrow-wallet.md:45
+msgid "![](images/wallet_setup_07.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:47
+msgid ""
+"You now have a wallet which is compatible with `ord`, and can be imported "
+"into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, "
+"click on the `Receive` tab and copy a new address."
+msgstr ""
+"今、BIP 39シードフレーズを使って'ord'にインポートできる'ord'互換のウォレット"
+"を持っています。序数や銘文を受け取るには、'Receive'タブをクリックし、新しいア"
+"ドレスをコピーします"
+
+#: src/guides/collecting/sparrow-wallet.md:49
+msgid ""
+"Each time you want to receive you should use a brand-new address, and not re-"
+"use existing addresses."
+msgstr ""
+"受信するたびに、既存のアドレスを再利用するのではなく、新しいアドレスを使用す"
+"る必要があります。"
+
+#: src/guides/collecting/sparrow-wallet.md:51
+msgid ""
+"Note that bitcoin is different to some other blockchain wallets, in that "
+"this wallet can generate an unlimited number of new addresses. You can "
+"generate a new address by clicking on the `Get Next Address` button. You can "
+"see all of your addresses in the `Addresses` tab of the app."
+msgstr ""
+"ビットコインは他のいくつかのブロックチェーンウォレットとは異なり、無限の数の"
+"新しいアドレスを生成できることに注意してください。は次の住所を取得ボタンをク"
+"リックすることで新しい住所を生成できます。あなたはアプリケーション"
+"の'Addresses'タブですべてのアドレスを見ることができます"
+
+#: src/guides/collecting/sparrow-wallet.md:53
+msgid ""
+"You can add a label to each address, so you can keep track of what it was "
+"used for."
+msgstr ""
+"各アドレスにタグを付けることができますので、目的を追跡することができます。"
+
+#: src/guides/collecting/sparrow-wallet.md:55
+msgid "![](images/wallet_setup_08.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:57
+msgid "Validating / Viewing Received Inscriptions"
+msgstr "査証/受け取った銘文を見ます"
+
+#: src/guides/collecting/sparrow-wallet.md:59
+msgid ""
+"Once you have received an inscription you will see a new transaction in the "
+"`Transactions` tab of Sparrow, as well as a new UTXO in the `UTXOs` tab."
+msgstr ""
+"銘文を受け取ったら、Sparrowの『Transactions』タブに新しい取引が表示されま"
+"す。'UTXOs'タブに新しいUTXOが表示されます。"
+
+#: src/guides/collecting/sparrow-wallet.md:61
+msgid ""
+"Initially this transaction may have an \"Unconfirmed\" status, and you will "
+"need to wait for it to be mined into a bitcoin block before it is fully "
+"received."
+msgstr ""
+"最初は、この取引には\"未確認\"の状態があるかもしれません。実際に受け取ったの"
+"はビットコインブロックに採掘されるのを待つ必要があります。"
+
+#: src/guides/collecting/sparrow-wallet.md:63
+msgid "![](images/validating_viewing_01.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:65
+msgid ""
+"To track the status of your transaction you can right-click on it,  select "
+"`Copy Transaction ID` and then paste that transaction id into [mempool.space]"
+"(https://mempool.space)."
+msgstr ""
+"取引状況を追跡するには、右クリックして'Copy Transaction ID'を選択することがで"
+"きます,そして、この取引idを[mempool.space]（https://mempool.space)に貼り付け"
+"ます。"
+
+#: src/guides/collecting/sparrow-wallet.md:67
+msgid "![](images/validating_viewing_02.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:69
+msgid ""
+"Once the transaction has confirmed, you can validate and view your "
+"inscription by heading over to the `UTXOs` tab, finding the UTXO you want to "
+"check, right-clicking on the `Output` and selecting `Copy Transaction "
+"Output`. This transaction output id can then be pasted into the [ordinals."
+"com](https://ordinals.com) search."
+msgstr ""
+"取引が確認されたら、`UTXOs`タブに行くことによって、チェックしたい`UTXO`を見つ"
+"けることができます,右クリック`Output`'Copy Transaction Out put'を選択して、あ"
+"なたの銘文を確認し、確認します。そして、この取引はidを輸出しますは[ordinals."
+"com](https://ordinals.com)検索)に貼り付けることができます。。"
+
+#: src/guides/collecting/sparrow-wallet.md:72
+msgid "Freezing UTXO's"
+msgstr " UTXOを凍結します"
+
+#: src/guides/collecting/sparrow-wallet.md:73
+msgid ""
+"As explained above, each of your inscriptions is stored in an Unspent "
+"Transaction Output (UTXO). You want to be very careful not to accidentally "
+"spend your inscriptions, and one way to make it harder for this to happen is "
+"to freeze the UTXO."
+msgstr ""
+"上記のように、あなたのすべての銘文は未費用の取引出力(UTXO)に保存されていま"
+"す。あなたの銘文を誤って使わないように細心の注意を払う必要があります」がUTXO"
+"を凍結することは、このような状況を発生させる難易度を高める一つの方法でありま"
+"す。"
+
+#: src/guides/collecting/sparrow-wallet.md:75
+msgid ""
+"To do this, go to the `UTXOs` tab, find the UTXO you want to freeze, right-"
+"click on the `Output` and select `Freeze UTXO`."
+msgstr ""
+"これを行うには、UTXOsタブに行き、フリーズしたい'UTXOs'を見つけ、'Out put'をク"
+"リックして'Freeze UTXO'`を選択します。"
+
+#: src/guides/collecting/sparrow-wallet.md:77
+msgid ""
+"This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until "
+"you unfreeze it."
+msgstr ""
+"このUTXO（銘文）は現在Sparrowウォレットでは、解凍するまで消費できません。。"
+
+#: src/guides/collecting/sparrow-wallet.md:79
+msgid "Importing into `ord` wallet"
+msgstr " `ord` ウォレットを導入します。"
+
+#: src/guides/collecting/sparrow-wallet.md:81
+msgid ""
+"For details on setting up Bitcoin Core and the `ord` wallet check out the "
+"[Inscriptions Guide](../inscriptions.md)"
+msgstr ""
+"ビットコインコアと'ord'ウォレットの設定の詳細については、[銘文ガイド](../"
+"inscriptions.md)をご覧ください。"
+
+#: src/guides/collecting/sparrow-wallet.md:83
+msgid ""
+"When setting up `ord`, instead of running `ord wallet create` to create a "
+"brand-new wallet, you can import your existing wallet using `ord wallet "
+"restore \"BIP39 SEED PHRASE\"` using the seed phrase you generated with "
+"Sparrow Wallet."
+msgstr ""
+"'ord'を設定するときは、'ord wallet restore\"BIP 39 SE ED PHRASE\"'コマンドと"
+"Sparrow Walletで生成されたシードフレーズを使用して、'ord wallet create'を実行"
+"する代わりに、既存のウォレットをインポートします。は新しい財布を作ります。"
+
+#: src/guides/collecting/sparrow-wallet.md:85
+msgid ""
+"There is currently a [bug](https://github.com/ordinals/ord/issues/1589) "
+"which causes an imported wallet to not be automatically rescanned against "
+"the blockchain. To work around this you will need to manually trigger a "
+"rescan using the bitcoin core cli: `bitcoin-cli -rpcwallet=ord "
+"rescanblockchain 767430`"
+msgstr ""
+"現在、[プログラムエラー]が存在します(https://github.com/ordinals/ord/"
+"issues/1589)インポートの原因のウォレットはブロックチェーンを自動的に再スキャ"
+"ンできません。この問題を解決するには、手動で再スキャンをトリガーする必要があ"
+"ります。Bitcoinコアコマンドラインインターフェイスを使います："
+
+#: src/guides/collecting/sparrow-wallet.md:88
+msgid ""
+"You can then check your wallet's inscriptions using `ord wallet inscriptions`"
+msgstr ""
+"そして、'ord wallet inscriptions'を使用して、財布の碑文を確認することができま"
+"す。."
+
+#: src/guides/collecting/sparrow-wallet.md:90
+msgid ""
+"Note that if you have previously created a wallet with `ord`, then you will "
+"already have a wallet with the default name, and will need to give your "
+"imported wallet a different name. You can use the `--wallet` parameter in "
+"all `ord` commands to reference a different wallet, eg:"
+msgstr ""
+"前にウォレットを'ord'で作成したことがある場合は、デフォルトの名前のウォレット"
+"を既に持っていることに注意してください。はあなたが導入した財布に違う名前を付"
+"ける必要があります。すべての'ord'コマンドで'--wallet'引数を使用できます異なる"
+"財布を引用するために、例えば："
+
+#: src/guides/collecting/sparrow-wallet.md:92
+msgid "`ord --wallet ord_from_sparrow wallet restore \"BIP39 SEED PHRASE\"`"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:94
+msgid "`ord --wallet ord_from_sparrow wallet inscriptions`"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:96
+msgid "`bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430`"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:98
+msgid "Sending inscriptions with Sparrow Wallet"
+msgstr "雀の財布を使って銘文を発送します。"
+
+#: src/guides/collecting/sparrow-wallet.md:100
+msgid "⚠️⚠️ Warning ⚠️⚠️"
+msgstr "⚠️⚠️ 警告 ⚠️⚠️"
+
+#: src/guides/collecting/sparrow-wallet.md:101
+msgid ""
+"While it is highly recommended that you set up a bitcoin core node and run "
+"the `ord` software, there are certain limited ways you can send inscriptions "
+"out of Sparrow Wallet in a safe way. Please note that this is not "
+"recommended, and you should only do this if you fully understand what you "
+"are doing."
+msgstr ""
+"ビットコインコアノードを設定し、'ord'ソフトウェアを実行することを強くお勧めし"
+"ますが、いくつかの安全な方法でSparrowウォレットに銘文をお送りします。これはお"
+"勧めではないことに注意してください。あなたが何をしているのか完全に理解してい"
+"る場合にのみ、そうすることができます。"
+
+#: src/guides/collecting/sparrow-wallet.md:103
+msgid ""
+"Using the `ord` software will remove much of the complexity we are "
+"describing here, as it is able to automatically and safely handle sending "
+"inscriptions in an easy way."
+msgstr ""
+"『ord』ソフトウェアを使用すると、ここで説明した複雑さが大幅に簡素化されます。"
+"それは、簡単な方法で自動的かつ安全に碑文の送信を処理できるからです。"
+
+#: src/guides/collecting/sparrow-wallet.md:105
+msgid "⚠️⚠️ Additional Warning ⚠️⚠️"
+msgstr "⚠️⚠️ 特別警告 ⚠️⚠️"
+
+#: src/guides/collecting/sparrow-wallet.md:106
+msgid ""
+"Don't use your sparrow inscriptions wallet to do general sends of non-"
+"inscription bitcoin. You can setup a separate wallet in sparrow if you need "
+"to do normal bitcoin transactions, and keep your inscriptions wallet "
+"separate."
+msgstr ""
+"sparrowスズメの銘文財布を使って非銘文ビットコインを送らないでください。通常の"
+"ビットコイン取引が必要な場合は、はスズメの中に別の財布を設置して、銘文財布を"
+"独立させることができます。"
+
+#: src/guides/collecting/sparrow-wallet.md:108
+msgid "Bitcoin's UTXO model"
+msgstr "ビットコインのUTXO模型"
+
+#: src/guides/collecting/sparrow-wallet.md:109
+msgid ""
+"Before sending any transaction it's important that you have a good mental "
+"model for bitcoin's Unspent Transaction Output (UTXO) system. The way "
+"Bitcoin works is fundamentally different to many other blockchains such as "
+"Ethereum. In Ethereum generally you have a single address in which you store "
+"ETH, and you cannot differentiate between any of the ETH -  it is just all a "
+"single value of the total amount in that address. Bitcoin works very "
+"differently in that we generate a new address in the wallet for each "
+"receive, and every time you receive sats to an address in your wallet you "
+"are creating a new UTXO. Each UTXO can be seen and managed individually. You "
+"can select specific UTXO's which you want to spend, and you can choose not "
+"to spend certain UTXO's."
+msgstr ""
+"取引を送信する前に、ビットコインの未消費取引出力（UTXO）システムをよく理解し"
+"なければなりません。ビットコインの仕組みはイーサリアムなど他の多くのブロック"
+"チェーンと根本的に異なっている。イーサリアムでは、通常、ETHを保存する単一のア"
+"ドレスを持っています。これらのETHのいずれかを区別することはできません。それら"
+"はその住所の合計金額の単一の値にすぎません。ビットコインの仕組みは全く異なり"
+"ます。私たちは受信ごとに新しいアドレスを生成します。ウォレットのアドレスの1つ"
+"にsatsを受信するたびにあなたは新しいUTXOを作っています。各UTXOは個別に表示お"
+"よび管理できます。特定のUTXOを使用するか、または特定のUTXOを使用しないかを選"
+"択できます。"
+
+#: src/guides/collecting/sparrow-wallet.md:111
+msgid ""
+"Some Bitcoin wallets do not expose this level of detail, and they just show "
+"you a single summed up value of all the bitcoin in your wallet. However, "
+"when sending inscriptions it is important that you use a wallet like Sparrow "
+"which allows for UTXO control."
+msgstr ""
+"ビットコインウォレットの中には、このレベルの詳細情報を表示しないものもありま"
+"す。ウォレット内のすべてのビットコインの単一の合計値しか表示しません。しか"
+"し、銘文を送るときは、スズメのようなUTXO制御を許す財布を使うことが非常に重要"
+"であります。"
+
+#: src/guides/collecting/sparrow-wallet.md:113
+msgid "Inspecting your inscription before sending"
+msgstr "在发送之前检查你的铭文"
+
+#: src/guides/collecting/sparrow-wallet.md:114
+msgid ""
+"Like we have previously described inscriptions are inscribed onto sats, and "
+"sats are stored within UTXOs. UTXO's are a collection of satoshis with some "
+"particular value of the number of satoshis (the output value). Usually (but "
+"not always) the inscription will be inscribed on the first satoshi in the "
+"UTXO."
+msgstr ""
+"的第一个satoshi上前にも述べたように、銘文はは聡に刻まれ、satsはUTXOに格納され"
+"ています。UTXOは、ある特定の数のsatoshi(出力値)を持つsatoshiの集合です。銘文"
+"はUTXOの最初の聡に刻まれることが多いが、いつもそうではないけど」。"
+
+#: src/guides/collecting/sparrow-wallet.md:116
+msgid ""
+"When inspecting your inscription before sending the main thing you will want "
+"to check is which satoshi in the UTXO your inscription is inscribed on."
+msgstr ""
+"発送前にあなたの銘文をチェックするとき、主にチェックしなければならないのはあ"
+"なたの銘文がUTXOのどのsatoshiに刻まれているかです。"
+
+#: src/guides/collecting/sparrow-wallet.md:118
+msgid ""
+"To do this, you can follow the [Validating / Viewing Received Inscriptions]"
+"(./sparrow-wallet.md#validating--viewing-received-inscriptions) described "
+"above to find the inscription page for your inscription on ordinals.com"
+msgstr ""
+"そのためには、上記のように[受け取った銘文を検証/見る]することができます(./"
+"sparrow-wallet.md#validating--viewing-received-inscriptions)ordinals.comのあ"
+"なたの銘文の銘文ページを見つけるために来ます。"
+
+#: src/guides/collecting/sparrow-wallet.md:120
+msgid ""
+"There you will find some metadata about your inscription which looks like "
+"the following:"
+msgstr ""
+"そこで、あなたの銘文に関するメタデータを見つけます。以下のようになります："
+
+#: src/guides/collecting/sparrow-wallet.md:122
+msgid "![](images/sending_01.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:124
+msgid "There is a few of important things to check here:"
+msgstr "以下は、チェックすべき重要事項です："
+
+#: src/guides/collecting/sparrow-wallet.md:125
+msgid ""
+"The `output` identifier matches the identifier of the UTXO you are going to "
+"send"
+msgstr "`output` 識別子が送信しようとしているUTXOの識別子と一致します"
+
+#: src/guides/collecting/sparrow-wallet.md:126
+msgid ""
+"The `offset` of the inscription is `0` (this means that the inscription is "
+"located on the first sat in the UTXO)"
+msgstr ""
+"銘文の'off set'は'0'であり、(これは銘文がUTXOの最初のsatにあることを意味する)"
+
+#: src/guides/collecting/sparrow-wallet.md:127
+msgid ""
+"the `output_value` has enough sats to cover the transaction fee (postage) "
+"for sending the transaction. The exact amount you will need depends on the "
+"fee rate you will select for the transaction"
+msgstr ""
+"`output_value` 取引を送るための取引料金（郵便料金）を支払うのに十分なsatsがあ"
+"ります。必要な正確な金額はあなたが取引に選択したレート"
+
+#: src/guides/collecting/sparrow-wallet.md:129
+msgid ""
+"If all of the above are true for your inscription, it should be safe for you "
+"to send it using the method below."
+msgstr ""
+"上記の内容がすべてあなたの碑文に正しい場合、あなたは安全に以下の方法でそれを"
+"送ることができるはずです。"
+
+#: src/guides/collecting/sparrow-wallet.md:131
+msgid ""
+"⚠️⚠️ Be very careful sending your inscription particularly if the `offset` "
+"value is not `0`. It is not recommended to use this method if that is the "
+"case, as doing so you could accidentally send your inscription to a bitcoin "
+"miner unless you know what you are doing."
+msgstr ""
+"⚠️⚠️ 銘文を送るときは、特に'off set'値が'0'でない場合は細心の注意を払ってくださ"
+"い。この場合は、この方法をお勧めしません。そうしないと、自分が何をしているの"
+"か分からない限り、あなたの銘文をビットコイン鉱山労働者に送ることになるかもし"
+"れません。"
+
+#: src/guides/collecting/sparrow-wallet.md:133
+msgid "Sending your inscription"
+msgstr "あなたの銘文を発送します。"
+
+#: src/guides/collecting/sparrow-wallet.md:134
+msgid ""
+"To send an inscription navigate to the `UTXOs` tab, and find the UTXO which "
+"you previously validated contains your inscription."
+msgstr ""
+"要銘文を送信するには、'UTXOs'タブに移動し、以前にあなたの彫刻が含まれているこ"
+"とを確認したUTXOを見つけてください。"
+
+#: src/guides/collecting/sparrow-wallet.md:136
+msgid ""
+"If you previously froze the UXTO you will need to right-click on it and "
+"unfreeze it."
+msgstr "以前にUXTOを凍結した場合、右クリックして解凍する必要があります。"
+
+#: src/guides/collecting/sparrow-wallet.md:138
+msgid ""
+"Select the UTXO you want to send, and ensure that is the _only_ UTXO is "
+"selected. You should see `UTXOs 1/1` in the interface. Once you are sure "
+"this is the case you can hit `Send Selected`."
+msgstr ""
+"送信するUTXOを選択します。これが唯一選択されたUTXOであることを確認します。イ"
+"ンターフェイスでは、'UTXOs 1/1'が表示されるはずです。これを確認した後、'Send "
+"Selected'をクリックすることができます。"
+
+#: src/guides/collecting/sparrow-wallet.md:140
+msgid "![](images/sending_02.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:142
+msgid ""
+"You will then be presented with the transaction construction interface. "
+"There is a few things you need to check here to make sure that this is a "
+"safe send:"
+msgstr ""
+"次に、トランザクション構築インターフェイスが表示されます。ここでは、これが安"
+"全な送信であることを確認するためにいくつかのことを確認する必要があります："
+
+#: src/guides/collecting/sparrow-wallet.md:144
+msgid ""
+"The transaction should have only 1 input, and this should be the UTXO with "
+"the label you want to send"
+msgstr ""
+"取引には1つの入力しかないはずです。これはラベル付きのUTXOを送りたいはずです"
+
+#: src/guides/collecting/sparrow-wallet.md:145
+msgid ""
+"The transaction should have only 1 output, which is the address/label where "
+"you want to send the inscription"
+msgstr "取引には1つの出力しかないはずです。これは銘文を送りたい住所/ラベルです"
+
+#: src/guides/collecting/sparrow-wallet.md:147
+msgid ""
+"If your transaction looks any different, for example you have multiple "
+"inputs, or multiple outputs then this may not be a safe transfer of your "
+"inscription, and you should abandon sending until you understand more, or "
+"can import into the `ord` wallet."
+msgstr ""
+"取引がこれとは異なるように見える場合、例えば複数の入力や複数の出力がある場"
+"合、これは安全な碑文の転送方法ではないかもしれません。あなたがよりよく知って"
+"いるか、'ord'ウォレットにインポートすることができるまで、送信を断念する必要が"
+"あります。"
+
+#: src/guides/collecting/sparrow-wallet.md:149
+msgid ""
+"You should set an appropriate transaction fee, Sparrow will usually "
+"recommend a reasonable one, but you can also check [mempool.space](https://"
+"mempool.space) to see what the recommended fee rate is for sending a "
+"transaction."
+msgstr ""
+"適切な取引手数料を設定する必要があります。Sparrowは通常、合理的な料金をお勧め"
+"します。しかし、[mempool.space]を見て、(https://mempool.space)送信トランザク"
+"ションの推奨レートを見ます。"
+
+#: src/guides/collecting/sparrow-wallet.md:151
+msgid ""
+"You should add a label for the recipient address, a label like `alice "
+"address for inscription #123` would be ideal."
+msgstr ""
+"受信者の住所にラベルを追加する必要があります。『alice address for "
+"inscription#123』は理想的です。"
+
+#: src/guides/collecting/sparrow-wallet.md:153
+msgid ""
+"Once you have checked the transaction is a safe transaction using the checks "
+"above, and you are confident to send it you can click `Create Transaction`."
+msgstr ""
+"上記のチェックを使用して、取引が安全な取引であることを確認し、それを送信する"
+"自信があることを確認したら、『Create Transaction』をクリックしてください。"
+
+#: src/guides/collecting/sparrow-wallet.md:155
+msgid "![](images/sending_03.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:157
+msgid ""
+"Here again you can double check that your transaction looks safe, and once "
+"you are confident you can click `Finalize Transaction for Signing`."
+msgstr ""
+"ここで、あなたの取引が安全かどうかを再確認できます。確認した後、『Finalize "
+"Transaction for Signing'をクリックしてください。"
+
+#: src/guides/collecting/sparrow-wallet.md:159
+msgid "![](images/sending_04.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:161
+msgid "Here you can triple check everything before hitting `Sign`."
+msgstr "ここでは、『Sign』をクリックする前にすべてを再確認できます。"
+
+#: src/guides/collecting/sparrow-wallet.md:163
+msgid "![](images/sending_05.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:165
+msgid ""
+"And then actually you get very very last chance to check everything before "
+"hitting `Broadcast Transaction`. Once you broadcast the transaction it is "
+"sent to the bitcoin network, and starts being propagated into the mempool."
+msgstr ""
+"そして、実際には『Broadcast Transaction』をクリックする前に、すべてをチェック"
+"する最後の機会があります。は取引を放送すると、ビットコインネットワークに送ら"
+"れ、mempoolで広がり始めます。"
+
+#: src/guides/collecting/sparrow-wallet.md:167
+msgid "![](images/sending_06.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:169
+msgid ""
+"If you want to track the status of your transaction you can copy the "
+"`Transaction Id (Txid)` and paste that into [mempool.space](https://mempool."
+"space)"
+msgstr ""
+"取引状態を追跡したいなら、『Transaction Id(Txid)をコピーして[mempool.space]"
+"(https://mempool.space)'に貼り付けます。"
+
+#: src/guides/collecting/sparrow-wallet.md:171
+msgid ""
+"Once the transaction has confirmed you can check the inscription page on "
+"[ordinals.com](https://ordinals.com) to validate that it has moved to the "
+"new output location and address."
+msgstr ""
+"取引が確認されたら、[ordinals.com](https://ordinals.com)の銘文ページで、新し"
+"い出力場所と住所に移動したことを確認します。"
+
+#: src/guides/collecting/sparrow-wallet.md:173
+msgid "Troubleshooting"
+msgstr "故障排除"
+
+#: src/guides/collecting/sparrow-wallet.md:175
+msgid ""
+"Sparrow wallet is not showing a transaction/UTXO, but I can see it on "
+"mempool.space!"
+msgstr ""
+"Sparrowウォレットは取引/UTXOを表示していませんが、mempool.spaceでを見ました"
+
+#: src/guides/collecting/sparrow-wallet.md:177
+msgid ""
+"Make sure that your wallet is connected to a bitcoin node. To validate this, "
+"head into the `Preferences`\\-> `Server` settings, and click `Edit Existing "
+"Connection`."
+msgstr ""
+"ウォレットがビットコインノードに接続されていることを確認してください。これを"
+"確認するには、'Preferences'\\-->'Server'の設定に移動します。そして、'Edit "
+"Existing Connection'をクリックしてください。。"
+
+#: src/guides/collecting/sparrow-wallet.md:179
+msgid "![](images/troubleshooting_01.png)"
+msgstr ""
+
+#: src/guides/collecting/sparrow-wallet.md:181
+msgid ""
+"From there you can select a node and click `Test Connection` to validate "
+"that Sparrow is able to connect successfully."
+msgstr ""
+"そこからノードを選択し、'Test Connection'をクリックしてSparrowが正常に接続で"
+"きることを確認できます。"
+
+#: src/guides/collecting/sparrow-wallet.md:183
+msgid "![](images/troubleshooting_02.png)"
+msgstr ""
+
+#: src/guides/testing.md:4
+msgid ""
+"Ord can be tested using the following flags to specify the test network. For "
+"more information on running Bitcoin Core for testing, see [Bitcoin's "
+"developer documentation](https://developer.bitcoin.org/examples/testing."
+"html)."
+msgstr ""
+"次のフラグを使用してテストネットワークを指定すると、フォームをテストできま"
+"す。テストのためのビットコインコアの実行の詳細については、[ビットコインの開発"
+"者ドキュメント]を参照してください。"
+
+#: src/guides/testing.md:7
+msgid ""
+"Most `ord` commands in [inscriptions](inscriptions.md) and [explorer]"
+"(explorer.md) can be run with the following network flags:"
+msgstr ""
+"[銘文](inscriptions.md)および[ブラウザ](explorer.md)内のほとんどの'ord'コマン"
+"ドは、次のネットワークフラグを使用して実行できます："
+
+#: src/guides/testing.md:10
+msgid "Network"
+msgstr ""
+
+#: src/guides/testing.md:10
+msgid "Flag"
+msgstr ""
+
+#: src/guides/testing.md:12
+msgid "Testnet"
+msgstr ""
+
+#: src/guides/testing.md:12
+msgid "`--testnet` or `-t`"
+msgstr ""
+
+#: src/guides/testing.md:13
+msgid "Signet"
+msgstr ""
+
+#: src/guides/testing.md:13
+msgid "`--signet` or `-s`"
+msgstr ""
+
+#: src/guides/testing.md:14
+msgid "Regtest"
+msgstr ""
+
+#: src/guides/testing.md:14
+msgid "`--regtest` or `-r`"
+msgstr ""
+
+#: src/guides/testing.md:16
+msgid "Regtest doesn't require downloading the blockchain or indexing ord."
+msgstr ""
+"Regtestはブロックチェーンをダウンロードしたり、ordインデックスを作成したりす"
+"る必要はありません"
+
+#: src/guides/testing.md:21
+msgid "Run bitcoind in regtest with:"
+msgstr "regtestの中でbitcoindを運行し、使います："
+
+#: src/guides/testing.md:22
+msgid ""
+"```\n"
+"bitcoind -regtest -txindex\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:25
+msgid "Create a wallet in regtest with:"
+msgstr "regtestの中でウォレットを作り上げます。"
+
+#: src/guides/testing.md:26
+msgid ""
+"```\n"
+"ord -r wallet create\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:29
+msgid "Get a regtest receive address with:"
+msgstr "regtest受け取りアドレスを作成します"
+
+#: src/guides/testing.md:30
+msgid ""
+"```\n"
+"ord -r wallet receive\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:33
+msgid "Mine 101 blocks (to unlock the coinbase) with:"
+msgstr "101個のブロックを掘る（ロック解除coinbase）に使います："
+
+#: src/guides/testing.md:34
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 101 <receive address>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:37
+msgid "Inscribe in regtest with:"
+msgstr "regtest上で刻みます。"
+
+#: src/guides/testing.md:38
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:41
+msgid "Mine the inscription with:"
+msgstr "銘文を発掘します。"
+
+#: src/guides/testing.md:42
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 1 <receive address>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:45
+msgid "View the inscription in the regtest explorer:"
+msgstr "regtestブラウザで銘文を見ます。"
+
+#: src/guides/testing.md:46
+msgid ""
+"```\n"
+"ord -r server\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:50
+msgid "Testing Recursion"
+msgstr "再帰のテスト"
+
+#: src/guides/testing.md:53
+msgid ""
+"When testing out [recursion](../inscriptions/recursion.md), inscribe the "
+"dependencies first (example with [p5.js](https://p5js.org):"
+msgstr ""
+" [recursion](../inscriptions/recursion.md) のテスト[の場合、最初に依存関係を"
+"メモします。（ [p5.js](https://p5js.org) を例とします："
+
+#: src/guides/testing.md:55
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:58
+msgid ""
+"This should return a `inscription_id` which you can then reference in your "
+"recursive inscription."
+msgstr ""
+"これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照"
+"することができます。。"
+
+#: src/guides/testing.md:61
+msgid ""
+"ATTENTION: These ids will be different when inscribing on mainnet or signet, "
+"so be sure to change those in your recursive inscription for each chain."
+msgstr ""
+"これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照"
+"することができます。"
+
+#: src/guides/testing.md:65
+msgid "Then you can inscribe your recursive inscription with:"
+msgstr "次のコマンドを使用して、再帰的な碑文を刻むことができます。："
+
+#: src/guides/testing.md:66
+msgid ""
+"```\n"
+"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:69
+msgid "Finally you will have to mine some blocks and start the server:"
+msgstr ""
+"最終的には、サーバーを開始するためにいくつかのブロックを掘ることができます："
+
+#: src/guides/testing.md:70
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 6 <receive address>\n"
+"ord -r server\n"
+"```"
+msgstr ""
+
+#: src/guides/moderation.md:4
+msgid ""
+"`ord` includes a block explorer, which you can run locally with `ord server`."
+msgstr ""
+"`ord` ブロックブラウザが含まれています,あなたはローカルで'ord server`運行する"
+"ことができます."
+
+#: src/guides/moderation.md:6
+msgid ""
+"The block explorer allows viewing inscriptions. Inscriptions are user-"
+"generated content, which may be objectionable or unlawful."
+msgstr ""
+"ブロックブラウザでは、銘文を見ることができます。銘文はユーザーが生成した内容"
+"であるため、不快または違法である可能性があります。"
+
+#: src/guides/moderation.md:9
+msgid ""
+"It is the responsibility of each individual who runs an ordinal block "
+"explorer instance to understand their responsibilities with respect to "
+"unlawful content, and decide what moderation policy is appropriate for their "
+"instance."
+msgstr ""
+"Wordブロックブラウザのインスタンスを実行するすべてのユーザーは、不正なコンテ"
+"ンツに対する責任を理解し、そのインスタンスに適した監査ポリシーを決定する責任"
+"があります。"
+
+#: src/guides/moderation.md:13
+msgid ""
+"In order to prevent particular inscriptions from being displayed on an `ord` "
+"instance, they can be included in a YAML config file, which is loaded with "
+"the `--config` option."
+msgstr ""
+"特定の銘文が'ord'インスタンスに表示されないようにするには、YAML設定ファイルに"
+"含めることができます。'--config'オプションを使用してファイルをロードします。"
+
+#: src/guides/moderation.md:17
+msgid ""
+"To hide inscriptions, first create a config file, with the inscription ID "
+"you want to hide:"
+msgstr ""
+"銘文を隠れると、先ずプロファイルを作成しますその中は隠れる銘文IDが含まれま"
+"す。"
+
+#: src/guides/moderation.md:20
+msgid ""
+"```yaml\n"
+"hidden:\n"
+"- 0000000000000000000000000000000000000000000000000000000000000000i0\n"
+"```"
+msgstr ""
+
+#: src/guides/moderation.md:25
+msgid ""
+"The suggested name for `ord` config files is `ord.yaml`, but any filename "
+"can be used."
+msgstr ""
+"'ord'設定ファイルの推奨名は'ord.yaml'です。ただし、任意のファイル名を使用でき"
+"ます。"
+
+#: src/guides/moderation.md:28
+msgid "Then pass the file to `--config` when starting the server:"
+msgstr "その後、サービスの開始時にファイルを使います--config` :"
+
+#: src/guides/moderation.md:30
+msgid "`ord --config ord.yaml server`"
+msgstr ""
+
+#: src/guides/moderation.md:32
+msgid ""
+"Note that the `--config` option comes after `ord` but before the `server` "
+"subcommand."
+msgstr ""
+"注意してください。 『--config'オプションは'ord'の後で'server'サブコマンドの前"
+"にあります。"
+
+#: src/guides/moderation.md:35
+msgid "`ord` must be restarted in to load changes to the config file."
+msgstr ""
+"'ord'は、設定ファイルの変更をロードするために再起動する必要があります。"
+
+#: src/guides/moderation.md:37
+msgid "`ordinals.com`"
+msgstr ""
+
+#: src/guides/moderation.md:40
+msgid ""
+"The `ordinals.com` instances use `systemd` to run the `ord server` service, "
+"which is called `ord`, with a config file located at `/var/lib/ord/ord.yaml`."
+msgstr ""
+"ordinals.com'インスタンスは'systemd'を使用して'ord'という名前の'ord "
+"server'サービスを実行しています。設定ファイルは『/var/lib/ord/ord.yaml'."
+
+#: src/guides/moderation.md:43
+msgid "To hide an inscription on `ordinals.com`:"
+msgstr " ordinals.com 上で銘文を隠れます:"
+
+#: src/guides/moderation.md:45
+msgid "SSH into the server"
+msgstr "SSHでサーバを登録します。"
+
+#: src/guides/moderation.md:46
+msgid "Add the inscription ID to `/var/lib/ord/ord.yaml`"
+msgstr " `/var/lib/ord/ord.yaml`中で銘文を増やしますID"
+
+#: src/guides/moderation.md:47
+msgid "Restart the service with `systemctl restart ord`"
+msgstr " `systemctl restart ord`で サービスを再起動します。"
+
+#: src/guides/moderation.md:48
+msgid "Monitor the restart with `journalctl -u ord`"
+msgstr " `journalctl -u ord` で再起動します。"
+
+#: src/guides/moderation.md:50
+msgid ""
+"Currently, `ord` is slow to restart, so the site will not come back online "
+"immediately."
+msgstr ""
+"今は、ordの再起動の速度が遅いから、そのため、サイトはすぐにオンラインに戻りま"
+"せん。"
+
+#: src/guides/reindexing.md:4
+msgid ""
+"Sometimes the `ord` database must be reindexed, which means deleting the "
+"database and restarting the indexing process with either `ord index update` or "
+"`ord server`. Reasons to reindex are:"
+msgstr ""
+"「ord」データベースを再インデックスする必要がある場合があります。これは、デー"
+"タベースを削除し、「ord index update」または「ord server」を使用することを意味し"
+"ます。を使用してデータベースを再インデックス化します。再インデックスを作成す"
+"る理由は次のとおりです。："
+
+#: src/guides/reindexing.md:8
+msgid "A new major release of ord, which changes the database scheme"
+msgstr ""
+"ord 发布新的主要版本，更改了数据库架构　新たなメインバージョンをリリースし"
+"て、データベースのスキーマを変更されました。"
+
+#: src/guides/reindexing.md:9
+msgid "The database got corrupted somehow"
+msgstr "データベースは壊れるかもしれません"
+
+#: src/guides/reindexing.md:11
+msgid ""
+"The database `ord` uses is called [redb](https://github.com/cberner/redb), "
+"so we give the index the default file name `index.redb`. By default we store "
+"this file in different locations depending on your operating system."
+msgstr ""
+"`ord`は 使っているデータベースは [redb](https://github.com/cberner/redb)を呼"
+"ばれています，索引のために‘index.redb’を指定された黙認ファイル名として、黙認"
+"する場合は保存します操作システムによって、このファイルは異なる位置にあります"
+
+#: src/guides/reindexing.md:15
+msgid "Platform"
+msgstr "プラットフォーム"
+
+#: src/guides/reindexing.md:15
+msgid "Value"
+msgstr ""
+
+#: src/guides/reindexing.md:17
+msgid "Linux"
+msgstr ""
+
+#: src/guides/reindexing.md:17
+msgid "`$XDG_DATA_HOME`/ord or `$HOME`/.local/share/ord"
+msgstr ""
+
+#: src/guides/reindexing.md:17
+msgid "/home/alice/.local/share/ord"
+msgstr ""
+
+#: src/guides/reindexing.md:18
+msgid "macOS"
+msgstr ""
+
+#: src/guides/reindexing.md:18
+msgid "`$HOME`/Library/Application Support/ord"
+msgstr ""
+
+#: src/guides/reindexing.md:18
+msgid "/Users/Alice/Library/Application Support/ord"
+msgstr ""
+
+#: src/guides/reindexing.md:19
+msgid "Windows"
+msgstr ""
+
+#: src/guides/reindexing.md:19
+msgid "`{FOLDERID_RoamingAppData}`\\\\ord"
+msgstr ""
+
+#: src/guides/reindexing.md:19
+msgid "C:\\Users\\Alice\\AppData\\Roaming\\ord"
+msgstr ""
+
+#: src/guides/reindexing.md:21
+msgid ""
+"So to delete the database and reindex on MacOS you would have to run the "
+"following commands in the terminal:"
+msgstr ""
+"ですので，MacOSの上にデータベースを削除して再索引し、ターミナルでこのコマンド"
+"を実行します。"
+
+#: src/guides/reindexing.md:24
+msgid ""
+"```bash\n"
+"rm ~/Library/Application Support/ord/index.redb\n"
+"ord index update\n"
+"```"
+msgstr ""
+
+#: src/guides/reindexing.md:29
+msgid ""
+"You can of course also set the location of the data directory yourself with "
+"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"with `ord --index <FILENAME> index update`."
+msgstr ""
+"もちろん自分でデータの目録の位置を設置することができます,`ord --data-dir "
+"<DIR> index update` または指定された特定のファイル名とパスに‘ord --index "
+"<FILENAME>で索引運行します’。"
+
+#: src/bounties.md:1
+msgid "Ordinal Bounty Hunting Hints"
+msgstr "Ordinals賞金計画の提示"
+
+#: src/bounties.md:4
+msgid ""
+"The `ord` wallet can send and receive specific satoshis. Additionally, "
+"ordinal theory is extremely simple. A clever hacker should be able to write "
+"code from scratch to manipulate satoshis using ordinal theory in no time."
+msgstr ""
+"`ord` ウォレットは特定の聡を発送して、受け取れます。その他、序数理論は非常に"
+"簡単で、賢いハッカが速く最初から始めることができるはずですコードを書いて、序"
+"数理論を使って聡を操作します。"
+
+#: src/bounties.md:8
+msgid ""
+"For more information about ordinal theory, check out the [FAQ](./faq.md) for "
+"an overview, the [BIP](https://github.com/ordinals/ord/blob/master/bip."
+"mediawiki) for the technical details, and the [ord repo](https://github.com/"
+"ordinals/ord) for the `ord` wallet and block explorer."
+msgstr ""
+"序数理論のより多くの情報に関して，[FAQ](./faq.md) を閲見して概要を獲得しま"
+"す。[BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) を閲見し"
+"て、技術の詳細を獲得します[ord repo](https://github.com/ordinals/ord)を閲見し"
+"て、`ord`ウォレットとブラウザの情報を獲得します."
+
+#: src/bounties.md:14
+msgid ""
+"Satoshi was the original developer of ordinal theory. However, he knew that "
+"others would consider it heretical and dangerous, so he hid his knowledge, "
+"and it was lost to the sands of time. This potent theory is only now being "
+"rediscovered. You can help by researching rare satoshis."
+msgstr ""
+"聡は序数理論の原始の開発者であり、しかし、他の人は変なことだと、危険だと思わ"
+"れますが彼は自分の知識を隠れて、時間の砂漠に消えてしまいます。現在、この強い"
+"理論は発見されて、珍しい聡を研究することによって私たちを手伝っていただきま"
+"す。"
+
+#: src/bounties.md:19
+msgid "Good luck and godspeed!"
+msgstr "ご好運、順調に進んでいるように！"
+
+#: src/bounty/0.md:1
+msgid "Ordinal Bounty 0"
+msgstr "賞金任務 0"
+
+#: src/bounty/0.md:4 src/bounty/1.md:4 src/bounty/2.md:4 src/bounty/3.md:4
+msgid "Criteria"
+msgstr "標準"
+
+#: src/bounty/0.md:7
+msgid ""
+"Send a sat whose ordinal number ends with a zero to the submission address:"
+msgstr "序数の“0”で終わりの聡を提出アドレスに発送します。"
+
+#: src/bounty/0.md:9
+msgid "✅: [1857578125803250](https://ordinals.com/ordinal/1857578125803250)"
+msgstr ""
+
+#: src/bounty/0.md:11
+msgid "❌: [1857578125803251](https://ordinals.com/ordinal/1857578125803251)"
+msgstr ""
+
+#: src/bounty/0.md:13
+msgid "The sat must be the first sat of the output you send."
+msgstr "聡はあなたが発送した“輸出”の初めての聡でなければなりません。"
+
+#: src/bounty/0.md:15 src/bounty/1.md:14 src/bounty/2.md:15 src/bounty/3.md:63
+msgid "Reward"
+msgstr "奨励"
+
+#: src/bounty/0.md:18
+msgid "100,000 sats"
+msgstr ""
+
+#: src/bounty/0.md:20 src/bounty/1.md:19 src/bounty/2.md:20 src/bounty/3.md:70
+msgid "Submission Address"
+msgstr "アドレスを提出する"
+
+#: src/bounty/0.md:23
+msgid ""
+"[`1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3`](https://mempool.space/"
+"address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3)"
+msgstr ""
+
+#: src/bounty/0.md:25 src/bounty/1.md:24 src/bounty/2.md:25 src/bounty/3.md:75
+msgid "Status"
+msgstr "状態"
+
+#: src/bounty/0.md:28
+msgid ""
+"Claimed by [@count_null](https://twitter.com/rodarmor/"
+"status/1560793241473400833)!"
+msgstr ""
+"[@count_null](https://twitter.com/rodarmor/status/1560793241473400833)! 獲得"
+
+#: src/bounty/1.md:1
+msgid "Ordinal Bounty 1"
+msgstr "賞金任務 1"
+
+#: src/bounty/1.md:7
+msgid ""
+"The transaction that submits a UTXO containing the oldest sat, i.e., that "
+"with the lowest number, amongst all submitted UTXOs will be judged the "
+"winner."
+msgstr ""
+"一つの最も古い聡を含まれるUTXOを提出されます。例えば、すべて提出されたUTXOの"
+"中に最も小さい数字は優勝者とします"
+
+#: src/bounty/1.md:10
+msgid ""
+"The bounty is open for submissions until block 753984—the first block of "
+"difficulty adjustment period 374. Submissions included in block 753984 or "
+"later will not be considered."
+msgstr ""
+"賞金はブロック高度753984 の前に有効であり、ブロック高度753984は初めての難易度"
+"の調整期374の後の初めてのブロックです。これらを含まれてまたはブロック高度"
+"753984より遅いのは考えされません。"
+
+#: src/bounty/1.md:17
+msgid "200,000 sats"
+msgstr ""
+
+#: src/bounty/1.md:22
+msgid ""
+"[`145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap`](https://mempool.space/"
+"address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap)"
+msgstr ""
+
+#: src/bounty/1.md:27
+msgid ""
+"Claimed by [@ordinalsindex](https://twitter.com/rodarmor/"
+"status/1569883266508853251)!"
+msgstr ""
+" [@ordinalsindex](https://twitter.com/rodarmor/status/1569883266508853251)は"
+"獲得！"
+
+#: src/bounty/2.md:1
+msgid "Ordinal Bounty 2"
+msgstr "賞金任務 2"
+
+#: src/bounty/2.md:7
+msgid "Send an "
+msgstr "一つ発送します"
+
+#: src/bounty/2.md:7
+msgid "uncommon"
+msgstr "普通ではないの"
+
+#: src/bounty/2.md:7
+msgid " sat to the submission address:"
+msgstr "聡は下のアドレスに"
+
+#: src/bounty/2.md:9
+msgid "✅: [347100000000000](https://ordinals.com/sat/347100000000000)"
+msgstr ""
+
+#: src/bounty/2.md:11
+msgid "❌: [6685000001337](https://ordinals.com/sat/6685000001337)"
+msgstr ""
+
+#: src/bounty/2.md:13
+msgid ""
+"Confirm that the submission address has not received transactions before "
+"submitting your entry. Only the first successful submission will be rewarded."
+msgstr ""
+"提出する前に、上述のアドレスがこの前に他の珍しい聡が受け取らなかったことを確"
+"認し、最初に提出されたのは奨励を得られます。"
+
+#: src/bounty/2.md:18
+msgid "300,000 sats"
+msgstr ""
+
+#: src/bounty/2.md:23
+msgid ""
+"[`1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH`](https://mempool.space/"
+"address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH)"
+msgstr ""
+
+#: src/bounty/2.md:28
+msgid ""
+"Claimed by [@utxoset](https://twitter.com/rodarmor/"
+"status/1582424455615172608)!"
+msgstr ""
+"[@utxoset](https://twitter.com/rodarmor/status/1582424455615172608) は獲得!"
+
+#: src/bounty/3.md:1
+msgid "Ordinal Bounty 3"
+msgstr "賞金任務 3"
+
+#: src/bounty/3.md:7
+msgid ""
+"Ordinal bounty 3 has two parts, both of which are based on _ordinal names_. "
+"Ordinal names are a modified base-26 encoding of ordinal numbers. To avoid "
+"locking short names inside the unspendable genesis block coinbase reward, "
+"ordinal names get _shorter_ as the ordinal number gets _longer_. The name of "
+"sat 0, the first sat to be mined is `nvtdijuwxlp` and the name of sat "
+"2,099,999,997,689,999, the last sat to be mined, is `a`."
+msgstr ""
+"任务3は二つの部分があり、序数の名前に基づきます_序数の名前は序数の数字を直し"
+"たbase-26によって行われたコードです。短い名前を時間をかけはいけない創成プレー"
+"ト奨励の中に絞らないように序数の長くなるほど、序数の名前は短くなります。例え"
+"ば、初めに採掘された０番の聡の名前は`nvtdijuwxlpで`、最後に採掘された"
+"2,099,999,997,689,999番の聡の名前は `a`です。"
+
+#: src/bounty/3.md:14
+msgid ""
+"The bounty is open for submissions until block 840000—the first block after "
+"the fourth halvening. Submissions included in block 840000 or later will not "
+"be considered."
+msgstr ""
+"賞金計画はブロック高度の840000の-第四回の半分にしたの初めてのブロックまで開放"
+"します。ブロック高度の840000及びそれ以上のブロックは考えられません"
+
+#: src/bounty/3.md:18
+msgid ""
+"Both parts use [frequency.tsv](frequency.tsv), a list of words and the "
+"number of times they occur in the [Google Books Ngram dataset](http://"
+"storage.googleapis.com/books/ngrams/books/datasetsv2.html). filtered to only "
+"include the names of sats which will have been mined by the end of the "
+"submission period, that appear at least 5000 times in the corpus."
+msgstr ""
+"二つの部分のミッションが使われ [frequency.tsv](frequency.tsv), 一つの単語のリ"
+"スト及び [Google Books Ngram dataset](http://storage.googleapis.com/books/"
+"ngrams/books/datasetsv2.html)で現れた回数。濾過した後、提出時間が終わるときに"
+"発掘された聡の名前だけを含まれ、これらの名称は少なくともコーパスの中で5000回"
+"以上現れます。"
+
+#: src/bounty/3.md:24
+msgid ""
+"`frequency.tsv` is a file of tab-separated values. The first column is the "
+"word, and the second is the number of times it appears in the corpus. The "
+"entries are sorted from least-frequently occurring to most-frequently "
+"occurring."
+msgstr ""
+"`frequency.tsv` タブ区切り値のファイルは第一列が単語で，第二列がコーパスに現"
+"れる回数ですこれらの条目は出現の最も低い頻度から最も高い頻度まで順番に並べて"
+"います。"
+
+#: src/bounty/3.md:29
+msgid ""
+"`frequency.tsv` was compiled using [this program](https://github.com/casey/"
+"onegrams)."
+msgstr ""
+"`frequency.tsv` [このプログラム]を使って(https://github.com/casey/onegrams)纂"
+"訳されます。."
+
+#: src/bounty/3.md:32
+msgid ""
+"To search an `ord` wallet for sats with a name in `frequency.tsv`, use the "
+"following [`ord`](https://github.com/ordinals/ord) command:"
+msgstr ""
+"`ord`ウォレットの中で`frequency.tsv`の中に含まれた聡の名前を検索して , したの"
+"を使います[`ord`](https://github.com/ordinals/ord)コマンド: "
+
+#: src/bounty/3.md:35
+msgid ""
+"```\n"
+"ord wallet sats --tsv frequency.tsv\n"
+"```"
+msgstr ""
+
+#: src/bounty/3.md:39
+msgid ""
+"This command requires the sat index, so `--index-sats` must be passed to ord "
+"when first creating the index."
+msgstr ""
+"このコマンドは聡の索引必要なので，`--index-sats` は初めに索引を作り上げる時に"
+"使います。"
+
+#: src/bounty/3.md:42
+msgid "Part 0"
+msgstr "第０部分"
+
+#: src/bounty/3.md:44
+msgid "_Rare sats pair best with rare words._"
+msgstr "_珍しい聡と珍しい名前のベストマッチ"
+
+#: src/bounty/3.md:46
+msgid ""
+"The transaction that submits the UTXO containing the sat whose name appears "
+"with the lowest number of occurrences in `frequency.tsv` shall be the winner "
+"of part 0."
+msgstr ""
+"提出したUTXOの中に聡の名前が含まれ、`frequency.tsv`の中に頻度が最も低い人は第"
+"0部分の優勝者であります。。"
+
+#: src/bounty/3.md:50
+msgid "Part 1"
+msgstr "第1部分"
+
+#: src/bounty/3.md:52
+msgid "_Popularity is the font of value._"
+msgstr "_人気は価値の源泉です_"
+
+#: src/bounty/3.md:54
+msgid ""
+"The transaction that submits the UTXO containing the sat whose name appears "
+"with the highest number of occurrences in `frequency.tsv` shall be the "
+"winner of part 1."
+msgstr ""
+"提出したUTXOの中に聡の名前が含まれ、`frequency.tsv`の中に頻度が最も高い人は第"
+"一部分の優勝者であります。"
+
+#: src/bounty/3.md:58
+msgid "Tie Breaking"
+msgstr "勝負なしの場合"
+
+#: src/bounty/3.md:60
+msgid ""
+"In the case of a tie, where two submissions occur with the same frequency, "
+"the earlier submission shall be the winner."
+msgstr ""
+"勝負なしの場合は二つの提出が同じ頻度でしたら、もっと早く提出した人は優勝者と"
+"なります"
+
+#: src/bounty/3.md:66
+msgid "Part 0: 200,000 sats"
+msgstr ""
+
+#: src/bounty/3.md:67
+msgid "Part 1: 200,000 sats"
+msgstr ""
+
+#: src/bounty/3.md:68
+msgid "Total: 400,000 sats"
+msgstr ""
+
+#: src/bounty/3.md:73
+msgid ""
+"[`17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg`](https://mempool.space/"
+"address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg)"
+msgstr ""
+
+#: src/bounty/3.md:78
+msgid "Unclaimed!"
+msgstr "依然有効です！"

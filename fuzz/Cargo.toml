@@ -15,9 +15,15 @@ debug = 1
 
 [dependencies]
 arbitrary = { version = "1", features = ["derive"] }
-bitcoin = { version = "0.29.1", features = ["rand"] }
+bitcoin = { version = "0.30.0", features = ["rand"] }
 libfuzzer-sys = "0.4"
 ord = { path = ".." }
+
+[[bin]]
+name = "runestone-decipher"
+path = "fuzz_targets/runestone_decipher.rs"
+test = false
+doc = false
 
 [[bin]]
 name = "transaction-builder"
@@ -25,6 +31,14 @@ path = "fuzz_targets/transaction_builder.rs"
 test = false
 doc = false
 
-[patch.crates-io]
-jsonrpc = { git = "https://github.com/apoelstra/rust-jsonrpc.git", rev = "64b58797dd517c4de0cec769ff5652220801fe18" }
-redb = { git = "https://github.com/casey/redb.git", branch = "ord" }
+[[bin]]
+name = "varint-encode"
+path = "fuzz_targets/varint_encode.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "varint-decode"
+path = "fuzz_targets/varint_decode.rs"
+test = false
+doc = false

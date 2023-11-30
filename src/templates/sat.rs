@@ -5,7 +5,37 @@ pub(crate) struct SatHtml {
   pub(crate) sat: Sat,
   pub(crate) satpoint: Option<SatPoint>,
   pub(crate) blocktime: Blocktime,
-  pub(crate) inscription: Option<InscriptionId>,
+  pub(crate) inscriptions: Vec<InscriptionId>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatJson {
+  pub number: u64,
+  pub decimal: String,
+  pub degree: String,
+  pub name: String,
+  pub block: u32,
+  pub cycle: u32,
+  pub epoch: u32,
+  pub period: u32,
+  pub offset: u64,
+  pub rarity: Rarity,
+  pub percentile: String,
+  pub satpoint: Option<SatPoint>,
+  pub timestamp: i64,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatInscriptionsJson {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: u64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SatInscriptionJson {
+  pub id: Option<InscriptionId>,
 }
 
 impl PageContent for SatHtml {
@@ -25,7 +55,7 @@ mod tests {
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
-        inscription: None,
+        inscriptions: Vec::new(),
       },
       "
         <h1>Sat 0</h1>
@@ -58,7 +88,7 @@ mod tests {
         sat: Sat(2099999997689999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
-        inscription: None,
+        inscriptions: Vec::new(),
       },
       "
         <h1>Sat 2099999997689999</h1>
@@ -91,7 +121,7 @@ mod tests {
         sat: Sat(1),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
-        inscription: None,
+        inscriptions: Vec::new(),
       },
       r"<h1>Sat 1</h1>.*<a class=prev href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>.*",
     );
@@ -104,9 +134,39 @@ mod tests {
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
-        inscription: Some(inscription_id(1)),
+        inscriptions: vec![inscription_id(1)],
       },
-      r"<h1>Sat 0</h1>.*<dt>inscription</dt><dd class=thumbnails><a href=/inscription/1{64}i1>.*</a></dd>.*",
+      "
+        <h1>Sat 0</h1>
+        .*
+          <dt>inscriptions</dt>
+          <dd class=thumbnails>
+            <a href=/inscription/1{64}i1>.*</a>
+          </dd>
+        .*"
+        .unindent(),
+    );
+  }
+
+  #[test]
+  fn sat_with_reinscription() {
+    assert_regex_match!(
+      SatHtml {
+        sat: Sat(0),
+        satpoint: None,
+        blocktime: Blocktime::confirmed(0),
+        inscriptions: vec![inscription_id(1), inscription_id(2)],
+      },
+      "
+        <h1>Sat 0</h1>
+        .*
+          <dt>inscriptions</dt>
+          <dd class=thumbnails>
+            <a href=/inscription/1{64}i1>.*</a>
+            <a href=/inscription/2{64}i2>.*</a>
+          </dd>
+        .*"
+        .unindent(),
     );
   }
 
@@ -117,7 +177,7 @@ mod tests {
         sat: Sat::LAST,
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
-        inscription: None,
+        inscriptions: Vec::new(),
       },
       r"<h1>Sat 2099999997689999</h1>.*<a class=prev href=/sat/2099999997689998>prev</a>\nnext.*",
     );
@@ -130,7 +190,7 @@ mod tests {
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
-        inscription: None,
+        inscriptions: Vec::new(),
       },
       "<h1>Sat 0</h1>.*<dt>location</dt><dd class=monospace>1{64}:1:0</dd>.*",
     );

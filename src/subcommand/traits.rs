@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Traits {
-  #[clap(help = "Show traits for <SAT>.")]
+  #[arg(help = "Show traits for <SAT>.")]
   sat: Sat,
 }
 
@@ -12,17 +12,17 @@ pub struct Output {
   pub decimal: String,
   pub degree: String,
   pub name: String,
-  pub height: u64,
-  pub cycle: u64,
-  pub epoch: u64,
-  pub period: u64,
+  pub height: u32,
+  pub cycle: u32,
+  pub epoch: u32,
+  pub period: u32,
   pub offset: u64,
   pub rarity: Rarity,
 }
 
 impl Traits {
-  pub(crate) fn run(self) -> Result {
-    print_json(Output {
+  pub(crate) fn run(self) -> SubcommandResult {
+    Ok(Box::new(Output {
       number: self.sat.n(),
       decimal: self.sat.decimal().to_string(),
       degree: self.sat.degree().to_string(),
@@ -33,8 +33,6 @@ impl Traits {
       period: self.sat.period(),
       offset: self.sat.third(),
       rarity: self.sat.rarity(),
-    })?;
-
-    Ok(())
+    }))
   }
 }

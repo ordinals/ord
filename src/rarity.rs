@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
 pub enum Rarity {
   Common,
   Uncommon,
@@ -8,6 +8,28 @@ pub enum Rarity {
   Epic,
   Legendary,
   Mythic,
+}
+
+impl From<Rarity> for u8 {
+  fn from(rarity: Rarity) -> Self {
+    rarity as u8
+  }
+}
+
+impl TryFrom<u8> for Rarity {
+  type Error = u8;
+
+  fn try_from(rarity: u8) -> Result<Self, u8> {
+    match rarity {
+      0 => Ok(Self::Common),
+      1 => Ok(Self::Uncommon),
+      2 => Ok(Self::Rare),
+      3 => Ok(Self::Epic),
+      4 => Ok(Self::Legendary),
+      5 => Ok(Self::Mythic),
+      n => Err(n),
+    }
+  }
 }
 
 impl Display for Rarity {
@@ -100,28 +122,28 @@ mod tests {
     assert_eq!(Sat(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
 
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL)).rarity(),
       Rarity::Rare
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(DIFFCHANGE_INTERVAL) + 1).rarity(),
       Rarity::Common
     );
 
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL)).rarity(),
       Rarity::Epic
     );
     assert_eq!(
-      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * u64::from(SUBSIDY_HALVING_INTERVAL) + 1).rarity(),
       Rarity::Common
     );
 
@@ -155,5 +177,23 @@ mod tests {
     "abc".parse::<Rarity>().unwrap_err();
 
     "".parse::<Rarity>().unwrap_err();
+  }
+
+  #[test]
+  fn conversions_with_u8() {
+    for &expected in &[
+      Rarity::Common,
+      Rarity::Uncommon,
+      Rarity::Rare,
+      Rarity::Epic,
+      Rarity::Legendary,
+      Rarity::Mythic,
+    ] {
+      let n: u8 = expected.into();
+      let actual = Rarity::try_from(n).unwrap();
+      assert_eq!(actual, expected);
+    }
+
+    assert_eq!(Rarity::try_from(6), Err(6));
   }
 }

@@ -2,9 +2,26 @@ use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
-  #[clap(flatten)]
+  #[command(flatten)]
   server: super::server::Server,
-  inscriptions: Vec<PathBuf>,
+  #[arg(
+    num_args = 0..,
+    long,
+    help = "Inscribe inscriptions defined in <BATCHES>."
+  )]
+  batches: Option<Vec<PathBuf>>,
+  #[arg(num_args = 0.., long, help = "Inscribe contents of <FILES>.")]
+  files: Option<Vec<PathBuf>>,
+}
+
+#[derive(Debug, Parser)]
+pub(crate) struct Batch {
+  batch_files: Vec<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+pub(crate) struct File {
+  files: Vec<PathBuf>,
 }
 
 struct KillOnDrop(process::Child);
@@ -16,7 +33,7 @@ impl Drop for KillOnDrop {
 }
 
 impl Preview {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self) -> SubcommandResult {
     let tmpdir = TempDir::new()?;
 
     let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
@@ -68,30 +85,74 @@ impl Preview {
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+    let address = rpc_client
+      .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
+      .require_network(Network::Regtest)?;
 
     rpc_client.generate_to_address(101, &address)?;
 
-    for file in self.inscriptions {
-      Arguments {
-        options: options.clone(),
-        subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-          super::wallet::inscribe::Inscribe {
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
-            commit_fee_rate: None,
-            file,
-            no_backup: true,
-            satpoint: None,
-            dry_run: false,
-            no_limit: false,
-            destination: None,
-          },
-        )),
-      }
-      .run()?;
+    if let Some(files) = self.files {
+      for file in files {
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
+            super::wallet::inscribe::Inscribe {
+              batch: None,
+              cbor_metadata: None,
+              commit_fee_rate: None,
+              compress: false,
+              destination: None,
+              dry_run: false,
+              fee_rate: FeeRate::try_from(1.0).unwrap(),
+              file: Some(file),
+              json_metadata: None,
+              metaprotocol: None,
+              no_backup: true,
+              no_limit: false,
+              parent: None,
+              postage: Some(TARGET_POSTAGE),
+              reinscribe: false,
+              satpoint: None,
+              sat: None,
+            },
+          )),
+        }
+        .run()?;
 
-      rpc_client.generate_to_address(1, &address)?;
+        rpc_client.generate_to_address(1, &address)?;
+      }
+    }
+
+    if let Some(batches) = self.batches {
+      for batch in batches {
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
+            super::wallet::inscribe::Inscribe {
+              batch: Some(batch),
+              cbor_metadata: None,
+              commit_fee_rate: None,
+              compress: false,
+              destination: None,
+              dry_run: false,
+              fee_rate: FeeRate::try_from(1.0).unwrap(),
+              file: None,
+              json_metadata: None,
+              metaprotocol: None,
+              no_backup: true,
+              no_limit: false,
+              parent: None,
+              postage: Some(TARGET_POSTAGE),
+              reinscribe: false,
+              satpoint: None,
+              sat: None,
+            },
+          )),
+        }
+        .run()?;
+
+        rpc_client.generate_to_address(1, &address)?;
+      }
     }
 
     rpc_client.generate_to_address(1, &address)?;
@@ -100,8 +161,6 @@ impl Preview {
       options,
       subcommand: Subcommand::Server(self.server),
     }
-    .run()?;
-
-    Ok(())
+    .run()
   }
 }

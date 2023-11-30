@@ -2,9 +2,11 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
+  pub(crate) change_addresses: Vec<Address>,
   pub(crate) descriptors: Vec<String>,
   pub(crate) fail_lock_unspent: bool,
   pub(crate) hashes: Vec<BlockHash>,
+  pub(crate) loaded_wallets: BTreeSet<String>,
   pub(crate) locked: BTreeSet<OutPoint>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
@@ -14,7 +16,6 @@ pub(crate) struct State {
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
   pub(crate) version: usize,
   pub(crate) wallets: BTreeSet<String>,
-  pub(crate) loaded_wallets: BTreeSet<String>,
 }
 
 impl State {
@@ -29,6 +30,7 @@ impl State {
 
     Self {
       blocks,
+      change_addresses: Vec::new(),
       descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
@@ -48,7 +50,7 @@ impl State {
   pub(crate) fn push_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
         script_sig: script::Builder::new()
@@ -78,19 +80,19 @@ impl State {
               fee
             })
             .sum::<u64>(),
-        script_pubkey: Script::new(),
+        script_pubkey: ScriptBuf::new(),
       }],
     };
 
     self.transactions.insert(coinbase.txid(), coinbase.clone());
 
     let block = Block {
-      header: BlockHeader {
-        version: 0,
+      header: Header {
+        version: Version::ONE,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
         time: self.blocks.len().try_into().unwrap(),
-        bits: 0,
+        bits: CompactTarget::from_consensus(0),
         nonce: self.nonce,
       },
       txdata: std::iter::once(coinbase)
@@ -104,13 +106,15 @@ impl State {
       }
 
       for (vout, txout) in tx.output.iter().enumerate() {
-        self.utxos.insert(
-          OutPoint {
-            txid: tx.txid(),
-            vout: vout.try_into().unwrap(),
-          },
-          Amount::from_sat(txout.value),
-        );
+        if !txout.script_pubkey.is_op_return() {
+          self.utxos.insert(
+            OutPoint {
+              txid: tx.txid(),
+              vout: vout.try_into().unwrap(),
+            },
+            Amount::from_sat(txout.value),
+          );
+        }
       }
     }
 
@@ -131,30 +135,27 @@ impl State {
   pub(crate) fn broadcast_tx(&mut self, template: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (i, (height, tx, vout)) in template.inputs.iter().enumerate() {
+    for (height, tx, vout, witness) in template.inputs.iter() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
-        script_sig: Script::new(),
+        script_sig: ScriptBuf::new(),
         sequence: Sequence::MAX,
-        witness: if i == 0 {
-          template.witness.clone()
-        } else {
-          Witness::new()
-        },
+        witness: witness.clone(),
       });
     }
 
     let value_per_output = (total_value - template.fee) / template.outputs as u64;
+
     assert_eq!(
       value_per_output * template.outputs as u64 + template.fee,
       total_value
     );
 
-    let tx = Transaction {
+    let mut tx = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input,
       output: (0..template.outputs)
         .map(|i| TxOut {
@@ -167,6 +168,17 @@ impl State {
         })
         .collect(),
     };
+
+    if let Some(script_pubkey) = template.op_return {
+      tx.output.insert(
+        template.op_return_index.unwrap_or(tx.output.len()),
+        TxOut {
+          value: 0,
+          script_pubkey,
+        },
+      );
+    }
+
     self.mempool.push(tx.clone());
 
     tx.txid()

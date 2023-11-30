@@ -3,14 +3,18 @@
 use {
   api::Api,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
+    amount::SignedAmount,
+    block::Header,
     blockdata::constants::COIN_VALUE,
-    blockdata::script,
+    blockdata::{block::Version, script},
     consensus::encode::{deserialize, serialize},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    util::amount::SignedAmount,
-    Address, Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence,
-    Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    locktime::absolute::LockTime,
+    pow::CompactTarget,
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
@@ -18,7 +22,8 @@ use {
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
     ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult,
+    Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -27,10 +32,13 @@ use {
   state::State,
   std::{
     collections::{BTreeMap, BTreeSet, HashMap},
+    fs,
+    path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
   },
+  tempfile::TempDir,
 };
 
 mod api;
@@ -100,8 +108,13 @@ impl Builder {
       thread::sleep(Duration::from_millis(25));
     }
 
+    let tempdir = TempDir::new().unwrap();
+
+    fs::write(tempdir.path().join(".cookie"), "username:password").unwrap();
+
     Handle {
       close_handle: Some(close_handle),
+      tempdir,
       port,
       state,
     }
@@ -115,10 +128,11 @@ pub fn spawn() -> Handle {
 #[derive(Clone)]
 pub struct TransactionTemplate<'a> {
   pub fee: u64,
-  pub inputs: &'a [(usize, usize, usize)],
+  pub inputs: &'a [(usize, usize, usize, Witness)],
+  pub op_return: Option<ScriptBuf>,
+  pub op_return_index: Option<usize>,
   pub output_values: &'a [u64],
   pub outputs: usize,
-  pub witness: Witness,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -143,14 +157,33 @@ impl From<OutPoint> for JsonOutPoint {
   }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FundRawTransactionOptions {
+  #[serde(with = "bitcoin::amount::serde::as_btc::opt")]
+  fee_rate: Option<Amount>,
+}
+
+#[derive(Deserialize, Clone, PartialEq, Eq, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FundRawTransactionResult {
+  #[serde(with = "bitcoincore_rpc::json::serde_hex")]
+  pub hex: Vec<u8>,
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  pub fee: Amount,
+  #[serde(rename = "changepos")]
+  pub change_position: i32,
+}
+
 impl<'a> Default for TransactionTemplate<'a> {
   fn default() -> Self {
     Self {
       fee: 0,
       inputs: &[],
+      op_return: None,
+      op_return_index: None,
       output_values: &[],
       outputs: 1,
-      witness: Witness::default(),
     }
   }
 }
@@ -159,6 +192,7 @@ pub struct Handle {
   close_handle: Option<CloseHandle>,
   port: u16,
   state: Arc<Mutex<State>>,
+  tempdir: TempDir,
 }
 
 impl Handle {
@@ -187,6 +221,10 @@ impl Handle {
 
   pub fn broadcast_tx(&self, template: TransactionTemplate) -> Txid {
     self.state().broadcast_tx(template)
+  }
+
+  pub fn height(&self) -> u64 {
+    u64::try_from(self.state().blocks.len()).unwrap() - 1
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
@@ -228,11 +266,20 @@ impl Handle {
       Network::Testnet => Network::Testnet.to_string(),
       Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      _ => panic!(),
     }
   }
 
   pub fn loaded_wallets(&self) -> BTreeSet<String> {
     self.state().loaded_wallets.clone()
+  }
+
+  pub fn get_change_addresses(&self) -> Vec<Address> {
+    self.state().change_addresses.clone()
+  }
+
+  pub fn cookie_file(&self) -> PathBuf {
+    self.tempdir.path().join(".cookie")
   }
 }
 
