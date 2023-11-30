@@ -308,6 +308,10 @@ impl Inscription {
   }
 
   pub(crate) fn hidden(&self) -> bool {
+    lazy_static! {
+      static ref CONTENT: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
+    }
+
     let Some(content_type) = self.content_type() else {
       return true;
     };
@@ -317,6 +321,16 @@ impl Inscription {
     }
 
     if content_type.starts_with("text/plain") {
+      return true;
+    }
+
+    if content_type.starts_with("text/html")
+      && self
+        .body()
+        .and_then(|body| str::from_utf8(body).ok())
+        .map(|body| CONTENT.is_match(body))
+        .unwrap_or_default()
+    {
       return true;
     }
 
@@ -796,6 +810,26 @@ mod tests {
     case(Some("text/plain;charset=utf-8"), Some("foo"), true);
     case(Some("text/plain;charset=cn-big5"), Some("foo"), true);
     case(Some("application/json"), Some("foo"), true);
+    case(
+      Some("text/markdown"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      false,
+    );
+    case(
+      Some("text/html"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      true,
+    );
+    case(
+      Some("text/html;charset=utf-8"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some("  /content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0  \n"),
+      true,
+    );
 
     assert!(Inscription {
       content_type: Some("text/plain".as_bytes().into()),
