@@ -1,24 +1,14 @@
 FROM docker.io/library/rust:1.74.0 as builder
 
-WORKDIR /build
+WORKDIR /usr/src/ord
 
-# Copy source code
-COPY  . .
+COPY . .
 
-ENV RUSTFLAGS="--deny warnings"
-
-# Build ord
 RUN cargo build --bin ord --release
 
 FROM docker.io/library/debian:bullseye-slim
 
-WORKDIR /var/lib/ord
-
-# Copy ord binary from build
-COPY --from=builder /build/target/release/ord /usr/local/bin
+COPY --from=builder /usr/src/ord/target/release/ord /usr/local/bin
 
 ENV RUST_BACKTRACE=1
 ENV RUST_LOG=info
-
-ENTRYPOINT ["ord"]
-
