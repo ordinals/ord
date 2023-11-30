@@ -47,6 +47,15 @@ impl Chain {
     }
   }
 
+  pub(crate) fn jubilee_height(self) -> u32 {
+    match self {
+      Self::Mainnet => 824544,
+      Self::Regtest => 110,
+      Self::Signet => 175392,
+      Self::Testnet => 2544192,
+    }
+  }
+
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }
