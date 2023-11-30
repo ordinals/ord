@@ -101,7 +101,6 @@ prepare-release revision='master':
   git checkout -b release-$VERSION
   git add -u
   git commit -m "Release $VERSION"
-  git tag -a $VERSION -m "Release $VERSION"
   gh pr create --web
 
 publish-release revision='master':
