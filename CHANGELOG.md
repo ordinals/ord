@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.12.2](https://github.com/ordinals/ord/releases/tag/0.12.2) - 2023-11-29
+--------------------------------------------------------------------------
+
+### Added
+- Bless cursed inscriptions after Jubilee height (#2656)
+
+### Misc
+- Hide /content/<INSCRIPTION_ID> HTML inscriptions (#2778)
+
 [0.12.1](https://github.com/ordinals/ord/releases/tag/0.12.1) - 2023-11-29
 --------------------------------------------------------------------------
 
