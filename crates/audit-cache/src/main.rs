@@ -15,6 +15,16 @@ const ENDPOINTS: &[(&str, StatusCode, &str)] = &[
     StatusCode::OK,
     "HIT",
   ),
+  (
+    "/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i1",
+    StatusCode::NOT_FOUND,
+    "BYPASS",
+  ),
+  (
+    "/preview/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+    StatusCode::OK,
+    "BYPASS",
+  ),
   ("/static/index.css", StatusCode::OK, "HIT"),
   ("/static/index.js", StatusCode::OK, "HIT"),
   ("/sat/FOO", StatusCode::BAD_REQUEST, "HIT"),
