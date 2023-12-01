@@ -185,6 +185,18 @@ pub(crate) struct InscriptionOutput {
   pub(crate) output_value: u64,
 }
 
+#[derive(Serialize, Deserialize)]
+pub(crate) struct InscriptionInfo {
+  pub(crate) inscription_id: InscriptionId,
+  pub(crate) inscription_number: i64,
+  pub(crate) next_id: Option<InscriptionId>,
+  // pub(crate) prev_id: InscriptionId,
+  pub(crate) genesis_hash: Txid,
+  pub(crate) genesis_height: u64,
+  pub(crate) total_num: i64,
+  pub(crate) timestamp: u32,
+}
+
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -1687,7 +1699,9 @@ impl Index {
     chain: Chain,
     inscription_number: i64,
   ) -> Result<InscriptionOutput> {
-    let inscription_id = self.get_inscription_id_by_inscription_number(inscription_number)?.unwrap();
+    let inscription_id = self
+      .get_inscription_id_by_inscription_number(inscription_number)?
+      .unwrap();
     let inscription = self.get_inscription_by_id(inscription_id)?.unwrap();
     let location = self
       .get_inscription_satpoint_by_id(inscription_id)?
@@ -1715,7 +1729,7 @@ impl Index {
       output: location.outpoint,
       output_value: tx_output.value,
       owner: chain
-        .address_from_script(&tx_output.script_pubkey)? 
+        .address_from_script(&tx_output.script_pubkey)?
         .to_string(),
     })
   }
@@ -1727,6 +1741,38 @@ impl Index {
   ) -> Result<InscriptionOutput> {
     let output = self.get_inscription_by_number(chain, inscription_number)?;
     Ok(output)
+  }
+
+  pub(crate) async fn api_get_inscription_info_by_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<InscriptionInfo> {
+    let rtx = self.database.begin_read()?;
+
+    let inscription_number_to_inscription_id =
+      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+
+    let highest = match inscription_number_to_inscription_id.iter()?.next_back() {
+      Some(Ok((number, _id))) => number.value(),
+      Some(Err(_)) | None => 0,
+    };
+
+    let entry = self.get_inscription_entry(inscription_id)?.unwrap();
+    // let prev_id = self
+    //   .get_inscription_id_by_inscription_number(entry.number - 1)?
+    //   .unwrap();
+    let next_id = self.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
+    Ok(InscriptionInfo {
+      inscription_id,
+      inscription_number: entry.number,
+      next_id,
+      // prev_id,
+      genesis_hash: inscription_id.txid,
+      genesis_height: entry.height,
+      total_num: highest,
+      timestamp: entry.timestamp,
+    })
   }
 
   #[cfg(test)]

@@ -1,4 +1,4 @@
-use crate::index::InscriptionOutput;
+use crate::index::{InscriptionInfo, InscriptionOutput};
 
 use {
   self::{
@@ -268,6 +268,8 @@ impl Server {
         // Api
         .route("/api/inscription/number/:number", get(Self::inscription_by_number))
         .route("/api/content/number/:number", get(Self::api_content))
+        .route("/api/inscription_info/:inscription_id", get(Self::api_inscription_info))
+        .route("/api/inscriptions/block/:height", get(Self::api_inscriptions_in_block))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -1093,7 +1095,9 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(number): Path<i64>,
   ) -> ServerResult<Json<InscriptionOutput>> {
-    let data = index.api_get_inscription_by_number(page_config.chain, number).await?;
+    let data = index
+      .api_get_inscription_by_number(page_config.chain, number)
+      .await?;
     Ok(Json(data))
   }
 
@@ -1103,7 +1107,8 @@ impl Server {
     Path(number): Path<i64>,
   ) -> ServerResult<Response> {
     let inscription_id = index
-      .get_inscription_id_by_inscription_number(number)?.unwrap();
+      .get_inscription_id_by_inscription_number(number)?
+      .unwrap();
     if config.is_hidden(inscription_id) {
       return Ok(PreviewUnknownHtml.into_response());
     }
@@ -1117,6 +1122,29 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
+  }
+
+  async fn api_inscription_info(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Json<InscriptionInfo>> {
+    let info = index.api_get_inscription_info_by_id(inscription_id).await?;
+    Ok(Json(info))
+  }
+
+  async fn api_inscriptions_in_block(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
+    Path(block_height): Path<u64>,
+  ) -> ServerResult<Json<Vec<InscriptionId>>> {
+    let block_index = block_index_state
+      .block_index
+      .read()
+      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
+    let inscriptions = index
+      .get_inscriptions_in_block(&block_index, block_height)
+      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+    Ok(Json(inscriptions))
   }
 
   async fn preview(
