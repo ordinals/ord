@@ -75,6 +75,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut total_input_value = 0;
     let mut id_counter = 0;
 
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+
     for (input_index, tx_in) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
@@ -134,7 +136,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let inscribed_offset = inscribed_offsets.get(&offset);
+        // let inscribed_offset = inscribed_offsets.get(&offset);
 
         let curse = if self.height >= self.chain.jubilee_height() {
           None
@@ -154,7 +156,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::Pushnum)
         } else if inscription.stutter {
           Some(Curse::Stutter)
-        } else if let Some((id, count)) = inscribed_offset {
+        } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
           if *count > 1 {
             Some(Curse::Reinscription)
           } else {
@@ -183,11 +185,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
+
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
-            reinscription: inscribed_offset.is_some(),
+            reinscription: inscribed_offsets.get(&offset).is_some(),
             cursed: curse.is_some(),
             fee: 0,
             hidden: inscription.payload.hidden(),
@@ -196,6 +199,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             unbound,
           },
         });
+
+        if let Some(pointer) =
+          Self::is_valid_pointer(inscription.payload.pointer(), total_output_value)
+        {
+          inscribed_offsets.insert(pointer, (inscription_id, 0));
+        } else {
+          inscribed_offsets.insert(offset, (inscription_id, 0)); // TODO: correct number
+        }
 
         envelopes.next();
         id_counter += 1;
@@ -222,8 +233,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     }
 
     // still have to normalize over inscription size
-    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
-
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
         origin: Origin::New { ref mut fee, .. },
@@ -325,6 +334,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.reward += total_input_value - output_value;
       Ok(())
     }
+  }
+
+  fn is_valid_pointer(pointer: Option<u64>, total_output_value: u64) -> Option<u64> {
+    pointer.and_then(|pointer| {
+      if pointer < total_output_value {
+        Some(pointer)
+      } else {
+        None
+      }
+    })
   }
 
   fn calculate_sat(

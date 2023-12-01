@@ -4332,6 +4332,93 @@ next
   }
 
   #[test]
+  fn charm_reinscription_in_same_tx() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"foo")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"bar")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"qix")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, witness)],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 1 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+
+    let id = InscriptionId { txid, index: 2 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -2</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
   fn charm_unbound() {
     let server = TestServer::new_with_regtest();
 

@@ -3494,7 +3494,6 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, witness)],
-
         ..Default::default()
       });
 
