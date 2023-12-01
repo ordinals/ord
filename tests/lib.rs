@@ -123,6 +123,7 @@ mod command_builder;
 mod expected;
 mod test_server;
 
+mod balances;
 mod core;
 mod decode;
 mod epochs;

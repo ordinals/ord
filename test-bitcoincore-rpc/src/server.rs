@@ -253,10 +253,19 @@ impl Api for Server {
       .map(|txout| txout.value)
       .sum::<u64>();
 
-    let (outpoint, input_value) = state
+    let mut utxos = state
       .utxos
+      .clone()
+      .into_iter()
+      .map(|(outpoint, value)| (value, outpoint))
+      .collect::<Vec<(Amount, OutPoint)>>();
+
+    utxos.sort();
+    utxos.reverse();
+
+    let (input_value, outpoint) = utxos
       .iter()
-      .find(|(outpoint, value)| value.to_sat() >= output_value && !state.locked.contains(outpoint))
+      .find(|(value, outpoint)| value.to_sat() >= output_value && !state.locked.contains(outpoint))
       .ok_or_else(Self::not_found)?;
 
     transaction.input.push(TxIn {
