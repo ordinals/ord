@@ -21,6 +21,11 @@ const ENDPOINTS: &[(&str, StatusCode, &str)] = &[
     "BYPASS",
   ),
   (
+    "/preview/114c5c87c4d0a7facb2b4bf515a4ad385182c076a5cfcc2982bf2df103ec0fffi0",
+    StatusCode::OK,
+    "HIT",
+  ),
+  (
     "/preview/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
     StatusCode::OK,
     "BYPASS",
