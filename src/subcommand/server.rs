@@ -4332,7 +4332,7 @@ next
   }
 
   #[test]
-  fn charm_reinscription_in_same_tx() {
+  fn charm_reinscription_in_same_tx_input() {
     let server = TestServer::new_with_regtest();
 
     server.mine_blocks(1);
@@ -4373,21 +4373,16 @@ next
 
     server.mine_blocks(1);
 
-    let id = InscriptionId { txid, index: 1 };
-
+    let id = InscriptionId { txid, index: 0 };
     server.assert_response_regex(
       format!("/inscription/{id}"),
       StatusCode::OK,
       format!(
-        ".*<h1>Inscription -1</h1>.*
+        ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>charms</dt>
-  <dd>
-    <span title=reinscription>♻️</span>
-    <span title=cursed>👹</span>
-  </dd>
+  <dt>output value</dt>
   .*
 </dl>
 .*
@@ -4395,26 +4390,81 @@ next
       ),
     );
 
-    let id = InscriptionId { txid, index: 2 };
+    let id = InscriptionId { txid, index: 1 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
+    );
 
+    let id = InscriptionId { txid, index: 2 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
+    );
+  }
+
+  #[test]
+  fn charm_reinscription_in_same_tx_with_pointer() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(3);
+
+    let cursed_inscription = inscription("text/plain", "bar");
+    let reinscription: Inscription = InscriptionTemplate {
+      pointer: Some(0),
+      ..Default::default()
+    }
+    .into();
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, inscription("text/plain", "foo").to_witness()),
+        (2, 0, 0, cursed_inscription.to_witness()),
+        (3, 0, 0, reinscription.to_witness()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
     server.assert_response_regex(
       format!("/inscription/{id}"),
       StatusCode::OK,
       format!(
-        ".*<h1>Inscription -2</h1>.*
+        ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>charms</dt>
-  <dd>
-    <span title=reinscription>♻️</span>
-    <span title=cursed>👹</span>
-  </dd>
+  <dt>output value</dt>
   .*
 </dl>
 .*
 "
       ),
+    );
+
+    let id = InscriptionId { txid, index: 1 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=cursed>👹</span>.*",
+    );
+
+    let id = InscriptionId { txid, index: 2 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
     );
   }
 

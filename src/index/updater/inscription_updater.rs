@@ -135,8 +135,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let inscribed_offset = inscribed_offsets.get(&offset);
-
         let curse = if self.height >= self.chain.jubilee_height() {
           None
         } else if inscription.payload.unrecognized_even_field {
@@ -155,7 +153,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::Pushnum)
         } else if inscription.stutter {
           Some(Curse::Stutter)
-        } else if let Some((id, count)) = inscribed_offset {
+        } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
           if *count > 1 {
             Some(Curse::Reinscription)
           } else {
@@ -184,11 +182,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
+        let offset = inscription
+          .payload
+          .pointer()
+          .filter(|&pointer| pointer < total_output_value)
+          .unwrap_or(offset);
+
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
-            reinscription: inscribed_offset.is_some(),
+            reinscription: inscribed_offsets.get(&offset).is_some(),
             cursed: curse.is_some(),
             fee: 0,
             hidden: inscription.payload.hidden(),
@@ -197,12 +201,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             unbound,
           },
         });
-
-        let offset = inscription
-          .payload
-          .pointer()
-          .filter(|&pointer| pointer < total_output_value)
-          .unwrap_or(offset);
 
         inscribed_offsets
           .entry(offset)
