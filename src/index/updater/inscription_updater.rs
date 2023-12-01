@@ -185,7 +185,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
-
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
