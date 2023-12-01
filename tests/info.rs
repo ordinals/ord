@@ -19,6 +19,7 @@ fn json_with_satoshi_index() {
   "sat_ranges": 1,
   "stored_bytes": \d+,
   "tables": .*,
+  "total_bytes": \d+,
   "transactions": \[
     \{
       "starting_block_count": 0,
@@ -52,6 +53,7 @@ fn json_without_satoshi_index() {
   "sat_ranges": 0,
   "stored_bytes": \d+,
   "tables": .*,
+  "total_bytes": \d+,
   "transactions": \[
     \{
       "starting_block_count": 0,
