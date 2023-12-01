@@ -1,6 +1,22 @@
 Changelog
 =========
 
+[0.12.3](https://github.com/ordinals/ord/releases/tag/0.12.3) - 2023-12-01
+--------------------------------------------------------------------------
+
+### Added
+- Add `ord balances` to show rune balances (#2782)
+
+### Fixed
+- Fix preview test (#2795)
+- Fix reinscriptions charm (#2793)
+- Fix fee calculation for batch inscribe on same sat (#2785)
+
+### Misc
+- Add `audit-cache` binary to audit Cloudflare caching (#2787)
+- Fix typos (#2791)
+- Add total bytes and proportion to database info (#2783)
+
 [0.12.2](https://github.com/ordinals/ord/releases/tag/0.12.2) - 2023-11-29
 --------------------------------------------------------------------------
 
