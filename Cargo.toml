@@ -15,7 +15,7 @@ copyright = "The Ord Maintainers"
 maintainer = "The Ord Maintainers"
 
 [workspace]
-members = [".", "test-bitcoincore-rpc"]
+members = [".", "test-bitcoincore-rpc", "crates/*"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
