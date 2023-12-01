@@ -71,10 +71,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let mut envelopes = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
+    let mut id_counter = 0;
     let mut inscribed_offsets = BTreeMap::new();
     let mut total_input_value = 0;
-    let mut id_counter = 0;
-
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
@@ -199,13 +198,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           },
         });
 
-        if let Some(pointer) =
-          Self::is_valid_pointer(inscription.payload.pointer(), total_output_value)
-        {
-          inscribed_offsets.insert(pointer, (inscription_id, 0));
-        } else {
-          inscribed_offsets.insert(offset, (inscription_id, 0)); // TODO: correct number
-        }
+        let offset = inscription
+          .payload
+          .pointer()
+          .filter(|&pointer| pointer < total_output_value)
+          .unwrap_or(offset);
+
+        inscribed_offsets
+          .entry(offset)
+          .or_insert((inscription_id, 0))
+          .1 += 1;
 
         envelopes.next();
         id_counter += 1;
@@ -333,16 +335,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.reward += total_input_value - output_value;
       Ok(())
     }
-  }
-
-  fn is_valid_pointer(pointer: Option<u64>, total_output_value: u64) -> Option<u64> {
-    pointer.and_then(|pointer| {
-      if pointer < total_output_value {
-        Some(pointer)
-      } else {
-        None
-      }
-    })
   }
 
   fn calculate_sat(
