@@ -32,11 +32,11 @@ fn inscriptions() {
     "wallet send --fee-rate 1 --recipient {} {inscription}",
     address.assume_checked()
   ))
-    .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run_and_deserialize_output::<send::Output>()
-    .transaction;
+  .rpc_server(&rpc_server)
+  .expected_exit_code(0)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<send::Output>()
+  .transaction;
 
   rpc_server.mine_blocks(1);
 
@@ -97,10 +97,10 @@ fn inscriptions_with_postage() {
     "wallet send --fee-rate 1 --recipient {} {inscription}",
     address.assume_checked()
   ))
-    .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run_and_extract_stdout();
+  .rpc_server(&rpc_server)
+  .expected_exit_code(0)
+  .stdout_regex(".*")
+  .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 

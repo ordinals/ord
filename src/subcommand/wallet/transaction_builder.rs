@@ -387,15 +387,15 @@ impl TransactionBuilder {
 
       if excess > max
         && value.checked_sub(target).unwrap()
-        > self
-        .unused_change_addresses
-        .last()
-        .unwrap()
-        .script_pubkey()
-        .dust_value()
-        + self
-        .fee_rate
-        .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
+          > self
+            .unused_change_addresses
+            .last()
+            .unwrap()
+            .script_pubkey()
+            .dust_value()
+            + self
+              .fee_rate
+              .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
         tprintln!("stripped {} sats", (value - target).to_sat());
         self.outputs.last_mut().expect("no outputs found").1 = target;
@@ -482,7 +482,7 @@ impl TransactionBuilder {
         })
         .collect(),
     }
-      .vsize()
+    .vsize()
   }
 
   fn estimate_fee(&self) -> Amount {
@@ -608,12 +608,12 @@ impl TransactionBuilder {
             assert!(
               Amount::from_sat(output.value).checked_sub(value).unwrap()
                 <= self
-                .change_addresses
-                .iter()
-                .map(|address| address.script_pubkey().dust_value())
-                .max()
-                .unwrap_or_default()
-                + slop,
+                  .change_addresses
+                  .iter()
+                  .map(|address| address.script_pubkey().dust_value())
+                  .max()
+                  .unwrap_or_default()
+                  + slop,
               "invariant: output equals target value",
             );
           }
@@ -775,8 +775,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap();
+    .select_outgoing()
+    .unwrap();
 
     utxos.remove(1);
     assert_eq!(
@@ -850,9 +850,9 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .build_transaction()
-      .unwrap()
-      .is_explicitly_rbf())
+    .build_transaction()
+    .unwrap()
+    .is_explicitly_rbf())
   }
 
   #[test]
@@ -897,11 +897,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .align_outgoing()
-      .strip_value()
-      .deduct_fee();
+    .select_outgoing()
+    .unwrap()
+    .align_outgoing()
+    .strip_value()
+    .deduct_fee();
   }
 
   #[test]
@@ -1027,8 +1027,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .build()
-      .unwrap();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1047,8 +1047,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .build()
-      .unwrap();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1067,8 +1067,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .build()
-      .unwrap();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1087,8 +1087,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap();
+    .select_outgoing()
+    .unwrap();
 
     builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
       .parse::<Address<NetworkUnchecked>>()
@@ -1115,8 +1115,8 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap();
+    .select_outgoing()
+    .unwrap();
 
     builder.outputs[0].1 = Amount::from_sat(0);
 
@@ -1168,10 +1168,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .build()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1245,13 +1245,13 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .align_outgoing()
-      .add_value()
-      .unwrap()
-      .strip_value()
-      .deduct_fee();
+    .select_outgoing()
+    .unwrap()
+    .align_outgoing()
+    .add_value()
+    .unwrap()
+    .strip_value()
+    .deduct_fee();
 
     builder.change_addresses = BTreeSet::new();
 
@@ -1274,15 +1274,15 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .align_outgoing()
-      .add_value()
-      .unwrap()
-      .strip_value()
-      .deduct_fee()
-      .build()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .align_outgoing()
+    .add_value()
+    .unwrap()
+    .strip_value()
+    .deduct_fee()
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1301,12 +1301,12 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .strip_value()
-      .deduct_fee()
-      .build()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .strip_value()
+    .deduct_fee()
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1325,11 +1325,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-      .select_outgoing()
-      .unwrap()
-      .strip_value()
-      .build()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .strip_value()
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1359,8 +1359,8 @@ mod tests {
       ],
       target: Target::Postage,
     }
-      .build()
-      .unwrap();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1390,8 +1390,8 @@ mod tests {
       ],
       target: Target::Postage,
     }
-      .build()
-      .unwrap();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -1484,8 +1484,8 @@ mod tests {
       fee_rate,
       Target::Postage,
     )
-      .build_transaction()
-      .unwrap();
+    .build_transaction()
+    .unwrap();
 
     let fee =
       fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
@@ -1866,10 +1866,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-      .select_outgoing()
-      .unwrap()
-      .add_value()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .add_value()
+    .unwrap();
 
     utxos.remove(4);
     utxos.remove(3);
@@ -1915,11 +1915,11 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-      .select_outgoing()
-      .unwrap()
-      .align_outgoing()
-      .pad_alignment_output()
-      .unwrap();
+    .select_outgoing()
+    .unwrap()
+    .align_outgoing()
+    .pad_alignment_output()
+    .unwrap();
 
     utxos.remove(5);
     utxos.remove(2);

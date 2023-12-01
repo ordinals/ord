@@ -8,25 +8,25 @@ use {
 
 #[derive(Debug, Parser, Clone)]
 #[clap(
-group = ArgGroup::new("output")
-.required(true)
-.args(&["address", "burn"]),
+  group = ArgGroup::new("output")
+  .required(true)
+  .args(&["address", "burn"]),
 )]
 pub(crate) struct Send {
   outgoing: Outgoing,
   #[arg(long, conflicts_with = "burn", help = "Recipient address")]
   address: Option<Address<NetworkUnchecked>>,
   #[arg(
-  long,
-  conflicts_with = "address",
-  help = "Message to append when burning sats"
+    long,
+    conflicts_with = "address",
+    help = "Message to append when burning sats"
   )]
   burn: Option<String>,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
-  long,
-  help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
+    long,
+    help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
 }
@@ -129,7 +129,7 @@ impl Send {
       self.fee_rate,
       postage,
     )
-      .build_transaction()?;
+    .build_transaction()?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
