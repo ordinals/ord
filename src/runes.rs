@@ -1,11 +1,11 @@
 use {self::error::Error, super::*};
 
-pub use runestone::Runestone;
+pub use {rune::Rune, rune_id::RuneId};
 
-pub(crate) use {edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId};
+pub(crate) use {edict::Edict, etching::Etching, pile::Pile, runestone::Runestone};
 
+pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
-const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 
 mod edict;

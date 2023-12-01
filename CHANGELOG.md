@@ -1,6 +1,33 @@
 Changelog
 =========
 
+[0.12.2](https://github.com/ordinals/ord/releases/tag/0.12.2) - 2023-11-29
+--------------------------------------------------------------------------
+
+### Added
+- Bless cursed inscriptions after Jubilee height (#2656)
+
+### Misc
+- Hide /content/<INSCRIPTION_ID> HTML inscriptions (#2778)
+
+[0.12.1](https://github.com/ordinals/ord/releases/tag/0.12.1) - 2023-11-29
+--------------------------------------------------------------------------
+
+### Added
+- Add commands to etch and list runes (#2544)
+- Add ability to specify sat to batch inscribe (#2770)
+- Allow setting the sat to inscribe (#2765)
+- Batch inscribe on same sat (#2749)
+- Add stuttering curse (#2745)
+- Add batch to preview command (#2752)
+
+### Misc
+- Add `public` to /content Cache-Control headers (#2773)
+- Set CSP origin in deploy script (#2764)
+- Fix typos (#2768)
+- Select further away coins which meet target (#2724)
+- Hide all text (#2753)
+
 [0.12.0](https://github.com/ordinals/ord/releases/tag/0.12.0) - 2023-11-24
 --------------------------------------------------------------------------
 

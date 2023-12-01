@@ -4,7 +4,6 @@ use {
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },
-  bitcoincore_rpc::RawTx,
 };
 
 pub(crate) struct Server {
@@ -238,6 +237,60 @@ impl Api for Server {
     })
   }
 
+  fn fund_raw_transaction(
+    &self,
+    tx: String,
+    options: Option<FundRawTransactionOptions>,
+    _is_witness: Option<bool>,
+  ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
+    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    let state = self.state();
+
+    let output_value = transaction
+      .output
+      .iter()
+      .map(|txout| txout.value)
+      .sum::<u64>();
+
+    let (outpoint, input_value) = state
+      .utxos
+      .iter()
+      .find(|(outpoint, value)| value.to_sat() >= output_value && !state.locked.contains(outpoint))
+      .ok_or_else(Self::not_found)?;
+
+    transaction.input.push(TxIn {
+      previous_output: *outpoint,
+      script_sig: ScriptBuf::new(),
+      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+      witness: Witness::default(),
+    });
+
+    let change_position = transaction.output.len() as i32;
+
+    transaction.output.push(TxOut {
+      value: input_value.to_sat() - output_value,
+      script_pubkey: ScriptBuf::new(),
+    });
+
+    let fee = if let Some(fee_rate) = options.and_then(|options| options.fee_rate) {
+      // increase vsize to account for the witness that `fundrawtransaction` will add
+      let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
+      let funded_kwu = funded_vsize / 1000.0;
+      let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
+      transaction.output.last_mut().unwrap().value -= fee;
+      fee
+    } else {
+      0
+    };
+
+    Ok(FundRawTransactionResult {
+      hex: serialize(&transaction),
+      fee: Amount::from_sat(fee),
+      change_position,
+    })
+  }
+
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
@@ -255,7 +308,7 @@ impl Api for Server {
 
     Ok(
       serde_json::to_value(SignRawTransactionResult {
-        hex: hex::decode(transaction.raw_hex()).unwrap(),
+        hex: serialize(&transaction),
         complete: true,
         errors: None,
       })
@@ -334,6 +387,8 @@ impl Api for Server {
 
     transaction.output[1].value -= fee;
 
+    let txid = transaction.txid();
+
     state.mempool.push(transaction);
 
     state.sent.push(Sent {
@@ -342,11 +397,7 @@ impl Api for Server {
       locked,
     });
 
-    Ok(
-      "0000000000000000000000000000000000000000000000000000000000000000"
-        .parse()
-        .unwrap(),
-    )
+    Ok(txid)
   }
 
   fn get_transaction(

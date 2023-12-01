@@ -8,7 +8,7 @@ cd /var/lib/ord
 
 mkdir -p /var/lib/ord/$REVISION
 
-# Still have to manually set --index-sats or --heigh-limit
+# Still have to manually set --index-sats or --height-limit
 #  --height-limit 100000 \
 /usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \

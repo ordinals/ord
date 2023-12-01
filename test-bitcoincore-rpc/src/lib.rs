@@ -32,10 +32,13 @@ use {
   state::State,
   std::{
     collections::{BTreeMap, BTreeSet, HashMap},
+    fs,
+    path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
   },
+  tempfile::TempDir,
 };
 
 mod api;
@@ -105,8 +108,13 @@ impl Builder {
       thread::sleep(Duration::from_millis(25));
     }
 
+    let tempdir = TempDir::new().unwrap();
+
+    fs::write(tempdir.path().join(".cookie"), "username:password").unwrap();
+
     Handle {
       close_handle: Some(close_handle),
+      tempdir,
       port,
       state,
     }
@@ -149,6 +157,24 @@ impl From<OutPoint> for JsonOutPoint {
   }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FundRawTransactionOptions {
+  #[serde(with = "bitcoin::amount::serde::as_btc::opt")]
+  fee_rate: Option<Amount>,
+}
+
+#[derive(Deserialize, Clone, PartialEq, Eq, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FundRawTransactionResult {
+  #[serde(with = "bitcoincore_rpc::json::serde_hex")]
+  pub hex: Vec<u8>,
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  pub fee: Amount,
+  #[serde(rename = "changepos")]
+  pub change_position: i32,
+}
+
 impl<'a> Default for TransactionTemplate<'a> {
   fn default() -> Self {
     Self {
@@ -166,6 +192,7 @@ pub struct Handle {
   close_handle: Option<CloseHandle>,
   port: u16,
   state: Arc<Mutex<State>>,
+  tempdir: TempDir,
 }
 
 impl Handle {
@@ -194,6 +221,10 @@ impl Handle {
 
   pub fn broadcast_tx(&self, template: TransactionTemplate) -> Txid {
     self.state().broadcast_tx(template)
+  }
+
+  pub fn height(&self) -> u64 {
+    u64::try_from(self.state().blocks.len()).unwrap() - 1
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
@@ -245,6 +276,10 @@ impl Handle {
 
   pub fn get_change_addresses(&self) -> Vec<Address> {
     self.state().change_addresses.clone()
+  }
+
+  pub fn cookie_file(&self) -> PathBuf {
+    self.tempdir.path().join(".cookie")
   }
 }
 

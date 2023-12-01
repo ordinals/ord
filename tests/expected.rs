@@ -11,6 +11,7 @@ impl Expected {
     Self::Regex(Regex::new(&format!("^(?s){pattern}$")).unwrap())
   }
 
+  #[track_caller]
   pub(crate) fn assert_match(&self, output: &str) {
     match self {
       Self::String(string) => pretty_assert_eq!(output, string),

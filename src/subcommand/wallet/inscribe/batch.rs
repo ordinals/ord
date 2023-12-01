@@ -41,6 +41,7 @@ impl Batch {
     index: &Index,
     client: &Client,
     locked_utxos: &BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
@@ -55,6 +56,7 @@ impl Batch {
         wallet_inscriptions,
         chain,
         locked_utxos.clone(),
+        runic_utxos,
         utxos.clone(),
         commit_tx_change,
       )?;
@@ -179,6 +181,7 @@ impl Batch {
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
@@ -187,14 +190,6 @@ impl Batch {
         .inscriptions
         .iter()
         .all(|inscription| inscription.parent().unwrap() == parent_info.id))
-    }
-
-    if self.satpoint.is_some() {
-      assert_eq!(
-        self.inscriptions.len(),
-        1,
-        "invariant: satpoint may only be specified when making a single inscription",
-      );
     }
 
     match self.mode {
@@ -224,9 +219,14 @@ impl Batch {
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint) && !locked_utxos.contains(outpoint))
-        .map(|outpoint| SatPoint {
+        .iter()
+        .find(|(outpoint, amount)| {
+          amount.to_sat() > 0
+            && !inscribed_utxos.contains(outpoint)
+            && !locked_utxos.contains(outpoint)
+            && !runic_utxos.contains(outpoint)
+        })
+        .map(|(outpoint, _amount)| SatPoint {
           outpoint: *outpoint,
           offset: 0,
         })
@@ -282,7 +282,12 @@ impl Batch {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = self.postage * u64::try_from(self.inscriptions.len()).unwrap();
+    let total_postage = match self.mode {
+      Mode::SameSat => self.postage,
+      Mode::SharedOutput | Mode::SeparateOutputs => {
+        self.postage * u64::try_from(self.inscriptions.len()).unwrap()
+      }
+    };
 
     let mut reveal_inputs = vec![OutPoint::null()];
     let mut reveal_outputs = self
@@ -291,8 +296,8 @@ impl Batch {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs | Mode::SameSat => self.postage.to_sat(),
-          Mode::SharedOutput => total_postage.to_sat(),
+          Mode::SeparateOutputs => self.postage.to_sat(),
+          Mode::SharedOutput | Mode::SameSat => total_postage.to_sat(),
         },
       })
       .collect::<Vec<TxOut>>();
@@ -330,6 +335,7 @@ impl Batch {
       wallet_inscriptions,
       utxos.clone(),
       locked_utxos.clone(),
+      runic_utxos,
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
@@ -563,6 +569,7 @@ pub(crate) struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Batchfile {
