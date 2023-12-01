@@ -247,7 +247,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="explorador-ordinal"><a class="header" href="#explorador-ordinal">Explorador Ordinal</a></h1>
-<p>El binario <code>ord</code> incluye un explorador de bloques. Alojamos una instancia del explorador de bloques en la mainnet en <a href="https://ordinals.com/">ordinals.com</a> y en signet en <a href="https://signet.ordinals.com/">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="ejecutando-el-explorador"><a class="header" href="#ejecutando-el-explorador">Ejecutando El Explorador</a></h3>
 <p>El servidor puede ser ejecutado localmente utilizando:</p>
 <p><code>ord server</code></p>
@@ -266,7 +266,7 @@
 <p>Las transacciones pueden buscarse por su hash, por ejemplo, esta es la transacción coinbase del bloque génesis:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="salidas"><a class="header" href="#salidas">Salidas</a></h3>
-<p>Las salidas de las transacciones se pueden buscar por outpoint, por ejemplo, esta la única salida de la transacción coinbase del bloque génesis:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Los sats se pueden buscar por número entero (integer), que representa su posición dentro del suministro total de bitcoin:</p>
@@ -280,7 +280,7 @@
 <p>O por percentil, el cual representa el porcentaje del suministro total de bitcoin que ha sido o será emitido una vez sean minados:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

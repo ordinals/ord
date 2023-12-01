@@ -247,7 +247,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ordinal-обозреватель"><a class="header" href="#ordinal-обозреватель">Ordinal обозреватель</a></h1>
-<p>Двоичный код <code>ord</code> включает в себя обозреватель блоков. Мы размещаем экземпляр обозревателя блоков в mainnet по адресу <a href="https://ordinals.com">ordinals.com</a>, и в signet по адресу <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="Запуск-обозревателя"><a class="header" href="#Запуск-обозревателя">Запуск обозревателя</a></h3>
 <p>Сервер может быть запущен локально с помощью команды:</p>
 <p><code>ord server</code></p>
@@ -266,7 +266,7 @@
 <p>Транзакции можно искать по хэшу, например, транзакция coinbase на блоке genesis:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="Выходы"><a class="header" href="#Выходы">Выходы</a></h3>
-<p>Выходы транзакций могут искаться по выходной точке, например, единственный выход транзакции coinbase на блоке genesis:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Sats можно искать по целому числу, по их положению во всем запасе Биткоинов:</p>
@@ -280,7 +280,7 @@
 <p>Или по процентному соотношению - процент от количества Биткоинов, которые были или будут выпущены при их майнинге:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

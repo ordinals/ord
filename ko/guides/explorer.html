@@ -247,7 +247,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="오디널-탐색기"><a class="header" href="#오디널-탐색기">오디널 탐색기</a></h1>
-<p><code>ord</code> 바이너리에는 블록 탐색기가 포함되어 있다. 블록 탐색기의 인스턴스는 메인넷은 <a href="https://ordinals.com">ordinals.com</a>에서, 시그넷은 <a href="https://signet.ordinals.com">signet.ordinals.com</a>에서 호스팅된다.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="탐색기-실행"><a class="header" href="#탐색기-실행">탐색기 실행</a></h3>
 <p>서버는 이것으로 로컬에서 실행할 수 있다:</p>
 <p><code>ord server</code></p>
@@ -266,7 +266,7 @@
 <p>트랜잭션을 해시별로 검색할 수 있다 (예를 들어 제네시스 블록 코인베이스 트랜잭션):</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="출력"><a class="header" href="#출력">출력</a></h3>
-<p>트랜잭션 출력을 아웃포인트별로 검색할 수 있다 (예를 들어 제네시스 블록 코인베이스 트랜잭션의 유일한 출력):</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>각 SAT은 정수로 검색할 수 있다. 이는 전체 비트코인 공급량 내에서 해당 SAT의 위치다:</p>
@@ -280,7 +280,7 @@
 <p>또는 백분위수로 검색할 수 있다. 이는 해당 SAT가 채굴되었을 때 이미 발행되었거나 앞으로 발행될 비트코인의 공급량의 비율이다:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

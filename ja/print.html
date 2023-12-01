@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論の指導"><a class="header" href="#序数理論の指導">序数理論の指導</a></h1>
 <p>ガイドの一覧については、カタログを参照してください。これには、ブロックブラウザガイド、スマートフォンガイド、銘文ガイドなどがあります。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数ブラウザ"><a class="header" href="#序数ブラウザ">序数ブラウザ</a></h1>
-<p><code>ord</code> ファイルにはブロックブラウザが含まれています。当社のメインネットワークブロックチェーンは <a href="https://ordinals.com">ordinals.com</a>, signet<a href="https://signet.ordinals.com">signet.ordinals.com</a>に配置します。</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="運行ブラウザ"><a class="header" href="#運行ブラウザ">運行ブラウザ</a></h3>
 <p>サーバはローカルで運行可能：</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>創世記ブロックのcoinbaseトランザクションなど、ハッシュによってトランザクションを見つけることができます。：</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="輸出"><a class="header" href="#輸出">輸出</a></h3>
-<p>アウトポイントを使用して、創世ブロックcoinbaseトランザクションのユニークな出力などのトランザクション出力を検索できます：</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="聡"><a class="header" href="#聡">聡</a></h3>
 <p>聡は整数で検索することができ、ビットコインの供給全体の中のそれらの位置：</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>または百分率で、採掘時にすでに発行された、または発行される予定のビットコインの供給量のパーセント：</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>できなかった取引状況を検査します：</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることができます</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="賞金任務-3"><a class="header" href="#賞金任務-3">賞金任務 3</a></h1>
 <h2 id="標準-3"><a class="header" href="#標準-3">標準</a></h2>
 <p>任务3は二つの部分があり、序数の名前に基づきます_序数の名前は序数の数字を直したbase-26によって行われたコードです。短い名前を時間をかけはいけない創成プレート奨励の中に絞らないように序数の長くなるほど、序数の名前は短くなります。例えば、初めに採掘された０番の聡の名前は<code>nvtdijuwxlpで</code>、最後に採掘された2,099,999,997,689,999番の聡の名前は <code>a</code>です。</p>
-<p>賞金計画はブロック高度の840000の-第四回の半分にしたの初めてのブロックまで開放します。ブロック高度の840000及びそれ以上のブロックは考えられません</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>二つの部分のミッションが使われ <a href="bounty/frequency.tsv">frequency.tsv</a>, 一つの単語のリスト及び <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>で現れた回数。濾過した後、提出時間が終わるときに発掘された聡の名前だけを含まれ、これらの名称は少なくともコーパスの中で5000回以上現れます。</p>
 <p><code>frequency.tsv</code> タブ区切り値のファイルは第一列が単語で，第二列がコーパスに現れる回数ですこれらの条目は出現の最も低い頻度から最も高い頻度まで順番に並べています。</p>
 <p><code>frequency.tsv</code> [このプログラム]を使って(https://github.com/casey/onegrams)纂訳されます。.</p>

@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="دليل-نظرية-أوردينال"><a class="header" href="#دليل-نظرية-أوردينال">دليل نظرية أوردينال</a></h1>
 <p>جدول المحتويات للحصول على قائمة في بعض المحتوى بما في ذلك دليل للموقع، ودليل لصيادي الساتوشي، ودليل الإنسكريبشين.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="متصفح-أوردينال"><a class="header" href="#متصفح-أوردينال">متصفح أوردينال</a></h1>
-<p>يتضمن البرنامج الثنائي للأورد إكسبلورر كتل. نحن نستضيف مثيلًا من إكسبلورر الكتل على الشبكة الرئيسية على موقع <a href="https://%D8%A3%D9%88%D8%B1%D8%AF%D9%8A%D9%86%D8%A7%D9%84s.com/">أوردينالs.com</a>، وعلى شبكة الاختبار signet على موقع <a href="https://signet.%D8%A3%D9%88%D8%B1%D8%AF%D9%8A%D9%86%D8%A7%D9%84s.com/">signet.أوردينالs.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="تشغيل-المتصفح"><a class="header" href="#تشغيل-المتصفح">تشغيل المتصفح</a></h3>
 <p>يمكن تشغيل المتصفح محليا على:</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>يمكن البحث عن المعاملات عبر الهاش، على سبيل المثال، معاملة العملات النقدية في block genesis :</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="المخرجات"><a class="header" href="#المخرجات">المخرجات</a></h3>
-<p>البحث عن مخرجات المعاملات عبر نقطة الإخراج Outputs، على سبيل المثال، الناتج الوحيد لمعاملة العملات النقدية في block genesis :</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="الساتس"><a class="header" href="#الساتس">الساتس</a></h3>
 <p>يمكن البحث عن الساتس (Sats) عبر العدد الصحيح، وموقعها ضمن إجمالي إمدادات البيتكوين:</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>أو بالنسبة المئوية، نسبة إمداد بيتكوين التي تم إصدارها أو سيتم إصدارها عندما يتم تعدينها:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>تفقد حاله المعاملة من خلال:</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1542,7 +1542,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="جائزة-أوردينال-3"><a class="header" href="#جائزة-أوردينال-3">جائزة أوردينال 3</a></h1>
 <h2 id="الشروط-3"><a class="header" href="#الشروط-3">الشروط</a></h2>
 <p>جائزة أوردينال 3 لها جزأين، وكليهما مستندان إلى أسماء أوردينالس.<em>أسماء أوردينالس</em>. هي ترميز معدل بنظام الـ 26 استنادًا إلى أرقامهم . لتجنب قفل الأسماء القصيرة داخل مكافأة كوينبيس genesis block التي لا يمكن إنفاقها، تقصر أسماء Ordinal كلما زاد الرقم Ordinal في الطول. اسم السات 0، وهو أول سات تم تعدينه، هو <code>nvtdijuwxlp</code>، واسم سات 2,099,999,997,689,999، وهو آخر سات سيتم تعدينه، هو <code>a</code>.</p>
-<p>الجائزة متاحة للتقديم حتى الكتلة رقم 840000 - أول كتلة بعد الحدث التقسيمي الرابع. لن يتم النظر في التقديمات التي تم تضمينها في الكتلة 840000 أو بعد ذلك.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>كلا الجزءين يستخدمان <a href="bounty/frequency.tsv">frequency.tsv</a>، وهو قائمة بالكلمات وعدد المرات التي تظهر في <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>. حيث تم تصفيتها لتشمل فقط أسماء الساتوشي التي سيتم تعدينها بحلول نهاية فترة التقديم، والتي تظهر على الأقل 5000 مرة في النصوص.</p>
 <p>ملف <code>frequency.tsv</code> هو ملف يحتوي على قيم مفصولة بعلامات التبويب. العمود الأول هو الكلمة، والعمود الثاني هو عدد مرات ظهورها في النص. القيم مرتبة من أقل تكرار إلى أعلى تكرار.</p>
 <p>تم تجميع <code>frequency.tsv</code> باستخدام هذا <a href="https://github.com/casey/onegrams">this program</a>.</p>

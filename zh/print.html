@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数理论指引"><a class="header" href="#序数理论指引">序数理论指引</a></h1>
 <p>请参阅目录以获取指南列表，包括区块浏览器指南、猎聪指南和铭文指南。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数浏览器"><a class="header" href="#序数浏览器">序数浏览器</a></h1>
-<p><code>ord</code> 文件包含一个区块浏览器。我们的主网区块链器部署在 <a href="https://ordinals.com">ordinals.com</a>, signet部署在<a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="运行浏览器"><a class="header" href="#运行浏览器">运行浏览器</a></h3>
 <p>服务器可以使用本地运行：</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>可以通过哈希查找交易，例如创世区块的coinbase交易：</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="输出"><a class="header" href="#输出">输出</a></h3>
-<p>可以通过outpoint搜索交易输出，例如创世块coinbase交易的唯一输出：</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="聪"><a class="header" href="#聪">聪</a></h3>
 <p>聪 可以按整数搜索，它们在整个比特币供应中的位置：</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>或者按百分位数，在开采时已经或将要发行的比特币供应量的百分比：</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>检查未完成交易情况：</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>一旦交易确认，你可以使用以下命令确认收到</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="批量铸造"><a class="header" href="#批量铸造">批量铸造</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="赏金任务-3"><a class="header" href="#赏金任务-3">赏金任务 3</a></h1>
 <h2 id="标准-3"><a class="header" href="#标准-3">标准</a></h2>
 <p>任务3有两个部分，都是基于_序数名字_序数名字是把序数数字用修改后的base-26进行的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的_变长_，序数名字将变得_更短_ 比如第一个开采的0号聪的名字是<code>nvtdijuwxlp</code>，而最后一个被开采的2,099,999,997,689,999号聪的名字，则是 <code>a</code>.</p>
-<p>赏金计划开放到区块高度840000-第四次减半后的第一个区块。区块高度840000以及以后的区块将不被考虑。</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>两个部分任务都使用 <a href="bounty/frequency.tsv">frequency.tsv</a>, 一个单词的清单以及他们在 <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>中出现的次数。过滤后仅包含在提交期结束时能被挖掘的聪的名字，这些名称在语料库中出现至少5000次。</p>
 <p><code>frequency.tsv</code> 制表符分割值的文件，第一列是单词，第二列是它在语料库里出现的次数。这些条目从出现频率最低到出现频率最高的顺序进行排序。</p>
 <p><code>frequency.tsv</code> 使用了<a href="https://github.com/casey/onegrams">这个程序</a>进行的编译.</p>

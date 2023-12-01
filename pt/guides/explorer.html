@@ -247,7 +247,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="explorador-ordinal"><a class="header" href="#explorador-ordinal">Explorador Ordinal</a></h1>
-<p>O binário do <code>ord</code> inclui um explorador de blocos. Hospedamos uma instância do explorador de blocos na mainnet em <a href="https://ordinals.com">ordinals.com</a> e no signet em <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="executando-o-explorador"><a class="header" href="#executando-o-explorador">Executando o Explorador</a></h3>
 <p>O servidor pode ser executado localmente com:</p>
 <p><code>ord server</code></p>
@@ -266,7 +266,7 @@
 <p>As transações podem ser pesquisadas por hash, por exemplo, a transação coinbase do bloco gênesis:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="saídas"><a class="header" href="#saídas">Saídas</a></h3>
-<p>As saídas da transação podem ser pesquisadas por ponto final, por exemplo, a única saída da transação coinbase do bloco gênesis:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Sats podem ser pesquisados por número inteiro, sua posição dentro de toda a oferta de bitcoin </p>
@@ -280,7 +280,7 @@
 <p>Ou por percentil, a porcentagem do oferta de bitcoin que foi ou terá sido emitida quando ele for minerado:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ऑरडिनलस-थयौरी-के-मारगदरशक-निरदेश"><a class="header" href="#ऑरडिनलस-थयौरी-के-मारगदरशक-निरदेश">ऑर्डिनल्स थ्‍यौरी के मार्गदर्शक निर्देश</a></h1>
 <p>मार्गदर्शक निर्देशों की सूची के लिए विषय-वस्‍तु में दी गई तालिका देखें, जिसमें अन्वेषक और अभिलेखों के लिए मार्गदर्शक निर्देश शामिल हैं।</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ऑरडिनलस-एकसपलोरर"><a class="header" href="#ऑरडिनलस-एकसपलोरर">ऑर्डिनल्स एक्सप्लोरर</a></h1>
-<p><code>ऑर्ड</code> बाइनरी में एक ब्‍लॉक एक्‍सप्‍लोरर शामिल हैं। हम ब्लॉक एक्सप्लोरर के उदाहरण मेननेट के <a href="https://ordinals.com">ordinals.com</a>, और <a href="https://signet.ordinals.com">signet.ordinals.com</a> पर होस्ट करते हैं।</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="एकसपलोरर-संचालन"><a class="header" href="#एकसपलोरर-संचालन">एक्सप्लोरर संचालन</a></h3>
 <p>सर्वर स्थानीय रूप से निम्‍न के साथ चलाया जा सकता है:</p>
 <p><code>ऑर्ड सर्वर</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>लेनदेन हैश द्वारा सर्च किए जा सकते हैं, उदाहरण के लिए, जेनेसिस ब्लॉक कॉइनबेस लेनदेन:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="आउटपुट"><a class="header" href="#आउटपुट">आउटपुट</a></h3>
-<p>लेनदेन आउटपुट आउटपॉइंट द्वारा तलाशी जा सकती है, उदाहरण के लिए, जेनेसिस ब्लॉक कॉइनबेस लेनदेन की एकमात्र आउटपुट:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="सैटस"><a class="header" href="#सैटस">सैट्स</a></h3>
 <p>सैट्स इंटेगर (पूर्णांक) द्वारा खोजे जा सकते हैं, संपूर्ण बिटकॉइन आपूर्ति के भीतर उनकी स्थिति में:</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>या प्रतिशतक द्वारा, बिटकॉइन खनन के समय जारी किये गये या जारी की जाने वाली बिटकॉइन की आपूर्ति के अनुरूप की जाएगी:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>निम्‍न के साथ लंबित लेनदेन देखें:</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>एक बार प्रेषण लेनदेन की पुष्टि हो जाने पर, आप निम्न चलाकर रसीद की पुष्टि कर सकते हैं:</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ऑरडिनल-बाउंटी-3"><a class="header" href="#ऑरडिनल-बाउंटी-3">ऑर्डिनल बाउंटी 3</a></h1>
 <h2 id="मानदंड-3"><a class="header" href="#मानदंड-3">मानदंड</a></h2>
 <p>ऑर्डिनल बाउंटी 3 के दो भाग हैं, ये दोनों ऑर्डिनल (क्रमसूचक) नामों पर आधारित हैं। क्रमसूचक नाम, क्रमसूचक संख्याओं की संशोधित मूल-26 एन्कोडिंग हैं। छोटे नामों को खर्च न किए जा सकने योग्‍य जेनेसिस (उत्‍पति) कॉइनबेस इनाम रोकने के लिए, जैसे-जैसे ऑर्डिनल्स (क्रमसूचक) संख्‍याएं <em>लंबी</em> होती हैं ऑर्डिनल्स (क्रमसूचक) नाम <em>छोटे</em> होते जाते हैं। सैट 0 का नाम, खनन किए जाने वाले पहले सैट का नाम <code>nvtdijuwxlp</code> है और सैट का नाम 2,099,999,997,689,999 है, खनन किए जाने वाले अंतिम सैट <code>a</code> है। </p>
-<p>बांउटी, ब्लॉक 840000 तक प्रस्‍तुत करने के लिए उन्‍मुक्‍त है – जो चौथे पड़ाव (खनिकों को मिलने वाले पुरस्कारों &quot;में एक योजनाबद्ध कटौती है। यह शब्द बिटकॉइन के कोड में उल्लिखित है) के बाद वाला पहला ब्लॉक है। ब्लॉक 840000 या इसके बाद के संस्करण में शामिल प्रस्तुतियों पर विचार नहीं किया जाएगा।</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>दोनों भाग <a href="bounty/frequency.tsv">frequency.tsv</a>, का उपयोग करते हैं, ये शब्दों की एक सूची है जो <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a> में कितनी बार घटित हुए हैं उसकी संख्या का केवल उन सैटों के नाम शामिल करने के लिए फ़िल्टर किये जाते हैं जिनकी प्रस्‍तुति अवधि के अंत तक खनन किया गया होगा, और जो कॉर्पस में कम से कम 5000 बार दर्शाये गये हैं।</p>
 <p><code>frequency.tsv</code> टैब-पृथक करने वाले मानों की एक फ़ाइल है। पहला कॉलम शब्द है, और दूसरा कॉर्पस में कितनी बार दिखाई दिया है। प्रविष्टियों को इस प्रकार से क्रमबद्ध किया जाता है बार-बार न्‍यूनतम से बार अधिकतम &quot;घटित होने वाले क्रम में किया जाता है।</p>
 <p><code>frequency.tsv</code> को <a href="https://github.com/casey/onegrams">इस प्रोग्राम</a> &quot;का उपयोग करके संकलित किया गया था।</p>

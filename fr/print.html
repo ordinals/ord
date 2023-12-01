@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="guides-sur-la-théorie-ordinale"><a class="header" href="#guides-sur-la-théorie-ordinale">Guides sur la théorie ordinale</a></h1>
 <p>Consultez la table des matières pour une liste de guides, y compris un guide de l’explorateur, un guide pour les chasseurs de sats et un guide sur les inscriptions.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="explorateur-ordinals"><a class="header" href="#explorateur-ordinals">Explorateur Ordinals</a></h1>
-<p>Le binaire <code>ord</code> comprend un explorateur de blocs. Nous hébergeons une instance de l’explorateur de blocs sur mainnet à l’adresse <a href="https://ordinals.com">ordinals.com</a>,, et sur signet à l’adresse <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="exécuter-lexplorateur"><a class="header" href="#exécuter-lexplorateur">Exécuter l'explorateur</a></h3>
 <p>Le serveur peut être exécuté localement avec :</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>Les transactions peuvent être recherchées par hash, par exemple, la transaction coinbase du bloc genesis :</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="sorties"><a class="header" href="#sorties">Sorties</a></h3>
-<p>Les sorties de transaction peuvent être recherchées par outpoint, par exemple, la seule sortie de la transaction coinbase du bloc genesis :</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Les sats peuvent être recherchés par nombre entier, qui représente leur position dans l’ensemble de l’offre de bitcoins :</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>Ou par percentile, le pourcentage de l’offre de bitcoins qui a été ou sera émis une fois qu’ils auront été minés :</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>Voyez la transaction en attente avec la commande :</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>Une fois que la transaction d’envoi est confirmée, vous pouvez confirmer la réception en exécutant :</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="récompense-ordinal-3"><a class="header" href="#récompense-ordinal-3">Récompense Ordinal 3</a></h1>
 <h2 id="critères-3"><a class="header" href="#critères-3">Critères</a></h2>
 <p>La récompense Ordinal 3 se compose de deux parties, toutes deux basées sur les <em>noms ordinaux</em>. Les noms ordinaux sont un encodage en base-26 modifié des nombres ordinaux. Pour éviter que les noms courts restent piégés à l'intérieur du bloc de genèse et ne puissent pas être utilisés, les noms ordinaux deviennent <em>plus courts</em> à mesure que le nombre ordinal devient <em>plus long</em>. Le nom du sat 0, le premier sat à être miné, est <code>nvtdijuwxlp</code> et le nom du sat 2,099,999,997,689,999, le dernier sat qui sera miné, est <code>a</code>.</p>
-<p>L’appel à candidatures pour la récompense restera ouvert jusqu'au bloc 840000, le premier bloc après le quatrième halving. Les candidatures soumises à partir du bloc 840000 ou ultérieurement ne seront pas prises en compte.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>Les deux parties utilisent <a href="bounty/frequency.tsv">frequency.tsv</a>, une liste de mots et le nombre de fois qu'ils apparaissent dans l'ensemble de données <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram</a>. Ce fichier a été filtré pour n'inclure que les noms des sats qui auront été minés à la fin de la période de soumission et qui apparaissent au moins 5 000 fois dans le corpus.</p>
 <p><code>frequency.tsv</code> est un fichier de valeurs séparées par des tabulations. La première colonne est le mot, et la seconde le nombre de fois qu'il apparaît dans le corpus. Les données sont organisées de manière à ce que les mots les moins fréquents apparaissent en premier, suivis des mots les plus fréquents.</p>
 <p><code>frequency.tsv</code> a été compilé à l'aide de <a href="https://github.com/casey/onegrams">ce programme</a>.</p>

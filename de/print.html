@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theorie-anleitungen"><a class="header" href="#ordinal-theorie-anleitungen">Ordinal Theorie Anleitungen</a></h1>
 <p>Sehen Sie das Inhaltsverzeichnis für eine Liste von Anleitungen, einschließlich einer Anleitung zum Explorer, einer Anleitung für Satoshijäger und einer Anleitung zu inscriptions.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-explorer"><a class="header" href="#ordinal-explorer">Ordinal Explorer</a></h1>
-<p>Die <code>ord</code>-Binärdatei enthält einen Block-Explorer. Wir hosten eine Instanz des Block-Explorers auf Mainnet unter <a href="https://ordinals.com">ordinals.com</a> und auf Signet unter <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="ausführen-des-explorers"><a class="header" href="#ausführen-des-explorers">Ausführen des Explorers</a></h3>
 <p>Der Server kann lokal betrieben werden mit:</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>Transaktionen können nach Hash durchsucht werden, zum Beispiel die Genesis Block Coinbase Transaktion:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="outputs"><a class="header" href="#outputs">Outputs</a></h3>
-<p>Transaktions outputs können nach Outpoint durchsucht werden, zum Beispiel die einzige outputs der Genesis-Block-Coinbase-Transaktion:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Sats können nach ihrer Ganzzahl, ihrer Position im gesamten Bitcoin-Vorrat, gesucht werden:</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>Oder nach Prozentil, dem Prozentsatz des Bitcoin-Angebots, das bereits emittiert wurde oder emittiert wird, wenn sie abgebaut werden:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>Sehen Sie sich die ausstehende Transaktion an mit:</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>Sobald die Send-Transaktion bestätigt ist, können Sie den Empfang bestätigen, indem Sie Folgendes ausführen:</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-belohnung-3"><a class="header" href="#ordinal-belohnung-3">Ordinal Belohnung 3</a></h1>
 <h2 id="kriterien-3"><a class="header" href="#kriterien-3">Kriterien</a></h2>
 <p>&quot;Ordinal Belohnung 3&quot; hat zwei Teile, die beide auf <em>ordinalen Namen</em> basieren. Ordinale Namen sind eine modifizierte Basis-26-Codierung von ordinal Zahlen. Um kurze Namen nicht im nicht ausgebuchten Genesis-Block-Coinbase-Reward einzusperren, werden ordinale Namen <em>kürzer</em>, je länger die ordinal Nummer wird. Der Name von Sat 0, dem ersten Sat, der gemint wurde, lautet <code>nvtdijuwxlp</code>, und der Name von Sat 2.099.999.997.689.999, dem letzten geminten sat, lautet <code>a</code>.</p>
-<p>Die Belohnung ist für Einreichungen bis zum Block 840.000 geöffnet, das ist der erste Block nach der vierten Halbierung. Einreichungen, die in Block 840.000 oder später enthalten sind, werden nicht berücksichtigt.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>Beide Teile verwenden <a href="bounty/frequency.tsv">frequency.tsv</a>, eine Liste von Wörtern und der Anzahl ihrer Vorkommen im <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram-Datensatz</a>, wobei nur die Namen der Sats eingeschlossen sind, die bis zum Ende des Einreichungszeitraums abgebaut wurden und mindestens 5000 Mal im Korpus vorkommen.</p>
 <p><code>frequency.tsv</code> ist eine Datei mit tabulatorgetrennten Werten. Die erste Spalte ist das Wort, und die zweite Spalte zeigt an, wie oft es im Korpus vorkommt. Die Einträge sind von am wenigsten häufig vorkommend bis am häufigsten vorkommend sortiert.</p>
 <p><code>frequency.tsv</code> wurde mit kompiliert <a href="https://github.com/casey/onegrams">dieses Programm</a>.</p>

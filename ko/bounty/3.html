@@ -249,7 +249,7 @@
                         <h1 id="오디널-현상금-3"><a class="header" href="#오디널-현상금-3">오디널 현상금 3</a></h1>
 <h2 id="기준"><a class="header" href="#기준">기준</a></h2>
 <p>오디널 현상금 3은 두 부분으로 나뉘며, 두 부분 모두 <em>오디널 이름</em> 을 기반으로 한다. 오디널 이름은 서수의 수정된 base26 인코딩이다. 사용할 수 없는 제네시스 블록 코인베이스 보상 안에 짧은 이름이 고정되는 것을 방지하기 위해 서수가 <em>길어질수록</em> 오디널 이름은 <em>짧아진다</em>. 첫 번째 채굴되는 SAT 0의 이름은 <code>nvtdijuwxlp</code>이고, 마지막 채굴되는 SAT 2,099,999,997,689,999의 이름은 <code>a</code>이다.</p>
-<p>현상금은 네 번째 반감기 이후 첫 번째 블록인 840000 블록까지 제출할 수 있다. 840000 블록 이후에 포함된 제출물은 고려되지 않는다.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>두 부분 모두 <a href="frequency.tsv">frequency.tsv</a>를 사용한다. 이는 <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>에 있는 단어 목록 그리고 각 단어가 이 데이터셋에서 등장하는 횟수며 제출 기간이 끝날 때까지 채굴될, 전체목록에 최소 5000번 이상 등장하는 SAT의 이름만 포함하도록 필터링하였다.</p>
 <p><code>frequency.tsv</code>는 탭으로 구분된 값의 파일이다. 첫 번째 열은 단어이고 두 번째 열은 이 단어가 전체목록에 나타나는 횟수이다. 항목은 가장 적게 나타나는 항목부터 가장 많이 나타나는 항목까지 정렬된다.</p>
 <p><a href="https://github.com/casey/onegrams">이 프로그램</a>을 사용하여 <code>frequency.tsv</code>를 컴파일했다.</p>

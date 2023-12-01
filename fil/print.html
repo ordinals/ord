@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theory-guides"><a class="header" href="#ordinal-theory-guides">Ordinal Theory Guides</a></h1>
 <p>Tingnan ang listahan ng mga gabay, kabilang ang guide sa ordinal explorer, sats hunter, at guide sa inscriptions.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-explorer"><a class="header" href="#ordinal-explorer">Ordinal Explorer</a></h1>
-<p>Ang <code>ord</code> binary ay may kasamang block explorer. Nagho-host kami ng block explorer sa mainnet ng <a href="https://ordinals.com">ordinals.com</a>, at sa signet sa <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="pagpapagana-sa-explorer"><a class="header" href="#pagpapagana-sa-explorer">Pagpapagana sa Explorer</a></h3>
 <p>Ang server ay maaring i-run sa iyong computer gamit ang:</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>Maaaring hanapin ang mga transaksyon sa pamamagitan ng hash, halimbawa, ang genesis block coinbase na transaksyon:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="outputs"><a class="header" href="#outputs">Outputs</a></h3>
-<p>Maaaring hanapin ang mga output ng transaksyon sa pamamagitan ng outpoint, halimbawa, ang solong output ng genesis block coinbase na transaksyon:</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>Maaaring hanapin ang Sats sa pamamagitan ng buong numero, ang kanilang posisyon sa buong supply ng bitcoin:</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>O ayon sa percentile, ang porsyento ng supply ng bitcoin na ibibigay o ibibigay kapag na-mina:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li>/inscriptions</li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>Tingnan ang mga pending na transaction gamit ang:</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>Kapag nakumpirma na ang transaksyon sa pagpapadala, maaari mong kumpirmahin sa pamamagitan ng:</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-3"><a class="header" href="#ordinal-bounty-3">Ordinal Bounty 3</a></h1>
 <h2 id="criteria-3"><a class="header" href="#criteria-3">Criteria</a></h2>
 <p>Ang Ordinal bounty 3 ay may dalawang bahagi, na parehong nakabatay sa <em>ordinal names</em>.Ang mga ordinal names ay isang modified base-26 encoding ng ordinal numbers. Upang maiwasan ang pag-lock ng shot names sa loob ng unspendable genesis block coinbase reward, ordinal names ay maagiging <em>shorter</em> habang ang ordinal number ay nagiging <em>longer</em>. Ang pangalan ng sat 0, ang unang sat na na-mina ay <code>nvtdijuwxlp</code> at ang pangalan ng sat ay 2,099,999,997,689,999, ang huling sat na miminahin, ay <code>a</code>.</p>
-<p>Bukas ang bounty para sa mga pagsusumite hanggang block 840000-ang unang block pagkatapos ng fourth halvening. Ang mga pagsusumite na kasama sa block 840000 o mas bago ay hindi ikonsidera.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>Ang parehong bahagi ay gumagamit ng <a href="bounty/frequency.tsv">frequency.tsv</a>, isang listahan ng mga salita at ang bilang ng beses na nangyari ang mga ito sa <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>. na-filter lamang sa isama ang mga pangalan ng sats na mamimina sa pagtatapos ng panahon ng pagsusumite, na lilitaw nang hindi bababa sa 5000 beses sa corpus.</p>
 <p>Ang <code>frequency.tsv</code> ay isang file ng mga tab-separated values. Ang unang column ay ang word, at ang pangalawa ay ang bilang ng beses na ito ay lumabas sa corpus. Ang entries ay pinagsunod-sunod mula sa hindi pinakamadalas na nangyayari hanggang sa pinaka-madalas nangyayari.</p>
 <p>Ang <code>frequency.tsv</code> ay compiled gamit ang <a href="https://github.com/casey/onegrams">program na ito</a>.</p>

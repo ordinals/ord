@@ -868,7 +868,7 @@ OP_ENDIF
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-이론-설명서들"><a class="header" href="#오디널-이론-설명서들">오디널 이론 설명서들</a></h1>
 <p>탐색기(익스플로러) 가이드, SAT 헌터 가이드, 인스크립션 가이드 등 설명서 목록을 보려면 목차를 참조하자.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-탐색기"><a class="header" href="#오디널-탐색기">오디널 탐색기</a></h1>
-<p><code>ord</code> 바이너리에는 블록 탐색기가 포함되어 있다. 블록 탐색기의 인스턴스는 메인넷은 <a href="https://ordinals.com">ordinals.com</a>에서, 시그넷은 <a href="https://signet.ordinals.com">signet.ordinals.com</a>에서 호스팅된다.</p>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
 <h3 id="탐색기-실행"><a class="header" href="#탐색기-실행">탐색기 실행</a></h3>
 <p>서버는 이것으로 로컬에서 실행할 수 있다:</p>
 <p><code>ord server</code></p>
@@ -887,7 +887,7 @@ OP_ENDIF
 <p>트랜잭션을 해시별로 검색할 수 있다 (예를 들어 제네시스 블록 코인베이스 트랜잭션):</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
 <h3 id="출력"><a class="header" href="#출력">출력</a></h3>
-<p>트랜잭션 출력을 아웃포인트별로 검색할 수 있다 (예를 들어 제네시스 블록 코인베이스 트랜잭션의 유일한 출력):</p>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
 <p>각 SAT은 정수로 검색할 수 있다. 이는 전체 비트코인 공급량 내에서 해당 SAT의 위치다:</p>
@@ -901,7 +901,7 @@ OP_ENDIF
 <p>또는 백분위수로 검색할 수 있다. 이는 해당 SAT가 채굴되었을 때 이미 발행되었거나 앞으로 발행될 비트코인의 공급량의 비율이다:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
@@ -1056,7 +1056,7 @@ OP_ENDIF
 <p>다음을 실행하여 펜딩 트랜잭션을 확인한다:</p>
 <pre><code>ord wallet transactions
 </code></pre>
-<p>전송 트랜잭션이 확인되면 다음을 실행하여 수신을 확인할 수 있다:</p>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscribing"><a class="header" href="#batch-inscribing">Batch Inscribing</a></h1>
@@ -1541,7 +1541,7 @@ ord index update
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-현상금-3"><a class="header" href="#오디널-현상금-3">오디널 현상금 3</a></h1>
 <h2 id="기준-3"><a class="header" href="#기준-3">기준</a></h2>
 <p>오디널 현상금 3은 두 부분으로 나뉘며, 두 부분 모두 <em>오디널 이름</em> 을 기반으로 한다. 오디널 이름은 서수의 수정된 base26 인코딩이다. 사용할 수 없는 제네시스 블록 코인베이스 보상 안에 짧은 이름이 고정되는 것을 방지하기 위해 서수가 <em>길어질수록</em> 오디널 이름은 <em>짧아진다</em>. 첫 번째 채굴되는 SAT 0의 이름은 <code>nvtdijuwxlp</code>이고, 마지막 채굴되는 SAT 2,099,999,997,689,999의 이름은 <code>a</code>이다.</p>
-<p>현상금은 네 번째 반감기 이후 첫 번째 블록인 840000 블록까지 제출할 수 있다. 840000 블록 이후에 포함된 제출물은 고려되지 않는다.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>두 부분 모두 <a href="bounty/frequency.tsv">frequency.tsv</a>를 사용한다. 이는 <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>에 있는 단어 목록 그리고 각 단어가 이 데이터셋에서 등장하는 횟수며 제출 기간이 끝날 때까지 채굴될, 전체목록에 최소 5000번 이상 등장하는 SAT의 이름만 포함하도록 필터링하였다.</p>
 <p><code>frequency.tsv</code>는 탭으로 구분된 값의 파일이다. 첫 번째 열은 단어이고 두 번째 열은 이 단어가 전체목록에 나타나는 횟수이다. 항목은 가장 적게 나타나는 항목부터 가장 많이 나타나는 항목까지 정렬된다.</p>
 <p><a href="https://github.com/casey/onegrams">이 프로그램</a>을 사용하여 <code>frequency.tsv</code>를 컴파일했다.</p>
