@@ -16,10 +16,6 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
   index.update()?;
 
   Ok(Box::new(Output {
-    runes: index
-      .get_rune_balance_map()?
-      .into_iter()
-      .map(|(outpoint, balances)| (outpoint, balances.into_iter().collect()))
-      .collect(),
+    runes: index.get_rune_balance_map()?,
   }))
 }
