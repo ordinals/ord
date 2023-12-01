@@ -155,12 +155,19 @@ impl Preview {
       }
     }
 
-    rpc_client.generate_to_address(1, &address)?;
+    let handle = std::thread::spawn(move || loop {
+      rpc_client.generate_to_address(1, &address).unwrap();
+      thread::sleep(Duration::from_secs(5))
+    });
 
     Arguments {
       options,
       subcommand: Subcommand::Server(self.server),
     }
-    .run()
+    .run()?;
+
+    handle.join().unwrap();
+
+    Ok(todo!())
   }
 }
