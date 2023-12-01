@@ -73,6 +73,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     tx: &Transaction,
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    location_update_sender: Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
@@ -332,7 +333,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+      self.update_inscription_location(
+        input_sat_ranges,
+        flotsam,
+        new_satpoint,
+        &location_update_sender,
+      )?;
     }
 
     if is_coinbase {
@@ -341,7 +347,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+        self.update_inscription_location(
+          input_sat_ranges,
+          flotsam,
+          new_satpoint,
+          &location_update_sender,
+        )?;
       }
       self.lost_sats += self.reward - output_value;
       Ok(())
@@ -379,6 +390,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
+    location_update_sender: &Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
@@ -387,14 +399,26 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .satpoint_to_sequence_number
           .remove_all(&old_satpoint.store())?;
 
-        (
-          false,
-          self
-            .id_to_sequence_number
-            .get(&inscription_id.store())?
-            .unwrap()
-            .value(),
-        )
+        let sequence_number = self
+          .id_to_sequence_number
+          .get(&inscription_id.store())?
+          .unwrap()
+          .value();
+
+        if let Some(sender) = location_update_sender {
+          sender.blocking_send(LocationUpdateEvent {
+            inscription_id,
+            old_satpoint: Some(old_satpoint),
+            new_satpoint,
+            sequence_number,
+
+            block_height: self.height,
+            charms: None,
+            parent_inscription_id: None,
+          })?;
+        }
+
+        (false, sequence_number)
       }
       Origin::New {
         cursed,
@@ -473,7 +497,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let parent = match parent {
+        let parent_sequence_number = match parent {
           Some(parent_id) => {
             let parent_sequence_number = self
               .id_to_sequence_number
@@ -489,6 +513,24 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None => None,
         };
 
+        if let Some(sender) = location_update_sender {
+          sender.blocking_send(LocationUpdateEvent {
+            inscription_id,
+            old_satpoint: None,
+            new_satpoint: match unbound {
+              true => SatPoint {
+                outpoint: unbound_outpoint(),
+                offset: self.unbound_inscriptions,
+              },
+              false => new_satpoint,
+            },
+            charms: if charms == 0 { None } else { Some(charms) },
+            sequence_number,
+            parent_inscription_id: parent,
+            block_height: self.height,
+          })?;
+        }
+
         self.sequence_number_to_entry.insert(
           sequence_number,
           &InscriptionEntry {
@@ -497,7 +539,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             height: self.height,
             id: inscription_id,
             inscription_number,
-            parent,
+            parent: parent_sequence_number,
             sat,
             sequence_number,
             timestamp: self.timestamp,
