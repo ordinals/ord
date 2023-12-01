@@ -135,7 +135,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        // let inscribed_offset = inscribed_offsets.get(&offset);
+        let inscribed_offset = inscribed_offsets.get(&offset);
 
         let curse = if self.height >= self.chain.jubilee_height() {
           None
@@ -155,7 +155,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::Pushnum)
         } else if inscription.stutter {
           Some(Curse::Stutter)
-        } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
+        } else if let Some((id, count)) = inscribed_offset {
           if *count > 1 {
             Some(Curse::Reinscription)
           } else {
@@ -188,7 +188,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           inscription_id,
           offset,
           origin: Origin::New {
-            reinscription: inscribed_offsets.get(&offset).is_some(),
+            reinscription: inscribed_offset.is_some(),
             cursed: curse.is_some(),
             fee: 0,
             hidden: inscription.payload.hidden(),
