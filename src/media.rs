@@ -200,7 +200,7 @@ mod tests {
   }
 
   #[test]
-  fn no_duplicate_exensions() {
+  fn no_duplicate_extensions() {
     let mut set = HashSet::new();
     for (_, _, _, extensions) in Media::TABLE {
       for extension in *extensions {

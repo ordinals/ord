@@ -309,7 +309,7 @@ See the pending transaction with:
 ord wallet transactions
 ```
 
-Once the send transaction confirms, you can can confirm receipt by running:
+Once the send transaction confirms, you can confirm receipt by running:
 
 ```
 ord wallet inscriptions
