@@ -2151,7 +2151,7 @@ mod tests {
     );
 
     assert_eq!(
-      server.index.get_rune_balances(),
+      server.index.get_rune_balances().unwrap(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -2220,7 +2220,7 @@ mod tests {
     );
 
     assert_eq!(
-      server.index.get_rune_balances(),
+      server.index.get_rune_balances().unwrap(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -2326,7 +2326,7 @@ mod tests {
     );
 
     assert_eq!(
-      server.index.get_rune_balances(),
+      server.index.get_rune_balances().unwrap(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -2396,7 +2396,7 @@ mod tests {
     let output = OutPoint { txid, vout: 0 };
 
     assert_eq!(
-      server.index.get_rune_balances(),
+      server.index.get_rune_balances().unwrap(),
       [(output, vec![(id, u128::max_value())])]
     );
 

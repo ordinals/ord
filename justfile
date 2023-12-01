@@ -219,3 +219,6 @@ convert-logo-to-favicon:
 
 update-mdbook-theme:
   curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+
+audit-cache:
+  cargo run --package audit-cache
