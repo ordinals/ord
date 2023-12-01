@@ -35,7 +35,6 @@ use {
   super::*,
   bitcoin::{
     blockdata::{locktime::absolute::LockTime, witness::Witness},
-    script::PushBytesBuf,
     Amount, ScriptBuf,
   },
   std::cmp::{max, min},
@@ -43,6 +42,7 @@ use {
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
+  BitcoinAddressError(String),
   DuplicateAddress(Address),
   Dust {
     output_value: Amount,
@@ -66,36 +66,16 @@ pub enum Target {
   ExactPostage(Amount),
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum OutputScript {
-  PubKey(Address),
-  OpReturn(Vec<u8>),
-}
-
-impl OutputScript {
-  fn script(&self) -> ScriptBuf {
-    match self {
-      OutputScript::PubKey(address) => address.script_pubkey(),
-      OutputScript::OpReturn(data) => ScriptBuf::new_op_return(
-        &PushBytesBuf::try_from(data.clone()).expect("burn payload too large"),
-      ),
-    }
-  }
-
-  fn dust_value(&self) -> Amount {
-    self.script().dust_value()
-  }
-}
-
-impl From<Address> for OutputScript {
-  fn from(value: Address) -> Self {
-    OutputScript::PubKey(value)
+impl From<bitcoin::address::Error> for Error {
+  fn from(err: bitcoin::address::Error) -> Self {
+    Error::BitcoinAddressError(err.to_string())
   }
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
+      Error::BitcoinAddressError(error) => write!(f, "error parsing address: {error}"),
       Error::Dust {
         output_value,
         dust_value,
@@ -125,14 +105,15 @@ impl std::error::Error for Error {}
 #[derive(Debug, PartialEq)]
 pub struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
+  chain: Chain,
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   locked_utxos: BTreeSet<OutPoint>,
   outgoing: SatPoint,
-  outputs: Vec<(OutputScript, Amount)>,
-  recipient: OutputScript,
+  outputs: Vec<(ScriptBuf, Amount)>,
+  recipient: ScriptBuf,
   runic_utxos: BTreeSet<OutPoint>,
   target: Target,
   unused_change_addresses: Vec<Address>,
@@ -147,7 +128,7 @@ impl TransactionBuilder {
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
   pub(crate) const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
 
-  pub fn new<U: Into<OutputScript>>(
+  pub fn new<U: Into<ScriptBuf>>(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
@@ -157,10 +138,12 @@ impl TransactionBuilder {
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
+    chain: Chain,
   ) -> Self {
     Self {
       utxos: amounts.keys().cloned().collect(),
       amounts,
+      chain,
       change_addresses: change.iter().cloned().collect(),
       fee_rate,
       inputs: Vec::new(),
@@ -182,10 +165,11 @@ impl TransactionBuilder {
       ));
     }
 
-    if let OutputScript::PubKey(address) = &self.recipient {
-      if self.change_addresses.contains(address) {
-        return Err(Error::DuplicateAddress(address.clone()));
-      }
+    let recipient_address = self.chain.address_from_script(&self.recipient)?;
+    if self.change_addresses.contains(&recipient_address) {
+      return Err(Error::DuplicateAddress(
+        recipient_address.clone() // Clone the duplicate address
+      ));
     }
 
     match self.target {
@@ -462,7 +446,7 @@ impl TransactionBuilder {
     )
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<OutputScript>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: Vec<ScriptBuf>) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -478,7 +462,7 @@ impl TransactionBuilder {
         .into_iter()
         .map(|recipient| TxOut {
           value: 0,
-          script_pubkey: recipient.script(),
+          script_pubkey: recipient.clone(),
         })
         .collect(),
     }
@@ -490,7 +474,7 @@ impl TransactionBuilder {
   }
 
   fn build(self) -> Result<Transaction> {
-    let recipient = self.recipient.script();
+    let recipient = self.recipient.clone();
     let transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -509,7 +493,7 @@ impl TransactionBuilder {
         .iter()
         .map(|(output, amount)| TxOut {
           value: amount.to_sat(),
-          script_pubkey: output.script(),
+          script_pubkey: output.clone()
         })
         .collect(),
     };
@@ -567,7 +551,7 @@ impl TransactionBuilder {
       transaction
         .output
         .iter()
-        .filter(|tx_out| tx_out.script_pubkey == self.recipient.script())
+        .filter(|tx_out| tx_out.script_pubkey == self.recipient)
         .count(),
       1,
       "invariant: recipient address appears exactly once in outputs",
@@ -588,7 +572,7 @@ impl TransactionBuilder {
 
     let mut offset = 0;
     for output in &transaction.output {
-      if output.script_pubkey == self.recipient.script() {
+      if output.script_pubkey == self.recipient {
         let slop = self.fee_rate.fee(Self::ADDITIONAL_OUTPUT_VBYTES);
 
         match self.target {

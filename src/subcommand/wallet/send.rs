@@ -1,7 +1,10 @@
 use {
   super::*,
+  bitcoin::{
+    script::PushBytesBuf,
+  },
   crate::{
-    subcommand::wallet::transaction_builder::{OutputScript, Target},
+    subcommand::wallet::transaction_builder::{Target},
     wallet::Wallet,
   },
 };
@@ -105,6 +108,27 @@ impl Send {
 
         satpoint
       }
+      Outgoing::InscriptionId(id) => index
+        .get_inscription_satpoint_by_id(id)?
+        .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
+      Outgoing::Amount(amount) => {
+        // let script = output.get_script(); // Replace with the actual method to get the Script from output
+
+        if output.is_op_return() {
+          bail!("refusing to burn amount");
+        }
+
+        let address = match chain.address_from_script(output.as_script()) {
+          Ok(addr) => addr,
+          Err(e) => {
+            bail!("failed to get address from script: {:?}", e);
+          }
+        };
+
+        Self::lock_inscriptions(&client, inscriptions, runic_outputs, unspent_outputs)?;
+        let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
+        return Ok(Box::new(Output { transaction: txid }));
+      },
     };
 
     let change = [
@@ -128,6 +152,7 @@ impl Send {
       change,
       self.fee_rate,
       postage,
+      chain,
     )
     .build_transaction()?;
 
@@ -140,12 +165,14 @@ impl Send {
     Ok(Box::new(Output { transaction: txid }))
   }
 
-  fn get_output(&self, options: &Options) -> Result<OutputScript, Error> {
+  fn get_output(&self, options: &Options) -> Result<ScriptBuf, Error> {
     if let Some(address) = &self.address {
       let address = address.clone().require_network(options.chain().network())?;
-      Ok(OutputScript::PubKey(address))
+      Ok(ScriptBuf::from(address))
     } else if let Some(msg) = &self.burn {
-      Ok(OutputScript::OpReturn(Vec::from(msg.clone())))
+      Ok(ScriptBuf::new_op_return(
+        &PushBytesBuf::try_from(Vec::from(msg.clone())).expect("burn payload too large")
+      ))
     } else {
       bail!("no valid output given")
     }
