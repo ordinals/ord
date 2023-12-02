@@ -1453,13 +1453,13 @@ impl Server {
       .take(page_size.saturating_add(1))
       .collect::<Vec<InscriptionId>>();
 
-    let more = inscriptions.len() > page_size;
-
-    if more {
-      inscriptions.pop();
-    }
-
     Ok(if accept_json.0 {
+      let more = inscriptions.len() > page_size;
+
+      if more {
+        inscriptions.pop();
+      }
+
       Json(InscriptionsJson {
         inscriptions,
         page_index,
