@@ -167,7 +167,7 @@ impl Preview {
       let clone = server_running.clone();
 
       eprintln!(
-        "Automatically mining a block every {}",
+        "Automatically mining a block every {}...",
         "second".tally(blocktime)
       );
 
