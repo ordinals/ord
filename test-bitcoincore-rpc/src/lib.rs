@@ -159,7 +159,7 @@ impl From<OutPoint> for JsonOutPoint {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct FundRawTransactionOptions {
+pub struct FundRawTransactionOptions {
   #[serde(with = "bitcoin::amount::serde::as_btc::opt")]
   fee_rate: Option<Amount>,
 }
