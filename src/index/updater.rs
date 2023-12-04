@@ -550,10 +550,7 @@ impl<'index> Updater<'_> {
       }
     } else if index_inscriptions {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_envelopes(
-          tx, *txid, None,
-          // self.location_update_sender.clone(),
-        )?;
+        inscription_updater.index_envelopes(tx, *txid, None)?;
       }
     }
 
@@ -658,12 +655,7 @@ impl<'index> Updater<'_> {
     index_inscriptions: bool,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_envelopes(
-        tx,
-        txid,
-        Some(input_sat_ranges),
-        // self.location_update_sender.clone(),
-      )?;
+      inscription_updater.index_envelopes(tx, txid, Some(input_sat_ranges))?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {

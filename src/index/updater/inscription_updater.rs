@@ -74,7 +74,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     tx: &Transaction,
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
-    // location_update_sender: Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
@@ -334,12 +333,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(
-        input_sat_ranges,
-        flotsam,
-        new_satpoint,
-        // &location_update_sender,
-      )?;
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
     }
 
     if is_coinbase {
@@ -348,12 +342,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(
-          input_sat_ranges,
-          flotsam,
-          new_satpoint,
-          // &location_update_sender,
-        )?;
+        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
       }
       self.lost_sats += self.reward - output_value;
       Ok(())
@@ -391,7 +380,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
-    // location_update_sender: &Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
