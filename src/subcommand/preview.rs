@@ -1,4 +1,4 @@
-use {super::*, fee_rate::FeeRate};
+use {super::*, fee_rate::FeeRate, std::sync::atomic};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
@@ -10,6 +10,8 @@ pub(crate) struct Preview {
     help = "Inscribe inscriptions defined in <BATCHES>."
   )]
   batches: Option<Vec<PathBuf>>,
+  #[arg(long, help = "Automatically mine a block every <BLOCKTIME> seconds.")]
+  blocktime: Option<u64>,
   #[arg(num_args = 0.., long, help = "Inscribe contents of <FILES>.")]
   files: Option<Vec<PathBuf>>,
 }
@@ -160,12 +162,42 @@ impl Preview {
       }
     }
 
-    rpc_client.generate_to_address(1, &address)?;
+    if let Some(blocktime) = self.blocktime {
+      eprintln!(
+        "Mining blocks every {}...",
+        "second".tally(blocktime.try_into().unwrap())
+      );
 
-    Arguments {
-      options,
-      subcommand: Subcommand::Server(self.server),
+      let running = Arc::new(AtomicBool::new(true));
+
+      let handle = {
+        let running = running.clone();
+
+        std::thread::spawn(move || {
+          while running.load(atomic::Ordering::SeqCst) {
+            rpc_client.generate_to_address(1, &address).unwrap();
+            thread::sleep(Duration::from_secs(blocktime));
+          }
+        })
+      };
+
+      Arguments {
+        options,
+        subcommand: Subcommand::Server(self.server),
+      }
+      .run()?;
+
+      running.store(false, atomic::Ordering::SeqCst);
+
+      handle.join().unwrap();
+    } else {
+      Arguments {
+        options,
+        subcommand: Subcommand::Server(self.server),
+      }
+      .run()?;
     }
-    .run()
+
+    Ok(Box::new(Empty {}))
   }
 }
