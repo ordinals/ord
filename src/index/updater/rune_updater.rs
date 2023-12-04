@@ -297,6 +297,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             *allocated[vout].entry(id).or_default() += balance;
           }
         }
+      } else {
+        for (id, balance) in unallocated {
+          if balance > 0 {
+            *burned.entry(id).or_default() += balance;
+          }
+        }
       }
     }
 
