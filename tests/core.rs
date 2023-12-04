@@ -71,11 +71,10 @@ fn preview() {
     .unwrap();
 
   for attempt in 0.. {
-    if attempt == 10 {
+    if attempt == 20 {
       panic!("Bitcoin Core did not mine blocks",);
     }
 
-    thread::sleep(Duration::from_millis(500));
     if reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
       .unwrap()
       .text()
@@ -86,5 +85,7 @@ fn preview() {
     {
       break;
     }
+
+    thread::sleep(Duration::from_millis(250));
   }
 }
