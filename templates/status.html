@@ -1,0 +1,31 @@
+<h1>Status</h1>
+<dl>
+%% if let Some(height) = self.height {
+  <dt>height</dt>
+  <dd>{{ height }}</dd>
+%% }
+  <dt>inscriptions</dt>
+  <dd>{{ self.inscriptions }}</dd>
+  <dt>blessed inscriptions</dt>
+  <dd>{{ self.blessed_inscriptions }}</dd>
+  <dt>cursed inscriptions</dt>
+  <dd>{{ self.cursed_inscriptions }}</dd>
+  <dt>runes</dt>
+  <dd>{{ self.runes }}</dd>
+  <dt>lost sats</dt>
+  <dd>{{ self.lost_sats }}</dd>
+  <dt>started</dt>
+  <dd>{{ self.started }}</dd>
+  <dt>uptime</dt>
+  <dd>{{ humantime::format_duration(self.uptime) }}</dd>
+  <dt>minimum rune for next block</dt>
+  <dd>{{ self.minimum_rune_for_next_block }}</dd>
+  <dt>version</dt>
+  <dd>{{ env!("CARGO_PKG_VERSION") }}</dd>
+  <dt>unrecoverably reorged</dt>
+  <dd>{{ self.unrecoverably_reorged }}</dd>
+  <dt>sat index</dt>
+  <dd>{{ self.sat_index }}</dd>
+  <dt>rune index</dt>
+  <dd>{{ self.rune_index }}</dd>
+</dl>

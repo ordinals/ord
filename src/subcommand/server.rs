@@ -16,7 +16,7 @@ use {
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, TransactionHtml,
+      SatJson, StatusHtml, TransactionHtml,
     },
   },
   axum::{
@@ -750,18 +750,11 @@ impl Server {
     Ok(Json(hex::encode(metadata)))
   }
 
-  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
-    if index.is_unrecoverably_reorged() {
-      (
-        StatusCode::OK,
-        "unrecoverable reorg detected, please rebuild the database.",
-      )
-    } else {
-      (
-        StatusCode::OK,
-        StatusCode::OK.canonical_reason().unwrap_or_default(),
-      )
-    }
+  async fn status(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<StatusHtml>> {
+    Ok(index.status()?.page(page_config))
   }
 
   async fn search_by_query(
@@ -973,7 +966,7 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u32, usize, usize)>,
-  ) -> Result<PageHtml<InputHtml>, ServerError> {
+  ) -> ServerResult<PageHtml<InputHtml>> {
     let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
     let block = index
@@ -2457,7 +2450,42 @@ mod tests {
 
   #[test]
   fn status() {
-    TestServer::new().assert_response("/status", StatusCode::OK, "OK");
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<h1>Status</h1>
+<dl>
+  <dt>height</dt>
+  <dd>0</dd>
+  <dt>inscriptions</dt>
+  <dd>0</dd>
+  <dt>blessed inscriptions</dt>
+  <dd>0</dd>
+  <dt>cursed inscriptions</dt>
+  <dd>0</dd>
+  <dt>runes</dt>
+  <dd>0</dd>
+  <dt>lost sats</dt>
+  <dd>.*</dd>
+  <dt>started</dt>
+  <dd>.*</dd>
+  <dt>uptime</dt>
+  <dd>.*</dd>
+  <dt>minimum rune for next block</dt>
+  <dd>AAAAAAAAAAAAA</dd>
+  <dt>version</dt>
+  <dd>.*</dd>
+  <dt>unrecoverably reorged</dt>
+  <dd>false</dd>
+  <dt>sat index</dt>
+  <dd>false</dd>
+  <dt>rune index</dt>
+  <dd>false</dd>
+</dl>
+.*",
+    );
   }
 
   #[test]
@@ -2993,7 +3021,11 @@ mod tests {
 
     test_server.mine_blocks(21);
 
-    test_server.assert_response("/status", StatusCode::OK, "OK");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>false</dd>.*",
+    );
 
     for _ in 0..15 {
       test_server.bitcoin_rpc_server.invalidate_tip();
@@ -3001,7 +3033,11 @@ mod tests {
 
     test_server.bitcoin_rpc_server.mine_blocks(21);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "unrecoverable reorg detected.*");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>true</dd>.*",
+    );
   }
 
   #[test]
