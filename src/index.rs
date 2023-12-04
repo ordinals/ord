@@ -201,22 +201,34 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 /// Newly created inscriptions will include additional metadata including
 /// rarity, cursed status, charms, etc.
 #[derive(Debug, Clone)]
-pub struct LocationUpdateEvent {
-  /// The inscription ID.
-  pub inscription_id: InscriptionId,
-  /// The old location of the inscription. None if this is a newly created inscription.
-  pub old_satpoint: Option<SatPoint>,
-  /// The new location of the inscription.
-  pub new_satpoint: SatPoint,
-  /// Sequence number of inscription.
-  pub sequence_number: u32,
-  /// Block height of event
-  pub block_height: u32,
+pub enum LocationUpdateEvent {
+  InscriptionCreated {
+    /// The inscription ID.
+    inscription_id: InscriptionId,
+    /// The new location of the inscription, None if unbound.
+    location: Option<SatPoint>,
+    /// Sequence number of inscription.
+    sequence_number: u32,
+    /// Block height of event
+    block_height: u32,
 
-  /// Bitmap of charms present on the inscription (new inscriptions only).
-  pub charms: Option<u16>,
-  /// Parent inscription ID if present (new inscriptions only).
-  pub parent_inscription_id: Option<InscriptionId>,
+    /// Bitmap of charms present on the inscription, 0 indicates no charms.
+    charms: u16,
+    /// Parent inscription ID if present.
+    parent_inscription_id: Option<InscriptionId>,
+  },
+  InscriptionMoved {
+    /// The inscription ID.
+    inscription_id: InscriptionId,
+    /// The old location of the inscription.
+    old_location: SatPoint,
+    /// The new location of the inscription.
+    new_location: SatPoint,
+    /// Sequence number of inscription.
+    sequence_number: u32,
+    /// Block height of event
+    block_height: u32,
+  },
 }
 
 pub struct Index {
@@ -235,7 +247,7 @@ pub struct Index {
   path: PathBuf,
   started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
-  location_update_sender: Option<tokio::sync::mpsc::Sender<LocationUpdateEvent>>,
+  event_sender: Option<tokio::sync::mpsc::Sender<LocationUpdateEvent>>,
 }
 
 impl Index {
@@ -431,15 +443,15 @@ impl Index {
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
-      location_update_sender: None,
+      event_sender: None,
     })
   }
 
-  pub fn with_location_update_sender(
+  pub fn with_event_sender(
     &mut self,
     sender: tokio::sync::mpsc::Sender<LocationUpdateEvent>,
   ) -> &Self {
-    self.location_update_sender = Some(sender);
+    self.event_sender = Some(sender);
 
     self
   }
@@ -5689,16 +5701,16 @@ mod tests {
   }
 
   #[test]
-  fn set_location_update_sender() {
+  fn set_event_sender() {
     for context in Context::configurations() {
       let mut index = context.index;
       let (sender, _) = tokio::sync::mpsc::channel::<LocationUpdateEvent>(1);
 
-      assert_eq!(index.location_update_sender.is_none(), true);
+      assert_eq!(index.event_sender.is_none(), true);
 
-      index.with_location_update_sender(sender);
+      index.with_event_sender(sender);
 
-      assert_eq!(index.location_update_sender.is_some(), true);
+      assert_eq!(index.event_sender.is_some(), true);
     }
   }
 }

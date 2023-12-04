@@ -38,7 +38,7 @@ pub(crate) struct Updater<'index> {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
-  location_update_sender: Option<tokio::sync::mpsc::Sender<LocationUpdateEvent>>,
+  event_sender: Option<tokio::sync::mpsc::Sender<LocationUpdateEvent>>,
 }
 
 impl<'index> Updater<'_> {
@@ -51,7 +51,7 @@ impl<'index> Updater<'_> {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
-      location_update_sender: index.location_update_sender.clone(),
+      event_sender: index.event_sender.clone(),
     })
   }
 
@@ -448,6 +448,7 @@ impl<'index> Updater<'_> {
       unbound_inscriptions,
       value_cache,
       value_receiver,
+      event_sender: &self.event_sender.clone(),
     };
 
     if self.index.index_sats {
@@ -550,10 +551,8 @@ impl<'index> Updater<'_> {
     } else if index_inscriptions {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
         inscription_updater.index_envelopes(
-          tx,
-          *txid,
-          None,
-          self.location_update_sender.clone(),
+          tx, *txid, None,
+          // self.location_update_sender.clone(),
         )?;
       }
     }
@@ -663,7 +662,7 @@ impl<'index> Updater<'_> {
         tx,
         txid,
         Some(input_sat_ranges),
-        self.location_update_sender.clone(),
+        // self.location_update_sender.clone(),
       )?;
     }
 

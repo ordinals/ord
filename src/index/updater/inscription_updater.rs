@@ -65,6 +65,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) unbound_inscriptions: u64,
   pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
   pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) event_sender: &'a Option<Sender<LocationUpdateEvent>>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -73,7 +74,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     tx: &Transaction,
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
-    location_update_sender: Option<Sender<LocationUpdateEvent>>,
+    // location_update_sender: Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
@@ -337,7 +338,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         input_sat_ranges,
         flotsam,
         new_satpoint,
-        &location_update_sender,
+        // &location_update_sender,
       )?;
     }
 
@@ -351,7 +352,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           input_sat_ranges,
           flotsam,
           new_satpoint,
-          &location_update_sender,
+          // &location_update_sender,
         )?;
       }
       self.lost_sats += self.reward - output_value;
@@ -390,7 +391,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
-    location_update_sender: &Option<Sender<LocationUpdateEvent>>,
+    // location_update_sender: &Option<Sender<LocationUpdateEvent>>,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
@@ -405,16 +406,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .unwrap()
           .value();
 
-        if let Some(sender) = location_update_sender {
-          sender.blocking_send(LocationUpdateEvent {
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(LocationUpdateEvent::InscriptionMoved {
             inscription_id,
-            old_satpoint: Some(old_satpoint),
-            new_satpoint,
+            old_location: old_satpoint,
+            new_location: new_satpoint,
             sequence_number,
-
             block_height: self.height,
-            charms: None,
-            parent_inscription_id: None,
           })?;
         }
 
@@ -513,18 +511,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None => None,
         };
 
-        if let Some(sender) = location_update_sender {
-          sender.blocking_send(LocationUpdateEvent {
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(LocationUpdateEvent::InscriptionCreated {
             inscription_id,
-            old_satpoint: None,
-            new_satpoint: match unbound {
-              true => SatPoint {
-                outpoint: unbound_outpoint(),
-                offset: self.unbound_inscriptions,
-              },
-              false => new_satpoint,
+            location: match unbound {
+              true => None,
+              false => Some(new_satpoint),
             },
-            charms: if charms == 0 { None } else { Some(charms) },
+            charms,
             sequence_number,
             parent_inscription_id: parent,
             block_height: self.height,
