@@ -63,13 +63,28 @@ fn preview() {
     format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
   );
 
-  assert!(
-    reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+  let blockheight = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+    .unwrap()
+    .text()
+    .unwrap()
+    .parse::<u64>()
+    .unwrap();
+
+  for attempt in 0.. {
+    if attempt == 10 {
+      panic!("Bitcoin Core did not mine blocks",);
+    }
+
+    thread::sleep(Duration::from_millis(500));
+    if reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
       .unwrap()
       .text()
       .unwrap()
       .parse::<u64>()
       .unwrap()
-      > 105
-  );
+      > blockheight
+    {
+      break;
+    }
+  }
 }
