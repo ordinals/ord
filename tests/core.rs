@@ -22,7 +22,7 @@ fn preview() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml"
+    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml --blocktime 1"
   ))
   .write("inscription.txt", "Hello World")
   .write("alert.html", "<script>alert('LFG!')</script>")
@@ -61,5 +61,15 @@ fn preview() {
       .text()
       .unwrap(),
     format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
+  );
+
+  assert!(
+    reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+      .unwrap()
+      .text()
+      .unwrap()
+      .parse::<u64>()
+      .unwrap()
+      > 105
   );
 }
