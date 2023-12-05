@@ -4782,13 +4782,13 @@ next
     server.assert_response_regex(
       "/inscriptions/block/102",
       StatusCode::OK,
-      ".*(<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>.*\n.*){{100}}.*",
+      r".*(<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*){100}.*".to_string(),
     );
 
     server.assert_response_regex(
       "/inscriptions/block/102/1",
       StatusCode::OK,
-      ".*<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>.*",
+      r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
     );
   }
 }
