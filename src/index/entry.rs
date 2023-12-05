@@ -137,7 +137,7 @@ impl Entry for RuneId {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct InscriptionEntry {
   pub(crate) charms: u16,
   pub(crate) fee: u64,

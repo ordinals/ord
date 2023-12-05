@@ -170,31 +170,9 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(crate) struct InscriptionOutput {
-  pub(crate) inscription_id: InscriptionId,
-  // pub(crate) content: String,
-  pub(crate) content_type: String,
-  pub(crate) owner: String,
-  pub(crate) location: SatPoint,
-  pub(crate) genesis_fee: u64,
-  pub(crate) genesis_height: u64,
-  pub(crate) number: i64,
-  pub(crate) explorer: String,
-  pub(crate) timestamp: u32,
-  pub(crate) output: OutPoint,
-  pub(crate) output_value: u64,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct InscriptionInfo {
-  pub(crate) inscription_id: InscriptionId,
-  pub(crate) inscription_number: i64,
-  pub(crate) next_id: Option<InscriptionId>,
-  // pub(crate) prev_id: InscriptionId,
-  pub(crate) genesis_hash: Txid,
-  pub(crate) genesis_height: u64,
-  pub(crate) total_num: i64,
-  pub(crate) timestamp: u32,
+pub(crate) struct SyncData {
+  pub(crate) block_count: u32,
+  pub(crate) inscription_entries: Vec<InscriptionEntry>,
 }
 
 pub(crate) struct Index {
@@ -1694,84 +1672,25 @@ impl Index {
   }
 
   // Api
-  pub(crate) fn get_inscription_by_number(
+  pub(crate) fn get_inscription_entries(
     &self,
-    chain: Chain,
-    inscription_number: i64,
-  ) -> Result<InscriptionOutput> {
-    let inscription_id = self
-      .get_inscription_id_by_inscription_number(inscription_number)?
-      .unwrap();
-    let inscription = self.get_inscription_by_id(inscription_id)?.unwrap();
-    let location = self
-      .get_inscription_satpoint_by_id(inscription_id)?
-      .unwrap();
-    let entry = self.get_inscription_entry(inscription_id)?.unwrap();
-    println!("{:?}", entry);
-    let tx_output = self
-      .get_transaction(location.outpoint.txid)?
-      .unwrap()
-      .output
-      .into_iter()
-      .nth(location.outpoint.vout.try_into().unwrap())
-      .unwrap();
+    inscriptions: Vec<InscriptionId>,
+  ) -> Result<SyncData> {
+    let rtx = self.begin_read()?;
+    let block_count = rtx.block_count()?;
+    let mut entries = Vec::new();
 
-    Ok(InscriptionOutput {
-      inscription_id,
-      // content: String::from_utf8(inscription.clone().into_body().unwrap())?,
-      content_type: String::from_utf8(inscription.content_type.unwrap())?,
-      location,
-      genesis_fee: entry.fee,
-      genesis_height: entry.height,
-      number: entry.number,
-      timestamp: entry.timestamp,
-      explorer: format!("https://ordinals.com/inscription/{inscription_id}"),
-      output: location.outpoint,
-      output_value: tx_output.value,
-      owner: chain
-        .address_from_script(&tx_output.script_pubkey)?
-        .to_string(),
-    })
-  }
+    for inscription_id in inscriptions {
+      match self.get_inscription_entry(inscription_id) {
+        Ok(Some(entry)) => entries.push(entry),
+        Ok(None) => (),          // 忽略没有找到的条目
+        Err(e) => return Err(e), // 如果发生错误，则提前返回错误
+      }
+    }
 
-  pub(crate) async fn api_get_inscription_by_number(
-    &self,
-    chain: Chain,
-    inscription_number: i64,
-  ) -> Result<InscriptionOutput> {
-    let output = self.get_inscription_by_number(chain, inscription_number)?;
-    Ok(output)
-  }
-
-  pub(crate) async fn api_get_inscription_info_by_id(
-    &self,
-    inscription_id: InscriptionId,
-  ) -> Result<InscriptionInfo> {
-    let rtx = self.database.begin_read()?;
-
-    let inscription_number_to_inscription_id =
-      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-
-    let highest = match inscription_number_to_inscription_id.iter()?.next_back() {
-      Some(Ok((number, _id))) => number.value(),
-      Some(Err(_)) | None => 0,
-    };
-
-    let entry = self.get_inscription_entry(inscription_id)?.unwrap();
-    // let prev_id = self
-    //   .get_inscription_id_by_inscription_number(entry.number - 1)?
-    //   .unwrap();
-    let next_id = self.get_inscription_id_by_inscription_number(entry.number + 1)?;
-
-    Ok(InscriptionInfo {
-      inscription_id,
-      inscription_number: entry.number,
-      next_id,
-      // prev_id,
-      genesis_hash: inscription_id.txid,
-      genesis_height: entry.height,
-      total_num: highest,
-      timestamp: entry.timestamp,
+    Ok(SyncData { 
+      block_count,
+      inscription_entries: entries 
     })
   }
 
