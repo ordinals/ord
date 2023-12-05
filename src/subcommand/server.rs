@@ -4218,7 +4218,7 @@ next
   }
 
   #[test]
-  fn charm_smooth() {
+  fn charm_coin() {
     let server = TestServer::new_with_regtest_with_index_sats();
 
     server.mine_blocks(2);
@@ -4241,7 +4241,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>.*<span title=smooth>🪙</span>.*</dd>
+  <dd>.*<span title=coin>🪙</span>.*</dd>
   .*
 </dl>
 .*

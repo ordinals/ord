@@ -426,8 +426,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             Charm::Nineball.set(&mut charms);
           }
 
-          if sat.smooth() {
-            Charm::Smooth.set(&mut charms);
+          if sat.coin() {
+            Charm::Coin.set(&mut charms);
           }
 
           match sat.rarity() {

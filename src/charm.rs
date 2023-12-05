@@ -1,5 +1,6 @@
 #[derive(Copy, Clone)]
 pub(crate) enum Charm {
+  Coin,
   Cursed,
   Epic,
   Legendary,
@@ -7,14 +8,13 @@ pub(crate) enum Charm {
   Nineball,
   Rare,
   Reinscription,
-  Smooth,
   Unbound,
   Uncommon,
 }
 
 impl Charm {
   pub(crate) const ALL: [Charm; 10] = [
-    Self::Smooth,
+    Self::Coin,
     Self::Uncommon,
     Self::Rare,
     Self::Epic,
@@ -40,6 +40,7 @@ impl Charm {
 
   pub(crate) fn icon(self) -> &'static str {
     match self {
+      Self::Coin => "🪙",
       Self::Cursed => "👹",
       Self::Epic => "🪻",
       Self::Legendary => "🌝",
@@ -47,7 +48,6 @@ impl Charm {
       Self::Nineball => "9️⃣",
       Self::Rare => "🧿",
       Self::Reinscription => "♻️",
-      Self::Smooth => "🪙",
       Self::Unbound => "🔓",
       Self::Uncommon => "🌱",
     }
@@ -55,8 +55,8 @@ impl Charm {
 
   pub(crate) fn title(self) -> &'static str {
     match self {
+      Self::Coin => "coin",
       Self::Cursed => "cursed",
-      Self::Smooth => "smooth",
       Self::Epic => "epic",
       Self::Legendary => "legendary",
       Self::Lost => "lost",

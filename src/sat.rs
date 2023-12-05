@@ -65,7 +65,7 @@ impl Sat {
     (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
 
-  pub(crate) fn smooth(self) -> bool {
+  pub(crate) fn coin(self) -> bool {
     self.n() % COIN_VALUE == 0
   }
 
@@ -636,11 +636,11 @@ mod tests {
   }
 
   #[test]
-  fn smooth() {
-    assert!(Sat(0).smooth());
-    assert!(!Sat(COIN_VALUE - 1).smooth());
-    assert!(Sat(COIN_VALUE).smooth());
-    assert!(!Sat(COIN_VALUE + 1).smooth());
+  fn coin() {
+    assert!(Sat(0).coin());
+    assert!(!Sat(COIN_VALUE - 1).coin());
+    assert!(Sat(COIN_VALUE).coin());
+    assert!(!Sat(COIN_VALUE + 1).coin());
   }
 
   #[test]
