@@ -7,21 +7,23 @@ pub(crate) enum Charm {
   Nineball,
   Rare,
   Reinscription,
+  Smooth,
   Unbound,
   Uncommon,
 }
 
 impl Charm {
-  pub(crate) const ALL: [Charm; 9] = [
-    Charm::Uncommon,
-    Charm::Rare,
-    Charm::Epic,
-    Charm::Legendary,
-    Charm::Nineball,
-    Charm::Reinscription,
-    Charm::Cursed,
-    Charm::Unbound,
-    Charm::Lost,
+  pub(crate) const ALL: [Charm; 10] = [
+    Self::Smooth,
+    Self::Uncommon,
+    Self::Rare,
+    Self::Epic,
+    Self::Legendary,
+    Self::Nineball,
+    Self::Reinscription,
+    Self::Cursed,
+    Self::Unbound,
+    Self::Lost,
   ];
 
   fn flag(self) -> u16 {
@@ -38,29 +40,31 @@ impl Charm {
 
   pub(crate) fn icon(self) -> &'static str {
     match self {
-      Charm::Cursed => "👹",
-      Charm::Epic => "🪻",
-      Charm::Legendary => "🌝",
-      Charm::Lost => "🤔",
-      Charm::Nineball => "9️⃣",
-      Charm::Rare => "🧿",
-      Charm::Reinscription => "♻️",
-      Charm::Unbound => "🔓",
-      Charm::Uncommon => "🌱",
+      Self::Cursed => "👹",
+      Self::Epic => "🪻",
+      Self::Legendary => "🌝",
+      Self::Lost => "🤔",
+      Self::Nineball => "9️⃣",
+      Self::Rare => "🧿",
+      Self::Reinscription => "♻️",
+      Self::Smooth => "🪙",
+      Self::Unbound => "🔓",
+      Self::Uncommon => "🌱",
     }
   }
 
   pub(crate) fn title(self) -> &'static str {
     match self {
-      Charm::Cursed => "cursed",
-      Charm::Epic => "epic",
-      Charm::Legendary => "legendary",
-      Charm::Lost => "lost",
-      Charm::Nineball => "nineball",
-      Charm::Rare => "rare",
-      Charm::Reinscription => "reinscription",
-      Charm::Unbound => "unbound",
-      Charm::Uncommon => "uncommon",
+      Self::Cursed => "cursed",
+      Self::Smooth => "smooth",
+      Self::Epic => "epic",
+      Self::Legendary => "legendary",
+      Self::Lost => "lost",
+      Self::Nineball => "nineball",
+      Self::Rare => "rare",
+      Self::Reinscription => "reinscription",
+      Self::Unbound => "unbound",
+      Self::Uncommon => "uncommon",
     }
   }
 }
