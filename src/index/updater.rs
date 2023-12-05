@@ -517,7 +517,7 @@ impl<'index> Updater<'_> {
           .unwrap_or_default();
 
         for (start, end) in coinbase_inputs {
-          if !Sat(start).is_common() {
+          if !Sat(start).common() {
             sat_to_satpoint.insert(
               &start,
               &SatPoint {
@@ -642,7 +642,7 @@ impl<'index> Updater<'_> {
           .pop_front()
           .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
-        if !Sat(range.0).is_common() {
+        if !Sat(range.0).common() {
           sat_to_satpoint.insert(
             &range.0,
             &SatPoint {
