@@ -1,0 +1,431 @@
+<!DOCTYPE HTML>
+<html lang="it" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Iscrizioni - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduzione</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> Panoramica</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artefatti Digitali</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> Iscrizioni</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadati</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenienza</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Recursion</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Contribuire</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> Donare</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> Guide</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Esploratore</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html" class="active"><strong aria-hidden="true">7.2.</strong> Iscrizioni</a></li><li class="chapter-item expanded "><a href="../guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Iscrivere in Batch</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="../guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.6.</strong> Collezionare</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> Portafoglio Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.7.</strong> Testare</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.8.</strong> Moderazione</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> Reindicizzazione</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> Premi</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Premio 0: 100,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Premio 1: 200,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Premio 2: 300,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Premio 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="it">Italiano</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("it");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="guida-alliscrizione-ordinale"><a class="header" href="#guida-alliscrizione-ordinale">Guida all'Iscrizione Ordinale</a></h1>
+<p>I singoli satoshi possono essere iscritti con contenuti arbitrari, creando artefatti digitali nativi di Bitcoin che possono essere conservati in un portafoglio Bitcoin e trasferiti tramite transazioni Bitcoin. Le iscrizioni sono durevoli, immutabili, sicure e decentralizzate come Bitcoin stesso.</p>
+<p>Per lavorare con le iscrizioni è necessario un nodo Bitcoin completo, per avere una visione dello stato attuale della blockchain Bitcoin, e un portafoglio in grado di creare iscrizioni e di eseguire il controllo sat quando si costruiscono transazioni per inviare iscrizioni a un altro portafoglio.</p>
+<p>Bitcoin Core fornisce sia un nodo completo Bitcoin che un portafoglio. Tuttavia, il portafoglio di Bitcoin Core non può creare iscrizioni e non esegue il controllo sat.</p>
+<p>Per questo è necessario <a href="https://github.com/ordinals/ord"><code>ord</code></a>, l'utilità ordinale. <code>ord</code> non implementa un proprio portafoglio, quindi i sottocomandi del <code>portafoglio ord</code> interagiscono con i portafogli di Bitcoin Core.</p>
+<p>Questa guida tratta di:</p>
+<ol>
+<li>Installazione di Bitcoin Core</li>
+<li>Sincronizzare la blockchain di Bitcoin</li>
+<li>Creare un portafoglio Bitcoin Core</li>
+<li>Usare <code>ord wallet receive</code> per ricevere sats</li>
+<li>Creare iscrizioni con <code>ord wallet inscribe</code></li>
+<li>Inviare iscrizioni con <code>ord wallet send</code></li>
+<li>Ricevere iscrizioni con <code>ord wallet receive</code></li>
+<li>Inscrivere in batch con <code>ord wallet inscribe --batch</code></li>
+</ol>
+<h2 id="ricevere-aiuto"><a class="header" href="#ricevere-aiuto">Ricevere Aiuto</a></h2>
+<p>Se siete bloccati, provate a chiedere aiuto su <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, o a controllare su GitHub <a href="https://github.com/ordinals/ord/issues">i problemi</a> e <a href="https://github.com/ordinals/ord/discussions">le discussioni</a> pertinenti.</p>
+<h2 id="installazione-di-bitcoin-core"><a class="header" href="#installazione-di-bitcoin-core">Installazione di Bitcoin Core</a></h2>
+<p>Bitcoin Core è disponibile su <a href="https://bitcoincore.org/">bitcoincore.org</a> alla <a href="https://bitcoincore.org/en/download/">pagina di download</a>.</p>
+<p>Per effettuare iscrizioni è necessario Bitcoin Core 24 o più recente.</p>
+<p>Questa guida non tratta in dettaglio l'installazione di Bitcoin Core. Una volta installato Bitcoin Core, si dovrebbe essere in grado di eseguire con successo <code>bitcoind -version</code> dalla riga di comando. <em>NON</em> utilizzare <code>bitcoin-qt</code>.</p>
+<h2 id="configurazione-di-bitcoin-core"><a class="header" href="#configurazione-di-bitcoin-core">Configurazione di Bitcoin Core</a></h2>
+<p><code>ord</code> richiede l'indice delle transazioni e l'interfaccia rest di Bitcoin Core.</p>
+<p>Per configurare il tuo nodo Bitcoin Core in modo che mantenga un indice delle transazioni, aggiungere quanto segue al tuo <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Oppure, eseguire <code>bitcoind</code> con <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>I dettagli sulla creazione o la modifica del file <code>bitcoin.conf</code> sono disponibili <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">qui</a>.</p>
+<h2 id="sincronizzazione-della-catena-di-bitcoin"><a class="header" href="#sincronizzazione-della-catena-di-bitcoin">Sincronizzazione della catena di Bitcoin</a></h2>
+<p>Per sincronizzare la catena, eseguire:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>…e lasciarlo in esecuzione fino a <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>concorda con il conteggio dei blocchi su un block explorer come <a href="https://mempool.space/">mempool.space block explorer</a>. <code>ord</code> interagisce con <code>bitcoind</code>, quindi si dovrebbe lasciare <code>bitcoind</code> in esecuzione in background quando si utilizza <code>ord</code>.</p>
+<p>La blockchain occupa circa 600 GB di spazio su disco. Se si dispone di un disco esterno su cui memorizzare i blocchi, utilizzare l'opzione di configurazione <code>blocksdir=&lt;external_drive_path&gt;</code>. È molto più semplice che usare l'opzione <code>datadir</code>, perché il file cookie sarà ancora nella posizione predefinita per essere trovato da <code>bitcoin-cli</code> e <code>ord</code>.</p>
+<h2 id="risoluzione-dei-problemi"><a class="header" href="#risoluzione-dei-problemi">Risoluzione dei problemi</a></h2>
+<p>Assicurarsi di poter accedere a <code>bitcoind</code> con <code>bitcoin-cli -getinfo</code> e che sia completamente sincronizzato.</p>
+<p>Se <code>bitcoin-cli -getinfo</code> restituisce <code>Could not connect to the server</code>, <code>bitcoind</code> non è in esecuzione.</p>
+<p>Assicurarsi che <code>rpcuser</code>, <code>rpcpassword</code>, o <code>rpcauth</code> <em>NON</em> siano impostati nel file <code>bitcoin.conf</code>. <code>ord</code> richiede l'uso dell'autenticazione tramite cookie. Assicurarsi che ci sia un file <code>.cookie</code> nella tua directory dei dati di bitcoin.</p>
+<p>Se <code>bitcoin-cli -getinfo</code> restituisce <code>Could not locate RPC credentials</code>, è necessario specificare la posizione del file cookie. Se si utilizza una directory di dati personalizzata (specificando l'opzione <code>datadir</code>), è necessario specificare la posizione del cookie come <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. Quando si esegue <code>ord</code> è necessario specificare la posizione del file cookie con <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Assicurarsi di <em>NON</em> avere <code>disablewallet=1</code> nel file <code>bitcoin.conf</code>. Se <code>bitcoin-cli listwallets</code> restituisce <code>Method not found</code>, il portafoglio è disabilitato e non sarà possibile utilizzare <code>ord</code>.</p>
+<p>Assicurarsi che <code>txindex=1</code> sia impostato. Eseguite <code>bitcoin-cli getindexinfo</code> e dovrebbe restituire qualcosa come</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>Se restituisce solo <code>{}</code>, il <code>txindex</code> non è impostato. Se restituisce <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> sta ancora creando il <code>txindex</code>. Attendere fino a <code>&quot;synced&quot;: true</code> prima di usare <code>ord</code>.</p>
+<p>Se è impostato <code>maxuploadtarget</code>, può interferire con il recupero dei blocchi per l'indice <code>ord</code>. Rimuoverlo o impostare <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="installazione-di-ord"><a class="header" href="#installazione-di-ord">Installazione di <code>ord</code></a></h2>
+<p>L'utilità <code>ord</code> è scritta in Rust e può essere compilata dalla <a href="https://github.com/ordinals/ord">sorgente</a>. I binari precompilati sono disponibili nella <a href="https://github.com/ordinals/ord/releases">pagina dei rilasci</a>.</p>
+<p>È possibile installare l'ultimo binario precostruito dalla riga di comando con:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>Una volta installato <code>ord</code>, dovrebbe essere possibile eseguirlo:</p>
+<pre><code>ord --version
+</code></pre>
+<p>Che stampa il numero di versione di <code>ord</code>.</p>
+<h2 id="creare-un-bitcoin-core-wallet"><a class="header" href="#creare-un-bitcoin-core-wallet">Creare un Bitcoin Core Wallet</a></h2>
+<p><code>ord</code> utilizza Bitcoin Core per gestire le chiavi private, firmare le transazioni e trasmettere le transazioni alla rete Bitcoin.</p>
+<p>Per creare un portafoglio Bitcoin Core chiamato <code>ord</code> da usare con <code>ord</code>, eseguire:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="ricevere-i-sats"><a class="header" href="#ricevere-i-sats">Ricevere i Sats</a></h2>
+<p>Le iscrizioni vengono effettuate su singoli sat, utilizzando le normali transazioni Bitcoin che pagano le commissioni in sats, quindi il vostro portafoglio avrà bisogno di alcuni sats.</p>
+<p>Ottenere un nuovo indirizzo dal proprio portafoglio <code>ord</code> eseguendo:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>E inviategli dei fondi.</p>
+<p>È possibile vedere le transazioni in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una volta confermata la transazione, si dovrebbe essere in grado di vedere i risultati delle transazioni con <code>ord wallet outputs</code>.</p>
+<h2 id="creazione-del-contenuto-delliscrizione"><a class="header" href="#creazione-del-contenuto-delliscrizione">Creazione del contenuto dell'iscrizione</a></h2>
+<p>I sats possono essere iscritti con qualsiasi tipo di contenuto, ma il portafoglio <code>ord</code> supporta solo i tipi di contenuto che possono essere visualizzati dall'explorer di blocchi <code>ord</code>.</p>
+<p>Inoltre, le iscrizioni sono incluse nelle transazioni, quindi più grande è il contenuto, più alta è la commissione che la transazione di iscrizione deve pagare.</p>
+<p>I contenuti delle iscrizioni sono inclusi nei witness delle transazioni, che ricevono uno sconto sulle commissioni. Per calcolare la tariffa approssimativa che una transazione di iscrizione dovrà pagare, dividere la dimensione del contenuto per quattro e moltiplicare per la tariffa.</p>
+<p>Le transazioni di iscrizione devono essere inferiori a 400.000 unità di peso, altrimenti non saranno trasmesse dal Bitcoin Core. Un byte di contenuto di iscrizione costa un'unità di peso. Poiché una transazione di iscrizione non include solo il contenuto dell'iscrizione, limitate il contenuto dell'iscrizione a meno di 400.000 unità di peso. 390.000 unità di peso dovrebbero essere sicure.</p>
+<h2 id="creazione-di-iscrizioni"><a class="header" href="#creazione-di-iscrizioni">Creazione di iscrizioni</a></h2>
+<p>Per creare un'iscrizione con il contenuto di <code>FILE</code>, eseguire:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
+</code></pre>
+<p>Ord produrrà due ID di transazione, uno per la transazione di commit e uno per la transazione di reveal, e l'ID dell'iscrizione. Gli ID delle iscrizioni sono della forma <code>TXIDiN</code>, dove <code>TXID</code> è l'ID della transazione di rivelazione e <code>N</code> è l'indice dell'iscrizione nella transazione di rivelazione.</p>
+<p>La transazione di commit esegue il commit su un tapscript contenente il contenuto dell'iscrizione e la transazione di reveal esegue il commit da quel tapscript, rivelando il contenuto sulla catena e iscrivendolo sul primo sat dell'input che contiene il tapscript corrispondente.</p>
+<p>Attendere che la transazione reveal venga minata. È possibile controllare lo stato delle transazioni di commit e di reveal utilizzando <a href="https://mempool.space/">il block explorer di mempool.space</a>.</p>
+<p>Una volta che la transazione reveal è stata estratta, l'ID dell'iscrizione dovrebbe essere stampato durante l'esecuzione:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="iscrizioni-genitore-figlio"><a class="header" href="#iscrizioni-genitore-figlio">Iscrizioni Genitore-Figlio</a></h2>
+<p>Le iscrizioni &quot;parent-child&quot; consentono di creare quelle che in gergo si chiamano collezioni, per maggiori informazioni, si veda la voce <a href="../inscriptions/provenance.html">provenienza</a>.</p>
+<p>Per rendere un'iscrizione figlia di un'altra, l'iscrizione parent deve essere iscritta e presente nel portafoglio. Per scegliere un genitore, eseguire <code>ord wallet inscriptions</code> e copiare l'id dell'iscrizione (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Ora iscrivete l'iscrizione figlia e specificate il genitore in questo modo:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
+</code></pre>
+<p>Questo rapporto non può essere aggiunto retroattivamente, il genitore deve essere presente al momento dell'iscrizione del bambino.</p>
+<h2 id="invio-di-iscrizioni"><a class="header" href="#invio-di-iscrizioni">Invio di iscrizioni</a></h2>
+<p>Chiedere al destinatario di generare un nuovo indirizzo eseguendo:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Inviare l’iscrizione eseguendo:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Vedere la transazione in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una volta confermata la transazione di invio, il destinatario può confermare la ricezione eseguendo:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="ricevere-iscrizioni"><a class="header" href="#ricevere-iscrizioni">Ricevere Iscrizioni</a></h2>
+<p>Generare un nuovo indirizzo di ricezione utilizzando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Il mittente può trasferire l'iscrizione al vostro indirizzo utilizzando:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Vedere la transazione in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/explorer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../guides/batch-inscribing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/explorer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../guides/batch-inscribing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

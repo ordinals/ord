@@ -1,0 +1,1617 @@
+<!DOCTYPE HTML>
+<html lang="it" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ordinal Theory Handbook</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduzione</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Panoramica</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artefatti Digitali</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Iscrizioni</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadati</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenienza</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Recursion</a></li><li class="chapter-item expanded "><a href="inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contribuire</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Donare</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Guide</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Esploratore</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Iscrizioni</a></li><li class="chapter-item expanded "><a href="guides/batch-inscribing.html"><strong aria-hidden="true">7.3.</strong> Iscrivere in Batch</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.4.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="guides/teleburning.html"><strong aria-hidden="true">7.5.</strong> Teleburning</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.6.</strong> Collezionare</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.6.1.</strong> Portafoglio Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.7.</strong> Testare</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.8.</strong> Moderazione</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.9.</strong> Reindicizzazione</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Premi</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Premio 0: 100,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Premio 1: 200,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Premio 2: 300,000 sats Riscossi!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Premio 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="it">Italiano</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("it");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "print.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduzione"><a class="header" href="#introduzione">Introduzione</a></h1>
+<p>Questo manuale è una guida alla teoria Ordinale. La teoria ordinale si occupa dei satoshi, attribuendo loro un'identità individuale e consentendo di tracciarli, trasferirli e attribuire loro un significato.</p>
+<p>I satoshi, e non i bitcoin, sono l’unità più piccola di un Bitcoin. Un bitcoin può essere suddiviso in 100.000.000 di satoshis, ma non oltre.</p>
+<p>La teoria ordinale non richiede una sidechain o un token oltre al Bitcoin e può essere utilizzata senza alcuna modifica alla rete Bitcoin. Funziona già adesso.</p>
+<p>La teoria ordinale conferisce ai satoshi un valore numismatico, consentendo loro di essere collezionati e scambiati come collezionabili.</p>
+<p>I singoli satoshi possono essere iscritti con un contenuto arbitrario, creando artefatti digitali unici nativi di Bitcoin che possono essere conservati in portafogli Bitcoin e trasferiti con transazioni Bitcoin. Le iscrizioni sono durevoli, immutabili, sicure e decentralizzate come Bitcoin stesso.</p>
+<p>Sono possibili altri casi d'uso più insoliti: monete colorate off-chain, infrastrutture a chiave pubblica con rotazione delle chiavi, una sostituzione decentralizzata del DNS. Per ora, però, questi casi d'uso sono speculativi ed esistono solo nella mente di teorici ordinali di nicchia.</p>
+<p>Per maggiori dettagli sulla teoria ordinale, consulta la <a href="overview.html">panoramica</a>.</p>
+<p>Per maggiori dettagli sulle iscrizioni, vedi <a href="inscriptions.html">iscrizioni</a>.</p>
+<p>Quando sei pronto a sporcarti le mani, un buon punto di partenza è rappresentato dalle iscrizioni, una curiosa specie di artefatto digitale reso possibile dalla teoria ordinale.</p>
+<h2 id="collegamenti"><a class="header" href="#collegamenti">Collegamenti</a></h2>
+<ul>
+<li><a href="https://github.com/ordinals/ord/">GitHub</a></li>
+<li><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a></li>
+<li><a href="https://discord.gg/ordinals">Discord</a></li>
+<li><a href="https://ordinals.org/">Sito web dell'Istituto aperto degli Ordinali</a></li>
+<li><a href="https://x.com/ordinalsorg">X dell' Istituto aperto degli Ordinali</a></li>
+<li><a href="https://ordinals.com">Esploratore di blocchi Mainnet</a></li>
+<li><a href="https://signet.ordinals.com">Esploratore di blocchi Signet</a></li>
+</ul>
+<h2 id="video"><a class="header" href="#video">Video</a></h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=rSS0O2KQpsI">La teoria degli Ordinali spiegata: Numeri di serie dei Satoshi e NFT su Bitcoin</a></li>
+<li><a href="https://www.youtube.com/watch?v=MC_haVa6N3I">Workshop sugli Ordinali con Rodarmor Rodarmor</a></li>
+<li><a href="https://www.youtube.com/watch?v=j5V33kV3iqo">Arte ordinale: Inscrivi i tuoi NFT su Bitcoin con @rodarmor</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="panoramica-sulla-teoria-degli-ordinali"><a class="header" href="#panoramica-sulla-teoria-degli-ordinali">Panoramica sulla teoria degli Ordinali</a></h1>
+<p>Gli Ordinali sono uno schema di numerazione per i satoshi che consente di tracciare e trasferire i singoli sats. Questi numeri sono chiamati <a href="https://ordinals.com">numeri ordinali</a>. I Satoshi sono numerati nell'ordine in cui sono stati minati e vengono trasferiti in base alla sequenza delle transazioni in entrata e in uscita, secondo il metodo FIFO (First In, First Out). Sia lo schema di numerazione che quello di trasferimento si basano sull'ordine, quello di numerazione si basa sull'ordine di estrazione dei satoshi e quello di trasferimento si basa sull'ordine degli ingressi e delle uscite delle transazioni. Da qui il nome <em>Ordinali</em>.</p>
+<p>I dettagli tecnici sono disponibili <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">nel BIP</a>.</p>
+<p>La teoria degli Ordinali non richiede un token separato, un'altra blockchain o modifiche a Bitcoin. Funziona già adesso.</p>
+<p>I numeri ordinali hanno diverse rappresentazioni:</p>
+<ul>
+<li>
+<p><em>Notazione integrale</em>: <a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a> Il numero ordinale, assegnato in base all'ordine in cui il Satoshi è stato minato.</p>
+</li>
+<li>
+<p><em>Notazione decimale</em>: <a href="https://ordinals.com/sat/3891094.16797"><code>3891094.16797</code></a> Il numero prima del punto è l'altezza del blocco in cui il satoshi è stato minato, il secondo è l'offset del satoshi all'interno del blocco.</p>
+</li>
+<li>
+<p><em>Notazione sessagesimale</em>: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a>. Ci arriveremo tra poco.</p>
+</li>
+<li>
+<p><em>Notazione percentile</em>: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> . Posizione del satoshi sull'intera supply di Bitcoin (21 milioni), espressa in percentuale.</p>
+</li>
+<li>
+<p><em>Nome</em>: <a href="https://ordinals.com/sat/satoshi"><code>satoshi</code></a>. Una codifica del numero ordinale che utilizza i caratteri da <code>a</code> a <code>z</code>.</p>
+</li>
+</ul>
+<p>Sui satoshi possono essere allegati un certo tipo di dati, come NFT, security token, conti o stablecoins, utilizzando i numeri ordinali come identificatori stabili.</p>
+<p>Ordinals è un progetto open-source, sviluppato <a href="https://github.com/ordinals/ord">su GitHub</a>. Il progetto consiste in un BIP che descrive lo schema ordinale, un indice che comunica con un nodo Bitcoin Core per tenere traccia della posizione di tutti i satoshis, un portafoglio che consente di effettuare transazioni degli ordinali riconoscendoli come tali, un block explorer per l'esplorazione interattiva della blockchain, una funzionalità per inscrivere artefatti digitali sui Satoshi e questo manuale.</p>
+<h2 id="la-rarità"><a class="header" href="#la-rarità">La Rarità</a></h2>
+<p>Gli esseri umani sono collezionisti e, siccome da ora i satoshi possono essere tracciati e trasferiti, le persone vorranno naturalmente collezionarli. I teorici degli Ordinali possono decidere da soli quali satoshi sono rari e desiderabili, ma ecco qualche suggerimento...</p>
+<p>Il Bitcoin ha eventi periodici, alcuni più frequenti, altri meno, che si prestano naturalmente a un sistema di rarità. Questi eventi periodici sono:</p>
+<ul>
+<li>
+<p><em>Blocchi</em>: Ogni 10 minuti circa viene estratto un nuovo blocco, da ora fino alla fine dei tempi.</p>
+</li>
+<li>
+<p><em>Aggiustamenti della difficoltà</em>: Ogni 2016 blocchi, o circa ogni due settimane, la rete Bitcoin risponde alle variazioni dell'hashrate modificando l'obiettivo di difficoltà che i blocchi devono soddisfare per essere accettati.</p>
+</li>
+<li>
+<p><em>Dimezzamenti</em>: Ogni 210.000 blocchi, o all'incirca ogni quattro anni, la quantità di nuovi satoshi creati in ogni blocco viene dimezzata.</p>
+</li>
+<li>
+<p><em>Cicli</em>: Ogni sei dimezzamenti, accade qualcosa di magico: l'halving e l'adeguamento della difficoltà coincidono. Questo si chiama congiunzione e il periodo di tempo che intercorre tra una congiunzione e l'altra si chiama ciclo. Una congiunzione si verifica all'incirca ogni 24 anni. La prima congiunzione dovrebbe verificarsi nel 2032.</p>
+</li>
+</ul>
+<p>Questo ci dà i seguenti livelli di rarità:</p>
+<ul>
+<li><code>comune</code>: qualsiasi satoshi che non sia il primo del suo blocco</li>
+<li><code>non comune</code>: il primo sat di ciascun blocco</li>
+<li><code>raro</code>: il primo sat di ogni periodo di aggiustamento della difficoltà</li>
+<li><code>epico</code>: il primo sat del primo blocco conseguente all'Halving</li>
+<li><code>leggendario</code>: il primo sat di ogni ciclo</li>
+<li><code>mitico</code>: il primo sat del blocco della genesi</li>
+</ul>
+<p>Questo ci porta alla notazione sessagesimale, che rappresenta inequivocabilmente un numero ordinale in un modo che rende la rarità di un satoshi facile da vedere a colpo d'occhio:</p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
+</code></pre>
+<p>I teorici degli Ordinali usano spesso i termini &quot;ora&quot;, &quot;minuto&quot;, &quot;secondo&quot;, e &quot;terzo&quot; per <em>A</em>, <em>B</em>, <em>C</em>, e <em>D</em>, rispettivamente.</p>
+<p>Ora alcuni esempi. Questo satoshi è comune:</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Questo satoshi è non comune:</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Questo satoshi è raro:</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Questo satoshi è epico:</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Questo satoshi è leggendario:</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Infine questo è il satoshi mitico:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
+</code></pre>
+<p>Se l'offset del blocco è zero, può essere omesso. Questo è il satoshi non comune di cui sopra:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="disponibilità-di-satoshi-rari"><a class="header" href="#disponibilità-di-satoshi-rari">Disponibilità di Satoshi Rari</a></h2>
+<h3 id="disponibilità-totale"><a class="header" href="#disponibilità-totale">Disponibilità Totale</a></h3>
+<ul>
+<li><code>comune</code>: 2.1 quadrilioni</li>
+<li><code>non comune</code>: 6,929,999</li>
+<li><code>raro</code>: 3437</li>
+<li><code>epico</code>: 32</li>
+<li><code>leggendario</code>: 5</li>
+<li><code>mitico</code>: 1</li>
+</ul>
+<h3 id="offerta-attuale"><a class="header" href="#offerta-attuale">Offerta Attuale</a></h3>
+<ul>
+<li><code>comune</code>: 1.9 quadrilioni</li>
+<li><code>non comune</code>: 808,262</li>
+<li><code>raro</code>: 369</li>
+<li><code>epico</code>: 3</li>
+<li><code>leggendario</code>: 0</li>
+<li><code>mitico</code>: 1</li>
+</ul>
+<p>Ad oggi, anche i satoshi non comuni sono piuttosto rari. Al momento in cui scriviamo, sono stati estratti 808.262 satoshi non comuni, uno ogni 25,6 bitcoin in circolazione.</p>
+<h2 id="i-nomi"><a class="header" href="#i-nomi">I nomi</a></h2>
+<p>Ogni satoshi ha un nome, composto dalle lettere dalla <em>A</em> alla <em>Z</em>, che diventa tanto più corto quanto più il satoshi sarà minato nel futuro. Sarebbero potuti iniziare corti e diventare più lunghi, ma poi tutti i nomi buoni e corti sarebbero rimasti intrappolati nel blocco genesis non spendibile.</p>
+<p>Ad esempio, il nome di 1905530482684727° è &quot;iaiufjszmoba&quot;. Il nome dell'ultimo satoshi da estrarre è &quot;a&quot;. Ogni combinazione di 10 caratteri o meno è là fuori, o sarà là fuori, un giorno.</p>
+<h2 id="esotici"><a class="header" href="#esotici">Esotici</a></h2>
+<p>I satoshi possono essere apprezzati per ragioni diverse dal loro nome o dalla loro rarità. Ciò potrebbe essere dovuto a una qualità del numero stesso, come il fatto di avere una radice quadrata o cubica intera. Oppure può essere dovuto a un collegamento con un evento storico, come i satoshi del blocco 477.120, il blocco in cui è stato attivato SegWit, o 2099999997689999°, l'ultimo satoshi che sarà mai estratto.</p>
+<p>Tali satoshi sono definiti &quot;esotici&quot;. Quali siano i satoshi esotici e cosa li renda tali è soggettivo. I teorici degli Ordinali sono incoraggiati a cercare satoshi esotici in base alle proprie preferenze.</p>
+<h2 id="iscrizioni"><a class="header" href="#iscrizioni">Iscrizioni</a></h2>
+<p>I satoshi possono essere iscritti con contenuti arbitrari, creando artefatti digitali nativi di Bitcoin. L'iscrizione avviene inviando il satoshi da iscrivere in una transazione che rivela il contenuto dell'iscrizione on-chain. Questo contenuto è quindi ora indissolubilmente legato a quel satoshi, trasformandolo in un artefatto digitale immutabile che può essere tracciato, trasferito, collezionato, comprato, venduto, perso e ritrovato.</p>
+<h2 id="archeologia"><a class="header" href="#archeologia">Archeologia</a></h2>
+<p>È nata una vivace comunità di archeologi dedicata alla catalogazione e alla raccolta dei primi NFT. <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Ecco un ottimo riassunto di NFT storici a cura di Chainleft.</a>&quot;</p>
+<p>La data di inizio comunemente accettata per i primi NFT è il 19 marzo 2018, data in cui il primo contratto ERC-721, <a href="https://tenthousandsu.com/">SU SQUARES</a>, è stato distribuito su Ethereum.</p>
+<p>Se gli Ordinali siano o meno di interesse per gli archeologi degli NFT è una questione aperta! In un certo senso, gli ordinali sono stati creati all'inizio del 2022, quando è stata finalizzata la specifica Ordinals. Visti cosi, non hanno un grande interesse storico.</p>
+<p>In un altro senso, invece, gli ordinali sono stati creati da Satoshi Nakamoto nel 2009, quando ha estratto il blocco genesis di Bitcoin. In questo modo, gli ordinali, e soprattutto i primi ordinali, sono certamente di interesse storico.</p>
+<p>Molti teorici degli ordinali sono favorevoli a quest'ultimo punto di vista. Anche perché gli ordinali sono stati scoperti in modo indipendente in almeno due occasioni distinte, molto prima che iniziasse l'era degli NFT moderni.</p>
+<p>Il 21 agosto 2012, Charlie Lee <a href="https://bitcointalk.org/index.php?topic=102355.0">ha pubblicato sul forum Bitcoin Talk una proposta per aggiungere la proof-of-stake a Bitcoin</a>. Non si trattava di un sistema di beni, ma utilizzava già l'algoritmo ordinale ed è stato implementato ma mai distribuito.</p>
+<p>L'8 ottobre 2012, jl2012 ha <a href="https://bitcointalk.org/index.php?topic=117224.0">pubblicato sullo stesso forum uno schema</a> che utilizza la notazione decimale e presenta tutte le proprietà importanti degli ordinali. Lo schema è stato discusso ma mai implementato.</p>
+<p>Queste invenzioni indipendenti degli ordinali indicano in qualche modo che gli ordinali sono stati scoperti, o riscoperti, ma non inventati. Gli ordinali sono inevitabili nella matematica dei Bitcoin, e non derivano dalla loro documentazione moderna, ma dalla loro genesi antica. Sono il culmine di una sequenza di eventi avviati con l'estrazione del primo blocco, molti anni fa.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="artefatti-digitali"><a class="header" href="#artefatti-digitali">Artefatti Digitali</a></h1>
+<p>Immaginate un artefatto fisico. Una moneta rara, ad esempio, tenuta al sicuro per anni nell'oscuro e segreto nascondiglio di un tesoro vichingo e ora disseppellita dalla terra dalle vostre mani. Essa…</p>
+<p>…ha un proprietario. Voi. Finché lo terrete al sicuro, nessuno potrà portarvelo via.</p>
+<p>…è completo. Non ha parti mancanti.</p>
+<p>…può essere cambiato solo da voi. Se foste un commerciante e vi recaste nella Cina del XVIII secolo, solo voi potreste imprimere il vostro marchio.</p>
+<p>…può essere smaltito solo da voi. La vendita, il commercio o il dono sono di vostra competenza, a chi volete.</p>
+<p>Cosa sono gli artefatti digitali? In poche parole, sono l'equivalente digitale degli artefatti fisici.</p>
+<p>Perché un oggetto digitale sia un artefatto digitale, deve essere come la vostra moneta:</p>
+<ul>
+<li>
+<p>Gli artefatti digitali possono avere un proprietario. Un numero non è un artefatto digitale, perché nessuno può possederlo.</p>
+</li>
+<li>
+<p>Gli artefatti digitali sono completi. Un NFT che punta a contenuti off-chain su IPFS o Arweave è incompleto e quindi non è un artefatto digitale.</p>
+</li>
+<li>
+<p>Gli artefatti digitali sono privi di permessi. Un NFT che non può essere venduto senza pagare una royalty non è privo di permessi e quindi non è un artefatto digitale.</p>
+</li>
+<li>
+<p>Gli artefatti digitali sono incensurabili. Forse oggi si può cambiare una voce di un database su un libro mastro centralizzato, ma forse non domani, e quindi non può essere un artefatto digitale.</p>
+</li>
+<li>
+<p>Gli artefatti digitali sono immutabili. Un NFT con una chiave di aggiornamento non è un artefatto digitale.</p>
+</li>
+</ul>
+<p>La definizione di artefatto digitale intende riflettere ciò che gli NFT <em>dovrebbero</em> essere, e talvolta sono, e ciò che le iscrizioni sono <em>sempre</em>, per loro stessa natura.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="iscrizioni-1"><a class="header" href="#iscrizioni-1">Iscrizioni</a></h1>
+<p>Le iscrizioni iscrivono i sats con contenuti arbitrari, creando artefatti digitali nativi di bitcoin, più comunemente noti come NFT. Le iscrizioni non richiedono una sidechain o un token separato.</p>
+<p>Questi sat iscritti possono essere trasferiti con transazioni bitcoin, inviati a indirizzi bitcoin e conservati in UTXO di Bitcoin. Queste transazioni, indirizzi e UTXO sono normali transazioni, indirizzi e UTXO bitcoin a tutti gli effetti, con l'eccezione che per inviare i singoli sat, le transazioni devono controllare l'ordine e il valore degli input e degli output secondo la teoria ordinale.</p>
+<p>Il modello di contenuto dell'iscrizione è quello del web. Un'iscrizione consiste in un tipo di contenuto, noto anche come tipo MIME, e nel contenuto stesso, che è una stringa di byte. Ciò consente di restituire il contenuto dell'iscrizione da un server web e di creare iscrizioni HTML che utilizzano e rimescolano il contenuto di altre iscrizioni.</p>
+<p>Il contenuto dell'iscrizione è interamente on-chain,archiviato negli script di spesa del percorso dello script taproot. Gli script taproot hanno pochissime restrizioni sui loro contenuti e ricevono inoltre lo sconto testimone, rendendo relativamente economica la memorizzazione dei contenuti delle iscrizioni.</p>
+<p>Poiché gli script taproot possono essere spesi solo a partire da output taproot esistenti, le iscrizioni vengono effettuate utilizzando una procedura di commit/reveal in due fasi. In primo luogo, nella transazione di commit, viene creata un'uscita taproot che esegue il commit di uno script contenente il contenuto dell'iscrizione. In secondo luogo, nella transazione reveal, l'output creato dalla transazione commit viene speso, rivelando il contenuto dell'iscrizione sulla catena.</p>
+<p>Il contenuto dell'iscrizione viene serializzato utilizzando push di dati all'interno di condizioni non eseguite, chiamate &quot;buste&quot; (envelopes). Queste buste consistono in un <code>OP_FALSE OP_IF … OP_ENDIF</code> che avvolge un numero qualsiasi di push di dati. Poiché questi involucri sono effettivamente no-ops, non cambiano la semantica dello script in cui sono inclusi e possono essere combinati con qualsiasi altro script di chiusura.</p>
+<p>Un'iscrizione di testo contenente la stringa &quot;Hello, world!&quot; viene serializzata come segue:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Per prima cosa viene inserita la stringa <code>ord</code>, per distinguere le iscrizioni da altri usi delle buste.</p>
+<p><code>OP_PUSH 1</code> indica che il prossimo push contiene il tipo di contenuto, mentre <code>OP_PUSH 0</code> indica che i successivi push di dati contengono il contenuto stesso. Per iscrizioni di grandi dimensioni è necessario utilizzare più push di dati, poiché una delle poche restrizioni di taproot è che i singoli push di dati non possono essere più grandi di 520 byte.</p>
+<p>Il contenuto dell'iscrizione è contenuto nell'input di una transazione di rivelazione e l'iscrizione viene effettuata sul primo satoshi del suo input. Questo satoshi può quindi essere rintracciato utilizzando le note regole della teoria ordinale, consentendo di trasferirlo, comprarlo, venderlo, perderlo nelle fees e recuperarlo.</p>
+<h2 id="il-contenuto"><a class="header" href="#il-contenuto">Il Contenuto</a></h2>
+<p>Il modello di dati delle iscrizioni è quello di una risposta HTTP, che rende disponibile il contenuto dell'iscrizione da un server web e lo rende visualizzabile in un browser web.</p>
+<h2 id="i-campi"><a class="header" href="#i-campi">I Campi</a></h2>
+<p>Le iscrizioni possono includere campi prima di un corpo opzionale. Ogni campo è composto da due dati, un tag e un valore.</p>
+<p>Currently, there are six defined fields:</p>
+<ul>
+<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
+<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="./inscriptions/pointer.html">pointer docs</a>.</li>
+<li><code>parent</code>, with a tag of <code>3</code>, see <a href="./inscriptions/provenance.html">provenance</a>.</li>
+<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="./inscriptions/metadata.html">metadata</a>.</li>
+<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
+</ul>
+<p>L'inizio del corpo e la fine dei campi sono indicati con un push di dati vuoto.</p>
+<p>I tag non riconosciuti vengono interpretati in modo diverso a seconda che siano pari o dispari, seguendo la regola &quot;va bene essere dispari&quot; utilizzata dalla Lightning Network.</p>
+<p>I tag pari sono utilizzati per i campi che possono influenzare la creazione, l'assegnazione iniziale o il trasferimento di un'iscrizione. Pertanto, le iscrizioni con campi pari non riconosciuti devono essere visualizzate come &quot;non vincolate&quot;, cioè senza una posizione.</p>
+<p>I tag dispari sono utilizzati per i campi che non influiscono sulla creazione, sull'assegnazione iniziale o sul trasferimento, come i metadati aggiuntivi, e quindi possono essere tranquillamente ignorati.</p>
+<h2 id="id-delliscrizione"><a class="header" href="#id-delliscrizione">ID dell'iscrizione</a></h2>
+<p>Le iscrizioni sono contenute negli input di una transazione di rivelazione. Per identificarle in modo univoco, viene loro assegnato un ID del tipo:</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>La parte davanti alla <code>i</code> è l'ID della transazione (<code>txid</code>) della transazione rivelata. Il numero dopo la <code>i</code> definisce l'indice (a partire da 0) delle nuove iscrizioni che vengono inserite nella transazione di rivelazione.</p>
+<p>Le iscrizioni possono trovarsi in ingressi diversi, all'interno dello stesso ingresso o in una combinazione di entrambi. In ogni caso, l'ordine è chiaro, poiché un parser dovrebbe passare in rassegna gli ingressi consecutivamente e cercare tutte le <code>buste</code> di iscrizioni.</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Conta delle Iscrizioni</th><th style="text-align: center">Indici</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
+<p>Le iscrizioni HTML e SVG sono sottoposte a sandboxing per evitare riferimenti a contenuti esterni alla catena, mantenendo così le iscrizioni immutabili e autonome.</p>
+<p>Ciò si ottiene caricando le iscrizioni HTML e SVG all'interno di <code>iframes</code> con l'attributo <code>sandbox</code> e servendo il contenuto dell'iscrizione con intestazioni <code>Content-Security-Policy</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="metadati"><a class="header" href="#metadati">Metadati</a></h1>
+<p>Le iscrizioni possono contenere metadati <a href="https://cbor.io/">CBOR</a>, memorizzati come push di dati in campi con tag <code>5</code>. Poiché i data push sono limitati a 520 byte, i metadati più lunghi di 520 byte devono essere suddivisi in più campi con tag <code>5</code>, che saranno poi concatenati prima della decodifica.</p>
+<p>I metadata sono facili da leggere per l'uomo e tutti i metadata saranno visualizzati dall'utente con la loro iscrizione. Coloro che iscrivono sono incoraggiati a considerare il modo in cui i metadati saranno visualizzati e a renderli concisi e attraenti.</p>
+<p>I metadati sono renderizzati in HTML per la visualizzazione come segue:</p>
+<ul>
+<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, e strings vengono renderizzate come testo normale.</li>
+<li>Le stringhe di byte vengono rese come esadecimali maiuscole.</li>
+<li>Gli array sono resi come tag <code>&lt;ul&gt;</code>, con ogni elemento avvolto dai tag <code>&lt;li&gt;</code>.</li>
+<li>Le mappe sono rese come  <code>&lt;dl&gt;</code> tags, con ogni chiave racchiusa in tag <code>&lt;dt&gt;</code> e ogni valore racchiuso in tag <code>&lt;dd&gt;</code>.</li>
+<li>I tag sono resi come il tag , racchiuso in un tag <code>&lt;sup&gt;</code>, seguito dal valore.</li>
+</ul>
+<p>CBOR è una specifica complessa con molti tipi di dati diversi e molteplici modi di rappresentare gli stessi dati. I tipi di dati esotici, come i tag, floats e bignums, e le codifiche come i valori indefiniti, potrebbero non essere visualizzati correttamente o affatto. Sono benvenuti i contributi ad <code>ord</code> per porre rimedio a questo problema.</p>
+<h2 id="esempio"><a class="header" href="#esempio">Esempio</a></h2>
+<p>Poiché il CBOR non è leggibile dall'uomo, in questi esempi è rappresentato come JSON. Si tenga presente che questo è <em>solo</em> per questi esempi e che i metadati JSON <em>non</em> saranno visualizzati correttamente.</p>
+<p>I metadati <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> verrebbero inclusi in un'iscrizione come:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>E renderizzati come:</p>
+<pre><code>&lt;dl&gt;
+  ...
+  &lt;dt&gt;metadata&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;foo&lt;/dt&gt;
+      &lt;dd&gt;bar&lt;/dd&gt;
+      &lt;dt&gt;baz&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;ul&gt;
+          &lt;li&gt;null&lt;/li&gt;
+          &lt;li&gt;true&lt;/li&gt;
+          &lt;li&gt;false&lt;/li&gt;
+          &lt;li&gt;0&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/dd&gt;
+  ...
+&lt;/dl&gt;
+</code></pre>
+<p>I metadati di lunghezza superiore a 520 byte devono essere suddivisi in più campi:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
+    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="provenienza"><a class="header" href="#provenienza">Provenienza</a></h1>
+<p>Il proprietario di un'iscrizione può creare iscrizioni figlie (child), stabilendo in modo affidabile la provenienza di queste ultime on-chain come se fossero state create dal proprietario dell'iscrizione madre (parent). Questo può essere utilizzato per le collezioni, dove i figli di un'iscrizione madre sono membri della stessa collezione.</p>
+<p>I figli possono avere a loro volta dei figli, consentendo di creare gerarchie complesse. Ad esempio, un artista potrebbe creare un'iscrizione che rappresenta se stesso, con sotto-iscrizioni che rappresentano le collezioni da lui create, e i figli di queste sotto-iscrizioni sono elementi di tali collezioni.</p>
+<h3 id="specifiche"><a class="header" href="#specifiche">Specifiche</a></h3>
+<p>Per creare un'iscrizione child C con un'iscrizione parent P:</p>
+<ul>
+<li>Creare una transazione di iscrizione T come di consueto per C.</li>
+<li>Spendere il genitore P in uno degli ingressi di T.</li>
+<li>Includere il tag <code>3</code>, cioè <code>OP_PUSH 3</code>, in C, con il valore dell'ID binario serializzato dell'iscrizione P, serializzato come <code>TXID</code> a 32 byte, seguito dal little-endian <code>INDEX</code> a quattro byte, con gli zeri finali omessi.</li>
+</ul>
+<p><em>NB</em> I byte dell'ID di una transazione bitcoin sono invertiti nella loro rappresentazione testuale, quindi l'ID della transazione serializzato sarà nell'ordine opposto.</p>
+<h3 id="esempio-1"><a class="header" href="#esempio-1">Esempio</a></h3>
+<p>Un esempio di un iscrizione figlia di <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Si noti che il valore del tag <code>3</code> è binario, non esadecimale, e che affinché l'iscrizione del figlio sia riconosciuta come tale, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> deve essere speso come uno degli input della transazione d'iscrizione.</p>
+<p>Esempio di codifica dell'ID iscrizione <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff
+  …
+OP_ENDIF
+</code></pre>
+<p>E dell'ID di iscrizione <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001
+  …
+OP_ENDIF
+</code></pre>
+<h3 id="note"><a class="header" href="#note">Note</a></h3>
+<p>L'etichetta <code>3</code> viene utilizzata perché è la prima etichetta dispari disponibile. Le etichette dispari non riconosciute non rendono un'iscrizione non vincolata, quindi le iscrizioni figlie verrebbero riconosciute e tracciate dalle vecchie versioni di <code>ord</code>.</p>
+<p>Una collezione può essere chiusa bruciando l'iscrizione madre della collezione, il che garantisce che non possano essere emessi altri elementi della collezione.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="recursion"><a class="header" href="#recursion">Recursion</a></h1>
+<p>Un'importante eccezione al <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> è la recursion: l'accesso all'endpoint <code>/content</code> di <code>ord</code> è consentito, permettendo alle iscrizioni di accedere al contenuto di altre iscrizioni richiedendo <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>Questo ha una serie di casi d'uso interessanti:</p>
+<ul>
+<li>
+<p>Remixare il contenuto di iscrizioni esistenti.</p>
+</li>
+<li>
+<p>Pubblicare frammenti di codice, immagini, audio o fogli di stile come risorse pubbliche condivise.</p>
+</li>
+<li>
+<p>Collezioni di arte generativa in cui un algoritmo è inscritto come JavaScript e istanziato da più iscrizioni con semi unici.</p>
+</li>
+<li>
+<p>Collezioni di immagini di profili generativi in cui gli accessori e gli attributi sono inscritti come immagini individuali o in un atlante di texture condiviso e poi combinati, in stile collage, in combinazioni uniche in più iscrizioni.</p>
+</li>
+</ul>
+<p>The recursive endpoints are:</p>
+<ul>
+<li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
+<li><code>/r/blockhash</code>: latest block hash.</li>
+<li><code>/r/blockheight</code>: latest block height.</li>
+<li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: the first 100 child inscription ids.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: the set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: JSON string containing the hex-encoded CBOR metadata.</li>
+<li><code>/r/sat/&lt;SAT_NUMBER&gt;</code>: the first 100 inscription ids on a sat.</li>
+<li><code>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</code>: the set of 100 inscription ids on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</code>: the inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example.</li>
+</ul>
+<p>Note: <code>&lt;SAT_NUMBER&gt;</code> only allows the actual number of a sat no other sat notations like degree, percentile or decimal. We may expand to allow those in the future.</p>
+<p>Responses from the above recursive endpoints are JSON. For backwards compatibility additional endpoints are supported, some of which return plain-text responses.</p>
+<ul>
+<li><code>/blockheight</code>: ultima altezza del blocco.</li>
+<li><code>/blockhash</code>: hash del blocco più recente.</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>: hash del blocco data la sua altezza.</li>
+<li><code>/blocktime</code>: Ora UNIX dell'ultimo blocco.</li>
+</ul>
+<h2 id="esempi"><a class="header" href="#esempi">Esempi</a></h2>
+<ul>
+<li><code>/r/blockheight</code>:</li>
+</ul>
+<pre><code class="language-json">777000
+</code></pre>
+<ul>
+<li><code>/r/blockhash/0</code>:</li>
+</ul>
+<pre><code class="language-json">&quot;000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f&quot;
+</code></pre>
+<ul>
+<li><code>/r/blocktime</code>:</li>
+</ul>
+<pre><code class="language-json">1700770905
+</code></pre>
+<ul>
+<li><code>/r/metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3</code>:</li>
+</ul>
+<pre><code class="language-json">&quot;a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74&quot;
+</code></pre>
+<ul>
+<li><code>/r/sat/1023795949035695</code>:</li>
+</ul>
+<pre><code class="language-json">{
+   &quot;ids&quot;:[
+      &quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   ],
+   &quot;more&quot;:false,
+   &quot;page&quot;:0
+}
+</code></pre>
+<ul>
+<li><code>/r/sat/1023795949035695/at/-1</code>:</li>
+</ul>
+<pre><code class="language-json">{
+   &quot;id&quot;:&quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+}
+</code></pre>
+<ul>
+<li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49</code>:</li>
+</ul>
+<pre><code class="language-json">{
+   &quot;ids&quot;:[
+      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900&quot;,
+      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901&quot;,
+      ...
+      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935&quot;,
+      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936&quot;
+   ],
+   &quot;more&quot;:false,
+   &quot;page&quot;:49
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
+<p>Per effettuare un'iscrizione su un sat diverso dal primo del suo input, è possibile fornire un intero a base zero, chiamato &quot;puntatore&quot;, con il tag <code>2</code>, che fa sì che l'iscrizione venga effettuata sul sat nella posizione data nei suoi outputs. Se il puntatore è uguale o superiore al numero di sat totali presenti nelle uscite della transazione inscritte, viene ignorato e l'iscrizione viene effettuata come di consueto. Il valore del campo del puntatore è un intero little endian, con gli zeri finali ignorati.</p>
+<p>Viene utilizzato un tag pari, in modo che le vecchie versioni di <code>ord</code> considerino l'iscrizione come non vincolata, invece di assegnarla, erroneamente, al primo sat.</p>
+<p>Questo può essere usato per creare più iscrizioni in una singola transazione su satoshi diversi, quando altrimenti verrebbero fatte sullo stesso satoshi.</p>
+<h2 id="esempi-1"><a class="header" href="#esempi-1">Esempi</a></h2>
+<p>Un'iscrizione con puntatore 255:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 2
+  OP_PUSH 0xff
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Un'iscrizione con puntatore 256:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 2
+  OP_PUSH 0x0001
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Un'iscrizione con puntatore 256, con zeri finali, che vengono ignorati:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 2
+  OP_PUSH 0x000100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="faq-sulla-teoria-ordinale"><a class="header" href="#faq-sulla-teoria-ordinale">FAQ sulla Teoria Ordinale</a></h1>
+<h2 id="cosè-la-teoria-ordinale"><a class="header" href="#cosè-la-teoria-ordinale">Cos'è la teoria ordinale?</a></h2>
+<p>La teoria ordinale è un protocollo per l'assegnazione di numeri seriali ai satoshi, la più piccola unità di un bitcoin, e per il monitoraggio di tali satoshi man mano che vengono spesi nelle transazioni.</p>
+<p>Questi numeri di serie sono grandi numeri, come questo 804766073970493. Ogni satoshi, ovvero ¹⁄₁₀₀₀₀₀₀₀₀ (1/100 milioni) di un bitcoin, ha un numero ordinale.</p>
+<h2 id="la-teoria-degli-ordinali-richiede-una-side-chain-un-token-separato-o-modifiche-a-bitcoin"><a class="header" href="#la-teoria-degli-ordinali-richiede-una-side-chain-un-token-separato-o-modifiche-a-bitcoin">La teoria degli ordinali richiede una side chain, un token separato o modifiche a Bitcoin?</a></h2>
+<p>No! La teoria ordinale funziona già adesso, senza una catena secondaria, e l'unico token necessario è il bitcoin stesso.</p>
+<h2 id="a-cosa-serve-la-teoria-ordinale"><a class="header" href="#a-cosa-serve-la-teoria-ordinale">A cosa serve la teoria ordinale?</a></h2>
+<p>A collezionare, scambiare e progettare. La teoria ordinale assegna identità ai singoli satoshi, consentendo loro di essere rintracciati e scambiati individualmente, come collezionabili e per il loro valore numismatico.</p>
+<p>La teoria ordinale consente anche di inserire iscrizioni, un protocollo per allegare contenuti arbitrari ai singoli satoshi, trasformandoli in artefatti digitali nativi di bitcoin.</p>
+<h2 id="come-funziona-la-teoria-ordinale"><a class="header" href="#come-funziona-la-teoria-ordinale">Come funziona la teoria ordinale?</a></h2>
+<p>I numeri ordinali vengono assegnati ai satoshi nell'ordine in cui vengono minati. Il primo satoshi del primo blocco ha il numero ordinale 0, il secondo ha il numero ordinale 1, e l'ultimo satoshi del primo blocco ha il numero ordinale 4.999.999.999.</p>
+<p>I satoshi vivono negli output, ma le transazioni distruggono gli output e ne creano di nuovi, quindi la teoria ordinale utilizza un algoritmo per determinare come i satoshi passano dagli input di una transazione ai suoi output.</p>
+<p>Fortunatamente, questo algoritmo è molto semplice.</p>
+<p>I satoshi vengono trasferiti nell'ordine first-in-first-out (FIFO). Considerate gli input di una transazione come un elenco di satoshi e gli output come un elenco di slot in attesa di ricevere un satoshi. Per assegnare i satoshi input agli slot, si esamina ogni input satoshi in ordine e lo si assegna al primo slot disponibile degli output.</p>
+<p>Immaginiamo una transazione con tre input e due output. Gli ingressi sono a sinistra della freccia e le uscite a destra, tutte etichettate con i loro valori:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Ora etichettiamo la stessa transazione con i numeri ordinali dei satoshi che ogni input contiene e con i punti interrogativi per ogni output slot. I numeri ordinali sono grandi, quindi usiamo delle lettere per rappresentarli:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Per capire quale satoshi va a quale uscita, scorrete gli input satoshi in ordine e assegnate a ciascuno un punto interrogativo:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>E le tasse, vi chiederete? Bella domanda! Immaginiamo la stessa transazione, questa volta con una commissione di due satoshi. Le transazioni con commissioni inviano più satoshi in ingresso di quanti ne ricevano in uscita, quindi per trasformare la nostra transazione in una che paga le commissioni, rimuoveremo il secondo output:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>I satoshi <var>e</var>e <var>f</var>ora non hanno più spazio negli output:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>Quindi vanno al minatore che ha estratto il blocco come commissioni. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">Il BIP</a> contiene i dettagli, ma in breve le commissioni pagate dalle transazioni sono trattate come input aggiuntivi alla transazione coinbase e sono ordinate come sono ordinate le transazioni corrispondenti nel blocco. La transazione coinbase del blocco potrebbe apparire come segue:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="dove-posso-trovare-i-dettagli-più-precisi"><a class="header" href="#dove-posso-trovare-i-dettagli-più-precisi">Dove posso trovare i dettagli più precisi?</a></h2>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">Nel BIP!</a></p>
+<h2 id="perché-le-iscrizioni-sat-sono-chiamate-artefatti-digitali-anziché-nft"><a class="header" href="#perché-le-iscrizioni-sat-sono-chiamate-artefatti-digitali-anziché-nft">Perché le iscrizioni sat sono chiamate &quot;artefatti digitali&quot; anziché &quot;NFT&quot;?</a></h2>
+<p>Un'iscrizione è un NFT, ma si usa il termine &quot;artefatto digitale&quot; perché è semplice, suggestivo e familiare.</p>
+<p>L'espressione &quot;artefatto digitale&quot; è molto suggestiva, anche per chi non l'ha mai sentita prima. In confronto, NFT è un acronimo e non fornisce alcuna indicazione sul suo significato se non lo si è mai sentito prima.</p>
+<p>Inoltre, &quot;NFT&quot; sembra una terminologia finanziaria, e sia la parola &quot;fungibile&quot; che il senso della parola &quot;token&quot; usata in &quot;NFT&quot; sono poco comuni al di fuori dei contesti finanziari.</p>
+<h2 id="come-si-confrontano-le-iscrizioni-con"><a class="header" href="#come-si-confrontano-le-iscrizioni-con">Come si confrontano le iscrizioni con…</a></h2>
+<h3 id="nft-di-ethereum"><a class="header" href="#nft-di-ethereum">NFT di Ethereum?</a></h3>
+<p><em>Le iscrizioni sono sempre immutabili.</em></p>
+<p>Semplicemente non c'è modo per il creatore di un'iscrizione, o per il proprietario di un'iscrizione, di modificarla dopo che è stata creata.</p>
+<p>Gli NFT di Ethereum <em>possono</em> essere immutabili, ma molti non lo sono e possono essere modificati o cancellati dal proprietario del contratto NFT.</p>
+<p>Per assicurarsi che un particolare NFT di Ethereum sia immutabile, è necessario verificare il codice del contratto, il che richiede una conoscenza dettagliata di EVM e Solidity.</p>
+<p>È molto difficile per un utente non tecnico determinare se un determinato NFT di Ethereum sia mutabile o immutabile, e le piattaforme NFT di Ethereum non fanno alcuno sforzo per distinguere se un NFT è mutabile o immutabile e se il codice sorgente del contratto è disponibile ed è stato verificato.</p>
+<p><em>Il contenuto dell'iscrizione è sempre on-chain.</em></p>
+<p>Non c'è modo per un'iscrizione di fare riferimento a contenuti fuori catena. Questo rende le iscrizioni più durature, perché il contenuto non può essere perso, e più scarse, perché i creatori di iscrizioni devono pagare commissioni proporzionali alla dimensione del contenuto.</p>
+<p>Alcuni contenuti di Ethereum NFT sono on-chain, ma molti sono off-chain e sono archiviati su piattaforme come IPFS o Arweave, o su server web tradizionali e completamente centralizzati. Non è garantito che i contenuti su IPFS continuino a essere disponibili e alcuni contenuti NFT archiviati su IPFS sono già andati persi. Piattaforme come Arweave si basano su presupposti economici deboli e probabilmente falliranno in modo catastrofico quando questi presupposti economici non saranno più soddisfatti. I server web centralizzati possono scomparire in qualsiasi momento.</p>
+<p>Per un utente non tecnico è molto difficile determinare dove sia memorizzato il contenuto di un determinato NFT di Ethereum.</p>
+<p><em>Le iscrizioni sono molto più semplici.</em></p>
+<p>Gli NFT di Ethereum dipendono dalla rete e dalla macchina virtuale di Ethereum, che sono molto complesse, in continua evoluzione e che introducono cambiamenti tramite hard fork incompatibili con le versioni precedenti.</p>
+<p>Le iscrizioni, invece, dipendono dalla blockchain di Bitcoin, che è relativamente semplice e conservativa e che introduce modifiche tramite soft fork compatibili &quot;all'indietro&quot;.</p>
+<p><em>Le iscrizioni sono più sicure.</em></p>
+<p>Le iscrizioni ereditano il modello di transazione di Bitcoin, che consente all'utente di vedere esattamente quali iscrizioni vengono trasferite da una transazione prima di firmarla. Le iscrizioni possono essere messe in vendita utilizzando transazioni parzialmente firmate, che non richiedono l'autorizzazione di una terza parte, come un exchange o un marketplace, a trasferirle per conto dell'utente.</p>
+<p>In confronto, gli NFT di Ethereum sono afflitti da vulnerabilità della sicurezza dell'utente finale. È consuetudine firmare le transazioni alla cieca, concedere alle applicazioni di terze parti permessi illimitati sugli NFT di un utente e interagire con smart contracts complessi e imprevedibili. Questo crea un campo minato di pericoli per gli utenti di Ethereum NFT che non sono semplicemente una preoccupazione per i teorici ordinali.</p>
+<p><em>Le iscrizioni sono più scarse.</em></p>
+<p>Le iscrizioni richiedono bitcoin per essere coniate, trasferite e conservate. In apparenza questo sembra un aspetto negativo, ma la ragion d'essere degli artefatti digitali è quella di essere scarsi e quindi preziosi.</p>
+<p>Gli NFT di Ethereum, invece, possono essere coniati in qualità virtualmente illimitata con una singola transazione, il che li rende intrinsecamente meno scarsi e quindi potenzialmente meno preziosi.</p>
+<p><em>Le iscrizioni non pretendono di supportare le royalties on-chain.</em></p>
+<p>Le royalties on-chain sono una buona idea in teoria, ma non in pratica. Il pagamento delle royalty non può essere imposto on-chain senza restrizioni complesse e invasive. L'ecosistema NFT di Ethereum è attualmente alle prese con la confusione sulle royalties e sta affrontando collettivamente la realtà che le royalties on-chain, che sono state comunicate agli artisti come un vantaggio degli NFT, non sono possibili, mentre le piattaforme corrono al ribasso e rimuovono il supporto alle royalties.</p>
+<p>Le iscrizioni evitano completamente questa situazione, non facendo false promesse sul supporto delle royalties on-chain, evitando così la confusione, il caos e la negatività della situazione NFT di Ethereum.</p>
+<p><em>Le iscrizioni sbloccano nuovi mercati.</em></p>
+<p>La capitalizzazione di mercato e la liquidità di Bitcoin sono superiori a quelle di Ethereum con un ampio margine. Gran parte di questa liquidità non è disponibile per gli NFT di Ethereum, poiché molti Bitcoiners preferiscono non interagire con l'ecosistema di Ethereum a causa di preoccupazioni legate alla semplicità, alla sicurezza e alla decentralizzazione.</p>
+<p>Questi Bitcoiners potrebbero essere più interessati alle Iscrizioni che agli NFT di Ethereum, sbloccando nuove classi di collezionisti.</p>
+<p><em>Le iscrizioni hanno un modello di dati più ricco.</em></p>
+<p>Le iscrizioni consistono in un tipo di contenuto, noto anche come tipo MIME, e in un secondo contenuto, che è una stringa di byte arbitraria. Questo è lo stesso modello di dati utilizzato dal web e consente ai contenuti delle iscrizioni di evolversi con il web e di supportare qualsiasi tipo di contenuto supportato dai browser web, senza richiedere modifiche al protocollo sottostante.</p>
+<h3 id="gli-asset-rgb-e-taro"><a class="header" href="#gli-asset-rgb-e-taro">Gli asset RGB e Taro?</a></h3>
+<p>RGB e Taro sono entrambi protocolli di asset di secondo livello costruiti su Bitcoin. Rispetto alle iscrizioni, sono molto più complicati, ma molto più ricchi di funzionalità.</p>
+<p>La teoria ordinale è stata progettata da zero per gli artefatti digitali, mentre il caso d'uso principale di RGB e Taro sono i token fungibili, quindi l'esperienza dell'utente per le iscrizioni sarà probabilmente più semplice e raffinata di quella per gli NFT di RGB e Taro.</p>
+<p>RGB e Taro memorizzano entrambi i contenuti off-chain, il che richiede un'infrastruttura aggiuntiva e per questo motivo possono andare persi. Al contrario, i contenuti delle iscrizioni sono memorizzati on-chain e non possono andare perduti.</p>
+<p>La teoria ordinale, RGB e Taro sono ancora agli inizi, quindi si tratta di speculazione, ma l'attenzione sugli Ordinali potrebbe darle un vantaggio in termini di caratteristiche per gli artefatti digitali, tra cui un modello di contenuto migliore e caratteristiche come i simboli unici a livello globale.</p>
+<h3 id="asset-di-counterparty"><a class="header" href="#asset-di-counterparty">Asset di Counterparty?</a></h3>
+<p>Counterparty ha un proprio token, XCP, che è necessario per alcune funzionalità, il che fa sì che la maggior parte dei bitcoiners la consideri un'altcoin, e non un'estensione o un secondo livello per bitcoin.</p>
+<p>La teoria ordinale è stata progettata da zero per gli artefatti digitali, mentre Counterparty è stata progettata principalmente per l'emissione di token finanziari.</p>
+<h2 id="iscrizioni-per"><a class="header" href="#iscrizioni-per">Iscrizioni per…</a></h2>
+<h3 id="artisti"><a class="header" href="#artisti">Artisti</a></h3>
+<p><em>Le iscrizioni sono su Bitcoin.</em> Il Bitcoin è la valuta digitale con lo status più elevato e le maggiori possibilità di sopravvivenza a lungo termine. Se volete garantire che la vostra arte sopravviva nel futuro, non c'è modo migliore di pubblicarla che sotto forma di iscrizioni.</p>
+<p><em>Archiviazione on-chain più economica.</em> Con il BTC a $20.000 e una tariffa minima di 1 satoshi per vbyte, la pubblicazione di contenuti di iscrizioni costa $50 per 1 milione di byte.</p>
+<p><em>Le iscrizioni sono &quot;early&quot;!</em> Le iscrizioni sono ancora in fase di sviluppo e non sono ancora state lanciate sulla mainnet. Questo vi dà l'opportunità di essere un early adopter e di esplorare questo strumento mentre si evolve.</p>
+<p><em>Le iscrizioni sono semplici.</em> Le iscrizioni non richiedono la scrittura o la comprensione di smart contracts.</p>
+<p><em>Le iscrizioni sbloccano nuova liquidità.</em> Le iscrizioni sono più accessibili e attraenti per i detentori di bitcoin, e liberano una classe completamente nuova di collezionisti.</p>
+<p><em>Le iscrizioni sono progettate per gli artefatti digitali.</em> Le iscrizioni sono state progettate da zero per supportare gli NFT e presentano un modello di dati migliore, oltre a caratteristiche come simboli unici a livello globale e una provenienza migliorata.</p>
+<p><em>Le iscrizioni non supportano le royalties on-chain.</em> Questo è un aspetto negativo, ma dipende da come lo si guarda. Le royalties on-chain sono state una manna per i creatori, ma hanno anche creato un'enorme confusione nell'ecosistema Ethereum NFT. L'ecosistema è ora alle prese con questo problema ed è impegnato in una corsa al ribasso, verso un futuro di royalties facoltative. Le iscrizioni non supportano le royalties sulla catena, perché sono tecnicamente inapplicabili. Se scegliete di creare iscrizioni, potete aggirare questa limitazione in molti modi: trattenendo una parte delle vostre iscrizioni per una futura vendita, per beneficiare di un futuro apprezzamento, o magari offrendo vantaggi agli utenti che rispettano le royalties opzionali.</p>
+<h3 id="collezionisti"><a class="header" href="#collezionisti">Collezionisti</a></h3>
+<p><em>Le iscrizioni sono semplici, chiare e senza sorprese.</em> Sono sempre immutabili e on-chain, senza che sia necessaria una particolare due diligence.</p>
+<p><em>Le iscrizioni sono su Bitcoin.</em> È possibile verificare facilmente la posizione e le proprietà delle iscrizioni con il nodo Bitcoin completo che si controlla.</p>
+<h3 id="bitcoiners"><a class="header" href="#bitcoiners">Bitcoiners</a></h3>
+<p>Permettetemi di iniziare questa sezione dicendo che la cosa più importante che la rete Bitcoin fa è decentralizzare il denaro. Tutti gli altri casi d'uso sono secondari, compresa la teoria ordinale. Gli sviluppatori della teoria ordinale lo capiscono e lo riconoscono, e credono che la teoria ordinale aiuti, almeno in minima parte, la missione primaria di Bitcoin.</p>
+<p>A differenza di molte altre cose nello spazio delle altcoin, gli artefatti digitali hanno un valore. Ci sono, ovviamente, molti NFT che sono brutti, stupidi e fraudolenti. Tuttavia, ce ne sono molti che sono fantasticamente creativi, e la creazione e il collezionismo di opere d'arte fanno parte della storia dell'uomo fin dalla sua nascita, e precedono persino il commercio e il denaro, che sono anch'essi tecnologie antiche.</p>
+<p>Bitcoin offre una piattaforma straordinaria per la creazione e la raccolta di artefatti digitali in modo sicuro e decentralizzato, che protegge gli utenti e gli artisti nello stesso modo in cui fornisce una piattaforma straordinaria per l'invio e la ricezione di valore, e per tutte le stesse ragioni.</p>
+<p>Gli ordinali e le iscrizioni aumentano la domanda di spazio per i blocchi di Bitcoin, aumentando il budget di sicurezza di Bitcoin, che è fondamentale per salvaguardare la transizione di Bitcoin a un modello di sicurezza dipendente dalle commissioni, in quanto la ricompensa economica espressa in BTC per i blocchi si dimezza (a causa dell' halving) fino a diventare insignificante.</p>
+<p>I contenuti delle iscrizioni sono memorizzati on-chain e quindi la domanda di spazio per i blocchi da utilizzare per le iscrizioni è illimitata. Questo crea un acquirente di ultima istanza per <em>tutto</em> lo spazio dei blocchi Bitcoin. Ciò contribuirà a sostenere un solido mercato delle commissioni, che garantisce la sicurezza del Bitcoin.</p>
+<p>Le iscrizioni contrastano anche la tesi secondo cui Bitcoin non può essere esteso o utilizzato per nuovi casi d'uso. Se si seguono progetti come DLC, Fedimint, Lightning, Taro e RGB, si sa che questa tesi è falsa, ma le iscrizioni forniscono un'argomentazione contraria facile da capire e che si rivolge a un caso d'uso popolare e comprovato, gli NFT, il che la rende altamente leggibile.</p>
+<p>Se le iscrizioni si riveleranno, come sperano gli autori, artefatti digitali molto ricercati e ricchi di storia, serviranno da potente gancio per l'adozione di Bitcoin: venite per il divertimento, la ricchezza artistica, rimanete per la moneta digitale decentralizzata.</p>
+<p>Le iscrizioni sono una fonte estremamente benevola di domanda di spazio per i blocchi. A differenza, ad esempio, delle stablecoin, che potrebbero dare ai grandi emittenti di stablecoin un'influenza sul futuro dello sviluppo di Bitcoin, o della DeFi, che potrebbe centralizzare il mining introducendo opportunità di MEV, è improbabile che l'arte digitale e gli oggetti da collezione su Bitcoin producano o attraggano entità individuali con un potere sufficiente a corrompere Bitcoin. L'arte è decentralizzata.</p>
+<p>Gli utenti delle iscrizioni e i fornitori di servizi sono incentivati a gestire i nodi completi di Bitcoin, a pubblicare e a tenere traccia delle iscrizioni, e quindi a far valere il loro peso economico dietro la &quot;catena onesta&quot;.</p>
+<p>La teoria ordinale e le iscrizioni non influiscono significativamente sulla fungibilità di Bitcoin. Gli utenti di Bitcoin possono ignorarle e non risentirne.</p>
+<p>Ci auguriamo che la teoria ordinale rafforzi e arricchisca il bitcoin, conferendogli un'ulteriore dimensione di fascino e funzionalità, consentendogli di servire più efficacemente il suo caso d'uso primario come riserva di valore decentralizzata dell'umanità.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contribuire-ad-ord"><a class="header" href="#contribuire-ad-ord">Contribuire ad <code>ord</code></a></h1>
+<h2 id="passi-suggeriti"><a class="header" href="#passi-suggeriti">Passi Suggeriti</a></h2>
+<ol>
+<li>Trovate un problema su cui volete lavorare.</li>
+<li>Cercate di capire quale sarebbe il primo passo da fare per risolvere il problema. Questo potrebbe essere sotto forma di codice, ricerca, proposta o suggerimento di chiudere il problema, se è obsoleto o non è una buona idea.</li>
+<li>Commentate il problema con una bozza del primo passo che avete suggerito e chiedete un feedback. Naturalmente, potete tuffarvi e iniziare a scrivere codice o test immediatamente, ma questo evita sforzi potenzialmente sprecati, se il problema non è aggiornato, non è chiaramente specificato, è bloccato su qualcos'altro o non è pronto per essere implementato.</li>
+<li>Se il problema richiede una modifica del codice o un bugfix, aprite una bozza di PR con i test e chiedete un feedback. In questo modo ci si assicura che tutti siano d'accordo su ciò che deve essere fatto o su quale dovrebbe essere il primo passo per risolvere il problema. Inoltre, dato che i test sono necessari, scriverli per primi facilita la conferma che la modifica può essere testata facilmente.</li>
+<li>Schiacciate la tastiera a caso finché i test non passano, e rifattorizzate finché il codice non è pronto per essere inviato.</li>
+<li>Contrassegnare la PR come pronta per la revisione.</li>
+<li>Rivedere la PR se necessario.</li>
+<li>E infine, fate il merge!</li>
+</ol>
+<h2 id="iniziare-con-poco"><a class="header" href="#iniziare-con-poco">Iniziare con poco</a></h2>
+<p>Piccole modifiche vi permetteranno di avere un impatto rapido e, se prendete la strada sbagliata, non avrete perso molto tempo.</p>
+<p>Idee per piccoli problemi:</p>
+<ul>
+<li>Aggiungere un nuovo test o un caso di test che aumenti la copertura dei test</li>
+<li>Aggiungere o migliorare la documentazione</li>
+<li>Individuare un problema che necessita di ulteriori ricerche, effettuarle e riassumerle in un commento</li>
+<li>Trovare un problema non aggiornato e commentare che può essere chiuso</li>
+<li>Trovare un problema che non dovrebbe essere fatto e fornire un feedback costruttivo spiegando perché si pensa che sia così</li>
+</ul>
+<h2 id="unire-presto-e-spesso"><a class="header" href="#unire-presto-e-spesso">Unire presto e spesso</a></h2>
+<p>Suddividete i compiti più grandi in più fasi più piccole che fanno progredire individualmente. Se c'è un bug, si può aprire una PR che aggiunge un test ignorato che fallisce. Questo può essere unito e il passo successivo può essere la correzione del bug e la cancellazione del test. Fare ricerche o test e riferire i risultati. Scomporre una funzione in piccole sotto-funzioni e implementarle una alla volta.</p>
+<p>Capire come suddividere una PR più grande in PR più piccole che possono essere unite è una forma d'arte che vale la pena di praticare. La parte difficile è che ogni PR deve essere di per sé un miglioramento.</p>
+<p>Io stesso mi sforzo di seguire questo consiglio e mi trovo sempre meglio quando lo faccio.</p>
+<p>Le piccole modifiche sono veloci da scrivere, revisionare e unire, il che è molto più divertente che faticare su una singola PR gigante che richiede un'eternità per essere scritta, revisionata e aggiunta. Le piccole modifiche non richiedono molto tempo, quindi se dovete interrompere il lavoro su una piccola modifica, non avrete perso molto tempo rispetto a una modifica più grande che rappresenta molte ore di lavoro. L'introduzione rapida di una PR migliora il progetto in modo immediato, invece di dover aspettare a lungo per ottenere miglioramenti più consistenti. Le piccole modifiche hanno meno probabilità di accumulare conflitti di fusione. Come dicevano gli ateniesi: <em>I veloci fanno il commit di ciò che vogliono, i lenti fanno il merge di ciò che devono.</em></p>
+<h2 id="chiedere-aiuto"><a class="header" href="#chiedere-aiuto">Chiedere aiuto</a></h2>
+<p>Se siete bloccati per più di 15 minuti, chiedete aiuto, ad esempio su Rust Discord, Stack Exchange, o in un problema o discussione del progetto.</p>
+<h2 id="praticate-il-debugging-basato-sulle-ipotesi"><a class="header" href="#praticate-il-debugging-basato-sulle-ipotesi">Praticate il debugging basato sulle ipotesi</a></h2>
+<p>Formulate un'ipotesi sulla causa del problema. Cercate di capire come testare questa ipotesi. Eseguite i test. Se funziona, è possibile risolvere il problema o sapere come risolverlo. In caso contrario, ripetete con una nuova ipotesi.</p>
+<h2 id="prestate-attenzione-ai-messaggi-di-errore"><a class="header" href="#prestate-attenzione-ai-messaggi-di-errore">Prestate attenzione ai messaggi di errore</a></h2>
+<p>Leggete tutti i messaggi di errore e non ignorate gli avvisi.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="donare"><a class="header" href="#donare">Donare</a></h1>
+<p>Ordinals è open-source e finanziato dalla comunità. L'attuale manutentore principale di <code>ord</code> è <a href="https://github.com/raphjaph/">raphjaph</a>. Il lavoro di Raph su <code>ord</code> è interamente finanziato da donazioni. Se potete, prendete in considerazione l'idea di fare una donazione!</p>
+<p>L'indirizzo per le donazioni in Bitcoin è <a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a>. L'indirizzo di donazione per le iscrizioni è <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a>.</p>
+<p>Entrambi gli indirizzi sono in un portafoglio multisig 2 su 4 con chiavi detenute da <a href="https://twitter.com/raphjaph">raphjaph</a>, <a href="https://twitter.com/realizingerin">erin</a>, <a href="https://twitter.com/rodarmor">rodarmor</a> e <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
+<p>Le donazioni ricevute serviranno a finanziare la manutenzione e lo sviluppo di <code>ord</code>, nonché i costi di hosting di <a href="https://ordinals.com">ordinals.com</a>.</p>
+<p>Grazie per le donazioni!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="guide-alla-teoria-ordinale"><a class="header" href="#guide-alla-teoria-ordinale">Guide alla Teoria Ordinale</a></h1>
+<p>Per un elenco delle guide si veda l'indice dei contenuti, che comprende una guida per l'esploratore, una guida per i sat hunter e una guida alle iscrizioni.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="esploratore-ordinale"><a class="header" href="#esploratore-ordinale">Esploratore Ordinale</a></h1>
+<p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<h3 id="esecuzione-dellesploratore"><a class="header" href="#esecuzione-dellesploratore">Esecuzione Dell'Esploratore</a></h3>
+<p>Il server può essere eseguito localmente con:</p>
+<p><code>ord server</code></p>
+<p>Per specificare una porta aggiungere <code>--http-port</code> flag:</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>Per abilitare gli endpoint JSON-API, aggiungere <code>--enable-json-api</code> o <code>-j</code> flag (vedere <a href="guides/explorer.html#json-api">qui</a> per maggiori informazioni):</p>
+<p><code>ord server --enable-json-api</code></p>
+<p>Per testare come verrebbero le vostre iscrizioni, si può eseguire:</p>
+<p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
+<h2 id="ricerca"><a class="header" href="#ricerca">Ricerca</a></h2>
+<p>La casella di ricerca accetta una varietà di rappresentazioni di oggetti.</p>
+<h3 id="blocchi"><a class="header" href="#blocchi">Blocchi</a></h3>
+<p>I blocchi possono essere ricercati per hash, ad esempio il blocco genesis:</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="transazioni"><a class="header" href="#transazioni">Transazioni</a></h3>
+<p>Le transazioni possono essere ricercate per hash, ad esempio la transazione coinbase del blocco genesis:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="uscite"><a class="header" href="#uscite">Uscite</a></h3>
+<p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
+<p>I satoshi possono essere ricercati per numero intero, la loro posizione all'interno dell'intera offerta di bitcoin:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>Per decimale, il loro blocco e l'offset all'interno di quel blocco:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>Per grado, il ciclo, i blocchi dall'ultimo halving, i blocchi dall'ultimo aggiustamento della difficoltà e l'offset all'interno del blocco:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>Per nome, la loro rappresentazione in base 26 utilizzando le lettere da &quot;a&quot; a &quot;z&quot;:</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>O per percentile, la percentuale della fornitura di bitcoin che è stata o sarà emessa al momento della loro estrazione:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
+<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
+<ul>
+<li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
+<li><code>/inscriptions</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;/&lt;PAGE_INDEX&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;/&lt;N&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/sat/&lt;SAT&gt;</code></li>
+</ul>
+<p>Per ottenere un elenco delle ultime 100 iscrizioni è necessario procedere come segue:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+</code></pre>
+<p>Per visualizzare le informazioni su un UTXO, che includono le iscrizioni al suo interno, procedere come segue:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+</code></pre>
+<p>Che restituisce:</p>
+<pre><code>{
+  &quot;value&quot;: 10000,
+  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
+  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
+  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
+  &quot;sat_ranges&quot;: null,
+  &quot;inscriptions&quot;: [
+    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  ]
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="guida-alliscrizione-ordinale"><a class="header" href="#guida-alliscrizione-ordinale">Guida all'Iscrizione Ordinale</a></h1>
+<p>I singoli satoshi possono essere iscritti con contenuti arbitrari, creando artefatti digitali nativi di Bitcoin che possono essere conservati in un portafoglio Bitcoin e trasferiti tramite transazioni Bitcoin. Le iscrizioni sono durevoli, immutabili, sicure e decentralizzate come Bitcoin stesso.</p>
+<p>Per lavorare con le iscrizioni è necessario un nodo Bitcoin completo, per avere una visione dello stato attuale della blockchain Bitcoin, e un portafoglio in grado di creare iscrizioni e di eseguire il controllo sat quando si costruiscono transazioni per inviare iscrizioni a un altro portafoglio.</p>
+<p>Bitcoin Core fornisce sia un nodo completo Bitcoin che un portafoglio. Tuttavia, il portafoglio di Bitcoin Core non può creare iscrizioni e non esegue il controllo sat.</p>
+<p>Per questo è necessario <a href="https://github.com/ordinals/ord"><code>ord</code></a>, l'utilità ordinale. <code>ord</code> non implementa un proprio portafoglio, quindi i sottocomandi del <code>portafoglio ord</code> interagiscono con i portafogli di Bitcoin Core.</p>
+<p>Questa guida tratta di:</p>
+<ol>
+<li>Installazione di Bitcoin Core</li>
+<li>Sincronizzare la blockchain di Bitcoin</li>
+<li>Creare un portafoglio Bitcoin Core</li>
+<li>Usare <code>ord wallet receive</code> per ricevere sats</li>
+<li>Creare iscrizioni con <code>ord wallet inscribe</code></li>
+<li>Inviare iscrizioni con <code>ord wallet send</code></li>
+<li>Ricevere iscrizioni con <code>ord wallet receive</code></li>
+<li>Inscrivere in batch con <code>ord wallet inscribe --batch</code></li>
+</ol>
+<h2 id="ricevere-aiuto"><a class="header" href="#ricevere-aiuto">Ricevere Aiuto</a></h2>
+<p>Se siete bloccati, provate a chiedere aiuto su <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, o a controllare su GitHub <a href="https://github.com/ordinals/ord/issues">i problemi</a> e <a href="https://github.com/ordinals/ord/discussions">le discussioni</a> pertinenti.</p>
+<h2 id="installazione-di-bitcoin-core"><a class="header" href="#installazione-di-bitcoin-core">Installazione di Bitcoin Core</a></h2>
+<p>Bitcoin Core è disponibile su <a href="https://bitcoincore.org/">bitcoincore.org</a> alla <a href="https://bitcoincore.org/en/download/">pagina di download</a>.</p>
+<p>Per effettuare iscrizioni è necessario Bitcoin Core 24 o più recente.</p>
+<p>Questa guida non tratta in dettaglio l'installazione di Bitcoin Core. Una volta installato Bitcoin Core, si dovrebbe essere in grado di eseguire con successo <code>bitcoind -version</code> dalla riga di comando. <em>NON</em> utilizzare <code>bitcoin-qt</code>.</p>
+<h2 id="configurazione-di-bitcoin-core"><a class="header" href="#configurazione-di-bitcoin-core">Configurazione di Bitcoin Core</a></h2>
+<p><code>ord</code> richiede l'indice delle transazioni e l'interfaccia rest di Bitcoin Core.</p>
+<p>Per configurare il tuo nodo Bitcoin Core in modo che mantenga un indice delle transazioni, aggiungere quanto segue al tuo <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Oppure, eseguire <code>bitcoind</code> con <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>I dettagli sulla creazione o la modifica del file <code>bitcoin.conf</code> sono disponibili <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">qui</a>.</p>
+<h2 id="sincronizzazione-della-catena-di-bitcoin"><a class="header" href="#sincronizzazione-della-catena-di-bitcoin">Sincronizzazione della catena di Bitcoin</a></h2>
+<p>Per sincronizzare la catena, eseguire:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>…e lasciarlo in esecuzione fino a <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>concorda con il conteggio dei blocchi su un block explorer come <a href="https://mempool.space/">mempool.space block explorer</a>. <code>ord</code> interagisce con <code>bitcoind</code>, quindi si dovrebbe lasciare <code>bitcoind</code> in esecuzione in background quando si utilizza <code>ord</code>.</p>
+<p>La blockchain occupa circa 600 GB di spazio su disco. Se si dispone di un disco esterno su cui memorizzare i blocchi, utilizzare l'opzione di configurazione <code>blocksdir=&lt;external_drive_path&gt;</code>. È molto più semplice che usare l'opzione <code>datadir</code>, perché il file cookie sarà ancora nella posizione predefinita per essere trovato da <code>bitcoin-cli</code> e <code>ord</code>.</p>
+<h2 id="risoluzione-dei-problemi"><a class="header" href="#risoluzione-dei-problemi">Risoluzione dei problemi</a></h2>
+<p>Assicurarsi di poter accedere a <code>bitcoind</code> con <code>bitcoin-cli -getinfo</code> e che sia completamente sincronizzato.</p>
+<p>Se <code>bitcoin-cli -getinfo</code> restituisce <code>Could not connect to the server</code>, <code>bitcoind</code> non è in esecuzione.</p>
+<p>Assicurarsi che <code>rpcuser</code>, <code>rpcpassword</code>, o <code>rpcauth</code> <em>NON</em> siano impostati nel file <code>bitcoin.conf</code>. <code>ord</code> richiede l'uso dell'autenticazione tramite cookie. Assicurarsi che ci sia un file <code>.cookie</code> nella tua directory dei dati di bitcoin.</p>
+<p>Se <code>bitcoin-cli -getinfo</code> restituisce <code>Could not locate RPC credentials</code>, è necessario specificare la posizione del file cookie. Se si utilizza una directory di dati personalizzata (specificando l'opzione <code>datadir</code>), è necessario specificare la posizione del cookie come <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. Quando si esegue <code>ord</code> è necessario specificare la posizione del file cookie con <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Assicurarsi di <em>NON</em> avere <code>disablewallet=1</code> nel file <code>bitcoin.conf</code>. Se <code>bitcoin-cli listwallets</code> restituisce <code>Method not found</code>, il portafoglio è disabilitato e non sarà possibile utilizzare <code>ord</code>.</p>
+<p>Assicurarsi che <code>txindex=1</code> sia impostato. Eseguite <code>bitcoin-cli getindexinfo</code> e dovrebbe restituire qualcosa come</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>Se restituisce solo <code>{}</code>, il <code>txindex</code> non è impostato. Se restituisce <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> sta ancora creando il <code>txindex</code>. Attendere fino a <code>&quot;synced&quot;: true</code> prima di usare <code>ord</code>.</p>
+<p>Se è impostato <code>maxuploadtarget</code>, può interferire con il recupero dei blocchi per l'indice <code>ord</code>. Rimuoverlo o impostare <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="installazione-di-ord"><a class="header" href="#installazione-di-ord">Installazione di <code>ord</code></a></h2>
+<p>L'utilità <code>ord</code> è scritta in Rust e può essere compilata dalla <a href="https://github.com/ordinals/ord">sorgente</a>. I binari precompilati sono disponibili nella <a href="https://github.com/ordinals/ord/releases">pagina dei rilasci</a>.</p>
+<p>È possibile installare l'ultimo binario precostruito dalla riga di comando con:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>Una volta installato <code>ord</code>, dovrebbe essere possibile eseguirlo:</p>
+<pre><code>ord --version
+</code></pre>
+<p>Che stampa il numero di versione di <code>ord</code>.</p>
+<h2 id="creare-un-bitcoin-core-wallet"><a class="header" href="#creare-un-bitcoin-core-wallet">Creare un Bitcoin Core Wallet</a></h2>
+<p><code>ord</code> utilizza Bitcoin Core per gestire le chiavi private, firmare le transazioni e trasmettere le transazioni alla rete Bitcoin.</p>
+<p>Per creare un portafoglio Bitcoin Core chiamato <code>ord</code> da usare con <code>ord</code>, eseguire:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="ricevere-i-sats"><a class="header" href="#ricevere-i-sats">Ricevere i Sats</a></h2>
+<p>Le iscrizioni vengono effettuate su singoli sat, utilizzando le normali transazioni Bitcoin che pagano le commissioni in sats, quindi il vostro portafoglio avrà bisogno di alcuni sats.</p>
+<p>Ottenere un nuovo indirizzo dal proprio portafoglio <code>ord</code> eseguendo:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>E inviategli dei fondi.</p>
+<p>È possibile vedere le transazioni in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una volta confermata la transazione, si dovrebbe essere in grado di vedere i risultati delle transazioni con <code>ord wallet outputs</code>.</p>
+<h2 id="creazione-del-contenuto-delliscrizione"><a class="header" href="#creazione-del-contenuto-delliscrizione">Creazione del contenuto dell'iscrizione</a></h2>
+<p>I sats possono essere iscritti con qualsiasi tipo di contenuto, ma il portafoglio <code>ord</code> supporta solo i tipi di contenuto che possono essere visualizzati dall'explorer di blocchi <code>ord</code>.</p>
+<p>Inoltre, le iscrizioni sono incluse nelle transazioni, quindi più grande è il contenuto, più alta è la commissione che la transazione di iscrizione deve pagare.</p>
+<p>I contenuti delle iscrizioni sono inclusi nei witness delle transazioni, che ricevono uno sconto sulle commissioni. Per calcolare la tariffa approssimativa che una transazione di iscrizione dovrà pagare, dividere la dimensione del contenuto per quattro e moltiplicare per la tariffa.</p>
+<p>Le transazioni di iscrizione devono essere inferiori a 400.000 unità di peso, altrimenti non saranno trasmesse dal Bitcoin Core. Un byte di contenuto di iscrizione costa un'unità di peso. Poiché una transazione di iscrizione non include solo il contenuto dell'iscrizione, limitate il contenuto dell'iscrizione a meno di 400.000 unità di peso. 390.000 unità di peso dovrebbero essere sicure.</p>
+<h2 id="creazione-di-iscrizioni"><a class="header" href="#creazione-di-iscrizioni">Creazione di iscrizioni</a></h2>
+<p>Per creare un'iscrizione con il contenuto di <code>FILE</code>, eseguire:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
+</code></pre>
+<p>Ord produrrà due ID di transazione, uno per la transazione di commit e uno per la transazione di reveal, e l'ID dell'iscrizione. Gli ID delle iscrizioni sono della forma <code>TXIDiN</code>, dove <code>TXID</code> è l'ID della transazione di rivelazione e <code>N</code> è l'indice dell'iscrizione nella transazione di rivelazione.</p>
+<p>La transazione di commit esegue il commit su un tapscript contenente il contenuto dell'iscrizione e la transazione di reveal esegue il commit da quel tapscript, rivelando il contenuto sulla catena e iscrivendolo sul primo sat dell'input che contiene il tapscript corrispondente.</p>
+<p>Attendere che la transazione reveal venga minata. È possibile controllare lo stato delle transazioni di commit e di reveal utilizzando <a href="https://mempool.space/">il block explorer di mempool.space</a>.</p>
+<p>Una volta che la transazione reveal è stata estratta, l'ID dell'iscrizione dovrebbe essere stampato durante l'esecuzione:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="iscrizioni-genitore-figlio"><a class="header" href="#iscrizioni-genitore-figlio">Iscrizioni Genitore-Figlio</a></h2>
+<p>Le iscrizioni &quot;parent-child&quot; consentono di creare quelle che in gergo si chiamano collezioni, per maggiori informazioni, si veda la voce <a href="guides/../inscriptions/provenance.html">provenienza</a>.</p>
+<p>Per rendere un'iscrizione figlia di un'altra, l'iscrizione parent deve essere iscritta e presente nel portafoglio. Per scegliere un genitore, eseguire <code>ord wallet inscriptions</code> e copiare l'id dell'iscrizione (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Ora iscrivete l'iscrizione figlia e specificate il genitore in questo modo:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
+</code></pre>
+<p>Questo rapporto non può essere aggiunto retroattivamente, il genitore deve essere presente al momento dell'iscrizione del bambino.</p>
+<h2 id="invio-di-iscrizioni"><a class="header" href="#invio-di-iscrizioni">Invio di iscrizioni</a></h2>
+<p>Chiedere al destinatario di generare un nuovo indirizzo eseguendo:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Inviare l’iscrizione eseguendo:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Vedere la transazione in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una volta confermata la transazione di invio, il destinatario può confermare la ricezione eseguendo:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="ricevere-iscrizioni"><a class="header" href="#ricevere-iscrizioni">Ricevere Iscrizioni</a></h2>
+<p>Generare un nuovo indirizzo di ricezione utilizzando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Il mittente può trasferire l'iscrizione al vostro indirizzo utilizzando:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Vedere la transazione in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, you can confirm receipt by running:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="iscrivere-in-batch"><a class="header" href="#iscrivere-in-batch">Iscrivere in Batch</a></h1>
+<p>È possibile creare più iscrizioni contemporaneamente utilizzando il <a href="guides/./../inscriptions/pointer.html">campo puntatore</a>. Questo è particolarmente utile per le collezioni o per altri casi in cui più iscrizioni devono condividere lo stesso genitore, poiché il genitore può essere passato in una transazione di rivelazione che crea più figli.</p>
+<p>Per creare un'iscrizione batch usando un batchfile in <code>batch.yaml</code>, eseguire il seguente comando:</p>
+<pre><code class="language-bash">ord wallet inscribe --fee-rate 21 --batch batch.yaml
+</code></pre>
+<h2 id="esempio-batchyaml"><a class="header" href="#esempio-batchyaml">Esempio <code>batch.yaml</code></a></h2>
+<pre><code class="language-yaml"># example batch file
+
+# there are two modes:
+# - `separate-outputs`: inscribe on separate postage-sized outputs
+# - `shared-output`: inscribe on a single output separated by postage
+# - `same-sat`: inscribe on the same sat
+mode: separate-outputs
+
+# parent inscription:
+parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+
+# postage for each inscription:
+postage: 12345
+
+# sat to inscribe on, can only be used with `same-sat`:
+# sat: 5000000000
+
+# inscriptions to inscribe
+#
+# each inscription has the following fields:
+#
+# `inscription`: path to inscription contents
+# `metadata`: inscription metadata (optional)
+# `metaprotocol`: inscription metaprotocol (optional)
+inscriptions:
+  - file: mango.avif
+    metadata:
+      title: Delicious Mangos
+      description: &gt;
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper,
+        ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit
+        metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
+        mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
+        dolor et luctus euismod.
+    destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+
+  - file: token.json
+    metaprotocol: brc-20
+
+  - file: tulip.png
+    metadata:
+      author: Satoshi Nakamoto
+    destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="sat-hunting"><a class="header" href="#sat-hunting">Sat Hunting</a></h1>
+<p><em>Questa guida non è aggiornata. Da quando è stata scritta, il binario <code>ord</code> è stato modificato per costruire l'indice satoshi completo solo quando viene fornito il flag <code>--index-sats</code>. Inoltre, <code>ord</code> ha ora un portafoglio incorporato che racchiude un portafoglio Bitcoin Core. Vedere <code>ord wallet --help</code>.</em></p>
+<p>La caccia agli ordinali è difficile ma gratificante. La sensazione di possedere un portafoglio pieno di UTXO, colmo di satoshi rari ed esotici, non ha paragoni.</p>
+<p>Gli ordinali sono numeri per i satoshi. Ogni satoshi ha un numero ordinale e ogni numero ordinale ha un satoshi.</p>
+<h2 id="preparazione"><a class="header" href="#preparazione">Preparazione</a></h2>
+<p>Sono necessarie alcune cose prima di iniziare.</p>
+<ol>
+<li>
+<p>Innanzitutto, è necessario un nodo Bitcoin Core sincronizzato con un indice delle transazioni. Per attivare l'indicizzazione delle transazioni, passare <code>-txindex</code> alla riga di comando:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>Oppure inserire quanto segue nel tuo <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">file di configurazione di Bitcoin</a>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Avviatelo e attendete che raggiunga la punta della catena; a questo punto il comando seguente dovrebbe stampare l'altezza del blocco corrente:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>In secondo luogo, è necessario un indice <code>ord</code> sincronizzato.</p>
+<ul>
+<li>
+<p>Ottenere una copia di <code>ord</code> <a href="https://github.com/ordinals/ord/">dal repo</a>.</p>
+</li>
+<li>
+<p>Eseguire <code>RUST_LOG=info ord index</code>. Dovrebbe connettersi al vostro nodo bitcoin core e iniziare l'indicizzazione.</p>
+</li>
+<li>
+<p>Attendere che finisca l'indicizzazione.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>In terzo luogo, è necessario un portafoglio con gli UTXO che si desidera cercare.</p>
+</li>
+</ol>
+<h2 id="ricerca-degli-ordinali-rari"><a class="header" href="#ricerca-degli-ordinali-rari">Ricerca degli Ordinali Rari</a></h2>
+<h3 id="ricerca-degli-ordinali-rari-in-un-portafoglio-bitcoin-core"><a class="header" href="#ricerca-degli-ordinali-rari-in-un-portafoglio-bitcoin-core">Ricerca degli ordinali rari in un portafoglio Bitcoin Core</a></h3>
+<p>Il comando <code>ord wallet</code> è solo un wrapper attorno all'API RPC di Bitcoin Core, quindi la ricerca di ordinali rari in un portafoglio Bitcoin Core è semplice. Supponendo che il vostro portafoglio si chiami <code>foo</code>:</p>
+<ol>
+<li>
+<p>Caricate il vostro wallet:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>Visualizzare ogni UTXO raro nel portafoglio Ordinale di <code>foo</code>:</p>
+<pre><code class="language-sh">ord --wallet foo --index-sats wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="ricerca-di-ordinali-rari-in-un-non-bitcoin-core-wallet"><a class="header" href="#ricerca-di-ordinali-rari-in-un-non-bitcoin-core-wallet">Ricerca di Ordinali Rari in un Non-Bitcoin Core Wallet</a></h3>
+<p>Il comando <code>ord wallet</code> è solo un involucro dell'API RPC di Bitcoin Core, quindi per cercare gli ordinali rari in un portafoglio non Bitcoin Core, è necessario importare i descrittori del proprio portafoglio in Bitcoin Core.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">I descrittori</a> descrivono il modo in cui i portafogli generano le chiavi private e le chiavi pubbliche.</p>
+<p>È opportuno importare in Bitcoin Core solo i descrittori per le chiavi pubbliche del portafoglio, non quelli delle chiavi private.</p>
+<p>Se il descrittore della chiave pubblica del portafoglio viene compromesso, un aggressore sarà in grado di vedere gli indirizzi del portafoglio, ma i vostri fondi saranno al sicuro.</p>
+<p>Se il descrittore della chiave privata del vostro portafoglio è compromesso, un aggressore può svuotare i fondi del vostro portafoglio.</p>
+<ol>
+<li>
+<p>Ottenete il descrittore del portafoglio del quale volete cercare gli UTXO rari. Avrà un aspetto simile a questo:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>Create un portafoglio solo visualizzazione chiamato <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>Sentitevi liberi di dargli un nome migliore di <code>foo-watch-only</code>!</p>
+</li>
+<li>
+<p>Caricate il <code>foo-watch-only</code> wallet:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Importate i descrittori del vostro portafoglio in <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>Se si conosce il timestamp Unix in cui il proprio portafoglio ha iniziato a ricevere transazioni, è possibile utilizzarlo per il valore di <code>&quot;timestamp&quot;</code> invece di <code>0</code>. Questo ridurrà il tempo necessario a Bitcoin Core per cercare gli UTXO del portafoglio.</p>
+</li>
+<li>
+<p>Verificate che tutto abbia funzionato:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Visualizzate gli ordinali rari del portafoglio:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="ricerca-di-ordinali-rari-in-un-portafoglio-che-esporta-descrittori-multi-path"><a class="header" href="#ricerca-di-ordinali-rari-in-un-portafoglio-che-esporta-descrittori-multi-path">Ricerca di Ordinali Rari in un portafoglio che esporta descrittori Multi-path</a></h3>
+<p>Alcuni descrittori descrivono più percorsi in un unico descrittore utilizzando parentesi angolari, ad esempio <code>&lt;0;1&gt;</code>. I descrittori multipercorso non sono ancora supportati da Bitcoin Core, quindi è necessario prima convertirli in descrittori multipli e poi importare questi descrittori multipli in Bitcoin Core.</p>
+<ol>
+<li>
+<p>Per prima cosa, ottenere il descrittore multipercorso dal proprio portafoglio. Il suo aspetto sarà simile a questo:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>Crea un descrittore per il percorso dell'indirizzo di ricezione:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>E il percorso di modifica dell'indirizzo:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>Ottenete e annotate il checksum del descrittore dell'indirizzo di ricezione, in questo caso <code>tpnxnxax</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>E per il descrittore dell'indirizzo di modifica, in questo caso <code>64k8wnd7</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>Caricate il portafoglio in cui si desidera importare i descrittori:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Ora importate i descrittori, con le checksum corrette, in Bitcoin Core.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>Se si conosce il timestamp Unix in cui il portafoglio ha iniziato a ricevere transazioni, è possibile utilizzarlo per il valore dei campi <code>&quot;timestamp&quot;</code> invece di <code>0</code>. Questo ridurrà il tempo necessario a Bitcoin Core per cercare gli UTXO del portafoglio.</p>
+</li>
+<li>
+<p>Verificate che tutto abbia funzionato:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Visualizzate gli ordinali rari del portafoglio:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="esportare-descrittori"><a class="header" href="#esportare-descrittori">Esportare Descrittori</a></h3>
+<h4 id="portafoglio-sparrow"><a class="header" href="#portafoglio-sparrow">Portafoglio Sparrow</a></h4>
+<p>Passare alla scheda <code>Settings</code>, quindi a <code>Script Policy</code> e premete il pulsante di modifica per visualizzare il descrittore.</p>
+<h3 id="trasferire-ordinali"><a class="header" href="#trasferire-ordinali">Trasferire Ordinali</a></h3>
+<p>Il portafoglio <code>ord</code> supporta il trasferimento di specifici satoshi. È anche possibile utilizzare i comandi <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, e <code>sendrawtransaction</code>, il modo di eseguire ciò è complesso e non rientra nello scopo di questa guida.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
+<p>Gli indirizzi teleburn possono essere utilizzati per bruciare asset su altre blockchain, lasciando dietro di sé, tra le macerie fumanti, una sorta di indirizzo di spedizione che punta a un'iscrizione su Bitcoin.</p>
+<p>Teleburnare un asset significa qualcosa come &quot;Non esisto più su questa chain. Trovatemi su Bitcoin.&quot;</p>
+<p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
+<h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
+<p>Gli indirizzi teleburn di Ethereum sono ricavati prendendo i primi 20 byte dell'hash SHA-256 dell'ID dell'iscrizione, serializzato come 36 byte, con i primi 32 byte contenenti l'ID della transazione e gli ultimi quattro byte contenenti l'indice dell'iscrizione in big-endian, e interpretandolo come un indirizzo Ethereum.</p>
+<h2 id="esempio-2"><a class="header" href="#esempio-2">Esempio</a></h2>
+<p>Il dominio ENS <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, è stato teleburnato all'<a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">iscrizione zero</a>.</p>
+<p>L'ID dell'iscrizione zero è <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
+<p>Passaggio di <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> al comando teleburn:</p>
+<pre><code class="language-bash">$ ord teleburn 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+</code></pre>
+<p>Restituisce:</p>
+<pre><code class="language-json">{
+  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+}
+</code></pre>
+<p>Indicando che <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> è l'indirizzo teleburn di Ethereum per l'iscrizione zero, che è effettivamente l'attuale proprietario, su Ethereum, di <code>rodarmor.eth</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="collezionare"><a class="header" href="#collezionare">Collezionare</a></h1>
+<p>Attualmente, <a href="https://github.com/ordinals/ord/">ord</a> è l'unico portafoglio che supporta il controllo dei satoshi e la loro selezione, necessari per conservare e inviare in modo sicuro i satoshi e le iscrizioni rari, identificati come ordinali.</p>
+<p>Il modo consigliato per inviare, ricevere e conservare gli ordinali è con <code>ord</code>, ma se si fa attenzione è possibile conservare e in alcuni casi inviare ordinali con altri portafogli.</p>
+<p>Come nota generale, ricevere ordinali in un portafoglio non supportato non è pericoloso. Gli ordinali possono essere inviati a qualsiasi indirizzo bitcoin e sono sicuri finché l'UTXO che li contiene non viene speso. Tuttavia, se quel portafoglio viene poi utilizzato per inviare bitcoin, potrebbe selezionare l'UTXO contenente l'ordinale come input e inviare l'iscrizione o spenderla in commissioni.</p>
+<p>Una <a href="guides/./collecting/sparrow-wallet.html">guida</a> alla creazione di un portafoglio compatibile con gli ordinali con <a href="https://sparrowwallet.com/">Sparrow Wallet</a> è disponibile in questo manuale.</p>
+<p>Si noti che se si segue questa guida, non si deve usare il portafoglio creato per inviare BTC, a meno che non si esegua una selezione manuale delle monete per evitare l'invio di ordinali.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="collezionare-iscrizioni-e-ordinali-con-il-portafoglio-sparrow"><a class="header" href="#collezionare-iscrizioni-e-ordinali-con-il-portafoglio-sparrow">Collezionare Iscrizioni e Ordinali con il Portafoglio Sparrow</a></h1>
+<p>Gli utenti che non possono o non hanno ancora configurato il portafoglio <a href="https://github.com/ordinals/ord">ord</a> possono ricevere iscrizioni e ordinali con portafogli bitcoin alternativi, a patto che facciano <em>molta</em> attenzione a come spendono da quel portafoglio.</p>
+<p>Questa guida fornisce alcuni passaggi di base su come creare un portafoglio con <a href="https://sparrowwallet.com/">Sparrow Wallet</a> che sia compatibile con <code>ord</code> e possa essere successivamente importato in <code>ord</code></p>
+<h2 id="-attenzione-"><a class="header" href="#-attenzione-">⚠️⚠️ Attenzione!! ⚠️⚠️</a></h2>
+<p>Come regola generale, se si adotta questo approccio, si dovrebbe utilizzare questo portafoglio con il software Sparrow come portafoglio di sola ricezione.</p>
+<p>Non spendere i satoshi da questo portafoglio se non si è sicuri di sapere cosa si sta facendo. È molto facile che si perda inavvertitamente l'accesso agli ordinali e alle iscrizioni se non si presta attenzione a questo avvertimento.</p>
+<h2 id="setup-del-wallet--ricezione"><a class="header" href="#setup-del-wallet--ricezione">Setup del Wallet &amp; Ricezione</a></h2>
+<p>Download del portafoglio Sparrow dalla <a href="https://sparrowwallet.com/download/">pagina di release</a> per il proprio sistema operativo.</p>
+<p>Selezionate <code>File -&gt; New Wallet</code> e create un nuovo wallet chiamato <code>ord</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
+<p>Cambiate il <code>Script Type</code> in <code>Taproot (P2TR)</code> e selezionate l'opzione <code>New or Imported Software Wallet</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
+<p>Selezionate <code>Use 12 Words</code> e dopo cliccate <code>Generate New</code>. Lasciate la Passphrase vuota.</p>
+<p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
+<p>Verrà generata una nuova seed phrase BIP39 di 12 parole. Scrivetela in un posto sicuro, perché è il modo per accedere al vostro portafoglio. Non condividete o mostrate MAI questa frase a nessuno.</p>
+<p>Una volta annotata la seed phrase cliccate <code>Confirm Backup</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_04.png" alt="" /></p>
+<p>Reinserite la seed phrase annotata, quindi fate clic su <code>Create Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_05.png" alt="" /></p>
+<p>Click <code>Import Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_06.png" alt="" /></p>
+<p>Click <code>Apply</code>. Aggiungete una password per il wallet se preferite.</p>
+<p><img src="guides/collecting/images/wallet_setup_07.png" alt="" /></p>
+<p>Ora si dispone di un portafoglio compatibile con <code>ord</code>, che può essere importato in <code>ord</code> utilizzando la seedphrase BIP39. Per ricevere ordinali o iscrizioni, fate click sulla scheda <code>Receive</code> e copiate un nuovo indirizzo.</p>
+<p>Ogni volta che si desidera ricevere si deve utilizzare un indirizzo nuovo di zecca e non riutilizzare quelli esistenti.</p>
+<p>Si noti che bitcoin è diverso da altri portafogli blockchain, in quanto questo portafoglio può generare un numero illimitato di nuovi indirizzi. È possibile generare un nuovo indirizzo facendo click sul pulsante <code>Get Next Address</code>. Tutti gli indirizzi sono visibili nella scheda <code>Addresses</code> dell'applicazione.</p>
+<p>È possibile aggiungere un'etichetta a ogni indirizzo, in modo da tenere traccia dell'uso che ne è stato fatto.</p>
+<p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
+<h2 id="convalida-visualizzazione-delle-iscrizioni-ricevute"><a class="header" href="#convalida-visualizzazione-delle-iscrizioni-ricevute">Convalida/ Visualizzazione delle Iscrizioni Ricevute</a></h2>
+<p>Una volta ricevuta un'iscrizione, si vedrà una nuova transazione nella scheda <code>Transactions</code> di Sparrow e un nuovo UTXO nella scheda <code>UTXOs</code>.</p>
+<p>Inizialmente questa transazione potrebbe avere uno stato &quot;Unconfirmed&quot; e sarà necessario attendere che venga minata in un blocco di bitcoin prima che venga ricevuta completamente.</p>
+<p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
+<p>Per seguire lo stato della transazione è possibile fare clic con il tasto destro del mouse, selezionare <code>Copy Transaction ID</code> e incollare l'ID transazione in <a href="https://mempool.space">mempool.space</a>.</p>
+<p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
+<p>Una volta confermata la transazione, è possibile convalidare e visualizzare l'iscrizione andando alla scheda <code>UTXOs</code>, trovando l'UTXO che si desidera controllare, facendo clic con il pulsante destro del mouse sull'<code>Output</code> e selezionando <code>Copy Transaction Output</code>. L'ID della transazione può essere incollato nella ricerca di <a href="https://ordinals.com">ordinals.com</a>.</p>
+<h2 id="congelamento-degli-utxo"><a class="header" href="#congelamento-degli-utxo">Congelamento degli UTXO</a></h2>
+<p>Come spiegato in precedenza, ogni iscrizione è memorizzata in un Output di transazione non speso (UTXO). Per evitare di spendere accidentalmente le iscrizioni e per rendere più difficile che ciò accada si può congelare l'UTXO.</p>
+<p>Per farlo, andate nella scheda <code>UTXOs</code>, trovate l'UTXO che volete congelare, fate click con il tasto destro del mouse sull'<code>Output</code> e selezionate <code>Freeze UTXO</code>.</p>
+<p>Questo UTXO (Iscrizione) non potrà più essere speso nel Portafoglio Sparrow fino a quando non verrà sbloccato.</p>
+<h2 id="importare-nell-ord-wallet"><a class="header" href="#importare-nell-ord-wallet">Importare nell' <code>ord</code> wallet</a></h2>
+<p>Per maggiori dettagli sull'impostazione di Bitcoin Core e del portafoglio <code>ord</code>, consultare la <a href="guides/collecting/../inscriptions.html">Guida alle Iscrizioni</a></p>
+<p>Quando si configura <code>ord</code>, invece di eseguire <code>ord wallet create</code> per creare un portafoglio nuovo di zecca, è possibile importare il portafoglio esistente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> utilizzando la seed phrase generata con Sparrow Wallet.</p>
+<p>Attualmente esiste un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> che fa sì che un portafoglio importato non venga automaticamente ricontrollato rispetto alla blockchain. Per ovviare a questo problema è necessario attivare manualmente una nuova scansione utilizzando il bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>È quindi possibile controllare le iscrizioni del proprio portafoglio utilizzando <code>ord wallet inscriptions</code></p>
+<p>Si noti che se si è precedentemente creato un portafoglio con <code>ord</code>, si avrà già un portafoglio con il nome predefinito e si dovrà dare un nome diverso al portafoglio importato. È possibile utilizzare il parametro <code>--wallet</code> in tutti i comandi <code>ord</code> per fare riferimento a un portafoglio diverso, ad es:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="invio-di-iscrizioni-con-sparrow-wallet"><a class="header" href="#invio-di-iscrizioni-con-sparrow-wallet">Invio di iscrizioni con Sparrow Wallet</a></h2>
+<h4 id="-attenzione--1"><a class="header" href="#-attenzione--1">⚠️⚠️ Attenzione ⚠️⚠️</a></h4>
+<p>Sebbene sia altamente raccomandato creare un nodo bitcoin core ed eseguire il software <code>ord</code>, esistono alcuni modi limitati per inviare iscrizioni da Sparrow Wallet in modo sicuro. Si noti che questa operazione è sconsigliata e deve essere eseguita solo se si è pienamente consapevoli di ciò che si sta facendo.</p>
+<p>L'utilizzo del software <code>ord</code> eliminerà gran parte della complessità descritta in questa guida, poiché è in grado di gestire automaticamente e in modo sicuro l'invio di iscrizioni in modo semplice.</p>
+<h4 id="-avvertenze-aggiuntive-"><a class="header" href="#-avvertenze-aggiuntive-">⚠️⚠️ Avvertenze Aggiuntive ⚠️⚠️</a></h4>
+<p>Non utilizzate il vostro portafoglio sparrow delle inscriptions per effettuare invii generici di bitcoin non legati a iscrizioni. È possibile configurare un portafoglio separato in sparrow per effettuare normali transazioni in bitcoin e tenere separato il portafoglio delle iscrizioni.</p>
+<h4 id="il-modello-utxo-di-bitcoin"><a class="header" href="#il-modello-utxo-di-bitcoin">Il modello UTXO di Bitcoin</a></h4>
+<p>Prima di inviare qualsiasi transazione è importante avere consapevolezza e conoscenza del sistema UTXO (Unspent Transaction Output) di Bitcoin. Il modo in cui Bitcoin funziona è diverso da quello di molte altre blockchain come Ethereum. In Ethereum in genere si ha un unico indirizzo in cui si memorizzano gli ETH, e non si può fare una distinzione tra gli ETH: si tratta di un unico valore dell'importo totale in quell'indirizzo. Il Bitcoin funziona in modo molto diverso, in quanto viene generato un nuovo indirizzo nel portafoglio per ogni ricezione, e ogni volta che si ricevono satoshi nel portafoglio si crea un nuovo UTXO. Ogni UTXO può essere visto e gestito individualmente. Si possono selezionare UTXO specifici da spendere e si può scegliere di non spendere determinati UTXO.</p>
+<p>Alcuni portafogli Bitcoin non espongono questo livello di dettaglio e si limitano a mostrare un unico valore sommato di tutti i bitcoin presenti nel portafoglio. Tuttavia, quando si inviano iscrizioni è importante utilizzare un portafoglio come Sparrow che consente il controllo degli UTXO.</p>
+<h4 id="controllare-liscrizione-prima-dellinvio"><a class="header" href="#controllare-liscrizione-prima-dellinvio">Controllare l'iscrizione prima dell'invio</a></h4>
+<p>Come abbiamo descritto in precedenza, le iscrizioni sono iscritte su sats e i sats sono memorizzati all'interno degli UTXO. Gli UTXO sono una collezione di satoshi con un particolare valore del numero di satoshi (il valore di uscita). Di solito (ma non sempre) l'iscrizione viene fatta sul primo satoshi dell'UTXO.</p>
+<p>Quando si controlla l'iscrizione prima dell'invio, la cosa principale da verificare è su quale satoshi dell'UTXO è iscritta l'iscrizione.</p>
+<p>Per farlo, si può seguire la procedura di <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Convalida/Visualizzazione delle Iscrizioni Ricevute</a> descritta sopra per trovare la pagina dell'iscrizione su ordinals.com</p>
+<p>Lì si trovano alcuni metadata relativi all'iscrizione, come quelli che seguono:</p>
+<p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
+<p>Ci sono alcune cose importanti da vedere in questo caso:</p>
+<ul>
+<li>L'<code>output</code> identificatore corrisponde all'identificatore dell'UTXO che si intende inviare</li>
+<li>L'<code>offset</code> dell'iscrizione è 0 (ciò significa che l'iscrizione si trova sul primo sat dell'UTXO)</li>
+<li>L'<code>output_value</code> ha un numero di sat sufficiente a coprire le commissioni di transazione (&quot;postage&quot;) per l'invio della transazione. L'importo esatto necessario dipende dalla tariffa selezionata per la transazione</li>
+</ul>
+<p>Se tutte le condizioni di cui sopra sono vere per la vostra iscrizione, l'invio dovrebbe essere sicuro utilizzando il metodo seguente.</p>
+<p>⚠️⚠️ Fate molta attenzione all'invio dell'iscrizione, soprattutto se il valore dell' <code>offset</code> non è <code>0</code>. Si sconsiglia di utilizzare questo metodo in tal caso, in quanto si potrebbe inviare accidentalmente l'iscrizione a un miner di bitcoin, a meno che non si sappia cosa si sta facendo.</p>
+<h4 id="invio-delliscrizione"><a class="header" href="#invio-delliscrizione">Invio dell'iscrizione</a></h4>
+<p>Per inviare un'iscrizione, andate nella scheda <code>UTXOs</code> e cercate l'UTXO che avete precedentemente convalidato e che contiene la vostra iscrizione.</p>
+<p>Se l'UTXO è stato precedentemente congelato, è necessario fare click con il tasto destro del mouse su di esso e sbloccarlo.</p>
+<p>Selezionare l'UTXO che si desidera inviare e assicurarsi che sia l'<em>unico</em> UTXO selezionato. Nell'interfaccia dovrebbero essere visualizzati gli <code>UTXOs 1/1</code>. Una volta accertato che sia così, si può premere <code>Send Selected</code>.</p>
+<p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
+<p>Verrà quindi presentata l'interfaccia di costruzione della transazione. È necessario verificare alcune cose per assicurarsi che l'invio sia sicuro:</p>
+<ul>
+<li>La transazione deve avere un solo ingresso, che deve essere l'UTXO con l'etichetta che si vuole inviare</li>
+<li>La transazione deve avere solo un'uscita, che è l'indirizzo/etichetta a cui si vuole inviare l'iscrizione</li>
+</ul>
+<p>Se la transazione ha un aspetto diverso, ad esempio ha più ingressi o più uscite, allora potrebbe non essere un trasferimento sicuro dell'iscrizione e si dovrebbe abbandonare l'invio fino a quando non se ne saprà di più o non si riuscirà a importare nel portafoglio <code>ord</code>.</p>
+<p>È necessario impostare una tariffa di transazione appropriata; Sparrow di solito ne consiglia una ragionevole, ma si può anche controllare <a href="https://mempool.space">mempool.space</a> per vedere qual è la tariffa raccomandata per l'invio di una transazione.</p>
+<p>È necessario aggiungere un'etichetta per l'indirizzo del destinatario, un'etichetta come <code>alice address for inscription #123</code> sarebbe l'ideale.</p>
+<p>Una volta verificato che la transazione è sicura, utilizzando i controlli di cui sopra, e che si è sicuri di poterla inviare, si può fare click su <code>Create Transaction</code>.</p>
+<p><img src="guides/collecting/images/sending_03.png" alt="" /></p>
+<p>Anche qui si può verificare di nuovo che la transazione sia sicura e, una volta sicuri, si può fare click su <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="guides/collecting/images/sending_04.png" alt="" /></p>
+<p>Qui è possibile controllare tre volte tutto prima di premere il pulsante <code>Sign</code>.</p>
+<p><img src="guides/collecting/images/sending_05.png" alt="" /></p>
+<p>E poi, in realtà, si ha l'ultima possibilità di controllare tutto prima di premere <code>Broadcast Transaction</code>. Una volta trasmessa la transazione, questa viene inviata alla rete bitcoin e inizia a essere propagata nella mempool.</p>
+<p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
+<p>Se si desidera seguire lo stato della transazione, è possibile copiare <code>Transaction Id (Txid)</code> e incollarlo in <a href="https://mempool.space">mempool.space</a></p>
+<p>Una volta confermata la transazione, è possibile controllare la pagina dell'iscrizione su <a href="https://ordinals.com">ordinals.com</a> per verificare che sia stata spostata nel nuovo indirizzo.</p>
+<h2 id="risoluzione-dei-problemi-1"><a class="header" href="#risoluzione-dei-problemi-1">Risoluzione dei problemi</a></h2>
+<h4 id="il-portafoglio-sparrow-non-mostra-una-transazioneutxo-ma-la-vedo-su-mempoolspace"><a class="header" href="#il-portafoglio-sparrow-non-mostra-una-transazioneutxo-ma-la-vedo-su-mempoolspace">Il portafoglio Sparrow non mostra una transazione/UTXO, ma la vedo su mempool.space!</a></h4>
+<p>Assicuratevi che il vostro portafoglio sia collegato a un nodo bitcoin. Per verificarlo, accedere alle <code>Preferences</code>-&gt; <code>Server</code> e fare click su <code>Edit Existing Connection</code>.</p>
+<p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
+<p>Da qui è possibile selezionare un nodo e fare click su <code>Test Connection</code> per verificare che Sparrow sia in grado di connettersi correttamente.</p>
+<p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="testare"><a class="header" href="#testare">Testare</a></h1>
+<p>Ord può essere testato utilizzando i seguenti flag per specificare la rete di test. Per ulteriori informazioni sull'esecuzione di Bitcoin Core per i test, consultare la <a href="https://developer.bitcoin.org/examples/testing.html">documentazione per sviluppatori di Bitcoin</a>.</p>
+<p>La maggior parte dei comandi di <code>ord</code> in <a href="guides/inscriptions.html">iscrizioni</a> ed <a href="guides/explorer.html">explorer</a> può essere eseguita con i seguenti flag di rete:</p>
+<div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
+<tr><td>Testnet</td><td><code>--testnet</code> o <code>-t</code></td></tr>
+<tr><td>Signet</td><td><code>--signet</code> o <code>-s</code></td></tr>
+<tr><td>Regtest</td><td><code>--regtest</code> o <code>-r</code></td></tr>
+</tbody></table>
+</div>
+<p>Regtest non richiede il download della blockchain o l'indicizzazione di ord.</p>
+<h2 id="esempio-3"><a class="header" href="#esempio-3">Esempio</a></h2>
+<p>Eseguire bitcoind in regtest con:</p>
+<pre><code>bitcoind -regtest -txindex
+</code></pre>
+<p>Creare un portafoglio in regtest con:</p>
+<pre><code>ord -r wallet create
+</code></pre>
+<p>Ottenere un indirizzo di ricezione in regtest con:</p>
+<pre><code>ord -r wallet receive
+</code></pre>
+<p>Estrarre 101 blocchi (per sbloccare il coinbase) con:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
+</code></pre>
+<p>Inscrivere in regtest con:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+</code></pre>
+<p>Estrarre l'iscrizione con:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
+</code></pre>
+<p>Visualizzare l'iscrizione nell'explorer di regtest:</p>
+<pre><code>ord -r server
+</code></pre>
+<h2 id="testare-la-recursion"><a class="header" href="#testare-la-recursion">Testare la Recursion</a></h2>
+<p>Per testare la <a href="guides/../inscriptions/recursion.html">recursion</a>, inscrivere prima le dipendenze (esempio con <a href="https://p5js.org">p5.js</a>):</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+</code></pre>
+<p>Questo dovrebbe restituire un <code>inscription_id</code> a cui si può fare riferimento nell'iscrizione ricorsiva.</p>
+<p>ATTENZIONE: Questi id saranno diversi quando si inscrive su mainnet o signet, quindi assicuratevi di cambiarli nella vostra iscrizione ricorsiva per ogni catena.</p>
+<p>Quindi è possibile inscrivere l'iscrizione ricorsiva con:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+</code></pre>
+<p>Infine, dovrete estrarre alcuni blocchi e avviare il server:</p>
+<pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
+ord -r server
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="moderazione"><a class="header" href="#moderazione">Moderazione</a></h1>
+<p><code>ord</code> include un block explorer, che può essere eseguito localmente con <code>ord server</code>.</p>
+<p>L'esploratore di blocchi consente di visualizzare le iscrizioni. Le iscrizioni sono contenuti generati dagli utenti, che possono essere discutibili o illegali.</p>
+<p>È responsabilità di ogni individuo che gestisce un'istanza di Ordinal Block Explorer comprendere le proprie responsabilità riguardo ai contenuti illegali e decidere quale politica di moderazione sia appropriata per la propria istanza.</p>
+<p>Per evitare che determinate iscrizioni vengano visualizzate su un'istanza di <code>ord</code>, è possibile includerle in un file di configurazione YAML, che viene caricato con l'opzione <code>--config</code>.</p>
+<p>Per nascondere le iscrizioni, creare prima un file di configurazione con l'ID dell'iscrizione che si vuole nascondere:</p>
+<pre><code class="language-yaml">hidden:
+- 0000000000000000000000000000000000000000000000000000000000000000i0
+</code></pre>
+<p>Il nome suggerito per i file di configurazione di <code>ord</code> è <code>ord.yaml</code>, ma si può usare qualsiasi nome di file.</p>
+<p>Passare il file a <code>--config</code> quando si avvia il server:</p>
+<p><code>ord --config ord.yaml server</code></p>
+<p>Si noti che l'opzione <code>--config</code> viene dopo <code>ord</code> ma prima del sottocomando <code>server</code>.</p>
+<p><code>ord</code> deve essere riavviato per caricare le modifiche al file di configurazione.</p>
+<h2 id="ordinalscom"><a class="header" href="#ordinalscom"><code>ordinals.com</code></a></h2>
+<p>Le istanze <code>ordinals.com</code> utilizzano <code>systemd</code> per eseguire il servizio <code>ord server</code>, chiamato <code>ord</code>, con un file di configurazione situato in <code>/var/lib/ord/ord.yaml</code>.</p>
+<p>Per nascondere un'iscrizione su <code>ordinals.com</code>:</p>
+<ol>
+<li>SSH nel server</li>
+<li>Aggiungere l'ID dell'iscrizione a <code>/var/lib/ord/ord.yaml</code></li>
+<li>Riavviare il servizio con <code>systemctl restart ord</code></li>
+<li>Monitorare il riavvio con <code>journalctl -u ord</code></li>
+</ol>
+<p>Attualmente, <code>ord</code> è lento a riavviarsi, quindi il sito non tornerà online immediatamente.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="reindicizzazione"><a class="header" href="#reindicizzazione">Reindicizzazione</a></h1>
+<p>A volte è necessario reindicizzare il database <code>ord</code>, il che significa cancellare il database e riavviare il processo di indicizzazione con <code>ord index update</code> o <code>ord server</code>. I motivi per la reindicizzazione sono:</p>
+<ol>
+<li>Una nuova versione principale di ord, che modifica lo schema del database</li>
+<li>Il database si è corrotto in qualche modo</li>
+</ol>
+<p>Il database utilizzato da <code>ord</code> si chiama <a href="https://github.com/cberner/redb">redb</a>, quindi diamo all'indice il nome predefinito di file <code>index.redb</code>. Per impostazione predefinita, questo file viene memorizzato in posizioni diverse a seconda del sistema operativo.</p>
+<div class="table-wrapper"><table><thead><tr><th>Piattaforma</th><th>Value</th><th>Esempio</th></tr></thead><tbody>
+<tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
+<tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
+<tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
+</tbody></table>
+</div>
+<p>Per cancellare il database e reindicizzarlo su MacOS è necessario eseguire i seguenti comandi nel terminale:</p>
+<pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
+ord index update
+</code></pre>
+<p>Naturalmente potete anche impostare la posizione della directory dei dati con <code>ord --data-dir &lt;DIR&gt; index update</code> o assegnare un nome di file e un percorso specifici con <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="suggerimenti-per-la-caccia-alle-taglie-ordinali"><a class="header" href="#suggerimenti-per-la-caccia-alle-taglie-ordinali">Suggerimenti per la Caccia alle Taglie Ordinali</a></h1>
+<ul>
+<li>
+<p>Il portafoglio <code>ord</code> può inviare e ricevere specifici satoshi. Inoltre, la teoria ordinale è estremamente semplice. Un hacker intelligente dovrebbe essere in grado di scrivere codice da zero per manipolare i satoshi utilizzando la teoria ordinale in pochissimo tempo.</p>
+</li>
+<li>
+<p>Per ulteriori informazioni sulla teoria ordinale, consultate le <a href="./faq.html">FAQ</a> per una panoramica, il <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a> per i dettagli tecnici e la <a href="https://github.com/ordinals/ord">ord repo</a> per il portafoglio <code>ord</code> e il block explorer.</p>
+</li>
+<li>
+<p>Satoshi è stato lo sviluppatore originale della teoria ordinale. Tuttavia, sapendo che gli altri l'avrebbero considerata eretica e pericolosa, nascose la sua conoscenza, che andò perduta nelle sabbie del tempo. Questa potente teoria viene riscoperta solo ora. Potete aiutarci ricercando i satoshi rari.</p>
+</li>
+</ul>
+<p>Buona fortuna e siate veloci!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="taglia-ordinale-0"><a class="header" href="#taglia-ordinale-0">Taglia Ordinale 0</a></h1>
+<h2 id="regole"><a class="header" href="#regole">Regole</a></h2>
+<p>Inviate un sat il cui numero ordinale finisce con uno zero all'indirizzo di ricezione:</p>
+<p>✅: <a href="https://ordinals.com/ordinal/1857578125803250">1857578125803250</a></p>
+<p>❌: <a href="https://ordinals.com/ordinal/1857578125803251">1857578125803251</a></p>
+<p>Il sat deve essere il primo sat dell'output inviato.</p>
+<h2 id="ricompensa"><a class="header" href="#ricompensa">Ricompensa</a></h2>
+<p>100.000 sats</p>
+<h2 id="indirizzo-di-ricezione"><a class="header" href="#indirizzo-di-ricezione">Indirizzo di Ricezione</a></h2>
+<p><a href="https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3"><code>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</code></a></p>
+<h2 id="status"><a class="header" href="#status">Status</a></h2>
+<p>Vinta da <a href="https://twitter.com/rodarmor/status/1560793241473400833">@count_null</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="taglia-ordinale-1"><a class="header" href="#taglia-ordinale-1">Taglia Ordinale 1</a></h1>
+<h2 id="regole-1"><a class="header" href="#regole-1">Regole</a></h2>
+<p>La transazione che invierà un UTXO contenente il sat più vecchio, cioè quello con il numero più basso, tra tutti gli UTXO inviati sarà giudicata vincitrice.</p>
+<p>La taglia è aperta alle candidature fino al blocco 753984, il primo blocco del periodo di aggiustamento della difficoltà 374. Le candidature incluse nel blocco 753984 o successive non saranno prese in considerazione.</p>
+<h2 id="ricompensa-1"><a class="header" href="#ricompensa-1">Ricompensa</a></h2>
+<p>200.000 sats</p>
+<h2 id="indirizzo-di-ricezione-1"><a class="header" href="#indirizzo-di-ricezione-1">Indirizzo di Ricezione</a></h2>
+<p><a href="https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap"><code>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</code></a></p>
+<h2 id="status-1"><a class="header" href="#status-1">Status</a></h2>
+<p>Vinta da <a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="taglia-ordinale-2"><a class="header" href="#taglia-ordinale-2">Taglia Ordinale 2</a></h1>
+<h2 id="regole-2"><a class="header" href="#regole-2">Regole</a></h2>
+<p>Invia un <span class=uncommon>uncommon</span>sat all'indirizzo di ricezione:✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
+<p>Prima di inviare l'iscrizione, verificare che il wallet non abbia ricevuto transazioni. Verrà premiato solo il primo invio andato a buon fine.</p>
+<h2 id="ricompensa-2"><a class="header" href="#ricompensa-2">Ricompensa</a></h2>
+<p>300.000 sats</p>
+<h2 id="indirizzo-di-ricezione-2"><a class="header" href="#indirizzo-di-ricezione-2">Indirizzo di Ricezione</a></h2>
+<p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
+<h2 id="status-2"><a class="header" href="#status-2">Status</a></h2>
+<p>Vinta da <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="taglia-ordinale-3"><a class="header" href="#taglia-ordinale-3">Taglia Ordinale 3</a></h1>
+<h2 id="regole-3"><a class="header" href="#regole-3">Regole</a></h2>
+<p>La taglia ordinale 3 ha due parti, entrambe basate sui <em>nomi ordinali</em>. I nomi ordinali sono una codifica modificata in base-26 dei numeri ordinali. Per evitare di bloccare i nomi brevi all'interno del blocco genesis non spendibile coinbase, i nomi ordinali si <em>accorciano</em> man mano che il numero ordinale si <em>allunga</em>. Il nome del sat 0, il primo sat a essere estratto, è <code>nvtdijuwxlp</code> e il nome del sat 2.099.999.997.689.999, l'ultimo sat a essere estratto, è <code>a</code>.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
+<p>Entrambe le parti utilizzano <a href="bounty/frequency.tsv">frequency.tsv</a>, un elenco di parole e del numero di volte in cui ricorrono nel <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">dataset Ngram di Google Books</a>, filtrato in modo da includere solo i nomi di sat che saranno stati minati entro la fine del periodo di presentazione, e che compaiono almeno 5000 volte nel corpus.</p>
+<p><code>frequency.tsv</code> è un file di valori separati da tabulazioni. La prima colonna è la parola e la seconda è il numero di volte in cui compare nel corpus. Le voci sono ordinate dalla meno frequente alla più frequente.</p>
+<p><code>frequency.tsv</code> è stato compilato usando <a href="https://github.com/casey/onegrams">questo programma</a>.</p>
+<p>Per cercare in un portafoglio <code>ord</code> i sats con un nome presente in <code>frequency.tsv</code>, utilizzare il seguente comando <a href="https://github.com/ordinals/ord"><code>ord</code></a>:</p>
+<pre><code>ord wallet sats --tsv frequency.tsv
+</code></pre>
+<p>Questo comando richiede l'indice sat, quindi <code>--index-sats</code> deve essere passato a ord quando si crea l'indice.</p>
+<h3 id="parte-0"><a class="header" href="#parte-0">Parte 0</a></h3>
+<p><em>I sat rari si abbinano meglio alle parole rare.</em></p>
+<p>La transazione che invia l'UTXO contenente il sat il cui nome compare con il minor numero di occorrenze in <code>frequency.tsv</code> sarà la vincitrice della parte 0.</p>
+<h3 id="parte-1"><a class="header" href="#parte-1">Parte 1</a></h3>
+<p><em>La popolarità è la fonte del valore.</em></p>
+<p>La transazione che presenta l'UTXO contenente il sat il cui nome compare con il maggior numero di occorrenze in <code>frequency.tsv</code> sarà la vincitrice della parte 1.</p>
+<h3 id="parità"><a class="header" href="#parità">Parità</a></h3>
+<p>In caso di parità, quando due invii si verificano con la stessa frequenza, l'invio precedente sarà il vincitore.</p>
+<h2 id="ricompensa-3"><a class="header" href="#ricompensa-3">Ricompensa</a></h2>
+<ul>
+<li>Parte 0: 200.000 sats</li>
+<li>Parte 1: 200.000 sats</li>
+<li>Totale: 400.000 sats</li>
+</ul>
+<h2 id="indirizzo-di-ricezione-3"><a class="header" href="#indirizzo-di-ricezione-3">Indirizzo di Ricezione</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="status-3"><a class="header" href="#status-3">Status</a></h2>
+<p>Non reclamata!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
