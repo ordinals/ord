@@ -15,17 +15,12 @@ impl InscriptionsBlockHtml {
     block: u32,
     current_blockheight: u32,
     inscriptions: Vec<InscriptionId>,
+    more_inscriptions: bool,
     page_index: usize,
   ) -> Result<Self> {
-    let num_inscriptions = inscriptions.len();
-
-    let start = page_index * 100;
-    let end = usize::min(start + 100, num_inscriptions);
-
-    if start > num_inscriptions || start > end {
+    if inscriptions.is_empty() {
       return Err(anyhow!("page index {page_index} exceeds inscription count"));
     }
-    let inscriptions = inscriptions[start..end].to_vec();
 
     Ok(Self {
       block,
@@ -36,12 +31,8 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-      prev_page: if page_index > 0 {
-        Some(page_index - 1)
-      } else {
-        None
-      },
-      next_page: if (page_index + 1) * 100 <= num_inscriptions {
+      prev_page: page_index.checked_sub(1),
+      next_page: if more_inscriptions {
         Some(page_index + 1)
       } else {
         None
