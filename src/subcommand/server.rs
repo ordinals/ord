@@ -4218,6 +4218,39 @@ next
   }
 
   #[test]
+  fn charm_coin() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=coin>🪙</span>.*</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
   fn charm_uncommon() {
     let server = TestServer::new_with_regtest_with_index_sats();
 
@@ -4241,9 +4274,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-  </dd>
+  <dd>.*<span title=uncommon>🌱</span>.*</dd>
   .*
 </dl>
 .*
@@ -4276,10 +4307,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-    <span title=nineball>9️⃣</span>
-  </dd>
+  <dd>.*<span title=nineball>9️⃣</span>.*</dd>
   .*
 </dl>
 .*
