@@ -4761,4 +4761,34 @@ next
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
   }
+
+  #[test]
+  fn inscriptions_in_block_page() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    for _ in 0..101 {
+      server.mine_blocks(1);
+    }
+
+    for i in 0..101 {
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/block/102",
+      StatusCode::OK,
+      format!(".*(<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>.*\n.*){{100}}.*"),
+    );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/1",
+      StatusCode::OK,
+      format!(".*<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>.*"),
+    );
+  }
 }
