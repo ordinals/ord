@@ -32,6 +32,7 @@ hostnamectl set-hostname $DOMAIN
 apt-get install --yes \
   acl \
   clang \
+  curl \
   libsqlite3-dev\
   libssl-dev \
   pkg-config \
