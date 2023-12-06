@@ -906,6 +906,86 @@ mod tests {
   }
 
   #[test]
+  fn unallocated_runes_are_burned_if_no_non_op_return_output_is_present() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Rune(RUNE),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(id, u128::max_value())],
+      )],
+    );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      op_return: Some(Runestone::default().encipher()),
+      outputs: 0,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          burned: u128::max_value(),
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
   fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_non_op_return_output(
   ) {
     let context = Context::builder()

@@ -1471,6 +1471,7 @@ impl Server {
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
+        more,
         page_index,
       )?
       .page(page_config)
@@ -4218,6 +4219,39 @@ next
   }
 
   #[test]
+  fn charm_coin() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=coin>🪙</span>.*</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
   fn charm_uncommon() {
     let server = TestServer::new_with_regtest_with_index_sats();
 
@@ -4241,9 +4275,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-  </dd>
+  <dd>.*<span title=uncommon>🌱</span>.*</dd>
   .*
 </dl>
 .*
@@ -4276,10 +4308,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-    <span title=nineball>9️⃣</span>
-  </dd>
+  <dd>.*<span title=nineball>9️⃣</span>.*</dd>
   .*
 </dl>
 .*
@@ -4731,5 +4760,35 @@ next
     assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn inscriptions_in_block_page() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    for _ in 0..101 {
+      server.mine_blocks(1);
+    }
+
+    for i in 0..101 {
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/block/102",
+      StatusCode::OK,
+      r".*(<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*){100}.*",
+    );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/1",
+      StatusCode::OK,
+      r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
+    );
   }
 }

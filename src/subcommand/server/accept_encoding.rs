@@ -67,7 +67,7 @@ mod tests {
   }
 
   #[tokio::test]
-  async fn accepts_encoding() {
+  async fn accepts_encoding_with_qvalues() {
     let req = Request::builder()
       .header(ACCEPT_ENCODING, "deflate;q=0.5, gzip;q=1.0, br;q=0.8")
       .body(())
@@ -90,7 +90,30 @@ mod tests {
     assert!(encodings.is_acceptable(&HeaderValue::from_static("deflate")));
     assert!(encodings.is_acceptable(&HeaderValue::from_static("gzip")));
     assert!(encodings.is_acceptable(&HeaderValue::from_static("br")));
+    assert!(!encodings.is_acceptable(&HeaderValue::from_static("bzip2")));
+  }
 
+  #[tokio::test]
+  async fn accepts_encoding_without_qvalues() {
+    let req = Request::builder()
+      .header(ACCEPT_ENCODING, "gzip, deflate, br")
+      .body(())
+      .unwrap();
+
+    let encodings = AcceptEncoding::from_request_parts(
+      &mut req.into_parts().0,
+      &Arc::new(ServerConfig {
+        is_json_api_enabled: false,
+      }),
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(encodings.0, Some("gzip, deflate, br".to_string()));
+
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("deflate")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("gzip")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static("br")));
     assert!(!encodings.is_acceptable(&HeaderValue::from_static("bzip2")));
   }
 }
