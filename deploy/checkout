@@ -3,11 +3,12 @@
 set -euxo pipefail
 
 BRANCH=$1
-CHAIN=$2
-DOMAIN=$3
+REMOTE=$1
+CHAIN=$3
+DOMAIN=$4
 
 if [[ ! -d ord ]]; then
-  git clone https://github.com/ordinals/ord.git
+  git clone https://github.com/$REMOTE.git
 fi
 
 cd ord

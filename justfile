@@ -20,23 +20,24 @@ clippy:
 lclippy:
   cargo lclippy --all --all-targets -- -D warnings
 
-deploy branch chain domain:
+deploy branch remote chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
-  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
 deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
-deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
+deploy-mainnet branch="master" remote="ordinals/ord": (deploy branch remote "main" "ordinals.net")
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
+deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
-deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
+deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
 
-deploy-ord-dev branch="master" chain="main" domain="ordinals-dev.com": (deploy branch chain domain)
+deploy-ord-dev branch="master" remote="ordinals/ord" chain="main" domain="ordinals-dev.com": \
+  (deploy branch remote chain domain)
 
 save-ord-dev-state domain="ordinals-dev.com":
   $EDITOR ./deploy/save-ord-dev-state
