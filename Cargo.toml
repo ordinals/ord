@@ -20,7 +20,7 @@ members = [".", "test-bitcoincore-rpc", "crates/*"]
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 async-trait = "0.1.72"
-axum = { version = "0.6.1", features = ["headers"] }
+axum = { version = "0.6.1", features = ["headers", "http2"] }
 axum-server = "0.5.0"
 base64 = "0.21.0"
 bech32 = "0.9.1"
@@ -39,7 +39,7 @@ futures = "0.3.21"
 hex = "0.4.3"
 html-escaper = "0.2.0"
 http = "0.2.6"
-hyper = { version = "0.14.24", features = ["http1", "client"] }
+hyper = { version = "0.14.24", features = ["client", "http2"] }
 indicatif = "0.17.1"
 lazy_static = "1.4.0"
 log = "0.4.14"
