@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 BRANCH=$1
-REMOTE=$1
+REMOTE=$2
 CHAIN=$3
 DOMAIN=$4
 
