@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# This script is idempotent in the sense that running it more
-# than once will not change the state beyond the initial application
-
 set -euxo pipefail
 
 CHAIN=$1
