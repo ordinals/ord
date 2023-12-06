@@ -7,11 +7,12 @@ REMOTE=$1
 CHAIN=$3
 DOMAIN=$4
 
-if [[ ! -d ord ]]; then
-  git clone https://github.com/$REMOTE.git
+if [[ ! -d $REMOTE ]]; then
+  mkdir -p $REMOTE
+  git clone https://github.com/$REMOTE.git $REMOTE
 fi
 
-cd ord
+cd $REMOTE
 
 git fetch origin
 git checkout -B $BRANCH
