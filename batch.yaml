@@ -1,6 +1,6 @@
 # example batch file
 
-# there are two modes:
+# inscription modes:
 # - `separate-outputs`: inscribe on separate postage-sized outputs
 # - `shared-output`: inscribe on a single output separated by postage
 # - `same-sat`: inscribe on the same sat
