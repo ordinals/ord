@@ -2483,6 +2483,14 @@ mod tests {
   <dd>false</dd>
   <dt>rune index</dt>
   <dd>false</dd>
+  <dt>git branch</dt>
+  <dd>.*</dd>
+  <dt>git commit</dt>
+  <dd>
+    <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+      [[:xdigit:]]{40}
+    </a>
+  </dd>
 </dl>
 .*",
     );
