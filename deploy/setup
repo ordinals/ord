@@ -32,6 +32,7 @@ apt-get install --yes \
   curl \
   libsqlite3-dev\
   libssl-dev \
+  locales-all \
   pkg-config \
   ufw \
   vim
