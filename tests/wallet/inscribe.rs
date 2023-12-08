@@ -1282,7 +1282,7 @@ fn inscribe_can_compress() {
   assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
   assert_regex_match!(
     response.text().unwrap(),
-    "inscription content type `br` is not acceptable"
+    "inscription content encoding `br` is not acceptable. `Accept-Encoding` header not present"
   );
 
   let client = reqwest::blocking::Client::builder()
