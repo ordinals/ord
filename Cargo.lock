@@ -187,13 +187,13 @@ dependencies = [
 
 [[package]]
 name = "async-http-codec"
-version = "0.5.8"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afc4f0600c43df768851edad95ad43119ebde70e2feec8e39b91f97c9b62029e"
+checksum = "096146020b08dbc4587685b0730a7ba905625af13c65f8028035cdfd69573c91"
 dependencies = [
  "anyhow",
  "futures",
- "http",
+ "http 1.0.0",
  "httparse",
  "log",
 ]
@@ -268,9 +268,9 @@ dependencies = [
 
 [[package]]
 name = "async-web-client"
-version = "0.2.7"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3838368c36426d00ad882467ea2308b17eceee33a10d840c2c90fd0923ee3b7e"
+checksum = "4e05ea882322ee3a2c62d3a2d68d8596fd8594fd1d6e93919f6f620eb8b0bf46"
 dependencies = [
  "async-http-codec",
  "async-net",
@@ -278,11 +278,12 @@ dependencies = [
  "futures",
  "futures-rustls",
  "gloo-net",
- "http",
+ "http 1.0.0",
  "js-sys",
  "lazy_static",
  "log",
- "rustls",
+ "rustls 0.22.0",
+ "rustls-pki-types",
  "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -292,16 +293,16 @@ dependencies = [
 
 [[package]]
 name = "async-ws"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1b9363f44ce91e6425b719432e3ff359a803434af3e577754a07e5d9ddbeda4"
+checksum = "70b425fc1a1d5a3988aa2e1c94c4823740416406f3416322c9dcb542fb997d37"
 dependencies = [
  "async-io",
  "base64 0.13.1",
  "futures",
  "futures-lite 1.13.0",
  "generic_static",
- "http",
+ "http 1.0.0",
  "log",
  "rand",
  "ring 0.16.20",
@@ -355,7 +356,7 @@ dependencies = [
  "bytes",
  "futures-util",
  "headers",
- "http",
+ "http 0.2.11",
  "http-body",
  "hyper",
  "itoa",
@@ -385,7 +386,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http",
+ "http 0.2.11",
  "http-body",
  "mime",
  "rustversion",
@@ -402,11 +403,11 @@ dependencies = [
  "arc-swap",
  "bytes",
  "futures-util",
- "http",
+ "http 0.2.11",
  "http-body",
  "hyper",
  "pin-project-lite",
- "rustls",
+ "rustls 0.21.9",
  "rustls-pemfile",
  "tokio",
  "tokio-rustls",
@@ -1252,12 +1253,13 @@ dependencies = [
 
 [[package]]
 name = "futures-rustls"
-version = "0.24.0"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35bd3cf68c183738046838e300353e4716c674dc5e56890de4826801a6622a28"
+checksum = "3afda89bce8f65072d24f8b99a2127e229462d8008182ca93f1d5d2e5df8f22f"
 dependencies = [
  "futures-io",
- "rustls",
+ "rustls 0.22.0",
+ "rustls-pki-types",
 ]
 
 [[package]]
@@ -1384,7 +1386,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "futures-util",
- "http",
+ "http 0.2.11",
  "indexmap",
  "slab",
  "tokio",
@@ -1413,7 +1415,7 @@ dependencies = [
  "base64 0.21.5",
  "bytes",
  "headers-core",
- "http",
+ "http 0.2.11",
  "httpdate",
  "mime",
  "sha1",
@@ -1425,7 +1427,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7f66481bfee273957b1f20485a4ff3362987f85b2c236580d81b4eb7a326429"
 dependencies = [
- "http",
+ "http 0.2.11",
 ]
 
 [[package]]
@@ -1470,13 +1472,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "http"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b32afd38673a8016f7c9ae69e5af41a58f81b1d31689040f2f1959594ce194ea"
+dependencies = [
+ "bytes",
+ "fnv",
+ "itoa",
+]
+
+[[package]]
 name = "http-body"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes",
- "http",
+ "http 0.2.11",
  "pin-project-lite",
 ]
 
@@ -1515,7 +1528,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.11",
  "http-body",
  "httparse",
  "httpdate",
@@ -2107,7 +2120,7 @@ dependencies = [
  "futures",
  "hex",
  "html-escaper",
- "http",
+ "http 0.2.11",
  "hyper",
  "indicatif",
  "lazy_static",
@@ -2124,7 +2137,7 @@ dependencies = [
  "reqwest",
  "rss",
  "rust-embed",
- "rustls",
+ "rustls 0.22.0",
  "rustls-acme",
  "serde",
  "serde_json",
@@ -2496,7 +2509,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.11",
  "http-body",
  "hyper",
  "hyper-tls",
@@ -2657,15 +2670,29 @@ checksum = "629648aced5775d558af50b2b4c7b02983a04b312126d45eeead26e7caa498b9"
 dependencies = [
  "log",
  "ring 0.17.6",
- "rustls-webpki",
+ "rustls-webpki 0.101.7",
  "sct",
 ]
 
 [[package]]
-name = "rustls-acme"
-version = "0.7.7"
+name = "rustls"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0e7754a9b89270815d1b119cdd35489380dc3598e24a952bf8a167c00b68b61"
+checksum = "5bc238b76c51bbc449c55ffbc39d03772a057cc8cf783c49d4af4c2537b74a8b"
+dependencies = [
+ "log",
+ "ring 0.17.6",
+ "rustls-pki-types",
+ "rustls-webpki 0.102.0",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
+name = "rustls-acme"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0c132c57c13d708da4320d515289db08754f0eb539b9481ea8e35476a01d290"
 dependencies = [
  "async-io",
  "async-trait",
@@ -2676,12 +2703,11 @@ dependencies = [
  "chrono",
  "futures",
  "futures-rustls",
- "http",
+ "http 1.0.0",
  "log",
  "pem",
  "rcgen",
  "ring 0.16.20",
- "rustls",
  "serde",
  "serde_json",
  "thiserror",
@@ -2701,12 +2727,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustls-pki-types"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7673e0aa20ee4937c6aacfc12bb8341cfbf054cdd21df6bec5fd0629fe9339b"
+
+[[package]]
 name = "rustls-webpki"
 version = "0.101.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
  "ring 0.17.6",
+ "untrusted 0.9.0",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.102.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de2635c8bc2b88d367767c5de8ea1d8db9af3f6219eba28442242d9ab81d1b89"
+dependencies = [
+ "ring 0.17.6",
+ "rustls-pki-types",
  "untrusted 0.9.0",
 ]
 
@@ -2981,6 +3024,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "subtle"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3202,7 +3251,7 @@ version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c28327cf380ac148141087fbfb9de9d7bd4e84ab5d2c28fbc911d753de8a7081"
 dependencies = [
- "rustls",
+ "rustls 0.21.9",
  "tokio",
 ]
 
@@ -3282,7 +3331,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http",
+ "http 0.2.11",
  "http-body",
  "http-range-header",
  "pin-project-lite",
@@ -3830,3 +3879,9 @@ checksum = "e17bb3549cc1321ae1296b9cdc2698e2b6cb1992adfa19a8c72e5b7a738f44cd"
 dependencies = [
  "time",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
