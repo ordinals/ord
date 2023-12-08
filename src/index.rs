@@ -39,7 +39,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 13;
+const SCHEMA_VERSION: u64 = 14;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {

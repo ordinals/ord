@@ -386,6 +386,7 @@ impl<'index> Updater<'_> {
     let mut sat_to_sequence_number = wtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
     let mut satpoint_to_sequence_number = wtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
     let mut sequence_number_to_children = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+    let mut sequence_number_to_parents = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_PARENTS)?;
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
@@ -438,6 +439,7 @@ impl<'index> Updater<'_> {
       satpoint_to_sequence_number: &mut satpoint_to_sequence_number,
       sequence_number_to_children: &mut sequence_number_to_children,
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
+      sequence_number_to_parents: &mut sequence_number_to_parents,
       sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
       timestamp: block.header.time,
       unbound_inscriptions,

@@ -55,6 +55,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, u32>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'db, 'tx, u32, u32>,
   pub(super) sequence_number_to_entry: &'a mut Table<'db, 'tx, u32, InscriptionEntryValue>,
+  pub(super) sequence_number_to_parents: &'a mut MultimapTable<'db, 'tx, u32, u32>,
   pub(super) sequence_number_to_satpoint: &'a mut Table<'db, 'tx, u32, &'static SatPointValue>,
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
@@ -475,13 +476,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             height: self.height,
             id: inscription_id,
             inscription_number,
-            parent,
             sat,
             sequence_number,
             timestamp: self.timestamp,
           }
           .store(),
         )?;
+
+        self
+          .sequence_number_to_parents
+          .insert(sequence_number, parent)?;
 
         self
           .id_to_sequence_number
