@@ -28,13 +28,11 @@ deploy branch remote chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-all: deploy-testnet deploy-signet deploy-mainnet
+deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch remote "main" "balance.ordinals.net")
 
-deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch "main" "balance.ordinals.net")
+deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch remote "main" "equilibrium.ordinals.net")
 
-deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch "main" "equilibrium.ordinals.net")
-
-deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch "main" "stability.ordinals.net")
+deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
 
 deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
