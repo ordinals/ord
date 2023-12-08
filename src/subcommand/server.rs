@@ -2068,7 +2068,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune,
+            rune: Some(rune),
             ..Default::default()
           }),
           ..Default::default()
@@ -2114,7 +2114,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2181,7 +2181,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune,
+            rune: Some(rune),
             symbol: Some('$'),
             ..Default::default()
           }),
@@ -2289,7 +2289,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2356,7 +2356,7 @@ mod tests {
           }],
           etching: Some(Etching {
             divisibility: 1,
-            rune,
+            rune: Some(rune),
             ..Default::default()
           }),
           ..Default::default()

@@ -19,6 +19,14 @@ impl Rune {
 
     Rune(rune)
   }
+
+  pub(crate) fn is_reserved(self) -> bool {
+    self.0 >= RESERVED
+  }
+
+  pub(crate) fn reserved(n: u128) -> Self {
+    Rune(RESERVED.checked_add(n).unwrap())
+  }
 }
 
 impl Serialize for Rune {
@@ -200,5 +208,27 @@ mod tests {
     let json = "\"A\"";
     assert_eq!(serde_json::to_string(&rune).unwrap(), json);
     assert_eq!(serde_json::from_str::<Rune>(json).unwrap(), rune);
+  }
+
+  #[test]
+  fn reserved() {
+    assert_eq!(
+      RESERVED,
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAA".parse::<Rune>().unwrap().0,
+    );
+  }
+
+  #[test]
+  fn is_reserved() {
+    #[track_caller]
+    fn case(rune: &str, reserved: bool) {
+      assert_eq!(rune.parse::<Rune>().unwrap().is_reserved(), reserved);
+    }
+
+    case("A", false);
+    case("ZZZZZZZZZZZZZZZZZZZZZZZZZZ", false);
+    case("AAAAAAAAAAAAAAAAAAAAAAAAAAA", true);
+    case("AAAAAAAAAAAAAAAAAAAAAAAAAAB", true);
+    case("BCGDENLQRQWDSLRUGSNLBTMFIJAV", true);
   }
 }
