@@ -30,14 +30,15 @@ deploy branch remote chain domain:
 
 deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
-deploy-mainnet branch="master" remote="ordinals/ord": (deploy branch remote "main" "ordinals.net")
+deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch "main" "balance.ordinals.net")
+
+deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch "main" "equilibrium.ordinals.net")
+
+deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch "main" "stability.ordinals.net")
 
 deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
 deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
-
-deploy-ord-dev branch="master" remote="ordinals/ord" chain="main" domain="ordinals-dev.com": \
-  (deploy branch remote chain domain)
 
 save-ord-dev-state domain="ordinals-dev.com":
   $EDITOR ./deploy/save-ord-dev-state
