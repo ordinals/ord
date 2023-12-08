@@ -144,7 +144,6 @@ pub(crate) struct InscriptionEntry {
   pub(crate) height: u32,
   pub(crate) id: InscriptionId,
   pub(crate) inscription_number: i32,
-  pub(crate) parent: Option<u32>,
   pub(crate) sat: Option<Sat>,
   pub(crate) sequence_number: u32,
   pub(crate) timestamp: u32,
