@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# This script is idempotent in the sense that running it more
-# than once will not change the state beyond the initial application
+# This script is idempotent.
 
 set -euxo pipefail
 
@@ -32,8 +31,10 @@ hostnamectl set-hostname $DOMAIN
 apt-get install --yes \
   acl \
   clang \
+  curl \
   libsqlite3-dev\
   libssl-dev \
+  locales-all \
   pkg-config \
   ufw \
   vim
