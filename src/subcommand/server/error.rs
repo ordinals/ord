@@ -1,10 +1,13 @@
-use super::*;
+use {super::*, std::fmt::Write};
 
 #[derive(Debug)]
 pub(super) enum ServerError {
   BadRequest(String),
   Internal(Error),
-  NotAcceptable(String),
+  NotAcceptable {
+    accept_encoding: AcceptEncoding,
+    content_encoding: HeaderValue,
+  },
   NotFound(String),
 }
 
@@ -24,11 +27,23 @@ impl IntoResponse for ServerError {
         )
           .into_response()
       }
-      Self::NotAcceptable(content_type) => (
-        StatusCode::NOT_ACCEPTABLE,
-        format!("inscription content type `{content_type}` is not acceptable"),
-      )
-        .into_response(),
+      Self::NotAcceptable {
+        accept_encoding,
+        content_encoding,
+      } => {
+        let mut message = format!(
+          "inscription content encoding `{}` is not acceptable.",
+          String::from_utf8_lossy(content_encoding.as_bytes())
+        );
+
+        if let Some(accept_encoding) = accept_encoding.0 {
+          write!(message, " `Accept-Encoding` header: {accept_encoding}").unwrap();
+        } else {
+          write!(message, " `Accept-Encoding` header not present").unwrap();
+        };
+
+        (StatusCode::NOT_ACCEPTABLE, message).into_response()
+      }
       Self::NotFound(message) => (
         StatusCode::NOT_FOUND,
         [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],

@@ -1044,9 +1044,10 @@ impl Server {
       if accept_encoding.is_acceptable(&content_encoding) {
         headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
-        return Err(ServerError::NotAcceptable(
-          content_encoding.to_str().unwrap_or_default().to_string(),
-        ));
+        return Err(ServerError::NotAcceptable {
+          accept_encoding,
+          content_encoding,
+        });
       }
     }
 
