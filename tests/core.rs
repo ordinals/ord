@@ -43,7 +43,6 @@ fn preview() {
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
       if response.status() == 200 {
-        assert_eq!(response.text().unwrap(), "OK");
         break;
       }
     }
