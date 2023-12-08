@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script is idempotent.
+
 set -euxo pipefail
 
 CHAIN=$1
