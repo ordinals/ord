@@ -1,7 +1,7 @@
 use {super::*, axum::extract::FromRef};
 
-#[derive(Default)]
-pub(crate) struct AcceptEncoding(Option<String>);
+#[derive(Default, Debug)]
+pub(crate) struct AcceptEncoding(pub(crate) Option<String>);
 
 #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptEncoding
