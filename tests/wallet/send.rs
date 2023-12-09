@@ -1009,4 +1009,8 @@ fn burn_inscribed_sat() {
     inscription_json.address.is_none(),
     "address should be missing after burn"
   );
+  assert!(
+    inscription_json.charms.eq(&Some(1u16)),
+    "inscription should have burned charm"
+  );
 }

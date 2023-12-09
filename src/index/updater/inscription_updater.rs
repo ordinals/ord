@@ -18,6 +18,7 @@ pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
   origin: Origin,
+  burned: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +84,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         continue;
       }
 
+      // if the inscription was sent to an OP_RETURN it was burned
+      let is_burned = tx.output.get(input_index).unwrap().script_pubkey.is_op_return();
+
       // find existing inscriptions on input (transfers of inscriptions)
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output(
         self.satpoint_to_sequence_number,
@@ -94,6 +98,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset,
           inscription_id,
           origin: Origin::Old { old_satpoint },
+          burned: is_burned,
         });
 
         inscribed_offsets
@@ -189,6 +194,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .unwrap_or(offset);
 
         floating_inscriptions.push(Flotsam {
+          burned: is_burned,
           inscription_id,
           offset,
           origin: Origin::New {
@@ -367,13 +373,30 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .satpoint_to_sequence_number
           .remove_all(&old_satpoint.store())?;
 
-        (
-          false,
-          self
+        let sequence_number = self
             .id_to_sequence_number
             .get(&inscription_id.store())?
             .unwrap()
+            .value();
+
+        let mut inscription_entry = InscriptionEntry::load(
+          self
+            .sequence_number_to_entry
+            .get(sequence_number)?
+            .unwrap()
             .value(),
+        );
+
+        Charm::Burned.set(&mut inscription_entry.charms);
+
+        self.sequence_number_to_entry.insert(
+          sequence_number,
+          &inscription_entry.store(),
+        )?;
+
+        (
+          false,
+          sequence_number
         )
       }
       Origin::New {

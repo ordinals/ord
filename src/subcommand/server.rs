@@ -1293,7 +1293,8 @@ impl Server {
         previous,
         next,
         rune,
-        burn_payload
+        burn_payload,
+        charms: Some(charms),
       })
       .into_response()
     } else {

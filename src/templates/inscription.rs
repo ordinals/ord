@@ -26,6 +26,7 @@ pub(crate) struct InscriptionHtml {
 pub struct InscriptionJson {
   pub address: Option<String>,
   pub burn_payload: Option<String>,
+  pub charms: Option<u16>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -484,7 +485,7 @@ mod tests {
         <dl>
           .*
           <dt>address</dt>
-          <dd class=monospace>burned 🔥</dd>
+          <dd class=monospace>burned</dd>
           .*
           <dt>burn payload</dt>
           <dd class=monospace>0xdeadbeef</dd>

@@ -165,6 +165,7 @@ fn get_inscription() {
       previous: None,
       next: None,
       rune: None,
+      charms: None,
     }
   )
 }
