@@ -1,6 +1,8 @@
+use bitcoin::script::Builder;
 use {
   super::*,
   bitcoin::{
+    blockdata::opcodes::all::{OP_PUSHNUM_NEG1,OP_RETURN},
     script::PushBytesBuf,
   },
   crate::{
@@ -170,9 +172,15 @@ impl Send {
       let address = address.clone().require_network(options.chain().network())?;
       Ok(ScriptBuf::from(address))
     } else if let Some(msg) = &self.burn {
-      Ok(ScriptBuf::new_op_return(
-        &PushBytesBuf::try_from(Vec::from(msg.clone())).expect("burn payload too large")
-      ))
+      let push_data_buf = PushBytesBuf::try_from(Vec::from(msg.clone()))
+          .expect("burn payload too large");
+
+      Ok(Builder::new()
+        .push_opcode(OP_RETURN)
+        .push_opcode(OP_PUSHNUM_NEG1)
+        .push_slice(&push_data_buf)
+        .into_script()
+      )
     } else {
       bail!("no valid output given")
     }

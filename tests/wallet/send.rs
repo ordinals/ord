@@ -1013,4 +1013,8 @@ fn burn_inscribed_sat() {
     inscription_json.charms.eq(&Some(1u16)),
     "inscription should have burned charm"
   );
+  assert!(
+    inscription_json.burn_payload.eq(&Some("begone".into())),
+    "inscription should have burn payload"
+  )
 }

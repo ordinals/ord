@@ -85,7 +85,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
 
       // if the inscription was sent to an OP_RETURN it was burned
-      let is_burned = tx.output.get(input_index).unwrap().script_pubkey.is_op_return();
+      let is_burned = tx.output
+          .get(input_index)
+          .map(|output| output.script_pubkey.is_op_return())
+          .unwrap_or(false);
 
       // find existing inscriptions on input (transfers of inscriptions)
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output(
@@ -379,20 +382,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .unwrap()
             .value();
 
-        let mut inscription_entry = InscriptionEntry::load(
-          self
-            .sequence_number_to_entry
-            .get(sequence_number)?
-            .unwrap()
-            .value(),
-        );
+        if flotsam.burned {
+          let mut inscription_entry = InscriptionEntry::load(
+            self
+                .sequence_number_to_entry
+                .get(sequence_number)?
+                .unwrap()
+                .value(),
+          );
 
-        Charm::Burned.set(&mut inscription_entry.charms);
+          Charm::Burned.set(&mut inscription_entry.charms);
 
-        self.sequence_number_to_entry.insert(
-          sequence_number,
-          &inscription_entry.store(),
-        )?;
+          self.sequence_number_to_entry.insert(
+            sequence_number,
+            &inscription_entry.store(),
+          )?;
+        }
 
         (
           false,

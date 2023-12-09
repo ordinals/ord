@@ -32,7 +32,7 @@ use {
   bitcoin::blockdata::script::Instruction::{
     Op, PushBytes
   },
-  bitcoin::blockdata::opcodes::all::OP_RETURN,
+  bitcoin::blockdata::opcodes::all::{OP_PUSHNUM_NEG1,OP_RETURN},
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -1252,15 +1252,20 @@ impl Server {
 
       // Check if the first instruction is OP_RETURN
       if let Some(Ok(Op(OP_RETURN))) = instructions.next() {
-        is_burned = true;
-        // Extract the payload if it exists
-        instructions.filter_map(|instr| {
-          if let Ok(PushBytes(data)) = instr {
-            String::from_utf8(data.as_bytes().to_vec()).ok()
-          } else {
-            None
-          }
-        }).next()
+        // Check if the second instruction is OP_1NEGATE
+        if let Some(Ok(Op(OP_PUSHNUM_NEG1))) = instructions.next() {
+          is_burned = true;
+          // Extract the payload if it exists
+          instructions.filter_map(|instr| {
+            if let Ok(PushBytes(data)) = instr {
+              String::from_utf8(data.as_bytes().to_vec()).ok()
+            } else {
+              None
+            }
+          }).next()
+        } else {
+          None
+        }
       } else {
         None
       }
