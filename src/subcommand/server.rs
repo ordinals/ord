@@ -1249,6 +1249,7 @@ impl Server {
         content_type: inscription.content_type().map(|s| s.to_string()),
         content_length: inscription.content_length(),
         timestamp: timestamp(entry.timestamp).timestamp(),
+        era : entry.era,
         previous,
         next,
         rune,
@@ -1272,6 +1273,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        era : entry.era
       }
       .page(page_config)
       .into_response()

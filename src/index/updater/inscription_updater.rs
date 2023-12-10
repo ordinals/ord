@@ -57,6 +57,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) sequence_number_to_entry: &'a mut Table<'db, 'tx, u32, InscriptionEntryValue>,
   pub(super) sequence_number_to_satpoint: &'a mut Table<'db, 'tx, u32, &'static SatPointValue>,
   pub(super) timestamp: u32,
+  pub(super) era: u16,
   pub(super) unbound_inscriptions: u64,
   pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
   pub(super) value_receiver: &'a mut Receiver<u64>,
@@ -135,23 +136,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let curse = if self.height >= self.chain.jubilee_height() {
-          None
-        } else if inscription.payload.unrecognized_even_field {
+        // era 0: genesis (up to 0.9)
+        // era 1: awakening (0.10)
+        // era 2: stutter (0.12.1)
+        // era 3: jubilee
+        // era x: any new inscription type that is being discovered moving forward will get its era ID upon release
+        let mut curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
         } else if inscription.payload.duplicate_field {
+          self.era = 1;
           Some(Curse::DuplicateField)
         } else if inscription.payload.incomplete_field {
+          self.era = 1;
           Some(Curse::IncompleteField)
         } else if inscription.input != 0 {
           Some(Curse::NotInFirstInput)
         } else if inscription.offset != 0 {
           Some(Curse::NotAtOffsetZero)
         } else if inscription.payload.pointer.is_some() {
+          self.era = 1;
           Some(Curse::Pointer)
         } else if inscription.pushnum {
+          self.era = 1;
           Some(Curse::Pushnum)
         } else if inscription.stutter {
+          self.era = 2;
           Some(Curse::Stutter)
         } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
           if *count > 1 {
@@ -179,6 +188,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         } else {
           None
         };
+
+        // marking the jubilee as era ID 3
+        curse = if self.height >= self.chain.jubilee_height() {
+          self.era = 3;
+          None
+        } else { curse }; // compiler satisfaction
 
         let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
@@ -479,6 +494,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             sat,
             sequence_number,
             timestamp: self.timestamp,
+            era : self.era
           }
           .store(),
         )?;

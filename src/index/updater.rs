@@ -440,6 +440,7 @@ impl<'index> Updater<'_> {
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
       sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
       timestamp: block.header.time,
+      era: 0,
       unbound_inscriptions,
       value_cache,
       value_receiver,

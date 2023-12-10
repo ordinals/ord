@@ -148,6 +148,7 @@ pub(crate) struct InscriptionEntry {
   pub(crate) sat: Option<Sat>,
   pub(crate) sequence_number: u32,
   pub(crate) timestamp: u32,
+  pub(crate) era: u16,
 }
 
 pub(crate) type InscriptionEntryValue = (
@@ -160,6 +161,7 @@ pub(crate) type InscriptionEntryValue = (
   Option<u64>,        // sat
   u32,                // sequence number
   u32,                // timestamp
+  u16,                // era
 );
 
 impl Entry for InscriptionEntry {
@@ -177,6 +179,7 @@ impl Entry for InscriptionEntry {
       sat,
       sequence_number,
       timestamp,
+      era
     ): InscriptionEntryValue,
   ) -> Self {
     Self {
@@ -189,6 +192,7 @@ impl Entry for InscriptionEntry {
       sat: sat.map(Sat),
       sequence_number,
       timestamp,
+      era
     }
   }
 
@@ -203,6 +207,7 @@ impl Entry for InscriptionEntry {
       self.sat.map(Sat::n),
       self.sequence_number,
       self.timestamp,
+      self.era
     )
   }
 }

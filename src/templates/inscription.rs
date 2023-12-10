@@ -17,6 +17,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
+  pub(crate) era: u16,
   pub(crate) charms: u16,
 }
 
@@ -38,6 +39,7 @@ pub struct InscriptionJson {
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+  pub era : u16
 }
 
 impl PageContent for InscriptionHtml {
