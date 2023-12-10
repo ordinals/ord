@@ -9,7 +9,7 @@ fn flag_is_required() {
   CommandBuilder::new("--regtest runes")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: `ord runes` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag\n")
+    .expected_stderr("error: `ord runes` requires index created with `--index-runes` flag\n")
     .run_and_extract_stdout();
 }
 
@@ -20,7 +20,7 @@ fn no_runes() {
     .build();
 
   assert_eq!(
-    CommandBuilder::new("--index-runes-pre-alpha-i-agree-to-get-rekt --regtest runes")
+    CommandBuilder::new("--index-runes --regtest runes")
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
@@ -40,7 +40,7 @@ fn one_rune() {
   let etch = etch(&rpc_server, Rune(RUNE));
 
   assert_eq!(
-    CommandBuilder::new("--index-runes-pre-alpha-i-agree-to-get-rekt --regtest runes")
+    CommandBuilder::new("--index-runes --regtest runes")
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
@@ -83,7 +83,7 @@ fn two_runes() {
   let b = etch(&rpc_server, Rune(RUNE + 1));
 
   assert_eq!(
-    CommandBuilder::new("--index-runes-pre-alpha-i-agree-to-get-rekt --regtest runes")
+    CommandBuilder::new("--index-runes --regtest runes")
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {

@@ -46,7 +46,7 @@ pub(crate) struct Options {
     long,
     help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
   )]
-  pub(crate) index_runes_pre_alpha_i_agree_to_get_rekt: bool,
+  pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
@@ -75,9 +75,7 @@ impl Options {
   }
 
   pub(crate) fn first_inscription_height(&self) -> u32 {
-    if self.chain() == Chain::Regtest {
-      self.first_inscription_height.unwrap_or(0)
-    } else if integration_test() {
+    if integration_test() {
       0
     } else {
       self
@@ -86,8 +84,16 @@ impl Options {
     }
   }
 
+  pub(crate) fn first_rune_height(&self) -> u32 {
+    if integration_test() {
+      0
+    } else {
+      self.chain().first_rune_height()
+    }
+  }
+
   pub(crate) fn index_runes(&self) -> bool {
-    self.index_runes_pre_alpha_i_agree_to_get_rekt && self.chain() != Chain::Mainnet
+    self.index_runes && self.chain() != Chain::Mainnet
   }
 
   pub(crate) fn rpc_url(&self) -> String {
@@ -805,26 +811,23 @@ mod tests {
     assert!(Arguments::try_parse_from([
       "ord",
       "--chain=signet",
-      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "--index-runes",
       "index",
       "update"
     ])
     .unwrap()
     .options
-    .index_runes(),);
-    assert!(!Arguments::try_parse_from([
-      "ord",
-      "--index-runes-pre-alpha-i-agree-to-get-rekt",
-      "index",
-      "update"
-    ])
-    .unwrap()
-    .options
-    .index_runes(),);
+    .index_runes());
+    assert!(
+      !Arguments::try_parse_from(["ord", "--index-runes", "index", "update"])
+        .unwrap()
+        .options
+        .index_runes()
+    );
     assert!(!Arguments::try_parse_from(["ord", "index", "update"])
       .unwrap()
       .options
-      .index_runes(),);
+      .index_runes());
   }
 
   #[test]

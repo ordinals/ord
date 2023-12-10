@@ -37,6 +37,7 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
+    blockdata::constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
@@ -140,8 +141,6 @@ mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const DIFFCHANGE_INTERVAL: u32 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL;
-const SUBSIDY_HALVING_INTERVAL: u32 = bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL;
 const CYCLE_EPOCHS: u32 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);

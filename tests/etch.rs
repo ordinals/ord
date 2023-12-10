@@ -15,9 +15,7 @@ fn flag_is_required() {
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .expected_stderr(
-    "error: `ord wallet etch` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag\n",
-  )
+  .expected_stderr("error: `ord wallet etch` requires index created with `--index-runes` flag\n")
   .run_and_extract_stdout();
 }
 
@@ -33,7 +31,7 @@ fn divisibility_over_max_is_an_error() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 39 --fee-rate 1 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 39 --fee-rate 1 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -54,7 +52,7 @@ fn supply_over_max_is_an_error() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 340282366920938463463374607431768211456 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 340282366920938463463374607431768211456 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -75,11 +73,11 @@ fn rune_below_minimum_is_an_error() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢",
-    Rune(RUNE - 1),
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢",
+    Rune(99235208761673842 - 1),
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr("error: rune is less than minimum for next block: ZZZZZZZZZZZZ < AAAAAAAAAAAAA\n")
+  .expected_stderr("error: rune is less than minimum for next block: ZZXZUDIVTVPZ < ZZXZUDIVTVQA\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -98,7 +96,7 @@ fn trying_to_etch_an_existing_rune_is_an_error() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -119,7 +117,7 @@ fn runes_can_be_etched() {
 
   let output = CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -154,10 +152,9 @@ fn runes_can_be_etched() {
     .collect()
   );
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+  let output = CommandBuilder::new("--regtest --index-runes wallet balance")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(output.runes.unwrap()[&Rune(RUNE)], 1000);
 }
@@ -174,7 +171,7 @@ fn etch_sets_integer_fee_rate_correctly() {
 
   let output = CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 100 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 100 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -203,7 +200,7 @@ fn etch_sets_decimal_fee_rate_correctly() {
 
   let output = CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 100.5 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 100.5 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -230,10 +227,9 @@ fn etch_does_not_select_inscribed_utxos() {
 
   rpc_server.mine_blocks(1);
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+  let output = CommandBuilder::new("--regtest --index-runes wallet balance")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 5000000000);
 
@@ -244,16 +240,15 @@ fn etch_does_not_select_inscribed_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+  let output = CommandBuilder::new("--regtest --index-runes wallet balance")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -276,7 +271,7 @@ fn inscribe_does_not_select_runic_utxos() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -284,16 +279,15 @@ fn inscribe_does_not_select_runic_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+  let output = CommandBuilder::new("--regtest --index-runes wallet balance")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 0);
   assert_eq!(output.runic, Some(10000));
 
-  CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet inscribe --fee-rate 0 --file foo.txt")
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --file foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -313,7 +307,7 @@ fn send_amount_does_not_select_runic_utxos() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -321,7 +315,7 @@ fn send_amount_does_not_select_runic_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 600sat")
+  CommandBuilder::new("--regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 600sat")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: JSON-RPC error: .*")
@@ -340,7 +334,7 @@ fn send_satpoint_does_not_send_runic_utxos() {
 
   let output = CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -348,7 +342,7 @@ fn send_satpoint_does_not_send_runic_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  CommandBuilder::new(format!("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}:1:0", output.transaction))
+  CommandBuilder::new(format!("--regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}:1:0", output.transaction))
     .rpc_server(&rpc_server)
     .expected_stderr("error: runic outpoints may not be sent by satpoint\n")
     .expected_exit_code(1)
@@ -367,7 +361,7 @@ fn send_inscription_does_not_select_runic_utxos() {
 
   CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 1000 --symbol ¢",
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
@@ -375,23 +369,23 @@ fn send_inscription_does_not_select_runic_utxos() {
 
   rpc_server.mine_blocks_with_subsidy(1, 10000);
 
-  let inscribe = CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet inscribe --fee-rate 0 --file foo.txt")
-    .write("foo.txt", "FOO")
-    .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+  let inscribe =
+    CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --file foo.txt")
+      .write("foo.txt", "FOO")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks_with_subsidy(1, 0);
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+  let output = CommandBuilder::new("--regtest --index-runes wallet balance")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 10000);
   assert_eq!(output.runic, Some(10000));
 
-  CommandBuilder::new(format!("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet send --postage 10001sat --fee-rate 0 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}", inscribe.inscriptions[0].id))
+  CommandBuilder::new(format!("--regtest --index-runes wallet send --postage 10001sat --fee-rate 0 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}", inscribe.inscriptions[0].id))
     .rpc_server(&rpc_server)
     .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
     .expected_exit_code(1)

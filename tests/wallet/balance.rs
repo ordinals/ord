@@ -73,7 +73,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
   create_wallet(&rpc_server);
 
   assert_eq!(
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
+    CommandBuilder::new("--regtest --index-runes wallet balance")
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
@@ -88,7 +88,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
   etch(&rpc_server, Rune(RUNE));
 
   assert_eq!(
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt wallet balance")
+    CommandBuilder::new("--regtest --index-runes wallet balance")
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {

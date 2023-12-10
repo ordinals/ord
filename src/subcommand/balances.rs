@@ -10,7 +10,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   ensure!(
     index.has_rune_index(),
-    "`ord balances` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag",
+    "`ord balances` requires index created with `--index-runes` flag",
   );
 
   index.update()?;
