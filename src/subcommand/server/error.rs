@@ -37,7 +37,7 @@ impl IntoResponse for ServerError {
         );
 
         if let Some(accept_encoding) = accept_encoding.0 {
-          write!(message, " `Accept-Encoding` header: {accept_encoding}").unwrap();
+          write!(message, " `Accept-Encoding` header: `{accept_encoding}`").unwrap();
         } else {
           write!(message, " `Accept-Encoding` header not present").unwrap();
         };
