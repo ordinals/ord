@@ -47,9 +47,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         let buffer = guard.value();
         let mut i = 0;
         while i < buffer.len() {
-          let (id, len) = varint::decode(&buffer[i..])?;
+          let (id, len) = varint::decode(&buffer[i..]);
           i += len;
-          let (balance, len) = varint::decode(&buffer[i..])?;
+          let (balance, len) = varint::decode(&buffer[i..]);
           i += len;
           *unallocated.entry(id).or_default() += balance;
         }
