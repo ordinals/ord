@@ -16,7 +16,7 @@ use {
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, TransactionHtml,
+      SatJson, StatusHtml, TransactionHtml,
     },
   },
   axum::{
@@ -749,18 +749,11 @@ impl Server {
     Ok(Json(hex::encode(metadata)))
   }
 
-  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
-    if index.is_unrecoverably_reorged() {
-      (
-        StatusCode::OK,
-        "unrecoverable reorg detected, please rebuild the database.",
-      )
-    } else {
-      (
-        StatusCode::OK,
-        StatusCode::OK.canonical_reason().unwrap_or_default(),
-      )
-    }
+  async fn status(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<StatusHtml>> {
+    Ok(index.status()?.page(page_config))
   }
 
   async fn search_by_query(
@@ -972,7 +965,7 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u32, usize, usize)>,
-  ) -> Result<PageHtml<InputHtml>, ServerError> {
+  ) -> ServerResult<PageHtml<InputHtml>> {
     let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
     let block = index
@@ -1043,9 +1036,10 @@ impl Server {
       if accept_encoding.is_acceptable(&content_encoding) {
         headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
-        return Err(ServerError::NotAcceptable(
-          content_encoding.to_str().unwrap_or_default().to_string(),
-        ));
+        return Err(ServerError::NotAcceptable {
+          accept_encoding,
+          content_encoding,
+        });
       }
     }
 
@@ -1470,6 +1464,7 @@ impl Server {
         block_height,
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
+        more,
         page_index,
       )?
       .page(page_config)
@@ -2455,7 +2450,50 @@ mod tests {
 
   #[test]
   fn status() {
-    TestServer::new().assert_response("/status", StatusCode::OK, "OK");
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<h1>Status</h1>
+<dl>
+  <dt>height</dt>
+  <dd>0</dd>
+  <dt>inscriptions</dt>
+  <dd>0</dd>
+  <dt>blessed inscriptions</dt>
+  <dd>0</dd>
+  <dt>cursed inscriptions</dt>
+  <dd>0</dd>
+  <dt>runes</dt>
+  <dd>0</dd>
+  <dt>lost sats</dt>
+  <dd>.*</dd>
+  <dt>started</dt>
+  <dd>.*</dd>
+  <dt>uptime</dt>
+  <dd>.*</dd>
+  <dt>minimum rune for next block</dt>
+  <dd>AAAAAAAAAAAAA</dd>
+  <dt>version</dt>
+  <dd>.*</dd>
+  <dt>unrecoverably reorged</dt>
+  <dd>false</dd>
+  <dt>sat index</dt>
+  <dd>false</dd>
+  <dt>rune index</dt>
+  <dd>false</dd>
+  <dt>git branch</dt>
+  <dd>.*</dd>
+  <dt>git commit</dt>
+  <dd>
+    <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+      [[:xdigit:]]{40}
+    </a>
+  </dd>
+</dl>
+.*",
+    );
   }
 
   #[test]
@@ -2991,7 +3029,11 @@ mod tests {
 
     test_server.mine_blocks(21);
 
-    test_server.assert_response("/status", StatusCode::OK, "OK");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>false</dd>.*",
+    );
 
     for _ in 0..15 {
       test_server.bitcoin_rpc_server.invalidate_tip();
@@ -2999,7 +3041,11 @@ mod tests {
 
     test_server.bitcoin_rpc_server.mine_blocks(21);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "unrecoverable reorg detected.*");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>true</dd>.*",
+    );
   }
 
   #[test]
@@ -4217,6 +4263,39 @@ next
   }
 
   #[test]
+  fn charm_coin() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=coin>🪙</span>.*</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
   fn charm_uncommon() {
     let server = TestServer::new_with_regtest_with_index_sats();
 
@@ -4240,9 +4319,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-  </dd>
+  <dd>.*<span title=uncommon>🌱</span>.*</dd>
   .*
 </dl>
 .*
@@ -4275,10 +4352,7 @@ next
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
   <dt>charms</dt>
-  <dd>
-    <span title=uncommon>🌱</span>
-    <span title=nineball>9️⃣</span>
-  </dd>
+  <dd>.*<span title=nineball>9️⃣</span>.*</dd>
   .*
 </dl>
 .*
@@ -4730,5 +4804,35 @@ next
     assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn inscriptions_in_block_page() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    for _ in 0..101 {
+      server.mine_blocks(1);
+    }
+
+    for i in 0..101 {
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/block/102",
+      StatusCode::OK,
+      r".*(<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*){100}.*",
+    );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/1",
+      StatusCode::OK,
+      r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
+    );
   }
 }

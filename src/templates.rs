@@ -24,6 +24,7 @@ pub(crate) use {
   rune::RuneHtml,
   runes::RunesHtml,
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
+  status::StatusHtml,
   transaction::TransactionHtml,
 };
 
@@ -46,6 +47,7 @@ mod rare;
 mod rune;
 mod runes;
 pub mod sat;
+mod status;
 mod transaction;
 
 #[derive(Boilerplate)]

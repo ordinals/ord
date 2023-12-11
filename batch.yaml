@@ -1,6 +1,6 @@
 # example batch file
 
-# there are two modes:
+# inscription modes:
 # - `separate-outputs`: inscribe on separate postage-sized outputs
 # - `shared-output`: inscribe on a single output separated by postage
 # - `same-sat`: inscribe on the same sat
@@ -19,9 +19,10 @@ postage: 12345
 #
 # each inscription has the following fields:
 #
-# `inscription`: path to inscription contents
+# `file`: path to inscription contents
 # `metadata`: inscription metadata (optional)
 # `metaprotocol`: inscription metaprotocol (optional)
+# `destination`: destination for that inscription (optional). Note: If no destination is specified a new wallet change address will be used
 inscriptions:
   - file: mango.avif
     metadata:

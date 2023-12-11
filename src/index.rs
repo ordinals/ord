@@ -9,8 +9,8 @@ use {
     updater::Updater,
   },
   super::*,
-  crate::subcommand::find::FindRangeOutput,
   crate::wallet::Wallet,
+  crate::{subcommand::find::FindRangeOutput, templates::StatusHtml},
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
@@ -181,6 +181,7 @@ pub(crate) struct Index {
   index_sats: bool,
   options: Options,
   path: PathBuf,
+  started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -342,10 +343,11 @@ impl Index {
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
-      options: options.clone(),
       index_runes,
       index_sats,
+      options: options.clone(),
       path,
+      started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
   }
@@ -434,6 +436,48 @@ impl Index {
 
   pub(crate) fn has_sat_index(&self) -> bool {
     self.index_sats
+  }
+
+  pub(crate) fn status(&self) -> Result<StatusHtml> {
+    let rtx = self.database.begin_read()?;
+
+    let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
+
+    let statistic = |statistic: Statistic| -> Result<u64> {
+      Ok(
+        statistic_to_count
+          .get(statistic.key())?
+          .map(|guard| guard.value())
+          .unwrap_or_default(),
+      )
+    };
+
+    let height = rtx
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
+      .range(0..)?
+      .next_back()
+      .transpose()?
+      .map(|(height, _hash)| height.value());
+
+    let next_height = height.map(|height| height + 1).unwrap_or(0);
+
+    let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
+    let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
+
+    Ok(StatusHtml {
+      blessed_inscriptions,
+      cursed_inscriptions,
+      height,
+      inscriptions: blessed_inscriptions + cursed_inscriptions,
+      lost_sats: statistic(Statistic::LostSats)?,
+      minimum_rune_for_next_block: Rune::minimum_at_height(Height(next_height)),
+      rune_index: statistic(Statistic::IndexRunes)? != 0,
+      runes: statistic(Statistic::Runes)?,
+      sat_index: statistic(Statistic::IndexSats)? != 0,
+      started: self.started,
+      unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
+      uptime: (Utc::now() - self.started).to_std()?,
+    })
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
@@ -709,10 +753,6 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn is_unrecoverably_reorged(&self) -> bool {
-    self.unrecoverably_reorged.load(atomic::Ordering::Relaxed)
-  }
-
   fn begin_read(&self) -> Result<rtx::Rtx> {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
@@ -728,7 +768,7 @@ impl Index {
     let value = statistic_to_count
       .get(&(statistic.key()))?
       .map(|x| x.value())
-      .unwrap_or(0)
+      .unwrap_or_default()
       + n;
     statistic_to_count.insert(&statistic.key(), &value)?;
     Ok(())
@@ -745,7 +785,7 @@ impl Index {
       .get(&statistic.key())
       .unwrap()
       .map(|x| x.value())
-      .unwrap_or(0)
+      .unwrap_or_default()
   }
 
   pub(crate) fn block_count(&self) -> Result<u32> {
@@ -1749,7 +1789,7 @@ impl Index {
             .any(|entry| entry.unwrap().value() == sequence_number));
 
           // we do not track common sats (only the sat ranges)
-          if !Sat(sat).is_common() {
+          if !Sat(sat).common() {
             assert_eq!(
               SatPoint::load(
                 *rtx
