@@ -139,7 +139,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         // era 0: genesis (up to 0.9)
         // era 1: awakening (0.10)
         // era 2: stutter (0.12.1)
-        // era 3: jubilee
         // era x: any new inscription type that is being discovered moving forward will get its era ID upon release
         let mut curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
@@ -189,7 +188,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        // marking the jubilee as era ID 3
         curse = if self.height >= self.chain.jubilee_height() {
           None
         } else { curse }; // compiler satisfaction
