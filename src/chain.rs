@@ -51,7 +51,7 @@ impl Chain {
     match self {
       Self::Mainnet => 824544,
       Self::Regtest => 110,
-      Self::Signet => 170000,
+      Self::Signet => 175392,
       Self::Testnet => 2544192,
     }
   }
