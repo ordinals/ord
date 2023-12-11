@@ -20,23 +20,23 @@ clippy:
 lclippy:
   cargo lclippy --all --all-targets -- -D warnings
 
-deploy branch chain domain:
+deploy branch remote chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
-  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-all: deploy-testnet deploy-signet deploy-mainnet
+deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch remote "main" "balance.ordinals.net")
 
-deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
+deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch remote "main" "equilibrium.ordinals.net")
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
+deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
 
-deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
+deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
-deploy-ord-dev branch="master" chain="main" domain="ordinals-dev.com": (deploy branch chain domain)
+deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
 
 save-ord-dev-state domain="ordinals-dev.com":
   $EDITOR ./deploy/save-ord-dev-state
@@ -201,7 +201,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar" "hi"; do
+  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar" "hi" "it"; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang
@@ -222,3 +222,6 @@ update-mdbook-theme:
 
 audit-cache:
   cargo run --package audit-cache
+
+coverage:
+  cargo llvm-cov

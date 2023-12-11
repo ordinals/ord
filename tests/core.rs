@@ -22,7 +22,7 @@ fn preview() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml"
+    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml --blocktime 1"
   ))
   .write("inscription.txt", "Hello World")
   .write("alert.html", "<script>alert('LFG!')</script>")
@@ -43,7 +43,6 @@ fn preview() {
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
       if response.status() == 200 {
-        assert_eq!(response.text().unwrap(), "OK");
         break;
       }
     }
@@ -62,4 +61,30 @@ fn preview() {
       .unwrap(),
     format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
   );
+
+  let blockheight = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+    .unwrap()
+    .text()
+    .unwrap()
+    .parse::<u64>()
+    .unwrap();
+
+  for attempt in 0.. {
+    if attempt == 20 {
+      panic!("Bitcoin Core did not mine blocks",);
+    }
+
+    if reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+      .unwrap()
+      .text()
+      .unwrap()
+      .parse::<u64>()
+      .unwrap()
+      > blockheight
+    {
+      break;
+    }
+
+    thread::sleep(Duration::from_millis(250));
+  }
 }
