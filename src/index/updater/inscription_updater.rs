@@ -191,7 +191,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         // marking the jubilee as era ID 3
         curse = if self.height >= self.chain.jubilee_height() {
-          self.era = 3;
           None
         } else { curse }; // compiler satisfaction
 
