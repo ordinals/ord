@@ -222,3 +222,6 @@ update-mdbook-theme:
 
 audit-cache:
   cargo run --package audit-cache
+
+coverage:
+  cargo llvm-cov
