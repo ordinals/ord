@@ -53,8 +53,8 @@ redb = "1.4.0"
 regex = "1.6.0"
 rss = "2.0.1"
 rust-embed = "8.0.0"
-rustls = "0.21.1"
-rustls-acme = { version = "0.7.1", features = ["axum"] }
+rustls = "0.22.0"
+rustls-acme = { version = "0.8.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_yaml = "0.9.17"
