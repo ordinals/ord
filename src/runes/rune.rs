@@ -216,6 +216,9 @@ mod tests {
       RESERVED,
       "AAAAAAAAAAAAAAAAAAAAAAAAAAA".parse::<Rune>().unwrap().0,
     );
+
+    assert_eq!(Rune::reserved(0), Rune(RESERVED));
+    assert_eq!(Rune::reserved(1), Rune(RESERVED + 1));
   }
 
   #[test]
