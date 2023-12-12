@@ -29,6 +29,7 @@ use {
     Router, TypedHeader,
   },
   axum_server::Handle,
+  brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -36,7 +37,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{cmp::Ordering, io::Read, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -49,9 +50,10 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ServerConfig {
   pub is_json_api_enabled: bool,
+  pub decompress_brotli: bool,
 }
 
 enum InscriptionQuery {
@@ -161,6 +163,8 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
   #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
+  #[arg(long, help = "Decompress Brotli encoded content.")]
+  pub(crate) decompress_brotli: bool,
 }
 
 impl Server {
@@ -181,9 +185,10 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         is_json_api_enabled: self.enable_json_api,
+        decompress_brotli: self.decompress_brotli,
       });
 
-      let config = options.load_config()?;
+      let config = Arc::new(options.load_config()?);
       let acme_domains = self.acme_domains()?;
 
       let page_config = Arc::new(PageConfig {
@@ -265,7 +270,8 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(page_config))
-        .layer(Extension(Arc::new(config)))
+        .layer(Extension(config))
+        .layer(Extension(server_config.clone()))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -1000,6 +1006,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -1012,7 +1019,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding, &page_config)?
+      Self::content_response(inscription, accept_encoding, &page_config, &server_config)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -1022,27 +1029,9 @@ impl Server {
     inscription: Inscription,
     accept_encoding: AcceptEncoding,
     page_config: &PageConfig,
+    server_config: &ServerConfig,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
-
-    headers.insert(
-      header::CONTENT_TYPE,
-      inscription
-        .content_type()
-        .and_then(|content_type| content_type.parse().ok())
-        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
-    );
-
-    if let Some(content_encoding) = inscription.content_encoding() {
-      if accept_encoding.is_acceptable(&content_encoding) {
-        headers.insert(header::CONTENT_ENCODING, content_encoding);
-      } else {
-        return Err(ServerError::NotAcceptable {
-          accept_encoding,
-          content_encoding,
-        });
-      }
-    }
 
     match &page_config.csp_origin {
       None => {
@@ -1069,6 +1058,39 @@ impl Server {
       HeaderValue::from_static("public, max-age=31536000, immutable"),
     );
 
+    headers.insert(
+      header::CONTENT_TYPE,
+      inscription
+        .content_type()
+        .and_then(|content_type| content_type.parse().ok())
+        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
+    );
+
+    if let Some(content_encoding) = inscription.content_encoding() {
+      if server_config.decompress_brotli
+        && content_encoding.to_str().unwrap().to_lowercase() == "br"
+      {
+        let Some(body) = inscription.into_body() else {
+          return Ok(None);
+        };
+
+        let mut decompressed = Vec::new();
+
+        Decompressor::new(body.as_slice(), 4096)
+          .read_to_end(&mut decompressed)
+          .expect("Decompression failed");
+
+        return Ok(Some((headers, decompressed)));
+      } else if accept_encoding.is_acceptable(&content_encoding) {
+        headers.insert(header::CONTENT_ENCODING, content_encoding);
+      } else {
+        return Err(ServerError::NotAcceptable {
+          accept_encoding,
+          content_encoding,
+        });
+      }
+    }
+
     let Some(body) = inscription.into_body() else {
       return Ok(None);
     };
@@ -1080,6 +1102,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
@@ -1117,7 +1140,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding, &page_config)?
+        Self::content_response(inscription, accept_encoding, &page_config, &server_config)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -3265,6 +3288,7 @@ mod tests {
         Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
         AcceptEncoding::default(),
         &PageConfig::default(),
+        &ServerConfig::default(),
       )
       .unwrap(),
       None
@@ -3277,6 +3301,7 @@ mod tests {
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
       &PageConfig::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3291,6 +3316,7 @@ mod tests {
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
       &PageConfig::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3310,6 +3336,7 @@ mod tests {
         csp_origin: Some("https://ordinals.com".into()),
         ..Default::default()
       },
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3348,6 +3375,7 @@ mod tests {
       Inscription::new(None, Some(Vec::new())),
       AcceptEncoding::default(),
       &PageConfig::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3362,6 +3390,7 @@ mod tests {
       Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
       AcceptEncoding::default(),
       &PageConfig::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
