@@ -46,7 +46,7 @@ View the inscription in the regtest explorer:
 ```
 ord -r server
 ```
-If you want to test Brotli encoded content over `http` you need to add:
+By default, browsers don't support compression over HTTPS. To test compressed content over HTTP, add the `--decompress-brotli` flag:
 ```
 ord -r server --decompress-brotli
 ```
