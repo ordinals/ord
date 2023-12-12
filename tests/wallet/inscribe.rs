@@ -1739,3 +1739,62 @@ fn batch_inscribe_with_fee_rate() {
     output.total_fees
   );
 }
+
+#[test]
+fn server_can_decompress_brotli() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let Inscribe { inscriptions, .. } =
+    CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
+      .write("foo.txt", [0; 350_000])
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
+
+  rpc_server.mine_blocks(1);
+
+  let test_server = TestServer::spawn_with_server_args(&rpc_server, &[], &[]);
+
+  test_server.sync_server();
+
+  let client = reqwest::blocking::Client::builder()
+    .brotli(false)
+    .build()
+    .unwrap();
+
+  let response = client
+    .get(
+      test_server
+        .url()
+        .join(format!("/content/{inscription}",).as_ref())
+        .unwrap(),
+    )
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
+
+  let test_server = TestServer::spawn_with_server_args(&rpc_server, &[], &["--decompress"]);
+
+  let client = reqwest::blocking::Client::builder()
+    .brotli(false)
+    .build()
+    .unwrap();
+
+  let response = client
+    .get(
+      test_server
+        .url()
+        .join(format!("/content/{inscription}",).as_ref())
+        .unwrap(),
+    )
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.bytes().unwrap().deref(), [0; 350_000]);
+}

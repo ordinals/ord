@@ -58,6 +58,8 @@ mod tests {
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
+        decompress: false,
+        ..Default::default()
       }),
     )
     .await
@@ -77,6 +79,8 @@ mod tests {
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
+        decompress: false,
+        ..Default::default()
       }),
     )
     .await
@@ -104,6 +108,8 @@ mod tests {
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
+        decompress: false,
+        ..Default::default()
       }),
     )
     .await

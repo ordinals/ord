@@ -22,29 +22,41 @@ Run bitcoind in regtest with:
 ```
 bitcoind -regtest -txindex
 ```
+
 Create a wallet in regtest with:
 ```
 ord -r wallet create
 ```
+
 Get a regtest receive address with:
 ```
 ord -r wallet receive
 ```
+
 Mine 101 blocks (to unlock the coinbase) with:
 ```
 bitcoin-cli -regtest generatetoaddress 101 <receive address>
 ```
+
 Inscribe in regtest with:
 ```
 ord -r wallet inscribe --fee-rate 1 --file <file>
 ```
+
 Mine the inscription with:
 ```
 bitcoin-cli -regtest generatetoaddress 1 <receive address>
 ```
+
 View the inscription in the regtest explorer:
 ```
 ord -r server
+```
+
+By default, browsers don't support compression over HTTP. To test compressed
+content over HTTP, use the `--decompress` flag:
+```
+ord -r server --decompress
 ```
 
 Testing Recursion
