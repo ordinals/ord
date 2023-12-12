@@ -1258,7 +1258,12 @@ impl Server {
         output_value: output.as_ref().map(|o| o.value),
         address: output
           .as_ref()
-          .and_then(|o| server_config.chain.address_from_script(&o.script_pubkey).ok())
+          .and_then(|o| {
+            server_config
+              .chain
+              .address_from_script(&o.script_pubkey)
+              .ok()
+          })
           .map(|address| address.to_string()),
         sat: entry.sat,
         satpoint,
