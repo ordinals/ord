@@ -163,7 +163,10 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
   #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
-  #[arg(long, help = "Decompress Brotli encoded content. NOTE: For testing only since this is a DOS vector.")]
+  #[arg(
+    long,
+    help = "Decompress Brotli encoded content. NOTE: For testing only since this is a DOS vector."
+  )]
   pub(crate) decompress_brotli: bool,
 }
 
