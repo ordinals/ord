@@ -1059,9 +1059,7 @@ impl Server {
     if let Some(content_encoding) = inscription.content_encoding() {
       if accept_encoding.is_acceptable(&content_encoding) {
         headers.insert(header::CONTENT_ENCODING, content_encoding);
-      } else if server_config.decompress
-        && content_encoding == "br"
-      {
+      } else if server_config.decompress && content_encoding == "br" {
         let Some(body) = inscription.into_body() else {
           return Ok(None);
         };
