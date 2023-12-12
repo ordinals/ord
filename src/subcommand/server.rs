@@ -1059,28 +1059,26 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if accept_encoding.is_acceptable(&content_encoding) {
-        if server_config.decompress_brotli
-          && content_encoding
-            .to_str()
-            .map_err(|err| ServerError::Internal(err.into()))?
-            .to_lowercase()
-            == "br"
-        {
-          let Some(body) = inscription.into_body() else {
-            return Ok(None);
-          };
+      if server_config.decompress_brotli
+        && content_encoding
+          .to_str()
+          .map_err(|err| ServerError::Internal(err.into()))?
+          .to_lowercase()
+          == "br"
+      {
+        let Some(body) = inscription.into_body() else {
+          return Ok(None);
+        };
 
-          let mut decompressed = Vec::new();
+        let mut decompressed = Vec::new();
 
-          Decompressor::new(body.as_slice(), 4096)
-            .read_to_end(&mut decompressed)
-            .map_err(|err| ServerError::Internal(err.into()))?;
+        Decompressor::new(body.as_slice(), 4096)
+          .read_to_end(&mut decompressed)
+          .map_err(|err| ServerError::Internal(err.into()))?;
 
-          return Ok(Some((headers, decompressed)));
-        } else {
-          headers.insert(header::CONTENT_ENCODING, content_encoding);
-        }
+        return Ok(Some((headers, decompressed)));
+      } else if accept_encoding.is_acceptable(&content_encoding) {
+        headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
         return Err(ServerError::NotAcceptable {
           accept_encoding,
