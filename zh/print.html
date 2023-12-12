@@ -1441,6 +1441,9 @@ inscriptions:
 <p>在regtest浏览器里查看铭文</p>
 <pre><code>ord -r server
 </code></pre>
+<p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
+<pre><code>ord -r server --decompress
+</code></pre>
 <h2 id="测试递归"><a class="header" href="#测试递归">测试递归</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js

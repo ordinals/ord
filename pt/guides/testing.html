@@ -281,6 +281,9 @@
 <p>Veja a inscrição no explorador de blocos regtest:</p>
 <pre><code>ord -r server
 </code></pre>
+<p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
+<pre><code>ord -r server --decompress
+</code></pre>
 <h2 id="testando-recursão"><a class="header" href="#testando-recursão">Testando Recursão</a></h2>
 <p>Ao testar <a href="../inscriptions/recursion.html">recursão</a>, inscreva as dependências primeiro (exemplo com <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js

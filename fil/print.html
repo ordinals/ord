@@ -1441,6 +1441,9 @@ inscriptions:
 <p>Tingnan ang inskripsiyon sa regtest explorer:</p>
 <pre><code>ord -r server
 </code></pre>
+<p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
+<pre><code>ord -r server --decompress
+</code></pre>
 <h2 id="pag-test-ng-recursion"><a class="header" href="#pag-test-ng-recursion">Pag-test ng Recursion</a></h2>
 <p>Kapag sinusubukan ang <a href="guides/../inscriptions/recursion.html">recursion</a>, isulat ang mga dependencies muna (halimbawa sa <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js

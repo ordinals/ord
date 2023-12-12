@@ -281,6 +281,9 @@
 <p>다음을 사용해 regtest 탐색기에서 인스크립션을 확인한다:</p>
 <pre><code>ord -r server
 </code></pre>
+<p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
+<pre><code>ord -r server --decompress
+</code></pre>
 <h2 id="리커젼-테스트"><a class="header" href="#리커젼-테스트">리커젼 테스트</a></h2>
 <p><a href="../inscriptions/recursion.html">리커젼</a>을 테스트할 때는 종속성을 먼저 새긴다 (예: <a href="https://p5js.org">p5.js</a>를 사용):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js

@@ -281,6 +281,9 @@
 <p>regtest एक्‍सप्‍लोर में इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) देखें:</p>
 <pre><code>ord -r server
 </code></pre>
+<p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
+<pre><code>ord -r server --decompress
+</code></pre>
 <h2 id="टेसटिंग-रिकरसन-परीकषण-परतयावरतन"><a class="header" href="#टेसटिंग-रिकरसन-परीकषण-परतयावरतन">टेस्टिंग रिकर्सन (परीक्षण प्रत्‍यावर्तन)</a></h2>
 <p><a href="../inscriptions/recursion.html">रिकर्सन</a> का परीक्षण करते समय, पहले संभावी परिसम्‍पत्ति को उत्‍कीर्ण करें (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
