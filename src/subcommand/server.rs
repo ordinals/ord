@@ -165,9 +165,9 @@ pub(crate) struct Server {
   pub(crate) enable_json_api: bool,
   #[arg(
     long,
-    help = "Decompress Brotli encoded content. NOTE: For testing only since this is a DOS vector."
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
-  pub(crate) decompress_brotli: bool,
+  pub(crate) decompress: bool,
 }
 
 impl Server {
@@ -188,7 +188,7 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         is_json_api_enabled: self.enable_json_api,
-        decompress_brotli: self.decompress_brotli,
+        decompress_brotli: self.decompress,
       });
 
       let config = Arc::new(options.load_config()?);
@@ -1069,26 +1069,28 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if server_config.decompress_brotli
-        && content_encoding
-          .to_str()
-          .map_err(|err| ServerError::Internal(err.into()))?
-          .to_lowercase()
-          == "br"
-      {
-        let Some(body) = inscription.into_body() else {
-          return Ok(None);
-        };
+      if accept_encoding.is_acceptable(&content_encoding) {
+        if server_config.decompress_brotli
+          && content_encoding
+            .to_str()
+            .map_err(|err| ServerError::Internal(err.into()))?
+            .to_lowercase()
+            == "br"
+        {
+          let Some(body) = inscription.into_body() else {
+            return Ok(None);
+          };
 
-        let mut decompressed = Vec::new();
+          let mut decompressed = Vec::new();
 
-        Decompressor::new(body.as_slice(), 4096)
-          .read_to_end(&mut decompressed)
-          .map_err(|err| ServerError::Internal(err.into()))?;
+          Decompressor::new(body.as_slice(), 4096)
+            .read_to_end(&mut decompressed)
+            .map_err(|err| ServerError::Internal(err.into()))?;
 
-        return Ok(Some((headers, decompressed)));
-      } else if accept_encoding.is_acceptable(&content_encoding) {
-        headers.insert(header::CONTENT_ENCODING, content_encoding);
+          return Ok(Some((headers, decompressed)));
+        } else {
+          headers.insert(header::CONTENT_ENCODING, content_encoding);
+        }
       } else {
         return Err(ServerError::NotAcceptable {
           accept_encoding,

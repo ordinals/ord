@@ -1778,7 +1778,7 @@ fn server_can_decompress_brotli() {
 
   assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
 
-  let test_server = TestServer::spawn_with_server_args(&rpc_server, &[], &["--decompress-brotli"]);
+  let test_server = TestServer::spawn_with_server_args(&rpc_server, &[], &["--decompress"]);
 
   let client = reqwest::blocking::Client::builder()
     .brotli(false)
