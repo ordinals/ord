@@ -59,6 +59,7 @@ mod tests {
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
         decompress_brotli: false,
+        ..Default::default()
       }),
     )
     .await
@@ -79,6 +80,7 @@ mod tests {
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
         decompress_brotli: false,
+        ..Default::default()
       }),
     )
     .await
@@ -107,6 +109,7 @@ mod tests {
       &Arc::new(ServerConfig {
         is_json_api_enabled: false,
         decompress_brotli: false,
+        ..Default::default()
       }),
     )
     .await
