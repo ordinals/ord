@@ -1057,7 +1057,9 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if server_config.decompress
+      if accept_encoding.is_acceptable(&content_encoding) {
+        headers.insert(header::CONTENT_ENCODING, content_encoding);
+      } else if server_config.decompress
         && content_encoding
           .to_str()
           .map_err(|err| ServerError::Internal(err.into()))?
@@ -1075,8 +1077,6 @@ impl Server {
           .map_err(|err| ServerError::Internal(err.into()))?;
 
         return Ok(Some((headers, decompressed)));
-      } else if accept_encoding.is_acceptable(&content_encoding) {
-        headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else {
         return Err(ServerError::NotAcceptable {
           accept_encoding,
