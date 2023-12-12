@@ -163,7 +163,7 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
   #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
-  #[arg(long, help = "Decompress Brotli encoded content.")]
+  #[arg(long, help = "Decompress Brotli encoded content. NOTE: For testing only since this is a DOS vector.")]
   pub(crate) decompress_brotli: bool,
 }
 
@@ -1067,7 +1067,11 @@ impl Server {
 
     if let Some(content_encoding) = inscription.content_encoding() {
       if server_config.decompress_brotli
-        && content_encoding.to_str().unwrap().to_lowercase() == "br"
+        && content_encoding
+          .to_str()
+          .map_err(|err| ServerError::Internal(err.into()))?
+          .to_lowercase()
+          == "br"
       {
         let Some(body) = inscription.into_body() else {
           return Ok(None);
@@ -1077,7 +1081,7 @@ impl Server {
 
         Decompressor::new(body.as_slice(), 4096)
           .read_to_end(&mut decompressed)
-          .expect("Decompression failed");
+          .map_err(|err| ServerError::Internal(err.into()))?;
 
         return Ok(Some((headers, decompressed)));
       } else if accept_encoding.is_acceptable(&content_encoding) {
