@@ -189,7 +189,7 @@ impl Server {
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         is_json_api_enabled: self.enable_json_api,
-        decompress_brotli: self.decompress,
+        decompress: self.decompress,
       });
 
       let router = Router::new()
@@ -465,7 +465,7 @@ impl Server {
   }
 
   async fn sat(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
     accept_json: AcceptJson,
@@ -505,7 +505,7 @@ impl Server {
         blocktime,
         inscriptions,
       }
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
@@ -515,7 +515,7 @@ impl Server {
   }
 
   async fn output(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
     accept_json: AcceptJson,
@@ -553,7 +553,7 @@ impl Server {
       Json(OutputJson::new(
         outpoint,
         list,
-        page_config.chain,
+        server_config.chain,
         output,
         inscriptions,
         runes
@@ -567,17 +567,17 @@ impl Server {
         outpoint,
         inscriptions,
         list,
-        chain: page_config.chain,
+        chain: server_config.chain,
         output,
         runes,
       }
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
 
   async fn range(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
@@ -588,7 +588,7 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(server_config)),
     }
   }
 
@@ -597,7 +597,7 @@ impl Server {
   }
 
   async fn rune(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(rune)): Path<DeserializeFromStr<Rune>>,
   ) -> ServerResult<PageHtml<RuneHtml>> {
@@ -614,35 +614,35 @@ impl Server {
 
     let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(RuneHtml { id, entry, parent }.page(page_config))
+    Ok(RuneHtml { id, entry, parent }.page(server_config))
   }
 
   async fn runes(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<RunesHtml>> {
     Ok(
       RunesHtml {
         entries: index.runes()?,
       }
-      .page(page_config),
+      .page(server_config),
     )
   }
 
   async fn home(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
       HomeHtml {
         inscriptions: index.get_home_inscriptions()?,
       }
-      .page(page_config),
+      .page(server_config),
     )
   }
 
   async fn blocks(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<BlocksHtml>> {
     let blocks = index.blocks(100)?;
@@ -654,7 +654,7 @@ impl Server {
       featured_blocks.insert(*hash, inscriptions);
     }
 
-    Ok(BlocksHtml::new(blocks, featured_blocks).page(page_config))
+    Ok(BlocksHtml::new(blocks, featured_blocks).page(server_config))
   }
 
   async fn install_script() -> Redirect {
@@ -662,7 +662,7 @@ impl Server {
   }
 
   async fn block(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
     accept_json: AcceptJson,
@@ -707,13 +707,13 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
 
   async fn transaction(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
@@ -728,10 +728,10 @@ impl Server {
           .ok_or_not_found(|| format!("transaction {txid}"))?,
         blockhash,
         inscription.map(|_| InscriptionId { txid, index: 0 }),
-        page_config.chain,
+        server_config.chain,
         index.get_etching(txid)?,
       )
-      .page(page_config),
+      .page(server_config),
     )
   }
 
@@ -749,10 +749,10 @@ impl Server {
   }
 
   async fn status(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<StatusHtml>> {
-    Ok(index.status()?.page(page_config))
+    Ok(index.status()?.page(server_config))
   }
 
   async fn search_by_query(
@@ -838,12 +838,12 @@ impl Server {
   }
 
   async fn feed(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
     let mut builder = rss::ChannelBuilder::default();
 
-    let chain = page_config.chain;
+    let chain = server_config.chain;
     match chain {
       Chain::Mainnet => builder.title("Inscriptions".to_string()),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
@@ -961,7 +961,7 @@ impl Server {
   }
 
   async fn input(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u32, usize, usize)>,
   ) -> ServerResult<PageHtml<InputHtml>> {
@@ -983,7 +983,7 @@ impl Server {
       .nth(path.2)
       .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(page_config))
+    Ok(InputHtml { path, input }.page(server_config))
   }
 
   async fn faq() -> Redirect {
@@ -997,7 +997,6 @@ impl Server {
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
-    Extension(page_config): Extension<Arc<ServerConfig>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
@@ -1011,7 +1010,7 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription, accept_encoding, &page_config, &server_config)?
+      Self::content_response(inscription, accept_encoding, &server_config)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -1020,12 +1019,11 @@ impl Server {
   fn content_response(
     inscription: Inscription,
     accept_encoding: AcceptEncoding,
-    page_config: &ServerConfig,
     server_config: &ServerConfig,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
 
-    match &page_config.csp_origin {
+    match &server_config.csp_origin {
       None => {
         headers.insert(
           header::CONTENT_SECURITY_POLICY,
@@ -1059,7 +1057,7 @@ impl Server {
     );
 
     if let Some(content_encoding) = inscription.content_encoding() {
-      if server_config.decompress_brotli
+      if server_config.decompress
         && content_encoding
           .to_str()
           .map_err(|err| ServerError::Internal(err.into()))?
@@ -1097,7 +1095,6 @@ impl Server {
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
-    Extension(page_config): Extension<Arc<ServerConfig>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
@@ -1136,7 +1133,7 @@ impl Server {
           .into_response(),
       ),
       Media::Iframe => Ok(
-        Self::content_response(inscription, accept_encoding, &page_config, &server_config)?
+        Self::content_response(inscription, accept_encoding, &server_config)?
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -1187,7 +1184,7 @@ impl Server {
   }
 
   async fn inscription(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
     accept_json: AcceptJson,
@@ -1261,7 +1258,7 @@ impl Server {
         output_value: output.as_ref().map(|o| o.value),
         address: output
           .as_ref()
-          .and_then(|o| page_config.chain.address_from_script(&o.script_pubkey).ok())
+          .and_then(|o| server_config.chain.address_from_script(&o.script_pubkey).ok())
           .map(|address| address.to_string()),
         sat: entry.sat,
         satpoint,
@@ -1275,7 +1272,7 @@ impl Server {
       .into_response()
     } else {
       InscriptionHtml {
-        chain: page_config.chain,
+        chain: server_config.chain,
         charms,
         children,
         genesis_fee: entry.fee,
@@ -1292,20 +1289,20 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
 
   async fn collections(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
-    Self::collections_paginated(Extension(page_config), Extension(index), Path(0)).await
+    Self::collections_paginated(Extension(server_config), Extension(index), Path(0)).await
   }
 
   async fn collections_paginated(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(page_index): Path<usize>,
   ) -> ServerResult<Response> {
@@ -1321,18 +1318,18 @@ impl Server {
         prev,
         next,
       }
-      .page(page_config)
+      .page(server_config)
       .into_response(),
     )
   }
 
   async fn children(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
     Self::children_paginated(
-      Extension(page_config),
+      Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
     )
@@ -1340,7 +1337,7 @@ impl Server {
   }
 
   async fn children_paginated(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
@@ -1365,7 +1362,7 @@ impl Server {
         prev_page,
         next_page,
       }
-      .page(page_config)
+      .page(server_config)
       .into_response(),
     )
   }
@@ -1393,12 +1390,12 @@ impl Server {
   }
 
   async fn inscriptions(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_paginated(
-      Extension(page_config),
+      Extension(server_config),
       Extension(index),
       Path(0),
       accept_json,
@@ -1407,7 +1404,7 @@ impl Server {
   }
 
   async fn inscriptions_paginated(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(page_index): Path<usize>,
     accept_json: AcceptJson,
@@ -1431,19 +1428,19 @@ impl Server {
         next,
         prev,
       }
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
 
   async fn inscriptions_in_block(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(block_height): Path<u32>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_paginated(
-      Extension(page_config),
+      Extension(server_config),
       Extension(index),
       Path((block_height, 0)),
       accept_json,
@@ -1452,7 +1449,7 @@ impl Server {
   }
 
   async fn inscriptions_in_block_paginated(
-    Extension(page_config): Extension<Arc<ServerConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((block_height, page_index)): Path<(u32, usize)>,
     accept_json: AcceptJson,
@@ -1487,7 +1484,7 @@ impl Server {
         more,
         page_index,
       )?
-      .page(page_config)
+      .page(server_config)
       .into_response()
     })
   }
@@ -3284,7 +3281,6 @@ mod tests {
         Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
         AcceptEncoding::default(),
         &ServerConfig::default(),
-        &ServerConfig::default(),
       )
       .unwrap(),
       None
@@ -3296,7 +3292,6 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
-      &ServerConfig::default(),
       &ServerConfig::default(),
     )
     .unwrap()
@@ -3311,7 +3306,6 @@ mod tests {
     let (headers, _) = Server::content_response(
       Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
       AcceptEncoding::default(),
-      &ServerConfig::default(),
       &ServerConfig::default(),
     )
     .unwrap()
@@ -3332,7 +3326,6 @@ mod tests {
         csp_origin: Some("https://ordinals.com".into()),
         ..Default::default()
       },
-      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3371,7 +3364,6 @@ mod tests {
       Inscription::new(None, Some(Vec::new())),
       AcceptEncoding::default(),
       &ServerConfig::default(),
-      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
@@ -3385,7 +3377,6 @@ mod tests {
     let (headers, body) = Server::content_response(
       Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
       AcceptEncoding::default(),
-      &ServerConfig::default(),
       &ServerConfig::default(),
     )
     .unwrap()

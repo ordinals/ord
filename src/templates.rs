@@ -84,11 +84,11 @@ where
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, page_config: Arc<ServerConfig>) -> PageHtml<Self>
+  fn page(self, server_config: Arc<ServerConfig>) -> PageHtml<Self>
   where
     Self: Sized,
   {
-    PageHtml::new(self, page_config)
+    PageHtml::new(self, server_config)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
