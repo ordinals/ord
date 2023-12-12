@@ -438,7 +438,6 @@ impl Server {
 
     let acceptor = state.axum_acceptor(Arc::new(
       rustls::ServerConfig::builder()
-        .with_safe_defaults()
         .with_no_client_auth()
         .with_cert_resolver(state.resolver()),
     ));
