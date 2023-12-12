@@ -1060,11 +1060,7 @@ impl Server {
       if accept_encoding.is_acceptable(&content_encoding) {
         headers.insert(header::CONTENT_ENCODING, content_encoding);
       } else if server_config.decompress
-        && content_encoding
-          .to_str()
-          .map_err(|err| ServerError::Internal(err.into()))?
-          .to_lowercase()
-          == "br"
+        && content_encoding == "br"
       {
         let Some(body) = inscription.into_body() else {
           return Ok(None);
