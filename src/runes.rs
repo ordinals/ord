@@ -1,4 +1,4 @@
-use {self::error::Error, super::*};
+use super::*;
 
 pub use {rune::Rune, rune_id::RuneId};
 
@@ -9,7 +9,6 @@ pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 
 mod edict;
-mod error;
 mod etching;
 mod pile;
 mod rune;

@@ -59,12 +59,12 @@ impl Runestone {
     Self::decipher(transaction).ok().flatten()
   }
 
-  fn decipher(transaction: &Transaction) -> Result<Option<Self>> {
+  fn decipher(transaction: &Transaction) -> Result<Option<Self>, script::Error> {
     let Some(payload) = Runestone::payload(transaction)? else {
       return Ok(None);
     };
 
-    let integers = Runestone::integers(&payload)?;
+    let integers = Runestone::integers(&payload);
 
     let Message { mut fields, body } = Message::from_integers(&integers);
 
@@ -154,7 +154,7 @@ impl Runestone {
     builder.into_script()
   }
 
-  fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>> {
+  fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>, script::Error> {
     for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
 
@@ -180,17 +180,17 @@ impl Runestone {
     Ok(None)
   }
 
-  fn integers(payload: &[u8]) -> Result<Vec<u128>> {
+  fn integers(payload: &[u8]) -> Vec<u128> {
     let mut integers = Vec::new();
     let mut i = 0;
 
     while i < payload.len() {
-      let (integer, length) = varint::decode(&payload[i..])?;
+      let (integer, length) = varint::decode(&payload[i..]);
       integers.push(integer);
       i += length;
     }
 
-    Ok(integers)
+    integers
   }
 }
 
@@ -285,7 +285,7 @@ mod tests {
 
   #[test]
   fn deciphering_valid_runestone_with_invalid_script_returns_script_error() {
-    let result = Runestone::decipher(&Transaction {
+    Runestone::decipher(&Transaction {
       input: Vec::new(),
       output: vec![TxOut {
         script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
@@ -293,13 +293,8 @@ mod tests {
       }],
       lock_time: locktime::absolute::LockTime::ZERO,
       version: 0,
-    });
-
-    match result {
-      Ok(_) => panic!("expected error"),
-      Err(Error::Script(_)) => {}
-      Err(err) => panic!("unexpected error: {err}"),
-    }
+    })
+    .unwrap_err();
   }
 
   #[test]
@@ -312,7 +307,7 @@ mod tests {
 
     script_pubkey.push(opcodes::all::OP_PUSHBYTES_4.to_u8());
 
-    let result = Runestone::decipher(&Transaction {
+    Runestone::decipher(&Transaction {
       input: Vec::new(),
       output: vec![TxOut {
         script_pubkey: ScriptBuf::from_bytes(script_pubkey),
@@ -320,18 +315,13 @@ mod tests {
       }],
       lock_time: locktime::absolute::LockTime::ZERO,
       version: 0,
-    });
-
-    match result {
-      Ok(_) => panic!("expected error"),
-      Err(Error::Script(_)) => {}
-      Err(err) => panic!("unexpected error: {err}"),
-    }
+    })
+    .unwrap_err();
   }
 
   #[test]
-  fn deciphering_runestone_with_invalid_varint_returns_varint_error() {
-    let result = Runestone::decipher(&Transaction {
+  fn deciphering_runestone_with_truncated_varint_succeeds() {
+    Runestone::decipher(&Transaction {
       input: Vec::new(),
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
@@ -343,13 +333,8 @@ mod tests {
       }],
       lock_time: locktime::absolute::LockTime::ZERO,
       version: 0,
-    });
-
-    match result {
-      Ok(_) => panic!("expected error"),
-      Err(Error::Varint) => {}
-      Err(err) => panic!("unexpected error: {err}"),
-    }
+    })
+    .unwrap();
   }
 
   #[test]
@@ -418,15 +403,17 @@ mod tests {
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
-    let result = Runestone::decipher(&Transaction {
+    let mut script_pubkey = Vec::new();
+    script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
+    script_pubkey.push(opcodes::all::OP_PUSHBYTES_9.to_u8());
+    script_pubkey.extend_from_slice(b"RUNE_TEST");
+    script_pubkey.push(opcodes::all::OP_PUSHBYTES_4.to_u8());
+
+    Runestone::decipher(&Transaction {
       input: Vec::new(),
       output: vec![
         TxOut {
-          script_pubkey: script::Builder::new()
-            .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
-            .push_slice([128])
-            .into_script(),
+          script_pubkey: ScriptBuf::from_bytes(script_pubkey),
           value: 0,
         },
         TxOut {
@@ -440,13 +427,8 @@ mod tests {
       ],
       lock_time: locktime::absolute::LockTime::ZERO,
       version: 0,
-    });
-
-    match result {
-      Ok(_) => panic!("expected error"),
-      Err(Error::Varint) => {}
-      Err(err) => panic!("unexpected error: {err}"),
-    }
+    })
+    .unwrap_err();
   }
 
   #[test]
@@ -1361,7 +1343,7 @@ mod tests {
 
       let payload = Runestone::payload(&transaction).unwrap().unwrap();
 
-      assert_eq!(Runestone::integers(&payload).unwrap(), expected);
+      assert_eq!(Runestone::integers(&payload), expected);
 
       let runestone = {
         let mut edicts = runestone.edicts;
