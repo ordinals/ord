@@ -46,7 +46,8 @@ View the inscription in the regtest explorer:
 ```
 ord -r server
 ```
-By default, browsers don't support compression over HTTPS. To test compressed content over HTTP, add the `--decompress-brotli` flag:
+By default, browsers don't support compression over HTTPS. To test compressed
+content over HTTP, add the `--decompress-brotli` flag:
 ```
 ord -r server --decompress-brotli
 ```
