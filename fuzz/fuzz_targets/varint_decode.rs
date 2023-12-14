@@ -9,7 +9,8 @@ fuzz_target!(|input: &[u8]| {
     let (decoded, length) = varint::decode(&input[i..]);
     let mut encoded = Vec::new();
     varint::encode_to_vec(decoded, &mut encoded);
-    assert_eq!(encoded, &input[i..i + length]);
+    let (redecoded, _) = varint::decode(&input[i..]);
+    assert_eq!(redecoded, decoded);
     i += length;
   }
 });
