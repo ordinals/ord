@@ -198,7 +198,7 @@ mod tests {
 
     const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
     const END: u32 = START + SUBSIDY_HALVING_INTERVAL;
-    const STEP: u32 = (END - START) / 12;
+    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
     case(0, "AAAAAAAAAAAAA");
     case(START / 2, "AAAAAAAAAAAAA");
@@ -209,61 +209,61 @@ mod tests {
     case(END + 1, "A");
     case(u32::max_value(), "A");
 
-    case(START + STEP * 00 - 1, "AAAAAAAAAAAAA");
-    case(START + STEP * 00 + 0, "AAAAAAAAAAAAA");
-    case(START + STEP * 00 + 1, "ZZYZXBRKWXVA");
+    case(START + INTERVAL * 00 - 1, "AAAAAAAAAAAAA");
+    case(START + INTERVAL * 00 + 0, "AAAAAAAAAAAAA");
+    case(START + INTERVAL * 00 + 1, "ZZYZXBRKWXVA");
 
-    case(START + STEP * 01 - 1, "AABACYIPDCFB");
-    case(START + STEP * 01 + 0, "AAAAAAAAAAAA");
-    case(START + STEP * 01 + 1, "ZZYZXBRKWXV");
+    case(START + INTERVAL * 01 - 1, "AABACYIPDCFB");
+    case(START + INTERVAL * 01 + 0, "AAAAAAAAAAAA");
+    case(START + INTERVAL * 01 + 1, "ZZYZXBRKWXV");
 
-    case(START + STEP * 02 - 1, "AABACYIPDCG");
-    case(START + STEP * 02 + 0, "AAAAAAAAAAA");
-    case(START + STEP * 02 + 1, "ZZYZXBRKWY");
+    case(START + INTERVAL * 02 - 1, "AABACYIPDCG");
+    case(START + INTERVAL * 02 + 0, "AAAAAAAAAAA");
+    case(START + INTERVAL * 02 + 1, "ZZYZXBRKWY");
 
-    case(START + STEP * 03 - 1, "AABACYIPDD");
-    case(START + STEP * 03 + 0, "AAAAAAAAAA");
-    case(START + STEP * 03 + 1, "ZZYZXBRKX");
+    case(START + INTERVAL * 03 - 1, "AABACYIPDD");
+    case(START + INTERVAL * 03 + 0, "AAAAAAAAAA");
+    case(START + INTERVAL * 03 + 1, "ZZYZXBRKX");
 
-    case(START + STEP * 04 - 1, "AABACYIPE");
-    case(START + STEP * 04 + 0, "AAAAAAAAA");
-    case(START + STEP * 04 + 1, "ZZYZXBRL");
+    case(START + INTERVAL * 04 - 1, "AABACYIPE");
+    case(START + INTERVAL * 04 + 0, "AAAAAAAAA");
+    case(START + INTERVAL * 04 + 1, "ZZYZXBRL");
 
-    case(START + STEP * 05 - 1, "AABACYIQ");
-    case(START + STEP * 05 + 0, "AAAAAAAA");
-    case(START + STEP * 05 + 1, "ZZYZXBS");
+    case(START + INTERVAL * 05 - 1, "AABACYIQ");
+    case(START + INTERVAL * 05 + 0, "AAAAAAAA");
+    case(START + INTERVAL * 05 + 1, "ZZYZXBS");
 
-    case(START + STEP * 06 - 1, "AABACYJ");
-    case(START + STEP * 06 + 0, "AAAAAAA");
-    case(START + STEP * 06 + 1, "ZZYZXC");
+    case(START + INTERVAL * 06 - 1, "AABACYJ");
+    case(START + INTERVAL * 06 + 0, "AAAAAAA");
+    case(START + INTERVAL * 06 + 1, "ZZYZXC");
 
-    case(START + STEP * 07 - 1, "AABACZ");
-    case(START + STEP * 07 + 0, "AAAAAA");
-    case(START + STEP * 07 + 1, "ZZYZY");
+    case(START + INTERVAL * 07 - 1, "AABACZ");
+    case(START + INTERVAL * 07 + 0, "AAAAAA");
+    case(START + INTERVAL * 07 + 1, "ZZYZY");
 
-    case(START + STEP * 08 - 1, "AABAD");
-    case(START + STEP * 08 + 0, "AAAAA");
-    case(START + STEP * 08 + 1, "ZZZA");
+    case(START + INTERVAL * 08 - 1, "AABAD");
+    case(START + INTERVAL * 08 + 0, "AAAAA");
+    case(START + INTERVAL * 08 + 1, "ZZZA");
 
-    case(START + STEP * 09 - 1, "AABB");
-    case(START + STEP * 09 + 0, "AAAA");
-    case(START + STEP * 09 + 1, "ZZZ");
+    case(START + INTERVAL * 09 - 1, "AABB");
+    case(START + INTERVAL * 09 + 0, "AAAA");
+    case(START + INTERVAL * 09 + 1, "ZZZ");
 
-    case(START + STEP * 10 - 1, "AAC");
-    case(START + STEP * 10 + 0, "AAA");
-    case(START + STEP * 10 + 1, "AAA");
+    case(START + INTERVAL * 10 - 1, "AAC");
+    case(START + INTERVAL * 10 + 0, "AAA");
+    case(START + INTERVAL * 10 + 1, "AAA");
 
-    case(START + STEP * 10 + STEP / 2, "NA");
+    case(START + INTERVAL * 10 + INTERVAL / 2, "NA");
 
-    case(START + STEP * 11 - 1, "AB");
-    case(START + STEP * 11 + 0, "AA");
-    case(START + STEP * 11 + 1, "AA");
+    case(START + INTERVAL * 11 - 1, "AB");
+    case(START + INTERVAL * 11 + 0, "AA");
+    case(START + INTERVAL * 11 + 1, "AA");
 
-    case(START + STEP * 11 + STEP / 2, "N");
+    case(START + INTERVAL * 11 + INTERVAL / 2, "N");
 
-    case(START + STEP * 12 - 1, "B");
-    case(START + STEP * 12 + 0, "A");
-    case(START + STEP * 12 + 1, "A");
+    case(START + INTERVAL * 12 - 1, "B");
+    case(START + INTERVAL * 12 + 0, "A");
+    case(START + INTERVAL * 12 + 1, "A");
   }
 
   #[test]
