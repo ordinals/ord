@@ -7,7 +7,7 @@ pub(crate) struct OutputHtml {
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) runes: Vec<(Rune, Pile)>,
+  pub(crate) runes: Vec<(SpacedRune, Pile)>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -32,7 +32,7 @@ impl OutputJson {
   ) -> Self {
     Self {
       value: output.value,
-      runes: runes.into_iter().collect(),
+      runes,
       script_pubkey: output.script_pubkey.to_asm_string(),
       address: chain
         .address_from_script(&output.script_pubkey)
@@ -189,7 +189,10 @@ mod tests {
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
         runes: vec![(
-          Rune(0),
+          SpacedRune {
+            rune: Rune(26),
+            spacers: 1
+          },
           Pile {
             amount: 11,
             divisibility: 1,
@@ -208,7 +211,7 @@ mod tests {
                 <th>balance</th>
               </tr>
               <tr>
-                <td><a href=/rune/A>A</a></td>
+                <td><a href=/rune/A•A>A•A</a></td>
                 <td>1.1</td>
               </tr>
             </table>

@@ -7,7 +7,7 @@ pub enum Object {
   InscriptionId(InscriptionId),
   Integer(u128),
   OutPoint(OutPoint),
-  Rune(Rune),
+  Rune(SpacedRune),
   Sat(Sat),
   SatPoint(SatPoint),
 }
@@ -199,7 +199,19 @@ mod tests {
           .unwrap(),
       ),
     );
-    case("A", Object::Rune(Rune(0)));
-    case("B", Object::Rune(Rune(1)));
+    case(
+      "A",
+      Object::Rune(SpacedRune {
+        rune: Rune(0),
+        spacers: 0,
+      }),
+    );
+    case(
+      "A•A",
+      Object::Rune(SpacedRune {
+        rune: Rune(26),
+        spacers: 1,
+      }),
+    );
   }
 }

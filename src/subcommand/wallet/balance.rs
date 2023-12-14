@@ -33,8 +33,8 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
     if inscription_outputs.contains(&outpoint) {
       ordinal += amount.to_sat();
     } else if !rune_balances.is_empty() {
-      for (rune, pile) in rune_balances {
-        *runes.entry(rune).or_default() += pile.amount;
+      for (spaced_rune, pile) in rune_balances {
+        *runes.entry(spaced_rune.rune).or_default() += pile.amount;
       }
       runic += amount.to_sat();
     } else {

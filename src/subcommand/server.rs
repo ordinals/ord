@@ -7,7 +7,6 @@ use {
   },
   super::*,
   crate::{
-    runes::Rune,
     server_config::ServerConfig,
     templates::{
       BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ChildrenJson, ClockSvg, CollectionsHtml,
@@ -558,7 +557,7 @@ impl Server {
         inscriptions,
         runes
           .into_iter()
-          .map(|(rune, pile)| (rune, pile.amount))
+          .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
           .collect(),
       ))
       .into_response()
@@ -599,9 +598,9 @@ impl Server {
   async fn rune(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(rune)): Path<DeserializeFromStr<Rune>>,
+    Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
   ) -> ServerResult<PageHtml<RuneHtml>> {
-    let (id, entry) = index.rune(rune)?.ok_or_else(|| {
+    let (id, entry) = index.rune(spaced_rune.rune)?.ok_or_else(|| {
       ServerError::NotFound(
         "tracking runes requires index created with `--index-runes` flag".into(),
       )
@@ -778,7 +777,7 @@ impl Server {
       static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
       static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
-      static ref RUNE: Regex = Regex::new(r"^[A-Z]+$").unwrap();
+      static ref RUNE: Regex = Regex::new(r"^[A-Z•.]+$").unwrap();
       static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
     }
 
@@ -1736,6 +1735,7 @@ mod tests {
       pretty_assert_eq!(response.text().unwrap(), expected_response);
     }
 
+    #[track_caller]
     fn assert_response_regex(
       &self,
       path: impl AsRef<str>,
@@ -1766,6 +1766,7 @@ mod tests {
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
+    #[track_caller]
     fn assert_redirect(&self, path: &str, location: &str) {
       let response = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -2005,6 +2006,11 @@ mod tests {
   }
 
   #[test]
+  fn search_by_query_returns_spaced_rune() {
+    TestServer::new().assert_redirect("/search?query=AB•CD", "/rune/AB•CD");
+  }
+
+  #[test]
   fn search_by_query_returns_inscription() {
     TestServer::new().assert_redirect(
       "/search?query=0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -2057,6 +2063,11 @@ mod tests {
   #[test]
   fn search_by_path_returns_rune() {
     TestServer::new().assert_redirect("/search/ABCD", "/rune/ABCD");
+  }
+
+  #[test]
+  fn search_by_path_returns_spaced_rune() {
+    TestServer::new().assert_redirect("/search/AB•CD", "/rune/AB•CD");
   }
 
   #[test]
@@ -2266,6 +2277,12 @@ mod tests {
     );
 
     server.assert_response_regex(
+      "/rune/AAAAAAAAAAAAA",
+      StatusCode::OK,
+      r".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+
+    server.assert_response_regex(
       format!("/inscription/{txid}i0"),
       StatusCode::OK,
       ".*
@@ -2275,6 +2292,103 @@ mod tests {
   <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
 </dl>
 .*",
+    );
+  }
+
+  #[test]
+  fn runes_are_spaced() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            symbol: Some('$'),
+            spacers: 1,
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune,
+          supply: u128::max_value(),
+          symbol: Some('$'),
+          timestamp: 2,
+          spacers: 1,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/rune/{rune}"),
+      StatusCode::OK,
+      r".*<title>Rune A•AAAAAAAAAAAA</title>.*<h1>A•AAAAAAAAAAAA</h1>.*",
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*<dt>rune</dt>.*<dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>.*",
+    );
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<li><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></li>.*",
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>
+.*",
+    );
+
+    server.assert_response_regex(
+      format!("/output/{txid}:0"),
+      StatusCode::OK,
+      ".*<tr>
+        <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
+        <td>\\$340282366920938463463374607431768211455</td>
+      </tr>.*",
     );
   }
 

@@ -1,6 +1,6 @@
 use super::*;
 
-pub use {rune::Rune, rune_id::RuneId, runestone::Runestone};
+pub use {rune::Rune, rune_id::RuneId, runestone::Runestone, spaced_rune::SpacedRune};
 
 pub(crate) use {edict::Edict, etching::Etching, pile::Pile};
 
@@ -15,6 +15,7 @@ mod pile;
 mod rune;
 mod rune_id;
 mod runestone;
+mod spaced_rune;
 pub mod varint;
 
 type Result<T, E = Error> = std::result::Result<T, E>;
