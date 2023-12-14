@@ -1780,6 +1780,8 @@ fn server_can_decompress_brotli() {
 
   let test_server = TestServer::spawn_with_server_args(&rpc_server, &[], &["--decompress"]);
 
+  test_server.sync_server();
+
   let client = reqwest::blocking::Client::builder()
     .brotli(false)
     .build()
