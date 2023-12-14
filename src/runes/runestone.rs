@@ -11,10 +11,10 @@ const TAG_FLAGS: u128 = 8;
 const FLAG_ETCH: u128 = 1;
 
 #[allow(unused)]
-const TAG_BURN: u128 = 256;
+const TAG_BURN: u128 = 254;
 
 #[allow(unused)]
-const TAG_NOP: u128 = 257;
+const TAG_NOP: u128 = 255;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
