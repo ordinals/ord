@@ -603,7 +603,7 @@ impl Server {
   ) -> ServerResult<PageHtml<RuneHtml>> {
     let (id, entry) = index.rune(rune)?.ok_or_else(|| {
       ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag".into(),
+        "tracking runes requires index created with `--index-runes` flag".into(),
       )
     })?;
 
@@ -1610,11 +1610,7 @@ mod tests {
           .network(bitcoin::Network::Regtest)
           .build(),
         None,
-        &[
-          "--chain",
-          "regtest",
-          "--index-runes-pre-alpha-i-agree-to-get-rekt",
-        ],
+        &["--chain", "regtest", "--index-runes"],
         &["--enable-json-api"],
       )
     }
