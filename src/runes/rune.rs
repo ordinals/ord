@@ -1,5 +1,9 @@
 use super::*;
 
+// todo:
+// - change RUNE
+// - fix etched_reserved_rune_is_burned_if_an_unrecognized_even_tag_is_encountered
+
 #[derive(Default, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq)]
 pub struct Rune(pub u128);
 

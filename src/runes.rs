@@ -900,7 +900,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_is_burned_if_an_unrecognized_even_tag_is_encountered() {
+  fn etched_rune_is_allocated_with_zero_supply_for_burned_runestone() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
@@ -949,7 +949,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_reserved_rune_is_burned_if_an_unrecognized_even_tag_is_encountered() {
+  fn etched_reserved_rune_is_allocated_with_zero_supply_for_burned_runestone() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
