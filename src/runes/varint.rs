@@ -33,10 +33,10 @@ pub fn decode(buffer: &[u8]) -> (u128, usize) {
     n = n.saturating_mul(128);
 
     if b < 128 {
-      return (n + b, i + 1);
+      return (n.saturating_add(b), i + 1);
     }
 
-    n += b - 127;
+    n = n.saturating_add(b - 127);
 
     i += 1;
   }
