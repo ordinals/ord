@@ -8,7 +8,7 @@ const TAG_LIMIT: u128 = 4;
 const TAG_TERM: u128 = 6;
 const TAG_FLAGS: u128 = 8;
 
-const FLAG_ETCH: u128 = 1;
+const FLAG_ETCH: u128 = 0b000_0001;
 
 #[allow(unused)]
 const TAG_BURN: u128 = 254;
