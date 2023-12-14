@@ -91,6 +91,28 @@ mod tests {
   }
 
   #[test]
+  fn truncated_varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        255,
+      ]),
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
+  fn varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        127,
+      ]),
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
   fn taproot_annex_format_bip_test_vectors_round_trip_successfully() {
     const TEST_VECTORS: &[(u128, &[u8])] = &[
       (0, &[0x00]),
