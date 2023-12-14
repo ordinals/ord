@@ -1,8 +1,8 @@
 use super::*;
 
-pub use {rune::Rune, rune_id::RuneId};
+pub use {rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {edict::Edict, etching::Etching, pile::Pile, runestone::Runestone};
+pub(crate) use {edict::Edict, etching::Etching, pile::Pile};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;

@@ -33,10 +33,10 @@ pub fn decode(buffer: &[u8]) -> (u128, usize) {
     n = n.saturating_mul(128);
 
     if b < 128 {
-      return (n + b, i + 1);
+      return (n.saturating_add(b), i + 1);
     }
 
-    n += b - 127;
+    n = n.saturating_add(b - 127);
 
     i += 1;
   }
@@ -85,6 +85,28 @@ mod tests {
       decode(&[
         130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
         0,
+      ]),
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
+  fn truncated_varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        255,
+      ]),
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
+  fn varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        127,
       ]),
       (u128::MAX, 19)
     );
