@@ -68,10 +68,34 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       // Determine if this runestone contains a valid issuance
       let mut allocation = match runestone.etching {
         Some(etching) => {
-          // If the issuance symbol is already taken, the issuance is ignored
-          if etching.rune < self.minimum || self.rune_to_id.get(etching.rune.0)?.is_some() {
+          if etching
+            .rune
+            .map(|rune| rune < self.minimum || rune.is_reserved())
+            .unwrap_or_default()
+            || etching
+              .rune
+              .and_then(|rune| self.rune_to_id.get(rune.0).transpose())
+              .transpose()?
+              .is_some()
+          {
             None
           } else {
+            let rune = if let Some(rune) = etching.rune {
+              rune
+            } else {
+              let reserved_runes = self
+                .statistic_to_count
+                .get(&Statistic::ReservedRunes.into())?
+                .map(|entry| entry.value())
+                .unwrap_or_default();
+
+              self
+                .statistic_to_count
+                .insert(&Statistic::ReservedRunes.into(), reserved_runes + 1)?;
+
+              Rune::reserved(reserved_runes.into())
+            };
+
             let (limit, term) = match (etching.limit, etching.term) {
               (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
               (limit, term) => (limit, term),
@@ -96,7 +120,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 limit,
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
-                rune: etching.rune,
+                rune,
                 symbol: etching.symbol,
                 end: term.map(|term| term + self.height),
               }),

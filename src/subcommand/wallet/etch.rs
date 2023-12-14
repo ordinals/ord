@@ -37,7 +37,7 @@ impl Etch {
     ensure!(
       index.rune(self.rune)?.is_none(),
       "rune `{}` has already been etched",
-      self.rune
+      self.rune,
     );
 
     let minimum_at_height =
@@ -46,12 +46,14 @@ impl Etch {
     ensure!(
       self.rune >= minimum_at_height,
       "rune is less than minimum for next block: {} < {minimum_at_height}",
-      self.rune
+      self.rune,
     );
+
+    ensure!(!self.rune.is_reserved(), "rune `{}` is reserved", self.rune);
 
     ensure!(
       self.divisibility <= crate::runes::MAX_DIVISIBILITY,
-      "<DIVISBILITY> must be equal to or less than 38"
+      "<DIVISIBILITY> must be equal to or less than 38"
     );
 
     let destination = get_change_address(&client, options.chain())?;
@@ -59,7 +61,7 @@ impl Etch {
     let runestone = Runestone {
       etching: Some(Etching {
         divisibility: self.divisibility,
-        rune: self.rune,
+        rune: Some(self.rune),
         limit: None,
         symbol: Some(self.symbol),
         term: None,

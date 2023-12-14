@@ -7,6 +7,7 @@ pub(crate) use {edict::Edict, etching::Etching, pile::Pile};
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 pub(crate) const MAX_LIMIT: u128 = 1 << 64;
+const RESERVED: u128 = 6402364363415443603228541259936211926;
 
 mod edict;
 mod etching;
@@ -46,7 +47,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -89,7 +90,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -136,7 +137,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -190,7 +191,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Rune(SECOND_BLOCK_LOCKED_RUNE - 1),
+              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE - 1)),
               ..Default::default()
             }),
             ..Default::default()
@@ -220,7 +221,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Rune(SECOND_BLOCK_LOCKED_RUNE),
+              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE)),
               ..Default::default()
             }),
             ..Default::default()
@@ -254,6 +255,212 @@ mod tests {
   }
 
   #[test]
+  fn etching_cannot_specify_reserved_rune() {
+    {
+      let context = Context::builder().arg("--index-runes").build();
+
+      context.mine_blocks(1);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, Witness::new())],
+        op_return: Some(
+          Runestone {
+            edicts: vec![Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            }],
+            etching: Some(Etching {
+              rune: Some(Rune(RESERVED)),
+              ..Default::default()
+            }),
+            ..Default::default()
+          }
+          .encipher(),
+        ),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      context.assert_runes([], []);
+    }
+
+    {
+      let context = Context::builder().arg("--index-runes").build();
+
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, Witness::new())],
+        op_return: Some(
+          Runestone {
+            edicts: vec![Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            }],
+            etching: Some(Etching {
+              rune: Some(Rune(RESERVED - 1)),
+              ..Default::default()
+            }),
+            ..Default::default()
+          }
+          .encipher(),
+        ),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let id = RuneId {
+        height: 2,
+        index: 1,
+      };
+
+      context.assert_runes(
+        [(
+          id,
+          RuneEntry {
+            etching: txid,
+            rune: Rune(RESERVED - 1),
+            supply: u128::max_value(),
+            timestamp: 2,
+            ..Default::default()
+          },
+        )],
+        [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      );
+    }
+  }
+
+  #[test]
+  fn reserved_runes_may_be_etched() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: None,
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id0,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RESERVED),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(id0, u128::max_value())],
+      )],
+    );
+
+    context.mine_blocks(1);
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: None,
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id1 = RuneId {
+      height: 4,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [
+        (
+          id0,
+          RuneEntry {
+            etching: txid0,
+            rune: Rune(RESERVED),
+            supply: u128::max_value(),
+            timestamp: 2,
+            ..Default::default()
+          },
+        ),
+        (
+          id1,
+          RuneEntry {
+            etching: txid1,
+            rune: Rune(RESERVED + 1),
+            supply: u128::max_value(),
+            timestamp: 4,
+            number: 1,
+            ..Default::default()
+          },
+        ),
+      ],
+      [
+        (
+          OutPoint {
+            txid: txid0,
+            vout: 0,
+          },
+          vec![(id0, u128::max_value())],
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id1, u128::max_value())],
+        ),
+      ],
+    );
+  }
+
+  #[test]
   fn etching_with_non_zero_divisibility_and_rune() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -270,7 +477,7 @@ mod tests {
           }],
           etching: Some(Etching {
             divisibility: 1,
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -326,7 +533,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -381,7 +588,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -430,7 +637,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -485,7 +692,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -541,7 +748,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -589,7 +796,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -666,7 +873,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_is_burned_if_an_unrecognized_even_tag_is_encountered() {
+  fn etched_rune_is_allocated_with_zero_supply_for_burned_runestone() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -681,7 +888,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           burn: true,
@@ -713,6 +920,50 @@ mod tests {
   }
 
   #[test]
+  fn etched_reserved_rune_is_allocated_with_zero_supply_for_burned_runestone() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching::default()),
+          burn: true,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RESERVED),
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
   fn input_runes_are_burned_if_an_unrecognized_even_tag_is_encountered() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -728,7 +979,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -811,7 +1062,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -893,7 +1144,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -972,7 +1223,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1054,7 +1305,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1095,7 +1346,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1138,7 +1389,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1185,7 +1436,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE + 1),
+            rune: Some(Rune(RUNE + 1)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1301,7 +1552,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1348,7 +1599,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE + 1),
+            rune: Some(Rune(RUNE + 1)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1535,7 +1786,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1582,7 +1833,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE + 1),
+            rune: Some(Rune(RUNE + 1)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1717,7 +1968,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1798,7 +2049,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1823,7 +2074,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE + 1),
+            rune: Some(Rune(RUNE + 1)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1899,7 +2150,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -1998,7 +2249,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2045,7 +2296,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE + 1),
+            rune: Some(Rune(RUNE + 1)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2188,7 +2439,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2280,7 +2531,7 @@ mod tests {
             output: 1,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2330,7 +2581,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2386,7 +2637,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2435,7 +2686,7 @@ mod tests {
             output: 5,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2508,7 +2759,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2581,7 +2832,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2647,7 +2898,7 @@ mod tests {
             output: 5,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2708,7 +2959,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2771,7 +3022,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2827,7 +3078,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -2929,7 +3180,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3038,7 +3289,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3147,7 +3398,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3249,7 +3500,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3358,7 +3609,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3481,7 +3732,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             symbol: Some('$'),
             ..Default::default()
           }),
@@ -3531,7 +3782,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3579,7 +3830,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
           ..Default::default()
@@ -3674,7 +3925,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             ..Default::default()
           }),
@@ -3805,7 +4056,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             term: Some(2),
             ..Default::default()
@@ -3936,7 +4187,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             term: Some(0),
             ..Default::default()
@@ -4016,7 +4267,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             ..Default::default()
           }),
@@ -4109,7 +4360,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             ..Default::default()
           }),
@@ -4159,7 +4410,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(MAX_LIMIT + 1),
             ..Default::default()
           }),
@@ -4233,7 +4484,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             term: Some(1),
             ..Default::default()
           }),
@@ -4278,7 +4529,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             ..Default::default()
           }),
@@ -4387,7 +4638,7 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            rune: Rune(RUNE),
+            rune: Some(Rune(RUNE)),
             limit: Some(1000),
             ..Default::default()
           }),

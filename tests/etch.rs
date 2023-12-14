@@ -35,7 +35,7 @@ fn divisibility_over_max_is_an_error() {
     Rune(RUNE),
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr("error: <DIVISBILITY> must be equal to or less than 38\n")
+  .expected_stderr("error: <DIVISIBILITY> must be equal to or less than 38\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -78,6 +78,25 @@ fn rune_below_minimum_is_an_error() {
   ))
   .rpc_server(&rpc_server)
   .expected_stderr("error: rune is less than minimum for next block: ZZXZUDIVTVPZ < ZZXZUDIVTVQA\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn reserved_rune_is_an_error() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--index-runes --regtest wallet etch --rune AAAAAAAAAAAAAAAAAAAAAAAAAAA --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢"
+  )
+  .rpc_server(&rpc_server)
+  .expected_stderr("error: rune `AAAAAAAAAAAAAAAAAAAAAAAAAAA` is reserved\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
