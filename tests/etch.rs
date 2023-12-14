@@ -93,7 +93,7 @@ fn reserved_rune_is_an_error() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune AAAAAAAAAAAAAAAAAAAAAAAAAAA --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢"
+    "--index-runes --regtest wallet etch --rune AAAAAAAAAAAAAAAAAAAAAAAAAAA --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢"
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: rune `AAAAAAAAAAAAAAAAAAAAAAAAAAA` is reserved\n")
