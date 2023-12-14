@@ -36,11 +36,11 @@ impl Rune {
   ];
 
   pub(crate) fn minimum_at_height(chain: Chain, height: Height) -> Self {
+    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
+
     let start = chain.first_rune_height();
 
     let end = start + SUBSIDY_HALVING_INTERVAL;
-
-    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
     if height.0 < start {
       return Rune(Self::STEPS[12]);
