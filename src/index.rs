@@ -471,7 +471,10 @@ impl Index {
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
-      minimum_rune_for_next_block: Rune::minimum_at_height(Height(next_height)),
+      minimum_rune_for_next_block: Rune::minimum_at_height(
+        self.options.chain(),
+        Height(next_height),
+      ),
       rune_index: statistic(Statistic::IndexRunes)? != 0,
       runes: statistic(Statistic::Runes)?,
       sat_index: statistic(Statistic::IndexSats)? != 0,

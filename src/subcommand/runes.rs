@@ -27,7 +27,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   ensure!(
     index.has_rune_index(),
-    "`ord runes` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag",
+    "`ord runes` requires index created with `--index-runes` flag",
   );
 
   index.update()?;

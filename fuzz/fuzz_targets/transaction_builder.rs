@@ -8,7 +8,7 @@ use {
   },
   libfuzzer_sys::fuzz_target,
   ord::{FeeRate, SatPoint, Target, TransactionBuilder},
-  std::collections::BTreeMap,
+  std::collections::{BTreeMap, BTreeSet},
 };
 
 #[derive(Clone, Debug, Arbitrary)]
@@ -72,6 +72,8 @@ fuzz_target!(|input: Input| {
         satpoint,
         inscriptions,
         amounts,
+        BTreeSet::new(),
+        BTreeSet::new(),
         recipient,
         change,
         fee_rate,
@@ -84,6 +86,8 @@ fuzz_target!(|input: Input| {
         satpoint,
         inscriptions,
         amounts,
+        BTreeSet::new(),
+        BTreeSet::new(),
         recipient,
         change,
         fee_rate,

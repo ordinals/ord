@@ -7,12 +7,10 @@ fn flag_is_required() {
     .build();
 
   CommandBuilder::new("--regtest balances")
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr(
-    "error: `ord balances` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag\n",
-  )
-  .run_and_extract_stdout();
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: `ord balances` requires index created with `--index-runes` flag\n")
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -21,10 +19,9 @@ fn no_runes() {
     .network(Network::Regtest)
     .build();
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt balances")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<Output>();
+  let output = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     output,
@@ -45,10 +42,9 @@ fn with_runes() {
   let a = etch(&rpc_server, Rune(RUNE));
   let b = etch(&rpc_server, Rune(RUNE + 1));
 
-  let output =
-    CommandBuilder::new("--regtest --index-runes-pre-alpha-i-agree-to-get-rekt balances")
-      .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<Output>();
+  let output = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     output,

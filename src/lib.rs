@@ -28,7 +28,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::{Edict, Etching, Pile, Runestone},
+    runes::{Edict, Etching, Pile},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -37,6 +37,7 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
+    blockdata::constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
@@ -84,7 +85,7 @@ pub use self::{
   inscription::Inscription,
   object::Object,
   rarity::Rarity,
-  runes::{Rune, RuneId},
+  runes::{Rune, RuneId, Runestone},
   sat::Sat,
   sat_point::SatPoint,
   subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
@@ -126,12 +127,12 @@ mod media;
 mod object;
 mod options;
 mod outgoing;
-mod page_config;
 pub mod rarity;
 mod representation;
 pub mod runes;
 pub mod sat;
 mod sat_point;
+mod server_config;
 pub mod subcommand;
 mod tally;
 mod teleburn;
@@ -140,8 +141,6 @@ mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const DIFFCHANGE_INTERVAL: u32 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL;
-const SUBSIDY_HALVING_INTERVAL: u32 = bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL;
 const CYCLE_EPOCHS: u32 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);

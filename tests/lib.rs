@@ -85,7 +85,7 @@ fn etch(rpc_server: &test_bitcoincore_rpc::Handle, rune: Rune) -> Etch {
 
   let output = CommandBuilder::new(
     format!(
-    "--index-runes-pre-alpha-i-agree-to-get-rekt --regtest wallet etch --rune {} --divisibility 0 --fee-rate 0 --supply 1000 --symbol ¢",
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 0 --supply 1000 --symbol ¢",
     rune
     )
   )
@@ -98,7 +98,7 @@ fn etch(rpc_server: &test_bitcoincore_rpc::Handle, rune: Rune) -> Etch {
 }
 
 fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> {
-  CommandBuilder::new("--index-runes-pre-alpha-i-agree-to-get-rekt --regtest runes")
+  CommandBuilder::new("--index-runes --regtest runes")
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<ord::subcommand::runes::Output>()
     .runes

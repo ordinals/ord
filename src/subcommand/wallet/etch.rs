@@ -25,7 +25,7 @@ impl Etch {
 
     ensure!(
       index.has_rune_index(),
-      "`ord wallet etch` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag",
+      "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
     index.update()?;
@@ -40,7 +40,8 @@ impl Etch {
       self.rune,
     );
 
-    let minimum_at_height = Rune::minimum_at_height(Height(u32::try_from(count).unwrap() + 1));
+    let minimum_at_height =
+      Rune::minimum_at_height(options.chain(), Height(u32::try_from(count).unwrap() + 1));
 
     ensure!(
       self.rune >= minimum_at_height,

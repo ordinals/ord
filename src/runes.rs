@@ -1,8 +1,8 @@
 use super::*;
 
-pub use {rune::Rune, rune_id::RuneId};
+pub use {rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {edict::Edict, etching::Etching, pile::Pile, runestone::Runestone};
+pub(crate) use {edict::Edict, etching::Etching, pile::Pile};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
@@ -27,9 +27,7 @@ mod tests {
 
   #[test]
   fn index_starts_with_no_runes() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
     context.assert_runes([], []);
   }
 
@@ -66,9 +64,7 @@ mod tests {
 
   #[test]
   fn empty_runestone_does_not_create_rune() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -85,9 +81,7 @@ mod tests {
 
   #[test]
   fn etching_with_no_edicts_creates_rune() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -129,9 +123,7 @@ mod tests {
 
   #[test]
   fn etching_with_edict_creates_rune() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -179,9 +171,12 @@ mod tests {
 
   #[test]
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
+    const SECOND_BLOCK_LOCKED_RUNE: u128 = 99235208761673842;
+
     {
       let context = Context::builder()
-        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+        .chain(Chain::Regtest)
+        .arg("--index-runes")
         .build();
 
       context.mine_blocks(1);
@@ -196,7 +191,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Some(Rune(RUNE - 1)),
+              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE - 1)),
               ..Default::default()
             }),
             ..Default::default()
@@ -212,9 +207,7 @@ mod tests {
     }
 
     {
-      let context = Context::builder()
-        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-        .build();
+      let context = Context::builder().arg("--index-runes").build();
 
       context.mine_blocks(1);
 
@@ -228,7 +221,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Some(Rune(RUNE)),
+              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE)),
               ..Default::default()
             }),
             ..Default::default()
@@ -250,7 +243,7 @@ mod tests {
           id,
           RuneEntry {
             etching: txid,
-            rune: Rune(RUNE),
+            rune: Rune(SECOND_BLOCK_LOCKED_RUNE),
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
@@ -475,9 +468,7 @@ mod tests {
 
   #[test]
   fn etching_with_non_zero_divisibility_and_rune() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -527,9 +518,7 @@ mod tests {
 
   #[test]
   fn allocations_over_max_supply_are_ignored() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -584,9 +573,7 @@ mod tests {
 
   #[test]
   fn allocations_partially_over_max_supply_are_honored() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -642,9 +629,7 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_less_than_max_supply() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -692,9 +677,7 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_to_multiple_outputs() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -750,9 +733,7 @@ mod tests {
 
   #[test]
   fn allocations_to_invalid_outputs_are_ignored() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -807,9 +788,7 @@ mod tests {
 
   #[test]
   fn input_runes_may_be_allocated() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -901,9 +880,7 @@ mod tests {
 
   #[test]
   fn etched_rune_is_allocated_with_zero_supply_for_burned_runestone() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -950,9 +927,7 @@ mod tests {
 
   #[test]
   fn etched_reserved_rune_is_allocated_with_zero_supply_for_burned_runestone() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -996,9 +971,7 @@ mod tests {
 
   #[test]
   fn input_runes_are_burned_if_an_unrecognized_even_tag_is_encountered() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1081,9 +1054,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_assigned_to_first_non_op_return_output() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1165,9 +1136,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_burned_if_no_non_op_return_output_is_present() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1246,9 +1215,7 @@ mod tests {
   #[test]
   fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_non_op_return_output(
   ) {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1330,9 +1297,7 @@ mod tests {
 
   #[test]
   fn duplicate_runes_are_forbidden() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1416,9 +1381,7 @@ mod tests {
 
   #[test]
   fn outpoint_may_hold_multiple_runes() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1581,9 +1544,7 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_the_same_input_may_be_allocated() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -1817,9 +1778,7 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_different_inputs_may_be_allocated() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2001,9 +1960,7 @@ mod tests {
   #[test]
   fn unallocated_runes_are_assigned_to_first_non_op_return_output_when_op_return_is_not_last_output(
   ) {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2084,9 +2041,7 @@ mod tests {
 
   #[test]
   fn rune_rarity_is_assigned_correctly() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(2);
 
@@ -2187,9 +2142,7 @@ mod tests {
 
   #[test]
   fn edicts_with_id_zero_are_skipped() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2288,9 +2241,7 @@ mod tests {
 
   #[test]
   fn edicts_which_refer_to_input_rune_with_no_balance_are_skipped() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2480,9 +2431,7 @@ mod tests {
 
   #[test]
   fn edicts_over_max_inputs_are_ignored() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2574,9 +2523,7 @@ mod tests {
 
   #[test]
   fn edicts_may_transfer_runes_to_op_return_outputs() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2625,9 +2572,7 @@ mod tests {
 
   #[test]
   fn outputs_with_no_runes_have_no_balance() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2676,9 +2621,7 @@ mod tests {
 
   #[test]
   fn edicts_which_transfer_no_runes_to_output_create_no_balance_entry() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2734,9 +2677,7 @@ mod tests {
 
   #[test]
   fn split_in_etching() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2802,9 +2743,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_preceding_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2877,9 +2816,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_following_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -2952,9 +2889,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_in_etching() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3008,9 +2943,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_amount_with_preceding_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3073,9 +3006,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_amount_with_following_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3139,9 +3070,7 @@ mod tests {
 
   #[test]
   fn split() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3243,9 +3172,7 @@ mod tests {
 
   #[test]
   fn split_with_preceding_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3354,9 +3281,7 @@ mod tests {
 
   #[test]
   fn split_with_following_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3465,9 +3390,7 @@ mod tests {
 
   #[test]
   fn split_with_amount() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3569,9 +3492,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_with_preceding_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3680,9 +3601,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_with_following_edict() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3805,9 +3724,7 @@ mod tests {
 
   #[test]
   fn etching_may_specify_symbol() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3857,9 +3774,7 @@ mod tests {
 
   #[test]
   fn allocate_all_remaining_runes_in_etching() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -3907,9 +3822,7 @@ mod tests {
 
   #[test]
   fn allocate_all_remaining_runes_in_inputs() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4009,9 +3922,7 @@ mod tests {
 
   #[test]
   fn etching_with_limit_can_be_minted() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4142,9 +4053,7 @@ mod tests {
 
   #[test]
   fn open_etchings_can_be_limited_to_term() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4270,9 +4179,7 @@ mod tests {
 
   #[test]
   fn open_etchings_with_term_zero_cannot_be_minted() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4357,9 +4264,7 @@ mod tests {
 
   #[test]
   fn open_etching_claims_can_use_split() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4452,9 +4357,7 @@ mod tests {
 
   #[test]
   fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4504,9 +4407,7 @@ mod tests {
 
   #[test]
   fn limit_over_max_limit_is_ignored() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4580,9 +4481,7 @@ mod tests {
 
   #[test]
   fn omitted_limit_defaults_to_max_limit() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4627,9 +4526,7 @@ mod tests {
 
   #[test]
   fn transactions_cannot_claim_more_than_limit() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -4738,9 +4635,7 @@ mod tests {
 
   #[test]
   fn multiple_edicts_in_one_transaction_may_claim_open_etching() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
