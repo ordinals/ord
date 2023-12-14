@@ -71,6 +71,7 @@ fuzz_target!(|input: Input| {
       let _ = TransactionBuilder::new(
         satpoint,
         inscriptions,
+        BTreeSet::new(),
         amounts,
         recipient,
         change,
@@ -83,6 +84,7 @@ fuzz_target!(|input: Input| {
       let _ = TransactionBuilder::new(
         satpoint,
         inscriptions,
+        BTreeSet::new(),
         amounts,
         recipient,
         change,
