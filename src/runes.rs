@@ -257,9 +257,7 @@ mod tests {
   #[test]
   fn etching_cannot_specify_reserved_rune() {
     {
-      let context = Context::builder()
-        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-        .build();
+      let context = Context::builder().arg("--index-runes").build();
 
       context.mine_blocks(1);
 
@@ -289,9 +287,7 @@ mod tests {
     }
 
     {
-      let context = Context::builder()
-        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-        .build();
+      let context = Context::builder().arg("--index-runes").build();
 
       context.mine_blocks(1);
 
@@ -340,9 +336,7 @@ mod tests {
 
   #[test]
   fn reserved_runes_may_be_etched() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
