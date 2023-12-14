@@ -262,7 +262,7 @@ mod tests {
   }
 
   #[test]
-  fn runes_must_be_unreserved() {
+  fn etching_cannot_specify_reserved_rune() {
     {
       let context = Context::builder()
         .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
