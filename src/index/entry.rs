@@ -31,6 +31,7 @@ pub(crate) struct RuneEntry {
   pub(crate) limit: Option<u128>,
   pub(crate) number: u64,
   pub(crate) rune: Rune,
+  pub(crate) spacers: u32,
   pub(crate) supply: u128,
   pub(crate) symbol: Option<char>,
   pub(crate) timestamp: u32,
@@ -44,10 +45,20 @@ pub(super) type RuneEntryValue = (
   Option<u128>, // limit
   u64,          // number
   u128,         // rune
+  u32,          // spacers
   u128,         // supply
   Option<char>, // symbol
   u32,          // timestamp
 );
+
+impl RuneEntry {
+  pub(crate) fn spaced_rune(&self) -> SpacedRune {
+    SpacedRune {
+      rune: self.rune,
+      spacers: self.spacers,
+    }
+  }
+}
 
 impl Default for RuneEntry {
   fn default() -> Self {
@@ -59,6 +70,7 @@ impl Default for RuneEntry {
       limit: None,
       number: 0,
       rune: Rune(0),
+      spacers: 0,
       supply: 0,
       symbol: None,
       timestamp: 0,
@@ -70,7 +82,7 @@ impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
   fn load(
-    (burned, divisibility, end, etching, limit, number, rune, supply, symbol, timestamp): RuneEntryValue,
+    (burned, divisibility, end, etching, limit, number, rune, spacers, supply, symbol, timestamp): RuneEntryValue,
   ) -> Self {
     Self {
       burned,
@@ -89,6 +101,7 @@ impl Entry for RuneEntry {
       limit,
       number,
       rune: Rune(rune),
+      spacers,
       supply,
       symbol,
       timestamp,
@@ -116,6 +129,7 @@ impl Entry for RuneEntry {
       self.limit,
       self.number,
       self.rune.0,
+      self.spacers,
       self.supply,
       self.symbol,
       self.timestamp,
@@ -400,9 +414,10 @@ mod tests {
       limit: Some(4),
       number: 5,
       rune: Rune(6),
-      supply: 7,
+      spacers: 7,
+      supply: 8,
       symbol: Some('a'),
-      timestamp: 6,
+      timestamp: 9,
     };
 
     let value = (
@@ -417,8 +432,9 @@ mod tests {
       5,
       6,
       7,
+      8,
       Some('a'),
-      6,
+      9,
     );
 
     assert_eq!(entry.store(), value);

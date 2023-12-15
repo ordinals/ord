@@ -9,7 +9,7 @@ pub(crate) struct RuneHtml {
 
 impl PageContent for RuneHtml {
   fn title(&self) -> String {
-    format!("Rune {}", self.entry.rune)
+    format!("Rune {}", self.entry.spaced_rune())
   }
 }
 
@@ -24,13 +24,14 @@ mod tests {
         entry: RuneEntry {
           burned: 123456789123456789,
           divisibility: 9,
+          end: Some(11),
           etching: Txid::all_zeros(),
+          limit: Some(1000000001),
           number: 25,
           rune: Rune(u128::max_value()),
+          spacers: 1,
           supply: 123456789123456789,
           symbol: Some('$'),
-          limit: Some(1000000001),
-          end: Some(11),
           timestamp: 0,
         },
         id: RuneId {
@@ -42,7 +43,7 @@ mod tests {
           index: 0,
         }),
       },
-      r"<h1>BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+      r"<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
 <dl>
   <dt>id</dt>

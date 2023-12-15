@@ -6,8 +6,8 @@ pub(crate) struct Etch {
   divisibility: u8,
   #[clap(long, help = "Etch with fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
-  #[clap(long, help = "Etch rune <RUNE>.")]
-  rune: Rune,
+  #[clap(long, help = "Etch rune <RUNE>. May contain `.` or `•`as spacers.")]
+  rune: SpacedRune,
   #[clap(long, help = "Set supply to <SUPPLY>.")]
   supply: u128,
   #[clap(long, help = "Set currency symbol to <SYMBOL>.")]
@@ -30,26 +30,28 @@ impl Etch {
 
     index.update()?;
 
+    let SpacedRune { rune, spacers } = self.rune;
+
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let count = client.get_block_count()?;
 
     ensure!(
-      index.rune(self.rune)?.is_none(),
+      index.rune(rune)?.is_none(),
       "rune `{}` has already been etched",
-      self.rune,
+      rune,
     );
 
     let minimum_at_height =
       Rune::minimum_at_height(options.chain(), Height(u32::try_from(count).unwrap() + 1));
 
     ensure!(
-      self.rune >= minimum_at_height,
+      rune >= minimum_at_height,
       "rune is less than minimum for next block: {} < {minimum_at_height}",
-      self.rune,
+      rune,
     );
 
-    ensure!(!self.rune.is_reserved(), "rune `{}` is reserved", self.rune);
+    ensure!(!rune.is_reserved(), "rune `{}` is reserved", rune);
 
     ensure!(
       self.divisibility <= crate::runes::MAX_DIVISIBILITY,
@@ -61,8 +63,9 @@ impl Etch {
     let runestone = Runestone {
       etching: Some(Etching {
         divisibility: self.divisibility,
-        rune: Some(self.rune),
         limit: None,
+        rune: Some(rune),
+        spacers,
         symbol: Some(self.symbol),
         term: None,
       }),

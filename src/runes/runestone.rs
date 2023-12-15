@@ -1,12 +1,14 @@
 use super::*;
 
 const TAG_BODY: u128 = 0;
-const TAG_DIVISIBILITY: u128 = 1;
 const TAG_FLAGS: u128 = 2;
-const TAG_SYMBOL: u128 = 3;
 const TAG_RUNE: u128 = 4;
 const TAG_LIMIT: u128 = 6;
 const TAG_TERM: u128 = 8;
+
+const TAG_DIVISIBILITY: u128 = 1;
+const TAG_SPACERS: u128 = 3;
+const TAG_SYMBOL: u128 = 5;
 
 const FLAG_ETCH: u128 = 0b000_0001;
 
@@ -15,6 +17,8 @@ const TAG_BURN: u128 = 254;
 
 #[allow(unused)]
 const TAG_NOP: u128 = 255;
+
+const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
@@ -81,6 +85,7 @@ impl Runestone {
     let divisibility = fields.remove(&TAG_DIVISIBILITY);
     let limit = fields.remove(&TAG_LIMIT);
     let rune = fields.remove(&TAG_RUNE);
+    let spacers = fields.remove(&TAG_SPACERS);
     let symbol = fields.remove(&TAG_SYMBOL);
     let term = fields.remove(&TAG_TERM);
 
@@ -92,6 +97,10 @@ impl Runestone {
           .unwrap_or_default(),
         limit: limit.and_then(|limit| (limit <= MAX_LIMIT).then_some(limit)),
         rune: rune.map(Rune),
+        spacers: spacers
+          .and_then(|spacers| u32::try_from(spacers).ok())
+          .and_then(|spacers| (spacers <= MAX_SPACERS).then_some(spacers))
+          .unwrap_or_default(),
         symbol: symbol
           .and_then(|symbol| u32::try_from(symbol).ok())
           .and_then(char::from_u32),
@@ -123,6 +132,11 @@ impl Runestone {
       if etching.divisibility != 0 {
         varint::encode_to_vec(TAG_DIVISIBILITY, &mut payload);
         varint::encode_to_vec(etching.divisibility.into(), &mut payload);
+      }
+
+      if etching.spacers != 0 {
+        varint::encode_to_vec(TAG_SPACERS, &mut payload);
+        varint::encode_to_vec(etching.spacers.into(), &mut payload);
       }
 
       if let Some(symbol) = etching.symbol {
@@ -783,6 +797,8 @@ mod tests {
         4,
         TAG_DIVISIBILITY,
         1,
+        TAG_SPACERS,
+        5,
         TAG_SYMBOL,
         'a'.into(),
         TAG_TERM,
@@ -806,6 +822,7 @@ mod tests {
           symbol: Some('a'),
           term: Some(2),
           limit: Some(3),
+          spacers: 5,
         }),
         ..Default::default()
       },
@@ -1388,6 +1405,7 @@ mod tests {
           symbol: Some('@'),
           rune: Some(Rune(3)),
           term: Some(4),
+          spacers: 5,
         }),
         edicts: vec![
           Edict {
@@ -1410,6 +1428,8 @@ mod tests {
         3,
         TAG_DIVISIBILITY,
         1,
+        TAG_SPACERS,
+        5,
         TAG_SYMBOL,
         '@'.into(),
         TAG_LIMIT,
@@ -1434,6 +1454,7 @@ mod tests {
           symbol: None,
           rune: Some(Rune(3)),
           term: None,
+          spacers: 0,
         }),
         burn: false,
         ..Default::default()
@@ -1449,6 +1470,7 @@ mod tests {
           symbol: None,
           rune: None,
           term: None,
+          spacers: 0,
         }),
         burn: false,
         ..Default::default()
@@ -1496,5 +1518,20 @@ mod tests {
     .encipher();
 
     assert_eq!(script.instructions().count(), 4);
+  }
+
+  #[test]
+  fn max_spacers() {
+    let mut rune = String::new();
+
+    for (i, c) in Rune(u128::MAX).to_string().chars().enumerate() {
+      if i > 0 {
+        rune.push('•');
+      }
+
+      rune.push(c);
+    }
+
+    assert_eq!(MAX_SPACERS, rune.parse::<SpacedRune>().unwrap().spacers);
   }
 }

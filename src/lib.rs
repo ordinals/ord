@@ -28,7 +28,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::{Edict, Etching, Pile},
+    runes::{Edict, Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
