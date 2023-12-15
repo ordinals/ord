@@ -681,18 +681,6 @@ fn sending_rune_with_divisibility_works() {
 }
 
 #[test]
-#[ignore]
-fn error_messages_use_spaced_runes() {
-  todo!()
-}
-
-#[test]
-#[ignore]
-fn sending_rune_does_not_send_inscription() {
-  todo!()
-}
-
-#[test]
 fn sending_rune_leaves_unspent_runes_in_wallet() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
@@ -753,12 +741,172 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
   assert!(rpc_server
     .change_addresses()
     .iter()
-    .position(|change_address| change_address == &address)
-    .is_some())
+    .any(|change_address| change_address == &address));
 }
 
 #[test]
-#[ignore]
-fn sending_rune_creates_transaction_with_expected_edict() {
-  todo!()
+fn sending_rune_creates_transaction_with_expected_runestone() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  let rune = Rune(RUNE);
+
+  etch(&rpc_server, rune);
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
+    rune,
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        rune,
+        vec![
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 1
+            },
+            250
+          ),
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 2
+            },
+            750
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+
+  let tx = rpc_server.tx(3, 1);
+
+  assert_eq!(tx.txid(), output.transaction);
+
+  assert_eq!(
+    Runestone::from_transaction(&tx).unwrap(),
+    Runestone {
+      etching: None,
+      edicts: vec![Edict {
+        id: RuneId {
+          height: 2,
+          index: 1
+        }
+        .into(),
+        amount: 750,
+        output: 2
+      }],
+      burn: false,
+    },
+  );
+}
+
+#[test]
+fn error_messages_use_spaced_runes() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  CommandBuilder::new(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001A•AAAAAAAAAAAA",
+  )
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: insufficient `A•AAAAAAAAAAAA` balance, only ¢1000 in wallet\n")
+  .run_and_extract_stdout();
+
+  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1F•OO")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: rune `F•OO` has not been etched\n")
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn sending_rune_does_not_send_inscription() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks_with_subsidy(1, 10000);
+
+  let rune = Rune(RUNE);
+
+  CommandBuilder::new("--chain regtest --index-runes wallet inscribe --fee-rate 0 --file foo.txt")
+    .write("foo.txt", "FOO")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks_with_subsidy(1, 10000);
+
+  assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>(),
+    ord::subcommand::wallet::balance::Output {
+      cardinal: 10000,
+      ordinal: 10000,
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
+      total: 20000,
+    }
+  );
+
+  CommandBuilder::new(
+    format!(
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 0 --supply 1000 --symbol ¢",
+    rune
+    )
+  )
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Etch>();
+
+  rpc_server.mine_blocks_with_subsidy(1, 0);
+
+  assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>(),
+    ord::subcommand::wallet::balance::Output {
+      cardinal: 0,
+      ordinal: 10000,
+      runic: Some(10000),
+      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+      total: 20000,
+    }
+  );
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 0 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000{}",
+    rune
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .stderr_regex("error:.*")
+  .run_and_extract_stdout();
 }

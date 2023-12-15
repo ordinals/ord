@@ -181,7 +181,7 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+    Self::lock_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(rune)?
@@ -251,7 +251,7 @@ impl Send {
           value: 0,
         },
         TxOut {
-          script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
+          script_pubkey: get_change_address(client, chain)?.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {
@@ -261,7 +261,7 @@ impl Send {
       ],
     };
 
-    let unsigned_transaction = fund_raw_transaction(&client, fee_rate, &unfunded_transaction)?;
+    let unsigned_transaction = fund_raw_transaction(client, fee_rate, &unfunded_transaction)?;
 
     let signed_transaction = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

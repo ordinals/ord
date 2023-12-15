@@ -132,6 +132,7 @@ impl CommandBuilder {
     command
   }
 
+  #[track_caller]
   fn run(self) -> (TempDir, String) {
     let child = self.command().spawn().unwrap();
 
@@ -164,10 +165,12 @@ impl CommandBuilder {
     fs::read_to_string(tempdir.path().join(path)).unwrap()
   }
 
+  #[track_caller]
   pub(crate) fn run_and_extract_stdout(self) -> String {
     self.run().1
   }
 
+  #[track_caller]
   pub(crate) fn run_and_deserialize_output<T: DeserializeOwned>(self) -> T {
     let stdout = self.stdout_regex(".*").run_and_extract_stdout();
     serde_json::from_str(&stdout)
