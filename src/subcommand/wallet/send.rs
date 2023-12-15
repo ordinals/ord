@@ -45,7 +45,7 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
         let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
         return Ok(Box::new(Output { transaction }));
       }
@@ -116,7 +116,7 @@ impl Send {
     Ok(Box::new(Output { transaction: txid }))
   }
 
-  fn lock_outputs(
+  fn lock_non_cardinal_outputs(
     client: &Client,
     inscriptions: &BTreeMap<SatPoint, InscriptionId>,
     runic_outputs: &BTreeSet<OutPoint>,
@@ -181,7 +181,7 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
+    Self::lock_non_cardinal_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(spaced_rune.rune)?
