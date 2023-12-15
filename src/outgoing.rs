@@ -5,7 +5,7 @@ pub(crate) enum Outgoing {
   Amount(Amount),
   InscriptionId(InscriptionId),
   SatPoint(SatPoint),
-  Rune { decimal: Decimal, rune: Rune },
+  Rune { decimal: Decimal, rune: SpacedRune },
 }
 
 impl FromStr for Outgoing {
@@ -17,6 +17,7 @@ impl FromStr for Outgoing {
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
       static ref AMOUNT: Regex = Regex::new(
         r"(?xi)
+        ^
         (
           \d+
           |
@@ -27,11 +28,13 @@ impl FromStr for Outgoing {
         \ *
         (bit|btc|cbtc|mbtc|msat|nbtc|pbtc|sat|satoshi|ubtc)
         (s)?
+        $
         "
       )
       .unwrap();
       static ref RUNE: Regex = Regex::new(
         r"(?x)
+        ^
         (
           \d+
           |
@@ -41,8 +44,9 @@ impl FromStr for Outgoing {
         )
         \ *
         (
-          [A-Z]+
+          [A-Z•.]+
         )
+        $
         "
       )
       .unwrap();

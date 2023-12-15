@@ -2,7 +2,7 @@ use super::*;
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {etching::Etching, pile::Pile};
+pub(crate) use {etching::Etching, pile::Pile, spaced_rune::SpacedRunes};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;

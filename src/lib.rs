@@ -29,7 +29,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::{Etching, Pile},
+    runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
