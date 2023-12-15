@@ -53,7 +53,6 @@ impl Send {
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("inscription {id} not found"))?,
       Outgoing::Rune { decimal, rune } => {
-        Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
         let transaction = Self::send_runes(
           address,
           chain,
@@ -64,6 +63,7 @@ impl Send {
           inscriptions,
           rune,
           runic_outputs,
+          unspent_outputs,
         )?;
         return Ok(Box::new(Output { transaction }));
       }
@@ -174,6 +174,7 @@ impl Send {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     rune: Rune,
     runic_outputs: BTreeSet<OutPoint>,
+    unspent_outputs: BTreeMap<OutPoint, Amount>,
   ) -> Result<Txid> {
     // todo:
     // - rune not etched is an error
@@ -184,6 +185,8 @@ impl Send {
     // - inscriptions are not sent
     // - unspent input runes are sent to change address
     // - transaction has correct edict
+
+    Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(rune)?
