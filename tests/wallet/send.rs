@@ -509,3 +509,38 @@ fn send_btc_does_not_send_locked_utxos() {
     .stderr_regex("error:.*")
     .run_and_extract_stdout();
 }
+
+#[test]
+fn sending_unetched_rune_is_an_error() {
+  todo!()
+}
+
+#[test]
+fn sending_rune_with_divisibility_out_of_range_is_an_error() {
+  todo!()
+}
+
+#[test]
+fn sending_rune_with_value_out_of_range_is_an_error() {
+  todo!()
+}
+
+#[test]
+fn sending_rune_with_insufficient_balance_is_an_error() {
+  todo!()
+}
+
+#[test]
+fn sending_rune_does_not_send_inscription() {
+  todo!()
+}
+
+#[test]
+fn unspent_runes_remain_in_wallet() {
+  todo!()
+}
+
+#[test]
+fn sending_runes_creates_transaction_with_expected_edict() {
+  todo!()
+}

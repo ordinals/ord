@@ -176,16 +176,6 @@ impl Send {
     runic_outputs: BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, Amount>,
   ) -> Result<Txid> {
-    // todo:
-    // - rune not etched is an error
-    // - bad decimal:
-    //   - divisibility out of range
-    //   - value too large
-    // - insufficient rune balance is an error
-    // - inscriptions are not sent
-    // - unspent input runes are sent to change address
-    // - transaction has correct edict
-
     Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
