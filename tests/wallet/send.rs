@@ -531,7 +531,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
 }
 
 #[test]
-fn sending_rune_with_excessive_prevision_is_an_error() {
+fn sending_rune_with_excessive_precision_is_an_error() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
