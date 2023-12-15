@@ -884,7 +884,7 @@ fn error_messages_use_spaced_runes() {
   CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1F•OO")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: rune `F•OO` has not been etched\n")
+    .expected_stderr("error: rune `FOO` has not been etched\n")
     .run_and_extract_stdout();
 }
 
