@@ -2277,12 +2277,6 @@ mod tests {
     );
 
     server.assert_response_regex(
-      "/rune/AAAAAAAAAAAAA",
-      StatusCode::OK,
-      r".*<title>Rune AAAAAAAAAAAAA</title>.*",
-    );
-
-    server.assert_response_regex(
       format!("/inscription/{txid}i0"),
       StatusCode::OK,
       ".*
