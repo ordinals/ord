@@ -160,15 +160,27 @@ fn fund_raw_transaction(
   fee_rate: FeeRate,
   unfunded_transaction: &Transaction,
 ) -> Result<Vec<u8>> {
+  let mut buffer = Vec::new();
+
+  {
+    unfunded_transaction.version.consensus_encode(&mut buffer)?;
+    unfunded_transaction.input.consensus_encode(&mut buffer)?;
+    unfunded_transaction.output.consensus_encode(&mut buffer)?;
+    unfunded_transaction
+      .lock_time
+      .consensus_encode(&mut buffer)?;
+  }
+
   Ok(
     client
       .fund_raw_transaction(
-        unfunded_transaction,
+        &buffer,
         Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
           // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
           // and *not* fee per vB. So, we multiply the fee rate given by the user
           // by 1000.
           fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
+          change_position: Some(unfunded_transaction.output.len().try_into()?),
           ..Default::default()
         }),
         Some(false),

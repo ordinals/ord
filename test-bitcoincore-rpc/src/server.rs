@@ -243,7 +243,14 @@ impl Api for Server {
     options: Option<FundRawTransactionOptions>,
     _is_witness: Option<bool>,
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
+    let options = options.unwrap();
+
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    assert_eq!(
+      options.change_position,
+      Some(transaction.output.len().try_into().unwrap())
+    );
 
     let state = self.state();
 
@@ -294,7 +301,7 @@ impl Api for Server {
       script_pubkey: ScriptBuf::new(),
     });
 
-    let fee = if let Some(fee_rate) = options.and_then(|options| options.fee_rate) {
+    let fee = if let Some(fee_rate) = options.fee_rate {
       // increase vsize to account for the witness that `fundrawtransaction` will add
       let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
       let funded_kwu = funded_vsize / 1000.0;
