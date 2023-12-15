@@ -16,7 +16,7 @@ impl FromStr for Outgoing {
       static ref SATPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+:\d+$").unwrap();
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
       static ref AMOUNT: Regex = Regex::new(
-        r"(?xi)
+        r"(?x)
         ^
         (
           \d+
