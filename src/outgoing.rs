@@ -146,7 +146,7 @@ mod tests {
     case(
       "1.1X.Y.Z",
       Outgoing::Rune {
-        rune: "XYZ".parse().unwrap(),
+        rune: "X.Y.Z".parse().unwrap(),
         decimal: "1.1".parse().unwrap(),
       },
     );
