@@ -290,7 +290,7 @@ impl RawEnvelope {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::absolute::LockTime};
+  use super::*;
 
   fn parse(witnesses: &[Witness]) -> Vec<ParsedEnvelope> {
     ParsedEnvelope::from_transaction(&Transaction {

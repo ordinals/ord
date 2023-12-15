@@ -17,6 +17,7 @@ use {
     charm::Charm,
     config::Config,
     decimal::Decimal,
+    decimal_sat::DecimalSat,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
     envelope::ParsedEnvelope,
@@ -36,14 +37,17 @@ use {
   bip39::Mnemonic,
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::constants::COIN_VALUE,
-    blockdata::constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
+    blockdata::{
+      constants::{COIN_VALUE, DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
+      locktime::absolute::LockTime,
+    },
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
     opcodes,
     script::{self, Instruction},
     Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
@@ -114,6 +118,7 @@ mod chain;
 mod charm;
 mod config;
 mod decimal;
+mod decimal_sat;
 mod degree;
 mod deserialize_from_str;
 mod envelope;
@@ -148,6 +153,29 @@ static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn fund_raw_transaction(
+  client: &Client,
+  fee_rate: FeeRate,
+  unfunded_transaction: &Transaction,
+) -> Result<Vec<u8>> {
+  Ok(
+    client
+      .fund_raw_transaction(
+        unfunded_transaction,
+        Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
+          // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
+          // and *not* fee per vB. So, we multiply the fee rate given by the user
+          // by 1000.
+          fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
+          ..Default::default()
+        }),
+        Some(false),
+      )?
+      .hex,
+  )
+}
 
 fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")

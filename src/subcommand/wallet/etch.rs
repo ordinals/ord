@@ -1,4 +1,4 @@
-use {super::*, bitcoin::blockdata::locktime::absolute::LockTime};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Etch {
@@ -110,24 +110,13 @@ impl Etch {
       bail!("failed to lock UTXOs");
     }
 
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    let unsigned_transaction = client.fund_raw_transaction(
-      &unfunded_transaction,
-      Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
-        // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
-        // and *not* fee per vB. So, we multiply the fee rate given by the user
-        // by 1000.
-        fee_rate: Some(Amount::from_sat((self.fee_rate.n() * 1000.0).ceil() as u64)),
-        ..Default::default()
-      }),
-      Some(false),
-    )?;
+    let unsigned_transaction = fund_raw_transaction(&client, self.fee_rate, &unfunded_transaction)?;
 
-    let signed_tx = client
-      .sign_raw_transaction_with_wallet(&unsigned_transaction.hex, None, None)?
+    let signed_transaction = client
+      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let transaction = client.send_raw_transaction(&signed_tx)?;
+    let transaction = client.send_raw_transaction(&signed_transaction)?;
 
     Ok(Box::new(Output { transaction }))
   }

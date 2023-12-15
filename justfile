@@ -17,9 +17,6 @@ fmt:
 clippy:
   cargo clippy --all --all-targets -- -D warnings
 
-lclippy:
-  cargo lclippy --all --all-targets -- -D warnings
-
 deploy branch remote chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \

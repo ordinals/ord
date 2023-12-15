@@ -215,10 +215,9 @@ impl Runestone {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    bitcoin::{locktime, script::PushBytes, ScriptBuf, TxOut},
-  };
+  use {super::*, bitcoin::script::PushBytes};
+
+  use bitcoin::blockdata::locktime;
 
   fn decipher(integers: &[u128]) -> Runestone {
     let payload = payload(integers);

@@ -54,7 +54,7 @@ fn send_unknown_inscription() {
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}i0"
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
+  .expected_stderr(format!("error: inscription {txid}i0 not found\n"))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

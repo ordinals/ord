@@ -37,10 +37,7 @@ impl PageContent for TransactionHtml {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    bitcoin::{blockdata::script, locktime::absolute::LockTime, TxOut},
-  };
+  use {super::*, bitcoin::blockdata::script};
 
   #[test]
   fn html() {
