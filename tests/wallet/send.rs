@@ -615,6 +615,49 @@ fn sending_rune_works() {
 }
 
 #[test]
+fn sending_spaced_rune_works() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  let output = CommandBuilder::new(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000A•AAAAAAAAAAAA",
+  )
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        Rune(RUNE),
+        vec![(
+          OutPoint {
+            txid: output.transaction,
+            vout: 2
+          },
+          1000
+        )]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+}
+
+#[test]
 fn sending_rune_with_divisibility_works() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
