@@ -231,8 +231,6 @@ impl Runestone {
 mod tests {
   use {super::*, bitcoin::script::PushBytes};
 
-  use bitcoin::blockdata::locktime;
-
   fn decipher(integers: &[u128]) -> Runestone {
     let payload = payload(integers);
 
@@ -248,7 +246,7 @@ mod tests {
           .into_script(),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap()
@@ -274,7 +272,7 @@ mod tests {
           script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       None
@@ -287,7 +285,7 @@ mod tests {
       Runestone::decipher(&Transaction {
         input: Vec::new(),
         output: Vec::new(),
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -303,7 +301,7 @@ mod tests {
           script_pubkey: script::Builder::new().push_slice([]).into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -321,7 +319,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -340,7 +338,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -355,7 +353,7 @@ mod tests {
         script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -377,7 +375,7 @@ mod tests {
         script_pubkey: ScriptBuf::from_bytes(script_pubkey),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -395,7 +393,7 @@ mod tests {
           .into_script(),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap();
@@ -416,7 +414,7 @@ mod tests {
             .into_script(),
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       })
       .unwrap()
@@ -444,7 +442,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone::default()))
@@ -479,7 +477,7 @@ mod tests {
           value: 0,
         },
       ],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -987,7 +985,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1028,7 +1026,7 @@ mod tests {
             value: 0
           }
         ],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1068,7 +1066,7 @@ mod tests {
             value: 0
           }
         ],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1373,7 +1371,7 @@ mod tests {
           script_pubkey,
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       };
 
