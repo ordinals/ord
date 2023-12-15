@@ -1127,9 +1127,11 @@ mod tests {
         divisibility: MAX_DIVISIBILITY,
         rune: Some(Rune(0)),
         symbol: Some('$'),
-        ..Default::default()
+        limit: Some(1),
+        spacers: 1,
+        term: Some(1),
       }),
-      10,
+      16,
     );
 
     case(
