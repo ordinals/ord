@@ -274,7 +274,7 @@ impl Handle {
     self.state().loaded_wallets.clone()
   }
 
-  pub fn get_change_addresses(&self) -> Vec<Address> {
+  pub fn change_addresses(&self) -> Vec<Address> {
     self.state().change_addresses.clone()
   }
 

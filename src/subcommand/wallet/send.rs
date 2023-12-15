@@ -176,11 +176,16 @@ impl Send {
     runic_outputs: BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, Amount>,
   ) -> Result<Txid> {
+    ensure!(
+      index.has_rune_index(),
+      "sending runes with `ord send` requires index created with `--index-runes` flag",
+    );
+
     Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(rune)?
-      .with_context(|| format!("rune {rune} has not been etched"))?;
+      .with_context(|| format!("rune `{rune}` has not been etched"))?;
 
     let amount = decimal.to_amount(entry.divisibility)?;
 
@@ -211,9 +216,9 @@ impl Send {
 
     ensure! {
       input_runes >= amount,
-      "insufficient {rune} balance, only {} in wallet",
+      "insufficient `{rune}` balance, only {} in wallet",
       Pile {
-        amount,
+        amount: input_runes,
         divisibility: entry.divisibility,
         symbol: entry.symbol
       },

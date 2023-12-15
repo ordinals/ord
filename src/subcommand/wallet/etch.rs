@@ -9,12 +9,12 @@ pub(crate) struct Etch {
   #[clap(long, help = "Etch rune <RUNE>.")]
   rune: Rune,
   #[clap(long, help = "Set supply to <SUPPLY>.")]
-  supply: u128,
+  supply: Decimal,
   #[clap(long, help = "Set currency symbol to <SYMBOL>.")]
   symbol: char,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
   pub transaction: Txid,
 }
@@ -67,7 +67,7 @@ impl Etch {
         term: None,
       }),
       edicts: vec![Edict {
-        amount: self.supply,
+        amount: self.supply.to_amount(self.divisibility)?,
         id: 0,
         output: 1,
       }],

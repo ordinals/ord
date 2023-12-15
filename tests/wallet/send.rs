@@ -511,36 +511,254 @@ fn send_btc_does_not_send_locked_utxos() {
 }
 
 #[test]
-fn sending_unetched_rune_is_an_error() {
-  todo!()
+fn sending_rune_that_has_not_been_etched_is_an_error() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  let coinbase_tx = &rpc_server.mine_blocks(1)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+
+  rpc_server.lock(outpoint);
+
+  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1FOO")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: rune `FOO` has not been etched\n")
+    .run_and_extract_stdout();
 }
 
 #[test]
-fn sending_rune_with_divisibility_out_of_range_is_an_error() {
-  todo!()
-}
+fn sending_rune_with_excessive_prevision_is_an_error() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
-#[test]
-fn sending_rune_with_value_out_of_range_is_an_error() {
-  todo!()
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1.1{}",
+    Rune(RUNE)
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: excessive precision\n")
+  .run_and_extract_stdout();
 }
 
 #[test]
 fn sending_rune_with_insufficient_balance_is_an_error() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001{}",
+    Rune(RUNE)
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: insufficient `AAAAAAAAAAAAA` balance, only ¢1000 in wallet\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn sending_rune_works() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000{}",
+    Rune(RUNE)
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        Rune(RUNE),
+        vec![(
+          OutPoint {
+            txid: output.transaction,
+            vout: 2
+          },
+          1000
+        )]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+}
+
+#[test]
+fn sending_rune_with_divisibility_works() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let rune = Rune(RUNE);
+
+  CommandBuilder::new(
+    format!(
+    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 0 --supply 100 --symbol ¢",
+    rune,
+    )
+  )
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Etch>();
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 10.1{}",
+    rune
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        Rune(RUNE),
+        vec![
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 1
+            },
+            899
+          ),
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 2
+            },
+            101
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+}
+
+#[test]
+#[ignore]
+fn error_messages_use_spaced_runes() {
   todo!()
 }
 
 #[test]
+#[ignore]
 fn sending_rune_does_not_send_inscription() {
   todo!()
 }
 
 #[test]
-fn unspent_runes_remain_in_wallet() {
-  todo!()
+fn sending_rune_leaves_unspent_runes_in_wallet() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+
+  etch(&rpc_server, Rune(RUNE));
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
+    Rune(RUNE)
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        Rune(RUNE),
+        vec![
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 1
+            },
+            250
+          ),
+          (
+            OutPoint {
+              txid: output.transaction,
+              vout: 2
+            },
+            750
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+
+  let tx = rpc_server.tx(3, 1);
+
+  assert_eq!(tx.txid(), output.transaction);
+
+  let address = Address::from_script(&tx.output[1].script_pubkey, Network::Regtest).unwrap();
+
+  assert!(rpc_server
+    .change_addresses()
+    .iter()
+    .position(|change_address| change_address == &address)
+    .is_some())
 }
 
 #[test]
-fn sending_runes_creates_transaction_with_expected_edict() {
+#[ignore]
+fn sending_rune_creates_transaction_with_expected_edict() {
   todo!()
 }

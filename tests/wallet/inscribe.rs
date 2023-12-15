@@ -1423,7 +1423,7 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
       ".*
   <dt>address</dt>
   <dd class=monospace>{}</dd>.*",
-      rpc_server.get_change_addresses()[0]
+      rpc_server.change_addresses()[0]
     ),
   );
 
