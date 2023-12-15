@@ -45,111 +45,26 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::lock_outputs(&client, inscriptions, runic_outputs, unspent_outputs)?;
-        let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
-        return Ok(Box::new(Output { transaction: txid }));
+        Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
+        return Ok(Box::new(Output { transaction }));
       }
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("inscription {id} not found"))?,
       Outgoing::Rune { decimal, rune } => {
-        // todo:
-        // - rune not etched is an error
-        // - bad decimal:
-        //   - divisibility out of range
-        //   - value too large
-        // - insufficient rune balance is an error
-        // - inscriptions are not sent
-        // - unspent input runes are sent to change address
-        // - transaction has correct edict
-
-        let (id, entry) = index
-          .rune(rune)?
-          .with_context(|| format!("rune {rune} has not been etched"))?;
-
-        let amount = decimal.to_amount(entry.divisibility)?;
-
-        let inscribed_outputs = inscriptions
-          .keys()
-          .map(|satpoint| satpoint.outpoint)
-          .collect::<HashSet<OutPoint>>();
-
-        let mut input_runes = 0;
-        let mut input = Vec::new();
-
-        for output in runic_outputs {
-          if inscribed_outputs.contains(&output) {
-            continue;
-          }
-
-          let balance = index.get_rune_balance(output, id)?;
-
-          if balance > 0 {
-            input_runes += balance;
-            input.push(output);
-          }
-
-          if input_runes >= amount {
-            break;
-          }
-        }
-
-        ensure! {
-          input_runes >= amount,
-          "insufficient {rune} balance, only {} in wallet",
-          Pile {
-            amount,
-            divisibility: entry.divisibility,
-            symbol: entry.symbol
-          },
-        }
-
-        let runestone = Runestone {
-          edicts: vec![Edict {
-            amount,
-            id: id.into(),
-            output: 2,
-          }],
-          ..Default::default()
-        };
-
-        let unfunded_transaction = Transaction {
-          version: 1,
-          lock_time: LockTime::ZERO,
-          input: input
-            .into_iter()
-            .map(|previous_output| TxIn {
-              previous_output,
-              script_sig: ScriptBuf::new(),
-              sequence: Sequence::MAX,
-              witness: Witness::new(),
-            })
-            .collect(),
-          output: vec![
-            TxOut {
-              script_pubkey: runestone.encipher(),
-              value: 0,
-            },
-            TxOut {
-              script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
-              value: TARGET_POSTAGE.to_sat(),
-            },
-            TxOut {
-              script_pubkey: address.script_pubkey(),
-              value: TARGET_POSTAGE.to_sat(),
-            },
-          ],
-        };
-
-        let unsigned_transaction =
-          fund_raw_transaction(&client, self.fee_rate, &unfunded_transaction)?;
-
-        let signed_transaction = client
-          .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
-          .hex;
-
-        let transaction = client.send_raw_transaction(&signed_transaction)?;
-
+        Self::lock_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+        let transaction = Self::send_runes(
+          address,
+          chain,
+          &client,
+          decimal,
+          self.fee_rate,
+          &index,
+          inscriptions,
+          rune,
+          runic_outputs,
+        )?;
         return Ok(Box::new(Output { transaction }));
       }
       Outgoing::SatPoint(satpoint) => {
@@ -203,8 +118,8 @@ impl Send {
 
   fn lock_outputs(
     client: &Client,
-    inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    runic_outputs: BTreeSet<OutPoint>,
+    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
+    runic_outputs: &BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, bitcoin::Amount>,
   ) -> Result {
     let all_inscription_outputs = inscriptions
@@ -226,7 +141,12 @@ impl Send {
     Ok(())
   }
 
-  fn send_amount(client: &Client, amount: Amount, address: Address, fee_rate: f64) -> Result<Txid> {
+  fn send_amount(
+    client: &Client,
+    amount: Amount,
+    address: Address,
+    fee_rate: FeeRate,
+  ) -> Result<Txid> {
     Ok(client.call(
       "sendtoaddress",
       &[
@@ -239,8 +159,116 @@ impl Send {
         serde_json::Value::Null,    //  7. conf_target
         serde_json::Value::Null,    //  8. estimate_mode
         serde_json::Value::Null,    //  9. avoid_reuse
-        fee_rate.into(),            // 10. fee_rate
+        fee_rate.n().into(),        // 10. fee_rate
       ],
     )?)
+  }
+
+  fn send_runes(
+    address: Address,
+    chain: Chain,
+    client: &Client,
+    decimal: Decimal,
+    fee_rate: FeeRate,
+    index: &Index,
+    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    rune: Rune,
+    runic_outputs: BTreeSet<OutPoint>,
+  ) -> Result<Txid> {
+    // todo:
+    // - rune not etched is an error
+    // - bad decimal:
+    //   - divisibility out of range
+    //   - value too large
+    // - insufficient rune balance is an error
+    // - inscriptions are not sent
+    // - unspent input runes are sent to change address
+    // - transaction has correct edict
+
+    let (id, entry) = index
+      .rune(rune)?
+      .with_context(|| format!("rune {rune} has not been etched"))?;
+
+    let amount = decimal.to_amount(entry.divisibility)?;
+
+    let inscribed_outputs = inscriptions
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let mut input_runes = 0;
+    let mut input = Vec::new();
+
+    for output in runic_outputs {
+      if inscribed_outputs.contains(&output) {
+        continue;
+      }
+
+      let balance = index.get_rune_balance(output, id)?;
+
+      if balance > 0 {
+        input_runes += balance;
+        input.push(output);
+      }
+
+      if input_runes >= amount {
+        break;
+      }
+    }
+
+    ensure! {
+      input_runes >= amount,
+      "insufficient {rune} balance, only {} in wallet",
+      Pile {
+        amount,
+        divisibility: entry.divisibility,
+        symbol: entry.symbol
+      },
+    }
+
+    let runestone = Runestone {
+      edicts: vec![Edict {
+        amount,
+        id: id.into(),
+        output: 2,
+      }],
+      ..Default::default()
+    };
+
+    let unfunded_transaction = Transaction {
+      version: 1,
+      lock_time: LockTime::ZERO,
+      input: input
+        .into_iter()
+        .map(|previous_output| TxIn {
+          previous_output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: vec![
+        TxOut {
+          script_pubkey: runestone.encipher(),
+          value: 0,
+        },
+        TxOut {
+          script_pubkey: get_change_address(&client, chain)?.script_pubkey(),
+          value: TARGET_POSTAGE.to_sat(),
+        },
+        TxOut {
+          script_pubkey: address.script_pubkey(),
+          value: TARGET_POSTAGE.to_sat(),
+        },
+      ],
+    };
+
+    let unsigned_transaction = fund_raw_transaction(&client, fee_rate, &unfunded_transaction)?;
+
+    let signed_transaction = client
+      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
+      .hex;
+
+    Ok(client.send_raw_transaction(&signed_transaction)?)
   }
 }
