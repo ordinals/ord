@@ -77,9 +77,20 @@ mod tests {
       assert_eq!(s.parse::<Decimal>().unwrap(), Decimal { value, scale });
     }
 
-    ".".parse::<Decimal>().unwrap_err();
-    "a.b".parse::<Decimal>().unwrap_err();
-    " 0.1 ".parse::<Decimal>().unwrap_err();
+    assert_eq!(
+      ".".parse::<Decimal>().unwrap_err().to_string(),
+      "empty decimal",
+    );
+
+    assert_eq!(
+      "a.b".parse::<Decimal>().unwrap_err().to_string(),
+      "invalid digit found in string",
+    );
+
+    assert_eq!(
+      " 0.1 ".parse::<Decimal>().unwrap_err().to_string(),
+      "invalid digit found in string",
+    );
 
     case("0", 0, 0);
     case("0.00000", 0, 0);
