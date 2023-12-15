@@ -172,7 +172,7 @@ mod tests {
 
   #[test]
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
-    const SECOND_BLOCK_LOCKED_RUNE: u128 = 99235208761673842;
+    let block_two_minimum: u128 = Rune::minimum_at_height(Chain::Regtest, Height(2)).0;
 
     {
       let context = Context::builder()
@@ -192,7 +192,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE - 1)),
+              rune: Some(Rune(block_two_minimum - 1)),
               ..Default::default()
             }),
             ..Default::default()
@@ -222,7 +222,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              rune: Some(Rune(SECOND_BLOCK_LOCKED_RUNE)),
+              rune: Some(Rune(block_two_minimum)),
               ..Default::default()
             }),
             ..Default::default()
@@ -244,7 +244,7 @@ mod tests {
           id,
           RuneEntry {
             etching: txid,
-            rune: Rune(SECOND_BLOCK_LOCKED_RUNE),
+            rune: Rune(block_two_minimum),
             supply: u128::max_value(),
             timestamp: 2,
             ..Default::default()
