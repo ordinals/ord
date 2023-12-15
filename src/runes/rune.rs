@@ -36,21 +36,23 @@ impl Rune {
   ];
 
   pub(crate) fn minimum_at_height(chain: Chain, height: Height) -> Self {
+    let offset = height.0.saturating_add(1);
+
     const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
     let start = chain.first_rune_height();
 
     let end = start + SUBSIDY_HALVING_INTERVAL;
 
-    if height.0 < start {
+    if offset < start {
       return Rune(Self::STEPS[12]);
     }
 
-    if height.0 >= end {
+    if offset >= end {
       return Rune(0);
     }
 
-    let progress = height.0.saturating_sub(start);
+    let progress = offset.saturating_sub(start);
 
     let length = 12u32.saturating_sub(progress / INTERVAL);
 
@@ -210,66 +212,69 @@ mod tests {
 
     case(0, "AAAAAAAAAAAAA");
     case(START / 2, "AAAAAAAAAAAAA");
-    case(START, "AAAAAAAAAAAAA");
-    case(START + 1, "ZZYZXBRKWXVA");
-    case(END - 1, "B");
+    case(START, "ZZYZXBRKWXVA");
+    case(START + 1, "ZZXZUDIVTVQA");
+    case(END - 1, "A");
     case(END, "A");
     case(END + 1, "A");
     case(u32::max_value(), "A");
 
     case(START + INTERVAL * 00 - 1, "AAAAAAAAAAAAA");
-    case(START + INTERVAL * 00 + 0, "AAAAAAAAAAAAA");
-    case(START + INTERVAL * 00 + 1, "ZZYZXBRKWXVA");
+    case(START + INTERVAL * 00 + 0, "ZZYZXBRKWXVA");
+    case(START + INTERVAL * 00 + 1, "ZZXZUDIVTVQA");
 
-    case(START + INTERVAL * 01 - 1, "AABACYIPDCFB");
-    case(START + INTERVAL * 01 + 0, "AAAAAAAAAAAA");
-    case(START + INTERVAL * 01 + 1, "ZZYZXBRKWXV");
+    case(START + INTERVAL * 01 - 1, "AAAAAAAAAAAA");
+    case(START + INTERVAL * 01 + 0, "ZZYZXBRKWXV");
+    case(START + INTERVAL * 01 + 1, "ZZXZUDIVTVQ");
 
-    case(START + INTERVAL * 02 - 1, "AABACYIPDCG");
-    case(START + INTERVAL * 02 + 0, "AAAAAAAAAAA");
-    case(START + INTERVAL * 02 + 1, "ZZYZXBRKWY");
+    case(START + INTERVAL * 02 - 1, "AAAAAAAAAAA");
+    case(START + INTERVAL * 02 + 0, "ZZYZXBRKWY");
+    case(START + INTERVAL * 02 + 1, "ZZXZUDIVTW");
 
-    case(START + INTERVAL * 03 - 1, "AABACYIPDD");
-    case(START + INTERVAL * 03 + 0, "AAAAAAAAAA");
-    case(START + INTERVAL * 03 + 1, "ZZYZXBRKX");
+    case(START + INTERVAL * 03 - 1, "AAAAAAAAAA");
+    case(START + INTERVAL * 03 + 0, "ZZYZXBRKX");
+    case(START + INTERVAL * 03 + 1, "ZZXZUDIVU");
 
-    case(START + INTERVAL * 04 - 1, "AABACYIPE");
-    case(START + INTERVAL * 04 + 0, "AAAAAAAAA");
-    case(START + INTERVAL * 04 + 1, "ZZYZXBRL");
+    case(START + INTERVAL * 04 - 1, "AAAAAAAAA");
+    case(START + INTERVAL * 04 + 0, "ZZYZXBRL");
+    case(START + INTERVAL * 04 + 1, "ZZXZUDIW");
 
-    case(START + INTERVAL * 05 - 1, "AABACYIQ");
-    case(START + INTERVAL * 05 + 0, "AAAAAAAA");
-    case(START + INTERVAL * 05 + 1, "ZZYZXBS");
+    case(START + INTERVAL * 05 - 1, "AAAAAAAA");
+    case(START + INTERVAL * 05 + 0, "ZZYZXBS");
+    case(START + INTERVAL * 05 + 1, "ZZXZUDJ");
 
-    case(START + INTERVAL * 06 - 1, "AABACYJ");
-    case(START + INTERVAL * 06 + 0, "AAAAAAA");
-    case(START + INTERVAL * 06 + 1, "ZZYZXC");
+    case(START + INTERVAL * 06 - 1, "AAAAAAA");
+    case(START + INTERVAL * 06 + 0, "ZZYZXC");
+    case(START + INTERVAL * 06 + 1, "ZZXZUE");
 
-    case(START + INTERVAL * 07 - 1, "AABACZ");
-    case(START + INTERVAL * 07 + 0, "AAAAAA");
-    case(START + INTERVAL * 07 + 1, "ZZYZY");
+    case(START + INTERVAL * 07 - 1, "AAAAAA");
+    case(START + INTERVAL * 07 + 0, "ZZYZY");
+    case(START + INTERVAL * 07 + 1, "ZZXZV");
 
-    case(START + INTERVAL * 08 - 1, "AABAD");
-    case(START + INTERVAL * 08 + 0, "AAAAA");
-    case(START + INTERVAL * 08 + 1, "ZZZA");
+    case(START + INTERVAL * 08 - 1, "AAAAA");
+    case(START + INTERVAL * 08 + 0, "ZZZA");
+    case(START + INTERVAL * 08 + 1, "ZZYA");
 
-    case(START + INTERVAL * 09 - 1, "AABB");
-    case(START + INTERVAL * 09 + 0, "AAAA");
-    case(START + INTERVAL * 09 + 1, "ZZZ");
+    case(START + INTERVAL * 09 - 1, "AAAA");
+    case(START + INTERVAL * 09 + 0, "ZZZ");
+    case(START + INTERVAL * 09 + 1, "ZZY");
 
-    case(START + INTERVAL * 10 - 1, "AAC");
+    case(START + INTERVAL * 10 - 2, "AAC");
+    case(START + INTERVAL * 10 - 1, "AAA");
     case(START + INTERVAL * 10 + 0, "AAA");
     case(START + INTERVAL * 10 + 1, "AAA");
 
     case(START + INTERVAL * 10 + INTERVAL / 2, "NA");
 
-    case(START + INTERVAL * 11 - 1, "AB");
+    case(START + INTERVAL * 11 - 2, "AB");
+    case(START + INTERVAL * 11 - 1, "AA");
     case(START + INTERVAL * 11 + 0, "AA");
     case(START + INTERVAL * 11 + 1, "AA");
 
     case(START + INTERVAL * 11 + INTERVAL / 2, "N");
 
-    case(START + INTERVAL * 12 - 1, "B");
+    case(START + INTERVAL * 12 - 2, "B");
+    case(START + INTERVAL * 12 - 1, "A");
     case(START + INTERVAL * 12 + 0, "A");
     case(START + INTERVAL * 12 + 1, "A");
   }
@@ -287,20 +292,25 @@ mod tests {
     case(Chain::Testnet, 0, "AAAAAAAAAAAAA");
     case(
       Chain::Testnet,
-      SUBSIDY_HALVING_INTERVAL * 12,
+      SUBSIDY_HALVING_INTERVAL * 12 - 1,
       "AAAAAAAAAAAAA",
     );
     case(
       Chain::Testnet,
-      SUBSIDY_HALVING_INTERVAL * 12 + 1,
+      SUBSIDY_HALVING_INTERVAL * 12,
       "ZZYZXBRKWXVA",
     );
+    case(
+      Chain::Testnet,
+      SUBSIDY_HALVING_INTERVAL * 12 + 1,
+      "ZZXZUDIVTVQA",
+    );
 
-    case(Chain::Signet, 0, "AAAAAAAAAAAAA");
-    case(Chain::Signet, 1, "ZZYZXBRKWXVA");
+    case(Chain::Signet, 0, "ZZYZXBRKWXVA");
+    case(Chain::Signet, 1, "ZZXZUDIVTVQA");
 
-    case(Chain::Regtest, 0, "AAAAAAAAAAAAA");
-    case(Chain::Regtest, 1, "ZZYZXBRKWXVA");
+    case(Chain::Regtest, 0, "ZZYZXBRKWXVA");
+    case(Chain::Regtest, 1, "ZZXZUDIVTVQA");
   }
 
   #[test]

@@ -74,10 +74,10 @@ fn rune_below_minimum_is_an_error() {
   CommandBuilder::new(
     format!(
     "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 1 --supply 1000 --symbol ¢",
-    Rune(99235208761673842 - 1),
+    Rune(99229755678436031 - 1),
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr("error: rune is less than minimum for next block: ZZXZUDIVTVPZ < ZZXZUDIVTVQA\n")
+  .expected_stderr("error: rune is less than minimum for next block: ZZWZRFAGQTKY < ZZWZRFAGQTKZ\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -135,10 +135,8 @@ fn runes_can_be_etched() {
   rpc_server.mine_blocks(1);
 
   let output = CommandBuilder::new(
-    format!(
-    "--index-runes --regtest wallet etch --rune {} --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
-    Rune(RUNE),
-  ))
+    "--index-runes --regtest wallet etch --rune A•A•A•A•A•A•A•A•A•A•A•A•A --divisibility 1 --fee-rate 1 --supply 1000 --symbol ¢",
+  )
   .rpc_server(&rpc_server)
   .run_and_deserialize_output::<Output>();
 
@@ -162,6 +160,7 @@ fn runes_can_be_etched() {
         limit: None,
         number: 0,
         rune: Rune(RUNE),
+        spacers: 0b111111111111,
         supply: 10000,
         symbol: Some('¢'),
         timestamp: ord::timestamp(2),

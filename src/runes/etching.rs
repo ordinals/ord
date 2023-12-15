@@ -7,4 +7,5 @@ pub struct Etching {
   pub rune: Option<Rune>,
   pub symbol: Option<char>,
   pub term: Option<u32>,
+  pub spacers: u32,
 }

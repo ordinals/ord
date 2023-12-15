@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct TransactionHtml {
   blockhash: Option<BlockHash>,
   chain: Chain,
-  etching: Option<Rune>,
+  etching: Option<SpacedRune>,
   inscription: Option<InscriptionId>,
   transaction: Transaction,
   txid: Txid,
@@ -16,7 +16,7 @@ impl TransactionHtml {
     blockhash: Option<BlockHash>,
     inscription: Option<InscriptionId>,
     chain: Chain,
-    etching: Option<Rune>,
+    etching: Option<SpacedRune>,
   ) -> Self {
     Self {
       txid: transaction.txid(),

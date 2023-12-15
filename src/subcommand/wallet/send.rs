@@ -172,7 +172,7 @@ impl Send {
     fee_rate: FeeRate,
     index: &Index,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    rune: Rune,
+    spaced_rune: SpacedRune,
     runic_outputs: BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, Amount>,
   ) -> Result<Txid> {
@@ -184,8 +184,8 @@ impl Send {
     Self::lock_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
-      .rune(rune)?
-      .with_context(|| format!("rune `{rune}` has not been etched"))?;
+      .rune(spaced_rune.rune)?
+      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
     let amount = decimal.to_amount(entry.divisibility)?;
 
@@ -216,7 +216,8 @@ impl Send {
 
     ensure! {
       input_runes >= amount,
-      "insufficient `{rune}` balance, only {} in wallet",
+      "insufficient `{}` balance, only {} in wallet",
+      spaced_rune,
       Pile {
         amount: input_runes,
         divisibility: entry.divisibility,

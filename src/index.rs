@@ -917,7 +917,7 @@ impl Index {
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<(Rune, Pile)>> {
+  ) -> Result<Vec<(SpacedRune, Pile)>> {
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -943,7 +943,7 @@ impl Index {
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
       balances.push((
-        entry.rune,
+        entry.spaced_rune(),
         Pile {
           amount,
           divisibility: entry.divisibility,
@@ -1183,26 +1183,41 @@ impl Index {
     Ok((children, more))
   }
 
-  pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<Rune>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(TRANSACTION_ID_TO_RUNE)?
-        .get(&txid.store())?
-        .map(|entry| Rune(entry.value())),
-    )
+  pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
+    let rtx = self.database.begin_read()?;
+
+    let transaction_id_to_rune = rtx.open_table(TRANSACTION_ID_TO_RUNE)?;
+    let Some(rune) = transaction_id_to_rune.get(&txid.store())? else {
+      return Ok(None);
+    };
+
+    let rune_to_rune_id = rtx.open_table(RUNE_TO_RUNE_ID)?;
+    let id = rune_to_rune_id.get(rune.value())?.unwrap();
+
+    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+    let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
+
+    Ok(Some(RuneEntry::load(entry.value()).spaced_rune()))
   }
 
-  pub(crate) fn get_rune_by_sequence_number(&self, sequence_number: u32) -> Result<Option<Rune>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(SEQUENCE_NUMBER_TO_RUNE)?
-        .get(sequence_number)?
-        .map(|entry| Rune(entry.value())),
-    )
+  pub(crate) fn get_rune_by_sequence_number(
+    &self,
+    sequence_number: u32,
+  ) -> Result<Option<SpacedRune>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_rune = rtx.open_table(SEQUENCE_NUMBER_TO_RUNE)?;
+    let Some(rune) = sequence_number_to_rune.get(sequence_number)? else {
+      return Ok(None);
+    };
+
+    let rune_to_rune_id = rtx.open_table(RUNE_TO_RUNE_ID)?;
+    let id = rune_to_rune_id.get(rune.value())?.unwrap();
+
+    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+    let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
+
+    Ok(Some(RuneEntry::load(entry.value()).spaced_rune()))
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {

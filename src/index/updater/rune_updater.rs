@@ -14,6 +14,7 @@ struct Allocation {
   id: u128,
   limit: Option<u128>,
   rune: Rune,
+  spacers: u32,
   symbol: Option<char>,
 }
 
@@ -117,12 +118,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 } else {
                   u128::max_value()
                 },
-                limit,
                 divisibility: etching.divisibility,
-                id: u128::from(self.height) << 16 | u128::from(index),
-                rune,
-                symbol: etching.symbol,
                 end: term.map(|term| term + self.height),
+                id: u128::from(self.height) << 16 | u128::from(index),
+                limit,
+                rune,
+                spacers: etching.spacers,
+                symbol: etching.symbol,
               }),
               Err(_) => None,
             }
@@ -249,11 +251,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       if let Some(Allocation {
         balance,
         divisibility,
-        id,
-        rune,
-        symbol,
-        limit,
         end,
+        id,
+        limit,
+        rune,
+        spacers,
+        symbol,
       }) = allocation
       {
         let id = RuneId::try_from(id).unwrap();
@@ -272,6 +275,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             etching: txid,
             number,
             rune,
+            spacers,
             supply: if let Some(limit) = limit {
               if end == Some(self.height) {
                 0
