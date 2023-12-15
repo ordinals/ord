@@ -2,10 +2,10 @@ use super::*;
 
 #[derive(Default, Serialize, Debug, PartialEq, Copy, Clone)]
 pub struct Etching {
-  pub(crate) divisibility: u8,
-  pub(crate) limit: Option<u128>,
-  pub(crate) rune: Option<Rune>,
-  pub(crate) spacers: u32,
-  pub(crate) symbol: Option<char>,
-  pub(crate) term: Option<u32>,
+  pub divisibility: u8,
+  pub limit: Option<u128>,
+  pub rune: Option<Rune>,
+  pub symbol: Option<char>,
+  pub term: Option<u32>,
+  pub spacers: u32,
 }

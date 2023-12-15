@@ -16,7 +16,7 @@ use {
       block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
       output::OutputJson, sat::SatJson,
     },
-    Rune, RuneId, SatPoint,
+    Edict, Rune, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,

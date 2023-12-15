@@ -229,10 +229,7 @@ impl Runestone {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    bitcoin::{locktime, script::PushBytes, ScriptBuf, TxOut},
-  };
+  use {super::*, bitcoin::script::PushBytes};
 
   fn decipher(integers: &[u128]) -> Runestone {
     let payload = payload(integers);
@@ -249,7 +246,7 @@ mod tests {
           .into_script(),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap()
@@ -275,7 +272,7 @@ mod tests {
           script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       None
@@ -288,7 +285,7 @@ mod tests {
       Runestone::decipher(&Transaction {
         input: Vec::new(),
         output: Vec::new(),
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -304,7 +301,7 @@ mod tests {
           script_pubkey: script::Builder::new().push_slice([]).into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -322,7 +319,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -341,7 +338,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(None)
@@ -356,7 +353,7 @@ mod tests {
         script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -378,7 +375,7 @@ mod tests {
         script_pubkey: ScriptBuf::from_bytes(script_pubkey),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -396,7 +393,7 @@ mod tests {
           .into_script(),
         value: 0,
       }],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap();
@@ -417,7 +414,7 @@ mod tests {
             .into_script(),
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       })
       .unwrap()
@@ -445,7 +442,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone::default()))
@@ -480,7 +477,7 @@ mod tests {
           value: 0,
         },
       ],
-      lock_time: locktime::absolute::LockTime::ZERO,
+      lock_time: LockTime::ZERO,
       version: 0,
     })
     .unwrap_err();
@@ -988,7 +985,7 @@ mod tests {
             .into_script(),
           value: 0
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1029,7 +1026,7 @@ mod tests {
             value: 0
           }
         ],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1069,7 +1066,7 @@ mod tests {
             value: 0
           }
         ],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       }),
       Ok(Some(Runestone {
@@ -1128,9 +1125,11 @@ mod tests {
         divisibility: MAX_DIVISIBILITY,
         rune: Some(Rune(0)),
         symbol: Some('$'),
-        ..Default::default()
+        limit: Some(1),
+        spacers: 1,
+        term: Some(1),
       }),
-      10,
+      16,
     );
 
     case(
@@ -1372,7 +1371,7 @@ mod tests {
           script_pubkey,
           value: 0,
         }],
-        lock_time: locktime::absolute::LockTime::ZERO,
+        lock_time: LockTime::ZERO,
         version: 0,
       };
 

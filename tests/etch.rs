@@ -161,7 +161,7 @@ fn runes_can_be_etched() {
         number: 0,
         rune: Rune(RUNE),
         spacers: 0b111111111111,
-        supply: 1000,
+        supply: 10000,
         symbol: Some('¢'),
         timestamp: ord::timestamp(2),
       }
@@ -174,7 +174,7 @@ fn runes_can_be_etched() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
-  assert_eq!(output.runes.unwrap()[&Rune(RUNE)], 1000);
+  assert_eq!(output.runes.unwrap()[&Rune(RUNE)], 10000);
 }
 
 #[test]

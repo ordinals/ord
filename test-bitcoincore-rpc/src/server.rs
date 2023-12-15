@@ -260,25 +260,37 @@ impl Api for Server {
       .map(|(outpoint, value)| (value, outpoint))
       .collect::<Vec<(Amount, OutPoint)>>();
 
+    let mut input_value = transaction
+      .input
+      .iter()
+      .map(|txin| state.utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>();
+
+    let shortfall = output_value.saturating_sub(input_value);
+
     utxos.sort();
     utxos.reverse();
 
-    let (input_value, outpoint) = utxos
-      .iter()
-      .find(|(value, outpoint)| value.to_sat() >= output_value && !state.locked.contains(outpoint))
-      .ok_or_else(Self::not_found)?;
+    if shortfall > 0 {
+      let (additional_input_value, outpoint) = utxos
+        .iter()
+        .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
+        .ok_or_else(Self::not_found)?;
 
-    transaction.input.push(TxIn {
-      previous_output: *outpoint,
-      script_sig: ScriptBuf::new(),
-      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      witness: Witness::default(),
-    });
+      transaction.input.push(TxIn {
+        previous_output: *outpoint,
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::default(),
+      });
+
+      input_value += additional_input_value.to_sat();
+    }
 
     let change_position = transaction.output.len() as i32;
 
     transaction.output.push(TxOut {
-      value: input_value.to_sat() - output_value,
+      value: input_value - output_value,
       script_pubkey: ScriptBuf::new(),
     });
 

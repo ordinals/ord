@@ -49,7 +49,7 @@ impl Sat {
     self.0 - self.epoch().starting_sat().0
   }
 
-  pub(crate) fn decimal(self) -> Decimal {
+  pub(crate) fn decimal(self) -> DecimalSat {
     self.into()
   }
 
