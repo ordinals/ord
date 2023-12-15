@@ -6,7 +6,7 @@ pub(crate) struct Etch {
   divisibility: u8,
   #[clap(long, help = "Etch with fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
-  #[clap(long, help = "Etch rune <RUNE>. May contain `.` as spacers.")]
+  #[clap(long, help = "Etch rune <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
   #[clap(long, help = "Set supply to <SUPPLY>.")]
   supply: u128,
