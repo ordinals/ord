@@ -2,11 +2,11 @@ use super::*;
 
 const TAG_BODY: u128 = 0;
 const TAG_DIVISIBILITY: u128 = 1;
-const TAG_RUNE: u128 = 2;
+const TAG_FLAGS: u128 = 2;
 const TAG_SYMBOL: u128 = 3;
-const TAG_LIMIT: u128 = 4;
-const TAG_TERM: u128 = 6;
-const TAG_FLAGS: u128 = 8;
+const TAG_RUNE: u128 = 4;
+const TAG_LIMIT: u128 = 6;
+const TAG_TERM: u128 = 8;
 
 const FLAG_ETCH: u128 = 0b000_0001;
 
