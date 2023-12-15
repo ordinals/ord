@@ -18,7 +18,7 @@ const TAG_BURN: u128 = 254;
 #[allow(unused)]
 const TAG_NOP: u128 = 255;
 
-const MAX_SPACERS: u32 = 0b111_11111111_11111111_11111111;
+const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
