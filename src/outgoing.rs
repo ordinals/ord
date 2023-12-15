@@ -135,6 +135,22 @@ mod tests {
       },
     );
 
+    case(
+      "1.1XYZ",
+      Outgoing::Rune {
+        rune: "XYZ".parse().unwrap(),
+        decimal: "1.1".parse().unwrap(),
+      },
+    );
+
+    case(
+      "1.1X.Y.Z",
+      Outgoing::Rune {
+        rune: "XYZ".parse().unwrap(),
+        decimal: "1.1".parse().unwrap(),
+      },
+    );
+
     assert!("0".parse::<Outgoing>().is_err());
   }
 }
