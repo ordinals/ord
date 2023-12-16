@@ -1,9 +1,11 @@
 use {
   super::*,
   bitcoin::{
+    consensus::Decodable,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },
+  std::io::Cursor,
 };
 
 pub(crate) struct Server {
@@ -245,7 +247,19 @@ impl Api for Server {
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
     let options = options.unwrap();
 
-    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+    let mut cursor = Cursor::new(hex::decode(tx).unwrap());
+
+    let version = i32::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+
+    let mut transaction = Transaction {
+      version,
+      input,
+      output,
+      lock_time,
+    };
 
     assert_eq!(
       options.change_position,
