@@ -1,6 +1,12 @@
 Changelog
 =========
 
+[0.13.1](https://github.com/ordinals/ord/releases/tag/0.13.1) - 2023-12-16
+--------------------------------------------------------------------------
+
+### Fixed
+- Use pre-segwit transaction serialization for fundrawtransaction (#2865)
+
 [0.13.0](https://github.com/ordinals/ord/releases/tag/0.13.0) - 2023-12-15
 --------------------------------------------------------------------------
 
