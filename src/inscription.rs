@@ -316,14 +316,6 @@ impl Inscription {
       return true;
     };
 
-    if content_type.starts_with("application/json") {
-      return true;
-    }
-
-    if content_type.starts_with("text/plain") {
-      return true;
-    }
-
     if content_type.starts_with("text/html")
       && self
         .body()
@@ -331,6 +323,14 @@ impl Inscription {
         .map(|body| CONTENT.is_match(body))
         .unwrap_or_default()
     {
+      return true;
+    }
+
+    if self.metaprotocol.is_some() {
+      return true;
+    }
+
+    if let Media::Code(_) | Media::Text | Media::Unknown = self.media() {
       return true;
     }
 
@@ -800,7 +800,7 @@ mod tests {
     }
 
     case(None, None, true);
-    case(Some("foo"), None, false);
+    case(Some("foo"), Some(""), true);
     case(Some("text/plain"), None, true);
     case(
       Some("text/plain"),
@@ -820,6 +820,7 @@ mod tests {
       Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
       true,
     );
+    case(Some("application/yaml"), Some(""), true);
     case(
       Some("text/html;charset=utf-8"),
       Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
@@ -834,6 +835,14 @@ mod tests {
     assert!(Inscription {
       content_type: Some("text/plain".as_bytes().into()),
       body: Some(b"{\xc3\x28}".as_slice().into()),
+      ..Default::default()
+    }
+    .hidden());
+
+    assert!(Inscription {
+      content_type: Some("text/html".as_bytes().into()),
+      body: Some("hello".as_bytes().into()),
+      metaprotocol: Some(Vec::new()),
       ..Default::default()
     }
     .hidden());
