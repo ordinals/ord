@@ -25,7 +25,7 @@ fn transaction() -> Vec<u8> {
   witness.push([]);
 
   let transaction = Transaction {
-    version: 0,
+    version: 2,
     lock_time: LockTime::ZERO,
     input: vec![TxIn {
       previous_output: OutPoint::null(),
