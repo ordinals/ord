@@ -48,6 +48,7 @@ fn one_rune() {
         Rune(RUNE),
         RuneInfo {
           burned: 0,
+          deadline: None,
           divisibility: 0,
           end: None,
           etching: etch.transaction,
@@ -93,6 +94,7 @@ fn two_runes() {
           Rune(RUNE),
           RuneInfo {
             burned: 0,
+            deadline: None,
             divisibility: 0,
             end: None,
             etching: a.transaction,
@@ -115,6 +117,7 @@ fn two_runes() {
           Rune(RUNE + 1),
           RuneInfo {
             burned: 0,
+            deadline: None,
             divisibility: 0,
             end: None,
             etching: b.transaction,

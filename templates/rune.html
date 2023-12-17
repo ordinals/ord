@@ -17,6 +17,10 @@
   <dt>open etching end</dt>
   <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
 %% }
+%% if let Some(deadline) = self.entry.deadline {
+  <dt>open etching deadline</dt>
+  <dd><time>{{ timestamp(deadline) }}</time></dd>
+%% }
 %% if let Some(limit) = self.entry.limit {
   <dt>open etching limit</dt>
   <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>

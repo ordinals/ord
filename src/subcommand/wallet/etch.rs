@@ -62,6 +62,7 @@ impl Etch {
 
     let runestone = Runestone {
       etching: Some(Etching {
+        deadline: None,
         divisibility: self.divisibility,
         limit: None,
         rune: Some(rune),

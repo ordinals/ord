@@ -8,6 +8,7 @@ pub struct Output {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneInfo {
   pub burned: u128,
+  pub deadline: Option<u32>,
   pub divisibility: u8,
   pub end: Option<u32>,
   pub etching: Txid,
@@ -42,6 +43,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
           id,
           RuneEntry {
             burned,
+            deadline,
             divisibility,
             end,
             etching,
@@ -58,6 +60,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
             rune,
             RuneInfo {
               burned,
+              deadline,
               divisibility,
               etching,
               height: id.height,
