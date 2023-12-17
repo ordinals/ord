@@ -59,11 +59,11 @@ mod tests {
   <dt>open etching end</dt>
   <dd><a href=/block/11>11</a></dd>
   <dt>open etching limit</dt>
-  <dd>\$1.000000001</dd>
+  <dd>1.000000001\$</dd>
   <dt>supply</dt>
-  <dd>\$123456789.123456789</dd>
+  <dd>123456789.123456789\$</dd>
   <dt>burned</dt>
-  <dd>\$123456789.123456789</dd>
+  <dd>123456789.123456789\$</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>

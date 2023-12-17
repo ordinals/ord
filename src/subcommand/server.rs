@@ -2260,9 +2260,9 @@ mod tests {
   <dt>etching transaction index</dt>
   <dd>1</dd>
   <dt>supply</dt>
-  <dd>\$340282366920938463463374607431768211455</dd>
+  <dd>340282366920938463463374607431768211455\$</dd>
   <dt>burned</dt>
-  <dd>\$0</dd>
+  <dd>0\$</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>symbol</dt>
@@ -2381,7 +2381,7 @@ mod tests {
       StatusCode::OK,
       ".*<tr>
         <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
-        <td>\\$340282366920938463463374607431768211455</td>
+        <td>340282366920938463463374607431768211455\\$</td>
       </tr>.*",
     );
   }
