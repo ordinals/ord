@@ -29,7 +29,7 @@ fuzz_target!(|input: Vec<Vec<u8>>| {
       script_pubkey: builder.into_script(),
       value: 0,
     }],
-    version: 0,
+    version: 2,
   };
 
   Runestone::from_transaction(&tx);
