@@ -42,7 +42,7 @@ mod tests {
   #[test]
   fn html() {
     let transaction = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         sequence: Default::default(),
@@ -105,7 +105,7 @@ mod tests {
   #[test]
   fn with_blockhash() {
     let transaction = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![

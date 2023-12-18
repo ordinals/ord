@@ -255,7 +255,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap()
     .unwrap()
@@ -281,7 +281,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       None
     );
@@ -294,7 +294,7 @@ mod tests {
         input: Vec::new(),
         output: Vec::new(),
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -310,7 +310,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -328,7 +328,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -347,7 +347,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -362,7 +362,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -384,7 +384,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -402,7 +402,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap();
   }
@@ -423,7 +423,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       })
       .unwrap()
       .unwrap(),
@@ -451,7 +451,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone::default()))
     );
@@ -486,7 +486,7 @@ mod tests {
         },
       ],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -997,7 +997,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1038,7 +1038,7 @@ mod tests {
           }
         ],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1078,7 +1078,7 @@ mod tests {
           }
         ],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1384,7 +1384,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       };
 
       let payload = Runestone::payload(&transaction).unwrap().unwrap();

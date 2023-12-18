@@ -492,7 +492,7 @@ impl Batch {
         .collect(),
       output: outputs,
       lock_time: LockTime::ZERO,
-      version: 1,
+      version: 2,
     };
 
     let fee = {
