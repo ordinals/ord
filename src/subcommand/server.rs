@@ -2953,7 +2953,7 @@ mod tests {
 
     for i in 0..101 {
       let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(i + 1, 0, 0, inscription("foo", "hello").to_witness())],
+        inputs: &[(i + 1, 0, 0, inscription("image/png", "hello").to_witness())],
         ..Default::default()
       });
       ids.push(InscriptionId { txid, index: 0 });
