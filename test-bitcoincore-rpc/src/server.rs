@@ -201,7 +201,7 @@ impl Api for Server {
     assert_eq!(replaceable, None, "replaceable param not supported");
 
     let tx = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: utxos
         .iter()
@@ -403,7 +403,7 @@ impl Api for Server {
     };
 
     let mut transaction = Transaction {
-      version: 1,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: *outpoint,
@@ -492,7 +492,7 @@ impl Api for Server {
             hash: Wtxid::all_zeros(),
             size: 0,
             vsize: 0,
-            version: 0,
+            version: 2,
             locktime: 0,
             vin: Vec::new(),
             vout: Vec::new(),
