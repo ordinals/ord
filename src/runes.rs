@@ -6,7 +6,6 @@ pub(crate) use {etching::Etching, pile::Pile, spaced_rune::SpacedRune};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
-pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
 mod edict;
@@ -3969,13 +3968,6 @@ mod tests {
   }
 
   #[test]
-  fn max_limit() {
-    MAX_LIMIT
-      .checked_mul(u128::from(u16::max_value()) * 144 * 365 * 1_000_000_000)
-      .unwrap();
-  }
-
-  #[test]
   fn etching_with_limit_can_be_minted() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -4583,125 +4575,6 @@ mod tests {
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
-    );
-  }
-
-  #[test]
-  fn limit_over_max_limit_is_ignored() {
-    let context = Context::builder().arg("--index-runes").build();
-
-    context.mine_blocks(1);
-
-    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          etching: Some(Etching {
-            rune: Some(Rune(RUNE)),
-            limit: Some(MAX_LIMIT + 1),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching,
-          rune: Rune(RUNE),
-          timestamp: 2,
-          ..Default::default()
-        },
-      )],
-      [],
-    );
-
-    context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
-            amount: MAX_LIMIT + 1,
-            output: 0,
-          }],
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching,
-          rune: Rune(RUNE),
-          timestamp: 2,
-          ..Default::default()
-        },
-      )],
-      [],
-    );
-  }
-
-  #[test]
-  fn omitted_limit_defaults_to_max_limit() {
-    let context = Context::builder().arg("--index-runes").build();
-
-    context.mine_blocks(1);
-
-    let etching = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          etching: Some(Etching {
-            rune: Some(Rune(RUNE)),
-            term: Some(1),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching,
-          rune: Rune(RUNE),
-          limit: Some(MAX_LIMIT),
-          end: Some(3),
-          timestamp: 2,
-          ..Default::default()
-        },
-      )],
-      [],
     );
   }
 

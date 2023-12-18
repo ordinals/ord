@@ -98,7 +98,7 @@ impl Runestone {
           .and_then(|divisibility| u8::try_from(divisibility).ok())
           .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
           .unwrap_or_default(),
-        limit: limit.and_then(|limit| (limit <= MAX_LIMIT).then_some(limit)),
+        limit,
         rune: rune.map(Rune),
         spacers: spacers
           .and_then(|spacers| u32::try_from(spacers).ok())

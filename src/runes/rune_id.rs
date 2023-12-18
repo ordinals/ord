@@ -1,4 +1,4 @@
-use {super::*, std::num::TryFromIntError};
+use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
 pub struct RuneId {

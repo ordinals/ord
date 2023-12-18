@@ -68,6 +68,7 @@ use {
     fs::{self, File},
     io::{self, Cursor},
     net::{TcpListener, ToSocketAddrs},
+    num::TryFromIntError,
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
     process::{self, Command},

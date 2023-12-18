@@ -7,6 +7,16 @@ fn claim(id: u128) -> Option<u128> {
   (id & CLAIM_BIT != 0).then_some(id ^ CLAIM_BIT)
 }
 
+trait Increment {
+  fn increment(&mut self, x: u128);
+}
+
+impl Increment for u128 {
+  fn increment(&mut self, x: u128) {
+    *self = self.saturating_add(x);
+  }
+}
+
 struct Allocation {
   balance: u128,
   deadline: Option<u32>,
@@ -53,7 +63,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           i += len;
           let (balance, len) = varint::decode(&buffer[i..]);
           i += len;
-          *unallocated.entry(id).or_default() += balance;
+          unallocated.entry(id).or_default().increment(balance);
         }
       }
     }
@@ -98,11 +108,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               Rune::reserved(reserved_runes.into())
             };
 
-            let (limit, term) = match (etching.limit, etching.term) {
-              (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
-              (limit, term) => (limit, term),
-            };
-
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
             // with 2**16 + 1 transactions, there is no test that checks that
@@ -110,8 +115,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: if let Some(limit) = limit {
-                  if term == Some(0) {
+                balance: if let Some(limit) = etching.limit {
+                  if etching.term == Some(0) {
                     0
                   } else {
                     limit
@@ -121,9 +126,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 },
                 deadline: etching.deadline,
                 divisibility: etching.divisibility,
-                end: term.map(|term| term + self.height),
+                end: etching.term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
-                limit,
+                limit: etching.limit,
                 rune,
                 spacers: etching.spacers,
                 symbol: etching.symbol,
@@ -203,7 +208,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           let mut allocate = |balance: &mut u128, amount: u128, output: usize| {
             if amount > 0 {
               *balance -= amount;
-              *allocated[output].entry(id).or_default() += amount;
+              allocated[output].entry(id).or_default().increment(amount);
             }
           };
 
@@ -249,7 +254,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if minted > 0 {
             let id = RuneId::try_from(id).unwrap().store();
             let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-            entry.supply += minted;
+            entry.supply.increment(minted);
             self.id_to_entry.insert(id, entry.store())?;
           }
         }
@@ -319,7 +324,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     if burn {
       for (id, balance) in unallocated {
-        *burned.entry(id).or_default() += balance;
+        burned.entry(id).or_default().increment(balance);
       }
     } else {
       // Assign all un-allocated runes to the first non OP_RETURN output
@@ -331,13 +336,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       {
         for (id, balance) in unallocated {
           if balance > 0 {
-            *allocated[vout].entry(id).or_default() += balance;
+            allocated[vout].entry(id).or_default().increment(balance);
           }
         }
       } else {
         for (id, balance) in unallocated {
           if balance > 0 {
-            *burned.entry(id).or_default() += balance;
+            burned.entry(id).or_default().increment(balance);
           }
         }
       }
@@ -353,7 +358,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       // increment burned balances
       if tx.output[vout].script_pubkey.is_op_return() {
         for (id, balance) in &balances {
-          *burned.entry(*id).or_default() += balance;
+          burned.entry(*id).or_default().increment(*balance);
         }
         continue;
       }
@@ -384,7 +389,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     for (id, amount) in burned {
       let id = RuneId::try_from(id).unwrap().store();
       let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-      entry.burned += amount;
+      entry.burned.increment(amount);
       self.id_to_entry.insert(id, entry.store())?;
     }
 
