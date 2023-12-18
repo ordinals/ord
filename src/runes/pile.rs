@@ -26,7 +26,7 @@ impl Display for Pile {
     }
 
     if let Some(symbol) = self.symbol {
-      write!(f, "{symbol}")?;
+      write!(f, "\u{00A0}{symbol}")?;
     }
 
     Ok(())
@@ -145,7 +145,7 @@ mod tests {
         symbol: Some('$'),
       }
       .to_string(),
-      "0$"
+      "0\u{00A0}$"
     );
   }
 }
