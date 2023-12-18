@@ -2204,7 +2204,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(rune),
-            symbol: Some('$'),
+            symbol: Some('%'),
             ..Default::default()
           }),
           ..Default::default()
@@ -2229,7 +2229,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::max_value(),
-          symbol: Some('$'),
+          symbol: Some('%'),
           timestamp: 2,
           ..Default::default()
         }
@@ -2245,7 +2245,7 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        r".*<title>Rune AAAAAAAAAAAAA</title>.*
+        ".*<title>Rune AAAAAAAAAAAAA</title>.*
 <h1>AAAAAAAAAAAAA</h1>
 <iframe .* src=/preview/{txid}i0></iframe>
 <dl>
@@ -2260,13 +2260,13 @@ mod tests {
   <dt>etching transaction index</dt>
   <dd>1</dd>
   <dt>supply</dt>
-  <dd>\$340282366920938463463374607431768211455</dd>
+  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>
-  <dd>\$0</dd>
+  <dd>0\u{00A0}%</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>symbol</dt>
-  <dd>\$</dd>
+  <dd>%</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
@@ -2310,7 +2310,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(rune),
-            symbol: Some('$'),
+            symbol: Some('%'),
             spacers: 1,
             ..Default::default()
           }),
@@ -2336,7 +2336,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::max_value(),
-          symbol: Some('$'),
+          symbol: Some('%'),
           timestamp: 2,
           spacers: 1,
           ..Default::default()
@@ -2381,7 +2381,7 @@ mod tests {
       StatusCode::OK,
       ".*<tr>
         <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
-        <td>\\$340282366920938463463374607431768211455</td>
+        <td>340282366920938463463374607431768211455\u{00A0}%</td>
       </tr>.*",
     );
   }

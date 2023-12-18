@@ -31,7 +31,7 @@ mod tests {
           rune: Rune(u128::max_value()),
           spacers: 1,
           supply: 123456789123456789,
-          symbol: Some('$'),
+          symbol: Some('%'),
           timestamp: 0,
         },
         id: RuneId {
@@ -43,7 +43,7 @@ mod tests {
           index: 0,
         }),
       },
-      r"<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+      "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
 <dl>
   <dt>number</dt>
@@ -59,15 +59,15 @@ mod tests {
   <dt>open etching end</dt>
   <dd><a href=/block/11>11</a></dd>
   <dt>open etching limit</dt>
-  <dd>\$1.000000001</dd>
+  <dd>1.000000001\u{00A0}%</dd>
   <dt>supply</dt>
-  <dd>\$123456789.123456789</dd>
+  <dd>123456789.123456789\u{00A0}%</dd>
   <dt>burned</dt>
-  <dd>\$123456789.123456789</dd>
+  <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
-  <dd>\$</dd>
+  <dd>%</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
