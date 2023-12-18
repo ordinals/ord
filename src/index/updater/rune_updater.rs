@@ -9,6 +9,7 @@ fn claim(id: u128) -> Option<u128> {
 
 struct Allocation {
   balance: u128,
+  deadline: Option<u32>,
   divisibility: u8,
   end: Option<u32>,
   id: u128,
@@ -118,6 +119,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 } else {
                   u128::max_value()
                 },
+                deadline: etching.deadline,
                 divisibility: etching.divisibility,
                 end: term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
@@ -150,6 +152,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               if let Some(limit) = entry.limit {
                 if let Some(end) = entry.end {
                   if self.height >= end {
+                    continue;
+                  }
+                }
+                if let Some(deadline) = entry.deadline {
+                  if self.timestamp >= deadline {
                     continue;
                   }
                 }
@@ -250,6 +257,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if let Some(Allocation {
         balance,
+        deadline,
         divisibility,
         end,
         id,
@@ -271,6 +279,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           id.store(),
           RuneEntry {
             burned: 0,
+            deadline: deadline.and_then(|deadline| (!burn).then_some(deadline)),
             divisibility,
             etching: txid,
             number,
@@ -285,9 +294,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             } else {
               u128::max_value()
             } - balance,
-            end,
+            end: end.and_then(|end| (!burn).then_some(end)),
             symbol,
-            limit,
+            limit: limit.and_then(|limit| (!burn).then_some(limit)),
             timestamp: self.timestamp,
           }
           .store(),

@@ -148,6 +148,7 @@ fn runes_can_be_etched() {
       Rune(RUNE),
       RuneInfo {
         burned: 0,
+        deadline: None,
         divisibility: 1,
         end: None,
         etching: output.transaction,

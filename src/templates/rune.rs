@@ -23,6 +23,7 @@ mod tests {
       RuneHtml {
         entry: RuneEntry {
           burned: 123456789123456789,
+          deadline: Some(7),
           divisibility: 9,
           end: Some(11),
           etching: Txid::all_zeros(),
@@ -58,6 +59,8 @@ mod tests {
   <dd>9</dd>
   <dt>open etching end</dt>
   <dd><a href=/block/11>11</a></dd>
+  <dt>open etching deadline</dt>
+  <dd><time>1970-01-01 00:00:07 UTC</time></dd>
   <dt>open etching limit</dt>
   <dd>1.000000001\u{00A0}%</dd>
   <dt>supply</dt>
