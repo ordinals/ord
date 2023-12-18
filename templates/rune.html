@@ -3,12 +3,12 @@
 {{Iframe::main(parent)}}
 %% }
 <dl>
-  <dt>id</dt>
-  <dd>{{ self.id }}</dd>
   <dt>number</dt>
   <dd>{{ self.entry.number }}</dd>
   <dt>timestamp</dt>
   <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
+  <dt>id</dt>
+  <dd>{{ self.id }}</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
   <dt>etching transaction index</dt>

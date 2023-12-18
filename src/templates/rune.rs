@@ -47,12 +47,12 @@ mod tests {
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
 <dl>
-  <dt>id</dt>
-  <dd>10/9</dd>
   <dt>number</dt>
   <dd>25</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+  <dt>id</dt>
+  <dd>10/9</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/10>10</a></dd>
   <dt>etching transaction index</dt>
