@@ -26,8 +26,8 @@ pub(crate) struct Options {
   pub(crate) config_dir: Option<PathBuf>,
   #[arg(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[arg(long, help = "Store index in <DATA_DIR>.")]
-  pub(crate) data_dir: Option<PathBuf>,
+  #[arg(long, help = "Store index in <DATA_DIR>.", default_value_os_t = Options::default_data_dir())]
+  pub(crate) data_dir: PathBuf,
   #[arg(
     long,
     help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
@@ -130,15 +130,14 @@ impl Options {
     Ok(path.join(".cookie"))
   }
 
-  pub(crate) fn data_dir(&self) -> Result<PathBuf> {
-    let base = match &self.data_dir {
-      Some(base) => base.clone(),
-      None => dirs::data_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
-        .join("ord"),
-    };
+  fn default_data_dir() -> PathBuf {
+    dirs::data_dir()
+      .map(|dir| dir.join("ord"))
+      .expect("failed to retrieve data dir")
+  }
 
-    Ok(self.chain().join_with_data_dir(&base))
+  pub(crate) fn data_dir(&self) -> PathBuf {
+    self.chain().join_with_data_dir(&self.data_dir)
   }
 
   pub(crate) fn load_config(&self) -> Result<Config> {
@@ -434,7 +433,6 @@ mod tests {
       .unwrap()
       .options
       .data_dir()
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -449,7 +447,6 @@ mod tests {
       .unwrap()
       .options
       .data_dir()
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -475,7 +472,6 @@ mod tests {
     .unwrap()
     .options
     .data_dir()
-    .unwrap()
     .display()
     .to_string();
     assert!(
@@ -495,7 +491,6 @@ mod tests {
         .unwrap()
         .options
         .data_dir()
-        .unwrap()
         .display()
         .to_string();
 

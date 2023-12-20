@@ -377,14 +377,10 @@ impl Server {
     }))
   }
 
-  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
-    let acme_cache = if let Some(acme_cache) = acme_cache {
-      acme_cache.clone()
-    } else {
-      options.data_dir()?.join("acme-cache")
-    };
-
-    Ok(acme_cache)
+  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> PathBuf {
+    acme_cache
+      .unwrap_or(&options.data_dir().join("acme-cache"))
+      .to_path_buf()
   }
 
   fn acme_domains(&self) -> Result<Vec<String>> {
@@ -419,7 +415,7 @@ impl Server {
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
         options,
-      )?)))
+      ))))
       .directory(if cfg!(test) {
         LETS_ENCRYPT_STAGING_DIRECTORY
       } else {
@@ -1932,7 +1928,6 @@ mod tests {
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -1951,7 +1946,6 @@ mod tests {
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert_eq!(acme_cache, "bar")
