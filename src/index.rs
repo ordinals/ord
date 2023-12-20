@@ -1,8 +1,9 @@
+use bitcoincore_rpc::bitcoincore_rpc_json::GetBlockResult;
 use {
   self::{
     entry::{
-      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      BlockHashValue, Entry, InscriptionIdValue, OutPointValue, RuneEntryValue, RuneIdValue,
+      SatPointValue, SatRange, TxidValue,
     },
     reorg::*,
     runes::{Rune, RuneId},
@@ -16,6 +17,10 @@ use {
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
+  okx::datastore::ord::{
+    self, bitmap::District, collections::CollectionKind, redb::try_init_tables as try_init_ord,
+    DataStoreReadOnly,
+  },
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
     ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
@@ -29,6 +34,8 @@ use {
 };
 
 pub(crate) use self::entry::RuneEntry;
+pub(super) use self::entry::{InscriptionEntry, InscriptionEntryValue};
+pub(super) use self::updater::BlockData;
 
 pub(crate) mod entry;
 mod fetcher;
@@ -43,7 +50,7 @@ const SCHEMA_VERSION: u64 = 14;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
-    const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
+    pub const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
   };
 }
 
@@ -64,7 +71,7 @@ define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { OUTPOINT_TO_ENTRY, &OutPointValue, &[u8]}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -295,7 +302,7 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-        tx.open_table(OUTPOINT_TO_VALUE)?;
+        tx.open_table(OUTPOINT_TO_ENTRY)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
@@ -333,6 +340,14 @@ impl Index {
       Err(error) => bail!("failed to open index: {error}"),
     };
 
+    {
+      let wtx = database.begin_write()?;
+      let rtx = database.begin_read()?;
+      try_init_ord(&wtx, &rtx)?;
+      wtx.commit()?;
+      log::info!("Options:\n{:#?}", options);
+    }
+
     let genesis_block_coinbase_transaction =
       options.chain().genesis_block().coinbase().unwrap().clone();
 
@@ -369,6 +384,11 @@ impl Index {
         .collect(),
     )
   }
+
+  pub(crate) fn get_chain_network(&self) -> Network {
+    self.options.chain().network()
+  }
+
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
@@ -404,9 +424,9 @@ impl Index {
       );
     }
     let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    let outpoint_to_entry = rtx.open_table(OUTPOINT_TO_ENTRY)?;
     for outpoint in utxos.keys() {
-      if outpoint_to_value.get(&outpoint.store())?.is_none() {
+      if outpoint_to_entry.get(&outpoint.store())?.is_none() {
         return Err(anyhow!(
           "output in Bitcoin Core wallet but not in ord index: {outpoint}"
         ));
@@ -416,6 +436,18 @@ impl Index {
     Ok(utxos)
   }
 
+  pub(crate) fn get_outpoint_entry(&self, outpoint: OutPoint) -> Result<Option<TxOut>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(OUTPOINT_TO_ENTRY)?
+        .get(&outpoint.store())?
+        .map(|x| Decodable::consensus_decode(&mut io::Cursor::new(x.value())).unwrap()),
+    )
+  }
+
+  #[allow(unused)]
   pub(crate) fn get_unspent_output_ranges(
     &self,
     wallet: Wallet,
@@ -582,7 +614,7 @@ impl Index {
     );
     insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_RUNE_BALANCES);
     insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_SAT_RANGES);
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_VALUE);
+    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_ENTRY);
     insert_table_info(&mut tables, &wtx, total_bytes, RUNE_ID_TO_RUNE_ENTRY);
     insert_table_info(&mut tables, &wtx, total_bytes, RUNE_TO_RUNE_ID);
     insert_table_info(&mut tables, &wtx, total_bytes, SAT_TO_SATPOINT);
@@ -792,6 +824,27 @@ impl Index {
       .unwrap_or_default()
   }
 
+  pub(crate) fn height_btc(&self, query_btc: bool) -> Result<(Option<Height>, Option<Height>)> {
+    let ord_height = self.block_height()?;
+    if let Some(height) = ord_height {
+      if query_btc {
+        let btc_height = match self.client.get_blockchain_info() {
+          Ok(info) => Height(info.headers as u32),
+          Err(e) => {
+            return Err(anyhow!(
+              "failed to get blockchain info from bitcoin node: {}",
+              e.to_string()
+            ));
+          }
+        };
+        return Ok((Some(height), Some(btc_height)));
+      }
+      Ok((Some(height), None))
+    } else {
+      Ok((None, None))
+    }
+  }
+
   pub(crate) fn block_count(&self) -> Result<u32> {
     self.begin_read()?.block_count()
   }
@@ -802,6 +855,10 @@ impl Index {
 
   pub(crate) fn block_hash(&self, height: Option<u32>) -> Result<Option<BlockHash>> {
     self.begin_read()?.block_hash(height)
+  }
+
+  pub(crate) fn latest_block(&self) -> Result<Option<(Height, BlockHash)>> {
+    self.begin_read()?.latest_block()
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u32, BlockHash)>> {
@@ -1051,6 +1108,10 @@ impl Index {
 
   pub(crate) fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
+  }
+
+  pub(crate) fn get_block_info_by_hash(&self, hash: BlockHash) -> Result<Option<GetBlockResult>> {
+    self.client.get_block_info(&hash).into_option()
   }
 
   pub(crate) fn get_collections_paginated(
@@ -1373,6 +1434,27 @@ impl Index {
     Ok(satpoint)
   }
 
+  pub(crate) fn ord_get_collections_by_inscription_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Vec<CollectionKind>>> {
+    Ok(
+      ord::OrdDbReader::new(&self.database.begin_read()?)
+        .get_collections_of_inscription(inscription_id)?,
+    )
+  }
+
+  pub(crate) fn ord_get_district_inscription_id(
+    &self,
+    number: u32,
+  ) -> Result<Option<InscriptionId>> {
+    let district = District { number };
+    Ok(
+      ord::OrdDbReader::new(&self.database.begin_read()?)
+        .get_collection_inscription_id(&district.to_collection_key())?,
+    )
+  }
+
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
@@ -1429,11 +1511,52 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_transaction_output_by_outpoint(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<TxOut>> {
+    Self::transaction_output_by_outpoint(
+      &self.database.begin_read()?.open_table(OUTPOINT_TO_ENTRY)?,
+      &outpoint,
+    )
+  }
+
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
     } else {
       self.client.get_raw_transaction(&txid, None).into_option()
+    }
+  }
+
+  pub(crate) fn get_transaction_with_retries(&self, txid: Txid) -> Result<Option<Transaction>> {
+    Self::get_transaction_retries(&self.client, txid)
+  }
+
+  pub(crate) fn get_transaction_retries(
+    client: &Client,
+    txid: Txid,
+  ) -> Result<Option<Transaction>> {
+    let mut errors = 0;
+    loop {
+      match client.get_raw_transaction(&txid, None).into_option() {
+        Err(err) => {
+          if cfg!(test) {
+            return Err(err);
+          }
+          errors += 1;
+          let seconds = 1 << errors;
+          log::warn!("failed to fetch transaction {txid}, retrying in {seconds}s: {err}");
+
+          if seconds > 120 {
+            log::error!("would sleep for more than 120s, giving up");
+            return Err(err);
+          }
+
+          thread::sleep(Duration::from_secs(seconds));
+        }
+        Ok(result) => return Ok(result),
+      }
     }
   }
 
@@ -1900,6 +2023,57 @@ impl Index {
         .map(|(_sequence_number, satpoint, inscription_id)| (satpoint, inscription_id))
         .collect(),
     )
+  }
+
+  pub(crate) fn transaction_output_by_outpoint(
+    outpoint_to_entry: &impl ReadableTable<&'static OutPointValue, &'static [u8]>,
+    outpoint: &OutPoint,
+  ) -> Result<Option<TxOut>> {
+    Ok(if let Some(x) = outpoint_to_entry.get(&outpoint.store())? {
+      Some(TxOut::consensus_decode(&mut io::Cursor::new(x.value()))?)
+    } else {
+      None
+    })
+  }
+
+  pub(crate) fn ord_txid_inscriptions(
+    &self,
+    txid: &Txid,
+  ) -> Result<Option<Vec<ord::InscriptionOp>>> {
+    let rtx = self.database.begin_read().unwrap();
+    let ord_db = ord::OrdDbReader::new(&rtx);
+    let res = ord_db.get_transaction_operations(txid)?;
+
+    if res.is_empty() {
+      let tx = self.client.get_raw_transaction_info(txid, None)?;
+      if let Some(tx_blockhash) = tx.blockhash {
+        let tx_bh = self.client.get_block_header_info(&tx_blockhash)?;
+        let parsed_height = self.block_height()?;
+        if parsed_height.is_none() || tx_bh.height as u32 > parsed_height.unwrap().0 {
+          return Ok(None);
+        }
+      } else {
+        return Err(anyhow!("can't get tx block hash: {txid}"));
+      }
+    }
+
+    Ok(Some(res))
+  }
+  pub(crate) fn ord_get_txs_inscriptions(
+    &self,
+    txs: &Vec<Txid>,
+  ) -> Result<Vec<(bitcoin::Txid, Vec<ord::InscriptionOp>)>> {
+    let rtx = self.database.begin_read()?;
+    let ord_db = ord::OrdDbReader::new(&rtx);
+    let mut result = Vec::new();
+    for txid in txs {
+      let inscriptions = ord_db.get_transaction_operations(txid)?;
+      if inscriptions.is_empty() {
+        continue;
+      }
+      result.push((*txid, inscriptions));
+    }
+    Ok(result)
   }
 }
 

@@ -59,6 +59,10 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
+  #[arg(long, help = "Enable Save Ord Receipts.")]
+  pub(crate) enable_save_ord_receipts: bool,
+  #[arg(long, help = "Enable Index Bitmap Collection.")]
+  pub(crate) enable_index_bitmap: bool,
 }
 
 impl Options {

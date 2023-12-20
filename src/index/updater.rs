@@ -1,3 +1,5 @@
+use crate::okx::datastore::StateReadWrite;
+use crate::okx::protocol::{BlockContext, ProtocolConfig, ProtocolManager};
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
@@ -84,18 +86,16 @@ impl<'index> Updater<'_> {
 
     let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
 
-    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(self.index)?;
+    let (mut outpoint_sender, mut tx_out_receiver) = Self::spawn_fetcher(self.index)?;
 
     let mut uncommitted = 0;
-    let mut value_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
       self.index_block(
         self.index,
         &mut outpoint_sender,
-        &mut value_receiver,
+        &mut tx_out_receiver,
         &mut wtx,
         block,
-        &mut value_cache,
       )?;
 
       if let Some(progress_bar) = &mut progress_bar {
@@ -112,9 +112,8 @@ impl<'index> Updater<'_> {
 
       uncommitted += 1;
 
-      if uncommitted == 5000 {
-        self.commit(wtx, value_cache)?;
-        value_cache = HashMap::new();
+      if uncommitted == 200 {
+        self.commit(wtx)?;
         uncommitted = 0;
         wtx = self.index.begin_write()?;
         let height = wtx
@@ -146,7 +145,7 @@ impl<'index> Updater<'_> {
     }
 
     if uncommitted > 0 {
-      self.commit(wtx, value_cache)?;
+      self.commit(wtx)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -241,14 +240,14 @@ impl<'index> Updater<'_> {
     }
   }
 
-  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
+  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<TxOut>)> {
     let fetcher = Fetcher::new(&index.options)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
     let (outpoint_sender, mut outpoint_receiver) =
       tokio::sync::mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
-    let (value_sender, value_receiver) = tokio::sync::mpsc::channel::<u64>(CHANNEL_BUFFER_SIZE);
+    let (txout_sender, tx_out_receiver) = tokio::sync::mpsc::channel::<TxOut>(CHANNEL_BUFFER_SIZE);
 
     // Batch 2048 missing inputs at a time. Arbitrarily chosen for now, maybe higher or lower can be faster?
     // Did rudimentary benchmarks with 1024 and 4096 and time was roughly the same.
@@ -295,8 +294,8 @@ impl<'index> Updater<'_> {
           };
           // Send all tx output values back in order
           for (i, tx) in txs.iter().flatten().enumerate() {
-            let Ok(_) = value_sender
-              .send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value)
+            let Ok(_) = txout_sender
+              .send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].clone())
               .await
             else {
               log::error!("Value channel closed unexpectedly");
@@ -307,17 +306,16 @@ impl<'index> Updater<'_> {
       })
     });
 
-    Ok((outpoint_sender, value_receiver))
+    Ok((outpoint_sender, tx_out_receiver))
   }
 
   fn index_block(
     &mut self,
     index: &Index,
     outpoint_sender: &mut Sender<OutPoint>,
-    value_receiver: &mut Receiver<u64>,
+    tx_out_receiver: &mut Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
-    value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
@@ -325,23 +323,18 @@ impl<'index> Updater<'_> {
     let mut sat_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    log::info!(
-      "Block {} at {} with {} transactions…",
-      self.height,
-      timestamp(block.header.time),
-      block.txdata.len()
-    );
-
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
-    let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
+    let Err(TryRecvError::Empty) = tx_out_receiver.try_recv() else {
       return Err(anyhow!("Previous block did not consume all input values"));
     };
 
-    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+    let mut outpoint_to_entry = wtx.open_table(OUTPOINT_TO_ENTRY)?;
 
     let index_inscriptions = self.height >= index.first_inscription_height;
 
+    let mut fetching_outputs_count = 0;
+    let mut total_outputs_count = 0;
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
       let txids = block
@@ -351,6 +344,7 @@ impl<'index> Updater<'_> {
         .collect::<HashSet<_>>();
       for (tx, _) in &block.txdata {
         for input in &tx.input {
+          total_outputs_count += 1u64;
           let prev_output = input.previous_output;
           // We don't need coinbase input value
           if prev_output.is_null() {
@@ -361,20 +355,28 @@ impl<'index> Updater<'_> {
           if txids.contains(&prev_output.txid) {
             continue;
           }
-          // We don't need input values we already have in our value_cache from earlier blocks
-          if value_cache.contains_key(&prev_output) {
-            continue;
-          }
-          // We don't need input values we already have in our outpoint_to_value table from earlier blocks that
+          // We don't need input values we already have in our outpoint_to_entry table from earlier blocks that
           // were committed to db already
-          if outpoint_to_value.get(&prev_output.store())?.is_some() {
+          if outpoint_to_entry.get(&prev_output.store())?.is_some() {
             continue;
           }
           // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
           outpoint_sender.blocking_send(prev_output)?;
+          fetching_outputs_count += 1u64;
         }
       }
     }
+
+    let time = timestamp(block.header.time);
+
+    log::info!(
+      "Block {} at {} with {} transactions, fetching previous outputs {}/{}…",
+      self.height,
+      time,
+      block.txdata.len(),
+      fetching_outputs_count,
+      total_outputs_count,
+    );
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
@@ -418,32 +420,28 @@ impl<'index> Updater<'_> {
       .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
 
-    let home_inscription_count = home_inscriptions.len()?;
-
-    let mut inscription_updater = InscriptionUpdater {
+    let mut tx_out_cache = HashMap::new();
+    let mut inscription_updater = InscriptionUpdater::new(
       blessed_inscription_count,
-      chain: self.index.options.chain(),
+      self.index.options.chain(),
       cursed_inscription_count,
-      flotsam: Vec::new(),
-      height: self.height,
-      home_inscription_count,
-      home_inscriptions: &mut home_inscriptions,
-      id_to_sequence_number: &mut inscription_id_to_sequence_number,
-      inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
-      lost_sats,
+      self.height,
+      &mut home_inscriptions,
+      &mut inscription_id_to_sequence_number,
+      &mut inscription_number_to_sequence_number,
       next_sequence_number,
-      outpoint_to_value: &mut outpoint_to_value,
-      reward: Height(self.height).subsidy(),
-      sat_to_sequence_number: &mut sat_to_sequence_number,
-      satpoint_to_sequence_number: &mut satpoint_to_sequence_number,
-      sequence_number_to_children: &mut sequence_number_to_children,
-      sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
-      sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
-      timestamp: block.header.time,
+      lost_sats,
+      &mut outpoint_to_entry,
+      &mut sat_to_sequence_number,
+      &mut satpoint_to_sequence_number,
+      &mut sequence_number_to_children,
+      &mut sequence_number_to_inscription_entry,
+      &mut sequence_number_to_satpoint,
+      block.header.time,
       unbound_inscriptions,
-      value_cache,
-      value_receiver,
-    };
+      tx_out_receiver,
+      &mut tx_out_cache,
+    )?;
 
     if self.index.index_sats {
       let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
@@ -570,6 +568,25 @@ impl<'index> Updater<'_> {
       &inscription_updater.unbound_inscriptions,
     )?;
 
+    // Create a protocol manager to index the block of bitmap data.
+    let config = ProtocolConfig::new_with_options(&index.options);
+    ProtocolManager::new(&StateReadWrite::new(wtx), &config).index_block(
+      BlockContext {
+        network: index.get_chain_network(),
+        blockheight: self.height,
+        blocktime: block.header.time,
+      },
+      &block,
+      &inscription_updater.operations,
+    )?;
+
+    // write tx_out to outpoint_to_entry table.
+    for (outpoint, tx_out) in tx_out_cache {
+      let mut entry = Vec::new();
+      tx_out.consensus_encode(&mut entry)?;
+      outpoint_to_entry.insert(&outpoint.store(), entry.as_slice())?;
+    }
+
     if index.index_runes && self.height >= self.index.options.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -680,7 +697,7 @@ impl<'index> Updater<'_> {
     Ok(())
   }
 
-  fn commit(&mut self, wtx: WriteTransaction, value_cache: HashMap<OutPoint, u64>) -> Result {
+  fn commit(&mut self, wtx: WriteTransaction) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
@@ -704,14 +721,6 @@ impl<'index> Updater<'_> {
       }
 
       self.outputs_inserted_since_flush = 0;
-    }
-
-    {
-      let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
-
-      for (outpoint, value) in value_cache {
-        outpoint_to_value.insert(&outpoint.store(), &value)?;
-      }
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
