@@ -3,7 +3,7 @@ use {
     accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
-    error::{OptionExt, ServerError, ServerResult},
+    error::{ApiError, OptionExt, ServerError, ServerResult},
   },
   super::*,
   crate::{
@@ -43,11 +43,20 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
+  utoipa::OpenApi,
 };
 
 mod accept_encoding;
 mod accept_json;
+mod api;
 mod error;
+mod info;
+mod ord;
+mod response;
+mod types;
+
+use self::api::*;
+use self::response::ApiResponse;
 
 enum InscriptionQuery {
   Id(InscriptionId),
@@ -179,6 +188,41 @@ impl Server {
       });
       INDEXER.lock().unwrap().replace(index_thread);
 
+      #[derive(OpenApi)]
+      #[openapi(
+      paths(
+      ord::ord_inscription_id,
+      ord::ord_inscription_number,
+      ord::ord_outpoint,
+      ord::ord_txid_inscriptions,
+      ord::ord_block_inscriptions,
+      info::node_info,
+      ),
+      components(schemas(
+      // Ord schemas
+      ord::OrdInscription,
+      ord::InscriptionDigest,
+      ord::OutPointData,
+      ord::OutPointResult,
+      ord::InscriptionAction,
+      ord::TxInscription,
+      ord::TxInscriptions,
+      ord::BlockInscriptions,
+      // Ord responses schemas
+      response::OrdOrdInscription,
+      response::OrdTxInscriptions,
+      response::OrdBlockInscriptions,
+      response::OrdOutPointResult,
+      // Node Info schemas
+      info::NodeInfo,
+      info::ChainInfo,
+      types::ScriptPubkey,
+      response::Node,
+      ApiError
+      ))
+      )]
+      struct ApiDoc;
+
       let config = Arc::new(options.load_config()?);
       let acme_domains = self.acme_domains()?;
 
@@ -190,6 +234,33 @@ impl Server {
         is_json_api_enabled: self.enable_json_api,
         decompress: self.decompress,
       });
+
+      let api_v1_router = Router::new()
+        .route(
+          "/api-docs/openapi.json",
+          get(|| async { ApiDoc::openapi().to_pretty_json().unwrap() }),
+        )
+        .route("/node/info", get(info::node_info))
+        .route("/ord/id/:id/inscription", get(ord::ord_inscription_id))
+        .route(
+          "/ord/number/:number/inscription",
+          get(ord::ord_inscription_number),
+        )
+        .route("/ord/outpoint/:outpoint/info", get(ord::ord_outpoint))
+        .route(
+          "/ord/tx/:txid/inscriptions",
+          get(ord::ord_txid_inscriptions),
+        )
+        .route(
+          "/ord/block/:blockhash/inscriptions",
+          get(ord::ord_block_inscriptions),
+        )
+        .route(
+          "/ord/debug/bitmap/district/:number",
+          get(ord::ord_debug_bitmap_district),
+        );
+
+      let api_router = Router::new().nest("/v1", api_v1_router);
 
       let router = Router::new()
         .route("/", get(Self::home))
@@ -261,6 +332,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .nest("/api", api_router)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(config))

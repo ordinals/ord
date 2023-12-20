@@ -24,7 +24,7 @@ fn git_commit() -> Option<String> {
   .map(|branch| branch.into())
 }
 
-fn main() {
+fn main() -> shadow_rs::SdResult<()> {
   println!(
     "cargo:rustc-env=GIT_BRANCH={}",
     git_branch().unwrap_or_default()
@@ -33,4 +33,5 @@ fn main() {
     "cargo:rustc-env=GIT_COMMIT={}",
     git_commit().unwrap_or_default()
   );
+  shadow_rs::new()
 }

@@ -48,4 +48,16 @@ impl Rtx<'_> {
       ),
     }
   }
+
+  pub(crate) fn latest_block(&self) -> Result<Option<(Height, BlockHash)>> {
+    Ok(
+      self
+        .0
+        .open_table(HEIGHT_TO_BLOCK_HASH)?
+        .range(0..)?
+        .next_back()
+        .and_then(|result| result.ok())
+        .map(|(height, hash)| (Height(height.value()), BlockHash::load(*hash.value()))),
+    )
+  }
 }
