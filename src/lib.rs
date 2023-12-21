@@ -23,10 +23,9 @@ use {
     envelope::ParsedEnvelope,
     epoch::Epoch,
     height::Height,
-    index::{Index, List, RuneEntry},
+    index::{List, RuneEntry},
     inscription_id::InscriptionId,
     media::Media,
-    options::Options,
     outgoing::Outgoing,
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
@@ -86,8 +85,10 @@ use {
 
 pub use self::{
   fee_rate::FeeRate,
+  index::Index,
   inscription::Inscription,
   object::Object,
+  options::Options,
   rarity::Rarity,
   runes::{Edict, Rune, RuneId, Runestone},
   sat::Sat,

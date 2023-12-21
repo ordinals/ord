@@ -8,17 +8,23 @@ pub(crate) trait Entry: Sized {
   fn store(self) -> Self::Value;
 }
 
-pub(super) type BlockHashValue = [u8; 32];
+pub(super) type HeaderValue = [u8; 80];
 
-impl Entry for BlockHash {
-  type Value = BlockHashValue;
+impl Entry for Header {
+  type Value = HeaderValue;
 
   fn load(value: Self::Value) -> Self {
-    BlockHash::from_raw_hash(Hash::from_byte_array(value))
+    consensus::encode::deserialize(&value).unwrap()
   }
 
   fn store(self) -> Self::Value {
-    *self.as_ref()
+    let mut buffer = Cursor::new([0; 80]);
+    let len = self
+      .consensus_encode(&mut buffer)
+      .expect("in-memory writers don't error");
+    let buffer = buffer.into_inner();
+    debug_assert_eq!(len, buffer.len());
+    buffer
   }
 }
 

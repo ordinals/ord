@@ -222,3 +222,6 @@ audit-cache:
 
 coverage:
   cargo llvm-cov
+
+benchmark-server:
+  cargo bench --bench server

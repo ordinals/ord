@@ -49,7 +49,8 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-enum InscriptionQuery {
+#[derive(Copy, Clone)]
+pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
   Number(i32),
 }
@@ -59,10 +60,19 @@ impl FromStr for InscriptionQuery {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(if s.contains('i') {
-      InscriptionQuery::Id(s.parse()?)
+      Self::Id(s.parse()?)
     } else {
-      InscriptionQuery::Number(s.parse()?)
+      Self::Number(s.parse()?)
     })
+  }
+}
+
+impl Display for InscriptionQuery {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Id(id) => write!(f, "{id}"),
+      Self::Number(number) => write!(f, "{number}"),
+    }
   }
 }
 
@@ -1180,76 +1190,22 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let inscription_id = match query {
-      InscriptionQuery::Id(id) => id,
-      InscriptionQuery::Number(inscription_number) => index
-        .get_inscription_id_by_inscription_number(inscription_number)?
-        .ok_or_not_found(|| format!("{inscription_number}"))?,
-    };
+    let info =
+      Index::inscription_info(&index, query)?.ok_or_not_found(|| format!("inscription {query}"))?;
 
-    let entry = index
-      .get_inscription_entry(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let output = if satpoint.outpoint == unbound_outpoint() || satpoint.outpoint == OutPoint::null()
-    {
-      None
-    } else {
-      Some(
-        index
-          .get_transaction(satpoint.outpoint.txid)?
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
-      )
-    };
-
-    let previous = if let Some(n) = entry.sequence_number.checked_sub(1) {
-      index.get_inscription_id_by_sequence_number(n)?
-    } else {
-      None
-    };
-
-    let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
-
-    let (children, _more_children) =
-      index.get_children_by_sequence_number_paginated(entry.sequence_number, 4, 0)?;
-
-    let rune = index.get_rune_by_sequence_number(entry.sequence_number)?;
-
-    let parent = match entry.parent {
-      Some(parent) => index.get_inscription_id_by_sequence_number(parent)?,
-      None => None,
-    };
-
-    let mut charms = entry.charms;
-
-    if satpoint.outpoint == OutPoint::null() {
-      Charm::Lost.set(&mut charms);
-    }
-
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionJson {
-        inscription_id,
-        children,
-        inscription_number: entry.inscription_number,
-        genesis_height: entry.height,
-        parent,
-        genesis_fee: entry.fee,
-        output_value: output.as_ref().map(|o| o.value),
-        address: output
+        inscription_id: info.entry.id,
+        children: info.children,
+        inscription_number: info.entry.inscription_number,
+        genesis_height: info.entry.height,
+        parent: info.parent,
+        genesis_fee: info.entry.fee,
+        output_value: info.output.as_ref().map(|o| o.value),
+        address: info
+          .output
           .as_ref()
           .and_then(|o| {
             server_config
@@ -1258,34 +1214,34 @@ impl Server {
               .ok()
           })
           .map(|address| address.to_string()),
-        sat: entry.sat,
-        satpoint,
-        content_type: inscription.content_type().map(|s| s.to_string()),
-        content_length: inscription.content_length(),
-        timestamp: timestamp(entry.timestamp).timestamp(),
-        previous,
-        next,
-        rune,
+        sat: info.entry.sat,
+        satpoint: info.satpoint,
+        content_type: info.inscription.content_type().map(|s| s.to_string()),
+        content_length: info.inscription.content_length(),
+        timestamp: timestamp(info.entry.timestamp).timestamp(),
+        previous: info.previous,
+        next: info.next,
+        rune: info.rune,
       })
       .into_response()
     } else {
       InscriptionHtml {
         chain: server_config.chain,
-        charms,
-        children,
-        genesis_fee: entry.fee,
-        genesis_height: entry.height,
-        inscription,
-        inscription_id,
-        inscription_number: entry.inscription_number,
-        next,
-        output,
-        parent,
-        previous,
-        rune,
-        sat: entry.sat,
-        satpoint,
-        timestamp: timestamp(entry.timestamp),
+        charms: info.charms,
+        children: info.children,
+        genesis_fee: info.entry.fee,
+        genesis_height: info.entry.height,
+        inscription: info.inscription,
+        inscription_id: info.entry.id,
+        inscription_number: info.entry.inscription_number,
+        next: info.next,
+        output: info.output,
+        parent: info.parent,
+        previous: info.previous,
+        rune: info.rune,
+        sat: info.entry.sat,
+        satpoint: info.satpoint,
+        timestamp: timestamp(info.entry.timestamp),
       }
       .page(server_config)
       .into_response()
@@ -4953,6 +4909,24 @@ next
       "/inscriptions/block/102/1",
       StatusCode::OK,
       r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
+    );
+  }
+
+  #[test]
+  fn inscription_query_display() {
+    assert_eq!(
+      InscriptionQuery::Id(inscription_id(1)).to_string(),
+      "1111111111111111111111111111111111111111111111111111111111111111i1"
+    );
+    assert_eq!(InscriptionQuery::Number(1).to_string(), "1")
+  }
+
+  #[test]
+  fn inscription_not_found() {
+    TestServer::new_with_regtest_with_json_api().assert_response(
+      "/inscription/0",
+      StatusCode::NOT_FOUND,
+      "inscription 0 not found",
     );
   }
 }
