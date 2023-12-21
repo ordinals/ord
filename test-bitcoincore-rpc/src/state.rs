@@ -47,6 +47,10 @@ impl State {
     }
   }
 
+  pub(crate) fn clear(&mut self) {
+    *self = Self::new(self.network, self.version, self.fail_lock_unspent);
+  }
+
   pub(crate) fn push_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
       version: 2,

@@ -206,6 +206,10 @@ impl Handle {
     self.state.lock().unwrap()
   }
 
+  pub fn clear_state(&self) {
+    self.state.lock().unwrap().clear();
+  }
+
   pub fn wallets(&self) -> BTreeSet<String> {
     self.state().wallets.clone()
   }

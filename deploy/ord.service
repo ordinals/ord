@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/ord \
   --data-dir /var/lib/ord \
   --index-runes \
   --index-sats \
+  --index-transactions \
   server \
   --acme-contact mailto:casey@rodarmor.com \
   --csp-origin https://ordinals.com \
