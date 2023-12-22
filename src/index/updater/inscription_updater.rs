@@ -157,23 +157,20 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       let offset = total_input_value;
 
       // multi-level cache for UTXO set to get to the input amount
-      let current_input_value =
-        if let Some(tx_out) = self.tx_out_cache.remove(&tx_in.previous_output) {
-          tx_out.value
-        } else if let Some(data) = self
-          .outpoint_to_entry
-          .remove(&tx_in.previous_output.store())?
-        {
-          TxOut::consensus_decode(&mut io::Cursor::new(data.value()))?.value
-        } else {
-          let tx_out = self.tx_out_receiver.blocking_recv().ok_or_else(|| {
-            anyhow!(
-              "failed to get transaction for {}",
-              tx_in.previous_output.txid
-            )
-          })?;
-          tx_out.value
-        };
+      let current_input_value = if let Some(tx_out) = self.tx_out_cache.get(&tx_in.previous_output)
+      {
+        tx_out.value
+      } else if let Some(data) = self.outpoint_to_entry.get(&tx_in.previous_output.store())? {
+        TxOut::consensus_decode(&mut io::Cursor::new(data.value()))?.value
+      } else {
+        let tx_out = self.tx_out_receiver.blocking_recv().ok_or_else(|| {
+          anyhow!(
+            "failed to get transaction for {}",
+            tx_in.previous_output.txid
+          )
+        })?;
+        tx_out.value
+      };
 
       total_input_value += current_input_value;
 
