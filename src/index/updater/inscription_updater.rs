@@ -160,10 +160,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       let current_input_value =
         if let Some(tx_out) = self.tx_out_cache.remove(&tx_in.previous_output) {
           tx_out.value
-        } else if let Some(tx_out) =
-          Index::transaction_output_by_outpoint(self.outpoint_to_entry, &tx_in.previous_output)?
+        } else if let Some(data) = self
+          .outpoint_to_entry
+          .remove(&tx_in.previous_output.store())?
         {
-          tx_out.value
+          TxOut::consensus_decode(&mut io::Cursor::new(data.value()))?.value
         } else {
           let tx_out = self.tx_out_receiver.blocking_recv().ok_or_else(|| {
             anyhow!(
@@ -171,9 +172,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               tx_in.previous_output.txid
             )
           })?;
-          self
-            .tx_out_cache
-            .insert(tx_in.previous_output, tx_out.clone());
           tx_out.value
         };
 
@@ -341,6 +339,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       range_to_vout.insert((output_value, end), vout.try_into().unwrap());
 
       output_value = end;
+
+      self.tx_out_cache.insert(
+        OutPoint {
+          vout: vout.try_into().unwrap(),
+          txid,
+        },
+        tx_out.clone(),
+      );
     }
 
     for (new_satpoint, mut flotsam) in new_locations.into_iter() {
