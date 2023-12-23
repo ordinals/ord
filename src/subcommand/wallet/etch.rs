@@ -69,6 +69,7 @@ impl Etch {
         spacers,
         symbol: Some(self.symbol),
         term: None,
+        open: None,
       }),
       edicts: vec![Edict {
         amount: self.supply.to_amount(self.divisibility)?,

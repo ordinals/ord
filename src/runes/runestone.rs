@@ -1,23 +1,69 @@
 use super::*;
 
-const TAG_BODY: u128 = 0;
-const TAG_FLAGS: u128 = 2;
-const TAG_RUNE: u128 = 4;
-const TAG_LIMIT: u128 = 6;
-const TAG_TERM: u128 = 8;
-const TAG_DEADLINE: u128 = 10;
+#[derive(Copy, Clone)]
+enum Tag {
+  Body = 0,
+  Flags = 2,
+  Rune = 4,
+  Limit = 6,
+  Term = 8,
+  Deadline = 10,
+  #[allow(unused)]
+  Burn = 254,
 
-const TAG_DIVISIBILITY: u128 = 1;
-const TAG_SPACERS: u128 = 3;
-const TAG_SYMBOL: u128 = 5;
+  Divisibility = 1,
+  Spacers = 3,
+  Symbol = 5,
+  #[allow(unused)]
+  Nop = 255,
+}
 
-const FLAG_ETCH: u128 = 0b000_0001;
+impl Tag {
+  fn take(self, fields: &mut HashMap<u128, u128>) -> Option<u128> {
+    fields.remove(&self.into())
+  }
 
-#[allow(unused)]
-const TAG_BURN: u128 = 254;
+  fn encode(self, value: u128, payload: &mut Vec<u8>) {
+    varint::encode_to_vec(self.into(), payload);
+    varint::encode_to_vec(value, payload);
+  }
+}
 
-#[allow(unused)]
-const TAG_NOP: u128 = 255;
+impl From<Tag> for u128 {
+  fn from(tag: Tag) -> Self {
+    tag as u128
+  }
+}
+
+impl PartialEq<u128> for Tag {
+  fn eq(&self, other: &u128) -> bool {
+    u128::from(*self) == *other
+  }
+}
+
+enum Flag {
+  Etch = 0,
+  Open = 1,
+  #[allow(unused)]
+  Burn = 127,
+}
+
+impl Flag {
+  fn mask(self) -> u128 {
+    1 << self as u128
+  }
+
+  fn take(self, flags: &mut u128) -> bool {
+    let mask = self.mask();
+    let set = *flags & mask != 0;
+    *flags &= !mask;
+    set
+  }
+
+  fn set(self, flags: &mut u128) {
+    *flags |= self.mask()
+  }
+}
 
 const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
@@ -41,7 +87,7 @@ impl Message {
     for i in (0..payload.len()).step_by(2) {
       let tag = payload[i];
 
-      if tag == TAG_BODY {
+      if Tag::Body == tag {
         let mut id = 0u128;
         for chunk in payload[i + 1..].chunks_exact(3) {
           id = id.saturating_add(chunk[0]);
@@ -79,17 +125,17 @@ impl Runestone {
 
     let Message { mut fields, body } = Message::from_integers(&integers);
 
-    let deadline = fields.remove(&TAG_DEADLINE);
-    let divisibility = fields.remove(&TAG_DIVISIBILITY);
-    let flags = fields.remove(&TAG_FLAGS).unwrap_or_default();
-    let limit = fields.remove(&TAG_LIMIT);
-    let rune = fields.remove(&TAG_RUNE);
-    let spacers = fields.remove(&TAG_SPACERS);
-    let symbol = fields.remove(&TAG_SYMBOL);
-    let term = fields.remove(&TAG_TERM);
+    let deadline = Tag::Deadline.take(&mut fields);
+    let divisibility = Tag::Divisibility.take(&mut fields);
+    let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
+    let limit = Tag::Limit.take(&mut fields);
+    let rune = Tag::Rune.take(&mut fields);
+    let spacers = Tag::Spacers.take(&mut fields);
+    let symbol = Tag::Symbol.take(&mut fields);
+    let term = Tag::Term.take(&mut fields);
 
-    let etch = flags & FLAG_ETCH != 0;
-    let unrecognized_flags = flags & !FLAG_ETCH != 0;
+    let etch = Flag::Etch.take(&mut flags);
+    let open = Flag::Open.take(&mut flags);
 
     let etching = if etch {
       Some(Etching {
@@ -108,6 +154,7 @@ impl Runestone {
           .and_then(|symbol| u32::try_from(symbol).ok())
           .and_then(char::from_u32),
         term: term.and_then(|term| u32::try_from(term).ok()),
+        open: None,
       })
     } else {
       None
@@ -116,7 +163,7 @@ impl Runestone {
     Ok(Some(Self {
       edicts: body,
       etching,
-      burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
+      burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
     }))
   }
 
@@ -124,52 +171,46 @@ impl Runestone {
     let mut payload = Vec::new();
 
     if let Some(etching) = self.etching {
-      varint::encode_to_vec(TAG_FLAGS, &mut payload);
-      varint::encode_to_vec(FLAG_ETCH, &mut payload);
+      let mut flags = 0;
+      Flag::Etch.set(&mut flags);
+
+      Tag::Flags.encode(flags, &mut payload);
 
       if let Some(rune) = etching.rune {
-        varint::encode_to_vec(TAG_RUNE, &mut payload);
-        varint::encode_to_vec(rune.0, &mut payload);
+        Tag::Rune.encode(rune.0, &mut payload);
       }
 
       if let Some(deadline) = etching.deadline {
-        varint::encode_to_vec(TAG_DEADLINE, &mut payload);
-        varint::encode_to_vec(deadline.into(), &mut payload);
+        Tag::Deadline.encode(deadline.into(), &mut payload);
       }
 
       if etching.divisibility != 0 {
-        varint::encode_to_vec(TAG_DIVISIBILITY, &mut payload);
-        varint::encode_to_vec(etching.divisibility.into(), &mut payload);
+        Tag::Divisibility.encode(etching.divisibility.into(), &mut payload);
       }
 
       if etching.spacers != 0 {
-        varint::encode_to_vec(TAG_SPACERS, &mut payload);
-        varint::encode_to_vec(etching.spacers.into(), &mut payload);
+        Tag::Spacers.encode(etching.spacers.into(), &mut payload);
       }
 
       if let Some(symbol) = etching.symbol {
-        varint::encode_to_vec(TAG_SYMBOL, &mut payload);
-        varint::encode_to_vec(symbol.into(), &mut payload);
+        Tag::Symbol.encode(symbol.into(), &mut payload);
       }
 
       if let Some(limit) = etching.limit {
-        varint::encode_to_vec(TAG_LIMIT, &mut payload);
-        varint::encode_to_vec(limit, &mut payload);
+        Tag::Limit.encode(limit, &mut payload);
       }
 
       if let Some(term) = etching.term {
-        varint::encode_to_vec(TAG_TERM, &mut payload);
-        varint::encode_to_vec(term.into(), &mut payload);
+        Tag::Term.encode(term.into(), &mut payload);
       }
     }
 
     if self.burn {
-      varint::encode_to_vec(TAG_BURN, &mut payload);
-      varint::encode_to_vec(0, &mut payload);
+      Tag::Burn.encode(0, &mut payload);
     }
 
     if !self.edicts.is_empty() {
-      varint::encode_to_vec(TAG_BODY, &mut payload);
+      varint::encode_to_vec(Tag::Body.into(), &mut payload);
 
       let mut edicts = self.edicts.clone();
       edicts.sort_by_key(|edict| edict.id);
@@ -494,7 +535,7 @@ mod tests {
   #[test]
   fn deciphering_non_empty_runestone_is_successful() {
     assert_eq!(
-      decipher(&[TAG_BODY, 1, 2, 3]),
+      decipher(&[Tag::Body.into(), 1, 2, 3]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -509,7 +550,14 @@ mod tests {
   #[test]
   fn decipher_etching() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_BODY, 1, 2, 3]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -525,7 +573,16 @@ mod tests {
   #[test]
   fn decipher_etching_with_rune() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_RUNE, 4, TAG_BODY, 1, 2, 3]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -544,7 +601,16 @@ mod tests {
   #[test]
   fn decipher_etching_with_term() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_TERM, 4, TAG_BODY, 1, 2, 3]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Term.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -563,7 +629,16 @@ mod tests {
   #[test]
   fn decipher_etching_with_limit() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_LIMIT, 4, TAG_BODY, 1, 2, 3]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Limit.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -582,7 +657,18 @@ mod tests {
   #[test]
   fn duplicate_tags_are_ignored() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_RUNE, 4, TAG_RUNE, 5, TAG_BODY, 1, 2, 3,]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
+        4,
+        Tag::Rune.into(),
+        5,
+        Tag::Body.into(),
+        1,
+        2,
+        3,
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -601,7 +687,7 @@ mod tests {
   #[test]
   fn unrecognized_odd_tag_is_ignored() {
     assert_eq!(
-      decipher(&[TAG_NOP, 100, TAG_BODY, 1, 2, 3]),
+      decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 2, 3]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -616,7 +702,7 @@ mod tests {
   #[test]
   fn unrecognized_even_tag_is_burn() {
     assert_eq!(
-      decipher(&[TAG_BURN, 0, TAG_BODY, 1, 2, 3]),
+      decipher(&[Tag::Burn.into(), 0, Tag::Body.into(), 1, 2, 3]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -632,7 +718,14 @@ mod tests {
   #[test]
   fn unrecognized_flag_is_burn() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, 1 << 1, TAG_BODY, 1, 2, 3]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Burn.mask(),
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -648,7 +741,7 @@ mod tests {
   #[test]
   fn tag_with_no_value_is_ignored() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, 1, TAG_FLAGS]),
+      decipher(&[Tag::Flags.into(), 1, Tag::Flags.into()]),
       Runestone {
         etching: Some(Etching::default()),
         ..Default::default()
@@ -659,7 +752,18 @@ mod tests {
   #[test]
   fn additional_integers_in_body_are_ignored() {
     assert_eq!(
-      decipher(&[TAG_FLAGS, FLAG_ETCH, TAG_RUNE, 4, TAG_BODY, 1, 2, 3, 4, 5]),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3,
+        4,
+        5
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: 1,
@@ -679,13 +783,13 @@ mod tests {
   fn decipher_etching_with_divisibility() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         5,
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -710,13 +814,13 @@ mod tests {
   fn divisibility_above_max_is_ignored() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         (MAX_DIVISIBILITY + 1).into(),
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -740,11 +844,11 @@ mod tests {
   fn symbol_above_max_is_ignored() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_SYMBOL,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Symbol.into(),
         u128::from(u32::from(char::MAX) + 1),
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -765,13 +869,13 @@ mod tests {
   fn decipher_etching_with_symbol() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_SYMBOL,
+        Tag::Symbol.into(),
         'a'.into(),
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -796,23 +900,23 @@ mod tests {
   fn decipher_etching_with_all_etching_tags() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_DEADLINE,
+        Tag::Deadline.into(),
         7,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         1,
-        TAG_SPACERS,
+        Tag::Spacers.into(),
         5,
-        TAG_SYMBOL,
+        Tag::Symbol.into(),
         'a'.into(),
-        TAG_TERM,
+        Tag::Term.into(),
         2,
-        TAG_LIMIT,
+        Tag::Limit.into(),
         3,
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -831,6 +935,7 @@ mod tests {
           term: Some(2),
           limit: Some(3),
           spacers: 5,
+          open: None,
         }),
         ..Default::default()
       },
@@ -841,17 +946,17 @@ mod tests {
   fn recognized_even_etching_fields_in_non_etching_are_ignored() {
     assert_eq!(
       decipher(&[
-        TAG_RUNE,
+        Tag::Rune.into(),
         4,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         1,
-        TAG_SYMBOL,
+        Tag::Symbol.into(),
         'a'.into(),
-        TAG_TERM,
+        Tag::Term.into(),
         2,
-        TAG_LIMIT,
+        Tag::Limit.into(),
         3,
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -872,15 +977,15 @@ mod tests {
   fn decipher_etching_with_divisibility_and_symbol() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         1,
-        TAG_SYMBOL,
+        Tag::Symbol.into(),
         'a'.into(),
-        TAG_BODY,
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -906,11 +1011,11 @@ mod tests {
   fn tag_values_are_not_parsed_as_tags() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_DIVISIBILITY,
-        TAG_BODY,
-        TAG_BODY,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Divisibility.into(),
+        Tag::Body.into(),
+        Tag::Body.into(),
         1,
         2,
         3,
@@ -930,7 +1035,7 @@ mod tests {
   #[test]
   fn runestone_may_contain_multiple_edicts() {
     assert_eq!(
-      decipher(&[TAG_BODY, 1, 2, 3, 3, 5, 6]),
+      decipher(&[Tag::Body.into(), 1, 2, 3, 3, 5, 6]),
       Runestone {
         edicts: vec![
           Edict {
@@ -952,7 +1057,7 @@ mod tests {
   #[test]
   fn id_deltas_saturate_to_max() {
     assert_eq!(
-      decipher(&[TAG_BODY, 1, 2, 3, u128::max_value(), 5, 6]),
+      decipher(&[Tag::Body.into(), 1, 2, 3, u128::max_value(), 5, 6]),
       Runestone {
         edicts: vec![
           Edict {
@@ -980,16 +1085,31 @@ mod tests {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
             .push_slice(b"RUNE_TEST")
-            .push_slice::<&PushBytes>(varint::encode(TAG_FLAGS).as_slice().try_into().unwrap())
-            .push_slice::<&PushBytes>(varint::encode(FLAG_ETCH).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(
-              varint::encode(TAG_DIVISIBILITY)
+              varint::encode(Tag::Flags.into())
+                .as_slice()
+                .try_into()
+                .unwrap()
+            )
+            .push_slice::<&PushBytes>(
+              varint::encode(Flag::Etch.mask())
+                .as_slice()
+                .try_into()
+                .unwrap()
+            )
+            .push_slice::<&PushBytes>(
+              varint::encode(Tag::Divisibility.into())
                 .as_slice()
                 .try_into()
                 .unwrap()
             )
             .push_slice::<&PushBytes>(varint::encode(5).as_slice().try_into().unwrap())
-            .push_slice::<&PushBytes>(varint::encode(TAG_BODY).as_slice().try_into().unwrap())
+            .push_slice::<&PushBytes>(
+              varint::encode(Tag::Body.into())
+                .as_slice()
+                .try_into()
+                .unwrap()
+            )
             .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(3).as_slice().try_into().unwrap())
@@ -1140,6 +1260,7 @@ mod tests {
         limit: Some(1),
         spacers: 1,
         term: Some(1),
+        open: None,
       }),
       19,
     );
@@ -1359,9 +1480,9 @@ mod tests {
   fn etching_with_term_greater_than_maximum_is_ignored() {
     assert_eq!(
       decipher(&[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_TERM,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Term.into(),
         u128::from(u64::max_value()) + 1,
       ]),
       Runestone {
@@ -1418,6 +1539,7 @@ mod tests {
           rune: Some(Rune(4)),
           term: Some(5),
           spacers: 6,
+          open: None,
         }),
         edicts: vec![
           Edict {
@@ -1434,23 +1556,23 @@ mod tests {
         burn: false,
       },
       &[
-        TAG_FLAGS,
-        FLAG_ETCH,
-        TAG_RUNE,
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Rune.into(),
         4,
-        TAG_DEADLINE,
+        Tag::Deadline.into(),
         2,
-        TAG_DIVISIBILITY,
+        Tag::Divisibility.into(),
         1,
-        TAG_SPACERS,
+        Tag::Spacers.into(),
         6,
-        TAG_SYMBOL,
+        Tag::Symbol.into(),
         '@'.into(),
-        TAG_LIMIT,
+        Tag::Limit.into(),
         3,
-        TAG_TERM,
+        Tag::Term.into(),
         5,
-        TAG_BODY,
+        Tag::Body.into(),
         6,
         5,
         7,
@@ -1470,11 +1592,12 @@ mod tests {
           rune: Some(Rune(3)),
           term: None,
           spacers: 0,
+          open: None,
         }),
         burn: false,
         ..Default::default()
       },
-      &[TAG_FLAGS, FLAG_ETCH, TAG_RUNE, 3],
+      &[Tag::Flags.into(), Flag::Etch.mask(), Tag::Rune.into(), 3],
     );
 
     case(
@@ -1487,11 +1610,12 @@ mod tests {
           rune: None,
           term: None,
           spacers: 0,
+          open: None,
         }),
         burn: false,
         ..Default::default()
       },
-      &[TAG_FLAGS, FLAG_ETCH],
+      &[Tag::Flags.into(), Flag::Etch.mask()],
     );
 
     case(
@@ -1499,7 +1623,7 @@ mod tests {
         burn: true,
         ..Default::default()
       },
-      &[TAG_BURN, 0],
+      &[Tag::Burn.into(), 0],
     );
   }
 

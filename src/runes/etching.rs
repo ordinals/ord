@@ -9,4 +9,8 @@ pub struct Etching {
   pub symbol: Option<char>,
   pub term: Option<u32>,
   pub spacers: u32,
+  pub open: Option<Open>,
 }
+
+#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone)]
+pub struct Open {}
