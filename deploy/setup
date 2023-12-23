@@ -101,7 +101,6 @@ if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
   ln -s /etc/bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf
 fi
 
-
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
