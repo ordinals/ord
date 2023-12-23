@@ -96,8 +96,11 @@ cp deploy/bitcoind.service /etc/systemd/system/
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
 
-mkdir -p /root/.bitcoin
-ln -s /etc/bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf
+if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
+  mkdir -p /root/.bitcoin
+  ln -s /etc/bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf
+fi
+
 
 systemctl daemon-reload
 systemctl enable bitcoind
