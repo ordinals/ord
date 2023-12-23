@@ -118,6 +118,51 @@ impl Inscription {
     bytes
   }
 
+  pub(crate) fn payload(&self) -> Vec<Vec<u8>> {
+    let mut payload = Vec::new();
+
+    if let Some(content_type) = self.content_type.clone() {
+      payload.push(envelope::CONTENT_TYPE_TAG.into());
+      payload.push(content_type);
+    }
+
+    if let Some(content_encoding) = self.content_encoding.clone() {
+      payload.push(envelope::CONTENT_ENCODING_TAG.into());
+      payload.push(content_encoding);
+    }
+
+    if let Some(metaprotocol) = self.metaprotocol.clone() {
+      payload.push(envelope::METAPROTOCOL_TAG.into());
+      payload.push(metaprotocol);
+    }
+
+    if let Some(parent) = self.parent.clone() {
+      payload.push(envelope::PARENT_TAG.into());
+      payload.push(parent);
+    }
+
+    if let Some(pointer) = self.pointer.clone() {
+      payload.push(envelope::POINTER_TAG.into());
+      payload.push(pointer);
+    }
+
+    if let Some(metadata) = &self.metadata {
+      for chunk in metadata.chunks(520) {
+        payload.push(envelope::METADATA_TAG.into());
+        payload.push(chunk.into());
+      }
+    }
+
+    if let Some(body) = &self.body {
+      payload.push(envelope::BODY_TAG.into());
+      for chunk in body.chunks(520) {
+        payload.push(chunk.into());
+      }
+    }
+
+    payload
+  }
+
   pub(crate) fn append_reveal_script_to_builder(
     &self,
     mut builder: script::Builder,
@@ -127,48 +172,28 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    if let Some(content_type) = self.content_type.clone() {
-      builder = builder
-        .push_slice(envelope::CONTENT_TYPE_TAG)
-        .push_slice(PushBytesBuf::try_from(content_type).unwrap());
-    }
-
-    if let Some(content_encoding) = self.content_encoding.clone() {
-      builder = builder
-        .push_slice(envelope::CONTENT_ENCODING_TAG)
-        .push_slice(PushBytesBuf::try_from(content_encoding).unwrap());
-    }
-
-    if let Some(protocol) = self.metaprotocol.clone() {
-      builder = builder
-        .push_slice(envelope::METAPROTOCOL_TAG)
-        .push_slice(PushBytesBuf::try_from(protocol).unwrap());
-    }
-
-    if let Some(parent) = self.parent.clone() {
-      builder = builder
-        .push_slice(envelope::PARENT_TAG)
-        .push_slice(PushBytesBuf::try_from(parent).unwrap());
-    }
-
-    if let Some(pointer) = self.pointer.clone() {
-      builder = builder
-        .push_slice(envelope::POINTER_TAG)
-        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
-    }
-
-    if let Some(metadata) = &self.metadata {
-      for chunk in metadata.chunks(520) {
-        builder = builder.push_slice(envelope::METADATA_TAG);
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-      }
-    }
-
-    if let Some(body) = &self.body {
-      builder = builder.push_slice(envelope::BODY_TAG);
-      for chunk in body.chunks(520) {
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-      }
+    for data in self.payload() {
+      builder = match data.as_slice() {
+        [] => builder.push_opcode(opcodes::OP_FALSE),
+        [1] => builder.push_opcode(opcodes::all::OP_PUSHNUM_1),
+        [2] => builder.push_opcode(opcodes::all::OP_PUSHNUM_2),
+        [3] => builder.push_opcode(opcodes::all::OP_PUSHNUM_3),
+        [4] => builder.push_opcode(opcodes::all::OP_PUSHNUM_4),
+        [5] => builder.push_opcode(opcodes::all::OP_PUSHNUM_5),
+        [6] => builder.push_opcode(opcodes::all::OP_PUSHNUM_6),
+        [7] => builder.push_opcode(opcodes::all::OP_PUSHNUM_7),
+        [8] => builder.push_opcode(opcodes::all::OP_PUSHNUM_8),
+        [9] => builder.push_opcode(opcodes::all::OP_PUSHNUM_9),
+        [10] => builder.push_opcode(opcodes::all::OP_PUSHNUM_10),
+        [11] => builder.push_opcode(opcodes::all::OP_PUSHNUM_11),
+        [12] => builder.push_opcode(opcodes::all::OP_PUSHNUM_12),
+        [13] => builder.push_opcode(opcodes::all::OP_PUSHNUM_13),
+        [14] => builder.push_opcode(opcodes::all::OP_PUSHNUM_14),
+        [15] => builder.push_opcode(opcodes::all::OP_PUSHNUM_15),
+        [16] => builder.push_opcode(opcodes::all::OP_PUSHNUM_16),
+        [0x81] => builder.push_opcode(opcodes::all::OP_PUSHNUM_NEG1),
+        _ => builder.push_slice(PushBytesBuf::try_from(data).unwrap()),
+      };
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF)
