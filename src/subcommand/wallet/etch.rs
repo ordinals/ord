@@ -75,6 +75,7 @@ impl Etch {
         id: 0,
         output: 1,
       }],
+      default: None,
       burn: false,
     };
 
