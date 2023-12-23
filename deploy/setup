@@ -51,6 +51,9 @@ case $CHAIN in
   main)
     ufw allow 8333
     ;;
+  regtest)
+    ufw allow 18444
+    ;;
   signet)
     ufw allow 38333
     ;;
@@ -98,6 +101,9 @@ systemctl restart bitcoind
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
+    ;;
+  regtest)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
