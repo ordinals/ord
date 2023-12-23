@@ -4018,6 +4018,11 @@ mod tests {
       [],
     );
 
+    assert_eq!(
+      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
+      0,
+    );
+
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
@@ -4055,6 +4060,11 @@ mod tests {
         },
         vec![(id, 1000)],
       )],
+    );
+
+    assert_eq!(
+      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
+      1,
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4103,6 +4113,11 @@ mod tests {
           vec![(id, 1000)],
         ),
       ],
+    );
+
+    assert_eq!(
+      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
+      2,
     );
   }
 

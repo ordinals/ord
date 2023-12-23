@@ -600,20 +600,18 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
   ) -> ServerResult<PageHtml<RuneHtml>> {
-    let (id, entry) = index.rune(spaced_rune.rune)?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes` flag".into(),
-      )
-    })?;
+    if !index.has_rune_index() {
+      return Err(ServerError::NotFound(
+        "this server has no rune index".to_string(),
+      ));
+    }
 
-    let parent = InscriptionId {
-      txid: entry.etching,
-      index: 0,
-    };
-
-    let parent = index.inscription_exists(parent)?.then_some(parent);
-
-    Ok(RuneHtml { id, entry, parent }.page(server_config))
+    Ok(
+      index
+        .rune_html(spaced_rune.rune)?
+        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+        .page(server_config),
+    )
   }
 
   async fn runes(
@@ -2259,6 +2257,8 @@ mod tests {
   <dd><a href=/block/2>2</a></dd>
   <dt>etching transaction index</dt>
   <dd>1</dd>
+  <dt>mints</dt>
+  <dd>0</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>

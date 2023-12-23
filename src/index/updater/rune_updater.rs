@@ -25,6 +25,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) rune_id_to_mints: HashMap<RuneId, u64>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune: &'a mut Table<'db, 'tx, u32, u128>,
@@ -247,7 +248,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         for (id, amount) in mintable {
           let minted = limits[&id] - amount;
           if minted > 0 {
-            let id = RuneId::try_from(id).unwrap().store();
+            let id = RuneId::try_from(id).unwrap();
+            *self.rune_id_to_mints.entry(id).or_default() += 1;
+            let id = id.store();
             let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
             entry.supply += minted;
             self.id_to_entry.insert(id, entry.store())?;

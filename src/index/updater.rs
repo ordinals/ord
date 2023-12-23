@@ -588,6 +588,7 @@ impl<'index> Updater<'_> {
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
         minimum: Rune::minimum_at_height(self.index.options.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
+        rune_id_to_mints: HashMap::new(),
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune: &mut sequence_number_to_rune,
@@ -598,6 +599,18 @@ impl<'index> Updater<'_> {
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;
+      }
+
+      let mut rune_id_to_mints = wtx.open_table(RUNE_ID_TO_MINTS)?;
+
+      for (rune_id, mints) in rune_updater.rune_id_to_mints {
+        let mints = rune_id_to_mints
+          .get(&rune_id.store())?
+          .map(|guard| guard.value())
+          .unwrap_or_default()
+          + mints;
+
+        rune_id_to_mints.insert(&rune_id.store(), mints)?;
       }
     }
 

@@ -9,8 +9,11 @@ use {
     updater::Updater,
   },
   super::*,
-  crate::wallet::Wallet,
-  crate::{subcommand::find::FindRangeOutput, templates::StatusHtml},
+  crate::{
+    subcommand::find::FindRangeOutput,
+    templates::{RuneHtml, StatusHtml},
+    wallet::Wallet,
+  },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
@@ -65,6 +68,7 @@ define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { RUNE_ID_TO_MINTS, RuneIdValue, u64 }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -861,15 +865,67 @@ impl Index {
   pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
     let rtx = self.database.begin_read()?;
 
-    let entry = match rtx.open_table(RUNE_TO_RUNE_ID)?.get(rune.0)? {
-      Some(id) => rtx
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(id.value())?
-        .map(|entry| (RuneId::load(id.value()), RuneEntry::load(entry.value()))),
-      None => None,
+    let Some(id) = rtx
+      .open_table(RUNE_TO_RUNE_ID)?
+      .get(rune.0)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(None);
     };
 
-    Ok(entry)
+    let entry = RuneEntry::load(
+      rtx
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+        .get(id)?
+        .unwrap()
+        .value(),
+    );
+
+    Ok(Some((RuneId::load(id), entry)))
+  }
+
+  pub(crate) fn rune_html(&self, rune: Rune) -> Result<Option<RuneHtml>> {
+    let rtx = self.database.begin_read()?;
+
+    let Some(id) = rtx
+      .open_table(RUNE_TO_RUNE_ID)?
+      .get(rune.0)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(None);
+    };
+
+    let entry = RuneEntry::load(
+      rtx
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+        .get(id)?
+        .unwrap()
+        .value(),
+    );
+
+    let parent = InscriptionId {
+      txid: entry.etching,
+      index: 0,
+    };
+
+    let parent = rtx
+      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+      .get(&parent.store())?
+      .is_some()
+      .then_some(parent);
+
+    let mints = rtx
+      .open_table(RUNE_ID_TO_MINTS)?
+      .get(&id)?
+      .map(|guard| guard.value())
+      .unwrap_or_default();
+
+    Ok(Some(RuneHtml {
+      entry,
+      id: RuneId::load(id),
+      mints,
+      parent,
+    }))
   }
 
   pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
