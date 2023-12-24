@@ -602,8 +602,6 @@ impl<'index> Updater<'_> {
       }
 
       for (rune_id, update) in rune_updater.updates {
-        let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-
         let mut entry = RuneEntry::load(
           rune_id_to_rune_entry
             .get(&rune_id.store())?

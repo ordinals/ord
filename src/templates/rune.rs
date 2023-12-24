@@ -28,6 +28,7 @@ mod tests {
           end: Some(11),
           etching: Txid::all_zeros(),
           limit: Some(1000000001),
+          mints: 100,
           number: 25,
           rune: Rune(u128::max_value()),
           spacers: 1,
@@ -43,7 +44,6 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
-        mints: 100,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
@@ -94,6 +94,7 @@ mod tests {
           end: None,
           etching: Txid::all_zeros(),
           limit: None,
+          mints: 0,
           number: 25,
           rune: Rune(u128::max_value()),
           spacers: 1,
@@ -106,7 +107,6 @@ mod tests {
           index: 9,
         },
         parent: None,
-        mints: 0,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>

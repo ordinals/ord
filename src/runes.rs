@@ -962,18 +962,19 @@ mod tests {
       [(
         id,
         RuneEntry {
-          etching: txid0,
-          rune: Rune(RUNE),
-          timestamp: 2,
-          divisibility: 1,
-          limit: None,
-          symbol: Some('$'),
-          end: None,
-          spacers: 1,
           burned: 0,
           deadline: None,
+          divisibility: 1,
+          end: None,
+          etching: txid0,
+          limit: None,
+          mints: 0,
           number: 0,
+          rune: Rune(RUNE),
+          spacers: 1,
           supply: 0,
+          symbol: Some('$'),
+          timestamp: 2,
         },
       )],
       [],
@@ -4012,15 +4013,11 @@ mod tests {
           rune: Rune(RUNE),
           limit: Some(1000),
           timestamp: 2,
+          mints: 0,
           ..Default::default()
         },
       )],
       [],
-    );
-
-    assert_eq!(
-      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
-      0,
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4050,6 +4047,7 @@ mod tests {
           limit: Some(1000),
           supply: 1000,
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4060,11 +4058,6 @@ mod tests {
         },
         vec![(id, 1000)],
       )],
-    );
-
-    assert_eq!(
-      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
-      1,
     );
 
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4094,6 +4087,7 @@ mod tests {
           limit: Some(1000),
           supply: 2000,
           timestamp: 2,
+          mints: 2,
           ..Default::default()
         },
       )],
@@ -4113,11 +4107,6 @@ mod tests {
           vec![(id, 1000)],
         ),
       ],
-    );
-
-    assert_eq!(
-      context.index.rune_html(Rune(RUNE)).unwrap().unwrap().mints,
-      2,
     );
   }
 
