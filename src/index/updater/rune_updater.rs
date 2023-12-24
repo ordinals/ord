@@ -19,19 +19,26 @@ struct Allocation {
   symbol: Option<char>,
 }
 
+#[derive(Default)]
+pub(crate) struct RuneUpdate {
+  pub(crate) burned: u128,
+  pub(crate) mints: u64,
+  pub(crate) supply: u128,
+}
+
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) rune_id_to_mints: HashMap<RuneId, u64>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune: &'a mut Table<'db, 'tx, u32, u128>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   pub(super) timestamp: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
@@ -248,12 +255,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         for (id, amount) in mintable {
           let minted = limits[&id] - amount;
           if minted > 0 {
-            let id = RuneId::try_from(id).unwrap();
-            *self.rune_id_to_mints.entry(id).or_default() += 1;
-            let id = id.store();
-            let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-            entry.supply += minted;
-            self.id_to_entry.insert(id, entry.store())?;
+            let update = self
+              .updates
+              .entry(RuneId::try_from(id).unwrap())
+              .or_default();
+            update.mints += 1;
+            update.supply += minted;
           }
         }
       }
@@ -285,6 +292,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             deadline: deadline.and_then(|deadline| (!burn).then_some(deadline)),
             divisibility,
             etching: txid,
+            mints: 0,
             number,
             rune,
             spacers,
@@ -385,10 +393,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     // increment entries with burned runes
     for (id, amount) in burned {
-      let id = RuneId::try_from(id).unwrap().store();
-      let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-      entry.burned += amount;
-      self.id_to_entry.insert(id, entry.store())?;
+      self
+        .updates
+        .entry(RuneId::try_from(id).unwrap())
+        .or_default()
+        .burned += amount;
     }
 
     Ok(())

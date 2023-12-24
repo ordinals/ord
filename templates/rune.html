@@ -25,9 +25,9 @@
   <dt>open etching limit</dt>
   <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
 %% }
-%% if self.mints > 0 {
+%% if self.entry.mints > 0 {
   <dt>mints</dt>
-  <dd>{{ self.mints }}</dd>
+  <dd>{{ self.entry.mints }}</dd>
 %% }
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>

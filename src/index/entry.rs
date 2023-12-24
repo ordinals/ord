@@ -30,6 +30,7 @@ pub(crate) struct RuneEntry {
   pub(crate) end: Option<u32>,
   pub(crate) etching: Txid,
   pub(crate) limit: Option<u128>,
+  pub(crate) mints: u64,
   pub(crate) number: u64,
   pub(crate) rune: Rune,
   pub(crate) spacers: u32,
@@ -45,7 +46,10 @@ pub(super) type RuneEntryValue = (
   Option<u32>,  // end
   (u128, u128), // etching
   Option<u128>, // limit
-  u64,          // number
+  (
+    u64, // mints
+    u64, // number
+  ),
   u128,         // rune
   u32,          // spacers
   u128,         // supply
@@ -71,6 +75,7 @@ impl Default for RuneEntry {
       end: None,
       etching: Txid::all_zeros(),
       limit: None,
+      mints: 0,
       number: 0,
       rune: Rune(0),
       spacers: 0,
@@ -92,7 +97,7 @@ impl Entry for RuneEntry {
       end,
       etching,
       limit,
-      number,
+      (mints, number),
       rune,
       spacers,
       supply,
@@ -116,6 +121,7 @@ impl Entry for RuneEntry {
         ])
       },
       limit,
+      mints,
       number,
       rune: Rune(rune),
       spacers,
@@ -145,7 +151,7 @@ impl Entry for RuneEntry {
         )
       },
       self.limit,
-      self.number,
+      (self.mints, self.number),
       self.rune.0,
       self.spacers,
       self.supply,

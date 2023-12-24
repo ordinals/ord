@@ -4,7 +4,6 @@ use super::*;
 pub(crate) struct RuneHtml {
   pub(crate) entry: RuneEntry,
   pub(crate) id: RuneId,
-  pub(crate) mints: u64,
   pub(crate) parent: Option<InscriptionId>,
 }
 

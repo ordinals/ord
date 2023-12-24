@@ -68,7 +68,6 @@ define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { RUNE_ID_TO_MINTS, RuneIdValue, u64 }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -914,16 +913,9 @@ impl Index {
       .is_some()
       .then_some(parent);
 
-    let mints = rtx
-      .open_table(RUNE_ID_TO_MINTS)?
-      .get(&id)?
-      .map(|guard| guard.value())
-      .unwrap_or_default();
-
     Ok(Some(RuneHtml {
       entry,
       id: RuneId::load(id),
-      mints,
       parent,
     }))
   }
