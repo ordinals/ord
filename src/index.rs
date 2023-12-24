@@ -21,13 +21,13 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table,
-    TableDefinition, TableHandle, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, RepairSession,
+    StorageError, Table, TableDefinition, TableHandle, WriteTransaction,
   },
   std::{
     collections::{BTreeSet, HashMap},
     io::{BufWriter, Write},
-    sync::Once,
+    sync::{Mutex, Once},
   },
 };
 
@@ -244,13 +244,26 @@ impl Index {
     let index_transactions;
 
     let index_path = path.clone();
+    let progress_bar_mut = Mutex::new(None);
     let once = Once::new();
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
-      .set_repair_callback(move |_| {
-        once.call_once(|| {
-          println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display());
-        })
+      .set_repair_callback(move |progress: &mut RepairSession| {
+        once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
+        if cfg!(test)
+        || log_enabled!(log::Level::Info)
+        || integration_test() {
+        } else {
+          let mut progress_bar_guard = progress_bar_mut.lock().unwrap();
+          let progress_bar = progress_bar_guard.get_or_insert_with(|| ProgressBar::new(100));
+          let pos = (progress.progress()*100.) as u64;
+          progress_bar.set_position(pos);
+          progress_bar.set_style(
+            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+          );
+          progress_bar.set_position(pos);
+        }
       })
       .open(&path)
     {
