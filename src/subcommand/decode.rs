@@ -12,25 +12,25 @@ pub struct RawOutput {
 
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct CompactInscription {
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub body: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_encoding: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_type: Option<String>,
-  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub duplicate_field: bool,
-  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub incomplete_field: bool,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metadata: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metaprotocol: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub parent: Option<InscriptionId>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub pointer: Option<u64>,
-  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub unrecognized_even_field: bool,
 }
 

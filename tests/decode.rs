@@ -4,7 +4,10 @@ use {
     absolute::LockTime, consensus::Encodable, opcodes, script, ScriptBuf, Sequence, Transaction,
     TxIn, Witness,
   },
-  ord::{subcommand::decode::RawOutput, Envelope, Inscription},
+  ord::{
+    subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
+    Envelope, Inscription,
+  },
 };
 
 fn transaction() -> Vec<u8> {
@@ -110,6 +113,29 @@ fn from_core() {
         offset: 0,
         pushnum: false,
         stutter: false,
+      }],
+    },
+  );
+}
+
+#[test]
+fn compact() {
+  assert_eq!(
+    CommandBuilder::new("decode --compact --file transaction.bin")
+      .write("transaction.bin", transaction())
+      .run_and_deserialize_output::<CompactOutput>(),
+    CompactOutput {
+      inscriptions: vec![CompactInscription {
+        body: Some("00010203".into()),
+        content_encoding: None,
+        content_type: Some("text/plain;charset=utf-8".into()),
+        duplicate_field: false,
+        incomplete_field: false,
+        metadata: None,
+        metaprotocol: None,
+        parent: None,
+        pointer: None,
+        unrecognized_even_field: false,
       }],
     },
   );
