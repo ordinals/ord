@@ -67,7 +67,7 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
 
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = "0.5.1"
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking", "brotli", "json"] }
