@@ -4,7 +4,7 @@ use {
     absolute::LockTime, consensus::Encodable, opcodes, script, ScriptBuf, Sequence, Transaction,
     TxIn, Witness,
   },
-  ord::{subcommand::decode::Output, Inscription},
+  ord::{subcommand::decode::RawOutput, Envelope, Inscription},
 };
 
 fn transaction() -> Vec<u8> {
@@ -48,14 +48,20 @@ fn from_file() {
   assert_eq!(
     CommandBuilder::new("decode --file transaction.bin")
       .write("transaction.bin", transaction())
-      .run_and_deserialize_output::<Output>(),
-    Output {
-      inscriptions: vec![Inscription {
-        body: Some(vec![0, 1, 2, 3]),
-        content_type: Some(b"text/plain;charset=utf-8".into()),
-        ..Default::default()
+      .run_and_deserialize_output::<RawOutput>(),
+    RawOutput {
+      inscriptions: vec![Envelope {
+        payload: Inscription {
+          body: Some(vec![0, 1, 2, 3]),
+          content_type: Some(b"text/plain;charset=utf-8".into()),
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+        pushnum: false,
+        stutter: false,
       }],
-    }
+    },
   );
 }
 
@@ -64,14 +70,20 @@ fn from_stdin() {
   assert_eq!(
     CommandBuilder::new("decode")
       .stdin(transaction())
-      .run_and_deserialize_output::<Output>(),
-    Output {
-      inscriptions: vec![Inscription {
-        body: Some(vec![0, 1, 2, 3]),
-        content_type: Some(b"text/plain;charset=utf-8".into()),
-        ..Default::default()
+      .run_and_deserialize_output::<RawOutput>(),
+    RawOutput {
+      inscriptions: vec![Envelope {
+        payload: Inscription {
+          body: Some(vec![0, 1, 2, 3]),
+          content_type: Some(b"text/plain;charset=utf-8".into()),
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+        pushnum: false,
+        stutter: false,
       }],
-    }
+    },
   );
 }
 
@@ -86,13 +98,19 @@ fn from_core() {
   assert_eq!(
     CommandBuilder::new(format!("decode --txid {reveal}"))
       .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<Output>(),
-    Output {
-      inscriptions: vec![Inscription {
-        body: Some(b"FOO".into()),
-        content_type: Some(b"text/plain;charset=utf-8".into()),
-        ..Default::default()
+      .run_and_deserialize_output::<RawOutput>(),
+    RawOutput {
+      inscriptions: vec![Envelope {
+        payload: Inscription {
+          body: Some(b"FOO".into()),
+          content_type: Some(b"text/plain;charset=utf-8".into()),
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+        pushnum: false,
+        stutter: false,
       }],
-    }
+    },
   );
 }

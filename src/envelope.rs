@@ -27,11 +27,11 @@ pub(crate) type ParsedEnvelope = Envelope<Inscription>;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize, Debug, Eq)]
 pub struct Envelope<T> {
-  pub(crate) input: u32,
-  pub(crate) offset: u32,
-  pub(crate) payload: T,
-  pub(crate) pushnum: bool,
-  pub(crate) stutter: bool,
+  pub input: u32,
+  pub offset: u32,
+  pub payload: T,
+  pub pushnum: bool,
+  pub stutter: bool,
 }
 
 fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
