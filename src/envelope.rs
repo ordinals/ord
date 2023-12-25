@@ -25,8 +25,8 @@ type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
 pub(crate) type ParsedEnvelope = Envelope<Inscription>;
 
-#[derive(Debug, Default, PartialEq, Clone)]
-pub(crate) struct Envelope<T> {
+#[derive(Default, PartialEq, Clone, Serialize, Deserialize, Debug, Eq)]
+pub struct Envelope<T> {
   pub(crate) input: u32,
   pub(crate) offset: u32,
   pub(crate) payload: T,

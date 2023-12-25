@@ -1,8 +1,59 @@
 use super::*;
 
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
-pub struct Output {
-  pub inscriptions: Vec<Inscription>,
+pub struct CompactOutput {
+  pub inscriptions: Vec<CompactInscription>,
+}
+
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
+pub struct RawOutput {
+  pub inscriptions: Vec<ParsedEnvelope>,
+}
+
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
+pub struct CompactInscription {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub body: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_encoding: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_type: Option<String>,
+  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  pub duplicate_field: bool,
+  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  pub incomplete_field: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metaprotocol: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub parent: Option<InscriptionId>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pointer: Option<u64>,
+  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  pub unrecognized_even_field: bool,
+}
+
+impl TryFrom<Inscription> for CompactInscription {
+  type Error = Error;
+
+  fn try_from(inscription: Inscription) -> Result<Self> {
+    Ok(Self {
+      content_encoding: inscription
+        .content_encoding()
+        .map(|header_value| header_value.to_str().map(str::to_string))
+        .transpose()?,
+      content_type: inscription.content_type().map(str::to_string),
+      metaprotocol: inscription.metaprotocol().map(str::to_string),
+      parent: inscription.parent(),
+      pointer: inscription.pointer(),
+      body: inscription.body.map(hex::encode),
+      duplicate_field: inscription.duplicate_field,
+      incomplete_field: inscription.incomplete_field,
+      metadata: inscription.metadata.map(hex::encode),
+      unrecognized_even_field: inscription.unrecognized_even_field,
+    })
+  }
 }
 
 #[derive(Debug, Parser)]
@@ -15,6 +66,11 @@ pub(crate) struct Decode {
   txid: Option<Txid>,
   #[arg(long, conflicts_with = "txid", help = "Load transaction from <FILE>.")]
   file: Option<PathBuf>,
+  #[arg(
+    long,
+    help = "Serialize inscriptions in a compact, human-readable format."
+  )]
+  compact: bool,
 }
 
 impl Decode {
@@ -31,11 +87,16 @@ impl Decode {
 
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);
 
-    Ok(Box::new(Output {
-      inscriptions: inscriptions
-        .into_iter()
-        .map(|inscription| inscription.payload)
-        .collect(),
-    }))
+    if self.compact {
+      Ok(Box::new(CompactOutput {
+        inscriptions: inscriptions
+          .clone()
+          .into_iter()
+          .map(|inscription| inscription.payload.try_into())
+          .collect::<Result<Vec<CompactInscription>>>()?,
+      }))
+    } else {
+      Ok(Box::new(RawOutput { inscriptions }))
+    }
   }
 }
