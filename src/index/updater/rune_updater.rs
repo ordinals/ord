@@ -63,7 +63,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .map(|runestone| runestone.burn)
       .unwrap_or_default();
 
-    let default = runestone.as_ref().and_then(|runestone| {
+    let default_output = runestone.as_ref().and_then(|runestone| {
       runestone
         .default
         .and_then(|default| usize::try_from(default).ok())
@@ -336,13 +336,16 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       // assign all un-allocated runes to the default output, or the first non
       // OP_RETURN output if there is no default, or if the default output is
       // too large
-      if let Some(vout) = default.filter(|vout| *vout < allocated.len()).or_else(|| {
-        tx.output
-          .iter()
-          .enumerate()
-          .find(|(_vout, tx_out)| !tx_out.script_pubkey.is_op_return())
-          .map(|(vout, _tx_out)| vout)
-      }) {
+      if let Some(vout) = default_output
+        .filter(|vout| *vout < allocated.len())
+        .or_else(|| {
+          tx.output
+            .iter()
+            .enumerate()
+            .find(|(_vout, tx_out)| !tx_out.script_pubkey.is_op_return())
+            .map(|(vout, _tx_out)| vout)
+        })
+      {
         for (id, balance) in unallocated {
           if balance > 0 {
             *allocated[vout].entry(id).or_default() += balance;
