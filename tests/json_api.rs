@@ -149,8 +149,10 @@ fn get_inscription() {
     InscriptionJson {
       parent: None,
       children: Vec::new(),
+      burn_payload: None,
       inscription_id,
       inscription_number: 0,
+      is_burned: Some(false),
       genesis_height: 2,
       genesis_fee: 138,
       output_value: Some(10000),
@@ -163,6 +165,7 @@ fn get_inscription() {
       previous: None,
       next: None,
       rune: None,
+      charms: None,
     }
   )
 }

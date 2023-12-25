@@ -1,9 +1,32 @@
-use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
+use bitcoin::script::Builder;
+use {
+  super::*,
+  bitcoin::{
+    blockdata::opcodes::all::{OP_PUSHNUM_NEG1,OP_RETURN},
+    script::PushBytesBuf,
+  },
+  crate::{
+    subcommand::wallet::transaction_builder::{Target},
+    wallet::Wallet,
+  },
+};
 
 #[derive(Debug, Parser, Clone)]
+#[clap(
+  group = ArgGroup::new("output")
+  .required(true)
+  .args(&["address", "burn"]),
+)]
 pub(crate) struct Send {
-  address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
+  #[arg(long, conflicts_with = "burn", help = "Recipient address")]
+  address: Option<Address<NetworkUnchecked>>,
+  #[arg(
+    long,
+    conflicts_with = "address",
+    help = "Message to append when burning sats"
+  )]
+  burn: Option<String>,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
@@ -20,10 +43,7 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let address = self
-      .address
-      .clone()
-      .require_network(options.chain().network())?;
+    let output = self.get_output(&options)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -45,14 +65,33 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
+        // let script = output.get_script(); // Replace with the actual method to get the Script from output
+
+        if output.is_op_return() {
+          bail!("refusing to burn amount");
+        }
+
+        let address = match chain.address_from_script(output.as_script()) {
+          Ok(addr) => addr,
+          Err(e) => {
+            bail!("failed to get address from script: {:?}", e);
+          }
+        };
+
         Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
-        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
-        return Ok(Box::new(Output { transaction }));
-      }
+        let txid = Self::send_amount(&client, amount, address, self.fee_rate)?;
+        return Ok(Box::new(Output { transaction: txid }));
+      },
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("inscription {id} not found"))?,
       Outgoing::Rune { decimal, rune } => {
+        let address = self
+            .address
+            .unwrap()
+            .clone()
+            .require_network(options.chain().network())?;
+
         let transaction = Self::send_runes(
           address,
           chain,
@@ -100,10 +139,11 @@ impl Send {
       unspent_outputs,
       locked_outputs,
       runic_outputs,
-      address.clone(),
+      output,
       change,
       self.fee_rate,
       postage,
+      chain,
     )
     .build_transaction()?;
 
@@ -114,6 +154,25 @@ impl Send {
     let txid = client.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
+  }
+
+  fn get_output(&self, options: &Options) -> Result<ScriptBuf, Error> {
+    if let Some(address) = &self.address {
+      let address = address.clone().require_network(options.chain().network())?;
+      Ok(ScriptBuf::from(address))
+    } else if let Some(msg) = &self.burn {
+      let push_data_buf = PushBytesBuf::try_from(Vec::from(msg.clone()))
+          .expect("burn payload too large");
+
+      Ok(Builder::new()
+        .push_opcode(OP_RETURN)
+        .push_opcode(OP_PUSHNUM_NEG1)
+        .push_slice(&push_data_buf)
+        .into_script()
+      )
+    } else {
+      bail!("no valid output given")
+    }
   }
 
   fn lock_non_cardinal_outputs(

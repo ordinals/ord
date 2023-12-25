@@ -33,11 +33,16 @@
 
 use {
   super::*,
+  bitcoin::{
+    blockdata::{locktime::absolute::LockTime, witness::Witness},
+    Amount, ScriptBuf,
+  },
   std::cmp::{max, min},
 };
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
+  BitcoinAddressError(String),
   DuplicateAddress(Address),
   Dust {
     output_value: Amount,
@@ -61,9 +66,16 @@ pub enum Target {
   ExactPostage(Amount),
 }
 
+impl From<bitcoin::address::Error> for Error {
+  fn from(err: bitcoin::address::Error) -> Self {
+    Error::BitcoinAddressError(err.to_string())
+  }
+}
+
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
+      Error::BitcoinAddressError(error) => write!(f, "error parsing address: {error}"),
       Error::Dust {
         output_value,
         dust_value,
@@ -93,14 +105,15 @@ impl std::error::Error for Error {}
 #[derive(Debug, PartialEq)]
 pub struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
+  chain: Chain,
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   locked_utxos: BTreeSet<OutPoint>,
   outgoing: SatPoint,
-  outputs: Vec<(Address, Amount)>,
-  recipient: Address,
+  outputs: Vec<(ScriptBuf, Amount)>,
+  recipient: ScriptBuf,
   runic_utxos: BTreeSet<OutPoint>,
   target: Target,
   unused_change_addresses: Vec<Address>,
@@ -115,20 +128,22 @@ impl TransactionBuilder {
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
   pub(crate) const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
 
-  pub fn new(
+  pub fn new<U: Into<ScriptBuf>>(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
-    recipient: Address,
+    recipient: U,
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
+    chain: Chain,
   ) -> Self {
     Self {
       utxos: amounts.keys().cloned().collect(),
       amounts,
+      chain,
       change_addresses: change.iter().cloned().collect(),
       fee_rate,
       inputs: Vec::new(),
@@ -136,7 +151,7 @@ impl TransactionBuilder {
       locked_utxos,
       outgoing,
       outputs: Vec::new(),
-      recipient,
+      recipient: recipient.into(),
       runic_utxos,
       target,
       unused_change_addresses: change.to_vec(),
@@ -150,13 +165,18 @@ impl TransactionBuilder {
       ));
     }
 
-    if self.change_addresses.contains(&self.recipient) {
-      return Err(Error::DuplicateAddress(self.recipient));
+    if !self.recipient.is_op_return() {
+      let recipient_address = self.chain.address_from_script(&self.recipient)?;
+      if self.change_addresses.contains(&recipient_address) {
+        return Err(Error::DuplicateAddress(
+          recipient_address.clone() // Clone the duplicate address
+        ));
+      }
     }
 
     match self.target {
       Target::Value(output_value) | Target::ExactPostage(output_value) => {
-        let dust_value = self.recipient.script_pubkey().dust_value();
+        let dust_value = self.recipient.dust_value();
 
         if output_value < dust_value {
           return Err(Error::Dust {
@@ -242,7 +262,8 @@ impl TransactionBuilder {
           self
             .unused_change_addresses
             .pop()
-            .expect("not enough change addresses"),
+            .expect("not enough change addresses")
+            .into(),
           Amount::from_sat(sat_offset),
         ),
       );
@@ -287,7 +308,7 @@ impl TransactionBuilder {
     let estimated_fee = self.estimate_fee();
 
     let min_value = match self.target {
-      Target::Postage => self.outputs.last().unwrap().0.script_pubkey().dust_value(),
+      Target::Postage => self.outputs.last().unwrap().0.dust_value(),
       Target::Value(value) | Target::ExactPostage(value) => value,
     };
 
@@ -368,7 +389,8 @@ impl TransactionBuilder {
           self
             .unused_change_addresses
             .pop()
-            .expect("not enough change addresses"),
+            .expect("not enough change addresses")
+            .into(),
           value - target,
         ));
       }
@@ -420,13 +442,13 @@ impl TransactionBuilder {
       self
         .outputs
         .iter()
-        .map(|(address, _amount)| address)
+        .map(|(recipient, _amount)| recipient)
         .cloned()
         .collect(),
     )
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<Address>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: Vec<ScriptBuf>) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -440,9 +462,9 @@ impl TransactionBuilder {
         .collect(),
       output: outputs
         .into_iter()
-        .map(|address| TxOut {
+        .map(|recipient| TxOut {
           value: 0,
-          script_pubkey: address.script_pubkey(),
+          script_pubkey: recipient.clone(),
         })
         .collect(),
     }
@@ -454,7 +476,7 @@ impl TransactionBuilder {
   }
 
   fn build(self) -> Result<Transaction> {
-    let recipient = self.recipient.script_pubkey();
+    let recipient = self.recipient.clone();
     let transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -471,9 +493,9 @@ impl TransactionBuilder {
       output: self
         .outputs
         .iter()
-        .map(|(address, amount)| TxOut {
+        .map(|(output, amount)| TxOut {
           value: amount.to_sat(),
-          script_pubkey: address.script_pubkey(),
+          script_pubkey: output.clone()
         })
         .collect(),
     };
@@ -531,7 +553,7 @@ impl TransactionBuilder {
       transaction
         .output
         .iter()
-        .filter(|tx_out| tx_out.script_pubkey == self.recipient.script_pubkey())
+        .filter(|tx_out| tx_out.script_pubkey == self.recipient)
         .count(),
       1,
       "invariant: recipient address appears exactly once in outputs",
@@ -552,7 +574,7 @@ impl TransactionBuilder {
 
     let mut offset = 0;
     for output in &transaction.output {
-      if output.script_pubkey == self.recipient.script_pubkey() {
+      if output.script_pubkey == self.recipient {
         let slop = self.fee_rate.fee(Self::ADDITIONAL_OUTPUT_VBYTES);
 
         match self.target {
@@ -738,6 +760,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet
     )
     .select_outgoing()
     .unwrap();
@@ -751,7 +774,7 @@ mod tests {
     assert_eq!(
       tx_builder.outputs,
       [(
-        recipient(),
+        recipient().into(),
         Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE)
       )]
     )
@@ -772,16 +795,17 @@ mod tests {
       inscriptions: BTreeMap::new(),
       locked_utxos: BTreeSet::new(),
       runic_utxos: BTreeSet::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_724)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(5_000)),
+        (change(1).into(), Amount::from_sat(1_724)),
       ],
       target: Target::Postage,
+      chain: Chain::Testnet
     };
 
     pretty_assert_eq!(
@@ -813,6 +837,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet
     )
     .build_transaction()
     .unwrap()
@@ -834,6 +859,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet
       )
       .build_transaction(),
       Ok(Transaction {
@@ -860,6 +886,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet
     )
     .select_outgoing()
     .unwrap()
@@ -886,6 +913,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet
       )
       .build_transaction(),
       Ok(Transaction {
@@ -912,6 +940,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
@@ -935,7 +964,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Postage
+        Target::Postage,
+        Chain::Testnet
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
@@ -960,6 +990,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -990,6 +1021,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .build()
     .unwrap();
@@ -1010,6 +1042,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .build()
     .unwrap();
@@ -1030,6 +1063,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .build()
     .unwrap();
@@ -1050,6 +1084,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap();
@@ -1057,7 +1092,8 @@ mod tests {
     builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
       .parse::<Address<NetworkUnchecked>>()
       .unwrap()
-      .assume_checked();
+      .assume_checked()
+      .into();
 
     builder.build().unwrap();
   }
@@ -1077,6 +1113,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap();
@@ -1101,6 +1138,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1130,6 +1168,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1152,6 +1191,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1181,6 +1221,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1207,6 +1248,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1236,6 +1278,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1263,6 +1306,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1287,6 +1331,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1311,16 +1356,17 @@ mod tests {
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (recipient(), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_774)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(1).into(), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
+      chain: Chain::Testnet
     }
     .build()
     .unwrap();
@@ -1342,16 +1388,17 @@ mod tests {
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
-      recipient: recipient(),
+      recipient: recipient().into(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient(), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(5_000)),
-        (change(0), Amount::from_sat(1_774)),
+        (recipient().into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(5_000)),
+        (change(0).into(), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
+      chain: Chain::Testnet,
     }
     .build()
     .unwrap();
@@ -1375,6 +1422,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1399,6 +1447,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1420,6 +1469,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::UtxoContainsAdditionalInscription {
@@ -1446,6 +1496,7 @@ mod tests {
       [change(0), change(1)],
       fee_rate,
       Target::Postage,
+      Chain::Testnet,
     )
     .build_transaction()
     .unwrap();
@@ -1478,7 +1529,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1507,7 +1559,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Value(Amount::from_sat(1500))
+        Target::Value(Amount::from_sat(1500)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1533,7 +1586,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Value(Amount::from_sat(1))
+        Target::Value(Amount::from_sat(1)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::Dust {
@@ -1560,7 +1614,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
@@ -1584,7 +1639,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(4.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
@@ -1607,7 +1663,8 @@ mod tests {
         "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
           .parse::<Address<NetworkUnchecked>>()
           .unwrap()
-          .assume_checked(),
+          .assume_checked()
+          .into(),
       ],
     );
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_OUTPUT_VBYTES);
@@ -1627,7 +1684,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        Target::Value(Amount::from_sat(707))
+        Target::Value(Amount::from_sat(707)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1654,6 +1712,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1679,7 +1738,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(5.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1705,7 +1765,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(6.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1726,7 +1787,8 @@ mod tests {
         recipient(),
         [recipient(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::DuplicateAddress(recipient()))
@@ -1747,7 +1809,8 @@ mod tests {
         recipient(),
         [change(0), change(0)],
         FeeRate::try_from(0.0).unwrap(),
-        Target::Value(Amount::from_sat(1000))
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Err(Error::DuplicateAddress(change(0)))
@@ -1768,7 +1831,8 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(2.0).unwrap(),
-        Target::Value(Amount::from_sat(1500))
+        Target::Value(Amount::from_sat(1500)),
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1795,6 +1859,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(250.0).unwrap(),
         Target::Postage,
+        Chain::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1827,6 +1892,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1847,7 +1913,10 @@ mod tests {
     ); // value inputs are pushed at the end
     assert_eq!(
       tx_builder.outputs,
-      [(recipient(), Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001))]
+      [(
+        recipient().into(),
+        Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001)
+      )]
     )
   }
 
@@ -1873,6 +1942,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1895,8 +1965,8 @@ mod tests {
     assert_eq!(
       tx_builder.outputs,
       [
-        (change(1), Amount::from_sat(101 + 104 + 105 + 1)),
-        (recipient(), Amount::from_sat(19_999))
+        (change(1).into(), Amount::from_sat(101 + 104 + 105 + 1)),
+        (recipient().into(), Amount::from_sat(19_999))
       ]
     )
   }
@@ -1926,6 +1996,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     );
 
     assert_eq!(
@@ -1982,9 +2053,10 @@ mod tests {
       [change(0), change(1)],
       fee_rate,
       Target::ExactPostage(Amount::from_sat(66_000)),
+      Chain::Testnet,
     )
-    .build_transaction()
-    .unwrap();
+      .build_transaction()
+      .unwrap();
 
     let fee =
       fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
@@ -2018,6 +2090,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     );
 
     assert_eq!(
@@ -2044,6 +2117,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     );
 
     assert_eq!(
@@ -2072,6 +2146,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     );
 
     assert_eq!(
@@ -2100,6 +2175,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      Chain::Testnet,
     );
 
     assert_eq!(
@@ -2109,5 +2185,41 @@ mod tests {
         .0,
       outpoint(2),
     );
+  }
+
+  #[test]
+  fn burn_has_op_return_script() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+
+    let msg = b"let it burn".to_vec();
+    let msg_push_bytes = PushBytesBuf::try_from(msg.clone()).expect("burn message should fit");
+
+    pretty_assert_eq!(
+      TransactionBuilder::new(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        utxos.into_iter().collect(),
+        BTreeSet::new(),
+        BTreeSet::new(),
+        ScriptBuf::new_op_return(&msg_push_bytes),
+        [change(0), change(1)],
+        FeeRate::try_from(1.0).unwrap(),
+        Target::Value(Amount::from_sat(1000)),
+        Chain::Testnet
+      )
+      .build_transaction(),
+      Ok(Transaction {
+        version: 1,
+        lock_time: LockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![
+          TxOut {
+            value: 1000,
+            script_pubkey: ScriptBuf::new_op_return(&msg_push_bytes)
+          },
+          tx_out(3879, change(1))
+        ],
+      })
+    )
   }
 }

@@ -340,6 +340,7 @@ impl Batch {
       change,
       self.commit_fee_rate,
       Target::Value(reveal_fee + total_postage),
+      chain,
     )
     .build_transaction()?;
 

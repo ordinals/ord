@@ -29,7 +29,7 @@ fn inscriptions() {
     .address;
 
   let txid = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 {} {inscription}",
+    "wallet send --fee-rate 1 --recipient {} {inscription}",
     address.assume_checked()
   ))
   .rpc_server(&rpc_server)
@@ -94,7 +94,7 @@ fn inscriptions_with_postage() {
     .address;
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 {} {inscription}",
+    "wallet send --fee-rate 1 --recipient {} {inscription}",
     address.assume_checked()
   ))
   .rpc_server(&rpc_server)

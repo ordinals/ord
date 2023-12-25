@@ -1,5 +1,6 @@
 #[derive(Copy, Clone)]
 pub(crate) enum Charm {
+  Burned,
   Coin,
   Cursed,
   Epic,
@@ -13,7 +14,7 @@ pub(crate) enum Charm {
 }
 
 impl Charm {
-  pub(crate) const ALL: [Charm; 10] = [
+  pub(crate) const ALL: [Charm; 11] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -24,6 +25,7 @@ impl Charm {
     Self::Cursed,
     Self::Unbound,
     Self::Lost,
+    Self::Burned,
   ];
 
   fn flag(self) -> u16 {
@@ -40,6 +42,7 @@ impl Charm {
 
   pub(crate) fn icon(self) -> &'static str {
     match self {
+      Self::Burned => "🔥",
       Self::Coin => "🪙",
       Self::Cursed => "👹",
       Self::Epic => "🪻",
@@ -55,6 +58,7 @@ impl Charm {
 
   pub(crate) fn title(self) -> &'static str {
     match self {
+      Self::Burned => "burned",
       Self::Coin => "coin",
       Self::Cursed => "cursed",
       Self::Epic => "epic",
