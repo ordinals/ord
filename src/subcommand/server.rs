@@ -718,20 +718,23 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
+    let transaction = index
+      .get_transaction(txid)?
+      .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+    let inscription_count = index.inscription_count(txid)?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
     Ok(
-      TransactionHtml::new(
-        index
-          .get_transaction(txid)?
-          .ok_or_not_found(|| format!("transaction {txid}"))?,
+      TransactionHtml {
         blockhash,
-        inscription.map(|_| InscriptionId { txid, index: 0 }),
-        server_config.chain,
-        index.get_etching(txid)?,
-      )
+        transaction,
+        txid,
+        inscription_count,
+        chain: server_config.chain,
+        etching: index.get_etching(txid)?,
+      }
       .page(server_config),
     )
   }
