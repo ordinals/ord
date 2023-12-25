@@ -308,20 +308,16 @@ impl Inscription {
   }
 
   pub(crate) fn hidden(&self) -> bool {
+    use regex::bytes::Regex;
+
     lazy_static! {
       static ref CONTENT: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
     }
 
-    let Some(content_type) = self.content_type() else {
-      return true;
-    };
-
-    if content_type.starts_with("text/html")
-      && self
-        .body()
-        .and_then(|body| str::from_utf8(body).ok())
-        .map(|body| CONTENT.is_match(body))
-        .unwrap_or_default()
+    if self
+      .body()
+      .map(|body| CONTENT.is_match(body))
+      .unwrap_or_default()
     {
       return true;
     }
@@ -813,7 +809,7 @@ mod tests {
     case(
       Some("text/markdown"),
       Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
-      false,
+      true,
     );
     case(
       Some("text/html"),
