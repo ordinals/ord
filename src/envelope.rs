@@ -15,6 +15,7 @@ pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 
 pub(crate) const BODY_TAG: [u8; 0] = [];
 pub(crate) const POINTER_TAG: [u8; 1] = [2];
+#[allow(unused)]
 pub(crate) const UNBOUND_TAG: [u8; 1] = [66];
 
 pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
