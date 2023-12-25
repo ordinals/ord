@@ -12,6 +12,7 @@ pub(crate) struct StatusHtml {
   pub(crate) runes: u64,
   pub(crate) sat_index: bool,
   pub(crate) started: DateTime<Utc>,
+  pub(crate) transaction_index: bool,
   pub(crate) unrecoverably_reorged: bool,
   pub(crate) uptime: Duration,
 }
