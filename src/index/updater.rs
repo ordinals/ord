@@ -340,7 +340,8 @@ impl<'index> Updater<'_> {
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-    let index_inscriptions = self.height >= index.first_inscription_height;
+    let index_inscriptions =
+      self.height >= index.first_inscription_height && !index.options.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -535,7 +536,7 @@ impl<'index> Updater<'_> {
 
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
-    } else {
+    } else if index_inscriptions {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
         inscription_updater.index_envelopes(tx, *txid, None)?;
       }

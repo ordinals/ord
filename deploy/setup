@@ -51,6 +51,9 @@ case $CHAIN in
   main)
     ufw allow 8333
     ;;
+  regtest)
+    ufw allow 18444
+    ;;
   signet)
     ufw allow 38333
     ;;
@@ -89,8 +92,15 @@ id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
 cp deploy/bitcoind.service /etc/systemd/system/
+
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+
+if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
+  mkdir -p ~/.bitcoin
+  ln -s /etc/bitcoin/bitcoin.conf ~/.bitcoin/bitcoin.conf
+fi
+
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
@@ -98,6 +108,9 @@ systemctl restart bitcoind
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
+    ;;
+  regtest)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
