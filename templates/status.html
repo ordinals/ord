@@ -24,10 +24,12 @@
   <dd>{{ env!("CARGO_PKG_VERSION") }}</dd>
   <dt>unrecoverably reorged</dt>
   <dd>{{ self.unrecoverably_reorged }}</dd>
-  <dt>sat index</dt>
-  <dd>{{ self.sat_index }}</dd>
   <dt>rune index</dt>
   <dd>{{ self.rune_index }}</dd>
+  <dt>sat index</dt>
+  <dd>{{ self.sat_index }}</dd>
+  <dt>transaction index</dt>
+  <dd>{{ self.transaction_index }}</dd>
 %% if !env!("GIT_BRANCH").is_empty() {
   <dt>git branch</dt>
   <dd>{{ env!("GIT_BRANCH") }}</dd>
