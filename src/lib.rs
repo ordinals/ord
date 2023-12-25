@@ -85,6 +85,7 @@ use {
 };
 
 pub use self::{
+  envelope::Envelope,
   fee_rate::FeeRate,
   inscription::Inscription,
   object::Object,
