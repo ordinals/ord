@@ -15,6 +15,7 @@ use {
 };
 
 pub mod balance;
+pub mod cancel;
 pub mod cardinals;
 pub mod create;
 pub mod etch;
@@ -38,6 +39,8 @@ pub(crate) enum Wallet {
   Etch(etch::Etch),
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
+  #[command(about = "Cancel pending transaction")]
+  Cancel(cancel::Cancel),
   #[command(about = "List wallet inscriptions")]
   Inscriptions,
   #[command(about = "Generate receive address")]
@@ -63,6 +66,7 @@ impl Wallet {
       Self::Create(create) => create.run(options),
       Self::Etch(etch) => etch.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
+      Self::Cancel(cancel) => cancel.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
       Self::Restore(restore) => restore.run(options),
