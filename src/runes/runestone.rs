@@ -6,7 +6,7 @@ const TAG_RUNE: u128 = 4;
 const TAG_LIMIT: u128 = 6;
 const TAG_TERM: u128 = 8;
 const TAG_DEADLINE: u128 = 10;
-const TAG_DEFAULT: u128 = 12;
+const TAG_DEFAULT_OUTPUT: u128 = 12;
 
 const TAG_DIVISIBILITY: u128 = 1;
 const TAG_SPACERS: u128 = 3;
@@ -89,7 +89,7 @@ impl Runestone {
     let spacers = fields.remove(&TAG_SPACERS);
     let symbol = fields.remove(&TAG_SYMBOL);
     let term = fields.remove(&TAG_TERM);
-    let default = fields.remove(&TAG_DEFAULT);
+    let default = fields.remove(&TAG_DEFAULT_OUTPUT);
 
     let etch = flags & FLAG_ETCH != 0;
     let unrecognized_flags = flags & !FLAG_ETCH != 0;
@@ -168,7 +168,7 @@ impl Runestone {
     }
 
     if let Some(default) = self.default {
-      varint::encode_to_vec(TAG_DEFAULT, &mut payload);
+      varint::encode_to_vec(TAG_DEFAULT_OUTPUT, &mut payload);
       varint::encode_to_vec(default.into(), &mut payload);
     }
 
@@ -1461,7 +1461,7 @@ mod tests {
         3,
         TAG_TERM,
         5,
-        TAG_DEFAULT,
+        TAG_DEFAULT_OUTPUT,
         11,
         TAG_BODY,
         6,
