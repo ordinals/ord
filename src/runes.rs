@@ -1360,7 +1360,7 @@ mod tests {
   }
 
   #[test]
-  fn unallocated_runes_are_assigned_to_first_not_op_return_output_if_default_is_too_large() {
+  fn unallocated_runes_are_assigned_to_first_non_op_return_output_if_default_is_too_large() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
