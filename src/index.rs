@@ -1374,6 +1374,26 @@ impl Index {
     }))
   }
 
+  pub(crate) fn inscription_count(&self, txid: Txid) -> Result<u32> {
+    let start = InscriptionId { index: 0, txid };
+
+    let end = InscriptionId {
+      index: u32::MAX,
+      txid,
+    };
+
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+        .range::<&InscriptionIdValue>(&start.store()..&end.store())?
+        .count()
+        .try_into()
+        .unwrap(),
+    )
+  }
+
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       self
@@ -3394,6 +3414,51 @@ mod tests {
           .unwrap()
           .inscription_number,
         -1
+      );
+    }
+  }
+
+  #[test]
+  fn unrecognized_even_field_inscriptions_are_unbound_after_jubilee() {
+    for context in Context::configurations() {
+      context.mine_blocks(109);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        0
       );
     }
   }
