@@ -1027,9 +1027,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     Ok(
       Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1119,9 +1125,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),

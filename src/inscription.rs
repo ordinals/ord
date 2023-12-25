@@ -19,6 +19,7 @@ pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_encoding: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
+  pub delegate: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
   pub metadata: Option<Vec<u8>>,
@@ -197,6 +198,41 @@ impl Inscription {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
+  fn inscription_id_field(field: &Option<Vec<u8>>) -> Option<InscriptionId> {
+    let value = field.as_ref()?;
+
+    if value.len() < Txid::LEN {
+      return None;
+    }
+
+    if value.len() > Txid::LEN + 4 {
+      return None;
+    }
+
+    let (txid, index) = value.split_at(Txid::LEN);
+
+    if let Some(last) = index.last() {
+      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
+      // or variable length (no trailing zeroes)
+      if index.len() != 4 && *last == 0 {
+        return None;
+      }
+    }
+
+    let txid = Txid::from_slice(txid).unwrap();
+
+    let index = [
+      index.first().copied().unwrap_or(0),
+      index.get(1).copied().unwrap_or(0),
+      index.get(2).copied().unwrap_or(0),
+      index.get(3).copied().unwrap_or(0),
+    ];
+
+    let index = u32::from_le_bytes(index);
+
+    Some(InscriptionId { txid, index })
+  }
+
   pub(crate) fn media(&self) -> Media {
     if self.body.is_none() {
       return Media::Unknown;
@@ -229,6 +265,10 @@ impl Inscription {
     HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
   }
 
+  pub(crate) fn delegate(&self) -> Option<InscriptionId> {
+    Self::inscription_id_field(&self.delegate)
+  }
+
   pub(crate) fn metadata(&self) -> Option<Value> {
     ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
   }
@@ -238,38 +278,7 @@ impl Inscription {
   }
 
   pub(crate) fn parent(&self) -> Option<InscriptionId> {
-    let value = self.parent.as_ref()?;
-
-    if value.len() < Txid::LEN {
-      return None;
-    }
-
-    if value.len() > Txid::LEN + 4 {
-      return None;
-    }
-
-    let (txid, index) = value.split_at(Txid::LEN);
-
-    if let Some(last) = index.last() {
-      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
-      // or variable length (no trailing zeroes)
-      if index.len() != 4 && *last == 0 {
-        return None;
-      }
-    }
-
-    let txid = Txid::from_slice(txid).unwrap();
-
-    let index = [
-      index.first().copied().unwrap_or(0),
-      index.get(1).copied().unwrap_or(0),
-      index.get(2).copied().unwrap_or(0),
-      index.get(3).copied().unwrap_or(0),
-    ];
-
-    let index = u32::from_le_bytes(index);
-
-    Some(InscriptionId { txid, index })
+    Self::inscription_id_field(&self.parent)
   }
 
   pub(crate) fn pointer(&self) -> Option<u64> {
