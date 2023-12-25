@@ -7,6 +7,10 @@ use {super::*, bitcoincore_rpc::Auth};
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
 pub(crate) struct Options {
+  #[arg(long, default_value_t=LogLevel::default(), help = "log level")]
+  pub(crate) log_level: LogLevel,
+  #[arg(long, help = "write log in directory <LOG_DIR>")]
+  pub(crate) log_dir: Option<PathBuf>,
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
@@ -63,6 +67,28 @@ pub(crate) struct Options {
   pub(crate) enable_save_ord_receipts: bool,
   #[arg(long, help = "Enable Index Bitmap Collection.")]
   pub(crate) enable_index_bitmap: bool,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct LogLevel(pub log::LevelFilter);
+
+impl Default for LogLevel {
+  fn default() -> Self {
+    Self(log::LevelFilter::Error)
+  }
+}
+
+impl Display for LogLevel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    Display::fmt(&self.0, f)
+  }
+}
+
+impl FromStr for LogLevel {
+  type Err = <log::LevelFilter as FromStr>::Err;
+  fn from_str(level: &str) -> Result<Self, Self::Err> {
+    Ok(Self(log::LevelFilter::from_str(level)?))
+  }
 }
 
 impl Options {
@@ -143,6 +169,17 @@ impl Options {
     };
 
     Ok(self.chain().join_with_data_dir(&base))
+  }
+
+  pub(crate) fn log_level(&self) -> log::LevelFilter {
+    self.log_level.0
+  }
+
+  pub(crate) fn log_dir(&self) -> Result<PathBuf> {
+    self.log_dir.as_ref().map_or_else(
+      || Ok(self.data_dir()?.join("logs")),
+      |path| Ok(path.clone()),
+    )
   }
 
   pub(crate) fn load_config(&self) -> Result<Config> {

@@ -71,6 +71,7 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
 utoipa = "4.1.0"
 thiserror = "1.0.51"
+log4rs = "1.2.0"
 
 [dev-dependencies]
 executable-path = "1.0.0"
