@@ -64,13 +64,23 @@ impl Send {
       index.get_runic_outputs(&unspent_outputs.keys().cloned().collect::<Vec<OutPoint>>())?;
 
     let satpoint = match self.outgoing {
-      Outgoing::Amount(amount) => match output {
-        OutputScript::OpReturn(_) => bail!("refusing to burn amount"),
-        OutputScript::PubKey(address) => {
-            Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
-            let txid = Self::send_amount(&client, amount, address, self.fee_rate)?;
-            return Ok(Box::new(Output { transaction: txid }));
+      Outgoing::Amount(amount) => {
+        // let script = output.get_script(); // Replace with the actual method to get the Script from output
+
+        if output.is_op_return() {
+          bail!("refusing to burn amount");
         }
+
+        let address = match chain.address_from_script(output.as_script()) {
+          Ok(addr) => addr,
+          Err(e) => {
+            bail!("failed to get address from script: {:?}", e);
+          }
+        };
+
+        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+        let txid = Self::send_amount(&client, amount, address, self.fee_rate)?;
+        return Ok(Box::new(Output { transaction: txid }));
       },
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
@@ -110,27 +120,6 @@ impl Send {
 
         satpoint
       }
-      Outgoing::InscriptionId(id) => index
-        .get_inscription_satpoint_by_id(id)?
-        .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
-      Outgoing::Amount(amount) => {
-        // let script = output.get_script(); // Replace with the actual method to get the Script from output
-
-        if output.is_op_return() {
-          bail!("refusing to burn amount");
-        }
-
-        let address = match chain.address_from_script(output.as_script()) {
-          Ok(addr) => addr,
-          Err(e) => {
-            bail!("failed to get address from script: {:?}", e);
-          }
-        };
-
-        Self::lock_inscriptions(&client, inscriptions, runic_outputs, unspent_outputs)?;
-        let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
-        return Ok(Box::new(Output { transaction: txid }));
-      },
     };
 
     let change = [
