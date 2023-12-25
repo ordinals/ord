@@ -479,7 +479,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
     let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
@@ -491,7 +491,7 @@ impl Server {
       })
     });
     let blocktime = index.block_time(sat.height())?;
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(SatJson {
         number: sat.0,
         decimal: sat.decimal().to_string(),
@@ -529,7 +529,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let list = index.list(outpoint)?;
 
@@ -560,7 +560,7 @@ impl Server {
 
     let runes = index.get_rune_balances_for_outpoint(outpoint)?;
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(OutputJson::new(
         outpoint,
         list,
@@ -676,7 +676,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
@@ -699,7 +699,7 @@ impl Server {
       }
     };
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       let inscriptions = index.get_inscriptions_in_block(height)?;
       Json(BlockJson::new(
         block,
@@ -1363,7 +1363,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(page_index): Path<usize>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
 
@@ -1371,7 +1371,7 @@ impl Server {
 
     let next = more_inscriptions.then_some(page_index + 1);
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionsJson {
         inscriptions,
         page_index,
@@ -1393,13 +1393,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(block_height): Path<u32>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_paginated(
       Extension(server_config),
       Extension(index),
       Path((block_height, 0)),
-      accept_json,
+      AcceptJson(accept_json),
     )
     .await
   }
@@ -1408,7 +1408,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((block_height, page_index)): Path<(u32, usize)>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let page_size = 100;
 
@@ -1425,7 +1425,7 @@ impl Server {
       inscriptions.pop();
     }
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionsJson {
         inscriptions,
         page_index,
