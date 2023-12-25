@@ -892,7 +892,7 @@ mod tests {
             rune: Some(Rune(RUNE)),
             ..Default::default()
           }),
-          default: None,
+          default_output: None,
           burn: true,
         }
         .encipher(),
@@ -945,7 +945,7 @@ mod tests {
             term: Some(1),
             spacers: 1,
           }),
-          default: None,
+          default_output: None,
           burn: true,
         }
         .encipher(),
@@ -999,7 +999,7 @@ mod tests {
           }],
           etching: Some(Etching::default()),
           burn: true,
-          default: None,
+          default_output: None,
         }
         .encipher(),
       ),
@@ -1328,7 +1328,7 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          default: Some(1),
+          default_output: Some(1),
           ..Default::default()
         }
         .encipher(),
@@ -1417,7 +1417,7 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          default: Some(3),
+          default_output: Some(3),
           ..Default::default()
         }
         .encipher(),
@@ -1506,7 +1506,7 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          default: Some(2),
+          default_output: Some(2),
           ..Default::default()
         }
         .encipher(),
