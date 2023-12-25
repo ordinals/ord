@@ -7,13 +7,24 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Decode {
-  transaction: Option<PathBuf>,
+  #[arg(
+    long,
+    conflicts_with = "file",
+    help = "Fetch transaction with <TXID> from Bitcoin Core."
+  )]
+  txid: Option<Txid>,
+  #[arg(long, conflicts_with = "txid", help = "Load transaction from <FILE>.")]
+  file: Option<PathBuf>,
 }
 
 impl Decode {
-  pub(crate) fn run(self) -> SubcommandResult {
-    let transaction = if let Some(path) = self.transaction {
-      Transaction::consensus_decode(&mut File::open(path)?)?
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+    let client = options.bitcoin_rpc_client()?;
+
+    let transaction = if let Some(txid) = self.txid {
+      client.get_raw_transaction(&txid, None)?
+    } else if let Some(file) = self.file {
+      Transaction::consensus_decode(&mut File::open(file)?)?
     } else {
       Transaction::consensus_decode(&mut io::stdin())?
     };

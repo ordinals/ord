@@ -46,13 +46,13 @@ fn transaction() -> Vec<u8> {
 #[test]
 fn from_file() {
   assert_eq!(
-    CommandBuilder::new("decode transaction.bin")
+    CommandBuilder::new("decode --file transaction.bin")
       .write("transaction.bin", transaction())
       .run_and_deserialize_output::<Output>(),
     Output {
       inscriptions: vec![Inscription {
         body: Some(vec![0, 1, 2, 3]),
-        content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+        content_type: Some(b"text/plain;charset=utf-8".into()),
         ..Default::default()
       }],
     }
@@ -68,7 +68,29 @@ fn from_stdin() {
     Output {
       inscriptions: vec![Inscription {
         body: Some(vec![0, 1, 2, 3]),
-        content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+        content_type: Some(b"text/plain;charset=utf-8".into()),
+        ..Default::default()
+      }],
+    }
+  );
+}
+
+#[test]
+fn from_core() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let (_inscription, reveal) = inscribe(&rpc_server);
+
+  assert_eq!(
+    CommandBuilder::new(format!("decode --txid {reveal}"))
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<Output>(),
+    Output {
+      inscriptions: vec![Inscription {
+        body: Some(b"FOO".into()),
+        content_type: Some(b"text/plain;charset=utf-8".into()),
         ..Default::default()
       }],
     }
