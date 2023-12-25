@@ -65,7 +65,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     let default_output = runestone.as_ref().and_then(|runestone| {
       runestone
-        .default
+        .default_output
         .and_then(|default| usize::try_from(default).ok())
     });
 

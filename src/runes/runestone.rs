@@ -26,7 +26,7 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
-  pub default: Option<u32>,
+  pub default_output: Option<u32>,
   pub burn: bool,
 }
 
@@ -89,7 +89,7 @@ impl Runestone {
     let spacers = fields.remove(&TAG_SPACERS);
     let symbol = fields.remove(&TAG_SYMBOL);
     let term = fields.remove(&TAG_TERM);
-    let default = fields.remove(&TAG_DEFAULT_OUTPUT);
+    let default_output = fields.remove(&TAG_DEFAULT_OUTPUT);
 
     let etch = flags & FLAG_ETCH != 0;
     let unrecognized_flags = flags & !FLAG_ETCH != 0;
@@ -118,7 +118,7 @@ impl Runestone {
 
     Ok(Some(Self {
       burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
-      default: default.and_then(|default| u32::try_from(default).ok()),
+      default_output: default_output.and_then(|default| u32::try_from(default).ok()),
       edicts: body,
       etching,
     }))
@@ -167,9 +167,9 @@ impl Runestone {
       }
     }
 
-    if let Some(default) = self.default {
+    if let Some(default_output) = self.default_output {
       varint::encode_to_vec(TAG_DEFAULT_OUTPUT, &mut payload);
-      varint::encode_to_vec(default.into(), &mut payload);
+      varint::encode_to_vec(default_output.into(), &mut payload);
     }
 
     if self.burn {
