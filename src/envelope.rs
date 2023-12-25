@@ -24,6 +24,8 @@ pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
 pub(crate) const CONTENT_ENCODING_TAG: [u8; 1] = [9];
 pub(crate) const DELEGATE_TAG: [u8; 1] = [11];
+#[allow(unused)]
+pub(crate) const NOP_TAG: [u8; 1] = [255];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
@@ -458,7 +460,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[11],
+        &NOP_TAG,
         b"bar",
         &[],
         b"ord",
@@ -788,7 +790,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[11], &[0]])]),
+      parse(&[envelope(&[b"ord", &NOP_TAG, &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()
