@@ -54,7 +54,7 @@ impl Subcommand {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balances => balances::run(options),
-      Self::Decode(decode) => decode.run(),
+      Self::Decode(decode) => decode.run(options),
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
