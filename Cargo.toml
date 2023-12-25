@@ -67,11 +67,16 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
 
 [dev-dependencies]
+criterion = "0.5.1"
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking", "brotli", "json"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.2.1"
+
+[[bench]]
+name = "server"
+harness = false
 
 [[bin]]
 name = "ord"

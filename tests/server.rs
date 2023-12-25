@@ -109,6 +109,35 @@ fn inscription_appears_on_reveal_transaction_page() {
 }
 
 #[test]
+fn multiple_inscriptions_appear_on_reveal_transaction_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
+    .write("inscription.txt", "Hello World")
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: meow.wav\n",
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let id0 = output.inscriptions[0].id;
+  let id1 = output.inscriptions[1].id;
+  let reveal = output.reveal;
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/tx/{reveal}"),
+    format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{id0}.*<a href=/inscription/{id1}.*"),
+  );
+}
+
+#[test]
 fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
@@ -428,5 +457,32 @@ fn sat_recursive_endpoints_without_sat_index_return_404() {
   assert_eq!(
     server.request("/r/sat/5000000000/at/1").status(),
     StatusCode::NOT_FOUND,
+  );
+}
+
+#[test]
+fn transactions_are_stored_with_transaction_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  rpc_server.mine_blocks(2);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-transactions"]);
+
+  assert_eq!(
+    server
+      .request("/tx/f02151fda57850f323fa22b3d74c1e7039658ac788566677725fe682efb1fe3b")
+      .status(),
+    StatusCode::OK,
+  );
+
+  rpc_server.clear_state();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(
+    server
+      .request("/tx/f02151fda57850f323fa22b3d74c1e7039658ac788566677725fe682efb1fe3b")
+      .status(),
+    StatusCode::OK,
   );
 }

@@ -848,6 +848,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   assert_eq!(
     Runestone::from_transaction(&tx).unwrap(),
     Runestone {
+      default_output: None,
       etching: None,
       edicts: vec![Edict {
         id: RuneId {
