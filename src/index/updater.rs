@@ -595,10 +595,26 @@ impl<'index> Updater<'_> {
         statistic_to_count: &mut statistic_to_count,
         timestamp: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,
+        updates: HashMap::new(),
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;
+      }
+
+      for (rune_id, update) in rune_updater.updates {
+        let mut entry = RuneEntry::load(
+          rune_id_to_rune_entry
+            .get(&rune_id.store())?
+            .unwrap()
+            .value(),
+        );
+
+        entry.burned += update.burned;
+        entry.mints += update.mints;
+        entry.supply += update.supply;
+
+        rune_id_to_rune_entry.insert(&rune_id.store(), entry.store())?;
       }
     }
 

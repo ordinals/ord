@@ -159,6 +159,7 @@ fn runes_can_be_etched() {
         },
         index: 1,
         limit: None,
+        mints: 0,
         number: 0,
         rune: Rune(RUNE),
         spacers: 0b111111111111,
