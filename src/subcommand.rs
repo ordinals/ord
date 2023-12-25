@@ -9,7 +9,7 @@ pub mod list;
 pub mod parse;
 mod preview;
 pub mod runes;
-mod server;
+pub(crate) mod server;
 pub mod subsidy;
 pub mod supply;
 pub mod teleburn;

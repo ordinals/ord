@@ -8,17 +8,23 @@ pub(crate) trait Entry: Sized {
   fn store(self) -> Self::Value;
 }
 
-pub(super) type BlockHashValue = [u8; 32];
+pub(super) type HeaderValue = [u8; 80];
 
-impl Entry for BlockHash {
-  type Value = BlockHashValue;
+impl Entry for Header {
+  type Value = HeaderValue;
 
   fn load(value: Self::Value) -> Self {
-    BlockHash::from_raw_hash(Hash::from_byte_array(value))
+    consensus::encode::deserialize(&value).unwrap()
   }
 
   fn store(self) -> Self::Value {
-    *self.as_ref()
+    let mut buffer = Cursor::new([0; 80]);
+    let len = self
+      .consensus_encode(&mut buffer)
+      .expect("in-memory writers don't error");
+    let buffer = buffer.into_inner();
+    debug_assert_eq!(len, buffer.len());
+    buffer
   }
 }
 
@@ -479,5 +485,20 @@ mod tests {
       },
       RuneId::load((1, 2)),
     );
+  }
+
+  #[test]
+  fn header() {
+    let expected = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+      49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+      72, 73, 74, 75, 76, 77, 78, 79,
+    ];
+
+    let header = Header::load(expected);
+    let actual = header.store();
+
+    assert_eq!(actual, expected);
   }
 }
