@@ -489,6 +489,7 @@ impl Index {
       runes: statistic(Statistic::Runes)?,
       sat_index: statistic(Statistic::IndexSats)? != 0,
       started: self.started,
+      transaction_index: statistic(Statistic::IndexTransactions)? != 0,
       unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
       uptime: (Utc::now() - self.started).to_std()?,
     })

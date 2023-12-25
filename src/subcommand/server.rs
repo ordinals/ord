@@ -2570,9 +2570,11 @@ mod tests {
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
   <dd>false</dd>
+  <dt>rune index</dt>
+  <dd>false</dd>
   <dt>sat index</dt>
   <dd>false</dd>
-  <dt>rune index</dt>
+  <dt>transaction index</dt>
   <dd>false</dd>
   <dt>git branch</dt>
   <dd>.*</dd>
