@@ -1389,6 +1389,26 @@ impl Index {
     }))
   }
 
+  pub(crate) fn inscription_count(&self, txid: Txid) -> Result<u32> {
+    let start = InscriptionId { index: 0, txid };
+
+    let end = InscriptionId {
+      index: u32::MAX,
+      txid,
+    };
+
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+        .range::<&InscriptionIdValue>(&start.store()..&end.store())?
+        .count()
+        .try_into()
+        .unwrap(),
+    )
+  }
+
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       self
