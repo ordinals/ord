@@ -2771,7 +2771,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: (u128::max_value() / 4) * 4,
+          supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
         },
@@ -2779,15 +2779,15 @@ mod tests {
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 3 },
@@ -2844,7 +2844,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: 1000 + ((u128::max_value() - 1000) / 4) * 4,
+          supply: u128::max_value(),
           timestamp: 2,
           ..Default::default()
         },
@@ -2852,15 +2852,15 @@ mod tests {
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, 1000 + (u128::max_value() - 1000) / 4)],
+          vec![(id, 1000 + (u128::max_value() - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, (u128::max_value() - 1000) / 4)],
+          vec![(id, (u128::max_value() - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, (u128::max_value() - 1000) / 4)],
+          vec![(id, (u128::max_value() - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 3 },
@@ -2925,15 +2925,15 @@ mod tests {
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4 + 3)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4)],
+          vec![(id, u128::max_value() / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 3 },
@@ -3431,14 +3431,14 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() / 2)],
+          vec![(id, u128::max_value() / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 1,
           },
-          vec![(id, u128::max_value() / 2 + 1)],
+          vec![(id, u128::max_value() / 2)],
         ),
       ],
     );

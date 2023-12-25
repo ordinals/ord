@@ -49,6 +49,13 @@ pub(crate) struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(
+    long,
+    short,
+    alias = "noindex_inscriptions",
+    help = "Do not index inscriptions."
+  )]
+  pub(crate) no_index_inscriptions: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
   #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
