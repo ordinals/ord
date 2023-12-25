@@ -4183,6 +4183,7 @@ mod tests {
           supply: 1000,
           end: Some(4),
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4223,6 +4224,7 @@ mod tests {
           supply: 1000,
           end: Some(4),
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4394,6 +4396,7 @@ mod tests {
           rune: Rune(RUNE),
           supply: 1000,
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4434,6 +4437,7 @@ mod tests {
           supply: 1000,
           deadline: Some(4),
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4518,6 +4522,7 @@ mod tests {
           limit: Some(1000),
           supply: 1000,
           timestamp: 2,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4796,6 +4801,7 @@ mod tests {
           limit: Some(1000),
           timestamp: 2,
           supply: 2000,
+          mints: 1,
           ..Default::default()
         },
       )],
@@ -4905,6 +4911,7 @@ mod tests {
           limit: Some(1000),
           timestamp: 2,
           supply: 1000,
+          mints: 1,
           ..Default::default()
         },
       )],

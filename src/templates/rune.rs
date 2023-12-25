@@ -120,6 +120,8 @@ mod tests {
   <dd><a href=/block/10>10</a></dd>
   <dt>etching transaction index</dt>
   <dd>9</dd>
+  <dt>mints</dt>
+  <dd>0</dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>burned</dt>
