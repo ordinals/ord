@@ -872,7 +872,7 @@ mod tests {
           output: 3,
         }],
         etching: None,
-        default: None,
+        default_output: None,
         burn: false,
       },
     );
@@ -1441,7 +1441,7 @@ mod tests {
             output: 7,
           },
         ],
-        default: Some(11),
+        default_output: Some(11),
         burn: false,
       },
       &[
