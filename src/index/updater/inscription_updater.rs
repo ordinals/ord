@@ -180,7 +180,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0
+          || curse == Some(Curse::UnrecognizedEvenField)
+          || inscription.payload.unrecognized_even_field;
 
         let offset = inscription
           .payload

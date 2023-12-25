@@ -27,7 +27,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
-  pub(super) sequence_number_to_rune: &'a mut Table<'db, 'tx, u32, u128>,
+  pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   pub(super) timestamp: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
@@ -320,8 +320,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           .get(&inscription_id.store())?
         {
           self
-            .sequence_number_to_rune
-            .insert(sequence_number.value(), rune.0)?;
+            .sequence_number_to_rune_id
+            .insert(sequence_number.value(), id.store())?;
         }
       }
     }
