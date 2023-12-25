@@ -602,6 +602,19 @@ impl<'index> Updater<'_> {
       }
     }
 
+    if index.index_transactions {
+      let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
+
+      let mut buffer = Vec::new();
+      for (transaction, txid) in block.txdata {
+        transaction
+          .consensus_encode(&mut buffer)
+          .expect("in-memory writers don't error");
+        transaction_id_to_transaction.insert(&txid.store(), buffer.as_slice())?;
+        buffer.clear();
+      }
+    }
+
     height_to_block_header.insert(&self.height, &block.header.store())?;
 
     self.height += 1;

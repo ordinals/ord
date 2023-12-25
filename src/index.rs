@@ -20,8 +20,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table, TableDefinition,
-    TableHandle, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table,
+    TableDefinition, TableHandle, WriteTransaction,
   },
   std::{
     collections::{BTreeSet, HashMap},
@@ -41,7 +41,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 15;
+const SCHEMA_VERSION: u64 = 16;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -75,6 +75,7 @@ define_table! { SEQUENCE_NUMBER_TO_RUNE_ID, u32, RuneIdValue }
 define_table! { SEQUENCE_NUMBER_TO_SATPOINT, u32, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
+define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
 #[derive(Debug, PartialEq)]
@@ -97,6 +98,7 @@ pub(crate) enum Statistic {
   Runes,
   SatRanges,
   UnboundInscriptions,
+  IndexTransactions,
 }
 
 impl Statistic {
@@ -195,6 +197,7 @@ pub struct Index {
   height_limit: Option<u32>,
   index_runes: bool,
   index_sats: bool,
+  index_transactions: bool,
   options: Options,
   path: PathBuf,
   started: DateTime<Utc>,
@@ -237,6 +240,7 @@ impl Index {
 
     let index_runes;
     let index_sats;
+    let index_transactions;
 
     let index_path = path.clone();
     let once = Once::new();
@@ -252,40 +256,32 @@ impl Index {
       Ok(database) => {
         {
           let tx = database.begin_read()?;
-          let schema_version = tx
-            .open_table(STATISTIC_TO_COUNT)?
+          let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
+
+          let schema_version = statistics
             .get(&Statistic::Schema.key())?
             .map(|x| x.value())
             .unwrap_or(0);
 
           match schema_version.cmp(&SCHEMA_VERSION) {
-          cmp::Ordering::Less =>
-            bail!(
-              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Greater =>
-            bail!(
-              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Equal => {
+            cmp::Ordering::Less =>
+              bail!(
+                "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Greater =>
+              bail!(
+                "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Equal => {
+            }
           }
-        }
 
-          let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          index_runes = statistics
-            .get(&Statistic::IndexRunes.key())?
-            .unwrap()
-            .value()
-            != 0;
-
-          index_sats = statistics
-            .get(&Statistic::IndexSats.key())?
-            .unwrap()
-            .value()
-            != 0;
+          index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
+          index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
+          index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
         }
 
         database
@@ -330,15 +326,12 @@ impl Index {
 
           index_runes = options.index_runes();
           index_sats = options.index_sats;
+          index_transactions = options.index_transactions;
 
-          statistics.insert(
-            &Statistic::IndexRunes.key(),
-            &u64::from(index_runes),
-          )?;
-
-          statistics.insert(&Statistic::IndexSats.key(), &u64::from(index_sats))?;
-
-          statistics.insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
+          Self::set_statistic(&mut statistics, Statistic::IndexRunes, u64::from(index_runes))?;
+          Self::set_statistic(&mut statistics, Statistic::IndexSats, u64::from(index_sats))?;
+          Self::set_statistic(&mut statistics, Statistic::IndexSats, u64::from(index_transactions))?;
+          Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
         tx.commit()?;
@@ -361,6 +354,7 @@ impl Index {
       height_limit: options.height_limit,
       index_runes,
       index_sats,
+      index_transactions,
       options: options.clone(),
       path,
       started: Utc::now(),
@@ -614,6 +608,12 @@ impl Index {
       &mut tables,
       &wtx,
       total_bytes,
+      TRANSACTION_ID_TO_TRANSACTION,
+    );
+    insert_table_info(
+      &mut tables,
+      &wtx,
+      total_bytes,
       WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP,
     );
 
@@ -790,6 +790,28 @@ impl Index {
       + n;
     statistic_to_count.insert(&statistic.key(), &value)?;
     Ok(())
+  }
+
+  pub(crate) fn set_statistic(
+    statistics: &mut Table<u64, u64>,
+    statistic: Statistic,
+    value: u64,
+  ) -> Result<()> {
+    statistics.insert(&statistic.key(), &value)?;
+    Ok(())
+  }
+
+  pub(crate) fn is_statistic_set(
+    statistics: &ReadOnlyTable<u64, u64>,
+    statistic: Statistic,
+  ) -> Result<bool> {
+    Ok(
+      statistics
+        .get(&statistic.key())?
+        .map(|guard| guard.value())
+        .unwrap_or_default()
+        != 0,
+    )
   }
 
   #[cfg(test)]
@@ -1436,10 +1458,21 @@ impl Index {
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
-      Ok(Some(self.genesis_block_coinbase_transaction.clone()))
-    } else {
-      self.client.get_raw_transaction(&txid, None).into_option()
+      return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
+
+    if self.index_transactions {
+      if let Some(transaction) = self
+        .database
+        .begin_read()?
+        .open_table(TRANSACTION_ID_TO_TRANSACTION)?
+        .get(&txid.store())?
+      {
+        return Ok(Some(consensus::encode::deserialize(transaction.value())?));
+      }
+    }
+
+    self.client.get_raw_transaction(&txid, None).into_option()
   }
 
   pub(crate) fn get_transaction_blockhash(&self, txid: Txid) -> Result<Option<BlockHash>> {
