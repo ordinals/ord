@@ -6,6 +6,7 @@ const TAG_RUNE: u128 = 4;
 const TAG_LIMIT: u128 = 6;
 const TAG_TERM: u128 = 8;
 const TAG_DEADLINE: u128 = 10;
+const TAG_DEFAULT_OUTPUT: u128 = 12;
 
 const TAG_DIVISIBILITY: u128 = 1;
 const TAG_SPACERS: u128 = 3;
@@ -25,6 +26,7 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
+  pub default_output: Option<u32>,
   pub burn: bool,
 }
 
@@ -87,6 +89,7 @@ impl Runestone {
     let spacers = fields.remove(&TAG_SPACERS);
     let symbol = fields.remove(&TAG_SYMBOL);
     let term = fields.remove(&TAG_TERM);
+    let default_output = fields.remove(&TAG_DEFAULT_OUTPUT);
 
     let etch = flags & FLAG_ETCH != 0;
     let unrecognized_flags = flags & !FLAG_ETCH != 0;
@@ -114,9 +117,10 @@ impl Runestone {
     };
 
     Ok(Some(Self {
+      burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
+      default_output: default_output.and_then(|default| u32::try_from(default).ok()),
       edicts: body,
       etching,
-      burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
     }))
   }
 
@@ -161,6 +165,11 @@ impl Runestone {
         varint::encode_to_vec(TAG_TERM, &mut payload);
         varint::encode_to_vec(term.into(), &mut payload);
       }
+    }
+
+    if let Some(default_output) = self.default_output {
+      varint::encode_to_vec(TAG_DEFAULT_OUTPUT, &mut payload);
+      varint::encode_to_vec(default_output.into(), &mut payload);
     }
 
     if self.burn {
@@ -863,6 +872,7 @@ mod tests {
           output: 3,
         }],
         etching: None,
+        default_output: None,
         burn: false,
       },
     );
@@ -1431,6 +1441,7 @@ mod tests {
             output: 7,
           },
         ],
+        default_output: Some(11),
         burn: false,
       },
       &[
@@ -1450,6 +1461,8 @@ mod tests {
         3,
         TAG_TERM,
         5,
+        TAG_DEFAULT_OUTPUT,
+        11,
         TAG_BODY,
         6,
         5,
