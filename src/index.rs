@@ -263,6 +263,7 @@ impl Index {
             progress_bar
           });
 
+          #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
           progress_bar.set_position((progress.progress() * 100.0) as u64);
         }
       })
