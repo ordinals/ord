@@ -331,7 +331,7 @@ impl Index {
 
           Self::set_statistic(&mut statistics, Statistic::IndexRunes, u64::from(index_runes))?;
           Self::set_statistic(&mut statistics, Statistic::IndexSats, u64::from(index_sats))?;
-          Self::set_statistic(&mut statistics, Statistic::IndexSats, u64::from(index_transactions))?;
+          Self::set_statistic(&mut statistics, Statistic::IndexTransactions, u64::from(index_transactions))?;
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
