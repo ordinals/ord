@@ -21,13 +21,13 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, StorageError, Table,
-    TableDefinition, TableHandle, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, RepairSession,
+    StorageError, Table, TableDefinition, TableHandle, WriteTransaction,
   },
   std::{
     collections::{BTreeSet, HashMap},
     io::{BufWriter, Write},
-    sync::Once,
+    sync::{Mutex, Once},
   },
 };
 
@@ -245,12 +245,27 @@ impl Index {
 
     let index_path = path.clone();
     let once = Once::new();
+    let progress_bar = Mutex::new(None);
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
-      .set_repair_callback(move |_| {
-        once.call_once(|| {
-          println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display());
-        })
+      .set_repair_callback(move |progress: &mut RepairSession| {
+        once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
+
+        if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
+          let mut guard = progress_bar.lock().unwrap();
+
+          let progress_bar = guard.get_or_insert_with(|| {
+            let progress_bar = ProgressBar::new(100);
+            progress_bar.set_style(
+              ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+            );
+            progress_bar
+          });
+
+          #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+          progress_bar.set_position((progress.progress() * 100.0) as u64);
+        }
       })
       .open(&path)
     {
