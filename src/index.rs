@@ -244,25 +244,26 @@ impl Index {
     let index_transactions;
 
     let index_path = path.clone();
-    let progress_bar_mut = Mutex::new(None);
     let once = Once::new();
+    let progress_bar = Mutex::new(None);
 
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
       .set_repair_callback(move |progress: &mut RepairSession| {
         once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
-        if cfg!(test)
-        || log_enabled!(log::Level::Info)
-        || integration_test() {
-        } else {
-          let mut progress_bar_guard = progress_bar_mut.lock().unwrap();
-          let progress_bar = progress_bar_guard.get_or_insert_with(|| ProgressBar::new(100));
-          let pos = (progress.progress()*100.) as u64;
-          progress_bar.set_position(pos);
-          progress_bar.set_style(
-            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
-          );
-          progress_bar.set_position(pos);
+
+        if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
+          let mut guard = progress_bar.lock().unwrap();
+
+          let progress_bar = guard.get_or_insert_with(|| {
+            let progress_bar = ProgressBar::new(100);
+            progress_bar.set_style(
+              ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+            );
+            progress_bar
+          });
+
+          progress_bar.set_position((progress.progress() * 100.0) as u64);
         }
       })
       .open(&path)
