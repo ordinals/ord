@@ -9,7 +9,6 @@ This can be used to cheaply create copies of an existing inscription.
 
 To create an inscription I with delegate inscription D:
 
-- Create an inscribe transaction T as usual for D.
 - Include tag `11`, i.e. `OP_PUSH 11`, in I, with the value of the serialized
   binary inscription ID of D, serialized as the 32-byte `TXID`, followed by the
   four-byte little-endian `INDEX`, with trailing zeroes omitted.
