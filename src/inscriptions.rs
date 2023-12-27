@@ -2,11 +2,9 @@ use super::*;
 
 use tag::Tag;
 
-pub(crate) use self::{
-  charm::Charm, envelope::ParsedEnvelope, inscription_id::InscriptionId, media::Media,
-};
+pub(crate) use self::{charm::Charm, envelope::ParsedEnvelope, media::Media};
 
-pub use self::{envelope::Envelope, inscription::Inscription};
+pub use self::{envelope::Envelope, inscription::Inscription, inscription_id::InscriptionId};
 
 mod charm;
 mod envelope;

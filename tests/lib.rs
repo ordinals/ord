@@ -9,14 +9,13 @@ use {
   },
   executable_path::executable_path,
   ord::{
-    inscription_id::InscriptionId,
     rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
       block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
       output::OutputJson, sat::SatJson,
     },
-    Edict, Rune, RuneId, Runestone, SatPoint,
+    Edict, InscriptionId, Rune, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
