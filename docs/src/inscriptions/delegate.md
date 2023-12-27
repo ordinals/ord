@@ -35,5 +35,5 @@ OP_ENDIF
 
 Note that the value of tag `11` is binary, not hex.
 
-The delegate field value uses the same encoding as the parent field.
+The delegate field value uses the same encoding as the parent field. See
 [provenance](provenance.md) for more examples of inscrpition ID encodings;
