@@ -3,13 +3,15 @@ Delegate
 
 Inscriptions may nominate a delegate inscription. Requests for the content of
 an inscription with a delegate will instead return the content of the delegate.
-This can be used to cheaply create copies of an existing inscription.
+This can be used to cheaply create copies of an inscription.
 
 ### Specification
 
 To create an inscription I with delegate inscription D:
 
-- Create an inscription D.
+- Create an inscription D. Note that inscription D does not have to exist when
+  making inscription I. It may be inscribed later. Before inscription D is
+  inscribed, requests for the content of inscription I will return a 404.
 - Include tag `11`, i.e. `OP_PUSH 11`, in I, with the value of the serialized
   binary inscription ID of D, serialized as the 32-byte `TXID`, followed by the
   four-byte little-endian `INDEX`, with trailing zeroes omitted.
