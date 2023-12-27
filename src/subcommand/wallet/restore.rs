@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Restore {
   #[arg(help = "Restore wallet from <MNEMONIC>")]
   mnemonic: Mnemonic,

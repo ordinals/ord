@@ -17,7 +17,7 @@ pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
     index.update()?;
   }
 
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+  let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
 
   let inscription_outputs = index
     .get_inscriptions(&unspent_outputs)?

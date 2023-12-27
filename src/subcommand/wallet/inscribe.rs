@@ -41,7 +41,7 @@ pub(crate) struct ParentInfo {
   tx_out: TxOut,
 }
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 #[clap(
   group = ArgGroup::new("source")
       .required(true)
@@ -114,11 +114,10 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let wallet = Wallet::load(&options)?;
+    let utxos = Wallet::get_unspent_outputs(&options, &index)?;
 
-    let utxos = index.get_unspent_outputs(wallet.clone())?;
-
-    let locked_utxos = index.get_locked_outputs(wallet)?;
+    let locked_utxos =
+      Wallet::get_locked_outputs(&options.bitcoin_rpc_client_for_wallet_command(false)?)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 

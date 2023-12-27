@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Transactions {
   #[arg(long, help = "Fetch at most <LIMIT> transactions.")]
   limit: Option<u16>,

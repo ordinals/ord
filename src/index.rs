@@ -378,56 +378,12 @@ impl Index {
     })
   }
 
-  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
-
-    Ok(
-      self
-        .client
-        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-        .into_iter()
-        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
-        .collect(),
-    )
-  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
-    let mut utxos = BTreeMap::new();
-    utxos.extend(
-      self
-        .client
-        .list_unspent(None, None, None, None, None)?
-        .into_iter()
-        .map(|utxo| {
-          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-          let amount = utxo.amount;
-
-          (outpoint, amount)
-        }),
-    );
-
-    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
-
-    for outpoint in locked_utxos {
-      utxos.insert(
-        outpoint,
-        Amount::from_sat(
-          self
-            .client
-            .get_raw_transaction(&outpoint.txid, None)?
-            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
-          .value,
-        ),
-      );
-    }
+  pub(crate) fn check_sync(&self, utxos: &BTreeMap<OutPoint, Amount>) -> Result<bool> {
     let rtx = self.database.begin_read()?;
     let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
     for outpoint in utxos.keys() {
@@ -438,22 +394,7 @@ impl Index {
       }
     }
 
-    Ok(utxos)
-  }
-
-  pub(crate) fn get_unspent_output_ranges(
-    &self,
-    wallet: Wallet,
-  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-    self
-      .get_unspent_outputs(wallet)?
-      .into_keys()
-      .map(|outpoint| match self.list(outpoint)? {
-        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("index has not seen {outpoint}"),
-      })
-      .collect()
+    Ok(true) // TODO: have to handle if wallet cares about being in sync
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {
@@ -3459,9 +3400,7 @@ mod tests {
         .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
-        context
-          .index
-          .get_unspent_outputs(Wallet::load(&context.options).unwrap())
+        Wallet::get_unspent_outputs(&context.options, &context.index)
           .unwrap_err()
           .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"

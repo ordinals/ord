@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Sats {
   #[arg(
     long,
@@ -33,7 +33,7 @@ impl Sats {
 
     index.update()?;
 
-    let utxos = index.get_unspent_output_ranges(Wallet::load(&options)?)?;
+    let utxos = Wallet::get_unspent_output_ranges(&options, &index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();

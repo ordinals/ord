@@ -1,6 +1,6 @@
 use {super::*, crate::subcommand::wallet::transaction_builder::Target};
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Send {
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
@@ -32,11 +32,10 @@ impl Send {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let wallet = Wallet::load(&options)?;
+    let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
 
-    let unspent_outputs = index.get_unspent_outputs(wallet.clone())?;
-
-    let locked_outputs = index.get_locked_outputs(wallet)?;
+    let locked_outputs =
+      Wallet::get_locked_outputs(&options.bitcoin_rpc_client_for_wallet_command(false)?)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 

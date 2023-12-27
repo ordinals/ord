@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Etch {
   #[clap(long, help = "Set divisibility to <DIVISIBILITY>.")]
   divisibility: u8,
@@ -103,7 +103,7 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
 
     let inscriptions = index
       .get_inscriptions(&unspent_outputs)?

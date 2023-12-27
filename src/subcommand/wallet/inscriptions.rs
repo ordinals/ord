@@ -12,7 +12,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+  let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
   let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
   let explorer = match options.chain() {
