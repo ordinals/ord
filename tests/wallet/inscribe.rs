@@ -334,13 +334,13 @@ fn inscribe_with_commit_fee_rate() {
 fn inscribe_with_wallet_named_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("--wallet foo wallet create")
+  CommandBuilder::new("wallet --name foo create")
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--wallet foo wallet inscribe --file degenerate.png --fee-rate 1")
+  CommandBuilder::new("wallet --name foo inscribe --file degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();

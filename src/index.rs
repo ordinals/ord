@@ -3395,14 +3395,18 @@ mod tests {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
       let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::Wallet::initialize_wallet(&context.options, mnemonic.to_seed(""))
-        .unwrap();
+      crate::subcommand::wallet::Wallet::initialize_wallet(
+        "ord".into(),
+        &context.options,
+        mnemonic.to_seed(""),
+      )
+      .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
         crate::subcommand::wallet::Wallet::get_unspent_outputs(
           &context
             .options
-            .bitcoin_rpc_client_for_wallet_command(context.options.wallet.clone())
+            .bitcoin_rpc_client_for_wallet_command("ord".into())
             .unwrap(),
           &context.index
         )

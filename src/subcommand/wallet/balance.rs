@@ -11,14 +11,11 @@ pub struct Output {
   pub total: u64,
 }
 
-pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
+pub(crate) fn run(wallet_name: String, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
+  index.update()?;
 
-  if !no_sync {
-    index.update()?;
-  }
-
-  let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+  let wallet_client = options.bitcoin_rpc_client_for_wallet_command(wallet_name)?;
 
   let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 

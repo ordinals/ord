@@ -20,7 +20,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(
@@ -28,13 +28,11 @@ impl Etch {
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    if !no_sync {
-      index.update()?;
-    }
+    index.update()?;
 
     let SpacedRune { rune, spacers } = self.rune;
 
-    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(wallet_name)?;
 
     let count = wallet_client.get_block_count()?;
 

@@ -13,10 +13,10 @@ pub struct Output {
 }
 
 impl Transactions {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let mut output = Vec::new();
     for tx in options
-      .bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?
+      .bitcoin_rpc_client_for_wallet_command(wallet_name)?
       .list_transactions(
         None,
         Some(self.limit.unwrap_or(u16::MAX).into()),

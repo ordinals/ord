@@ -108,21 +108,17 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
-    if !no_sync {
-      index.update()?;
-    }
+    index.update()?;
 
-    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(wallet_name)?;
 
     let utxos = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
-    let locked_utxos = Wallet::get_locked_outputs(
-      &options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?,
-    )?;
+    let locked_utxos = Wallet::get_locked_outputs(&wallet_client)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 

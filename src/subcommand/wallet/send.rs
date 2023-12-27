@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
@@ -27,19 +27,15 @@ impl Send {
 
     let index = Index::open(&options)?;
 
-    if !no_sync {
-      index.update()?;
-    }
+    index.update()?;
 
     let chain = options.chain();
 
-    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(wallet_name)?;
 
     let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
-    let locked_outputs = Wallet::get_locked_outputs(
-      &options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?,
-    )?;
+    let locked_outputs = Wallet::get_locked_outputs(&wallet_client)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 

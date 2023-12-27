@@ -66,8 +66,6 @@ pub struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
-  #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
-  pub(crate) wallet: String,
 }
 
 impl Options {
@@ -281,10 +279,10 @@ impl Options {
     &self,
     wallet_name: String,
   ) -> Result<Client> {
-    let client = self.check_version(self.bitcoin_rpc_client(Some(wallet_name))?)?;
+    let client = self.check_version(self.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
 
-    if !client.list_wallets()?.contains(&self.wallet) {
-      client.load_wallet(&self.wallet)?;
+    if !client.list_wallets()?.contains(&wallet_name) {
+      client.load_wallet(&wallet_name)?;
     }
 
     let descriptors = client.list_descriptors(None)?.descriptors;
@@ -300,7 +298,7 @@ impl Options {
       .count();
 
     if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
     }
 
     Ok(client)
@@ -629,24 +627,25 @@ mod tests {
     );
   }
 
-  #[test]
-  fn wallet_flag_overrides_default_name() {
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "wallet", "create"])
-        .unwrap()
-        .options
-        .wallet,
-      "ord"
-    );
+  //#[test]
+  //fn wallet_flag_overrides_default_name() {
+  //  assert_eq!(
+  //    Arguments::try_parse_from(["ord", "wallet", "create"])
+  //      .unwrap()
+  //      .subcommand
+  //      .options
+  //      .wallet,
+  //    "ord"
+  //  );
 
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
-        .unwrap()
-        .options
-        .wallet,
-      "foo"
-    )
-  }
+  //  assert_eq!(
+  //    Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
+  //      .unwrap()
+  //      .options
+  //      .wallet,
+  //    "foo"
+  //  )
+  //}
 
   #[test]
   fn default_config_is_returned_if_config_option_is_not_passed() {

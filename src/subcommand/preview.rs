@@ -86,9 +86,9 @@ impl Preview {
     super::wallet::create::Create {
       passphrase: "".into(),
     }
-    .run(options.clone())?;
+    .run("ord".into(), options.clone())?;
 
-    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+    let rpc_client = options.bitcoin_rpc_client(None)?;
 
     let address = rpc_client
       .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
@@ -103,7 +103,7 @@ impl Preview {
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::Wallet {
-            no_sync: false,
+            name: "ord".into(),
             subcommand: super::wallet::WalletSubcommand::Inscribe(
               super::wallet::inscribe::Inscribe {
                 batch: None,
@@ -138,7 +138,7 @@ impl Preview {
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::Wallet {
-            no_sync: false,
+            name: "ord".into(),
             subcommand: super::wallet::WalletSubcommand::Inscribe(
               super::wallet::inscribe::Inscribe {
                 batch: Some(batch),

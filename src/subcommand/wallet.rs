@@ -30,8 +30,8 @@ pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Wallet {
-  #[arg(long, help = "Skip syncing the index")]
-  pub(crate) no_sync: bool,
+  #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
+  pub(crate) name: String,
   #[command(subcommand)]
   pub(crate) subcommand: WalletSubcommand,
 }
@@ -67,18 +67,18 @@ pub(crate) enum WalletSubcommand {
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self.subcommand {
-      WalletSubcommand::Balance => balance::run(self.no_sync, options),
-      WalletSubcommand::Create(create) => create.run(options),
-      WalletSubcommand::Etch(etch) => etch.run(self.no_sync, options),
-      WalletSubcommand::Inscribe(inscribe) => inscribe.run(self.no_sync, options),
-      WalletSubcommand::Inscriptions => inscriptions::run(self.no_sync, options),
-      WalletSubcommand::Receive => receive::run(options),
-      WalletSubcommand::Restore(restore) => restore.run(options),
-      WalletSubcommand::Sats(sats) => sats.run(self.no_sync, options),
-      WalletSubcommand::Send(send) => send.run(self.no_sync, options),
-      WalletSubcommand::Transactions(transactions) => transactions.run(options),
-      WalletSubcommand::Outputs => outputs::run(self.no_sync, options),
-      WalletSubcommand::Cardinals => cardinals::run(self.no_sync, options),
+      WalletSubcommand::Balance => balance::run(self.name, options),
+      WalletSubcommand::Create(create) => create.run(self.name, options),
+      WalletSubcommand::Etch(etch) => etch.run(self.name, options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(self.name, options),
+      WalletSubcommand::Inscriptions => inscriptions::run(self.name, options),
+      WalletSubcommand::Receive => receive::run(self.name, options),
+      WalletSubcommand::Restore(restore) => restore.run(self.name, options),
+      WalletSubcommand::Sats(sats) => sats.run(self.name, options),
+      WalletSubcommand::Send(send) => send.run(self.name, options),
+      WalletSubcommand::Transactions(transactions) => transactions.run(self.name, options),
+      WalletSubcommand::Outputs => outputs::run(self.name, options),
+      WalletSubcommand::Cardinals => cardinals::run(self.name, options),
     }
   }
 
@@ -156,12 +156,16 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize_wallet(
+    wallet_name: String,
+    options: &Options,
+    seed: [u8; 64],
+  ) -> Result {
     let client = options.check_version(options.bitcoin_rpc_client(None)?)?;
 
     let network = options.chain().network();
 
-    client.create_wallet(&options.wallet, None, Some(true), None, None)?;
+    client.create_wallet(&wallet_name, None, Some(true), None, None)?;
 
     let secp = Secp256k1::new();
 
