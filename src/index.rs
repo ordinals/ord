@@ -10,7 +10,6 @@ use {
   },
   super::*,
   crate::{
-    subcommand::wallet::Wallet,
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
     templates::{RuneHtml, StatusHtml},
   },
@@ -394,7 +393,7 @@ impl Index {
       }
     }
 
-    Ok(true) // TODO: have to handle if wallet cares about being in sync
+    Ok(true)
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {
@@ -3400,7 +3399,7 @@ mod tests {
         .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
-        Wallet::get_unspent_outputs(&context.options, &context.index)
+        crate::subcommand::wallet::Wallet::get_unspent_outputs(&context.options, &context.index)
           .unwrap_err()
           .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"

@@ -6,9 +6,11 @@ pub struct CardinalUtxo {
   pub amount: u64,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
+pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
-  index.update()?;
+  if !no_sync {
+    index.update()?;
+  }
 
   let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
 

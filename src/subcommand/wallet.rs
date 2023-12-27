@@ -69,16 +69,16 @@ impl Wallet {
     match self.subcommand {
       WalletSubcommand::Balance => balance::run(self.no_sync, options),
       WalletSubcommand::Create(create) => create.run(options),
-      WalletSubcommand::Etch(etch) => etch.run(options),
-      WalletSubcommand::Inscribe(inscribe) => inscribe.run(options),
-      WalletSubcommand::Inscriptions => inscriptions::run(options),
+      WalletSubcommand::Etch(etch) => etch.run(self.no_sync, options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(self.no_sync, options),
+      WalletSubcommand::Inscriptions => inscriptions::run(self.no_sync, options),
       WalletSubcommand::Receive => receive::run(options),
       WalletSubcommand::Restore(restore) => restore.run(options),
-      WalletSubcommand::Sats(sats) => sats.run(options),
-      WalletSubcommand::Send(send) => send.run(options),
+      WalletSubcommand::Sats(sats) => sats.run(self.no_sync, options),
+      WalletSubcommand::Send(send) => send.run(self.no_sync, options),
       WalletSubcommand::Transactions(transactions) => transactions.run(options),
-      WalletSubcommand::Outputs => outputs::run(options),
-      WalletSubcommand::Cardinals => cardinals::run(options),
+      WalletSubcommand::Outputs => outputs::run(self.no_sync, options),
+      WalletSubcommand::Cardinals => cardinals::run(self.no_sync, options),
     }
   }
 

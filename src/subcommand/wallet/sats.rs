@@ -24,14 +24,16 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(&self, no_sync: bool, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     if !index.has_sat_index() {
       bail!("sats requires index created with `--index-sats` flag");
     }
 
-    index.update()?;
+    if !no_sync {
+      index.update()?;
+    }
 
     let utxos = Wallet::get_unspent_output_ranges(&options, &index)?;
 

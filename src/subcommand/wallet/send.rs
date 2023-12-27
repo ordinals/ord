@@ -19,14 +19,16 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
       .require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
-    index.update()?;
+    if !no_sync {
+      index.update()?;
+    }
 
     let chain = options.chain();
 

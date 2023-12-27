@@ -20,7 +20,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(
@@ -28,7 +28,9 @@ impl Etch {
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    index.update()?;
+    if !no_sync {
+      index.update()?;
+    }
 
     let SpacedRune { rune, spacers } = self.rune;
 

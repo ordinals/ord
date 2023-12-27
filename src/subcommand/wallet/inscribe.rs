@@ -108,11 +108,13 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, no_sync: bool, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
-    index.update()?;
+    if !no_sync {
+      index.update()?;
+    }
 
     let utxos = Wallet::get_unspent_outputs(&options, &index)?;
 
