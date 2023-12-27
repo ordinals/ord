@@ -103,7 +103,7 @@ impl Inscription {
       content_encoding,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|id| id.parent_value()),
+      parent: parent.map(|id| id.value()),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
@@ -150,6 +150,12 @@ impl Inscription {
       builder = builder
         .push_slice(envelope::PARENT_TAG)
         .push_slice(PushBytesBuf::try_from(parent).unwrap());
+    }
+
+    if let Some(delegate) = self.delegate.clone() {
+      builder = builder
+        .push_slice(envelope::DELEGATE_TAG)
+        .push_slice(PushBytesBuf::try_from(delegate).unwrap());
     }
 
     if let Some(pointer) = self.pointer.clone() {
@@ -512,6 +518,26 @@ mod tests {
     }
     .parent()
     .is_none());
+  }
+
+  #[test]
+  fn inscription_delegate_txid_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        delegate: Some(vec![
+          0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+          0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
+          0x1e, 0x1f,
+        ]),
+        ..Default::default()
+      }
+      .delegate()
+      .unwrap()
+      .txid,
+      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
+        .parse()
+        .unwrap()
+    );
   }
 
   #[test]

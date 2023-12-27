@@ -4781,7 +4781,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4828,7 +4828,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4882,7 +4882,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.parent_value()),
+              parent: Some(parent_inscription_id.value()),
               ..Default::default()
             }
             .to_witness(),
@@ -4936,7 +4936,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.parent_value()),
+              parent: Some(parent_inscription_id.value()),
               ..Default::default()
             }
             .to_witness(),
@@ -4992,7 +4992,7 @@ mod tests {
             body: Some("hello".into()),
             parent: Some(
               parent_inscription_id
-                .parent_value()
+                .value()
                 .into_iter()
                 .chain(iter::once(0))
                 .collect(),
@@ -5177,7 +5177,7 @@ mod tests {
       let child_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
-        parent: Some(parent_inscription_id.parent_value()),
+        parent: Some(parent_inscription_id.value()),
         pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
