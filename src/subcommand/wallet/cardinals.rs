@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
+use {super::*, std::collections::BTreeSet};
 
 #[derive(Serialize, Deserialize)]
 pub struct CardinalUtxo {

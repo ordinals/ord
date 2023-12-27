@@ -1,7 +1,7 @@
 use {
   self::batch::{Batch, Batchfile, Mode},
   super::*,
-  crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
+  crate::subcommand::wallet::transaction_builder::Target,
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
@@ -41,7 +41,7 @@ pub(crate) struct ParentInfo {
   tx_out: TxOut,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 #[clap(
   group = ArgGroup::new("source")
       .required(true)
@@ -116,7 +116,7 @@ impl Inscribe {
 
     let wallet = Wallet::load(&options)?;
 
-    let utxos = index.get_unspent_outputs(wallet)?;
+    let utxos = index.get_unspent_outputs(wallet.clone())?;
 
     let locked_utxos = index.get_locked_outputs(wallet)?;
 

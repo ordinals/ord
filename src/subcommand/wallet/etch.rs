@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) struct Etch {
   #[clap(long, help = "Set divisibility to <DIVISIBILITY>.")]
   divisibility: u8,
@@ -58,7 +58,7 @@ impl Etch {
       "<DIVISIBILITY> must be equal to or less than 38"
     );
 
-    let destination = get_change_address(&client, options.chain())?;
+    let destination = Wallet::get_change_address(&client, options.chain())?;
 
     let runestone = Runestone {
       etching: Some(Etching {
@@ -103,7 +103,7 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = index.get_unspent_outputs(crate::wallet::Wallet::load(&options)?)?;
+    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index
       .get_inscriptions(&unspent_outputs)?

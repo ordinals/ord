@@ -83,10 +83,10 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    super::wallet::WalletSubcommand::Create(super::wallet::create::Create {
+    super::wallet::create::Create {
       passphrase: "".into(),
-    })
-    .run("ord".to_string(), options.clone())?;
+    }
+    .run(options.clone())?;
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
@@ -102,8 +102,8 @@ impl Preview {
       for file in files {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet {
-            name: "ord".into(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet {
+            no_sync: false,
             subcommand: super::wallet::WalletSubcommand::Inscribe(
               super::wallet::inscribe::Inscribe {
                 batch: None,
@@ -125,7 +125,7 @@ impl Preview {
                 sat: None,
               },
             ),
-          },
+          }),
         }
         .run()?;
 
@@ -137,8 +137,8 @@ impl Preview {
       for batch in batches {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet {
-            name: "ord".into(),
+          subcommand: Subcommand::Wallet(super::wallet::Wallet {
+            no_sync: false,
             subcommand: super::wallet::WalletSubcommand::Inscribe(
               super::wallet::inscribe::Inscribe {
                 batch: Some(batch),
@@ -160,7 +160,7 @@ impl Preview {
                 sat: None,
               },
             ),
-          },
+          }),
         }
         .run()?;
 

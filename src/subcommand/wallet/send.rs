@@ -1,4 +1,4 @@
-use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
+use {super::*, crate::subcommand::wallet::transaction_builder::Target};
 
 #[derive(Debug, Parser, Clone)]
 pub(crate) struct Send {
@@ -34,7 +34,7 @@ impl Send {
 
     let wallet = Wallet::load(&options)?;
 
-    let unspent_outputs = index.get_unspent_outputs(wallet)?;
+    let unspent_outputs = index.get_unspent_outputs(wallet.clone())?;
 
     let locked_outputs = index.get_locked_outputs(wallet)?;
 

@@ -1,6 +1,6 @@
-use {super::*, crate::wallet::Wallet};
+use super::*;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) struct Sats {
   #[arg(
     long,

@@ -10,9 +10,9 @@ use {
   },
   super::*,
   crate::{
+    subcommand::wallet::Wallet,
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
     templates::{RuneHtml, StatusHtml},
-    wallet::Wallet,
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},

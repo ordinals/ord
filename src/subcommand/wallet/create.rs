@@ -6,7 +6,7 @@ pub struct Output {
   pub passphrase: Option<String>,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) struct Create {
   #[arg(
     long,

@@ -144,7 +144,6 @@ pub mod subcommand;
 mod tally;
 mod teleburn;
 pub mod templates;
-mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
+use {super::*, std::collections::BTreeSet};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Output {
@@ -11,9 +11,11 @@ pub struct Output {
   pub total: u64,
 }
 
-pub(crate) fn run(wallet_name: String, options: Options) -> SubcommandResult {
+pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
-  index.update()?;
+  if !no_sync {
+    index.update()?;
+  }
 
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 

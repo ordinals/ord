@@ -28,13 +28,15 @@ pub mod send;
 pub mod transaction_builder;
 pub mod transactions;
 
-#[derive(Debug, Parser, Default)]
-pub(crate) struct WalletOptions {
-  #[arg(long, help = "Use wallet named <WALLET>.")]
-  pub name: Option<String>,
+#[derive(Debug, Parser, Clone)]
+pub(crate) struct Wallet {
+  #[arg(long, help = "Skip syncing the index")]
+  pub(crate) no_sync: bool,
+  #[command(subcommand)]
+  pub(crate) subcommand: WalletSubcommand,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) enum WalletSubcommand {
   #[command(about = "Get wallet balance")]
   Balance,
@@ -60,24 +62,45 @@ pub(crate) enum WalletSubcommand {
   Outputs,
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
+  #[command(about = "Foo")]
+  Foo,
 }
 
-impl WalletSubcommand {
-  pub(crate) fn run(self, name: String, options: Options) -> SubcommandResult {
-    match self {
-      Self::Balance => balance::run(name, options),
-      Self::Create(create) => create.run(options),
-      Self::Etch(etch) => etch.run(options),
-      Self::Inscribe(inscribe) => inscribe.run(options),
-      Self::Inscriptions => inscriptions::run(options),
-      Self::Receive => receive::run(options),
-      Self::Restore(restore) => restore.run(options),
-      Self::Sats(sats) => sats.run(options),
-      Self::Send(send) => send.run(options),
-      Self::Transactions(transactions) => transactions.run(options),
-      Self::Outputs => outputs::run(options),
-      Self::Cardinals => cardinals::run(options),
+impl Wallet {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+    match self.subcommand {
+      WalletSubcommand::Balance => balance::run(self.no_sync, options),
+      WalletSubcommand::Create(create) => create.run(options),
+      WalletSubcommand::Etch(etch) => etch.run(options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(options),
+      WalletSubcommand::Inscriptions => inscriptions::run(options),
+      WalletSubcommand::Receive => receive::run(options),
+      WalletSubcommand::Restore(restore) => restore.run(options),
+      WalletSubcommand::Sats(sats) => sats.run(options),
+      WalletSubcommand::Send(send) => send.run(options),
+      WalletSubcommand::Transactions(transactions) => transactions.run(options),
+      WalletSubcommand::Outputs => outputs::run(options),
+      WalletSubcommand::Cardinals => cardinals::run(options),
+      WalletSubcommand::Foo => todo!(),
     }
+  }
+
+  pub(crate) fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
+    Ok(
+      client
+        .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
+        .context("could not get change addresses from wallet")?
+        .require_network(chain.network())?,
+    )
+  }
+
+  pub(crate) fn load(options: &Options) -> Result<Self> {
+    options.bitcoin_rpc_client_for_wallet_command(false)?;
+
+    Ok(Self {
+      no_sync: false,
+      subcommand: WalletSubcommand::Foo,
+    })
   }
 }
 
