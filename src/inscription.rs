@@ -128,48 +128,13 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    if let Some(content_type) = self.content_type.clone() {
-      builder = builder
-        .push_slice(envelope::CONTENT_TYPE_TAG)
-        .push_slice(PushBytesBuf::try_from(content_type).unwrap());
-    }
-
-    if let Some(content_encoding) = self.content_encoding.clone() {
-      builder = builder
-        .push_slice(envelope::CONTENT_ENCODING_TAG)
-        .push_slice(PushBytesBuf::try_from(content_encoding).unwrap());
-    }
-
-    if let Some(protocol) = self.metaprotocol.clone() {
-      builder = builder
-        .push_slice(envelope::METAPROTOCOL_TAG)
-        .push_slice(PushBytesBuf::try_from(protocol).unwrap());
-    }
-
-    if let Some(parent) = self.parent.clone() {
-      builder = builder
-        .push_slice(envelope::PARENT_TAG)
-        .push_slice(PushBytesBuf::try_from(parent).unwrap());
-    }
-
-    if let Some(delegate) = self.delegate.clone() {
-      builder = builder
-        .push_slice(envelope::DELEGATE_TAG)
-        .push_slice(PushBytesBuf::try_from(delegate).unwrap());
-    }
-
-    if let Some(pointer) = self.pointer.clone() {
-      builder = builder
-        .push_slice(envelope::POINTER_TAG)
-        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
-    }
-
-    if let Some(metadata) = &self.metadata {
-      for chunk in metadata.chunks(520) {
-        builder = builder.push_slice(envelope::METADATA_TAG);
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-      }
-    }
+    envelope::Tag::ContentType.encode(&mut builder, &self.content_type);
+    envelope::Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
+    envelope::Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
+    envelope::Tag::Parent.encode(&mut builder, &self.parent);
+    envelope::Tag::Delegate.encode(&mut builder, &self.delegate);
+    envelope::Tag::Pointer.encode(&mut builder, &self.pointer);
+    envelope::Tag::Metadata.encode(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);

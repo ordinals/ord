@@ -11,21 +11,90 @@ use {
   std::iter::Peekable,
 };
 
+#[derive(Copy, Clone)]
+pub(crate) enum Tag {
+  Pointer,
+  #[allow(unused)]
+  Unbound,
+
+  ContentType,
+  Parent,
+  Metadata,
+  Metaprotocol,
+  ContentEncoding,
+  Delegate,
+  #[allow(unused)]
+  Nop,
+}
+
+impl Tag {
+  fn is_chunked(self) -> bool {
+    matches!(self, Self::Metadata)
+  }
+
+  fn bytes(self) -> &'static [u8] {
+    match self {
+      Self::Pointer => &[2],
+      Self::Unbound => &[66],
+      Self::ContentType => &[1],
+      Self::Parent => &[3],
+      Self::Metadata => &[5],
+      Self::Metaprotocol => &[7],
+      Self::ContentEncoding => &[9],
+      Self::Delegate => &[11],
+      Self::Nop => &[255],
+    }
+  }
+
+  pub(crate) fn encode(self, builder: &mut script::Builder, value: &Option<Vec<u8>>) {
+    if let Some(value) = value {
+      let mut tmp = script::Builder::new();
+      std::mem::swap(&mut tmp, builder);
+
+      if self.is_chunked() {
+        for chunk in value.chunks(520) {
+          tmp = tmp.push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap());
+          tmp = tmp.push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
+        }
+      } else {
+        tmp = tmp
+          .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
+          .push_slice::<&script::PushBytes>(value.as_slice().try_into().unwrap());
+      }
+
+      std::mem::swap(&mut tmp, builder);
+    }
+  }
+
+  fn remove_field(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
+    if self.is_chunked() {
+      let value = fields.remove(self.bytes())?;
+
+      if value.is_empty() {
+        None
+      } else {
+        Some(value.into_iter().flatten().cloned().collect())
+      }
+    } else {
+      let values = fields.get_mut(self.bytes())?;
+
+      if values.is_empty() {
+        None
+      } else {
+        let value = values.remove(0).to_vec();
+
+        if values.is_empty() {
+          fields.remove(self.bytes());
+        }
+
+        Some(value)
+      }
+    }
+  }
+}
+
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
-
 pub(crate) const BODY_TAG: [u8; 0] = [];
-pub(crate) const POINTER_TAG: [u8; 1] = [2];
-#[allow(unused)]
-pub(crate) const UNBOUND_TAG: [u8; 1] = [66];
-
-pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
-pub(crate) const PARENT_TAG: [u8; 1] = [3];
-pub(crate) const METADATA_TAG: [u8; 1] = [5];
-pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
-pub(crate) const CONTENT_ENCODING_TAG: [u8; 1] = [9];
-pub(crate) const DELEGATE_TAG: [u8; 1] = [11];
-#[allow(unused)]
-pub(crate) const NOP_TAG: [u8; 1] = [255];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
@@ -38,35 +107,6 @@ pub struct Envelope<T> {
   pub payload: T,
   pub pushnum: bool,
   pub stutter: bool,
-}
-
-fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
-  let values = fields.get_mut(field)?;
-
-  if values.is_empty() {
-    None
-  } else {
-    let value = values.remove(0).to_vec();
-
-    if values.is_empty() {
-      fields.remove(field);
-    }
-
-    Some(value)
-  }
-}
-
-fn remove_and_concatenate_field(
-  fields: &mut BTreeMap<&[u8], Vec<&[u8]>>,
-  field: &[u8],
-) -> Option<Vec<u8>> {
-  let value = fields.remove(field)?;
-
-  if value.is_empty() {
-    None
-  } else {
-    Some(value.into_iter().flatten().cloned().collect())
-  }
 }
 
 impl From<RawEnvelope> for ParsedEnvelope {
@@ -90,13 +130,13 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
-    let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
-    let delegate = remove_field(&mut fields, &DELEGATE_TAG);
-    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
-    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
-    let parent = remove_field(&mut fields, &PARENT_TAG);
-    let pointer = remove_field(&mut fields, &POINTER_TAG);
+    let content_encoding = Tag::ContentEncoding.remove_field(&mut fields);
+    let content_type = Tag::ContentType.remove_field(&mut fields);
+    let delegate = Tag::Delegate.remove_field(&mut fields);
+    let metadata = Tag::Metadata.remove_field(&mut fields);
+    let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
+    let parent = Tag::Parent.remove_field(&mut fields);
+    let pointer = Tag::Pointer.remove_field(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
@@ -460,7 +500,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &NOP_TAG,
+        Tag::Nop.bytes(),
         b"bar",
         &[],
         b"ord",
@@ -790,7 +830,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &NOP_TAG, &[0]])]),
+      parse(&[envelope(&[b"ord", Tag::Nop.bytes(), &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()
@@ -845,7 +885,7 @@ mod tests {
   #[test]
   fn tag_66_makes_inscriptions_unbound() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &UNBOUND_TAG, &[1]])]),
+      parse(&[envelope(&[b"ord", Tag::Unbound.bytes(), &[1]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
