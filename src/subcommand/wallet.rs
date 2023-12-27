@@ -28,8 +28,14 @@ pub mod send;
 pub mod transaction_builder;
 pub mod transactions;
 
+#[derive(Debug, Parser, Default)]
+pub(crate) struct WalletOptions {
+  #[arg(long, help = "Use wallet named <WALLET>.")]
+  pub name: Option<String>,
+}
+
 #[derive(Debug, Parser)]
-pub(crate) enum Wallet {
+pub(crate) enum WalletSubcommand {
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create new wallet")]
@@ -56,10 +62,10 @@ pub(crate) enum Wallet {
   Cardinals,
 }
 
-impl Wallet {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+impl WalletSubcommand {
+  pub(crate) fn run(self, name: String, options: Options) -> SubcommandResult {
     match self {
-      Self::Balance => balance::run(options),
+      Self::Balance => balance::run(name, options),
       Self::Create(create) => create.run(options),
       Self::Etch(etch) => etch.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),

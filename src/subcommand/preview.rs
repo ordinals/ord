@@ -83,10 +83,10 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    super::wallet::Wallet::Create(super::wallet::create::Create {
+    super::wallet::WalletSubcommand::Create(super::wallet::create::Create {
       passphrase: "".into(),
     })
-    .run(options.clone())?;
+    .run("ord".to_string(), options.clone())?;
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
@@ -102,27 +102,30 @@ impl Preview {
       for file in files {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-            super::wallet::inscribe::Inscribe {
-              batch: None,
-              cbor_metadata: None,
-              commit_fee_rate: None,
-              compress: false,
-              destination: None,
-              dry_run: false,
-              fee_rate: FeeRate::try_from(1.0).unwrap(),
-              file: Some(file),
-              json_metadata: None,
-              metaprotocol: None,
-              no_backup: true,
-              no_limit: false,
-              parent: None,
-              postage: Some(TARGET_POSTAGE),
-              reinscribe: false,
-              satpoint: None,
-              sat: None,
-            },
-          )),
+          subcommand: Subcommand::Wallet {
+            name: "ord".into(),
+            subcommand: super::wallet::WalletSubcommand::Inscribe(
+              super::wallet::inscribe::Inscribe {
+                batch: None,
+                cbor_metadata: None,
+                commit_fee_rate: None,
+                compress: false,
+                destination: None,
+                dry_run: false,
+                fee_rate: FeeRate::try_from(1.0).unwrap(),
+                file: Some(file),
+                json_metadata: None,
+                metaprotocol: None,
+                no_backup: true,
+                no_limit: false,
+                parent: None,
+                postage: Some(TARGET_POSTAGE),
+                reinscribe: false,
+                satpoint: None,
+                sat: None,
+              },
+            ),
+          },
         }
         .run()?;
 
@@ -134,27 +137,30 @@ impl Preview {
       for batch in batches {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-            super::wallet::inscribe::Inscribe {
-              batch: Some(batch),
-              cbor_metadata: None,
-              commit_fee_rate: None,
-              compress: false,
-              destination: None,
-              dry_run: false,
-              fee_rate: FeeRate::try_from(1.0).unwrap(),
-              file: None,
-              json_metadata: None,
-              metaprotocol: None,
-              no_backup: true,
-              no_limit: false,
-              parent: None,
-              postage: Some(TARGET_POSTAGE),
-              reinscribe: false,
-              satpoint: None,
-              sat: None,
-            },
-          )),
+          subcommand: Subcommand::Wallet {
+            name: "ord".into(),
+            subcommand: super::wallet::WalletSubcommand::Inscribe(
+              super::wallet::inscribe::Inscribe {
+                batch: Some(batch),
+                cbor_metadata: None,
+                commit_fee_rate: None,
+                compress: false,
+                destination: None,
+                dry_run: false,
+                fee_rate: FeeRate::try_from(1.0).unwrap(),
+                file: None,
+                json_metadata: None,
+                metaprotocol: None,
+                no_backup: true,
+                no_limit: false,
+                parent: None,
+                postage: Some(TARGET_POSTAGE),
+                reinscribe: false,
+                satpoint: None,
+                sat: None,
+              },
+            ),
+          },
         }
         .run()?;
 

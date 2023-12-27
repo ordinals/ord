@@ -1,4 +1,7 @@
-use super::*;
+use {
+  super::*,
+  wallet::{WalletOptions, WalletSubcommand},
+};
 
 pub mod balances;
 pub mod decode;
@@ -46,8 +49,13 @@ pub(crate) enum Subcommand {
   Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[command(subcommand, about = "Wallet commands")]
-  Wallet(wallet::Wallet),
+  #[command(about = "Wallet commands")]
+  Wallet {
+    #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
+    name: String,
+    #[command(subcommand)]
+    subcommand: WalletSubcommand,
+  },
 }
 
 impl Subcommand {
@@ -72,7 +80,7 @@ impl Subcommand {
       Self::Supply => supply::run(),
       Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
-      Self::Wallet(wallet) => wallet.run(options),
+      Self::Wallet { name, subcommand } => subcommand.run(name, options),
     }
   }
 }
