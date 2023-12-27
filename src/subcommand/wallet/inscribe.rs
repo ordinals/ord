@@ -116,14 +116,15 @@ impl Inscribe {
       index.update()?;
     }
 
-    let utxos = Wallet::get_unspent_outputs(&options, &index)?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
 
-    let locked_utxos =
-      Wallet::get_locked_outputs(&options.bitcoin_rpc_client_for_wallet_command(false)?)?;
+    let utxos = Wallet::get_unspent_outputs(&wallet_client, &index)?;
+
+    let locked_utxos = Wallet::get_locked_outputs(
+      &options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?,
+    )?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
-
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let chain = options.chain();
 
@@ -136,7 +137,8 @@ impl Inscribe {
 
     match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+        parent_info =
+          Inscribe::get_parent_info(self.parent, &index, &utxos, &wallet_client, chain)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
@@ -156,13 +158,14 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => Wallet::get_change_address(&client, chain)?,
+          None => Wallet::get_change_address(&wallet_client, chain)?,
         }];
       }
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
+        parent_info =
+          Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &wallet_client, chain)?;
 
         postage = batchfile
           .postage
@@ -170,7 +173,7 @@ impl Inscribe {
           .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
-          &client,
+          &wallet_client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
@@ -217,7 +220,14 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint,
     }
-    .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
+    .inscribe(
+      chain,
+      &index,
+      &wallet_client,
+      &locked_utxos,
+      runic_utxos,
+      &utxos,
+    )
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {

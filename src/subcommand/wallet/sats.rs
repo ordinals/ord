@@ -35,7 +35,8 @@ impl Sats {
       index.update()?;
     }
 
-    let utxos = Wallet::get_unspent_output_ranges(&options, &index)?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+    let utxos = Wallet::get_unspent_output_ranges(&wallet_client, &index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();

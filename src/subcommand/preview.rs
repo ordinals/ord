@@ -72,7 +72,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client().is_ok() {
+      if options.bitcoin_rpc_client(None).is_ok() {
         break;
       }
 
@@ -88,7 +88,7 @@ impl Preview {
     }
     .run(options.clone())?;
 
-    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
 
     let address = rpc_client
       .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?

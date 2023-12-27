@@ -83,11 +83,9 @@ impl Wallet {
   }
 
   pub(crate) fn get_unspent_outputs(
-    options: &Options,
+    client: &Client,
     index: &Index,
   ) -> Result<BTreeMap<OutPoint, Amount>> {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
     let mut utxos = BTreeMap::new();
     utxos.extend(
       client
@@ -101,7 +99,7 @@ impl Wallet {
         }),
     );
 
-    let locked_utxos: BTreeSet<OutPoint> = Wallet::get_locked_outputs(&client)?;
+    let locked_utxos: BTreeSet<OutPoint> = Wallet::get_locked_outputs(client)?;
 
     for outpoint in locked_utxos {
       utxos.insert(
@@ -120,10 +118,10 @@ impl Wallet {
   }
 
   pub(crate) fn get_unspent_output_ranges(
-    options: &Options,
+    client: &Client,
     index: &Index,
   ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-    Self::get_unspent_outputs(options, index)?
+    Self::get_unspent_outputs(client, index)?
       .into_keys()
       .map(|outpoint| match index.list(outpoint)? {
         Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
@@ -159,7 +157,8 @@ impl Wallet {
   }
 
   pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
+    let client = options.check_version(options.bitcoin_rpc_client(None)?)?;
+
     let network = options.chain().network();
 
     client.create_wallet(&options.wallet, None, Some(true), None, None)?;

@@ -13,11 +13,14 @@ pub struct Output {
 
 pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
+
   if !no_sync {
     index.update()?;
   }
 
-  let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
+  let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+
+  let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
   let inscription_outputs = index
     .get_inscriptions(&unspent_outputs)?
@@ -29,6 +32,7 @@ pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
   let mut ordinal = 0;
   let mut runes = BTreeMap::new();
   let mut runic = 0;
+
   for (outpoint, amount) in unspent_outputs {
     let rune_balances = index.get_rune_balances_for_outpoint(outpoint)?;
 

@@ -12,8 +12,9 @@ pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
     index.update()?;
   }
 
+  let client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
   let mut outputs = Vec::new();
-  for (output, amount) in Wallet::get_unspent_outputs(&options, &index)? {
+  for (output, amount) in Wallet::get_unspent_outputs(&client, &index)? {
     outputs.push(Output {
       output,
       amount: amount.to_sat(),

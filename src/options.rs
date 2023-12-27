@@ -105,15 +105,17 @@ impl Options {
     self.index_runes && self.chain() != Chain::Mainnet
   }
 
-  pub(crate) fn rpc_url(&self) -> String {
-    if let Some(rpc_url) = &self.rpc_url {
-      format!("{rpc_url}/wallet/{}", self.wallet)
+  pub(crate) fn rpc_url(&self, wallet_name: Option<String>) -> String {
+    let rpc_url = if let Some(rpc_url) = &self.rpc_url {
+      format!("{rpc_url}/")
     } else {
-      format!(
-        "127.0.0.1:{}/wallet/{}",
-        self.chain().default_rpc_port(),
-        self.wallet
-      )
+      format!("127.0.0.1:{}/", self.chain().default_rpc_port())
+    };
+
+    if let Some(wallet_name) = wallet_name {
+      format!("{rpc_url}wallet/{wallet_name}")
+    } else {
+      rpc_url
     }
   }
 
@@ -220,12 +222,12 @@ impl Options {
     }
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let rpc_url = self.rpc_url();
+  pub(crate) fn bitcoin_rpc_client(&self, wallet_name: Option<String>) -> Result<Client> {
+    let rpc_url = self.rpc_url(wallet_name);
 
     let auth = self.auth()?;
 
-    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
+    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url(None));
 
     if let Auth::CookieFile(cookie_file) = &auth {
       log::info!(
@@ -260,9 +262,7 @@ impl Options {
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
-
+  pub(crate) fn check_version(&self, client: Client) -> Result<Client> {
     const MIN_VERSION: usize = 240000;
 
     let bitcoin_version = client.version()?;
@@ -272,28 +272,35 @@ impl Options {
         Self::format_bitcoin_core_version(MIN_VERSION),
         Self::format_bitcoin_core_version(bitcoin_version),
       );
+    } else {
+      Ok(client)
+    }
+  }
+
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(
+    &self,
+    wallet_name: String,
+  ) -> Result<Client> {
+    let client = self.check_version(self.bitcoin_rpc_client(Some(wallet_name))?)?;
+
+    if !client.list_wallets()?.contains(&self.wallet) {
+      client.load_wallet(&self.wallet)?;
     }
 
-    if !create {
-      if !client.list_wallets()?.contains(&self.wallet) {
-        client.load_wallet(&self.wallet)?;
-      }
+    let descriptors = client.list_descriptors(None)?.descriptors;
 
-      let descriptors = client.list_descriptors(None)?.descriptors;
+    let tr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      .count();
 
-      let tr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("tr("))
-        .count();
+    let rawtr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      .count();
 
-      let rawtr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-        .count();
-
-      if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
-      }
+    if tr != 2 || descriptors.len() != 2 + rawtr {
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
     }
 
     Ok(client)
@@ -316,8 +323,8 @@ mod tests {
       ])
       .unwrap()
       .options
-      .rpc_url(),
-      "127.0.0.1:1234/wallet/ord"
+      .rpc_url(None),
+      "127.0.0.1:1234/"
     );
   }
 
@@ -343,7 +350,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index", "update"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:8332/");
 
     assert!(arguments
       .options
@@ -357,7 +364,7 @@ mod tests {
     let arguments =
       Arguments::try_parse_from(["ord", "--chain=signet", "index", "update"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:38332/");
 
     assert!(arguments
       .options
@@ -563,7 +570,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      options.bitcoin_rpc_client(None).unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }
@@ -846,7 +853,7 @@ mod tests {
         cookie_file: Some("/foo/bar/baz/qux/.cookie".into()),
         ..Default::default()
       }
-      .bitcoin_rpc_client()
+      .bitcoin_rpc_client(None)
       .map(|_| "")
       .unwrap_err()
       .to_string(),

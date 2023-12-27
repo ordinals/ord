@@ -7,7 +7,7 @@ pub struct Output {
 
 pub(crate) fn run(options: Options) -> SubcommandResult {
   let address = options
-    .bitcoin_rpc_client_for_wallet_command(false)?
+    .bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?
     .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
 
   Ok(Box::new(Output { address }))

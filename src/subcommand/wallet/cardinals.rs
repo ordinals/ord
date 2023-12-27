@@ -12,7 +12,8 @@ pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
     index.update()?;
   }
 
-  let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
+  let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+  let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
   let inscribed_utxos = index
     .get_inscriptions(&unspent_outputs)?

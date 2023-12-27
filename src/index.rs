@@ -206,7 +206,7 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
-    let client = options.bitcoin_rpc_client()?;
+    let client = options.bitcoin_rpc_client(None)?;
 
     let path = if let Some(path) = &options.index {
       path.clone()
@@ -3399,9 +3399,15 @@ mod tests {
         .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
-        crate::subcommand::wallet::Wallet::get_unspent_outputs(&context.options, &context.index)
-          .unwrap_err()
-          .to_string(),
+        crate::subcommand::wallet::Wallet::get_unspent_outputs(
+          &context
+            .options
+            .bitcoin_rpc_client_for_wallet_command(context.options.wallet.clone())
+            .unwrap(),
+          &context.index
+        )
+        .unwrap_err()
+        .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }

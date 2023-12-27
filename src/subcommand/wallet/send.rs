@@ -32,12 +32,13 @@ impl Send {
 
     let chain = options.chain();
 
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
 
-    let unspent_outputs = Wallet::get_unspent_outputs(&options, &index)?;
+    let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
-    let locked_outputs =
-      Wallet::get_locked_outputs(&options.bitcoin_rpc_client_for_wallet_command(false)?)?;
+    let locked_outputs = Wallet::get_locked_outputs(
+      &options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?,
+    )?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
@@ -46,8 +47,13 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
-        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
+        Self::lock_non_cardinal_outputs(
+          &wallet_client,
+          &inscriptions,
+          &runic_outputs,
+          unspent_outputs,
+        )?;
+        let transaction = Self::send_amount(&wallet_client, amount, address, self.fee_rate)?;
         return Ok(Box::new(Output { transaction }));
       }
       Outgoing::InscriptionId(id) => index
@@ -57,7 +63,7 @@ impl Send {
         let transaction = Self::send_runes(
           address,
           chain,
-          &client,
+          &wallet_client,
           decimal,
           self.fee_rate,
           &index,
@@ -85,8 +91,8 @@ impl Send {
     };
 
     let change = [
-      Wallet::get_change_address(&client, chain)?,
-      Wallet::get_change_address(&client, chain)?,
+      Wallet::get_change_address(&wallet_client, chain)?,
+      Wallet::get_change_address(&wallet_client, chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -108,11 +114,11 @@ impl Send {
     )
     .build_transaction()?;
 
-    let signed_tx = client
+    let signed_tx = wallet_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let txid = client.send_raw_transaction(&signed_tx)?;
+    let txid = wallet_client.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
   }
