@@ -8,11 +8,13 @@ pub struct CardinalUtxo {
 
 pub(crate) fn run(no_sync: bool, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
+
   if !no_sync {
     index.update()?;
   }
 
   let wallet_client = options.bitcoin_rpc_client_for_wallet_command(options.wallet.clone())?;
+
   let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
 
   let inscribed_utxos = index

@@ -26,6 +26,7 @@ impl Send {
       .require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
+
     if !no_sync {
       index.update()?;
     }
