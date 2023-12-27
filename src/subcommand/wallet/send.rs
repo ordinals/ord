@@ -84,8 +84,8 @@ impl Send {
     };
 
     let change = [
-      get_change_address(&client, chain)?,
-      get_change_address(&client, chain)?,
+      Wallet::get_change_address(&client, chain)?,
+      Wallet::get_change_address(&client, chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -252,7 +252,7 @@ impl Send {
           value: 0,
         },
         TxOut {
-          script_pubkey: get_change_address(client, chain)?.script_pubkey(),
+          script_pubkey: Wallet::get_change_address(client, chain)?.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {

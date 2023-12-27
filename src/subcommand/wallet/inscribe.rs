@@ -155,7 +155,7 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => get_change_address(&client, chain)?,
+          None => Wallet::get_change_address(&client, chain)?,
         }];
       }
       (None, Some(batch)) => {
@@ -252,7 +252,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: get_change_address(client, chain)?,
+          destination: Wallet::get_change_address(client, chain)?,
           id: parent_id,
           location: satpoint,
           tx_out: index

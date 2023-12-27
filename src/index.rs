@@ -3455,7 +3455,8 @@ mod tests {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
       let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::initialize_wallet(&context.options, mnemonic.to_seed("")).unwrap();
+      crate::subcommand::wallet::Wallet::initialize_wallet(&context.options, mnemonic.to_seed(""))
+        .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
         context
