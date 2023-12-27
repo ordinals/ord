@@ -128,13 +128,13 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    envelope::Tag::ContentType.encode(&mut builder, &self.content_type);
-    envelope::Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
-    envelope::Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
-    envelope::Tag::Parent.encode(&mut builder, &self.parent);
-    envelope::Tag::Delegate.encode(&mut builder, &self.delegate);
-    envelope::Tag::Pointer.encode(&mut builder, &self.pointer);
-    envelope::Tag::Metadata.encode(&mut builder, &self.metadata);
+    Tag::ContentType.encode(&mut builder, &self.content_type);
+    Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
+    Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
+    Tag::Parent.encode(&mut builder, &self.parent);
+    Tag::Delegate.encode(&mut builder, &self.delegate);
+    Tag::Pointer.encode(&mut builder, &self.pointer);
+    Tag::Metadata.encode(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);

@@ -14,18 +14,15 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    charm::Charm,
     config::Config,
     decimal::Decimal,
     decimal_sat::DecimalSat,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
-    envelope::ParsedEnvelope,
     epoch::Epoch,
     height::Height,
     index::{List, RuneEntry},
-    inscription_id::InscriptionId,
-    media::Media,
+    inscriptions::{media, teleburn, Charm, InscriptionId, Media, ParsedEnvelope},
     outgoing::Outgoing,
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
@@ -84,10 +81,9 @@ use {
 };
 
 pub use self::{
-  envelope::Envelope,
   fee_rate::FeeRate,
   index::Index,
-  inscription::Inscription,
+  inscriptions::{Envelope, Inscription},
   object::Object,
   options::Options,
   rarity::Rarity,
@@ -117,20 +113,16 @@ macro_rules! tprintln {
 mod arguments;
 mod blocktime;
 mod chain;
-mod charm;
 mod config;
 mod decimal;
 mod decimal_sat;
 mod degree;
 mod deserialize_from_str;
-mod envelope;
 mod epoch;
 mod fee_rate;
 mod height;
 mod index;
-mod inscription;
-pub mod inscription_id;
-mod media;
+mod inscriptions;
 mod object;
 mod options;
 mod outgoing;
@@ -142,7 +134,6 @@ mod sat_point;
 mod server_config;
 pub mod subcommand;
 mod tally;
-mod teleburn;
 pub mod templates;
 mod wallet;
 
