@@ -14,24 +14,30 @@ use {
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 
 pub(crate) const BODY_TAG: [u8; 0] = [];
-pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
 pub(crate) const POINTER_TAG: [u8; 1] = [2];
+#[allow(unused)]
+pub(crate) const UNBOUND_TAG: [u8; 1] = [66];
+
+pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
 pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
 pub(crate) const CONTENT_ENCODING_TAG: [u8; 1] = [9];
+pub(crate) const DELEGATE_TAG: [u8; 1] = [11];
+#[allow(unused)]
+pub(crate) const NOP_TAG: [u8; 1] = [255];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
 pub(crate) type ParsedEnvelope = Envelope<Inscription>;
 
-#[derive(Debug, Default, PartialEq, Clone)]
-pub(crate) struct Envelope<T> {
-  pub(crate) input: u32,
-  pub(crate) offset: u32,
-  pub(crate) payload: T,
-  pub(crate) pushnum: bool,
-  pub(crate) stutter: bool,
+#[derive(Default, PartialEq, Clone, Serialize, Deserialize, Debug, Eq)]
+pub struct Envelope<T> {
+  pub input: u32,
+  pub offset: u32,
+  pub payload: T,
+  pub pushnum: bool,
+  pub stutter: bool,
 }
 
 fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
@@ -86,6 +92,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let content_encoding = remove_field(&mut fields, &CONTENT_ENCODING_TAG);
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
+    let delegate = remove_field(&mut fields, &DELEGATE_TAG);
     let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
@@ -106,6 +113,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         }),
         content_encoding,
         content_type,
+        delegate,
         duplicate_field,
         incomplete_field,
         metadata,
@@ -452,7 +460,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[11],
+        &NOP_TAG,
         b"bar",
         &[],
         b"ord",
@@ -782,7 +790,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[11], &[0]])]),
+      parse(&[envelope(&[b"ord", &NOP_TAG, &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()
@@ -826,6 +834,20 @@ mod tests {
         payload: Inscription {
           pointer: Some(vec![1]),
           duplicate_field: true,
+          unrecognized_even_field: true,
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
+  fn tag_66_makes_inscriptions_unbound() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &UNBOUND_TAG, &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
           unrecognized_even_field: true,
           ..Default::default()
         },

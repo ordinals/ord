@@ -35,6 +35,8 @@ deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "sign
 
 deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
 
+deploy-regtest branch="master" remote="ordinals/ord": (deploy branch remote "regtest" "regtest.ordinals.net")
+
 save-ord-dev-state domain="ordinals-dev.com":
   $EDITOR ./deploy/save-ord-dev-state
   scp ./deploy/save-ord-dev-state root@{{domain}}:~
@@ -222,3 +224,6 @@ audit-cache:
 
 coverage:
   cargo llvm-cov
+
+benchmark-server:
+  cargo bench --bench server

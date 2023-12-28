@@ -49,7 +49,8 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-enum InscriptionQuery {
+#[derive(Copy, Clone)]
+pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
   Number(i32),
 }
@@ -59,10 +60,19 @@ impl FromStr for InscriptionQuery {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(if s.contains('i') {
-      InscriptionQuery::Id(s.parse()?)
+      Self::Id(s.parse()?)
     } else {
-      InscriptionQuery::Number(s.parse()?)
+      Self::Number(s.parse()?)
     })
+  }
+}
+
+impl Display for InscriptionQuery {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Id(id) => write!(f, "{id}"),
+      Self::Number(number) => write!(f, "{number}"),
+    }
   }
 }
 
@@ -119,10 +129,9 @@ impl Display for StaticHtml {
 pub(crate) struct Server {
   #[arg(
     long,
-    default_value = "0.0.0.0",
-    help = "Listen on <ADDRESS> for incoming requests."
+    help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
   )]
-  address: String,
+  address: Option<String>,
   #[arg(
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
@@ -135,13 +144,13 @@ pub(crate) struct Server {
   csp_origin: Option<String>,
   #[arg(
     long,
-    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
   http_port: Option<u16>,
   #[arg(
     long,
     group = "port",
-    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]."
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]"
   )]
   https_port: Option<u16>,
   #[arg(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -332,7 +341,18 @@ impl Server {
     port: u16,
     config: SpawnConfig,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
-    let addr = (self.address.as_str(), port)
+    let address = match &self.address {
+      Some(address) => address.as_str(),
+      None => {
+        if cfg!(test) || integration_test() {
+          "127.0.0.1"
+        } else {
+          "0.0.0.0"
+        }
+      }
+    };
+
+    let addr = (address, port)
       .to_socket_addrs()?
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
@@ -424,11 +444,13 @@ impl Server {
 
     let mut state = config.state();
 
-    let acceptor = state.axum_acceptor(Arc::new(
-      rustls::ServerConfig::builder()
-        .with_no_client_auth()
-        .with_cert_resolver(state.resolver()),
-    ));
+    let mut server_config = rustls::ServerConfig::builder()
+      .with_no_client_auth()
+      .with_cert_resolver(state.resolver());
+
+    server_config.alpn_protocols = vec!["h2".into(), "http/1.1".into()];
+
+    let acceptor = state.axum_acceptor(Arc::new(server_config));
 
     tokio::spawn(async move {
       while let Some(result) = state.next().await {
@@ -463,7 +485,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
     let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
@@ -475,7 +497,7 @@ impl Server {
       })
     });
     let blocktime = index.block_time(sat.height())?;
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(SatJson {
         number: sat.0,
         decimal: sat.decimal().to_string(),
@@ -513,7 +535,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let list = index.list(outpoint)?;
 
@@ -544,7 +566,7 @@ impl Server {
 
     let runes = index.get_rune_balances_for_outpoint(outpoint)?;
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(OutputJson::new(
         outpoint,
         list,
@@ -596,20 +618,18 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
   ) -> ServerResult<PageHtml<RuneHtml>> {
-    let (id, entry) = index.rune(spaced_rune.rune)?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes` flag".into(),
-      )
-    })?;
+    if !index.has_rune_index() {
+      return Err(ServerError::NotFound(
+        "this server has no rune index".to_string(),
+      ));
+    }
 
-    let parent = InscriptionId {
-      txid: entry.etching,
-      index: 0,
-    };
-
-    let parent = index.inscription_exists(parent)?.then_some(parent);
-
-    Ok(RuneHtml { id, entry, parent }.page(server_config))
+    Ok(
+      index
+        .rune_html(spaced_rune.rune)?
+        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+        .page(server_config),
+    )
   }
 
   async fn runes(
@@ -660,7 +680,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
@@ -683,7 +703,7 @@ impl Server {
       }
     };
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       let inscriptions = index.get_inscriptions_in_block(height)?;
       Json(BlockJson::new(
         block,
@@ -712,20 +732,23 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
+    let transaction = index
+      .get_transaction(txid)?
+      .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+    let inscription_count = index.inscription_count(txid)?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
     Ok(
-      TransactionHtml::new(
-        index
-          .get_transaction(txid)?
-          .ok_or_not_found(|| format!("transaction {txid}"))?,
+      TransactionHtml {
         blockhash,
-        inscription.map(|_| InscriptionId { txid, index: 0 }),
-        server_config.chain,
-        index.get_etching(txid)?,
-      )
+        transaction,
+        txid,
+        inscription_count,
+        chain: server_config.chain,
+        etching: index.get_etching(txid)?,
+      }
       .page(server_config),
     )
   }
@@ -1000,9 +1023,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     Ok(
       Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1092,9 +1121,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
@@ -1176,76 +1211,22 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let inscription_id = match query {
-      InscriptionQuery::Id(id) => id,
-      InscriptionQuery::Number(inscription_number) => index
-        .get_inscription_id_by_inscription_number(inscription_number)?
-        .ok_or_not_found(|| format!("{inscription_number}"))?,
-    };
+    let info =
+      Index::inscription_info(&index, query)?.ok_or_not_found(|| format!("inscription {query}"))?;
 
-    let entry = index
-      .get_inscription_entry(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    let output = if satpoint.outpoint == unbound_outpoint() || satpoint.outpoint == OutPoint::null()
-    {
-      None
-    } else {
-      Some(
-        index
-          .get_transaction(satpoint.outpoint.txid)?
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
-      )
-    };
-
-    let previous = if let Some(n) = entry.sequence_number.checked_sub(1) {
-      index.get_inscription_id_by_sequence_number(n)?
-    } else {
-      None
-    };
-
-    let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
-
-    let (children, _more_children) =
-      index.get_children_by_sequence_number_paginated(entry.sequence_number, 4, 0)?;
-
-    let rune = index.get_rune_by_sequence_number(entry.sequence_number)?;
-
-    let parent = match entry.parent {
-      Some(parent) => index.get_inscription_id_by_sequence_number(parent)?,
-      None => None,
-    };
-
-    let mut charms = entry.charms;
-
-    if satpoint.outpoint == OutPoint::null() {
-      Charm::Lost.set(&mut charms);
-    }
-
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionJson {
-        inscription_id,
-        children,
-        inscription_number: entry.inscription_number,
-        genesis_height: entry.height,
-        parent,
-        genesis_fee: entry.fee,
-        output_value: output.as_ref().map(|o| o.value),
-        address: output
+        inscription_id: info.entry.id,
+        children: info.children,
+        inscription_number: info.entry.inscription_number,
+        genesis_height: info.entry.height,
+        parent: info.parent,
+        genesis_fee: info.entry.fee,
+        output_value: info.output.as_ref().map(|o| o.value),
+        address: info
+          .output
           .as_ref()
           .and_then(|o| {
             server_config
@@ -1254,34 +1235,34 @@ impl Server {
               .ok()
           })
           .map(|address| address.to_string()),
-        sat: entry.sat,
-        satpoint,
-        content_type: inscription.content_type().map(|s| s.to_string()),
-        content_length: inscription.content_length(),
-        timestamp: timestamp(entry.timestamp).timestamp(),
-        previous,
-        next,
-        rune,
+        sat: info.entry.sat,
+        satpoint: info.satpoint,
+        content_type: info.inscription.content_type().map(|s| s.to_string()),
+        content_length: info.inscription.content_length(),
+        timestamp: timestamp(info.entry.timestamp).timestamp(),
+        previous: info.previous,
+        next: info.next,
+        rune: info.rune,
       })
       .into_response()
     } else {
       InscriptionHtml {
         chain: server_config.chain,
-        charms,
-        children,
-        genesis_fee: entry.fee,
-        genesis_height: entry.height,
-        inscription,
-        inscription_id,
-        inscription_number: entry.inscription_number,
-        next,
-        output,
-        parent,
-        previous,
-        rune,
-        sat: entry.sat,
-        satpoint,
-        timestamp: timestamp(entry.timestamp),
+        charms: info.charms,
+        children: info.children,
+        genesis_fee: info.entry.fee,
+        genesis_height: info.entry.height,
+        inscription: info.inscription,
+        inscription_id: info.entry.id,
+        inscription_number: info.entry.inscription_number,
+        next: info.next,
+        output: info.output,
+        parent: info.parent,
+        previous: info.previous,
+        rune: info.rune,
+        sat: info.entry.sat,
+        satpoint: info.satpoint,
+        timestamp: timestamp(info.entry.timestamp),
       }
       .page(server_config)
       .into_response()
@@ -1401,7 +1382,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(page_index): Path<usize>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
 
@@ -1409,7 +1390,7 @@ impl Server {
 
     let next = more_inscriptions.then_some(page_index + 1);
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionsJson {
         inscriptions,
         page_index,
@@ -1431,13 +1412,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(block_height): Path<u32>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_paginated(
       Extension(server_config),
       Extension(index),
       Path((block_height, 0)),
-      accept_json,
+      AcceptJson(accept_json),
     )
     .await
   }
@@ -1446,7 +1427,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((block_height, page_index)): Path<(u32, usize)>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     let page_size = 100;
 
@@ -1463,7 +1444,7 @@ impl Server {
       inscriptions.pop();
     }
 
-    Ok(if accept_json.0 {
+    Ok(if accept_json {
       Json(InscriptionsJson {
         inscriptions,
         page_index,
@@ -2253,6 +2234,8 @@ mod tests {
   <dd><a href=/block/2>2</a></dd>
   <dt>etching transaction index</dt>
   <dd>1</dd>
+  <dt>mints</dt>
+  <dd>0</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>
@@ -2593,9 +2576,11 @@ mod tests {
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
   <dd>false</dd>
+  <dt>rune index</dt>
+  <dd>false</dd>
   <dt>sat index</dt>
   <dd>false</dd>
-  <dt>rune index</dt>
+  <dt>transaction index</dt>
   <dd>false</dd>
   <dt>git branch</dt>
   <dd>.*</dd>
@@ -3937,7 +3922,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_id.parent_value()),
+              parent: Some(parent_id.value()),
               ..Default::default()
             }
             .to_witness(),
@@ -4089,7 +4074,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4162,7 +4147,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4209,7 +4194,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4221,7 +4206,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4233,7 +4218,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4245,7 +4230,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4257,7 +4242,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4880,7 +4865,7 @@ next
       builder = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        parent: Some(parent_inscription_id.parent_value()),
+        parent: Some(parent_inscription_id.value()),
         unrecognized_even_field: false,
         ..Default::default()
       }
@@ -4948,5 +4933,80 @@ next
       StatusCode::OK,
       r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
     );
+  }
+
+  #[test]
+  fn inscription_query_display() {
+    assert_eq!(
+      InscriptionQuery::Id(inscription_id(1)).to_string(),
+      "1111111111111111111111111111111111111111111111111111111111111111i1"
+    );
+    assert_eq!(InscriptionQuery::Number(1).to_string(), "1")
+  }
+
+  #[test]
+  fn inscription_not_found() {
+    TestServer::new_with_regtest_with_json_api().assert_response(
+      "/inscription/0",
+      StatusCode::NOT_FOUND,
+      "inscription 0 not found",
+    );
+  }
+
+  #[test]
+  fn delegate() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let delegate = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, delegate.to_witness())],
+      ..Default::default()
+    });
+
+    let delegate = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      delegate: Some(delegate.value()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription.to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 1</h1>.*
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>{id}</dd>
+          .*
+          <dt>delegate</dt>
+          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
+          .*
+        </dl>.*"
+      )
+      .unindent(),
+    );
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
   }
 }

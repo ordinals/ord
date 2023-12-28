@@ -6,7 +6,7 @@ use {super::*, bitcoincore_rpc::Auth};
     .required(false)
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
-pub(crate) struct Options {
+pub struct Options {
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
@@ -49,6 +49,15 @@ pub(crate) struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(long, help = "Store transactions in index.")]
+  pub(crate) index_transactions: bool,
+  #[arg(
+    long,
+    short,
+    alias = "noindex_inscriptions",
+    help = "Do not index inscriptions."
+  )]
+  pub(crate) no_index_inscriptions: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
   #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
