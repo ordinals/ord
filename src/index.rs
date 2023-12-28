@@ -209,11 +209,10 @@ impl Index {
   pub fn open(options: &Options) -> Result<Self> {
     let client = options.bitcoin_rpc_client()?;
 
-    let path = if let Some(path) = &options.index {
-      path.clone()
-    } else {
-      options.data_dir()?.join("index.redb")
-    };
+    let path = options
+      .index
+      .clone()
+      .unwrap_or(options.data_dir().clone().join("index.redb"));
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
