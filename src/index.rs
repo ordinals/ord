@@ -1708,7 +1708,7 @@ impl Index {
       Utc::now()
         .round_subsecs(0)
         .checked_add_signed(chrono::Duration::seconds(
-          10 * 60 * i64::try_from(expected_blocks)?,
+          10 * 60 * i64::from(expected_blocks),
         ))
         .ok_or_else(|| anyhow!("block timestamp out of range"))?,
     ))
