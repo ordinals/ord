@@ -62,12 +62,28 @@ impl Batch {
       )?;
 
     let psbts = Psbts {
-      commit_psbt: bitcoin::psbt::Psbt::from_unsigned_tx(commit_tx.clone())
-        .unwrap()
-        .serialize_hex(),
-      reveal_psbt: bitcoin::psbt::Psbt::from_unsigned_tx(reveal_tx.clone())
-        .unwrap()
-        .serialize_hex(),
+      commit_psbt: bitcoin::psbt::PartiallySignedTransaction {
+        inputs: vec![Default::default(); commit_tx.input.len()],
+        outputs: vec![Default::default(); commit_tx.output.len()],
+
+        unsigned_tx: commit_tx.clone(),
+        xpub: Default::default(),
+        version: 0,
+        proprietary: Default::default(),
+        unknown: Default::default(),
+      }
+      .serialize_hex(),
+      reveal_psbt: bitcoin::psbt::PartiallySignedTransaction {
+        inputs: vec![Default::default(); reveal_tx.input.len()],
+        outputs: vec![Default::default(); reveal_tx.output.len()],
+
+        unsigned_tx: reveal_tx.clone(),
+        xpub: Default::default(),
+        version: 0,
+        proprietary: Default::default(),
+        unknown: Default::default(),
+      }
+      .serialize_hex(),
     };
 
     if self.dry_run {
