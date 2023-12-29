@@ -14,7 +14,7 @@ impl BlocksHtml {
   ) -> Self {
     Self {
       last: blocks
-        .get(0)
+        .first()
         .map(|(height, _)| height)
         .cloned()
         .unwrap_or(0),
