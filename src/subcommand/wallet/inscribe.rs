@@ -108,17 +108,17 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;
 
-    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
-    let utxos = get_unspent_outputs(&wallet_client, &index)?;
+    let utxos = get_unspent_outputs(&client, &index)?;
 
-    let locked_utxos = get_locked_outputs(&wallet_client)?;
+    let locked_utxos = get_locked_outputs(&client)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
@@ -133,8 +133,7 @@ impl Inscribe {
 
     match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info =
-          Inscribe::get_parent_info(self.parent, &index, &utxos, &wallet_client, chain)?;
+        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
@@ -154,14 +153,13 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => get_change_address(&wallet_client, chain)?,
+          None => get_change_address(&client, chain)?,
         }];
       }
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info =
-          Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &wallet_client, chain)?;
+        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
 
         postage = batchfile
           .postage
@@ -169,7 +167,7 @@ impl Inscribe {
           .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
-          &wallet_client,
+          &client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
@@ -216,14 +214,7 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint,
     }
-    .inscribe(
-      chain,
-      &index,
-      &wallet_client,
-      &locked_utxos,
-      runic_utxos,
-      &utxos,
-    )
+    .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {

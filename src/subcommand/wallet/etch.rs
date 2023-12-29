@@ -20,7 +20,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(
@@ -30,11 +30,11 @@ impl Etch {
 
     index.update()?;
 
-    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
     let SpacedRune { rune, spacers } = self.rune;
 
-    let count = wallet_client.get_block_count()?;
+    let count = client.get_block_count()?;
 
     ensure!(
       index.rune(rune)?.is_none(),
@@ -58,7 +58,7 @@ impl Etch {
       "<DIVISIBILITY> must be equal to or less than 38"
     );
 
-    let destination = get_change_address(&wallet_client, options.chain())?;
+    let destination = get_change_address(&client, options.chain())?;
 
     let runestone = Runestone {
       etching: Some(Etching {
@@ -103,7 +103,7 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = get_unspent_outputs(&wallet_client, &index)?;
+    let unspent_outputs = get_unspent_outputs(&client, &index)?;
 
     let inscriptions = index
       .get_inscriptions(&unspent_outputs)?
@@ -111,18 +111,17 @@ impl Etch {
       .map(|satpoint| satpoint.outpoint)
       .collect::<Vec<OutPoint>>();
 
-    if !wallet_client.lock_unspent(&inscriptions)? {
+    if !client.lock_unspent(&inscriptions)? {
       bail!("failed to lock UTXOs");
     }
 
-    let unsigned_transaction =
-      fund_raw_transaction(&wallet_client, self.fee_rate, &unfunded_transaction)?;
+    let unsigned_transaction = fund_raw_transaction(&client, self.fee_rate, &unfunded_transaction)?;
 
-    let signed_transaction = wallet_client
+    let signed_transaction = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let transaction = wallet_client.send_raw_transaction(&signed_transaction)?;
+    let transaction = client.send_raw_transaction(&signed_transaction)?;
 
     Ok(Box::new(Output { transaction }))
   }

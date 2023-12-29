@@ -24,7 +24,7 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, wallet_name: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(&self, wallet: String, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     if !index.has_sat_index() {
@@ -33,9 +33,9 @@ impl Sats {
 
     index.update()?;
 
-    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
-    let utxos = get_unspent_output_ranges(&wallet_client, &index)?;
+    let utxos = get_unspent_output_ranges(&client, &index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();

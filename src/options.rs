@@ -110,8 +110,8 @@ impl Options {
       .unwrap_or(format!("127.0.0.1:{}", self.chain().default_rpc_port()));
 
     match wallet_name {
-      Some(wallet_name) => format!("{}/wallet/{}", base_url, wallet_name),
-      None => format!("{}/", base_url),
+      Some(wallet_name) => format!("{base_url}/wallet/{wallet_name}"),
+      None => format!("{base_url}/"),
     }
   }
 
@@ -208,8 +208,8 @@ impl Options {
     }
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self, wallet_name: Option<String>) -> Result<Client> {
-    let rpc_url = self.rpc_url(wallet_name);
+  pub(crate) fn bitcoin_rpc_client(&self, wallet: Option<String>) -> Result<Client> {
+    let rpc_url = self.rpc_url(wallet);
 
     let auth = self.auth()?;
 
@@ -595,6 +595,16 @@ mod tests {
         .load_config()
         .unwrap(),
       Default::default()
+    );
+  }
+
+  #[test]
+  fn uses_wallet_rpc() {
+    let (options, _) = parse_wallet_args("ord wallet --name foo balance");
+
+    assert_eq!(
+      options.rpc_url(Some("foo".into())),
+      "127.0.0.1:8332/wallet/foo"
     );
   }
 

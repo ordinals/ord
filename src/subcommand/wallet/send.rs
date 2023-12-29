@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
@@ -29,13 +29,13 @@ impl Send {
 
     index.update()?;
 
-    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
     let chain = options.chain();
 
-    let unspent_outputs = get_unspent_outputs(&wallet_client, &index)?;
+    let unspent_outputs = get_unspent_outputs(&client, &index)?;
 
-    let locked_outputs = get_locked_outputs(&wallet_client)?;
+    let locked_outputs = get_locked_outputs(&client)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
@@ -44,13 +44,8 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::lock_non_cardinal_outputs(
-          &wallet_client,
-          &inscriptions,
-          &runic_outputs,
-          unspent_outputs,
-        )?;
-        let transaction = Self::send_amount(&wallet_client, amount, address, self.fee_rate)?;
+        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
+        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
         return Ok(Box::new(Output { transaction }));
       }
       Outgoing::InscriptionId(id) => index
@@ -60,7 +55,7 @@ impl Send {
         let transaction = Self::send_runes(
           address,
           chain,
-          &wallet_client,
+          &client,
           decimal,
           self.fee_rate,
           &index,
@@ -88,8 +83,8 @@ impl Send {
     };
 
     let change = [
-      get_change_address(&wallet_client, chain)?,
-      get_change_address(&wallet_client, chain)?,
+      get_change_address(&client, chain)?,
+      get_change_address(&client, chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -111,11 +106,11 @@ impl Send {
     )
     .build_transaction()?;
 
-    let signed_tx = wallet_client
+    let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let txid = wallet_client.send_raw_transaction(&signed_tx)?;
+    let txid = client.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
   }
