@@ -104,16 +104,14 @@ impl Options {
   }
 
   pub(crate) fn rpc_url(&self, wallet_name: Option<String>) -> String {
-    let rpc_url = if let Some(rpc_url) = &self.rpc_url {
-      format!("{rpc_url}/")
-    } else {
-      format!("127.0.0.1:{}/", self.chain().default_rpc_port())
-    };
+    let base_url = self
+      .rpc_url
+      .clone()
+      .unwrap_or(format!("127.0.0.1:{}", self.chain().default_rpc_port()));
 
-    if let Some(wallet_name) = wallet_name {
-      format!("{rpc_url}wallet/{wallet_name}")
-    } else {
-      rpc_url
+    match wallet_name {
+      Some(wallet_name) => format!("{}/wallet/{}", base_url, wallet_name),
+      None => format!("{}/", base_url),
     }
   }
 
