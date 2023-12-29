@@ -12,16 +12,16 @@ REVISION="ord-$BRANCH-$COMMIT"
 
 case $CHAIN in
   main)
-    CSP_ORIGIN="ordinals.com"
+    CSP_ORIGIN=ordinals.com
     ;;
   regtest)
-    CSP_ORIGIN="regtest.ordinals.com"
+    CSP_ORIGIN=regtest.ordinals.com
     ;;
   signet)
-    CSP_ORIGIN="signet.ordinals.com"
+    CSP_ORIGIN=signet.ordinals.com
     ;;
   test)
-    CSP_ORIGIN="testnet.ordinals.com"
+    CSP_ORIGIN=testnet.ordinals.com
     ;;
   *)
     echo "Unknown chain: $CHAIN"
