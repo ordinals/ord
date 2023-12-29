@@ -63,6 +63,7 @@ use {
     fmt::{self, Display, Formatter},
     fs::{self, File},
     io::{self, Cursor},
+    mem,
     net::{TcpListener, ToSocketAddrs},
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},

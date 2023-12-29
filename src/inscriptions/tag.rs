@@ -39,7 +39,7 @@ impl Tag {
   pub(crate) fn encode(self, builder: &mut script::Builder, value: &Option<Vec<u8>>) {
     if let Some(value) = value {
       let mut tmp = script::Builder::new();
-      std::mem::swap(&mut tmp, builder);
+      mem::swap(&mut tmp, builder);
 
       if self.is_chunked() {
         for chunk in value.chunks(520) {
@@ -52,7 +52,7 @@ impl Tag {
           .push_slice::<&script::PushBytes>(value.as_slice().try_into().unwrap());
       }
 
-      std::mem::swap(&mut tmp, builder);
+      mem::swap(&mut tmp, builder);
     }
   }
 
