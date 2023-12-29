@@ -77,7 +77,7 @@ impl Decode {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let transaction = if let Some(txid) = self.txid {
       options
-        .bitcoin_rpc_client()?
+        .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {
       Transaction::consensus_decode(&mut File::open(file)?)?
