@@ -498,7 +498,7 @@ impl<'index> Updater<'_> {
         coinbase_inputs.extend(input_sat_ranges);
       }
 
-      if let Some((tx, txid)) = block.txdata.get(0) {
+      if let Some((tx, txid)) = block.txdata.first() {
         self.index_transaction_sats(
           tx,
           *txid,
