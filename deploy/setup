@@ -10,6 +10,25 @@ BRANCH=$3
 COMMIT=$4
 REVISION="ord-$BRANCH-$COMMIT"
 
+case $CHAIN in
+  main)
+    CSP_ORIGIN="ordinals.com"
+    ;;
+  regtest)
+    CSP_ORIGIN="regtest.ordinals.com"
+    ;;
+  signet)
+    CSP_ORIGIN="signet.ordinals.com"
+    ;;
+  test)
+    CSP_ORIGIN="testnet.ordinals.com"
+    ;;
+  *)
+    echo "Unknown chain: $CHAIN"
+    exit 1
+    ;;
+esac
+
 touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -19,6 +38,10 @@ mkdir -p \
   /etc/systemd/system/ord.service.d
 
 printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
+  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
+  > /etc/systemd/system/ord.service.d/override.conf
+
+printf "[Service]\nEnvironment=CSP_ORIGIN=%s\n" $CSP_ORIGIN \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
