@@ -250,7 +250,7 @@ fn inscription_metadata() {
   .rpc_server(&rpc_server)
   .run_and_deserialize_output::<Inscribe>()
   .inscriptions
-  .get(0)
+  .first()
   .unwrap()
   .id;
 
