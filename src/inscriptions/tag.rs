@@ -42,7 +42,7 @@ impl Tag {
       mem::swap(&mut tmp, builder);
 
       if self.is_chunked() {
-        for chunk in value.chunks(520) {
+        for chunk in value.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
           tmp = tmp.push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap());
           tmp = tmp.push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
         }

@@ -138,7 +138,7 @@ impl Inscription {
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
-      for chunk in body.chunks(520) {
+      for chunk in body.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
         builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
       }
     }
