@@ -37,11 +37,7 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
-  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
-  > /etc/systemd/system/ord.service.d/override.conf
-
-printf "[Service]\nEnvironment=CSP_ORIGIN=%s\n" $CSP_ORIGIN \
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CSP_ORIGIN \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
