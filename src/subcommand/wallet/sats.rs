@@ -33,7 +33,7 @@ impl Sats {
 
     index.update()?;
 
-    let utxos = Wallet::get_unspent_output_ranges(&wallet_client, &index)?;
+    let utxos = get_unspent_output_ranges(&wallet_client, &index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();

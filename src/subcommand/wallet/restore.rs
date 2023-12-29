@@ -14,7 +14,7 @@ pub(crate) struct Restore {
 
 impl Restore {
   pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
-    Wallet::initialize(
+    wallet::initialize(
       wallet_name,
       &options,
       self.mnemonic.to_seed(self.passphrase),

@@ -114,9 +114,9 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = Wallet::get_unspent_outputs(&wallet_client, &index)?;
+    let utxos = get_unspent_outputs(&wallet_client, &index)?;
 
-    let locked_utxos = Wallet::get_locked_outputs(&wallet_client)?;
+    let locked_utxos = get_locked_outputs(&wallet_client)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
@@ -152,7 +152,7 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => Wallet::get_change_address(&wallet_client, chain)?,
+          None => get_change_address(&wallet_client, chain)?,
         }];
       }
       (None, Some(batch)) => {
@@ -257,7 +257,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: Wallet::get_change_address(client, chain)?,
+          destination: get_change_address(client, chain)?,
           id: parent_id,
           location: satpoint,
           tx_out: index

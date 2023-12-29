@@ -12,7 +12,7 @@ pub(crate) fn run(wallet_client: &Client, options: Options) -> SubcommandResult 
   index.update()?;
 
   let mut outputs = Vec::new();
-  for (output, amount) in Wallet::get_unspent_outputs(&wallet_client, &index)? {
+  for (output, amount) in wallet::get_unspent_outputs(&wallet_client, &index)? {
     outputs.push(Output {
       output,
       amount: amount.to_sat(),

@@ -11,7 +11,7 @@ pub(crate) fn run(wallet_client: &Client, options: Options) -> SubcommandResult 
 
   index.update()?;
 
-  let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
+  let unspent_outputs = get_unspent_outputs(&wallet_client, &index)?;
 
   let inscribed_utxos = index
     .get_inscriptions(&unspent_outputs)?

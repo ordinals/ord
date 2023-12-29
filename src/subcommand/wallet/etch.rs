@@ -56,7 +56,7 @@ impl Etch {
       "<DIVISIBILITY> must be equal to or less than 38"
     );
 
-    let destination = Wallet::get_change_address(&wallet_client, options.chain())?;
+    let destination = get_change_address(&wallet_client, options.chain())?;
 
     let runestone = Runestone {
       etching: Some(Etching {
@@ -101,7 +101,7 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
+    let unspent_outputs = get_unspent_outputs(&wallet_client, &index)?;
 
     let inscriptions = index
       .get_inscriptions(&unspent_outputs)?

@@ -31,9 +31,9 @@ impl Send {
 
     let chain = options.chain();
 
-    let unspent_outputs = Wallet::get_unspent_outputs(&wallet_client, &index)?;
+    let unspent_outputs = get_unspent_outputs(&wallet_client, &index)?;
 
-    let locked_outputs = Wallet::get_locked_outputs(&wallet_client)?;
+    let locked_outputs = get_locked_outputs(&wallet_client)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
@@ -86,8 +86,8 @@ impl Send {
     };
 
     let change = [
-      Wallet::get_change_address(&wallet_client, chain)?,
-      Wallet::get_change_address(&wallet_client, chain)?,
+      get_change_address(&wallet_client, chain)?,
+      get_change_address(&wallet_client, chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -254,7 +254,7 @@ impl Send {
           value: 0,
         },
         TxOut {
-          script_pubkey: Wallet::get_change_address(client, chain)?.script_pubkey(),
+          script_pubkey: get_change_address(client, chain)?.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {
