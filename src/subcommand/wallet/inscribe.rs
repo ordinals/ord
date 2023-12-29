@@ -108,11 +108,13 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, wallet_client: Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;
+
+    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
 
     let utxos = get_unspent_outputs(&wallet_client, &index)?;
 

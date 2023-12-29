@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, wallet_client: Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
@@ -28,6 +28,8 @@ impl Send {
     let index = Index::open(&options)?;
 
     index.update()?;
+
+    let wallet_client = bitcoin_rpc_client_for_wallet_command(wallet_name, &options)?;
 
     let chain = options.chain();
 

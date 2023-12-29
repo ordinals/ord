@@ -3400,8 +3400,8 @@ mod tests {
       assert_regex_match!(
         crate::subcommand::wallet::get_unspent_outputs(
           &crate::subcommand::wallet::bitcoin_rpc_client_for_wallet_command(
+            "ord".to_string(),
             &context.options,
-            &"ord".to_string(),
           )
           .unwrap(),
           &context.index

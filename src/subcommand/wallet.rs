@@ -66,21 +66,19 @@ pub(crate) enum WalletSubcommand {
 
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let client = bitcoin_rpc_client_for_wallet_command(&options, &self.name)?;
-
     match self.subcommand {
-      WalletSubcommand::Balance => balance::run(client, options),
+      WalletSubcommand::Balance => balance::run(self.name, options),
       WalletSubcommand::Create(create) => create.run(self.name, options),
-      WalletSubcommand::Etch(etch) => etch.run(client, options),
-      WalletSubcommand::Inscribe(inscribe) => inscribe.run(client, options),
-      WalletSubcommand::Inscriptions => inscriptions::run(client, options),
-      WalletSubcommand::Receive => receive::run(client),
+      WalletSubcommand::Etch(etch) => etch.run(self.name, options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(self.name, options),
+      WalletSubcommand::Inscriptions => inscriptions::run(self.name, options),
+      WalletSubcommand::Receive => receive::run(self.name, options),
       WalletSubcommand::Restore(restore) => restore.run(self.name, options),
-      WalletSubcommand::Sats(sats) => sats.run(client, options),
-      WalletSubcommand::Send(send) => send.run(client, options),
-      WalletSubcommand::Transactions(transactions) => transactions.run(client),
-      WalletSubcommand::Outputs => outputs::run(client, options),
-      WalletSubcommand::Cardinals => cardinals::run(client, options),
+      WalletSubcommand::Sats(sats) => sats.run(self.name, options),
+      WalletSubcommand::Send(send) => send.run(self.name, options),
+      WalletSubcommand::Transactions(transactions) => transactions.run(self.name, options),
+      WalletSubcommand::Outputs => outputs::run(self.name, options),
+      WalletSubcommand::Cardinals => cardinals::run(self.name, options),
     }
   }
 }
@@ -231,13 +229,13 @@ fn derive_and_import_descriptor(
 }
 
 pub(crate) fn bitcoin_rpc_client_for_wallet_command(
+  wallet_name: String,
   options: &Options,
-  wallet_name: &String,
 ) -> Result<Client> {
   let client = check_version(options.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
 
-  if !client.list_wallets()?.contains(wallet_name) {
-    client.load_wallet(wallet_name)?;
+  if !client.list_wallets()?.contains(&wallet_name) {
+    client.load_wallet(&wallet_name)?;
   }
 
   let descriptors = client.list_descriptors(None)?.descriptors;
