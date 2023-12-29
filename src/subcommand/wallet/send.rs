@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, wallet_client: &Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_client: Client, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()

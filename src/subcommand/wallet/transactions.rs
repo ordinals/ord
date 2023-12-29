@@ -13,7 +13,7 @@ pub struct Output {
 }
 
 impl Transactions {
-  pub(crate) fn run(self, wallet_client: &Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_client: Client) -> SubcommandResult {
     let mut output = Vec::new();
     for tx in wallet_client.list_transactions(
       None,

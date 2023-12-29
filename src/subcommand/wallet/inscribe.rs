@@ -108,7 +108,7 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, wallet_client: &Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_client: Client, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;

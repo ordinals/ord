@@ -69,18 +69,18 @@ impl Wallet {
     let client = bitcoin_rpc_client_for_wallet_command(&options, &self.name)?;
 
     match self.subcommand {
-      WalletSubcommand::Balance => balance::run(&client, options),
+      WalletSubcommand::Balance => balance::run(client, options),
       WalletSubcommand::Create(create) => create.run(self.name, options),
-      WalletSubcommand::Etch(etch) => etch.run(&client, options),
-      WalletSubcommand::Inscribe(inscribe) => inscribe.run(&client, options),
-      WalletSubcommand::Inscriptions => inscriptions::run(&client, options),
-      WalletSubcommand::Receive => receive::run(&client, options),
+      WalletSubcommand::Etch(etch) => etch.run(client, options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(client, options),
+      WalletSubcommand::Inscriptions => inscriptions::run(client, options),
+      WalletSubcommand::Receive => receive::run(client),
       WalletSubcommand::Restore(restore) => restore.run(self.name, options),
-      WalletSubcommand::Sats(sats) => sats.run(&client, options),
-      WalletSubcommand::Send(send) => send.run(&client, options),
-      WalletSubcommand::Transactions(transactions) => transactions.run(&client, options),
-      WalletSubcommand::Outputs => outputs::run(&client, options),
-      WalletSubcommand::Cardinals => cardinals::run(&client, options),
+      WalletSubcommand::Sats(sats) => sats.run(client, options),
+      WalletSubcommand::Send(send) => send.run(client, options),
+      WalletSubcommand::Transactions(transactions) => transactions.run(client),
+      WalletSubcommand::Outputs => outputs::run(client, options),
+      WalletSubcommand::Cardinals => cardinals::run(client, options),
     }
   }
 }
@@ -236,8 +236,8 @@ pub(crate) fn bitcoin_rpc_client_for_wallet_command(
 ) -> Result<Client> {
   let client = check_version(options.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
 
-  if !client.list_wallets()?.contains(&wallet_name) {
-    client.load_wallet(&wallet_name)?;
+  if !client.list_wallets()?.contains(wallet_name) {
+    client.load_wallet(wallet_name)?;
   }
 
   let descriptors = client.list_descriptors(None)?.descriptors;

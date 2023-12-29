@@ -24,7 +24,7 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, wallet_client: &Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(&self, wallet_client: Client, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     if !index.has_sat_index() {

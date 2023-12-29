@@ -20,7 +20,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, wallet_client: &Client, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_client: Client, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(

@@ -6,7 +6,7 @@ pub struct CardinalUtxo {
   pub amount: u64,
 }
 
-pub(crate) fn run(wallet_client: &Client, options: Options) -> SubcommandResult {
+pub(crate) fn run(wallet_client: Client, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
 
   index.update()?;
