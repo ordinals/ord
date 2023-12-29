@@ -397,14 +397,10 @@ impl Server {
     }))
   }
 
-  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
-    let acme_cache = if let Some(acme_cache) = acme_cache {
-      acme_cache.clone()
-    } else {
-      options.data_dir()?.join("acme-cache")
-    };
-
-    Ok(acme_cache)
+  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> PathBuf {
+    acme_cache
+      .unwrap_or(&options.data_dir().join("acme-cache"))
+      .to_path_buf()
   }
 
   fn acme_domains(&self) -> Result<Vec<String>> {
@@ -439,7 +435,7 @@ impl Server {
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
         options,
-      )?)))
+      ))))
       .directory(if cfg!(test) {
         LETS_ENCRYPT_STAGING_DIRECTORY
       } else {
@@ -1027,9 +1023,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     Ok(
       Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1119,9 +1121,15 @@ impl Server {
       return Ok(PreviewUnknownHtml.into_response());
     }
 
-    let inscription = index
+    let mut inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(delegate) = inscription.delegate() {
+      inscription = index
+        .get_inscription_by_id(delegate)?
+        .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+    }
 
     match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
@@ -1901,7 +1909,6 @@ mod tests {
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -1920,7 +1927,6 @@ mod tests {
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert_eq!(acme_cache, "bar")
@@ -3916,7 +3922,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_id.parent_value()),
+              parent: Some(parent_id.value()),
               ..Default::default()
             }
             .to_witness(),
@@ -4068,7 +4074,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4141,7 +4147,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4188,7 +4194,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4200,7 +4206,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4212,7 +4218,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4224,7 +4230,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4236,7 +4242,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -4859,7 +4865,7 @@ next
       builder = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        parent: Some(parent_inscription_id.parent_value()),
+        parent: Some(parent_inscription_id.value()),
         unrecognized_even_field: false,
         ..Default::default()
       }
@@ -4945,5 +4951,62 @@ next
       StatusCode::NOT_FOUND,
       "inscription 0 not found",
     );
+  }
+
+  #[test]
+  fn delegate() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let delegate = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, delegate.to_witness())],
+      ..Default::default()
+    });
+
+    let delegate = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      delegate: Some(delegate.value()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription.to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 1</h1>.*
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>{id}</dd>
+          .*
+          <dt>delegate</dt>
+          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
+          .*
+        </dl>.*"
+      )
+      .unindent(),
+    );
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
   }
 }
