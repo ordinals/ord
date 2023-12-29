@@ -61,12 +61,22 @@ impl Batch {
         commit_tx_change,
       )?;
 
+    let psbts = Psbts {
+      commit_psbt: bitcoin::psbt::Psbt::from_unsigned_tx(commit_tx.clone())
+        .unwrap()
+        .serialize_hex(),
+      reveal_psbt: bitcoin::psbt::Psbt::from_unsigned_tx(reveal_tx.clone())
+        .unwrap()
+        .serialize_hex(),
+    };
+
     if self.dry_run {
       return Ok(Box::new(self.output(
         commit_tx.txid(),
         reveal_tx.txid(),
         total_fees,
         self.inscriptions.clone(),
+        psbts,
       )));
     }
 
@@ -119,15 +129,17 @@ impl Batch {
       reveal,
       total_fees,
       self.inscriptions.clone(),
+      psbts,
     )))
   }
 
   fn output(
     &self,
-    commit: Txid,
-    reveal: Txid,
+    commit_txid: Txid,
+    reveal_txid: Txid,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
+    psbts: Psbts,
   ) -> super::Output {
     let mut inscriptions_output = Vec::new();
     for index in 0..inscriptions.len() {
@@ -157,21 +169,25 @@ impl Batch {
 
       inscriptions_output.push(InscriptionInfo {
         id: InscriptionId {
-          txid: reveal,
+          txid: reveal_txid,
           index,
         },
         location: SatPoint {
-          outpoint: OutPoint { txid: reveal, vout },
+          outpoint: OutPoint {
+            txid: reveal_txid,
+            vout,
+          },
           offset,
         },
       });
     }
 
     super::Output {
-      commit,
-      reveal,
+      commit: commit_txid,
+      reveal: reveal_txid,
       total_fees,
       parent: self.parent_info.clone().map(|info| info.id),
+      psbts,
       inscriptions: inscriptions_output,
     }
   }
