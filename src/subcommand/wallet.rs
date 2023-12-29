@@ -66,19 +66,21 @@ pub(crate) enum WalletSubcommand {
 
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
+    let client = Self::bitcoin_rpc_client_for_wallet_command(&options, &self.name)?;
+
     match self.subcommand {
-      WalletSubcommand::Balance => balance::run(self.name, options),
+      WalletSubcommand::Balance => balance::run(&client, options),
       WalletSubcommand::Create(create) => create.run(self.name, options),
-      WalletSubcommand::Etch(etch) => etch.run(self.name, options),
-      WalletSubcommand::Inscribe(inscribe) => inscribe.run(self.name, options),
-      WalletSubcommand::Inscriptions => inscriptions::run(self.name, options),
-      WalletSubcommand::Receive => receive::run(self.name, options),
+      WalletSubcommand::Etch(etch) => etch.run(&client, options),
+      WalletSubcommand::Inscribe(inscribe) => inscribe.run(&client, options),
+      WalletSubcommand::Inscriptions => inscriptions::run(&client, options),
+      WalletSubcommand::Receive => receive::run(&client, options),
       WalletSubcommand::Restore(restore) => restore.run(self.name, options),
-      WalletSubcommand::Sats(sats) => sats.run(self.name, options),
-      WalletSubcommand::Send(send) => send.run(self.name, options),
-      WalletSubcommand::Transactions(transactions) => transactions.run(self.name, options),
-      WalletSubcommand::Outputs => outputs::run(self.name, options),
-      WalletSubcommand::Cardinals => cardinals::run(self.name, options),
+      WalletSubcommand::Sats(sats) => sats.run(&client, options),
+      WalletSubcommand::Send(send) => send.run(&client, options),
+      WalletSubcommand::Transactions(transactions) => transactions.run(&client, options),
+      WalletSubcommand::Outputs => outputs::run(&client, options),
+      WalletSubcommand::Cardinals => cardinals::run(&client, options),
     }
   }
 
@@ -156,12 +158,8 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn initialize_wallet(
-    wallet_name: String,
-    options: &Options,
-    seed: [u8; 64],
-  ) -> Result {
-    let client = options.check_version(options.bitcoin_rpc_client(None)?)?;
+  pub(crate) fn initialize(wallet_name: String, options: &Options, seed: [u8; 64]) -> Result {
+    let client = Self::check_version(options.bitcoin_rpc_client(None)?)?;
 
     let network = options.chain().network();
 
@@ -229,5 +227,58 @@ impl Wallet {
     })?;
 
     Ok(())
+  }
+
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(
+    options: &Options,
+    wallet_name: &String,
+  ) -> Result<Client> {
+    let client = Self::check_version(options.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
+
+    if !client.list_wallets()?.contains(&wallet_name) {
+      client.load_wallet(&wallet_name)?;
+    }
+
+    let descriptors = client.list_descriptors(None)?.descriptors;
+
+    let tr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      .count();
+
+    let rawtr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      .count();
+
+    if tr != 2 || descriptors.len() != 2 + rawtr {
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
+    }
+
+    Ok(client)
+  }
+
+  pub(crate) fn check_version(client: Client) -> Result<Client> {
+    const MIN_VERSION: usize = 240000;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(MIN_VERSION),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
+    } else {
+      Ok(client)
+    }
+  }
+
+  fn format_bitcoin_core_version(version: usize) -> String {
+    format!(
+      "{}.{}.{}",
+      version / 10000,
+      version % 10000 / 100,
+      version % 100
+    )
   }
 }

@@ -3394,7 +3394,7 @@ mod tests {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
       let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::Wallet::initialize_wallet(
+      crate::subcommand::wallet::Wallet::initialize(
         "ord".into(),
         &context.options,
         mnemonic.to_seed(""),

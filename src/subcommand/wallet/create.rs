@@ -23,7 +23,7 @@ impl Create {
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-    Wallet::initialize_wallet(
+    Wallet::initialize(
       wallet_name,
       &options,
       mnemonic.to_seed(self.passphrase.clone()),

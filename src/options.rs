@@ -161,15 +161,6 @@ impl Options {
     }
   }
 
-  fn format_bitcoin_core_version(version: usize) -> String {
-    format!(
-      "{}.{}.{}",
-      version / 10000,
-      version % 10000 / 100,
-      version % 100
-    )
-  }
-
   fn derive_var(
     arg_value: Option<&str>,
     env_key: Option<&str>,
@@ -254,50 +245,6 @@ impl Options {
 
     if rpc_chain != ord_chain {
       bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
-    }
-
-    Ok(client)
-  }
-
-  pub(crate) fn check_version(&self, client: Client) -> Result<Client> {
-    const MIN_VERSION: usize = 240000;
-
-    let bitcoin_version = client.version()?;
-    if bitcoin_version < MIN_VERSION {
-      bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
-        Self::format_bitcoin_core_version(MIN_VERSION),
-        Self::format_bitcoin_core_version(bitcoin_version),
-      );
-    } else {
-      Ok(client)
-    }
-  }
-
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(
-    &self,
-    wallet_name: String,
-  ) -> Result<Client> {
-    let client = self.check_version(self.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
-
-    if !client.list_wallets()?.contains(&wallet_name) {
-      client.load_wallet(&wallet_name)?;
-    }
-
-    let descriptors = client.list_descriptors(None)?.descriptors;
-
-    let tr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("tr("))
-      .count();
-
-    let rawtr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-      .count();
-
-    if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
     }
 
     Ok(client)

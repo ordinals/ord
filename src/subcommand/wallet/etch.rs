@@ -20,7 +20,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet_client: &Client, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(
@@ -31,8 +31,6 @@ impl Etch {
     index.update()?;
 
     let SpacedRune { rune, spacers } = self.rune;
-
-    let wallet_client = options.bitcoin_rpc_client_for_wallet_command(wallet_name)?;
 
     let count = wallet_client.get_block_count()?;
 
