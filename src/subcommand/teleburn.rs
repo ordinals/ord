@@ -1,4 +1,4 @@
-use {super::*, crate::teleburn};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Teleburn {
@@ -8,7 +8,7 @@ pub(crate) struct Teleburn {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub ethereum: teleburn::Ethereum,
+  pub ethereum: crate::teleburn::Ethereum,
 }
 
 impl Teleburn {
