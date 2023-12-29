@@ -567,25 +567,24 @@ mod tests {
     );
   }
 
-  //#[test]
-  //fn wallet_flag_overrides_default_name() {
-  //  assert_eq!(
-  //    Arguments::try_parse_from(["ord", "wallet", "create"])
-  //      .unwrap()
-  //      .subcommand
-  //      .options
-  //      .wallet,
-  //    "ord"
-  //  );
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::Wallet) {
+    match Arguments::try_parse_from(args.split_whitespace()) {
+      Ok(arguments) => match arguments.subcommand {
+        Subcommand::Wallet(wallet) => (arguments.options, wallet),
+        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+      },
+      Err(err) => panic!("error parsing arguments: {err}"),
+    }
+  }
 
-  //  assert_eq!(
-  //    Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
-  //      .unwrap()
-  //      .options
-  //      .wallet,
-  //    "foo"
-  //  )
-  //}
+  #[test]
+  fn wallet_flag_overrides_default_name() {
+    let (_, wallet) = parse_wallet_args("ord wallet create");
+    assert_eq!(wallet.name, "ord");
+
+    let (_, wallet) = parse_wallet_args("ord wallet --name foo create");
+    assert_eq!(wallet.name, "foo")
+  }
 
   #[test]
   fn default_config_is_returned_if_config_option_is_not_passed() {
