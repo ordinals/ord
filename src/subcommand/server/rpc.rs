@@ -60,7 +60,6 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
     block_rarities: Vec<BlockRarityInfo>,
     block_height: Height,
     block_hash: Option<BlockHash>,
-    block_time: i64,
   }
 
   #[derive(Serialize)]
@@ -120,7 +119,6 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
           block_rarities,
           block_height,
           block_hash: index.block_hash(Some(block_height.n())).unwrap(),
-          block_time: index.block_time(block_height).unwrap().unix_timestamp(),
         });
         sat_ranges.push(range);
       }

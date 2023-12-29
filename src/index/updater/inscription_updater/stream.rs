@@ -253,8 +253,7 @@ impl StreamEvent {
       Media::Code(_) => true,
       Media::Iframe => true,
       Media::Markdown => true,
-
-      Media::Image => false,
+      Media::Image(_) => false,
       Media::Model => false,
       Media::Pdf => false,
       Media::Unknown => false,
