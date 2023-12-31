@@ -174,164 +174,166 @@ pub(crate) struct Server {
 
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
-    Runtime::new()?.block_on(async {
-      let index_clone = index.clone();
+    tokio::runtime::Builder::new_current_thread()
+      .build()?
+      .block_on(async {
+        let index_clone = index.clone();
 
-      let index_thread = thread::spawn(move || loop {
-        if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-          break;
-        }
-        if let Err(error) = index_clone.update() {
-          log::warn!("Updating index: {error}");
-        }
-        thread::sleep(Duration::from_millis(5000));
-      });
-      INDEXER.lock().unwrap().replace(index_thread);
+        let index_thread = thread::spawn(move || loop {
+          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+            break;
+          }
+          if let Err(error) = index_clone.update() {
+            log::warn!("Updating index: {error}");
+          }
+          thread::sleep(Duration::from_millis(5000));
+        });
+        INDEXER.lock().unwrap().replace(index_thread);
 
-      let config = Arc::new(options.load_config()?);
-      let acme_domains = self.acme_domains()?;
+        let config = Arc::new(options.load_config()?);
+        let acme_domains = self.acme_domains()?;
 
-      let server_config = Arc::new(ServerConfig {
-        chain: options.chain(),
-        csp_origin: self.csp_origin.clone(),
-        domain: acme_domains.first().cloned(),
-        index_sats: index.has_sat_index(),
-        is_json_api_enabled: self.enable_json_api,
-        decompress: self.decompress,
-      });
+        let server_config = Arc::new(ServerConfig {
+          chain: options.chain(),
+          csp_origin: self.csp_origin.clone(),
+          domain: acme_domains.first().cloned(),
+          index_sats: index.has_sat_index(),
+          is_json_api_enabled: self.enable_json_api,
+          decompress: self.decompress,
+        });
 
-      let router = Router::new()
-        .route("/", get(Self::home))
-        .route("/block/:query", get(Self::block))
-        .route("/blockcount", get(Self::block_count))
-        .route("/blockhash", get(Self::block_hash))
-        .route("/blockhash/:height", get(Self::block_hash_from_height))
-        .route("/blockheight", get(Self::block_height))
-        .route("/blocks", get(Self::blocks))
-        .route("/blocktime", get(Self::block_time))
-        .route("/bounties", get(Self::bounties))
-        .route("/children/:inscription_id", get(Self::children))
-        .route(
-          "/children/:inscription_id/:page",
-          get(Self::children_paginated),
-        )
-        .route("/clock", get(Self::clock))
-        .route("/collections", get(Self::collections))
-        .route("/collections/:page", get(Self::collections_paginated))
-        .route("/content/:inscription_id", get(Self::content))
-        .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon))
-        .route("/feed.xml", get(Self::feed))
-        .route("/input/:block/:transaction/:input", get(Self::input))
-        .route("/inscription/:inscription_query", get(Self::inscription))
-        .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
-        .route(
-          "/inscriptions/block/:height",
-          get(Self::inscriptions_in_block),
-        )
-        .route(
-          "/inscriptions/block/:height/:page",
-          get(Self::inscriptions_in_block_paginated),
-        )
-        .route("/install.sh", get(Self::install_script))
-        .route("/ordinal/:sat", get(Self::ordinal))
-        .route("/output/:output", get(Self::output))
-        .route("/preview/:inscription_id", get(Self::preview))
-        .route("/r/blockhash", get(Self::block_hash_json))
-        .route(
-          "/r/blockhash/:height",
-          get(Self::block_hash_from_height_json),
-        )
-        .route("/r/blockheight", get(Self::block_height))
-        .route("/r/blocktime", get(Self::block_time))
-        .route("/r/children/:inscription_id", get(Self::children_recursive))
-        .route(
-          "/r/children/:inscription_id/:page",
-          get(Self::children_recursive_paginated),
-        )
-        .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
-        .route(
-          "/r/sat/:sat_number/:page",
-          get(Self::sat_inscriptions_paginated),
-        )
-        .route(
-          "/r/sat/:sat_number/at/:index",
-          get(Self::sat_inscription_at_index),
-        )
-        .route("/range/:start/:end", get(Self::range))
-        .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/:rune", get(Self::rune))
-        .route("/runes", get(Self::runes))
-        .route("/sat/:sat", get(Self::sat))
-        .route("/search", get(Self::search_by_query))
-        .route("/search/*query", get(Self::search_by_path))
-        .route("/static/*path", get(Self::static_asset))
-        .route("/status", get(Self::status))
-        .route("/tx/:txid", get(Self::transaction))
-        .layer(Extension(index))
-        .layer(Extension(server_config.clone()))
-        .layer(Extension(config))
-        .layer(SetResponseHeaderLayer::if_not_present(
-          header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src 'self'"),
-        ))
-        .layer(SetResponseHeaderLayer::overriding(
-          header::STRICT_TRANSPORT_SECURITY,
-          HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
-        ))
-        .layer(
-          CorsLayer::new()
-            .allow_methods([http::Method::GET])
-            .allow_origin(Any),
-        )
-        .layer(CompressionLayer::new())
-        .with_state(server_config);
+        let router = Router::new()
+          .route("/", get(Self::home))
+          .route("/block/:query", get(Self::block))
+          .route("/blockcount", get(Self::block_count))
+          .route("/blockhash", get(Self::block_hash))
+          .route("/blockhash/:height", get(Self::block_hash_from_height))
+          .route("/blockheight", get(Self::block_height))
+          .route("/blocks", get(Self::blocks))
+          .route("/blocktime", get(Self::block_time))
+          .route("/bounties", get(Self::bounties))
+          .route("/children/:inscription_id", get(Self::children))
+          .route(
+            "/children/:inscription_id/:page",
+            get(Self::children_paginated),
+          )
+          .route("/clock", get(Self::clock))
+          .route("/collections", get(Self::collections))
+          .route("/collections/:page", get(Self::collections_paginated))
+          .route("/content/:inscription_id", get(Self::content))
+          .route("/faq", get(Self::faq))
+          .route("/favicon.ico", get(Self::favicon))
+          .route("/feed.xml", get(Self::feed))
+          .route("/input/:block/:transaction/:input", get(Self::input))
+          .route("/inscription/:inscription_query", get(Self::inscription))
+          .route("/inscriptions", get(Self::inscriptions))
+          .route("/inscriptions/:page", get(Self::inscriptions_paginated))
+          .route(
+            "/inscriptions/block/:height",
+            get(Self::inscriptions_in_block),
+          )
+          .route(
+            "/inscriptions/block/:height/:page",
+            get(Self::inscriptions_in_block_paginated),
+          )
+          .route("/install.sh", get(Self::install_script))
+          .route("/ordinal/:sat", get(Self::ordinal))
+          .route("/output/:output", get(Self::output))
+          .route("/preview/:inscription_id", get(Self::preview))
+          .route("/r/blockhash", get(Self::block_hash_json))
+          .route(
+            "/r/blockhash/:height",
+            get(Self::block_hash_from_height_json),
+          )
+          .route("/r/blockheight", get(Self::block_height))
+          .route("/r/blocktime", get(Self::block_time))
+          .route("/r/children/:inscription_id", get(Self::children_recursive))
+          .route(
+            "/r/children/:inscription_id/:page",
+            get(Self::children_recursive_paginated),
+          )
+          .route("/r/metadata/:inscription_id", get(Self::metadata))
+          .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+          .route(
+            "/r/sat/:sat_number/:page",
+            get(Self::sat_inscriptions_paginated),
+          )
+          .route(
+            "/r/sat/:sat_number/at/:index",
+            get(Self::sat_inscription_at_index),
+          )
+          .route("/range/:start/:end", get(Self::range))
+          .route("/rare.txt", get(Self::rare_txt))
+          .route("/rune/:rune", get(Self::rune))
+          .route("/runes", get(Self::runes))
+          .route("/sat/:sat", get(Self::sat))
+          .route("/search", get(Self::search_by_query))
+          .route("/search/*query", get(Self::search_by_path))
+          .route("/static/*path", get(Self::static_asset))
+          .route("/status", get(Self::status))
+          .route("/tx/:txid", get(Self::transaction))
+          .layer(Extension(index))
+          .layer(Extension(server_config.clone()))
+          .layer(Extension(config))
+          .layer(SetResponseHeaderLayer::if_not_present(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("default-src 'self'"),
+          ))
+          .layer(SetResponseHeaderLayer::overriding(
+            header::STRICT_TRANSPORT_SECURITY,
+            HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
+          ))
+          .layer(
+            CorsLayer::new()
+              .allow_methods([http::Method::GET])
+              .allow_origin(Any),
+          )
+          .layer(CompressionLayer::new())
+          .with_state(server_config);
 
-      match (self.http_port(), self.https_port()) {
-        (Some(http_port), None) => {
-          self
-            .spawn(router, handle, http_port, SpawnConfig::Http)?
-            .await??
-        }
-        (None, Some(https_port)) => {
-          self
-            .spawn(
-              router,
-              handle,
-              https_port,
-              SpawnConfig::Https(self.acceptor(&options)?),
-            )?
-            .await??
-        }
-        (Some(http_port), Some(https_port)) => {
-          let http_spawn_config = if self.redirect_http_to_https {
-            SpawnConfig::Redirect(if https_port == 443 {
-              format!("https://{}", acme_domains[0])
+        match (self.http_port(), self.https_port()) {
+          (Some(http_port), None) => {
+            self
+              .spawn(router, handle, http_port, SpawnConfig::Http)?
+              .await??
+          }
+          (None, Some(https_port)) => {
+            self
+              .spawn(
+                router,
+                handle,
+                https_port,
+                SpawnConfig::Https(self.acceptor(&options)?),
+              )?
+              .await??
+          }
+          (Some(http_port), Some(https_port)) => {
+            let http_spawn_config = if self.redirect_http_to_https {
+              SpawnConfig::Redirect(if https_port == 443 {
+                format!("https://{}", acme_domains[0])
+              } else {
+                format!("https://{}:{https_port}", acme_domains[0])
+              })
             } else {
-              format!("https://{}:{https_port}", acme_domains[0])
-            })
-          } else {
-            SpawnConfig::Http
-          };
+              SpawnConfig::Http
+            };
 
-          let (http_result, https_result) = tokio::join!(
-            self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
-            self.spawn(
-              router,
-              handle,
-              https_port,
-              SpawnConfig::Https(self.acceptor(&options)?),
-            )?
-          );
-          http_result.and(https_result)??;
+            let (http_result, https_result) = tokio::join!(
+              self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
+              self.spawn(
+                router,
+                handle,
+                https_port,
+                SpawnConfig::Https(self.acceptor(&options)?),
+              )?
+            );
+            http_result.and(https_result)??;
+          }
+          (None, None) => unreachable!(),
         }
-        (None, None) => unreachable!(),
-      }
 
-      Ok(Box::new(Empty {}) as Box<dyn Output>)
-    })
+        Ok(Box::new(Empty {}) as Box<dyn Output>)
+      })
   }
 
   fn spawn(
