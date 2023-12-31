@@ -165,7 +165,7 @@ impl<'index> Updater<'_> {
 
     let height_limit = index.height_limit;
 
-    let client = index.options.bitcoin_rpc_client()?;
+    let client = index.options.bitcoin_rpc_client(None)?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -498,7 +498,7 @@ impl<'index> Updater<'_> {
         coinbase_inputs.extend(input_sat_ranges);
       }
 
-      if let Some((tx, txid)) = block.txdata.get(0) {
+      if let Some((tx, txid)) = block.txdata.first() {
         self.index_transaction_sats(
           tx,
           *txid,

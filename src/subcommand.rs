@@ -46,7 +46,7 @@ pub(crate) enum Subcommand {
   Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[command(subcommand, about = "Wallet commands")]
+  #[command(about = "Wallet commands")]
   Wallet(wallet::Wallet),
 }
 

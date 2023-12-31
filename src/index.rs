@@ -12,7 +12,6 @@ use {
   crate::{
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
     templates::{RuneHtml, StatusHtml},
-    wallet::Wallet,
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -207,13 +206,12 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
-    let client = options.bitcoin_rpc_client()?;
+    let client = options.bitcoin_rpc_client(None)?;
 
-    let path = if let Some(path) = &options.index {
-      path.clone()
-    } else {
-      options.data_dir()?.join("index.redb")
-    };
+    let path = options
+      .index
+      .clone()
+      .unwrap_or(options.data_dir().clone().join("index.redb"));
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
@@ -378,56 +376,12 @@ impl Index {
     })
   }
 
-  pub(crate) fn get_locked_outputs(&self, _wallet: Wallet) -> Result<BTreeSet<OutPoint>> {
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
-      vout: u32,
-    }
-
-    Ok(
-      self
-        .client
-        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-        .into_iter()
-        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
-        .collect(),
-    )
-  }
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
   }
 
-  pub(crate) fn get_unspent_outputs(&self, wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
-    let mut utxos = BTreeMap::new();
-    utxos.extend(
-      self
-        .client
-        .list_unspent(None, None, None, None, None)?
-        .into_iter()
-        .map(|utxo| {
-          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-          let amount = utxo.amount;
-
-          (outpoint, amount)
-        }),
-    );
-
-    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(wallet)?;
-
-    for outpoint in locked_utxos {
-      utxos.insert(
-        outpoint,
-        Amount::from_sat(
-          self
-            .client
-            .get_raw_transaction(&outpoint.txid, None)?
-            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
-          .value,
-        ),
-      );
-    }
+  pub(crate) fn check_sync(&self, utxos: &BTreeMap<OutPoint, Amount>) -> Result<bool> {
     let rtx = self.database.begin_read()?;
     let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
     for outpoint in utxos.keys() {
@@ -438,22 +392,7 @@ impl Index {
       }
     }
 
-    Ok(utxos)
-  }
-
-  pub(crate) fn get_unspent_output_ranges(
-    &self,
-    wallet: Wallet,
-  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-    self
-      .get_unspent_outputs(wallet)?
-      .into_keys()
-      .map(|outpoint| match self.list(outpoint)? {
-        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("index has not seen {outpoint}"),
-      })
-      .collect()
+    Ok(true)
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {
@@ -1709,7 +1648,7 @@ impl Index {
       Utc::now()
         .round_subsecs(0)
         .checked_add_signed(chrono::Duration::seconds(
-          10 * 60 * i64::try_from(expected_blocks)?,
+          10 * 60 * i64::from(expected_blocks),
         ))
         .ok_or_else(|| anyhow!("block timestamp out of range"))?,
     ))
@@ -3455,14 +3394,20 @@ mod tests {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
       let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::initialize_wallet(&context.options, mnemonic.to_seed("")).unwrap();
+      crate::subcommand::wallet::initialize("ord".into(), &context.options, mnemonic.to_seed(""))
+        .unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
-        context
-          .index
-          .get_unspent_outputs(Wallet::load(&context.options).unwrap())
-          .unwrap_err()
-          .to_string(),
+        crate::subcommand::wallet::get_unspent_outputs(
+          &crate::subcommand::wallet::bitcoin_rpc_client_for_wallet_command(
+            "ord".to_string(),
+            &context.options,
+          )
+          .unwrap(),
+          &context.index
+        )
+        .unwrap_err()
+        .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }
