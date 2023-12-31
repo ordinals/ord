@@ -347,12 +347,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       output_value = end;
 
+      #[cfg(feature = "cache")]
       self.tx_out_cache.insert(
         OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
         },
         tx_out.clone(),
+      );
+
+      #[cfg(not(feature = "cache"))]
+      self.tx_out_local_cache.insert(
+        OutPoint {
+          vout: vout.try_into().unwrap(),
+          txid,
+        },
+        (tx_out.clone(), false),
       );
     }
 
@@ -404,7 +414,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   // write tx_out to outpoint_to_entry table
   pub(super) fn flush_cache(mut self) -> Result {
     let start = Instant::now();
-    let persist = self.tx_out_local_cache.len();
     let mut count = 0;
     let mut entry = Vec::new();
     for (outpoint, tx_out) in self.tx_out_local_cache.drain() {
@@ -421,7 +430,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     log::info!(
       "flush cache, cache:{} persist:{}, global:{} cost: {}ms",
       count,
-      persist,
+      self.tx_out_local_cache.len(),
       self.tx_out_cache.len(),
       Instant::now().saturating_duration_since(start).as_millis()
     );
