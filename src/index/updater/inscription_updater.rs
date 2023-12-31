@@ -415,6 +415,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn flush_cache(mut self) -> Result {
     let start = Instant::now();
     let mut count = 0;
+    let persist = self.tx_out_local_cache.len();
     let mut entry = Vec::new();
     for (outpoint, tx_out) in self.tx_out_local_cache.drain() {
       tx_out.0.consensus_encode(&mut entry)?;
@@ -430,7 +431,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     log::info!(
       "flush cache, cache:{} persist:{}, global:{} cost: {}ms",
       count,
-      self.tx_out_local_cache.len(),
+      persist,
       self.tx_out_cache.len(),
       Instant::now().saturating_duration_since(start).as_millis()
     );
