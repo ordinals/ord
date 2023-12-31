@@ -1,4 +1,5 @@
 use crate::okx::protocol::{context::Context, BlockContext, ProtocolConfig, ProtocolManager};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
@@ -336,8 +337,11 @@ impl<'index> Updater<'_> {
 
     let index_inscriptions = self.height >= index.first_inscription_height;
 
-    let mut fetching_outputs_count = 0;
-    let mut total_outputs_count = 0;
+    let fetching_outputs_count = AtomicUsize::new(0);
+    let total_outputs_count = AtomicUsize::new(0);
+    let cache_outputs_count = AtomicUsize::new(0);
+    let miss_outputs_count = AtomicUsize::new(0);
+    let meet_outputs_count = AtomicUsize::new(0);
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
       let txids = block
@@ -345,40 +349,51 @@ impl<'index> Updater<'_> {
         .iter()
         .map(|(_, txid)| txid)
         .collect::<HashSet<_>>();
-      for (tx, _) in &block.txdata {
-        for input in &tx.input {
-          total_outputs_count += 1u64;
+      use rayon::prelude::*;
+      let tx_outs = block
+        .txdata
+        .par_iter()
+        .flat_map(|(tx, _)| tx.input.par_iter())
+        .filter_map(|input| {
+          total_outputs_count.fetch_add(1, Ordering::Relaxed);
           let prev_output = input.previous_output;
           // We don't need coinbase input value
           if prev_output.is_null() {
-            continue;
+            None
+          } else if txids.contains(&prev_output.txid) {
+            meet_outputs_count.fetch_add(1, Ordering::Relaxed);
+            None
+          } else if tx_out_cache.contains_key(&prev_output) {
+            cache_outputs_count.fetch_add(1, Ordering::Relaxed);
+            None
+          } else if let Some(txout) = get_txout_by_outpoint(&outpoint_to_entry, &prev_output).unwrap() {
+            miss_outputs_count.fetch_add(1, Ordering::Relaxed);
+            Some((prev_output, txout))
+          } else {
+            fetching_outputs_count.fetch_add(1, Ordering::Relaxed);
+            outpoint_sender.blocking_send(prev_output).unwrap();
+            None
           }
-          // We don't need input values from txs earlier in the block, since they'll be added to value_cache
-          // when the tx is indexed
-          if txids.contains(&prev_output.txid) {
-            continue;
-          }
-          // We don't need input values we already have in our outpoint_to_entry table from earlier blocks that
-          // were committed to db already
-          if outpoint_to_entry.get(&prev_output.store())?.is_some() {
-            continue;
-          }
-          // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
-          outpoint_sender.blocking_send(prev_output)?;
-          fetching_outputs_count += 1u64;
-        }
+        })
+        .collect::<Vec<_>>();
+      for (out_point, tx_out) in tx_outs.into_iter() {
+        tx_out_cache.insert(out_point, tx_out);
       }
     }
 
     let time = timestamp(block.header.time);
 
     log::info!(
-      "Block {} at {} with {} transactions, fetching previous outputs {}/{}…",
+      "Block {} at {} with {} transactions, fetching previous outputs {}/{}…, {},{},{}, cost:{}ms",
       self.height,
       time,
       block.txdata.len(),
-      fetching_outputs_count,
-      total_outputs_count,
+      fetching_outputs_count.load(Ordering::Relaxed),
+      total_outputs_count.load(Ordering::Relaxed),
+      miss_outputs_count.load(Ordering::Relaxed),
+      meet_outputs_count.load(Ordering::Relaxed),
+      cache_outputs_count.load(Ordering::Relaxed),
+      start.elapsed().as_millis(),
     );
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;

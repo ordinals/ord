@@ -2317,6 +2317,7 @@ dependencies = [
  "ord-bitcoincore-rpc",
  "pretty_assertions",
  "pulldown-cmark",
+ "rayon",
  "redb",
  "regex",
  "reqwest",
