@@ -24,7 +24,7 @@ use crate::okx::protocol::BlockContext;
 use crate::SatPoint;
 use anyhow::anyhow;
 use bitcoin::{Network, OutPoint, TxOut, Txid};
-use redb::Table;
+use redb::{MultimapTable, Table};
 use std::collections::HashMap;
 
 #[allow(non_snake_case)]
@@ -45,7 +45,7 @@ pub struct Context<'a, 'db, 'txn> {
   // BRC20 tables
   pub(crate) BRC20_BALANCES: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_TOKEN: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
-  pub(crate) BRC20_EVENTS: &'a mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
+  pub(crate) BRC20_EVENTS: &'a mut MultimapTable<'db, 'txn, &'static TxidValue, &'static [u8]>,
   pub(crate) BRC20_TRANSFERABLELOG: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_INSCRIBE_TRANSFER: &'a mut Table<'db, 'txn, InscriptionIdValue, &'static [u8]>,
 }

@@ -10,7 +10,7 @@ use crate::okx::datastore::brc20::{
 };
 use crate::okx::datastore::ScriptKey;
 use bitcoin::Txid;
-use redb::{ReadableTable, Table};
+use redb::{MultimapTable, ReadableMultimapTable, ReadableTable, Table};
 
 // BRC20_BALANCES
 pub fn get_balances<T>(table: &T, script_key: &ScriptKey) -> crate::Result<Vec<Balance>>
@@ -73,11 +73,25 @@ where
 // BRC20_EVENTS
 pub fn get_transaction_receipts<T>(table: &T, txid: &Txid) -> crate::Result<Vec<Receipt>>
 where
-  T: ReadableTable<&'static TxidValue, &'static [u8]>,
+  T: ReadableMultimapTable<&'static TxidValue, &'static [u8]>,
 {
-  Ok(table.get(&txid.store())?.map_or(Vec::new(), |v| {
-    rmp_serde::from_slice::<Vec<Receipt>>(v.value()).unwrap()
-  }))
+  Ok(
+    table
+      .get(&txid.store())?
+      .into_iter()
+      .map(|x| rmp_serde::from_slice::<Receipt>(x.unwrap().value()).unwrap())
+      .collect(),
+  )
+
+  //Ok(vec![])
+
+  // .iter()
+  // .map(|v| {
+  //   v.into_iter()
+  //       .map(|x| x.and_then(|y|rmp_serde::from_slice::<Receipt>(y.value()).map_err(|err| err.into())))
+  // })
+  // .flatten()
+  // .collect(),
 }
 
 // BRC20_TRANSFERABLELOG
@@ -198,27 +212,16 @@ pub fn update_mint_token_info<'db, 'txn>(
 }
 
 // BRC20_EVENTS
-pub fn save_transaction_receipts<'db, 'txn>(
-  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
-  txid: &Txid,
-  receipts: &[Receipt],
-) -> crate::Result<()> {
-  table.insert(
-    &txid.store(),
-    rmp_serde::to_vec(receipts).unwrap().as_slice(),
-  )?;
-  Ok(())
-}
-
-// BRC20_EVENTS
 pub fn add_transaction_receipt<'db, 'txn>(
-  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
+  table: &mut MultimapTable<'db, 'txn, &'static TxidValue, &'static [u8]>,
   txid: &Txid,
   receipt: &Receipt,
 ) -> crate::Result<()> {
-  let mut receipts = get_transaction_receipts(table, txid)?;
-  receipts.push(receipt.clone());
-  save_transaction_receipts(table, txid, &receipts)
+  table.insert(
+    &txid.store(),
+    rmp_serde::to_vec(receipt).unwrap().as_slice(),
+  )?;
+  Ok(())
 }
 
 // BRC20_TRANSFERABLELOG
