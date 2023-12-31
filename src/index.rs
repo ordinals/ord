@@ -723,7 +723,7 @@ impl Index {
       match updater.update_index() {
         Ok(ok) => return Ok(ok),
         Err(err) => {
-          log::info!("{}", err.to_string());
+          log::error!("{}", err.to_string());
 
           match err.downcast_ref() {
             Some(&ReorgError::Recoverable { height, depth }) => {

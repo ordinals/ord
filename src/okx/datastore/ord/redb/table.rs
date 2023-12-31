@@ -77,10 +77,7 @@ pub fn save_transaction_operations<'db, 'txn>(
   txid: &Txid,
   operations: &[InscriptionOp],
 ) -> crate::Result<()> {
-  table.insert(
-    &txid.store(),
-    rmp_serde::to_vec(operations).unwrap().as_slice(),
-  )?;
+  table.insert(&txid.store(), rmp_serde::to_vec(operations)?.as_slice())?;
   Ok(())
 }
 

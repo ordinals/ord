@@ -93,9 +93,8 @@ where
     table
       .range(min_script_tick_key(script).as_str()..max_script_tick_key(script).as_str())?
       .flat_map(|result| {
-        result.map(|(_, v)| rmp_serde::from_slice::<Vec<TransferableLog>>(v.value()).unwrap())
+        result.map(|(_, v)| rmp_serde::from_slice::<TransferableLog>(v.value()).unwrap())
       })
-      .flatten()
       .collect(),
   )
 }
@@ -116,9 +115,8 @@ where
           ..max_script_tick_id_key(script, tick).as_str(),
       )?
       .flat_map(|result| {
-        result.map(|(_, v)| rmp_serde::from_slice::<Vec<TransferableLog>>(v.value()).unwrap())
+        result.map(|(_, v)| rmp_serde::from_slice::<TransferableLog>(v.value()).unwrap())
       })
-      .flatten()
       .collect(),
   )
 }
