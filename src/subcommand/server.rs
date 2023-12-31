@@ -131,38 +131,38 @@ pub(crate) struct Server {
     long,
     help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
   )]
-  address: Option<String>,
+  pub(crate) address: Option<String>,
   #[arg(
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
   )]
-  acme_domain: Vec<String>,
+  pub(crate) acme_domain: Vec<String>,
   #[arg(
     long,
     help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
   )]
-  csp_origin: Option<String>,
+  pub(crate) csp_origin: Option<String>,
   #[arg(
     long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
-  http_port: Option<u16>,
+  pub(crate) http_port: Option<u16>,
   #[arg(
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]"
   )]
-  https_port: Option<u16>,
+  pub(crate) https_port: Option<u16>,
   #[arg(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
-  acme_cache: Option<PathBuf>,
+  pub(crate) acme_cache: Option<PathBuf>,
   #[arg(long, help = "Provide ACME contact <ACME_CONTACT>.")]
-  acme_contact: Vec<String>,
+  pub(crate) acme_contact: Vec<String>,
   #[arg(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
-  http: bool,
+  pub(crate) http: bool,
   #[arg(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
-  https: bool,
+  pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
-  redirect_http_to_https: bool,
+  pub(crate) redirect_http_to_https: bool,
   #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
   #[arg(

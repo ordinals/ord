@@ -11,6 +11,7 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
+  reqwest::{header, Url},
   transaction_builder::TransactionBuilder,
 };
 
@@ -22,7 +23,7 @@ pub mod inscribe;
 pub mod inscriptions;
 pub mod outputs;
 pub mod receive;
-mod restore;
+pub mod restore;
 pub mod sats;
 pub mod send;
 pub mod transaction_builder;
@@ -66,6 +67,50 @@ pub(crate) enum Subcommand {
 
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
+    let index = Arc::new(Index::open(&options)?);
+    let handle = axum_server::Handle::new();
+    LISTENERS.lock().unwrap().push(handle.clone());
+
+    let ord_api_url: Url = format!("127.0.0.1:8080").parse().unwrap();
+
+    {
+      let options = options.clone();
+      std::thread::spawn(move || {
+        crate::subcommand::server::Server {
+          address: ord_api_url.host_str().map(|a| a.to_string()),
+          acme_domain: vec![],
+          csp_origin: None,
+          http_port: ord_api_url.port(),
+          https_port: None,
+          acme_cache: None,
+          acme_contact: vec![],
+          http: true,
+          https: false,
+          redirect_http_to_https: false,
+          enable_json_api: true,
+          decompress: false,
+        }
+        .run(options, index, handle)
+        .unwrap()
+      });
+    }
+
+    let wallet_foo = WalletFoo {
+      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet_command(self.name, &options)?,
+      ord_api_url,
+      ord_http_client: {
+        let mut headers = header::HeaderMap::new();
+        headers.insert(
+          header::ACCEPT,
+          header::HeaderValue::from_static("application/json"),
+        );
+        let builder = reqwest::blocking::ClientBuilder::new().default_headers(headers);
+
+        builder.build()?
+      },
+      wallet_name: self.name.clone(),
+    };
+
     match self.subcommand {
       Subcommand::Balance => balance::run(self.name, options),
       Subcommand::Create(create) => create.run(self.name, options),
@@ -83,149 +128,183 @@ impl Wallet {
   }
 }
 
-pub(crate) fn get_unspent_outputs(
-  client: &Client,
-  index: &Index,
-) -> Result<BTreeMap<OutPoint, Amount>> {
-  let mut utxos = BTreeMap::new();
-  utxos.extend(
-    client
-      .list_unspent(None, None, None, None, None)?
-      .into_iter()
-      .map(|utxo| {
-        let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-        let amount = utxo.amount;
+pub(crate) struct WalletFoo {
+  pub(crate) bitcoin_rpc_client: Client,
+  pub(crate) ord_api_url: Url,
+  // TODO: make this async
+  pub(crate) ord_http_client: reqwest::blocking::Client,
+  pub(crate) wallet_name: String,
+}
 
-        (outpoint, amount)
-      }),
-  );
+impl WalletFoo {
+  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
+    let mut utxos = BTreeMap::new();
+    utxos.extend(
+      self
+        .bitcoin_rpc_client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
 
-  let locked_utxos: BTreeSet<OutPoint> = get_locked_outputs(client)?;
-
-  for outpoint in locked_utxos {
-    utxos.insert(
-      outpoint,
-      Amount::from_sat(
-        client.get_raw_transaction(&outpoint.txid, None)?.output
-          [TryInto::<usize>::try_into(outpoint.vout).unwrap()]
-        .value,
-      ),
+          (outpoint, amount)
+        }),
     );
+
+    let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs()?;
+
+    for outpoint in locked_utxos {
+      utxos.insert(
+        outpoint,
+        Amount::from_sat(
+          self
+            .bitcoin_rpc_client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+          .value,
+        ),
+      );
+    }
+
+    for outpoint in utxos.keys() {
+      if self
+        .ord_http_client
+        .get(
+          self
+            .ord_api_url
+            .join(&format!("/output/{outpoint}"))
+            .unwrap(),
+        )
+        .send()
+        .unwrap()
+        .status()
+        .is_client_error()
+      {
+        return Err(anyhow!(
+          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+        ));
+      }
+    }
+
+    Ok(utxos)
   }
 
-  index.check_sync(&utxos)?;
-
-  Ok(utxos)
-}
-
-pub(crate) fn get_unspent_output_ranges(
-  client: &Client,
-  index: &Index,
-) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  get_unspent_outputs(client, index)?
-    .into_keys()
-    .map(|outpoint| match index.list(outpoint)? {
-      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-      None => bail!("index has not seen {outpoint}"),
-    })
-    .collect()
-}
-
-pub(crate) fn get_locked_outputs(client: &Client) -> Result<BTreeSet<OutPoint>> {
-  #[derive(Deserialize)]
-  pub(crate) struct JsonOutPoint {
-    txid: bitcoin::Txid,
-    vout: u32,
+  pub(crate) fn get_unspent_output_ranges(
+    &self,
+    index: &Index,
+  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    self
+      .get_unspent_outputs()?
+      .into_keys()
+      .map(|outpoint| match index.list(outpoint)? {
+        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
+        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+        None => bail!("index has not seen {outpoint}"),
+      })
+      .collect()
   }
 
-  Ok(
-    client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-      .into_iter()
-      .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
-      .collect(),
-  )
-}
+  pub(crate) fn get_locked_outputs(&self) -> Result<BTreeSet<OutPoint>> {
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
 
-pub(crate) fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
-  Ok(
-    client
-      .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
-      .context("could not get change addresses from wallet")?
-      .require_network(chain.network())?,
-  )
-}
-
-pub(crate) fn initialize(wallet: String, options: &Options, seed: [u8; 64]) -> Result {
-  let client = check_version(options.bitcoin_rpc_client(None)?)?;
-
-  let network = options.chain().network();
-
-  client.create_wallet(&wallet, None, Some(true), None, None)?;
-
-  let secp = Secp256k1::new();
-
-  let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
-
-  let fingerprint = master_private_key.fingerprint(&secp);
-
-  let derivation_path = DerivationPath::master()
-    .child(ChildNumber::Hardened { index: 86 })
-    .child(ChildNumber::Hardened {
-      index: u32::from(network != Network::Bitcoin),
-    })
-    .child(ChildNumber::Hardened { index: 0 });
-
-  let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
-
-  for change in [false, true] {
-    derive_and_import_descriptor(
-      &client,
-      &secp,
-      (fingerprint, derivation_path.clone()),
-      derived_private_key,
-      change,
-    )?;
+    Ok(
+      self
+        .bitcoin_rpc_client
+        .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+        .into_iter()
+        .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
+        .collect(),
+    )
   }
 
-  Ok(())
-}
+  pub(crate) fn get_change_address(&self, chain: Chain) -> Result<Address> {
+    Ok(
+      self
+        .bitcoin_rpc_client
+        .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
+        .context("could not get change addresses from wallet")?
+        .require_network(chain.network())?,
+    )
+  }
 
-fn derive_and_import_descriptor(
-  client: &Client,
-  secp: &Secp256k1<All>,
-  origin: (Fingerprint, DerivationPath),
-  derived_private_key: ExtendedPrivKey,
-  change: bool,
-) -> Result {
-  let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
-    origin: Some(origin),
-    xkey: derived_private_key,
-    derivation_path: DerivationPath::master().child(ChildNumber::Normal {
-      index: change.into(),
-    }),
-    wildcard: Wildcard::Unhardened,
-  });
+  pub(crate) fn initialize(&self, wallet: String, options: &Options, seed: [u8; 64]) -> Result {
+    let client = check_version(options.bitcoin_rpc_client(None)?)?;
 
-  let public_key = secret_key.to_public(secp)?;
+    let network = options.chain().network();
 
-  let mut key_map = std::collections::HashMap::new();
-  key_map.insert(public_key.clone(), secret_key);
+    &self
+      .bitcoin_rpc_client
+      .create_wallet(&wallet, None, Some(true), None, None)?;
 
-  let desc = Descriptor::new_tr(public_key, None)?;
+    let secp = Secp256k1::new();
 
-  client.import_descriptors(ImportDescriptors {
-    descriptor: desc.to_string_with_secret(&key_map),
-    timestamp: Timestamp::Now,
-    active: Some(true),
-    range: None,
-    next_index: None,
-    internal: Some(change),
-    label: None,
-  })?;
+    let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
 
-  Ok(())
+    let fingerprint = master_private_key.fingerprint(&secp);
+
+    let derivation_path = DerivationPath::master()
+      .child(ChildNumber::Hardened { index: 86 })
+      .child(ChildNumber::Hardened {
+        index: u32::from(network != Network::Bitcoin),
+      })
+      .child(ChildNumber::Hardened { index: 0 });
+
+    let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
+
+    for change in [false, true] {
+      self.derive_and_import_descriptor(
+        &secp,
+        (fingerprint, derivation_path.clone()),
+        derived_private_key,
+        change,
+      )?;
+    }
+
+    Ok(())
+  }
+
+  fn derive_and_import_descriptor(
+    &self,
+    secp: &Secp256k1<All>,
+    origin: (Fingerprint, DerivationPath),
+    derived_private_key: ExtendedPrivKey,
+    change: bool,
+  ) -> Result {
+    let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
+      origin: Some(origin),
+      xkey: derived_private_key,
+      derivation_path: DerivationPath::master().child(ChildNumber::Normal {
+        index: change.into(),
+      }),
+      wildcard: Wildcard::Unhardened,
+    });
+
+    let public_key = secret_key.to_public(secp)?;
+
+    let mut key_map = std::collections::HashMap::new();
+    key_map.insert(public_key.clone(), secret_key);
+
+    let desc = Descriptor::new_tr(public_key, None)?;
+
+    self
+      .bitcoin_rpc_client
+      .import_descriptors(ImportDescriptors {
+        descriptor: desc.to_string_with_secret(&key_map),
+        timestamp: Timestamp::Now,
+        active: Some(true),
+        range: None,
+        next_index: None,
+        internal: Some(change),
+        label: None,
+      })?;
+
+    Ok(())
+  }
 }
 
 pub(crate) fn bitcoin_rpc_client_for_wallet_command(

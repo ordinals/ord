@@ -108,17 +108,17 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: WalletFoo, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;
 
-    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+    let client = wallet.bitcoin_rpc_client;
 
-    let utxos = get_unspent_outputs(&client, &index)?;
+    let utxos = wallet.get_unspent_outputs()?;
 
-    let locked_utxos = get_locked_outputs(&client)?;
+    let locked_utxos = wallet.get_locked_outputs()?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
@@ -153,7 +153,7 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => get_change_address(&client, chain)?,
+          None => wallet.get_change_address(chain)?,
         }];
       }
       (None, Some(batch)) => {
