@@ -464,6 +464,7 @@ impl<'index> Updater<'_> {
       tx_out_cache,
     )?;
 
+    let start_time = Instant::now();
     if self.index.index_sats {
       let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
@@ -559,6 +560,7 @@ impl<'index> Updater<'_> {
         inscription_updater.index_envelopes(tx, *txid, None)?;
       }
     }
+    let ord_cost = start_time.elapsed().as_millis();
 
     if index_inscriptions {
       height_to_last_sequence_number
@@ -655,8 +657,9 @@ impl<'index> Updater<'_> {
     self.outputs_traversed += outputs_in_block;
 
     log::info!(
-      "Wrote {sat_ranges_written} sat ranges from {outputs_in_block} outputs in {} ms",
+      "Wrote {sat_ranges_written} sat ranges from {outputs_in_block} outputs in {} ms, ord cost: {} ms",
       (Instant::now() - start).as_millis(),
+      ord_cost,
     );
 
     Ok(())

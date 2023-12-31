@@ -82,16 +82,6 @@ where
       .map(|x| rmp_serde::from_slice::<Receipt>(x.unwrap().value()).unwrap())
       .collect(),
   )
-
-  //Ok(vec![])
-
-  // .iter()
-  // .map(|v| {
-  //   v.into_iter()
-  //       .map(|x| x.and_then(|y|rmp_serde::from_slice::<Receipt>(y.value()).map_err(|err| err.into())))
-  // })
-  // .flatten()
-  // .collect(),
 }
 
 // BRC20_TRANSFERABLELOG
