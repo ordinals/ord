@@ -377,7 +377,7 @@ impl StreamEvent {
 
     // skip brc20 sats mint transfer events
     if let Some(brc20) = &self.brc20 {
-      if brc20.tick == "sats" && brc20.op == "mint" && self.old_owner.is_some() {
+      if brc20.op == "mint" && self.old_owner.is_some() {
         return Ok(());
       }
     }
@@ -399,12 +399,12 @@ impl StreamEvent {
 
   fn log_kafka_message(&self) -> Result {
     // Only log the message if it is not a SATS mint inscription
-    if let Some(is_brc20_sats_mint_transfer) = self
+    if let Some(is_brc20_mint_transfer) = self
       .brc20
       .as_ref()
-      .map(|brc20| brc20.op == "mint" && brc20.tick == "sats" && self.old_location.is_some())
+      .map(|brc20| brc20.op == "mint" && self.old_location.is_some())
     {
-      if !is_brc20_sats_mint_transfer {
+      if !is_brc20_mint_transfer {
         println!("{}", serde_json::to_string(&self)?);
       }
     } else {
