@@ -2,7 +2,8 @@ use crate::index::entry::Entry;
 use crate::index::{InscriptionIdValue, TxidValue};
 use crate::inscription_id::InscriptionId;
 use crate::okx::datastore::brc20::redb::{
-  max_script_tick_key, min_script_tick_key, script_tick_key,
+  max_script_tick_id_key, max_script_tick_key, min_script_tick_id_key, min_script_tick_key,
+  script_tick_id_key, script_tick_key,
 };
 use crate::okx::datastore::brc20::{
   Balance, Receipt, Tick, TokenInfo, TransferInfo, TransferableLog,
@@ -18,7 +19,7 @@ where
 {
   Ok(
     table
-      .range(min_script_tick_key(script_key).as_str()..max_script_tick_key(script_key).as_str())?
+      .range(min_script_tick_key(script_key).as_str()..=max_script_tick_key(script_key).as_str())?
       .flat_map(|result| {
         result.map(|(_, data)| rmp_serde::from_slice::<Balance>(data.value()).unwrap())
       })
@@ -106,10 +107,15 @@ where
 {
   Ok(
     table
-      .get(script_tick_key(script, tick).as_str())?
-      .map_or(Vec::new(), |v| {
-        rmp_serde::from_slice::<Vec<TransferableLog>>(v.value()).unwrap()
-      }),
+      .range(
+        min_script_tick_id_key(script, tick).as_str()
+          ..max_script_tick_id_key(script, tick).as_str(),
+      )?
+      .flat_map(|result| {
+        result.map(|(_, v)| rmp_serde::from_slice::<Vec<TransferableLog>>(v.value()).unwrap())
+      })
+      .flatten()
+      .collect(),
   )
 }
 
@@ -220,21 +226,11 @@ pub fn insert_transferable<'db, 'txn>(
   table: &mut Table<'db, 'txn, &'static str, &'static [u8]>,
   script: &ScriptKey,
   tick: &Tick,
-  inscription: TransferableLog,
+  inscription: &TransferableLog,
 ) -> crate::Result<()> {
-  let mut logs = get_transferable_by_tick(table, script, tick)?;
-  if logs
-    .iter()
-    .any(|log| log.inscription_id == inscription.inscription_id)
-  {
-    return Ok(());
-  }
-
-  logs.push(inscription);
-
   table.insert(
-    script_tick_key(script, tick).as_str(),
-    rmp_serde::to_vec(&logs).unwrap().as_slice(),
+    script_tick_id_key(script, tick, &inscription.inscription_id).as_str(),
+    rmp_serde::to_vec(&inscription).unwrap().as_slice(),
   )?;
   Ok(())
 }
@@ -246,17 +242,7 @@ pub fn remove_transferable<'db, 'txn>(
   tick: &Tick,
   inscription_id: &InscriptionId,
 ) -> crate::Result<()> {
-  let mut logs = get_transferable_by_tick(table, script, tick)?;
-  let old_len = logs.len();
-
-  logs.retain(|log| &log.inscription_id != inscription_id);
-
-  if logs.len() != old_len {
-    table.insert(
-      script_tick_key(script, tick).as_str(),
-      rmp_serde::to_vec(&logs).unwrap().as_slice(),
-    )?;
-  }
+  table.remove(script_tick_id_key(script, tick, inscription_id).as_str())?;
   Ok(())
 }
 

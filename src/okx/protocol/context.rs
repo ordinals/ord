@@ -5,7 +5,7 @@ use crate::okx::datastore::brc20::redb::table::{
   get_token_info, get_tokens_info, get_transaction_receipts, get_transferable,
   get_transferable_by_id, get_transferable_by_tick, insert_inscribe_transfer_inscription,
   insert_token_info, insert_transferable, remove_inscribe_transfer_inscription,
-  remove_transferable, save_transaction_receipts, update_mint_token_info, update_token_balance,
+  remove_transferable, update_mint_token_info, update_token_balance,
 };
 use crate::okx::datastore::brc20::{
   Balance, Brc20Reader, Brc20ReaderWriter, Receipt, Tick, TokenInfo, TransferInfo, TransferableLog,
@@ -222,14 +222,6 @@ impl<'a, 'db, 'txn> Brc20ReaderWriter for Context<'a, 'db, 'txn> {
     update_mint_token_info(self.BRC20_TOKEN, tick, minted_amt, minted_block_number)
   }
 
-  fn save_transaction_receipts(
-    &mut self,
-    txid: &Txid,
-    receipts: &[Receipt],
-  ) -> crate::Result<(), Self::Error> {
-    save_transaction_receipts(self.BRC20_EVENTS, txid, receipts)
-  }
-
   fn add_transaction_receipt(
     &mut self,
     txid: &Txid,
@@ -242,7 +234,7 @@ impl<'a, 'db, 'txn> Brc20ReaderWriter for Context<'a, 'db, 'txn> {
     &mut self,
     script: &ScriptKey,
     tick: &Tick,
-    inscription: TransferableLog,
+    inscription: &TransferableLog,
   ) -> crate::Result<(), Self::Error> {
     insert_transferable(self.BRC20_TRANSFERABLELOG, script, tick, inscription)
   }

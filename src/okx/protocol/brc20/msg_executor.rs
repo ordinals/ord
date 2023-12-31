@@ -309,9 +309,8 @@ fn process_inscribe_transfer(
     owner: to_script_key,
   };
 
-  let tick = inscription.tick.clone();
   context
-    .insert_transferable(&inscription.owner.clone(), &tick, inscription)
+    .insert_transferable(&inscription.owner, &tick, &inscription)
     .map_err(|e| Error::LedgerError(e))?;
 
   context
@@ -325,7 +324,7 @@ fn process_inscribe_transfer(
     .map_err(|e| Error::LedgerError(e))?;
 
   Ok(Event::InscribeTransfer(InscripbeTransferEvent {
-    tick,
+    tick: inscription.tick,
     amount: amt,
   }))
 }
