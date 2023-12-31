@@ -175,6 +175,7 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     tokio::runtime::Builder::new_current_thread()
+      .enable_all()
       .build()?
       .block_on(async {
         let index_clone = index.clone();
