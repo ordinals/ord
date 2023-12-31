@@ -1,4 +1,4 @@
-use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue};
+use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue};
 use crate::inscription_id::InscriptionId;
 use crate::okx::datastore::brc20::redb::table::{
   add_transaction_receipt, get_balance, get_balances, get_inscribe_transfer_inscription,
@@ -33,7 +33,7 @@ pub struct Context<'a, 'db, 'txn> {
   pub(crate) tx_out_cache: &'a mut HashMap<OutPoint, TxOut>,
 
   // ord tables
-  pub(crate) ORD_TX_TO_OPERATIONS: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
+  pub(crate) ORD_TX_TO_OPERATIONS: &'a mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   pub(crate) COLLECTIONS_KEY_TO_INSCRIPTION_ID:
     &'a mut Table<'db, 'txn, &'static str, InscriptionIdValue>,
   pub(crate) COLLECTIONS_INSCRIPTION_ID_TO_KINDS:
@@ -45,7 +45,7 @@ pub struct Context<'a, 'db, 'txn> {
   // BRC20 tables
   pub(crate) BRC20_BALANCES: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_TOKEN: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
-  pub(crate) BRC20_EVENTS: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
+  pub(crate) BRC20_EVENTS: &'a mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   pub(crate) BRC20_TRANSFERABLELOG: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_INSCRIBE_TRANSFER: &'a mut Table<'db, 'txn, InscriptionIdValue, &'static [u8]>,
 }

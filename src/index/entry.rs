@@ -338,7 +338,7 @@ impl Entry for SatRange {
   }
 }
 
-pub(super) type TxidValue = [u8; 32];
+pub(crate) type TxidValue = [u8; 32];
 
 impl Entry for Txid {
   type Value = TxidValue;

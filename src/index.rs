@@ -10,9 +10,7 @@ use crate::okx::datastore::{brc20, ScriptKey};
 use bitcoincore_rpc::bitcoincore_rpc_json::GetBlockResult;
 use {
   self::{
-    entry::{
-      BlockHashValue, Entry, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
-    },
+    entry::{BlockHashValue, Entry, RuneEntryValue, RuneIdValue, SatPointValue, SatRange},
     reorg::*,
     runes::{Rune, RuneId},
     updater::Updater,
@@ -40,7 +38,7 @@ use {
 
 pub(crate) use self::entry::RuneEntry;
 pub(super) use self::entry::{
-  InscriptionEntry, InscriptionEntryValue, InscriptionIdValue, OutPointValue,
+  InscriptionEntry, InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue,
 };
 pub(super) use self::updater::BlockData;
 pub(crate) use self::updater::{Flotsam, Origin};
@@ -64,7 +62,7 @@ macro_rules! define_table {
 
 macro_rules! define_multimap_table {
   ($name:ident, $key:ty, $value:ty) => {
-    const $name: MultimapTableDefinition<$key, $value> =
+    pub const $name: MultimapTableDefinition<$key, $value> =
       MultimapTableDefinition::new(stringify!($name));
   };
 }
@@ -91,13 +89,13 @@ define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
 // new
-define_table! { ORD_TX_TO_OPERATIONS, &str, &[u8] }
+define_table! { ORD_TX_TO_OPERATIONS, &TxidValue, &[u8] }
 define_table! { COLLECTIONS_KEY_TO_INSCRIPTION_ID, &str, InscriptionIdValue }
 define_table! { COLLECTIONS_INSCRIPTION_ID_TO_KINDS, InscriptionIdValue, &[u8] }
 
 define_table! { BRC20_BALANCES, &str, &[u8] }
 define_table! { BRC20_TOKEN, &str, &[u8] }
-define_table! { BRC20_EVENTS, &str, &[u8] }
+define_table! { BRC20_EVENTS, &TxidValue, &[u8] }
 define_table! { BRC20_TRANSFERABLELOG, &str, &[u8] }
 define_table! { BRC20_INSCRIBE_TRANSFER, InscriptionIdValue, &[u8] }
 

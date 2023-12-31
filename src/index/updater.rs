@@ -366,7 +366,9 @@ impl<'index> Updater<'_> {
           } else if tx_out_cache.contains_key(&prev_output) {
             cache_outputs_count.fetch_add(1, Ordering::Relaxed);
             None
-          } else if let Some(txout) = get_txout_by_outpoint(&outpoint_to_entry, &prev_output).unwrap() {
+          } else if let Some(txout) =
+            get_txout_by_outpoint(&outpoint_to_entry, &prev_output).unwrap()
+          {
             miss_outputs_count.fetch_add(1, Ordering::Relaxed);
             Some((prev_output, txout))
           } else {

@@ -1,5 +1,5 @@
 use crate::index::entry::Entry;
-use crate::index::InscriptionIdValue;
+use crate::index::{InscriptionIdValue, TxidValue};
 use crate::inscription_id::InscriptionId;
 use crate::okx::datastore::brc20::redb::{
   max_script_tick_key, min_script_tick_key, script_tick_key,
@@ -72,15 +72,11 @@ where
 // BRC20_EVENTS
 pub fn get_transaction_receipts<T>(table: &T, txid: &Txid) -> crate::Result<Vec<Receipt>>
 where
-  T: ReadableTable<&'static str, &'static [u8]>,
+  T: ReadableTable<&'static TxidValue, &'static [u8]>,
 {
-  Ok(
-    table
-      .get(txid.to_string().as_str())?
-      .map_or(Vec::new(), |v| {
-        rmp_serde::from_slice::<Vec<Receipt>>(v.value()).unwrap()
-      }),
-  )
+  Ok(table.get(&txid.store())?.map_or(Vec::new(), |v| {
+    rmp_serde::from_slice::<Vec<Receipt>>(v.value()).unwrap()
+  }))
 }
 
 // BRC20_TRANSFERABLELOG
@@ -197,12 +193,12 @@ pub fn update_mint_token_info<'db, 'txn>(
 
 // BRC20_EVENTS
 pub fn save_transaction_receipts<'db, 'txn>(
-  table: &mut Table<'db, 'txn, &'static str, &'static [u8]>,
+  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   txid: &Txid,
   receipts: &[Receipt],
 ) -> crate::Result<()> {
   table.insert(
-    txid.to_string().as_str(),
+    &txid.store(),
     rmp_serde::to_vec(receipts).unwrap().as_slice(),
   )?;
   Ok(())
@@ -210,7 +206,7 @@ pub fn save_transaction_receipts<'db, 'txn>(
 
 // BRC20_EVENTS
 pub fn add_transaction_receipt<'db, 'txn>(
-  table: &mut Table<'db, 'txn, &'static str, &'static [u8]>,
+  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   txid: &Txid,
   receipt: &Receipt,
 ) -> crate::Result<()> {

@@ -1,5 +1,5 @@
 use crate::index::entry::Entry;
-use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue};
+use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue};
 use crate::inscription_id::InscriptionId;
 use crate::okx::datastore::ord::collections::CollectionKind;
 use crate::okx::datastore::ord::InscriptionOp;
@@ -64,26 +64,21 @@ where
 // ORD_TX_TO_OPERATIONS
 pub fn get_transaction_operations<T>(table: &T, txid: &Txid) -> crate::Result<Vec<InscriptionOp>>
 where
-  T: ReadableTable<&'static str, &'static [u8]>,
+  T: ReadableTable<&'static TxidValue, &'static [u8]>,
 {
-  Ok(
-    table
-        .get(txid.to_string().as_str())? // TODO:optimize key and value
-        .map_or(Vec::new(), |v| {
-            rmp_serde::from_slice::<Vec<InscriptionOp>>(v.value()).unwrap()
-        }),
-  )
+  Ok(table.get(&txid.store())?.map_or(Vec::new(), |v| {
+    rmp_serde::from_slice::<Vec<InscriptionOp>>(v.value()).unwrap()
+  }))
 }
 
 // ORD_TX_TO_OPERATIONS
 pub fn save_transaction_operations<'db, 'txn>(
-  table: &mut Table<'db, 'txn, &'static str, &'static [u8]>,
+  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   txid: &Txid,
   operations: &[InscriptionOp],
 ) -> crate::Result<()> {
   table.insert(
-    // TODO:optimize key and value
-    txid.to_string().as_str(),
+    &txid.store(),
     rmp_serde::to_vec(operations).unwrap().as_slice(),
   )?;
   Ok(())
