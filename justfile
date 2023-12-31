@@ -31,11 +31,32 @@ deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch
 
 deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
 
+deploy-mainnet-alpha branch="master" remote="ordinals/ord": (deploy branch remote "main" "alpha.ordinals.net")
+
 deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
 deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
 
 deploy-regtest branch="master" remote="ordinals/ord": (deploy branch remote "regtest" "regtest.ordinals.net")
+
+initialize-server-keys:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  rm -rf tmp/ssh
+  mkdir -p tmp/ssh
+  ssh-keygen -C ordinals -f tmp/ssh/id_ed25519 -t ed25519 -N ''
+  for SERVER in alpha stability balance equilibrium signet testnet regtest; do
+    ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$SERVER.ordinals.net
+    scp tmp/ssh/* root@$SERVER.ordinals.net:.ssh
+  done
+  rm -rf tmp/ssh
+
+install-personal-key:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  for SERVER in alpha stability equilibrium balance signet testnet regtest; do
+    ssh-copy-id -i ~/.ssh/id_ed25519.pub root@$SERVER.ordinals.net
+  done
 
 save-ord-dev-state domain="ordinals-dev.com":
   $EDITOR ./deploy/save-ord-dev-state
