@@ -49,6 +49,7 @@ use {
 mod accept_encoding;
 mod accept_json;
 mod api;
+mod brc20;
 mod error;
 mod info;
 mod ord;
@@ -191,14 +192,49 @@ impl Server {
       #[derive(OpenApi)]
       #[openapi(
       paths(
+      brc20::brc20_balance,
+      brc20::brc20_all_balance,
+      brc20::brc20_tick_info,
+      brc20::brc20_all_tick_info,
+      brc20::brc20_tx_events,
+      brc20::brc20_block_events,
+      brc20::brc20_transferable,
+      brc20::brc20_all_transferable,
+
       ord::ord_inscription_id,
       ord::ord_inscription_number,
       ord::ord_outpoint,
       ord::ord_txid_inscriptions,
       ord::ord_block_inscriptions,
+
       info::node_info,
       ),
       components(schemas(
+      // BRC20 schemas
+      brc20::TickInfo,
+      brc20::AllTickInfo,
+      brc20::Balance,
+      brc20::AllBalance,
+      brc20::TxEvent,
+      brc20::DeployEvent,
+      brc20::MintEvent,
+      brc20::InscribeTransferEvent,
+      brc20::TransferEvent,
+      brc20::ErrorEvent,
+      brc20::TxEvents,
+      brc20::BlockEvents,
+      brc20::TransferableInscription,
+      brc20::TransferableInscriptions,
+
+      // BRC20 responses schemas
+      response::BRC20Tick,
+      response::BRC20AllTick,
+      response::BRC20Balance,
+      response::BRC20AllBalance,
+      response::BRC20TxEvents,
+      response::BRC20BlockEvents,
+      response::BRC20Transferable,
+
       // Ord schemas
       ord::OrdInscription,
       ord::InscriptionDigest,
@@ -208,11 +244,13 @@ impl Server {
       ord::TxInscription,
       ord::TxInscriptions,
       ord::BlockInscriptions,
+
       // Ord responses schemas
       response::OrdOrdInscription,
       response::OrdTxInscriptions,
       response::OrdBlockInscriptions,
       response::OrdOutPointResult,
+
       // Node Info schemas
       info::NodeInfo,
       info::ChainInfo,
@@ -258,6 +296,30 @@ impl Server {
         .route(
           "/ord/debug/bitmap/district/:number",
           get(ord::ord_debug_bitmap_district),
+        )
+        .route("/brc20/tick/:tick", get(brc20::brc20_tick_info))
+        .route("/brc20/tick", get(brc20::brc20_all_tick_info))
+        .route(
+          "/brc20/tick/:tick/address/:address/balance",
+          get(brc20::brc20_balance),
+        )
+        .route(
+          "/brc20/address/:address/balance",
+          get(brc20::brc20_all_balance),
+        )
+        .route(
+          "/brc20/tick/:tick/address/:address/transferable",
+          get(brc20::brc20_transferable),
+        )
+        .route(
+          "/brc20/address/:address/transferable",
+          get(brc20::brc20_all_transferable),
+        )
+        .route("/brc20/tx/:txid/events", get(brc20::brc20_tx_events))
+        .route("/brc20/tx/:txid", get(brc20::brc20_tx))
+        .route(
+          "/brc20/block/:block_hash/events",
+          get(brc20::brc20_block_events),
         );
 
       let api_router = Router::new().nest("/v1", api_v1_router);

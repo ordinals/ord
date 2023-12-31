@@ -279,7 +279,7 @@ impl Entry for InscriptionId {
   }
 }
 
-pub(super) type OutPointValue = [u8; 36];
+pub(crate) type OutPointValue = [u8; 36];
 
 impl Entry for OutPoint {
   type Value = OutPointValue;

@@ -47,6 +47,15 @@ impl Chain {
     }
   }
 
+  pub(crate) fn first_brc20_height(self) -> u32 {
+    match self {
+      Self::Mainnet => 779832,
+      Self::Regtest => 0,
+      Self::Signet => 0,
+      Self::Testnet => 0,
+    }
+  }
+
   pub(crate) fn first_rune_height(self) -> u32 {
     SUBSIDY_HALVING_INTERVAL
       * match self {

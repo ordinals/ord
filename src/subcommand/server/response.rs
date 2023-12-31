@@ -4,6 +4,14 @@ use {
 };
 #[derive(Default, Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[aliases(
+  BRC20Tick = ApiResponse<brc20::TickInfo>,
+  BRC20AllTick = ApiResponse<brc20::AllTickInfo>,
+  BRC20Balance = ApiResponse<brc20::Balance>,
+  BRC20AllBalance = ApiResponse<brc20::AllBalance>,
+  BRC20TxEvents = ApiResponse<brc20::TxEvents>,
+  BRC20BlockEvents = ApiResponse<brc20::BlockEvents>,
+  BRC20Transferable = ApiResponse<brc20::TransferableInscriptions>,
+
   OrdOrdInscription = ApiResponse<ord::OrdInscription>,
   OrdOutPointData = ApiResponse<ord::OutPointData>,
   OrdOutPointResult = ApiResponse<ord::OutPointResult>,

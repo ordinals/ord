@@ -9,6 +9,7 @@ use {
 pub struct InscriptionOp {
   pub txid: Txid,
   pub action: Action,
+  pub sequence_number: u32,
   pub inscription_number: Option<i32>,
   pub inscription_id: InscriptionId,
   pub old_satpoint: SatPoint,

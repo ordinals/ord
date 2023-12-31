@@ -67,6 +67,14 @@ pub(crate) struct Options {
   pub(crate) enable_save_ord_receipts: bool,
   #[arg(long, help = "Enable Index Bitmap Collection.")]
   pub(crate) enable_index_bitmap: bool,
+  // OKX defined options.
+  #[arg(long, help = "Enable Index all of BRC20 Protocol")]
+  pub(crate) enable_index_brc20: bool,
+  #[arg(
+    long,
+    help = "Don't look for BRC20 messages below <FIRST_BRC20_HEIGHT>."
+  )]
+  pub(crate) first_brc20_height: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -111,6 +119,18 @@ impl Options {
       self
         .first_inscription_height
         .unwrap_or_else(|| self.chain().first_inscription_height())
+    }
+  }
+
+  pub(crate) fn first_brc20_height(&self) -> u32 {
+    if self.chain() == Chain::Regtest {
+      self.first_brc20_height.unwrap_or(0)
+    } else if integration_test() {
+      0
+    } else {
+      self
+        .first_brc20_height
+        .unwrap_or_else(|| self.chain().first_brc20_height())
     }
   }
 

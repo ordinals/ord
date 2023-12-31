@@ -9,7 +9,6 @@ pub enum ScriptKey {
 }
 
 impl ScriptKey {
-  #[allow(dead_code)]
   pub fn from_address(address: Address) -> Self {
     ScriptKey::Address(Address::new(address.network, address.payload))
   }

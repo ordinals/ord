@@ -1,23 +1,21 @@
+use crate::okx::datastore::ord::{OrdReader, OrdReaderWriter};
+use crate::okx::protocol::context::Context;
 use {
-  super::*,
   crate::{
-    okx::{
-      datastore::ord::{
-        bitmap::District,
-        collections::CollectionKind,
-        operation::{Action, InscriptionOp},
-      },
-      protocol::BlockContext,
+    okx::datastore::ord::{
+      bitmap::District,
+      collections::CollectionKind,
+      operation::{Action, InscriptionOp},
     },
     Inscription, InscriptionId, Result,
   },
+  anyhow::anyhow,
   bitcoin::Txid,
   std::collections::HashMap,
 };
 
-pub fn index_bitmap<O: DataStoreReadWrite>(
-  ord_store: &O,
-  context: BlockContext,
+pub fn index_bitmap(
+  context: &mut Context,
   operations: &HashMap<Txid, Vec<InscriptionOp>>,
 ) -> Result<u64> {
   let mut count = 0;
@@ -43,17 +41,12 @@ pub fn index_bitmap<O: DataStoreReadWrite>(
         inscription,
       } => {
         if let Some((inscription_id, district)) =
-          index_district(ord_store, context, inscription, op.inscription_id)?
+          index_district(context, inscription, op.inscription_id)?
         {
           let key = district.to_collection_key();
-          ord_store
-            .set_inscription_by_collection_key(&key, inscription_id)
-            .map_err(|e| anyhow!("failed to store collection! key: {key}, error: {e}"))?;
-          ord_store
-            .set_inscription_attributes(inscription_id, &[CollectionKind::BitMap])
-            .map_err(|e| {
-              anyhow!("failed to store inscription attributes! id: {inscription_id} error: {e}")
-            })?;
+          context.set_inscription_by_collection_key(&key, &inscription_id)?;
+          context.set_inscription_attributes(&inscription_id, &[CollectionKind::BitMap])?;
+
           count += 1;
         }
       }
@@ -63,19 +56,19 @@ pub fn index_bitmap<O: DataStoreReadWrite>(
   Ok(count)
 }
 
-fn index_district<O: DataStoreReadWrite>(
-  ord_store: &O,
-  context: BlockContext,
+fn index_district(
+  context: &mut Context,
   inscription: Inscription,
   inscription_id: InscriptionId,
 ) -> Result<Option<(InscriptionId, District)>> {
   if let Some(content) = inscription.body() {
     if let Ok(district) = District::parse(content) {
-      if district.number > context.blockheight {
+      if district.number > context.chain.blockheight {
         return Ok(None);
       }
       let collection_key = district.to_collection_key();
-      if ord_store
+
+      if context
         .get_collection_inscription_id(&collection_key)
         .map_err(|e| {
           anyhow!("failed to get collection inscription! key: {collection_key} error: {e}")
