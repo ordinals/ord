@@ -122,7 +122,7 @@ mod tests {
     let dbfile = NamedTempFile::new().unwrap();
     let db = Database::create(dbfile.path()).unwrap();
     let wtx = db.begin_write().unwrap();
-    let mut table = wtx.open_table(ORD_TX_TO_OPERATIONS)?;
+    let mut table = wtx.open_table(ORD_TX_TO_OPERATIONS).unwrap();
     let txid =
       Txid::from_str("b61b0172d95e266c18aea0c624db987e971a5d6d4ebc2aaed85da4642d635735").unwrap();
     let operation = InscriptionOp {

@@ -20,17 +20,17 @@ use crate::okx::datastore::ord::redb::table::{
 };
 use crate::okx::datastore::ord::{InscriptionOp, OrdReader, OrdReaderWriter};
 use crate::okx::datastore::ScriptKey;
+use crate::okx::lru::SimpleLru;
 use crate::okx::protocol::BlockContext;
 use crate::SatPoint;
 use anyhow::anyhow;
 use bitcoin::{Network, OutPoint, TxOut, Txid};
-use lru::LruCache;
 use redb::{MultimapTable, Table};
 
 #[allow(non_snake_case)]
 pub struct Context<'a, 'db, 'txn> {
   pub(crate) chain: BlockContext,
-  pub(crate) tx_out_cache: &'a mut LruCache<OutPoint, TxOut>,
+  pub(crate) tx_out_cache: &'a mut SimpleLru<OutPoint, TxOut>,
   pub(crate) hit: u64,
   pub(crate) miss: u64,
 

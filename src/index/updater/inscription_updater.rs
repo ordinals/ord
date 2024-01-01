@@ -62,7 +62,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   pub(super) tx_out_receiver: &'a mut Receiver<TxOut>,
-  pub(super) tx_out_cache: &'a mut LruCache<OutPoint, TxOut>,
+  pub(super) tx_out_cache: &'a mut SimpleLru<OutPoint, TxOut>,
   tx_out_local_cache: HashMap<OutPoint, TxOut>,
 }
 
@@ -87,7 +87,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     timestamp: u32,
     unbound_inscriptions: u64,
     tx_out_receiver: &'a mut Receiver<TxOut>,
-    tx_out_cache: &'a mut LruCache<OutPoint, TxOut>,
+    tx_out_cache: &'a mut SimpleLru<OutPoint, TxOut>,
   ) -> Result<Self> {
     Ok(Self {
       operations,
@@ -420,7 +420,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         .insert(&outpoint.store(), entry.as_slice())?;
       entry.clear();
 
-      self.tx_out_cache.push(outpoint, tx_out);
+      self.tx_out_cache.insert(outpoint, tx_out);
     }
     log::info!(
       "flush cache, persist:{}, global:{} cost: {}ms",

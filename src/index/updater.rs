@@ -1,6 +1,4 @@
 use crate::okx::protocol::{context::Context, BlockContext, ProtocolConfig, ProtocolManager};
-use lru::LruCache;
-use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
@@ -11,7 +9,9 @@ use {
 };
 
 pub(crate) mod inscription_updater;
+use crate::okx::lru::SimpleLru;
 pub(crate) use inscription_updater::{Flotsam, Origin};
+
 mod rune_updater;
 
 pub(crate) struct BlockData {
@@ -92,8 +92,7 @@ impl<'index> Updater<'_> {
     let (mut outpoint_sender, mut tx_out_receiver) = Self::spawn_fetcher(self.index)?;
 
     let mut uncommitted = 0;
-    let mut tx_out_cache =
-      lru::LruCache::new(NonZeroUsize::new(self.index.options.lru_size).unwrap());
+    let mut tx_out_cache = SimpleLru::new(self.index.options.lru_size);
     while let Ok(block) = rx.recv() {
       self.index_block(
         self.index,
@@ -322,7 +321,7 @@ impl<'index> Updater<'_> {
     tx_out_receiver: &mut Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
-    tx_out_cache: &mut LruCache<OutPoint, TxOut>,
+    tx_out_cache: &mut SimpleLru<OutPoint, TxOut>,
   ) -> Result<()> {
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
@@ -382,7 +381,7 @@ impl<'index> Updater<'_> {
         })
         .collect::<Vec<_>>();
       for (out_point, tx_out) in tx_outs.into_iter() {
-        tx_out_cache.push(out_point, tx_out);
+        tx_out_cache.insert(out_point, tx_out);
       }
     }
 
