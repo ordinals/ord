@@ -31,11 +31,11 @@ deploy-mainnet-balance branch='master' remote='ordinals/ord': (deploy branch rem
 
 deploy-mainnet-stability branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'stability.ordinals.net')
 
+deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
+
 deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
 
 deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
-
-deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
 initialize-server-keys:
   #!/usr/bin/env bash
