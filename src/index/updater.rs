@@ -1,4 +1,6 @@
 use crate::okx::protocol::{context::Context, BlockContext, ProtocolConfig, ProtocolManager};
+use lru::LruCache;
+use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
@@ -90,7 +92,8 @@ impl<'index> Updater<'_> {
     let (mut outpoint_sender, mut tx_out_receiver) = Self::spawn_fetcher(self.index)?;
 
     let mut uncommitted = 0;
-    let mut tx_out_cache = HashMap::new();
+    let mut tx_out_cache =
+      lru::LruCache::new(NonZeroUsize::new(self.index.options.lru_size).unwrap());
     while let Ok(block) = rx.recv() {
       self.index_block(
         self.index,
@@ -319,7 +322,7 @@ impl<'index> Updater<'_> {
     tx_out_receiver: &mut Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
-    tx_out_cache: &mut HashMap<OutPoint, TxOut>,
+    tx_out_cache: &mut LruCache<OutPoint, TxOut>,
   ) -> Result<()> {
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
@@ -363,7 +366,7 @@ impl<'index> Updater<'_> {
           } else if txids.contains(&prev_output.txid) {
             meet_outputs_count.fetch_add(1, Ordering::Relaxed);
             None
-          } else if tx_out_cache.contains_key(&prev_output) {
+          } else if tx_out_cache.contains(&prev_output) {
             cache_outputs_count.fetch_add(1, Ordering::Relaxed);
             None
           } else if let Some(txout) =
@@ -379,7 +382,7 @@ impl<'index> Updater<'_> {
         })
         .collect::<Vec<_>>();
       for (out_point, tx_out) in tx_outs.into_iter() {
-        tx_out_cache.insert(out_point, tx_out);
+        tx_out_cache.push(out_point, tx_out);
       }
     }
 
@@ -593,32 +596,31 @@ impl<'index> Updater<'_> {
 
     inscription_updater.flush_cache()?;
 
+    let mut context = Context {
+      chain: BlockContext {
+        network: index.get_chain_network(),
+        blockheight: self.height,
+        blocktime: block.header.time,
+      },
+      tx_out_cache,
+      hit: 0,
+      miss: 0,
+      ORD_TX_TO_OPERATIONS: &mut wtx.open_table(ORD_TX_TO_OPERATIONS)?,
+      COLLECTIONS_KEY_TO_INSCRIPTION_ID: &mut wtx.open_table(COLLECTIONS_KEY_TO_INSCRIPTION_ID)?,
+      COLLECTIONS_INSCRIPTION_ID_TO_KINDS: &mut wtx
+        .open_table(COLLECTIONS_INSCRIPTION_ID_TO_KINDS)?,
+      SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY: &mut sequence_number_to_inscription_entry,
+      OUTPOINT_TO_ENTRY: &mut outpoint_to_entry,
+      BRC20_BALANCES: &mut wtx.open_table(BRC20_BALANCES)?,
+      BRC20_TOKEN: &mut wtx.open_table(BRC20_TOKEN)?,
+      BRC20_EVENTS: &mut wtx.open_multimap_table(BRC20_EVENTS)?,
+      BRC20_TRANSFERABLELOG: &mut wtx.open_table(BRC20_TRANSFERABLELOG)?,
+      BRC20_INSCRIBE_TRANSFER: &mut wtx.open_table(BRC20_INSCRIBE_TRANSFER)?,
+    };
+
     // Create a protocol manager to index the block of bitmap data.
     let config = ProtocolConfig::new_with_options(&index.options);
-    ProtocolManager::new(config).index_block(
-      &mut Context {
-        chain: BlockContext {
-          network: index.get_chain_network(),
-          blockheight: self.height,
-          blocktime: block.header.time,
-        },
-        tx_out_cache,
-        ORD_TX_TO_OPERATIONS: &mut wtx.open_table(ORD_TX_TO_OPERATIONS)?,
-        COLLECTIONS_KEY_TO_INSCRIPTION_ID: &mut wtx
-          .open_table(COLLECTIONS_KEY_TO_INSCRIPTION_ID)?,
-        COLLECTIONS_INSCRIPTION_ID_TO_KINDS: &mut wtx
-          .open_table(COLLECTIONS_INSCRIPTION_ID_TO_KINDS)?,
-        SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY: &mut sequence_number_to_inscription_entry,
-        OUTPOINT_TO_ENTRY: &mut outpoint_to_entry,
-        BRC20_BALANCES: &mut wtx.open_table(BRC20_BALANCES)?,
-        BRC20_TOKEN: &mut wtx.open_table(BRC20_TOKEN)?,
-        BRC20_EVENTS: &mut wtx.open_multimap_table(BRC20_EVENTS)?,
-        BRC20_TRANSFERABLELOG: &mut wtx.open_table(BRC20_TRANSFERABLELOG)?,
-        BRC20_INSCRIBE_TRANSFER: &mut wtx.open_table(BRC20_INSCRIBE_TRANSFER)?,
-      },
-      &block,
-      operations,
-    )?;
+    ProtocolManager::new(config).index_block(&mut context, &block, operations)?;
 
     if index.index_runes && self.height >= self.index.options.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -657,9 +659,11 @@ impl<'index> Updater<'_> {
     self.outputs_traversed += outputs_in_block;
 
     log::info!(
-      "Wrote {sat_ranges_written} sat ranges from {outputs_in_block} outputs in {} ms, ord cost: {} ms",
-      (Instant::now() - start).as_millis(),
+      "Wrote {sat_ranges_written} sat ranges from {outputs_in_block} outputs in {}/{} ms, hit miss: {}/{}",
       ord_cost,
+      (Instant::now() - start).as_millis(),
+      context.hit,
+      context.miss,
     );
 
     Ok(())

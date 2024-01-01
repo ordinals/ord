@@ -39,6 +39,12 @@ pub(crate) struct Options {
   pub(crate) db_cache_size: Option<usize>,
   #[arg(
     long,
+    default_value = "100000000",
+    help = "Set lru cache to <LRU_SIZE>. By default 10000000"
+  )]
+  pub(crate) lru_size: usize,
+  #[arg(
+    long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
   pub(crate) first_inscription_height: Option<u32>,

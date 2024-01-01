@@ -23,7 +23,7 @@ pub trait OrdReader {
   ) -> Result<i32, Self::Error>;
 
   fn get_script_key_on_satpoint(
-    &self,
+    &mut self,
     satpoint: &SatPoint,
     network: Network,
   ) -> Result<ScriptKey, Self::Error>;
