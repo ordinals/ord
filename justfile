@@ -219,7 +219,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in de fr es pt ru zh ja ko fil ar hi it; do
+  for lang in ar de es fil fr hi it ja ko pt ru zh; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang
