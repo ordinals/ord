@@ -98,7 +98,7 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-cp target/release/ord /usr/local/bin/ord
+install --backup target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
