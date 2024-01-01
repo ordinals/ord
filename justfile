@@ -18,24 +18,24 @@ clippy:
   cargo clippy --all --all-targets -- -D warnings
 
 deploy branch remote chain domain:
-  ssh root@{{domain}} "mkdir -p deploy \
+  ssh root@{{domain}} 'mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
-    && apt-get install --yes git rsync"
+    && apt-get install --yes git rsync'
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-mainnet-alpha branch="master" remote="ordinals/ord": (deploy branch remote "main" "alpha.ordinals.net")
+deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch remote "main" "balance.ordinals.net")
+deploy-mainnet-balance branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'balance.ordinals.net')
 
-deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
+deploy-mainnet-stability branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'stability.ordinals.net')
 
-deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
+deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
 
-deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
+deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
 
-deploy-regtest branch="master" remote="ordinals/ord": (deploy branch remote "regtest" "regtest.ordinals.net")
+deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
 initialize-server-keys:
   #!/usr/bin/env bash
@@ -49,19 +49,19 @@ initialize-server-keys:
   done
   rm -rf tmp/ssh
 
-install-personal-key key="~/.ssh/id_ed25519.pub":
+install-personal-key key='~/.ssh/id_ed25519.pub':
   #!/usr/bin/env bash
   set -euxo pipefail
   for SERVER in alpha balance regtest signet stability testnet; do
     ssh-copy-id -i {{ key }} root@$SERVER.ordinals.net
   done
 
-save-ord-dev-state domain="ordinals-dev.com":
+save-ord-dev-state domain='ordinals-dev.com':
   $EDITOR ./deploy/save-ord-dev-state
   scp ./deploy/save-ord-dev-state root@{{domain}}:~
   ssh root@{{domain}} "./save-ord-dev-state"
 
-log unit="ord" domain="ordinals.net":
+log unit='ord' domain='ordinals.net':
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
@@ -172,10 +172,10 @@ benchmark index height-limit:
   ./bin/benchmark $1 $2
 
 benchmark-revision rev:
-  ssh root@ordinals.net "mkdir -p benchmark \
+  ssh root@ordinals.net 'mkdir -p benchmark \
     && apt-get update --yes \
     && apt-get upgrade --yes \
-    && apt-get install --yes git rsync"
+    && apt-get install --yes git rsync'
   rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
   ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
 
@@ -219,7 +219,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar" "hi" "it"; do
+  for lang in de fr es pt ru zh ja ko fil ar hi it; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang
