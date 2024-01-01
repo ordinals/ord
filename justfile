@@ -31,6 +31,8 @@ deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch
 
 deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
 
+deploy-mainnet-alpha branch="master" remote="ordinals/ord": (deploy branch remote "main" "alpha.ordinals.net")
+
 deploy-signet branch="master" remote="ordinals/ord": (deploy branch remote "signet" "signet.ordinals.net")
 
 deploy-testnet branch="master" remote="ordinals/ord": (deploy branch remote "test" "testnet.ordinals.net")
