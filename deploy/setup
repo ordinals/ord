@@ -41,10 +41,6 @@ printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CS
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
-printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
-  && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
-  && printf 'REVISION=%s\n' $REVISION >> /etc/environment
-
 hostnamectl set-hostname $DOMAIN
 
 apt-get install --yes \
@@ -102,9 +98,6 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
-fi
 cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
