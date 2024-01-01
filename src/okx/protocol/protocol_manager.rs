@@ -1,4 +1,3 @@
-use crate::okx::datastore::ord::redb::table::save_transaction_operations;
 use crate::okx::protocol::context::Context;
 use {
   super::*,
@@ -10,6 +9,7 @@ use {
   bitcoin::Txid,
   std::collections::HashMap,
 };
+use crate::okx::datastore::ord::OrdReaderWriter;
 
 pub struct ProtocolManager {
   config: ProtocolConfig,
@@ -57,7 +57,7 @@ impl ProtocolManager {
           && context.chain.blockheight >= self.config.first_inscription_height
         {
           let start = Instant::now();
-          save_transaction_operations(&mut context.ORD_TX_TO_OPERATIONS, txid, tx_operations)?;
+          context.save_transaction_operations(txid, tx_operations)?;
           inscriptions_size += tx_operations.len();
           cost1 += start.elapsed().as_micros();
         }
