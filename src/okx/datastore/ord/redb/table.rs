@@ -3,7 +3,7 @@ use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, Txi
 use crate::inscription_id::InscriptionId;
 use crate::okx::datastore::ord::collections::CollectionKind;
 use crate::okx::datastore::ord::InscriptionOp;
-use bitcoin::consensus::{Decodable, Encodable};
+use bitcoin::consensus::Decodable;
 use bitcoin::{OutPoint, TxOut, Txid};
 use redb::{ReadableTable, Table};
 use std::io;
@@ -50,13 +50,9 @@ pub fn get_txout_by_outpoint<T>(table: &T, outpoint: &OutPoint) -> crate::Result
 where
   T: ReadableTable<&'static OutPointValue, &'static [u8]>,
 {
-  let mut value = [0; 36];
-  outpoint
-    .consensus_encode(&mut value.as_mut_slice())
-    .unwrap();
   Ok(
     table
-      .get(&value)?
+      .get(&outpoint.store())?
       .map(|x| Decodable::consensus_decode(&mut io::Cursor::new(x.value())).unwrap()),
   )
 }

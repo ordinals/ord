@@ -17,8 +17,8 @@ fn min_script_tick_id_key(script: &ScriptKey, tick: &Tick) -> String {
 }
 
 fn max_script_tick_id_key(script: &ScriptKey, tick: &Tick) -> String {
-  // because hex format of `InscriptionId` will be 0~f, so `e` is greater than `InscriptionId.to_string()` in bytes order
-  format!("{}_{}_e", script, tick.to_lowercase().hex())
+  // because hex format of `InscriptionId` will be 0~f, so `g` is greater than `InscriptionId.to_string()` in bytes order
+  format!("{}_{}_g", script, tick.to_lowercase().hex())
 }
 
 fn script_tick_key(script: &ScriptKey, tick: &Tick) -> String {
