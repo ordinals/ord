@@ -27,8 +27,6 @@ deploy branch remote chain domain:
 
 deploy-mainnet-balance branch="master" remote="ordinals/ord": (deploy branch remote "main" "balance.ordinals.net")
 
-deploy-mainnet-equilibrium branch="master" remote="ordinals/ord": (deploy branch remote "main" "equilibrium.ordinals.net")
-
 deploy-mainnet-stability branch="master" remote="ordinals/ord": (deploy branch remote "main" "stability.ordinals.net")
 
 deploy-mainnet-alpha branch="master" remote="ordinals/ord": (deploy branch remote "main" "alpha.ordinals.net")
@@ -45,7 +43,7 @@ initialize-server-keys:
   rm -rf tmp/ssh
   mkdir -p tmp/ssh
   ssh-keygen -C ordinals -f tmp/ssh/id_ed25519 -t ed25519 -N ''
-  for SERVER in alpha stability balance equilibrium signet testnet regtest; do
+  for SERVER in alpha balance regtest signet stability testnet; do
     ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$SERVER.ordinals.net
     scp tmp/ssh/* root@$SERVER.ordinals.net:.ssh
   done
@@ -54,7 +52,7 @@ initialize-server-keys:
 install-personal-key:
   #!/usr/bin/env bash
   set -euxo pipefail
-  for SERVER in alpha stability equilibrium balance signet testnet regtest; do
+  for SERVER in alpha balance regtest signet stability testnet; do
     ssh-copy-id -i ~/.ssh/id_ed25519.pub root@$SERVER.ordinals.net
   done
 
