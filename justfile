@@ -219,9 +219,9 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in ar de es fil fr hi it ja ko pt ru zh; do
-    MDBOOK_BOOK__LANGUAGE=$lang mdbook build docs -d build/$lang
-    mv docs/build/$lang/html docs/build/html/$lang
+  for language in ar de es fil fr hi it ja ko pt ru zh; do
+    MDBOOK_BOOK__LANGUAGE=$language mdbook build docs -d build/$language
+    mv docs/build/$language/html docs/build/html/$language
   done
 
 update-changelog:
