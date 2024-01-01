@@ -59,7 +59,7 @@ impl ProtocolManager {
           let start = Instant::now();
           save_transaction_operations(&mut context.ORD_TX_TO_OPERATIONS, txid, tx_operations)?;
           inscriptions_size += tx_operations.len();
-          cost1 += start.elapsed().as_millis();
+          cost1 += start.elapsed().as_micros();
         }
 
         let start = Instant::now();
@@ -67,31 +67,35 @@ impl ProtocolManager {
         let messages = self
           .resolve_man
           .resolve_message(context, tx, tx_operations)?;
-        cost2 += start.elapsed().as_millis();
+        cost2 += start.elapsed().as_micros();
 
         let start = Instant::now();
         for msg in messages.iter() {
           self.call_man.execute_message(context, msg)?;
         }
-        cost3 += start.elapsed().as_millis();
+        cost3 += start.elapsed().as_micros();
         messages_size += messages.len();
       }
     }
+
+    let bitmap_start = Instant::now();
     let mut bitmap_count = 0;
     if self.config.enable_index_bitmap {
       bitmap_count = ord_proto::bitmap::index_bitmap(context, &operations)?;
     }
+    let cost4 = bitmap_start.elapsed().as_millis();
 
     log::info!(
-      "Protocol Manager indexed block {} with ord inscriptions {}, messages {}, bitmap {} in {} ms, {}, {}, {}",
+      "Protocol Manager indexed block {} with ord inscriptions {}, messages {}, bitmap {} in {} ms, {}/{}/{}/{}",
       context.chain.blockheight,
       inscriptions_size,
       messages_size,
       bitmap_count,
-      (Instant::now() - start).as_millis(),
-      cost1,
-      cost2,
-      cost3,
+      start.elapsed().as_millis(),
+      cost1/1000,
+      cost2/1000,
+      cost3/1000,
+      cost4,
     );
     Ok(())
   }
