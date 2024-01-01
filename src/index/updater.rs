@@ -391,6 +391,7 @@ impl<'index> Updater<'_> {
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+    let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
@@ -430,6 +431,7 @@ impl<'index> Updater<'_> {
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,
       id_to_sequence_number: &mut inscription_id_to_sequence_number,
+      index_transactions: self.index.index_transactions,
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
       next_sequence_number,
@@ -441,6 +443,8 @@ impl<'index> Updater<'_> {
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
       sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
       timestamp: block.header.time,
+      transaction_buffer: Vec::new(),
+      transaction_id_to_transaction: &mut transaction_id_to_transaction,
       unbound_inscriptions,
       value_cache,
       value_receiver,
@@ -615,19 +619,6 @@ impl<'index> Updater<'_> {
         entry.supply += update.supply;
 
         rune_id_to_rune_entry.insert(&rune_id.store(), entry.store())?;
-      }
-    }
-
-    if index.index_transactions {
-      let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
-
-      let mut buffer = Vec::new();
-      for (transaction, txid) in block.txdata {
-        transaction
-          .consensus_encode(&mut buffer)
-          .expect("in-memory writers don't error");
-        transaction_id_to_transaction.insert(&txid.store(), buffer.as_slice())?;
-        buffer.clear();
       }
     }
 
