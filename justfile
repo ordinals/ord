@@ -15,7 +15,7 @@ fmt:
   cargo fmt --all
 
 clippy:
-  cargo clippy --all --all-targets -- -D warnings
+  cargo clippy --all --all-targets -- --deny warnings
 
 deploy branch remote chain domain:
   ssh root@{{domain}} 'mkdir -p deploy \
@@ -43,17 +43,17 @@ initialize-server-keys:
   rm -rf tmp/ssh
   mkdir -p tmp/ssh
   ssh-keygen -C ordinals -f tmp/ssh/id_ed25519 -t ed25519 -N ''
-  for SERVER in alpha balance regtest signet stability testnet; do
+  for server in alpha balance regtest signet stability testnet; do
     ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$SERVER.ordinals.net
-    scp tmp/ssh/* root@$SERVER.ordinals.net:.ssh
+    scp tmp/ssh/* root@$server.ordinals.net:.ssh
   done
   rm -rf tmp/ssh
 
 install-personal-key key='~/.ssh/id_ed25519.pub':
   #!/usr/bin/env bash
   set -euxo pipefail
-  for SERVER in alpha balance regtest signet stability testnet; do
-    ssh-copy-id -i '{{ key }}' root@$SERVER.ordinals.net
+  for server in alpha balance regtest signet stability testnet; do
+    ssh-copy-id -i '{{ key }}' root@$server.ordinals.net
   done
 
 save-ord-dev-state domain='ordinals-dev.com':
@@ -114,11 +114,11 @@ prepare-release revision='master':
   git log --pretty='format:- %s' >> CHANGELOG.md
   $EDITOR CHANGELOG.md
   $EDITOR Cargo.toml
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  version=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
   cargo check
-  git checkout -b release-$VERSION
+  git checkout -b release-$version
   git add -u
-  git commit -m "Release $VERSION"
+  git commit -m "Release $version"
   gh pr create --web
 
 publish-release revision='master':
@@ -139,9 +139,9 @@ publish-tag-and-crate revision='master':
   git clone git@github.com:ordinals/ord.git tmp/release
   cd tmp/release
   git checkout {{revision}}
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
-  git tag -a $VERSION -m "Release $VERSION"
-  git push git@github.com:ordinals/ord.git $VERSION
+  version=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  git tag -a $version -m "Release $version"
+  git push git@github.com:ordinals/ord.git $version
   cargo publish
   cd ../..
   rm -rf tmp/release
