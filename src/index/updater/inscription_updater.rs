@@ -15,16 +15,16 @@ pub(crate) enum Curse {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Flotsam {
-  pub(crate) txid: Txid,
-  pub(crate) inscription_id: InscriptionId,
-  pub(crate) offset: u64,
-  pub(crate) old_satpoint: SatPoint,
-  pub(crate) origin: Origin,
+pub(super) struct Flotsam {
+  txid: Txid,
+  inscription_id: InscriptionId,
+  offset: u64,
+  old_satpoint: SatPoint,
+  origin: Origin,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum Origin {
+enum Origin {
   New {
     cursed: bool,
     fee: u64,

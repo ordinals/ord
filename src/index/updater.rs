@@ -10,7 +10,6 @@ use {
 
 pub(crate) mod inscription_updater;
 use crate::okx::lru::SimpleLru;
-pub(crate) use inscription_updater::{Flotsam, Origin};
 
 mod rune_updater;
 

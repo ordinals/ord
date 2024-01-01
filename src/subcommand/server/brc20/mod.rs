@@ -13,12 +13,10 @@ pub(super) enum BRC20Error {
   TickNotFound,
   #[error("balance not found")]
   BalanceNotFound,
-  #[error("operation not found")]
-  OperationNotFound,
   #[error("events not found")]
   EventsNotFound,
   #[error("block not found")]
   BlockNotFound,
 }
 
-pub(super) use {balance::*, receipt::*, ticker::*, transaction::*, transferable::*};
+pub(super) use {balance::*, receipt::*, ticker::*, transferable::*};

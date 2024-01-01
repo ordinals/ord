@@ -41,7 +41,6 @@ pub(super) use self::entry::{
   InscriptionEntry, InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue,
 };
 pub(super) use self::updater::BlockData;
-pub(crate) use self::updater::{Flotsam, Origin};
 
 pub(crate) mod entry;
 mod fetcher;
@@ -2058,23 +2057,6 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscriptions_with_satpoint_on_output(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    Self::inscriptions_on_output(
-      &self
-        .database
-        .begin_read()?
-        .open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?,
-      &self
-        .database
-        .begin_read()?
-        .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?,
-      outpoint,
-    )
-  }
-
   pub(crate) fn ord_txid_inscriptions(
     &self,
     txid: &Txid,
@@ -2150,20 +2132,6 @@ impl Index {
       &table,
       &ScriptKey::from_address(address.clone()),
     )?)
-  }
-
-  pub(crate) fn get_transaction_info(
-    &self,
-    txid: &bitcoin::Txid,
-  ) -> Result<Option<bitcoincore_rpc::json::GetRawTransactionResult>> {
-    if *txid == self.genesis_block_coinbase_txid {
-      Ok(None)
-    } else {
-      self
-        .client
-        .get_raw_transaction_info(txid, None)
-        .into_option()
-    }
   }
 
   pub(crate) fn brc20_get_tx_events_by_txid(

@@ -316,7 +316,6 @@ impl Server {
           get(brc20::brc20_all_transferable),
         )
         .route("/brc20/tx/:txid/events", get(brc20::brc20_tx_events))
-        .route("/brc20/tx/:txid", get(brc20::brc20_tx))
         .route(
           "/brc20/block/:block_hash/events",
           get(brc20::brc20_block_events),
