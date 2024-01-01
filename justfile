@@ -53,7 +53,7 @@ install-personal-key key='~/.ssh/id_ed25519.pub':
   #!/usr/bin/env bash
   set -euxo pipefail
   for SERVER in alpha balance regtest signet stability testnet; do
-    ssh-copy-id -i {{ key }} root@$SERVER.ordinals.net
+    ssh-copy-id -i '{{ key }}' root@$SERVER.ordinals.net
   done
 
 save-ord-dev-state domain='ordinals-dev.com':
