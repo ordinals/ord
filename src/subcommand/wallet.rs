@@ -30,7 +30,7 @@ pub mod transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
-pub(crate) struct Wallet {
+pub(crate) struct WalletCommand {
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) name: String,
   #[command(subcommand)]
@@ -65,7 +65,7 @@ pub(crate) enum Subcommand {
   Cardinals,
 }
 
-impl Wallet {
+impl WalletCommand {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Arc::new(Index::open(&options)?);
     let handle = axum_server::Handle::new();
@@ -95,8 +95,8 @@ impl Wallet {
       });
     }
 
-    let wallet_foo = WalletFoo {
-      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet_command(self.name, &options)?,
+    let wallet = Wallet {
+      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name, &options)?,
       ord_api_url,
       ord_http_client: {
         let mut headers = header::HeaderMap::new();
@@ -113,12 +113,12 @@ impl Wallet {
 
     match self.subcommand {
       Subcommand::Balance => balance::run(self.name, options),
-      Subcommand::Create(create) => create.run(self.name, options),
+      Subcommand::Create(create) => create.run(wallet, options),
       Subcommand::Etch(etch) => etch.run(self.name, options),
-      Subcommand::Inscribe(inscribe) => inscribe.run(self.name, options),
+      Subcommand::Inscribe(inscribe) => inscribe.run(wallet, options),
       Subcommand::Inscriptions => inscriptions::run(self.name, options),
       Subcommand::Receive => receive::run(self.name, options),
-      Subcommand::Restore(restore) => restore.run(self.name, options),
+      Subcommand::Restore(restore) => restore.run(wallet, options),
       Subcommand::Sats(sats) => sats.run(self.name, options),
       Subcommand::Send(send) => send.run(self.name, options),
       Subcommand::Transactions(transactions) => transactions.run(self.name, options),
@@ -128,15 +128,14 @@ impl Wallet {
   }
 }
 
-pub(crate) struct WalletFoo {
+pub(crate) struct Wallet {
   pub(crate) bitcoin_rpc_client: Client,
   pub(crate) ord_api_url: Url,
-  // TODO: make this async
-  pub(crate) ord_http_client: reqwest::blocking::Client,
+  pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
   pub(crate) wallet_name: String,
 }
 
-impl WalletFoo {
+impl Wallet {
   pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
@@ -232,14 +231,14 @@ impl WalletFoo {
     )
   }
 
-  pub(crate) fn initialize(&self, wallet: String, options: &Options, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize(&self, options: &Options, seed: [u8; 64]) -> Result {
     let client = check_version(options.bitcoin_rpc_client(None)?)?;
 
     let network = options.chain().network();
 
     &self
       .bitcoin_rpc_client
-      .create_wallet(&wallet, None, Some(true), None, None)?;
+      .create_wallet(&self.wallet_name, None, Some(true), None, None)?;
 
     let secp = Secp256k1::new();
 
@@ -307,7 +306,7 @@ impl WalletFoo {
   }
 }
 
-pub(crate) fn bitcoin_rpc_client_for_wallet_command(
+pub(crate) fn bitcoin_rpc_client_for_wallet(
   wallet_name: String,
   options: &Options,
 ) -> Result<Client> {

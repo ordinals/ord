@@ -381,20 +381,6 @@ impl Index {
     self.durability = durability;
   }
 
-  pub(crate) fn check_sync(&self, utxos: &BTreeMap<OutPoint, Amount>) -> Result<bool> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
-    for outpoint in utxos.keys() {
-      if outpoint_to_value.get(&outpoint.store())?.is_none() {
-        return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
-        ));
-      }
-    }
-
-    Ok(true)
-  }
-
   pub(crate) fn has_rune_index(&self) -> bool {
     self.index_runes
   }
@@ -3394,20 +3380,36 @@ mod tests {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
       let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::initialize("ord".into(), &context.options, mnemonic.to_seed(""))
-        .unwrap();
+
+      Arguments {
+        options: context.options.clone(),
+        subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
+          name: "ord".into(),
+          subcommand: crate::subcommand::wallet::Subcommand::Create(
+            crate::subcommand::wallet::create::Create {
+              passphrase: "".into(),
+            },
+          ),
+        }),
+      }
+      .run()
+      .unwrap();
+
       context.rpc_server.mine_blocks(1);
-      assert_regex_match!(
-        crate::subcommand::wallet::get_unspent_outputs(
-          &crate::subcommand::wallet::bitcoin_rpc_client_for_wallet_command(
-            "ord".to_string(),
-            &context.options,
-          )
-          .unwrap(),
-          &context.index
+
+      let wallet = crate::subcommand::wallet::Wallet {
+        bitcoin_rpc_client: crate::subcommand::wallet::bitcoin_rpc_client_for_wallet(
+          "ord".into(),
+          &context.options,
         )
-        .unwrap_err()
-        .to_string(),
+        .unwrap(),
+        ord_api_url: "127.0.0.1:8080".parse().unwrap(),
+        ord_http_client: reqwest::blocking::Client::new(),
+        wallet_name: "ord".into(),
+      };
+
+      assert_regex_match!(
+        wallet.get_unspent_outputs().unwrap_err().to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }

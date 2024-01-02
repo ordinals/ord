@@ -11,7 +11,7 @@ pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
 
   index.update()?;
 
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+  let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
 
   let mut outputs = Vec::new();
   for (output, amount) in get_unspent_outputs(&client, &index)? {

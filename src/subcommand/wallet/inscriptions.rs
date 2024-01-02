@@ -12,7 +12,7 @@ pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+  let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
 
   let unspent_outputs = get_unspent_outputs(&client, &index)?;
 

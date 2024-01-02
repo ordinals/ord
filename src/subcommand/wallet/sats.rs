@@ -33,7 +33,7 @@ impl Sats {
 
     index.update()?;
 
-    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+    let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
 
     let utxos = get_unspent_output_ranges(&client, &index)?;
 

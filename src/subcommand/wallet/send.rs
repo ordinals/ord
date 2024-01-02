@@ -29,7 +29,7 @@ impl Send {
 
     index.update()?;
 
-    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+    let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
 
     let chain = options.chain();
 
