@@ -372,16 +372,19 @@ impl<'index> Updater<'_> {
             get_txout_by_outpoint(&outpoint_to_entry, &prev_output).unwrap()
           {
             miss_outputs_count.fetch_add(1, Ordering::Relaxed);
-            Some((prev_output, txout))
+            Some((prev_output, Some(txout)))
           } else {
             fetching_outputs_count.fetch_add(1, Ordering::Relaxed);
-            outpoint_sender.blocking_send(prev_output).unwrap();
-            None
+            Some((prev_output, None))
           }
         })
         .collect::<Vec<_>>();
-      for (out_point, tx_out) in tx_outs.into_iter() {
-        tx_out_cache.insert(out_point, tx_out);
+      for (out_point, value) in tx_outs.into_iter() {
+        if let Some(tx_out) = value {
+          tx_out_cache.insert(out_point, tx_out);
+        } else {
+          outpoint_sender.blocking_send(out_point).unwrap();
+        }
       }
     }
 
@@ -770,5 +773,22 @@ impl<'index> Updater<'_> {
     Reorg::update_savepoints(self.index, self.height)?;
 
     Ok(())
+  }
+}
+
+
+#[cfg(test)]
+mod tests {
+  use rayon::prelude::*;
+  #[test]
+  fn parallel() {
+    let mut a: Vec<_> = (0..10000).into_par_iter().map(|x| {
+      x+1
+    }).collect();
+
+    let b = a.clone();
+    a.sort();
+    assert_eq!(a, b);
+    println!("{:?}", a);
   }
 }

@@ -2,7 +2,7 @@ use super::*;
 use crate::okx::datastore::ord::operation::{Action, InscriptionOp};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) enum Curse {
+enum Curse {
   DuplicateField,
   IncompleteField,
   NotAtOffsetZero,

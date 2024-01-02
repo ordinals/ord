@@ -811,7 +811,7 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn begin_read(&self) -> Result<rtx::Rtx> {
+  fn begin_read(&self) -> Result<rtx::Rtx> {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
