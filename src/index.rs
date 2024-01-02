@@ -4,6 +4,7 @@ use {
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
+    event::Event,
     reorg::*,
     runes::{Rune, RuneId},
     updater::Updater,
@@ -30,13 +31,10 @@ use {
   },
 };
 
-pub use {
-  self::{entry::RuneEntry, event::Event},
-  entry::MintEntry,
-};
+pub use {self::event::Event, entry::MintEntry};
 
 pub(crate) mod entry;
-mod event;
+pub mod event;
 mod fetcher;
 mod reorg;
 mod rtx;
