@@ -13,7 +13,6 @@ use {
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
-  bitcoincore_rpc::Client,
 };
 
 mod batch;
@@ -114,8 +113,6 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let client = wallet.bitcoin_rpc_client;
-
     let utxos = wallet.get_unspent_outputs()?;
 
     let locked_utxos = wallet.get_locked_outputs()?;
@@ -133,7 +130,7 @@ impl Inscribe {
 
     match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, chain, &wallet)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
@@ -159,7 +156,7 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
+        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, chain, &wallet)?;
 
         postage = batchfile
           .postage
@@ -167,12 +164,12 @@ impl Inscribe {
           .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
-          &client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
           postage,
           self.compress,
+          &wallet,
         )?;
 
         mode = batchfile.mode;
@@ -214,7 +211,7 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint,
     }
-    .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
+    .inscribe(chain, &index, &locked_utxos, runic_utxos, &utxos, &wallet)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -240,8 +237,8 @@ impl Inscribe {
     parent: Option<InscriptionId>,
     index: &Index,
     utxos: &BTreeMap<OutPoint, Amount>,
-    client: &Client,
     chain: Chain,
+    wallet: &Wallet,
   ) -> Result<Option<ParentInfo>> {
     if let Some(parent_id) = parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
@@ -250,7 +247,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: get_change_address(client, chain)?,
+          destination: wallet.get_change_address(chain)?,
           id: parent_id,
           location: satpoint,
           tx_out: index

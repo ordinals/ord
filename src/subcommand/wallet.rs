@@ -71,10 +71,11 @@ impl WalletCommand {
     let handle = axum_server::Handle::new();
     LISTENERS.lock().unwrap().push(handle.clone());
 
-    let ord_api_url: Url = format!("127.0.0.1:8080").parse().unwrap();
+    let ord_api_url: Url = format!("http://127.0.0.1:8080").parse().unwrap();
 
     {
       let options = options.clone();
+      let ord_api_url = ord_api_url.clone();
       std::thread::spawn(move || {
         crate::subcommand::server::Server {
           address: ord_api_url.host_str().map(|a| a.to_string()),
@@ -96,7 +97,7 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
-      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name, &options)?,
+      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name.clone(), &options)?,
       ord_api_url,
       ord_http_client: {
         let mut headers = header::HeaderMap::new();
@@ -112,18 +113,18 @@ impl WalletCommand {
     };
 
     match self.subcommand {
-      Subcommand::Balance => balance::run(self.name, options),
+      Subcommand::Balance => balance::run(wallet, options),
       Subcommand::Create(create) => create.run(wallet, options),
-      Subcommand::Etch(etch) => etch.run(self.name, options),
+      Subcommand::Etch(etch) => etch.run(wallet, options),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet, options),
-      Subcommand::Inscriptions => inscriptions::run(self.name, options),
-      Subcommand::Receive => receive::run(self.name, options),
+      Subcommand::Inscriptions => inscriptions::run(wallet, options),
+      Subcommand::Receive => receive::run(wallet),
       Subcommand::Restore(restore) => restore.run(wallet, options),
-      Subcommand::Sats(sats) => sats.run(self.name, options),
-      Subcommand::Send(send) => send.run(self.name, options),
-      Subcommand::Transactions(transactions) => transactions.run(self.name, options),
-      Subcommand::Outputs => outputs::run(self.name, options),
-      Subcommand::Cardinals => cardinals::run(self.name, options),
+      Subcommand::Sats(sats) => sats.run(wallet, options),
+      Subcommand::Send(send) => send.run(wallet, options),
+      Subcommand::Transactions(transactions) => transactions.run(wallet),
+      Subcommand::Outputs => outputs::run(wallet, options),
+      Subcommand::Cardinals => cardinals::run(wallet, options),
     }
   }
 }
@@ -232,11 +233,11 @@ impl Wallet {
   }
 
   pub(crate) fn initialize(&self, options: &Options, seed: [u8; 64]) -> Result {
-    let client = check_version(options.bitcoin_rpc_client(None)?)?;
+    let _client = check_version(options.bitcoin_rpc_client(None)?)?;
 
     let network = options.chain().network();
 
-    &self
+    let _ = &self
       .bitcoin_rpc_client
       .create_wallet(&self.wallet_name, None, Some(true), None, None)?;
 

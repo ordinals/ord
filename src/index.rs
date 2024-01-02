@@ -3379,7 +3379,6 @@ mod tests {
     for context in Context::configurations() {
       let mut entropy = [0; 16];
       rand::thread_rng().fill_bytes(&mut entropy);
-      let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
 
       Arguments {
         options: context.options.clone(),

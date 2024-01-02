@@ -39,16 +39,16 @@ impl Batch {
     &self,
     chain: Chain,
     index: &Index,
-    client: &Client,
     locked_utxos: &BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
+    wallet: &Wallet,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
 
     let commit_tx_change = [
-      get_change_address(client, chain)?,
-      get_change_address(client, chain)?,
+      wallet.get_change_address(chain)?,
+      wallet.get_change_address(chain)?,
     ];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
@@ -70,12 +70,14 @@ impl Batch {
       )));
     }
 
-    let signed_commit_tx = client
+    let signed_commit_tx = wallet
+      .bitcoin_rpc_client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
     let signed_reveal_tx = if self.parent_info.is_some() {
-      client
+      wallet
+        .bitcoin_rpc_client
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
           Some(
@@ -100,12 +102,17 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Self::backup_recovery_key(client, recovery_key_pair, chain.network())?;
+      Self::backup_recovery_key(&wallet, recovery_key_pair, chain.network())?;
     }
 
-    let commit = client.send_raw_transaction(&signed_commit_tx)?;
+    let commit = wallet
+      .bitcoin_rpc_client
+      .send_raw_transaction(&signed_commit_tx)?;
 
-    let reveal = match client.send_raw_transaction(&signed_reveal_tx) {
+    let reveal = match wallet
+      .bitcoin_rpc_client
+      .send_raw_transaction(&signed_reveal_tx)
+    {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
@@ -445,23 +452,27 @@ impl Batch {
   }
 
   fn backup_recovery_key(
-    client: &Client,
+    wallet: &Wallet,
     recovery_key_pair: TweakedKeyPair,
     network: Network,
   ) -> Result {
     let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
 
-    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+    let info = wallet
+      .bitcoin_rpc_client
+      .get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 
-    let response = client.import_descriptors(ImportDescriptors {
-      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
-      timestamp: Timestamp::Now,
-      active: Some(false),
-      range: None,
-      next_index: None,
-      internal: Some(false),
-      label: Some("commit tx recovery key".to_string()),
-    })?;
+    let response = wallet
+      .bitcoin_rpc_client
+      .import_descriptors(ImportDescriptors {
+        descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+        timestamp: Timestamp::Now,
+        active: Some(false),
+        range: None,
+        next_index: None,
+        internal: Some(false),
+        label: Some("commit tx recovery key".to_string()),
+      })?;
 
     for result in response {
       if !result.success {
@@ -585,12 +596,12 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
-    client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
     compress: bool,
+    wallet: &Wallet,
   ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
 
@@ -633,13 +644,13 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
+      Mode::SharedOutput | Mode::SameSat => vec![wallet.get_change_address(chain)?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()
         .map(|entry| {
           entry.destination.as_ref().map_or_else(
-            || get_change_address(client, chain),
+            || wallet.get_change_address(chain),
             |address| {
               address
                 .clone()

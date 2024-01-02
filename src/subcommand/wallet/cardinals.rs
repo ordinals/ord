@@ -6,14 +6,12 @@ pub struct CardinalUtxo {
   pub amount: u64,
 }
 
-pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
+pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
 
   index.update()?;
 
-  let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
-
-  let unspent_outputs = get_unspent_outputs(&client, &index)?;
+  let unspent_outputs = wallet.get_unspent_outputs()?;
 
   let inscribed_utxos = index
     .get_inscriptions(&unspent_outputs)?

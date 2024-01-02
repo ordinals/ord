@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: Wallet, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
@@ -29,13 +29,11 @@ impl Send {
 
     index.update()?;
 
-    let client = bitcoin_rpc_client_for_wallet(wallet, &options)?;
-
     let chain = options.chain();
 
-    let unspent_outputs = get_unspent_outputs(&client, &index)?;
+    let unspent_outputs = wallet.get_unspent_outputs()?;
 
-    let locked_outputs = get_locked_outputs(&client)?;
+    let locked_outputs = wallet.get_locked_outputs()?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
@@ -44,8 +42,8 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
-        let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
+        Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
+        let transaction = Self::send_amount(&wallet, amount, address, self.fee_rate)?;
         return Ok(Box::new(Output { transaction }));
       }
       Outgoing::InscriptionId(id) => index
@@ -55,7 +53,6 @@ impl Send {
         let transaction = Self::send_runes(
           address,
           chain,
-          &client,
           decimal,
           self.fee_rate,
           &index,
@@ -63,6 +60,7 @@ impl Send {
           rune,
           runic_outputs,
           unspent_outputs,
+          &wallet,
         )?;
         return Ok(Box::new(Output { transaction }));
       }
@@ -83,8 +81,8 @@ impl Send {
     };
 
     let change = [
-      get_change_address(&client, chain)?,
-      get_change_address(&client, chain)?,
+      wallet.get_change_address(chain)?,
+      wallet.get_change_address(chain)?,
     ];
 
     let postage = if let Some(postage) = self.postage {
@@ -106,17 +104,18 @@ impl Send {
     )
     .build_transaction()?;
 
-    let signed_tx = client
+    let signed_tx = wallet
+      .bitcoin_rpc_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let txid = client.send_raw_transaction(&signed_tx)?;
+    let txid = wallet.bitcoin_rpc_client.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
   }
 
   fn lock_non_cardinal_outputs(
-    client: &Client,
+    wallet: &Wallet,
     inscriptions: &BTreeMap<SatPoint, InscriptionId>,
     runic_outputs: &BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, bitcoin::Amount>,
@@ -133,7 +132,7 @@ impl Send {
       .cloned()
       .collect::<Vec<OutPoint>>();
 
-    if !client.lock_unspent(&locked_outputs)? {
+    if !wallet.bitcoin_rpc_client.lock_unspent(&locked_outputs)? {
       bail!("failed to lock UTXOs");
     }
 
@@ -141,12 +140,12 @@ impl Send {
   }
 
   fn send_amount(
-    client: &Client,
+    wallet: &Wallet,
     amount: Amount,
     address: Address,
     fee_rate: FeeRate,
   ) -> Result<Txid> {
-    Ok(client.call(
+    Ok(wallet.bitcoin_rpc_client.call(
       "sendtoaddress",
       &[
         address.to_string().into(), //  1. address
@@ -166,7 +165,6 @@ impl Send {
   fn send_runes(
     address: Address,
     chain: Chain,
-    client: &Client,
     decimal: Decimal,
     fee_rate: FeeRate,
     index: &Index,
@@ -174,13 +172,14 @@ impl Send {
     spaced_rune: SpacedRune,
     runic_outputs: BTreeSet<OutPoint>,
     unspent_outputs: BTreeMap<OutPoint, Amount>,
+    wallet: &Wallet,
   ) -> Result<Txid> {
     ensure!(
       index.has_rune_index(),
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_non_cardinal_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
+    Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(spaced_rune.rune)?
@@ -251,7 +250,7 @@ impl Send {
           value: 0,
         },
         TxOut {
-          script_pubkey: get_change_address(client, chain)?.script_pubkey(),
+          script_pubkey: wallet.get_change_address(chain)?.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {
@@ -261,12 +260,18 @@ impl Send {
       ],
     };
 
-    let unsigned_transaction = fund_raw_transaction(client, fee_rate, &unfunded_transaction)?;
+    let unsigned_transaction =
+      fund_raw_transaction(&wallet.bitcoin_rpc_client, fee_rate, &unfunded_transaction)?;
 
-    let signed_transaction = client
+    let signed_transaction = wallet
+      .bitcoin_rpc_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    Ok(client.send_raw_transaction(&signed_transaction)?)
+    Ok(
+      wallet
+        .bitcoin_rpc_client
+        .send_raw_transaction(&signed_transaction)?,
+    )
   }
 }
