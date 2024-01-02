@@ -461,28 +461,34 @@ fn sat_recursive_endpoints_without_sat_index_return_404() {
 }
 
 #[test]
-fn transactions_are_stored_with_transaction_index() {
+fn inscription_transactions_are_stored_with_transaction_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-
-  rpc_server.mine_blocks(2);
+  create_wallet(&rpc_server);
+  let (_inscription, reveal) = inscribe(&rpc_server);
 
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-transactions"]);
 
+  let coinbase = rpc_server.tx(1, 0).txid();
+
   assert_eq!(
-    server
-      .request("/tx/f02151fda57850f323fa22b3d74c1e7039658ac788566677725fe682efb1fe3b")
-      .status(),
+    server.request(format!("/tx/{reveal}")).status(),
+    StatusCode::OK,
+  );
+
+  assert_eq!(
+    server.request(format!("/tx/{coinbase}")).status(),
     StatusCode::OK,
   );
 
   rpc_server.clear_state();
 
-  rpc_server.mine_blocks(1);
+  assert_eq!(
+    server.request(format!("/tx/{reveal}")).status(),
+    StatusCode::OK,
+  );
 
   assert_eq!(
-    server
-      .request("/tx/f02151fda57850f323fa22b3d74c1e7039658ac788566677725fe682efb1fe3b")
-      .status(),
-    StatusCode::OK,
+    server.request(format!("/tx/{coinbase}")).status(),
+    StatusCode::NOT_FOUND,
   );
 }
