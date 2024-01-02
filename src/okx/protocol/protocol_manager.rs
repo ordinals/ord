@@ -1,3 +1,4 @@
+use crate::okx::datastore::ord::OrdReaderWriter;
 use crate::okx::protocol::context::Context;
 use {
   super::*,
@@ -9,7 +10,6 @@ use {
   bitcoin::Txid,
   std::collections::HashMap,
 };
-use crate::okx::datastore::ord::OrdReaderWriter;
 
 pub struct ProtocolManager {
   config: ProtocolConfig,

@@ -47,8 +47,8 @@ where
 
   pub fn insert(&mut self, key: K, value: V) -> Option<V> {
     if self.new_cache.len() >= self.cache_size {
+      self.old_cache.clear();
       mem::swap(&mut self.new_cache, &mut self.old_cache);
-      self.new_cache.clear();
     }
     self.new_cache.insert(key, value)
   }
@@ -123,5 +123,17 @@ mod tests {
     assert_eq!(55, *lru.get(&5).unwrap());
     assert_eq!(66, *lru.get(&6).unwrap());
     assert_eq!(77, *lru.get(&7).unwrap());
+  }
+
+  #[test]
+  fn lru_swap_test() {
+    const CACHE_SIZE: usize = 10000000;
+    let mut lru = SimpleLru::new(CACHE_SIZE);
+    for i in 0..2 * CACHE_SIZE {
+      lru.insert(i, i);
+    }
+    println!("ready");
+    lru.insert(usize::MAX, usize::MAX);
+    assert_eq!(CACHE_SIZE + 1, lru.len());
   }
 }

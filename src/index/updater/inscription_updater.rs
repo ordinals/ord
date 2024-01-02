@@ -410,6 +410,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
   // write tx_out to outpoint_to_entry table
   pub(super) fn flush_cache(mut self) -> Result {
+    log::info!("Flushing cache...");
     let start = Instant::now();
     let persist = self.tx_out_local_cache.len();
     let mut entry = Vec::new();
