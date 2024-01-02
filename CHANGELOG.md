@@ -1,6 +1,50 @@
 Changelog
 =========
 
+[0.14.0](https://github.com/ordinals/ord/releases/tag/0.14.0) - 2023-01-02
+--------------------------------------------------------------------------
+
+### Fixed
+- Keep inscriptions with unrecognized even fields unbound after jubilee (#2894)
+
+### Added
+- Allow inscriptions to nominate a delegate (#2912)
+- Display number of times a rune has been minted (#2901)
+- Optionally store transactions in index (#2885)
+- Allow specifying destination for unallocated runes (#2899)
+- Make inscriptions with tag 66 permanently unbound (#2906)
+- Decode transactions from Bitcoin Core with `ord decode --txid` (#2907)
+- Allow skpping indexing inscriptions (#2900)
+- Add optional deadline to open etchings (#2875)
+
+### Changed
+- Only store transactions with inscriptions in the database (#2926)
+- Hide all inscriptions with /content/<INSCRIPTION_ID> content (#2908)
+- Hide code, metaprotocol, and unknown media inscriptions (#2872)
+- Display rune symbol to right of amount (#2871)
+
+### Misc
+- Use install to copy binary in deploy script (#2934)
+- Don't index transactions on production servers (#2933)
+- Add recipes to copy keys to servers (#2927)
+- Clean deploy/save-ord-dev-state (#2932)
+- Refactor bitcoin client for wallet (#2918)
+- Use enum for inscription tags (#2921)
+- Fix CSP origin for different deployments (#2923)
+- Placate clippy (#2924)
+- Display path to default datadir in help output (#2881)
+- Add index repair progress bar (#2904)
+- Listen on 127.0.0.1 to avoid firewall popup on macOS (#2911)
+- Set correct statistic when indexing transactions (#2913)
+- Show if transaction index is enabled on /status (#2910)
+- Optimize /inscription endpoint (#2884)
+- Show all inscription geneses on /tx (#2909)
+- Serve HTTP/2 (#2895)
+- Don't display trailing spacers in spaced runes (#2896)
+- Split runes more evenly (#2897)
+- Dispaly rune ID above height and index (#2874)
+- Use transaction version 2 (#2873)
+
 [0.13.1](https://github.com/ordinals/ord/releases/tag/0.13.1) - 2023-12-16
 --------------------------------------------------------------------------
 
