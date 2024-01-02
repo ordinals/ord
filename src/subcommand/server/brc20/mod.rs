@@ -2,7 +2,6 @@ use super::{types::ScriptPubkey, *};
 mod balance;
 mod receipt;
 mod ticker;
-mod transaction;
 mod transferable;
 
 #[derive(Debug, thiserror::Error)]

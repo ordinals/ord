@@ -776,15 +776,12 @@ impl<'index> Updater<'_> {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
   use rayon::prelude::*;
   #[test]
   fn parallel() {
-    let mut a: Vec<_> = (0..10000).into_par_iter().map(|x| {
-      x+1
-    }).collect();
+    let mut a: Vec<_> = (0..10000).into_par_iter().map(|x| x + 1).collect();
 
     let b = a.clone();
     a.sort();
