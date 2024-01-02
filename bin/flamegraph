@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+mkdir $1
+cd $1
+
+sudo \
+  CARGO_PROFILE_RELEASE_DEBUG=true \
+  RUST_LOG=info \
+  cargo flamegraph \
+  --deterministic \
+  --bin ord \
+  -- \
+  --chain signet \
+  --data-dir . \
+  --height-limit 0 \
+  index
+
+rm -f flamegraph.svg
+
+/usr/bin/time -o time sudo \
+  CARGO_PROFILE_RELEASE_DEBUG=true \
+  RUST_LOG=info \
+  cargo flamegraph \
+  --deterministic \
+  --bin ord \
+  -- \
+  --chain signet \
+  --data-dir . \
+  --height-limit 5000 \
+  index
+
+sudo chown -n $UID flamegraph.svg
+sudo chown -n $UID index.redb
