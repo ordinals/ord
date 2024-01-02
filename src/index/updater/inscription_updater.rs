@@ -63,7 +63,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) unbound_inscriptions: u64,
   pub(super) tx_out_receiver: &'a mut Receiver<TxOut>,
   pub(super) tx_out_cache: &'a mut SimpleLru<OutPoint, TxOut>,
-  tx_out_local_cache: HashMap<OutPoint, TxOut>,
+  pub(super) new_outpoints: Vec<OutPoint>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -113,7 +113,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       unbound_inscriptions,
       tx_out_receiver,
       tx_out_cache,
-      tx_out_local_cache: HashMap::new(),
+      new_outpoints: vec![],
     })
   }
   pub(super) fn index_envelopes(
@@ -163,8 +163,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       let current_input_value = if let Some(tx_out) = self.tx_out_cache.get(&tx_in.previous_output)
       {
         tx_out.value
-      } else if let Some(tx_out) = self.tx_out_local_cache.get(&tx_in.previous_output) {
-        tx_out.value
       } else {
         let tx_out = self.tx_out_receiver.blocking_recv().ok_or_else(|| {
           anyhow!(
@@ -172,9 +170,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             tx_in.previous_output.txid
           )
         })?;
-        // received new tx out from chain node, add it to the local cache first and persist it in db later.
+        // received new tx out from chain node, add it to new_outpoints first and persist it in db later.
+        #[cfg(not(feature = "cache"))]
+        self.new_outpoints.push(tx_in.previous_output);
         self
-          .tx_out_local_cache
+          .tx_out_cache
           .insert(tx_in.previous_output, tx_out.clone());
         tx_out.value
       };
@@ -344,17 +344,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       output_value = end;
 
-      #[cfg(feature = "cache")]
       self.tx_out_cache.insert(
-        OutPoint {
-          vout: vout.try_into().unwrap(),
-          txid,
-        },
-        tx_out.clone(),
-      );
-
-      #[cfg(not(feature = "cache"))]
-      self.tx_out_local_cache.insert(
         OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
@@ -409,19 +399,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   }
 
   // write tx_out to outpoint_to_entry table
-  pub(super) fn flush_cache(mut self) -> Result {
-    log::info!("Flushing cache...");
+  pub(super) fn flush_cache(self) -> Result {
     let start = Instant::now();
-    let persist = self.tx_out_local_cache.len();
+    let persist = self.new_outpoints.len();
     let mut entry = Vec::new();
-    for (outpoint, tx_out) in self.tx_out_local_cache.drain() {
+    for outpoint in self.new_outpoints.into_iter() {
+      let tx_out = self.tx_out_cache.get(&outpoint).unwrap();
       tx_out.consensus_encode(&mut entry)?;
       self
         .outpoint_to_entry
         .insert(&outpoint.store(), entry.as_slice())?;
       entry.clear();
-
-      self.tx_out_cache.insert(outpoint, tx_out);
     }
     log::info!(
       "flush cache, persist:{}, global:{} cost: {}ms",
