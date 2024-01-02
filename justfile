@@ -133,6 +133,9 @@ download-log unit='ord' host='alpha.ordinals.net':
 graph log:
   ./bin/graph $1
 
+flamegraph dir=`git branch --show-current`:
+  ./bin/flamegraph $1
+
 serve-docs: build-docs
   open http://127.0.0.1:8080
   python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
