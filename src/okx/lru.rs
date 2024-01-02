@@ -46,11 +46,14 @@ where
   }
 
   pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+    self.new_cache.insert(key, value)
+  }
+
+  pub fn refresh(&mut self) {
     if self.new_cache.len() >= self.cache_size {
       self.old_cache.clear();
       mem::swap(&mut self.new_cache, &mut self.old_cache);
     }
-    self.new_cache.insert(key, value)
   }
 
   pub fn len(&self) -> usize {
@@ -72,6 +75,7 @@ mod tests {
     assert!(lru.contains(&1));
     assert!(lru.contains(&2));
     assert_eq!(2, lru.len());
+    lru.refresh();
 
     lru.insert(3, 33);
     lru.insert(4, 44);
@@ -83,6 +87,7 @@ mod tests {
     assert!(lru.get(&4).is_some());
     assert_eq!(4, lru.len());
 
+    lru.refresh();
     lru.insert(5, 55);
     assert!(!lru.contains(&1));
     assert!(!lru.contains(&2));
@@ -96,6 +101,7 @@ mod tests {
     assert!(lru.get(&5).is_some());
     assert_eq!(3, lru.len());
 
+    lru.refresh();
     lru.insert(6, 66);
     assert!(lru.contains(&3));
     assert!(lru.contains(&4));
@@ -107,6 +113,7 @@ mod tests {
     assert!(lru.get(&6).is_some());
     assert_eq!(4, lru.len());
 
+    lru.refresh();
     lru.insert(7, 77);
     assert!(!lru.contains(&3));
     assert!(!lru.contains(&4));
@@ -120,6 +127,7 @@ mod tests {
     assert!(lru.get(&7).is_some());
     assert_eq!(3, lru.len());
 
+    lru.refresh();
     assert_eq!(55, *lru.get(&5).unwrap());
     assert_eq!(66, *lru.get(&6).unwrap());
     assert_eq!(77, *lru.get(&7).unwrap());
@@ -129,11 +137,18 @@ mod tests {
   fn lru_swap_test() {
     const CACHE_SIZE: usize = 10000000;
     let mut lru = SimpleLru::new(CACHE_SIZE);
-    for i in 0..2 * CACHE_SIZE {
+    for i in 0..CACHE_SIZE {
       lru.insert(i, i);
     }
-    println!("ready");
-    lru.insert(usize::MAX, usize::MAX);
-    assert_eq!(CACHE_SIZE + 1, lru.len());
+    assert_eq!(CACHE_SIZE, lru.len());
+    lru.refresh();
+    assert_eq!(CACHE_SIZE, lru.len());
+
+    for i in 0..CACHE_SIZE {
+      lru.insert(i, i);
+    }
+    assert_eq!(2 * CACHE_SIZE, lru.len());
+    lru.refresh();
+    assert_eq!(CACHE_SIZE, lru.len());
   }
 }

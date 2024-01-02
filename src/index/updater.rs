@@ -93,6 +93,7 @@ impl<'index> Updater<'_> {
     let mut uncommitted = 0;
     let mut tx_out_cache = SimpleLru::new(self.index.options.lru_size);
     while let Ok(block) = rx.recv() {
+      tx_out_cache.refresh();
       self.index_block(
         self.index,
         &mut outpoint_sender,
