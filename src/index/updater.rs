@@ -38,7 +38,6 @@ pub(crate) struct Updater<'index> {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
-  event_sender: Option<tokio::sync::mpsc::Sender<LocationUpdateEvent>>,
 }
 
 impl<'index> Updater<'_> {
@@ -51,7 +50,6 @@ impl<'index> Updater<'_> {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
-      event_sender: index.event_sender.clone(),
     })
   }
 
@@ -448,7 +446,7 @@ impl<'index> Updater<'_> {
       unbound_inscriptions,
       value_cache,
       value_receiver,
-      event_sender: &self.event_sender.clone(),
+      event_sender: &self.index.event_sender.clone(),
     };
 
     if self.index.index_sats {
