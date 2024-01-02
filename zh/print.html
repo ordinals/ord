@@ -572,7 +572,7 @@ OP_IF
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>然后，可以被连接成 <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="指针"><a class="header" href="#指针">指针</a></h1>
 <p>为了在输入的第一个以外的sat上进行铭刻，可以提供一个以0为基础的整数，称作 &quot;指针&quot;,并配以标签 <code>2</code>, 这将导致铭文被做在给定位置的输出的sat上。 如果指针等于或大于铭文交易输出中的总sat数，那么它将被忽略， 而铭文将像往常一样被铭刻。指针字段的值是一个小端整数，尾随零将被忽略。 </p>
 <p>使用了偶数标签，所以旧版本的 <code>ord</code> 会把铭文视为无约束，而不是错误地将其分配到第一个sat。</p>
