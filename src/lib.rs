@@ -78,7 +78,7 @@ use {
     thread,
     time::{Duration, Instant, SystemTime},
   },
-  sysinfo::{System, SystemExt},
+  sysinfo::System,
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
 };
