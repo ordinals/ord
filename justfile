@@ -27,9 +27,9 @@ deploy branch remote chain domain:
 
 deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-balance branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'balance.ordinals.net')
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-mainnet-stability branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'stability.ordinals.net')
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
 
 deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
