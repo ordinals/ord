@@ -179,7 +179,7 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
+    Self::lock_non_cardinal_outputs(wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry) = index
       .rune(spaced_rune.rune)?

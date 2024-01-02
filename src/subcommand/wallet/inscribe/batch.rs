@@ -102,7 +102,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Self::backup_recovery_key(&wallet, recovery_key_pair, chain.network())?;
+      Self::backup_recovery_key(wallet, recovery_key_pair, chain.network())?;
     }
 
     let commit = wallet

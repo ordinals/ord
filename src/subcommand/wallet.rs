@@ -71,7 +71,7 @@ impl WalletCommand {
     let handle = axum_server::Handle::new();
     LISTENERS.lock().unwrap().push(handle.clone());
 
-    let ord_api_url: Url = format!("http://127.0.0.1:8080").parse().unwrap();
+    let ord_api_url: Url = "http://127.0.0.1:8080".parse().unwrap();
 
     {
       let options = options.clone();
@@ -237,9 +237,10 @@ impl Wallet {
 
     let network = options.chain().network();
 
-    let _ = &self
-      .bitcoin_rpc_client
-      .create_wallet(&self.wallet_name, None, Some(true), None, None)?;
+    let _ =
+      &self
+        .bitcoin_rpc_client
+        .create_wallet(&self.wallet_name, None, Some(true), None, None)?;
 
     let secp = Secp256k1::new();
 
