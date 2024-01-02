@@ -1373,7 +1373,7 @@ msgstr ""
 
 #: src/inscriptions/metadata.md:85
 msgid ""
-"Which would then be concatinated into `{\"very\":\"long\",\"metadata\":"
+"Which would then be concatenated into `{\"very\":\"long\",\"metadata\":"
 "\"is\",\"finally\":\"done\"}`."
 msgstr ""
 "然后，可以被连接成 `{\"very\":\"long\",\"metadata\":"
