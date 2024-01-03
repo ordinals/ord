@@ -3403,6 +3403,7 @@ mod tests {
           &context.options,
         )
         .unwrap(),
+        chain: context.options.chain(),
         ord_api_url: "127.0.0.1:8080".parse().unwrap(),
         ord_http_client: reqwest::blocking::Client::new(),
         wallet_name: "ord".into(),

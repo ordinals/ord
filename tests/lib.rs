@@ -15,7 +15,7 @@ use {
     subcommand::runes::RuneInfo,
     templates::{
       block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
-      output::OutputJson, sat::SatJson, status::StatusHtml,
+      output::OutputJson, sat::SatJson, status::StatusJson,
     },
     Edict, InscriptionId, Rune, RuneId, Runestone, SatPoint,
   },

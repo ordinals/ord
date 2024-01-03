@@ -380,7 +380,7 @@ fn get_status() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut status_json: StatusHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut status_json: StatusJson = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   let dummy_started = "2012-12-12 12:12:12+00:00"
     .parse::<DateTime<Utc>>()
@@ -393,7 +393,7 @@ fn get_status() {
 
   pretty_assert_eq!(
     status_json,
-    StatusHtml {
+    StatusJson {
       blessed_inscriptions: 1,
       cursed_inscriptions: 0,
       chain: Chain::Mainnet,

@@ -184,7 +184,7 @@ impl Inscribe {
     }
 
     let satpoint = if let Some(sat) = sat {
-      if !index.has_sat_index() {
+      if !wallet.get_server_status()?.sat_index {
         return Err(anyhow!(
           "index must be built with `--index-sats` to use `--sat`"
         ));

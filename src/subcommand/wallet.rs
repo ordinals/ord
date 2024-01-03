@@ -251,6 +251,18 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
+  pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
+    let status: StatusJson = serde_json::from_str(
+      &self
+        .ord_http_client
+        .get(self.ord_api_url.join(&format!("/status")).unwrap())
+        .send()?
+        .text()?,
+    )?;
+
+    Ok(status)
+  }
+
   pub(crate) fn get_locked_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
