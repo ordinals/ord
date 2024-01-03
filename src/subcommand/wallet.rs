@@ -235,14 +235,15 @@ impl Wallet {
   }
 
   pub(crate) fn initialize(&self, options: &Options, seed: [u8; 64]) -> Result {
-    let _client = check_version(options.bitcoin_rpc_client(None)?)?;
+    check_version(options.bitcoin_rpc_client(None)?)?.create_wallet(
+      &self.wallet_name,
+      None,
+      Some(true),
+      None,
+      None,
+    )?;
 
     let network = self.chain.network();
-
-    let _ =
-      &self
-        .bitcoin_rpc_client
-        .create_wallet(&self.wallet_name, None, Some(true), None, None)?;
 
     let secp = Secp256k1::new();
 
@@ -261,6 +262,7 @@ impl Wallet {
 
     for change in [false, true] {
       self.derive_and_import_descriptor(
+        options,
         &secp,
         (fingerprint, derivation_path.clone()),
         derived_private_key,
@@ -273,6 +275,7 @@ impl Wallet {
 
   fn derive_and_import_descriptor(
     &self,
+    options: &Options,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
     derived_private_key: ExtendedPrivKey,
@@ -294,8 +297,8 @@ impl Wallet {
 
     let desc = Descriptor::new_tr(public_key, None)?;
 
-    self
-      .bitcoin_rpc_client
+    options
+      .bitcoin_rpc_client(Some(self.wallet_name.clone()))?
       .import_descriptors(ImportDescriptors {
         descriptor: desc.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
