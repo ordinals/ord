@@ -166,7 +166,7 @@ pub(crate) fn initialize(wallet: String, options: &Options, seed: [u8; 64]) -> R
     None,
   )?;
 
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, options)?;
+  let client = options.bitcoin_rpc_client(Some(wallet))?;
 
   let network = options.chain().network();
 
