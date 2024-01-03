@@ -369,6 +369,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       output_value = end;
 
+      #[cfg(not(feature = "cache"))]
+      self.new_outpoints.push(OutPoint {
+        vout: vout.try_into().unwrap(),
+        txid,
+      });
       self.tx_out_cache.insert(
         OutPoint {
           vout: vout.try_into().unwrap(),
