@@ -87,18 +87,18 @@ pub enum List {
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
   Schema = 0,
-  BlessedInscriptions,
-  Commits,
-  CursedInscriptions,
-  IndexRunes,
-  IndexSats,
-  LostSats,
-  OutputsTraversed,
-  ReservedRunes,
-  Runes,
-  SatRanges,
-  UnboundInscriptions,
-  IndexTransactions,
+  BlessedInscriptions = 1,
+  Commits = 2,
+  CursedInscriptions = 3,
+  IndexRunes = 4,
+  IndexSats = 5,
+  LostSats = 6,
+  OutputsTraversed = 7,
+  ReservedRunes = 8,
+  Runes = 9,
+  SatRanges = 10,
+  UnboundInscriptions = 11,
+  IndexTransactions = 12,
 }
 
 impl Statistic {

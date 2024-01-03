@@ -30,6 +30,7 @@ enum Origin {
     pointer: Option<u64>,
     reinscription: bool,
     unbound: bool,
+    vindicated: bool,
   },
   Old {
     old_satpoint: SatPoint,
@@ -76,6 +77,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
     let mut inscribed_offsets = BTreeMap::new();
+    let jubilant = self.height >= self.chain.jubilee_height();
     let mut total_input_value = 0;
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
@@ -142,9 +144,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let curse = if self.height >= self.chain.jubilee_height() {
-          None
-        } else if inscription.payload.unrecognized_even_field {
+        let curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
         } else if inscription.payload.duplicate_field {
           Some(Curse::DuplicateField)
@@ -187,6 +187,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
+        let vindicated = jubilant && curse.is_some();
+
         let unbound = current_input_value == 0
           || curse == Some(Curse::UnrecognizedEvenField)
           || inscription.payload.unrecognized_even_field;
@@ -201,13 +203,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           inscription_id,
           offset,
           origin: Origin::New {
-            reinscription: inscribed_offsets.get(&offset).is_some(),
-            cursed: curse.is_some(),
+            cursed: curse.is_some() && !jubilant,
             fee: 0,
             hidden: inscription.payload.hidden(),
             parent: inscription.payload.parent(),
             pointer: inscription.payload.pointer(),
+            reinscription: inscribed_offsets.get(&offset).is_some(),
             unbound,
+            vindicated,
           },
         });
 
@@ -404,6 +407,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         pointer: _,
         reinscription,
         unbound,
+        vindicated,
       } => {
         let inscription_number = if cursed {
           let number: i32 = self.cursed_inscription_count.try_into().unwrap();
@@ -465,6 +469,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         if unbound {
           Charm::Unbound.set(&mut charms);
+        }
+
+        if vindicated {
+          Charm::Vindicated.set(&mut charms);
         }
 
         if let Some(Sat(n)) = sat {

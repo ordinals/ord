@@ -1219,6 +1219,11 @@ impl Server {
     Ok(if accept_json {
       Json(InscriptionJson {
         inscription_id: info.entry.id,
+        charms: Charm::ALL
+          .iter()
+          .filter(|charm| charm.is_set(info.charms))
+          .map(|charm| charm.title().into())
+          .collect(),
         children: info.children,
         inscription_number: info.entry.inscription_number,
         genesis_height: info.entry.height,
