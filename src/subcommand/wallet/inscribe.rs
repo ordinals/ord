@@ -1,7 +1,7 @@
 use {
   self::batch::{Batch, Batchfile, Mode},
   super::*,
-  crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
+  crate::subcommand::wallet::transaction_builder::Target,
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
@@ -108,21 +108,19 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;
 
-    let wallet = Wallet::load(&options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
-    let utxos = index.get_unspent_outputs(wallet)?;
+    let utxos = get_unspent_outputs(&client, &index)?;
 
-    let locked_utxos = index.get_locked_outputs(wallet)?;
+    let locked_utxos = get_locked_outputs(&client)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
-
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let chain = options.chain();
 

@@ -13,8 +13,13 @@ pub(crate) struct Restore {
 }
 
 impl Restore {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    initialize_wallet(&options, self.mnemonic.to_seed(self.passphrase))?;
+  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
+    wallet::initialize(
+      wallet_name,
+      &options,
+      self.mnemonic.to_seed(self.passphrase),
+    )?;
+
     Ok(Box::new(Empty {}))
   }
 }

@@ -104,7 +104,7 @@ impl TestServer {
     for i in 0.. {
       let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
+      if response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count {
         break;
       } else if i == 20 {
         panic!("index failed to synchronize with chain");

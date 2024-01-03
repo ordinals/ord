@@ -84,7 +84,7 @@ pub(crate) async fn ord_outpoint(
 
   // Get the txout from the database store or from an RPC request.
   let vout = index
-    .get_transaction_output_by_outpoint(outpoint)
+    .get_outpoint_entry(outpoint)
     .ok()
     .flatten()
     .or_else(|| {

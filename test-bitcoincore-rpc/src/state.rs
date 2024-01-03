@@ -47,9 +47,13 @@ impl State {
     }
   }
 
+  pub(crate) fn clear(&mut self) {
+    *self = Self::new(self.network, self.version, self.fail_lock_unspent);
+  }
+
   pub(crate) fn push_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
@@ -160,7 +164,7 @@ impl State {
     }
 
     let mut tx = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input,
       output: (0..template.outputs)

@@ -96,7 +96,7 @@ impl Batch {
         )?
         .hex
     } else {
-      bitcoin::consensus::encode::serialize(&reveal_tx)
+      consensus::encode::serialize(&reveal_tx)
     };
 
     if !self.no_backup {
@@ -492,7 +492,7 @@ impl Batch {
         .collect(),
       output: outputs,
       lock_time: LockTime::ZERO,
-      version: 1,
+      version: 2,
     };
 
     let fee = {

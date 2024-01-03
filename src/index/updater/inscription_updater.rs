@@ -48,11 +48,15 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'db, 'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) index_transactions: bool,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'db, 'tx, i32, u32>,
   pub(super) next_sequence_number: u32,
   pub(super) lost_sats: u64,
   pub(super) outpoint_to_entry: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) reward: u64,
+  pub(super) transaction_buffer: Vec<u8>,
+  pub(super) transaction_id_to_transaction:
+    &'a mut Table<'db, 'tx, &'static TxidValue, &'static [u8]>,
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'db, 'tx, u64, u32>,
   pub(super) satpoint_to_sequence_number:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, u32>,
@@ -73,10 +77,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     height: u32,
     home_inscriptions: &'a mut Table<'db, 'tx, u32, InscriptionIdValue>,
     id_to_sequence_number: &'a mut Table<'db, 'tx, InscriptionIdValue, u32>,
+    index_transactions: bool,
     inscription_number_to_sequence_number: &'a mut Table<'db, 'tx, i32, u32>,
     next_sequence_number: u32,
     lost_sats: u64,
     outpoint_to_entry: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+    transaction_id_to_transaction: &'a mut Table<'db, 'tx, &'static TxidValue, &'static [u8]>,
     sat_to_sequence_number: &'a mut MultimapTable<'db, 'tx, u64, u32>,
     satpoint_to_sequence_number: &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, u32>,
     sequence_number_to_children: &'a mut MultimapTable<'db, 'tx, u32, u32>,
@@ -97,11 +103,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       home_inscription_count: home_inscriptions.len()?,
       home_inscriptions,
       id_to_sequence_number,
+      index_transactions,
       inscription_number_to_sequence_number,
       next_sequence_number,
       lost_sats,
       outpoint_to_entry,
       reward: Height(height).subsidy(),
+      transaction_buffer: vec![],
+      transaction_id_to_transaction,
       sat_to_sequence_number,
       satpoint_to_sequence_number,
       sequence_number_to_children,
@@ -119,12 +128,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
-    let mut envelopes = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
     let mut inscribed_offsets = BTreeMap::new();
     let mut total_input_value = 0;
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+
+    let envelopes = ParsedEnvelope::from_transaction(tx);
+    let inscriptions = !envelopes.is_empty();
+    let mut envelopes = envelopes.into_iter().peekable();
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
@@ -230,7 +242,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0
+          || curse == Some(Curse::UnrecognizedEvenField)
+          || inscription.payload.unrecognized_even_field;
 
         let offset = inscription
           .payload
@@ -266,6 +280,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         envelopes.next();
         id_counter += 1;
       }
+    }
+
+    if self.index_transactions && inscriptions {
+      tx.consensus_encode(&mut self.transaction_buffer)
+        .expect("in-memory writers don't error");
+
+      self
+        .transaction_id_to_transaction
+        .insert(&txid.store(), self.transaction_buffer.as_slice())?;
+
+      self.transaction_buffer.clear();
     }
 
     let potential_parents = floating_inscriptions

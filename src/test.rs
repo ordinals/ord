@@ -120,7 +120,7 @@ pub(crate) struct InscriptionTemplate {
 impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
-      parent: template.parent.map(|id| id.parent_value()),
+      parent: template.parent.map(|id| id.value()),
       pointer: template.pointer.map(Inscription::pointer_value),
       ..Default::default()
     }
