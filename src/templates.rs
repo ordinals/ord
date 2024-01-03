@@ -47,7 +47,7 @@ mod rare;
 mod rune;
 mod runes;
 pub mod sat;
-mod status;
+pub mod status;
 mod transaction;
 
 #[derive(Boilerplate)]
