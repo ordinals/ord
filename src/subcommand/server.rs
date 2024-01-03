@@ -44,6 +44,7 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
+use crate::templates::RunesJson;
 
 mod accept_encoding;
 mod accept_json;
@@ -635,13 +636,20 @@ impl Server {
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<RunesHtml>> {
-    Ok(
+    AcceptJson(accept_json): AcceptJson
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(RunesJson {
+        runes: index.runes()?,
+      })
+          .into_response()
+    }else {
       RunesHtml {
         entries: index.runes()?,
       }
-      .page(server_config),
-    )
+          .page(server_config)
+          .into_response()
+    })
   }
 
   async fn home(

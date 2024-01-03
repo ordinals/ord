@@ -21,7 +21,7 @@ pub(crate) use {
   range::RangeHtml,
   rare::RareTxt,
   rune::{RuneHtml, RuneJson},
-  runes::RunesHtml,
+  runes::{RunesHtml, RunesJson},
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
   status::StatusHtml,
