@@ -9,11 +9,7 @@ pub(crate) mod resolve_manager;
 pub use self::protocol_manager::ProtocolManager;
 
 use {
-  self::{
-    execute_manager::CallManager,
-    message::{Message, Receipt},
-    resolve_manager::MsgResolveManager,
-  },
+  self::{execute_manager::CallManager, message::Message, resolve_manager::MsgResolveManager},
   crate::Options,
   bitcoin::Network,
 };

@@ -70,9 +70,7 @@ impl ProtocolManager {
         cost2 += start.elapsed().as_micros();
 
         let start = Instant::now();
-        for msg in messages.iter() {
-          self.call_man.execute_message(context, msg)?;
-        }
+        self.call_man.execute_message(context, txid, &messages)?;
         cost3 += start.elapsed().as_micros();
         messages_size += messages.len();
       }

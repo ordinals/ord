@@ -65,7 +65,11 @@ pub trait Brc20ReaderWriter: Brc20Reader {
     minted_block_number: u32,
   ) -> Result<(), Self::Error>;
 
-  fn add_transaction_receipt(&mut self, txid: &Txid, receipt: &Receipt) -> Result<(), Self::Error>;
+  fn save_transaction_receipts(
+    &mut self,
+    txid: &Txid,
+    receipt: &[Receipt],
+  ) -> Result<(), Self::Error>;
 
   fn insert_transferable(
     &mut self,

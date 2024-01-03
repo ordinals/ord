@@ -54,7 +54,7 @@ impl ExecutionMessage {
   }
 }
 
-pub fn execute(context: &mut Context, msg: &ExecutionMessage) -> Result<Option<Receipt>> {
+pub fn execute(context: &mut Context, msg: &ExecutionMessage) -> Result<Receipt> {
   log::debug!("BRC20 execute message: {:?}", msg);
   let event = match &msg.op {
     Operation::Deploy(deploy) => process_deploy(context, msg, deploy.clone()),
@@ -82,11 +82,7 @@ pub fn execute(context: &mut Context, msg: &ExecutionMessage) -> Result<Option<R
   };
 
   log::debug!("BRC20 message receipt: {:?}", receipt);
-  context
-    .add_transaction_receipt(&msg.txid, &receipt)
-    .map_err(|e| anyhow!("failed to add transaction receipt to state! error: {e}"))?;
-
-  Ok(Some(receipt))
+  Ok(receipt)
 }
 
 fn process_deploy(

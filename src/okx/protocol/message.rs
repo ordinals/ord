@@ -7,6 +7,7 @@ pub enum Message {
 }
 
 #[allow(clippy::upper_case_acronyms)]
+#[allow(unused)]
 pub enum Receipt {
   BRC20(brc20_store::Receipt),
 }

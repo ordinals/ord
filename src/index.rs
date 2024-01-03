@@ -97,7 +97,7 @@ define_table! { COLLECTIONS_INSCRIPTION_ID_TO_KINDS, InscriptionIdValue, &[u8] }
 
 define_table! { BRC20_BALANCES, &str, &[u8] }
 define_table! { BRC20_TOKEN, &str, &[u8] }
-define_multimap_table! { BRC20_EVENTS, &TxidValue, &[u8] }
+define_table! { BRC20_EVENTS, &TxidValue, &[u8] }
 define_table! { BRC20_TRANSFERABLELOG, &str, &[u8] }
 define_table! { BRC20_INSCRIBE_TRANSFER, InscriptionIdValue, &[u8] }
 
@@ -361,7 +361,7 @@ impl Index {
         // brc20 tables
         tx.open_table(BRC20_BALANCES)?;
         tx.open_table(BRC20_TOKEN)?;
-        tx.open_multimap_table(BRC20_EVENTS)?;
+        tx.open_table(BRC20_EVENTS)?;
         tx.open_table(BRC20_TRANSFERABLELOG)?;
         tx.open_table(BRC20_INSCRIBE_TRANSFER)?;
 
@@ -2327,7 +2327,7 @@ impl Index {
     txid: &bitcoin::Txid,
   ) -> Result<Option<Vec<brc20::Receipt>>> {
     let rtx = self.database.begin_read().unwrap();
-    let table = rtx.open_multimap_table(BRC20_EVENTS)?;
+    let table = rtx.open_table(BRC20_EVENTS)?;
     let res = get_transaction_receipts(&table, txid)?;
 
     if res.is_empty() {
@@ -2351,7 +2351,7 @@ impl Index {
     txs: &Vec<Txid>,
   ) -> Result<Vec<(bitcoin::Txid, Vec<brc20::Receipt>)>> {
     let rtx = self.database.begin_read()?;
-    let table = rtx.open_multimap_table(BRC20_EVENTS)?;
+    let table = rtx.open_table(BRC20_EVENTS)?;
     let mut result = Vec::new();
     for txid in txs {
       let tx_events = get_transaction_receipts(&table, txid)?;

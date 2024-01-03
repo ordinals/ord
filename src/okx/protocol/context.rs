@@ -1,11 +1,11 @@
 use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue};
 use crate::inscriptions::InscriptionId;
 use crate::okx::datastore::brc20::redb::table::{
-  add_transaction_receipt, get_balance, get_balances, get_inscribe_transfer_inscription,
-  get_token_info, get_tokens_info, get_transaction_receipts, get_transferable,
-  get_transferable_by_id, get_transferable_by_tick, insert_inscribe_transfer_inscription,
-  insert_token_info, insert_transferable, remove_inscribe_transfer_inscription,
-  remove_transferable, update_mint_token_info, update_token_balance,
+  get_balance, get_balances, get_inscribe_transfer_inscription, get_token_info, get_tokens_info,
+  get_transaction_receipts, get_transferable, get_transferable_by_id, get_transferable_by_tick,
+  insert_inscribe_transfer_inscription, insert_token_info, insert_transferable,
+  remove_inscribe_transfer_inscription, remove_transferable, save_transaction_receipts,
+  update_mint_token_info, update_token_balance,
 };
 use crate::okx::datastore::brc20::{
   Balance, Brc20Reader, Brc20ReaderWriter, Receipt, Tick, TokenInfo, TransferInfo, TransferableLog,
@@ -25,7 +25,7 @@ use crate::okx::protocol::BlockContext;
 use crate::SatPoint;
 use anyhow::anyhow;
 use bitcoin::{Network, OutPoint, TxOut, Txid};
-use redb::{MultimapTable, Table};
+use redb::Table;
 
 #[allow(non_snake_case)]
 pub struct Context<'a, 'db, 'txn> {
@@ -47,7 +47,7 @@ pub struct Context<'a, 'db, 'txn> {
   // BRC20 tables
   pub(crate) BRC20_BALANCES: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_TOKEN: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
-  pub(crate) BRC20_EVENTS: &'a mut MultimapTable<'db, 'txn, &'static TxidValue, &'static [u8]>,
+  pub(crate) BRC20_EVENTS: &'a mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   pub(crate) BRC20_TRANSFERABLELOG: &'a mut Table<'db, 'txn, &'static str, &'static [u8]>,
   pub(crate) BRC20_INSCRIBE_TRANSFER: &'a mut Table<'db, 'txn, InscriptionIdValue, &'static [u8]>,
 }
@@ -226,12 +226,12 @@ impl<'a, 'db, 'txn> Brc20ReaderWriter for Context<'a, 'db, 'txn> {
     update_mint_token_info(self.BRC20_TOKEN, tick, minted_amt, minted_block_number)
   }
 
-  fn add_transaction_receipt(
+  fn save_transaction_receipts(
     &mut self,
     txid: &Txid,
-    receipt: &Receipt,
+    receipt: &[Receipt],
   ) -> crate::Result<(), Self::Error> {
-    add_transaction_receipt(self.BRC20_EVENTS, txid, receipt)
+    save_transaction_receipts(self.BRC20_EVENTS, txid, receipt)
   }
 
   fn insert_transferable(

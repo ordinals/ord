@@ -10,7 +10,7 @@ use crate::okx::datastore::brc20::{
 };
 use crate::okx::datastore::ScriptKey;
 use bitcoin::Txid;
-use redb::{MultimapTable, ReadableMultimapTable, ReadableTable, Table};
+use redb::{ReadableTable, Table};
 
 // BRC20_BALANCES
 pub fn get_balances<T>(table: &T, script_key: &ScriptKey) -> crate::Result<Vec<Balance>>
@@ -73,15 +73,13 @@ where
 // BRC20_EVENTS
 pub fn get_transaction_receipts<T>(table: &T, txid: &Txid) -> crate::Result<Vec<Receipt>>
 where
-  T: ReadableMultimapTable<&'static TxidValue, &'static [u8]>,
+  T: ReadableTable<&'static TxidValue, &'static [u8]>,
 {
-  Ok(
-    table
-      .get(&txid.store())?
-      .into_iter()
-      .map(|x| rmp_serde::from_slice::<Receipt>(x.unwrap().value()).unwrap())
-      .collect(),
-  )
+  if let Some(x) = table.get(&txid.store())? {
+    Ok(rmp_serde::from_slice::<Vec<Receipt>>(x.value())?)
+  } else {
+    Ok(vec![])
+  }
 }
 
 // BRC20_TRANSFERABLELOG
@@ -200,14 +198,14 @@ pub fn update_mint_token_info<'db, 'txn>(
 }
 
 // BRC20_EVENTS
-pub fn add_transaction_receipt<'db, 'txn>(
-  table: &mut MultimapTable<'db, 'txn, &'static TxidValue, &'static [u8]>,
+pub fn save_transaction_receipts<'db, 'txn>(
+  table: &mut Table<'db, 'txn, &'static TxidValue, &'static [u8]>,
   txid: &Txid,
-  receipt: &Receipt,
+  receipts: &[Receipt],
 ) -> crate::Result<()> {
   table.insert(
     &txid.store(),
-    rmp_serde::to_vec(receipt).unwrap().as_slice(),
+    rmp_serde::to_vec(receipts).unwrap().as_slice(),
   )?;
   Ok(())
 }
