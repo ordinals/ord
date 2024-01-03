@@ -15,7 +15,7 @@ use {
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, StatusHtml, TransactionHtml,
+      SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -769,8 +769,13 @@ impl Server {
   async fn status(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<StatusHtml>> {
-    Ok(index.status()?.page(server_config))
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(index.status()?).into_response()
+    } else {
+      index.status()?.page(server_config).into_response()
+    })
   }
 
   async fn search_by_query(

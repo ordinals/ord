@@ -365,3 +365,36 @@ fn get_block() {
     }
   );
 }
+
+#[test]
+fn get_status() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  inscribe(&rpc_server);
+
+  let response =
+    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
+      .json_request("/status");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let status_json: StatusHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(status_json.blessed_inscriptions, 1);
+  pretty_assert_eq!(status_json.cursed_inscriptions, 0);
+  pretty_assert_eq!(status_json.chain, Chain::Mainnet);
+  pretty_assert_eq!(status_json.height, Some(2));
+  pretty_assert_eq!(status_json.inscriptions, 1);
+  pretty_assert_eq!(status_json.lost_sats, 0);
+  pretty_assert_eq!(
+    status_json.minimum_rune_for_next_block,
+    Rune(99246114928149462)
+  );
+  pretty_assert_eq!(status_json.rune_index, false);
+  pretty_assert_eq!(status_json.runes, 0);
+  pretty_assert_eq!(status_json.sat_index, true);
+  pretty_assert_eq!(status_json.transaction_index, false);
+  pretty_assert_eq!(status_json.unrecoverably_reorged, false);
+}
