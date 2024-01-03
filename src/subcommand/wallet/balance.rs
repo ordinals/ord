@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
+use {super::*, std::collections::BTreeSet};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Output {
@@ -11,11 +11,13 @@ pub struct Output {
   pub total: u64,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
+pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+
+  let unspent_outputs = get_unspent_outputs(&client, &index)?;
 
   let inscription_outputs = index
     .get_inscriptions(&unspent_outputs)?
@@ -27,6 +29,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
   let mut ordinal = 0;
   let mut runes = BTreeMap::new();
   let mut runic = 0;
+
   for (outpoint, amount) in unspent_outputs {
     let rune_balances = index.get_rune_balances_for_outpoint(outpoint)?;
 

@@ -40,10 +40,12 @@ impl FromStr for SpacedRune {
 
 impl Display for SpacedRune {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    for (i, c) in self.rune.to_string().chars().enumerate() {
+    let rune = self.rune.to_string();
+
+    for (i, c) in rune.chars().enumerate() {
       write!(f, "{c}")?;
 
-      if self.spacers & 1 << i != 0 {
+      if i < rune.len() - 1 && self.spacers & 1 << i != 0 {
         write!(f, "•")?;
       }
     }
@@ -78,6 +80,14 @@ mod tests {
   fn display() {
     assert_eq!("A.B".parse::<SpacedRune>().unwrap().to_string(), "A•B");
     assert_eq!("A.B.C".parse::<SpacedRune>().unwrap().to_string(), "A•B•C");
+    assert_eq!(
+      SpacedRune {
+        rune: Rune(0),
+        spacers: 1
+      }
+      .to_string(),
+      "A"
+    );
   }
 
   #[test]

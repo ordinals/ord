@@ -9,6 +9,7 @@ fn claim(id: u128) -> Option<u128> {
 
 struct Allocation {
   balance: u128,
+  deadline: Option<u32>,
   divisibility: u8,
   end: Option<u32>,
   id: u128,
@@ -16,6 +17,13 @@ struct Allocation {
   rune: Rune,
   spacers: u32,
   symbol: Option<char>,
+}
+
+#[derive(Default)]
+pub(crate) struct RuneUpdate {
+  pub(crate) burned: u128,
+  pub(crate) mints: u64,
+  pub(crate) supply: u128,
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
@@ -26,10 +34,11 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
-  pub(super) sequence_number_to_rune: &'a mut Table<'db, 'tx, u32, u128>,
+  pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   pub(super) timestamp: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
@@ -61,6 +70,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .as_ref()
       .map(|runestone| runestone.burn)
       .unwrap_or_default();
+
+    let default_output = runestone.as_ref().and_then(|runestone| {
+      runestone
+        .default_output
+        .and_then(|default| usize::try_from(default).ok())
+    });
 
     // A vector of allocated transaction output rune balances
     let mut allocated: Vec<HashMap<u128, u128>> = vec![HashMap::new(); tx.output.len()];
@@ -118,6 +133,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 } else {
                   u128::max_value()
                 },
+                deadline: etching.deadline,
                 divisibility: etching.divisibility,
                 end: term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
@@ -150,6 +166,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               if let Some(limit) = entry.limit {
                 if let Some(end) = entry.end {
                   if self.height >= end {
+                    continue;
+                  }
+                }
+                if let Some(deadline) = entry.deadline {
+                  if self.timestamp >= deadline {
                     continue;
                   }
                 }
@@ -214,9 +235,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             if amount == 0 {
               // if amount is zero, divide balance between eligible outputs
               let amount = *balance / destinations.len() as u128;
+              let remainder = usize::try_from(*balance % destinations.len() as u128).unwrap();
 
-              for output in destinations {
-                allocate(balance, amount, output);
+              for (i, output) in destinations.iter().enumerate() {
+                allocate(
+                  balance,
+                  if i < remainder { amount + 1 } else { amount },
+                  *output,
+                );
               }
             } else {
               // if amount is non-zero, distribute amount to eligible outputs
@@ -240,16 +266,19 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         for (id, amount) in mintable {
           let minted = limits[&id] - amount;
           if minted > 0 {
-            let id = RuneId::try_from(id).unwrap().store();
-            let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-            entry.supply += minted;
-            self.id_to_entry.insert(id, entry.store())?;
+            let update = self
+              .updates
+              .entry(RuneId::try_from(id).unwrap())
+              .or_default();
+            update.mints += 1;
+            update.supply += minted;
           }
         }
       }
 
       if let Some(Allocation {
         balance,
+        deadline,
         divisibility,
         end,
         id,
@@ -271,8 +300,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           id.store(),
           RuneEntry {
             burned: 0,
+            deadline: deadline.and_then(|deadline| (!burn).then_some(deadline)),
             divisibility,
             etching: txid,
+            mints: 0,
             number,
             rune,
             spacers,
@@ -285,9 +316,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             } else {
               u128::max_value()
             } - balance,
-            end,
+            end: end.and_then(|end| (!burn).then_some(end)),
             symbol,
-            limit,
+            limit: limit.and_then(|limit| (!burn).then_some(limit)),
             timestamp: self.timestamp,
           }
           .store(),
@@ -300,8 +331,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           .get(&inscription_id.store())?
         {
           self
-            .sequence_number_to_rune
-            .insert(sequence_number.value(), rune.0)?;
+            .sequence_number_to_rune_id
+            .insert(sequence_number.value(), id.store())?;
         }
       }
     }
@@ -313,12 +344,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         *burned.entry(id).or_default() += balance;
       }
     } else {
-      // Assign all un-allocated runes to the first non OP_RETURN output
-      if let Some((vout, _)) = tx
-        .output
-        .iter()
-        .enumerate()
-        .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
+      // assign all un-allocated runes to the default output, or the first non
+      // OP_RETURN output if there is no default, or if the default output is
+      // too large
+      if let Some(vout) = default_output
+        .filter(|vout| *vout < allocated.len())
+        .or_else(|| {
+          tx.output
+            .iter()
+            .enumerate()
+            .find(|(_vout, tx_out)| !tx_out.script_pubkey.is_op_return())
+            .map(|(vout, _tx_out)| vout)
+        })
       {
         for (id, balance) in unallocated {
           if balance > 0 {
@@ -373,10 +410,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     // increment entries with burned runes
     for (id, amount) in burned {
-      let id = RuneId::try_from(id).unwrap().store();
-      let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
-      entry.burned += amount;
-      self.id_to_entry.insert(id, entry.store())?;
+      self
+        .updates
+        .entry(RuneId::try_from(id).unwrap())
+        .or_default()
+        .burned += amount;
     }
 
     Ok(())

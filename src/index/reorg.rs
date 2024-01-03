@@ -87,7 +87,7 @@ impl Reorg {
       && u32::try_from(
         index
           .options
-          .bitcoin_rpc_client()?
+          .bitcoin_rpc_client(None)?
           .get_blockchain_info()?
           .headers,
       )
