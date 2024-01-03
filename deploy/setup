@@ -32,8 +32,6 @@ esac
 touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-sshd -t
-systemctl restart sshd
 
 mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
@@ -63,6 +61,9 @@ ufw allow 8080
 ufw allow http
 ufw allow https
 ufw allow ssh
+
+sshd -t
+systemctl restart sshd
 
 case $CHAIN in
   main)
