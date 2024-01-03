@@ -43,7 +43,6 @@ impl PartialEq<u128> for Tag {
 
 enum Flag {
   Etch = 0,
-  Open = 1,
   #[allow(unused)]
   Burn = 127,
 }
@@ -135,7 +134,6 @@ impl Runestone {
     let term = Tag::Term.take(&mut fields);
 
     let etch = Flag::Etch.take(&mut flags);
-    let open = Flag::Open.take(&mut flags);
 
     let etching = if etch {
       Some(Etching {
