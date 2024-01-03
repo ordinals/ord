@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.14.1](https://github.com/ordinals/ord/releases/tag/0.14.1) - 2023-01-03
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix wallet create (#2943)
+
+## Misc
+- Clean up justfile (#2939)
+
 [0.14.0](https://github.com/ordinals/ord/releases/tag/0.14.0) - 2023-01-02
 --------------------------------------------------------------------------
 
