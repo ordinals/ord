@@ -380,21 +380,34 @@ fn get_status() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let status_json: StatusHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut status_json: StatusHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  pretty_assert_eq!(status_json.blessed_inscriptions, 1);
-  pretty_assert_eq!(status_json.cursed_inscriptions, 0);
-  pretty_assert_eq!(status_json.chain, Chain::Mainnet);
-  pretty_assert_eq!(status_json.height, Some(2));
-  pretty_assert_eq!(status_json.inscriptions, 1);
-  pretty_assert_eq!(status_json.lost_sats, 0);
+  let dummy_started = "2012-12-12 12:12:12+00:00"
+    .parse::<DateTime<Utc>>()
+    .unwrap();
+
+  let dummy_uptime = Duration::from_secs(1);
+
+  status_json.started = dummy_started;
+  status_json.uptime = dummy_uptime;
+
   pretty_assert_eq!(
-    status_json.minimum_rune_for_next_block,
-    Rune(99246114928149462)
+    status_json,
+    StatusHtml {
+      blessed_inscriptions: 1,
+      cursed_inscriptions: 0,
+      chain: Chain::Mainnet,
+      height: Some(2),
+      inscriptions: 1,
+      lost_sats: 0,
+      minimum_rune_for_next_block: Rune(99246114928149462),
+      rune_index: false,
+      runes: 0,
+      sat_index: true,
+      started: dummy_started,
+      transaction_index: false,
+      unrecoverably_reorged: false,
+      uptime: dummy_uptime,
+    }
   );
-  pretty_assert_eq!(status_json.rune_index, false);
-  pretty_assert_eq!(status_json.runes, 0);
-  pretty_assert_eq!(status_json.sat_index, true);
-  pretty_assert_eq!(status_json.transaction_index, false);
-  pretty_assert_eq!(status_json.unrecoverably_reorged, false);
 }
