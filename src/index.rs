@@ -164,7 +164,7 @@ pub(crate) struct InscriptionInfo {
   pub(crate) charms: u16,
 }
 
-trait BitcoinCoreRpcResultExt<T> {
+pub(crate) trait BitcoinCoreRpcResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
 }
 

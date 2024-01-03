@@ -97,6 +97,7 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
+      // TODO: this won't work for create and restore
       bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name.clone(), &options)?,
       chain: options.chain(),
       ord_api_url,
@@ -205,6 +206,49 @@ impl Wallet {
         None => bail!("index has not seen {outpoint}"),
       })
       .collect()
+  }
+
+  pub(crate) fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
+    let inscription_json: InscriptionJson = serde_json::from_str(
+      &self
+        .ord_http_client
+        .get(
+          self
+            .ord_api_url
+            .join(&format!("/inscription/{inscription_id}"))
+            .unwrap(),
+        )
+        .send()?
+        .text()?,
+    )?;
+
+    Ok(inscription_json)
+  }
+
+  pub(crate) fn get_inscriptions(
+    &self,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+    let mut inscriptions = BTreeMap::new();
+    for output in utxos.keys() {
+      let output_json: OutputJson = serde_json::from_str(
+        &self
+          .ord_http_client
+          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+          .send()?
+          .text()?,
+      )?;
+
+      for inscription in output_json.inscriptions {
+        inscriptions.insert(self.get_inscription_satpoint(inscription)?, inscription);
+      }
+    }
+
+    Ok(inscriptions)
+  }
+
+  pub(crate) fn get_inscription_satpoint(&self, inscription_id: InscriptionId) -> Result<SatPoint> {
+    Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
   pub(crate) fn get_locked_outputs(&self) -> Result<BTreeSet<OutPoint>> {

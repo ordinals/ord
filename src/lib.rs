@@ -80,6 +80,7 @@ use {
   },
   sysinfo::System,
   tempfile::TempDir,
+  templates::{InscriptionJson, OutputJson},
   tokio::{runtime::Runtime, task},
 };
 

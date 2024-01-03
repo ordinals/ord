@@ -130,7 +130,7 @@ impl Inscribe {
 
     match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &wallet)?;
+        parent_info = Inscribe::get_parent_info(self.parent, &utxos, &wallet)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
@@ -156,7 +156,7 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &wallet)?;
+        parent_info = Inscribe::get_parent_info(batchfile.parent, &utxos, &wallet)?;
 
         postage = batchfile
           .postage
@@ -211,7 +211,7 @@ impl Inscribe {
       reveal_fee_rate: self.fee_rate,
       satpoint,
     }
-    .inscribe(chain, &index, &locked_utxos, runic_utxos, &utxos, &wallet)
+    .inscribe(&locked_utxos, runic_utxos, &utxos, &wallet)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -235,31 +235,31 @@ impl Inscribe {
 
   fn get_parent_info(
     parent: Option<InscriptionId>,
-    index: &Index,
     utxos: &BTreeMap<OutPoint, Amount>,
     wallet: &Wallet,
   ) -> Result<Option<ParentInfo>> {
     if let Some(parent_id) = parent {
-      if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
-        if !utxos.contains_key(&satpoint.outpoint) {
-          return Err(anyhow!(format!("parent {parent_id} not in wallet")));
-        }
+      let satpoint = wallet
+        .get_inscription_satpoint(parent_id)
+        .map_err(|_| anyhow!(format!("parent {parent_id} does not exist")))?;
 
-        Ok(Some(ParentInfo {
-          destination: wallet.get_change_address()?,
-          id: parent_id,
-          location: satpoint,
-          tx_out: index
-            .get_transaction(satpoint.outpoint.txid)?
-            .expect("parent transaction not found in index")
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .expect("current transaction output"),
-        }))
-      } else {
-        Err(anyhow!(format!("parent {parent_id} does not exist")))
+      if !utxos.contains_key(&satpoint.outpoint) {
+        return Err(anyhow!(format!("parent {parent_id} not in wallet")));
       }
+
+      Ok(Some(ParentInfo {
+        destination: wallet.get_change_address()?,
+        id: parent_id,
+        location: satpoint,
+        tx_out: wallet
+          .bitcoin_rpc_client
+          .get_raw_transaction(&satpoint.outpoint.txid, None)
+          .expect("parent transaction not found in index")
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .expect("current transaction output"),
+      }))
     } else {
       Ok(None)
     }
