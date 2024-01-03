@@ -13,7 +13,7 @@ parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 postage: 12345
 
 # sat to inscribe on, can only be used with `same-sat`:
-# sat: 5000000000
+sat: 5000000000
 
 # inscriptions to inscribe
 #
