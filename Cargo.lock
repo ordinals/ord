@@ -2452,6 +2452,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util 0.7.10",
+ "tower",
  "tower-http",
  "unindent",
 ]
@@ -3796,6 +3797,7 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "tokio",
+ "tokio-util 0.7.10",
  "tower-layer",
  "tower-service",
  "tracing",

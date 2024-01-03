@@ -75,6 +75,7 @@ tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compres
 rdkafka = { version = "0.33.2" }
 axum-jrpc = { version = "0.5.1", features = ["serde_json", "anyhow_error"] }
 ord-kafka-macros = { path = "ord-kafka-macros" }
+tower = { version = "0.4.13", features = ["limit"] }
 
 
 [dev-dependencies]

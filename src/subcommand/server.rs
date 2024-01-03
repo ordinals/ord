@@ -37,6 +37,7 @@ use {
   },
   std::{cmp::Ordering, io::Read, str, sync::Arc},
   tokio_stream::StreamExt,
+  tower::limit::concurrency::ConcurrencyLimitLayer,
   tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
@@ -192,11 +193,17 @@ pub struct Server {
     help = "Timeout requests after <SECONDS> seconds. Default: 30 seconds."
   )]
   timeout: Option<u64>,
+  #[clap(long, help = "Set max concurrent connections. Default: 1024")]
+  max_connections: Option<usize>,
 }
 
 impl Server {
   pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
+      log::debug!(
+        "Starting server with {} max connections",
+        self.max_connections.unwrap_or(1024)
+      );
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 
@@ -311,7 +318,14 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
 
         // API routes
-        .route("/rpc/v1", post(rpc::handler))
+        .route("/rpc/v1", post(rpc::handler)
+          .route_layer(TimeoutLayer::new(Duration::from_secs(self.timeout.unwrap_or(30))))
+          .route_layer(
+            ConcurrencyLimitLayer::new(
+              self.max_connections.unwrap_or(1024),
+            )
+          )
+        )
         .layer(axum::middleware::from_fn(middleware::tracing_layer))
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -330,7 +344,6 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
-        .layer(TimeoutLayer::new(Duration::from_secs(self.timeout.unwrap_or(30))))
         .with_state(server_config);
 
       let router = if let Some((username, password)) = settings.credentials() {
