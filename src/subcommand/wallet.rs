@@ -132,7 +132,7 @@ impl WalletCommand {
 }
 
 pub(crate) struct Wallet {
-  pub(crate) bitcoin_rpc_client: Client,
+  pub(crate) bitcoin_rpc_client: Client, // TODO: make this a function instead
   pub(crate) chain: Chain,
   pub(crate) ord_api_url: Url,
   pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
