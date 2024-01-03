@@ -46,10 +46,7 @@ impl Batch {
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
 
-    let commit_tx_change = [
-      wallet.get_change_address(chain)?,
-      wallet.get_change_address(chain)?,
-    ];
+    let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
@@ -644,13 +641,13 @@ impl Batchfile {
     }
 
     let destinations = match self.mode {
-      Mode::SharedOutput | Mode::SameSat => vec![wallet.get_change_address(chain)?],
+      Mode::SharedOutput | Mode::SameSat => vec![wallet.get_change_address()?],
       Mode::SeparateOutputs => self
         .inscriptions
         .iter()
         .map(|entry| {
           entry.destination.as_ref().map_or_else(
-            || wallet.get_change_address(chain),
+            || wallet.get_change_address(),
             |address| {
               address
                 .clone()

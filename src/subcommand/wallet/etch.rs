@@ -56,7 +56,7 @@ impl Etch {
       "<DIVISIBILITY> must be equal to or less than 38"
     );
 
-    let destination = wallet.get_change_address(options.chain())?;
+    let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
       etching: Some(Etching {

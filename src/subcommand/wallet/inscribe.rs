@@ -119,7 +119,7 @@ impl Inscribe {
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
 
-    let chain = options.chain();
+    let chain = wallet.chain;
 
     let postage;
     let destinations;
@@ -130,7 +130,7 @@ impl Inscribe {
 
     match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, chain, &wallet)?;
+        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &wallet)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
@@ -150,13 +150,13 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => wallet.get_change_address(chain)?,
+          None => wallet.get_change_address()?,
         }];
       }
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, chain, &wallet)?;
+        parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &wallet)?;
 
         postage = batchfile
           .postage
@@ -237,7 +237,6 @@ impl Inscribe {
     parent: Option<InscriptionId>,
     index: &Index,
     utxos: &BTreeMap<OutPoint, Amount>,
-    chain: Chain,
     wallet: &Wallet,
   ) -> Result<Option<ParentInfo>> {
     if let Some(parent_id) = parent {
@@ -247,7 +246,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: wallet.get_change_address(chain)?,
+          destination: wallet.get_change_address()?,
           id: parent_id,
           location: satpoint,
           tx_out: index

@@ -98,6 +98,7 @@ impl WalletCommand {
 
     let wallet = Wallet {
       bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name.clone(), &options)?,
+      chain: options.chain(),
       ord_api_url,
       ord_http_client: {
         let mut headers = header::HeaderMap::new();
@@ -131,6 +132,7 @@ impl WalletCommand {
 
 pub(crate) struct Wallet {
   pub(crate) bitcoin_rpc_client: Client,
+  pub(crate) chain: Chain,
   pub(crate) ord_api_url: Url,
   pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
   pub(crate) wallet_name: String,
@@ -222,20 +224,20 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_change_address(&self, chain: Chain) -> Result<Address> {
+  pub(crate) fn get_change_address(&self) -> Result<Address> {
     Ok(
       self
         .bitcoin_rpc_client
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
-        .require_network(chain.network())?,
+        .require_network(self.chain.network())?,
     )
   }
 
   pub(crate) fn initialize(&self, options: &Options, seed: [u8; 64]) -> Result {
     let _client = check_version(options.bitcoin_rpc_client(None)?)?;
 
-    let network = options.chain().network();
+    let network = self.chain.network();
 
     let _ =
       &self

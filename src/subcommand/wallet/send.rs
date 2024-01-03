@@ -29,8 +29,6 @@ impl Send {
 
     index.update()?;
 
-    let chain = options.chain();
-
     let unspent_outputs = wallet.get_unspent_outputs()?;
 
     let locked_outputs = wallet.get_locked_outputs()?;
@@ -52,7 +50,6 @@ impl Send {
       Outgoing::Rune { decimal, rune } => {
         let transaction = Self::send_runes(
           address,
-          chain,
           decimal,
           self.fee_rate,
           &index,
@@ -80,10 +77,7 @@ impl Send {
       }
     };
 
-    let change = [
-      wallet.get_change_address(chain)?,
-      wallet.get_change_address(chain)?,
-    ];
+    let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
     let postage = if let Some(postage) = self.postage {
       Target::ExactPostage(postage)
@@ -164,7 +158,6 @@ impl Send {
 
   fn send_runes(
     address: Address,
-    chain: Chain,
     decimal: Decimal,
     fee_rate: FeeRate,
     index: &Index,
@@ -250,7 +243,7 @@ impl Send {
           value: 0,
         },
         TxOut {
-          script_pubkey: wallet.get_change_address(chain)?.script_pubkey(),
+          script_pubkey: wallet.get_change_address()?.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {
