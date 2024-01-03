@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct StatusHtml {
   pub(crate) blessed_inscriptions: u64,
   pub(crate) cursed_inscriptions: u64,
+  pub(crate) chain: Chain,
   pub(crate) height: Option<u32>,
   pub(crate) inscriptions: u64,
   pub(crate) lost_sats: u64,

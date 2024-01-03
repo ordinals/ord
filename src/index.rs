@@ -417,6 +417,7 @@ impl Index {
 
     Ok(StatusHtml {
       blessed_inscriptions,
+      chain: self.options.chain(),
       cursed_inscriptions,
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
