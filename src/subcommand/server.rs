@@ -2552,6 +2552,8 @@ mod tests {
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
+  <dt>chain</dt>
+  <dd>mainnet</dd>
   <dt>height</dt>
   <dd>0</dd>
   <dt>inscriptions</dt>
