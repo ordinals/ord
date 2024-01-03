@@ -2,7 +2,7 @@ use super::*;
 use crate::index::InscriptionIdValue;
 use crate::okx::datastore::brc20::redb::table::get_inscribe_transfer_inscription;
 use crate::{
-  inscription::Inscription,
+  inscriptions::Inscription,
   okx::{
     datastore::ord::{Action, InscriptionOp},
     protocol::brc20::{deserialize_brc20_operation, Operation},

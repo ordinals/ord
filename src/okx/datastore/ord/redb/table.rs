@@ -1,6 +1,6 @@
 use crate::index::entry::Entry;
 use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue};
-use crate::inscription_id::InscriptionId;
+use crate::inscriptions::InscriptionId;
 use crate::okx::datastore::ord::collections::CollectionKind;
 use crate::okx::datastore::ord::InscriptionOp;
 use bitcoin::consensus::Decodable;

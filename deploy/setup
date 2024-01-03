@@ -10,6 +10,25 @@ BRANCH=$3
 COMMIT=$4
 REVISION="ord-$BRANCH-$COMMIT"
 
+case $CHAIN in
+  main)
+    CSP_ORIGIN=ordinals.com
+    ;;
+  regtest)
+    CSP_ORIGIN=regtest.ordinals.com
+    ;;
+  signet)
+    CSP_ORIGIN=signet.ordinals.com
+    ;;
+  test)
+    CSP_ORIGIN=testnet.ordinals.com
+    ;;
+  *)
+    echo "Unknown chain: $CHAIN"
+    exit 1
+    ;;
+esac
+
 touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -18,13 +37,9 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CSP_ORIGIN \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
-
-printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
-  && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
-  && printf 'REVISION=%s\n' $REVISION >> /etc/environment
 
 hostnamectl set-hostname $DOMAIN
 
@@ -50,6 +65,9 @@ ufw allow ssh
 case $CHAIN in
   main)
     ufw allow 8333
+    ;;
+  regtest)
+    ufw allow 18444
     ;;
   signet)
     ufw allow 38333
@@ -80,17 +98,21 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
-fi
-cp target/release/ord /usr/local/bin/ord
+install --backup target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
 cp deploy/bitcoind.service /etc/systemd/system/
+
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+
+if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
+  mkdir -p ~/.bitcoin
+  ln -s /etc/bitcoin/bitcoin.conf ~/.bitcoin/bitcoin.conf
+fi
+
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
@@ -98,6 +120,9 @@ systemctl restart bitcoind
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
+    ;;
+  regtest)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet

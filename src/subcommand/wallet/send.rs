@@ -1,6 +1,6 @@
-use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
+use {super::*, crate::subcommand::wallet::transaction_builder::Target};
 
-#[derive(Debug, Parser, Clone)]
+#[derive(Debug, Parser)]
 pub(crate) struct Send {
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
@@ -19,24 +19,23 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
       .require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
+
     index.update()?;
+
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
     let chain = options.chain();
 
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    let unspent_outputs = get_unspent_outputs(&client, &index)?;
 
-    let wallet = Wallet::load(&options)?;
-
-    let unspent_outputs = index.get_unspent_outputs(wallet)?;
-
-    let locked_outputs = index.get_locked_outputs(wallet)?;
+    let locked_outputs = get_locked_outputs(&client)?;
 
     let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
@@ -235,7 +234,7 @@ impl Send {
     };
 
     let unfunded_transaction = Transaction {
-      version: 1,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: input
         .into_iter()

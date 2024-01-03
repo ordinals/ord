@@ -1,5 +1,5 @@
 use crate::index::{InscriptionEntryValue, InscriptionIdValue, OutPointValue, TxidValue};
-use crate::inscription_id::InscriptionId;
+use crate::inscriptions::InscriptionId;
 use crate::okx::datastore::brc20::redb::table::{
   add_transaction_receipt, get_balance, get_balances, get_inscribe_transfer_inscription,
   get_token_info, get_tokens_info, get_transaction_receipts, get_transferable,

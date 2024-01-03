@@ -5,6 +5,8 @@ const TAG_FLAGS: u128 = 2;
 const TAG_RUNE: u128 = 4;
 const TAG_LIMIT: u128 = 6;
 const TAG_TERM: u128 = 8;
+const TAG_DEADLINE: u128 = 10;
+const TAG_DEFAULT_OUTPUT: u128 = 12;
 
 const TAG_DIVISIBILITY: u128 = 1;
 const TAG_SPACERS: u128 = 3;
@@ -24,6 +26,7 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
+  pub default_output: Option<u32>,
   pub burn: bool,
 }
 
@@ -78,19 +81,22 @@ impl Runestone {
 
     let Message { mut fields, body } = Message::from_integers(&integers);
 
-    let flags = fields.remove(&TAG_FLAGS).unwrap_or_default();
-    let etch = flags & FLAG_ETCH != 0;
-    let unrecognized_flags = flags & !FLAG_ETCH != 0;
-
+    let deadline = fields.remove(&TAG_DEADLINE);
     let divisibility = fields.remove(&TAG_DIVISIBILITY);
+    let flags = fields.remove(&TAG_FLAGS).unwrap_or_default();
     let limit = fields.remove(&TAG_LIMIT);
     let rune = fields.remove(&TAG_RUNE);
     let spacers = fields.remove(&TAG_SPACERS);
     let symbol = fields.remove(&TAG_SYMBOL);
     let term = fields.remove(&TAG_TERM);
+    let default_output = fields.remove(&TAG_DEFAULT_OUTPUT);
+
+    let etch = flags & FLAG_ETCH != 0;
+    let unrecognized_flags = flags & !FLAG_ETCH != 0;
 
     let etching = if etch {
       Some(Etching {
+        deadline: deadline.and_then(|deadline| u32::try_from(deadline).ok()),
         divisibility: divisibility
           .and_then(|divisibility| u8::try_from(divisibility).ok())
           .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
@@ -111,9 +117,10 @@ impl Runestone {
     };
 
     Ok(Some(Self {
+      burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
+      default_output: default_output.and_then(|default| u32::try_from(default).ok()),
       edicts: body,
       etching,
-      burn: unrecognized_flags || fields.keys().any(|tag| tag % 2 == 0),
     }))
   }
 
@@ -127,6 +134,11 @@ impl Runestone {
       if let Some(rune) = etching.rune {
         varint::encode_to_vec(TAG_RUNE, &mut payload);
         varint::encode_to_vec(rune.0, &mut payload);
+      }
+
+      if let Some(deadline) = etching.deadline {
+        varint::encode_to_vec(TAG_DEADLINE, &mut payload);
+        varint::encode_to_vec(deadline.into(), &mut payload);
       }
 
       if etching.divisibility != 0 {
@@ -153,6 +165,11 @@ impl Runestone {
         varint::encode_to_vec(TAG_TERM, &mut payload);
         varint::encode_to_vec(term.into(), &mut payload);
       }
+    }
+
+    if let Some(default_output) = self.default_output {
+      varint::encode_to_vec(TAG_DEFAULT_OUTPUT, &mut payload);
+      varint::encode_to_vec(default_output.into(), &mut payload);
     }
 
     if self.burn {
@@ -247,7 +264,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap()
     .unwrap()
@@ -273,7 +290,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       None
     );
@@ -286,7 +303,7 @@ mod tests {
         input: Vec::new(),
         output: Vec::new(),
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -302,7 +319,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -320,7 +337,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -339,7 +356,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(None)
     );
@@ -354,7 +371,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -376,7 +393,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -394,7 +411,7 @@ mod tests {
         value: 0,
       }],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap();
   }
@@ -415,7 +432,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       })
       .unwrap()
       .unwrap(),
@@ -443,7 +460,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone::default()))
     );
@@ -478,7 +495,7 @@ mod tests {
         },
       ],
       lock_time: LockTime::ZERO,
-      version: 0,
+      version: 2,
     })
     .unwrap_err();
   }
@@ -792,6 +809,8 @@ mod tests {
         FLAG_ETCH,
         TAG_RUNE,
         4,
+        TAG_DEADLINE,
+        7,
         TAG_DIVISIBILITY,
         1,
         TAG_SPACERS,
@@ -815,6 +834,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
+          deadline: Some(7),
           divisibility: 1,
           symbol: Some('a'),
           term: Some(2),
@@ -852,6 +872,7 @@ mod tests {
           output: 3,
         }],
         etching: None,
+        default_output: None,
         burn: false,
       },
     );
@@ -986,7 +1007,7 @@ mod tests {
           value: 0
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1027,7 +1048,7 @@ mod tests {
           }
         ],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1067,7 +1088,7 @@ mod tests {
           }
         ],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
@@ -1123,13 +1144,14 @@ mod tests {
       Vec::new(),
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
+        deadline: Some(10000),
         rune: Some(Rune(0)),
         symbol: Some('$'),
         limit: Some(1),
         spacers: 1,
         term: Some(1),
       }),
-      16,
+      19,
     );
 
     case(
@@ -1372,7 +1394,7 @@ mod tests {
           value: 0,
         }],
         lock_time: LockTime::ZERO,
-        version: 0,
+        version: 2,
       };
 
       let payload = Runestone::payload(&transaction).unwrap().unwrap();
@@ -1400,11 +1422,12 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 1,
-          limit: Some(2),
+          deadline: Some(2),
+          limit: Some(3),
           symbol: Some('@'),
-          rune: Some(Rune(3)),
-          term: Some(4),
-          spacers: 5,
+          rune: Some(Rune(4)),
+          term: Some(5),
+          spacers: 6,
         }),
         edicts: vec![
           Edict {
@@ -1418,23 +1441,28 @@ mod tests {
             output: 7,
           },
         ],
+        default_output: Some(11),
         burn: false,
       },
       &[
         TAG_FLAGS,
         FLAG_ETCH,
         TAG_RUNE,
-        3,
+        4,
+        TAG_DEADLINE,
+        2,
         TAG_DIVISIBILITY,
         1,
         TAG_SPACERS,
-        5,
+        6,
         TAG_SYMBOL,
         '@'.into(),
         TAG_LIMIT,
-        2,
+        3,
         TAG_TERM,
-        4,
+        5,
+        TAG_DEFAULT_OUTPUT,
+        11,
         TAG_BODY,
         6,
         5,
@@ -1449,6 +1477,7 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
+          deadline: None,
           limit: None,
           symbol: None,
           rune: Some(Rune(3)),
@@ -1465,6 +1494,7 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
+          deadline: None,
           limit: None,
           symbol: None,
           rune: None,

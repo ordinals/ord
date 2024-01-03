@@ -1,6 +1,6 @@
 use crate::index::entry::Entry;
 use crate::index::{InscriptionIdValue, TxidValue};
-use crate::inscription_id::InscriptionId;
+use crate::inscriptions::InscriptionId;
 use crate::okx::datastore::brc20::redb::{
   max_script_tick_id_key, max_script_tick_key, min_script_tick_id_key, min_script_tick_key,
   script_tick_id_key, script_tick_key,
