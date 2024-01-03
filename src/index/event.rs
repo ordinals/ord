@@ -2,7 +2,7 @@ use crate::{InscriptionId, SatPoint};
 
 /// An event from indexing which can be optionally emitted by setting a
 /// channel sender using `set_event_sender`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
   /// Newly created inscriptions will include additional metadata including
   /// rarity, cursed status, charms, etc.
