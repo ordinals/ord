@@ -945,6 +945,7 @@ impl Index {
 
     Ok(Some(RuneJson {
       entry,
+      rune: RuneId::load(id).into(),
       id: RuneId::load(id),
       parent,
     }))
