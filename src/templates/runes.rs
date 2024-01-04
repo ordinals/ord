@@ -1,10 +1,10 @@
 use super::*;
 
-pub(crate) type RunesJson = RunesHtml;
+pub type RunesJson = RunesHtml;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct RunesHtml {
-  pub(crate) entries: Vec<(RuneId, RuneEntry)>,
+pub struct RunesHtml {
+  pub entries: Vec<(RuneId, RuneEntry)>,
 }
 
 impl PageContent for RunesHtml {

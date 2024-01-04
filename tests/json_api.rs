@@ -369,8 +369,12 @@ fn get_block() {
 #[test]
 fn get_status() {
   let rpc_server = test_bitcoincore_rpc::spawn();
+  // .network(Network::Regtest)
+  // .build();
 
   create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
 
   inscribe(&rpc_server);
 
@@ -397,7 +401,7 @@ fn get_status() {
       blessed_inscriptions: 1,
       cursed_inscriptions: 0,
       chain: Chain::Mainnet,
-      height: Some(2),
+      height: Some(3),
       inscriptions: 1,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99246114928149462),
@@ -408,6 +412,136 @@ fn get_status() {
       transaction_index: false,
       unrecoverably_reorged: false,
       uptime: dummy_uptime,
+    }
+  );
+}
+
+#[test]
+fn get_runes() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(3);
+
+  let a = etch(&rpc_server, Rune(RUNE));
+  let b = etch(&rpc_server, Rune(RUNE + 1));
+  let c = etch(&rpc_server, Rune(RUNE + 2));
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_server_args(
+    &rpc_server,
+    &["--index-runes", "--regtest"],
+    &["--enable-json-api"],
+  );
+
+  let response = server.json_request(format!("/rune/{}", a.rune));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let rune_json: RuneJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    rune_json,
+    RuneJson {
+      entry: RuneEntry {
+        burned: 0,
+        deadline: None,
+        divisibility: 0,
+        end: None,
+        etching: a.transaction,
+        limit: None,
+        mints: 0,
+        number: 0,
+        rune: Rune(RUNE),
+        spacers: 0,
+        supply: 1000,
+        symbol: Some('¢'),
+        timestamp: 5,
+      },
+      id: RuneId {
+        height: 5,
+        index: 1
+      },
+      parent: None,
+    }
+  );
+
+  let response = server.json_request("/runes");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_json: RunesJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    runes_json,
+    RunesJson {
+      entries: vec![
+        (
+          RuneId {
+            height: 5,
+            index: 1
+          },
+          RuneEntry {
+            burned: 0,
+            deadline: None,
+            divisibility: 0,
+            end: None,
+            etching: a.transaction,
+            limit: None,
+            mints: 0,
+            number: 0,
+            rune: Rune(RUNE),
+            spacers: 0,
+            supply: 1000,
+            symbol: Some('¢'),
+            timestamp: 5,
+          }
+        ),
+        (
+          RuneId {
+            height: 7,
+            index: 1
+          },
+          RuneEntry {
+            burned: 0,
+            deadline: None,
+            divisibility: 0,
+            end: None,
+            etching: b.transaction,
+            limit: None,
+            mints: 0,
+            number: 1,
+            rune: Rune(RUNE + 1),
+            spacers: 0,
+            supply: 1000,
+            symbol: Some('¢'),
+            timestamp: 7,
+          }
+        ),
+        (
+          RuneId {
+            height: 9,
+            index: 1
+          },
+          RuneEntry {
+            burned: 0,
+            deadline: None,
+            divisibility: 0,
+            end: None,
+            etching: c.transaction,
+            limit: None,
+            mints: 0,
+            number: 2,
+            rune: Rune(RUNE + 2),
+            spacers: 0,
+            supply: 1000,
+            symbol: Some('¢'),
+            timestamp: 9,
+          }
+        )
+      ]
     }
   );
 }

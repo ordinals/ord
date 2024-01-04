@@ -14,7 +14,7 @@ use {
       InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
+      RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
       SatInscriptionsJson, SatJson, TransactionHtml,
     },
   },
@@ -625,14 +625,14 @@ impl Server {
       ));
     }
 
+    let (id, entry, parent) = index
+      .rune(spaced_rune.rune)?
+      .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+
     Ok(if accept_json {
-      Json(index
-      .rune_html(spaced_rune.rune)?).into_response()
-      .into_response()
+      Json(RuneJson { entry, id, parent }).into_response()
     } else {
-      index
-        .rune_html(spaced_rune.rune)?
-        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+      RuneHtml { entry, id, parent }
         .page(server_config)
         .into_response()
     })

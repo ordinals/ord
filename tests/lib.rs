@@ -15,9 +15,9 @@ use {
     subcommand::runes::RuneInfo,
     templates::{
       block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
-      output::OutputJson, sat::SatJson, status::StatusHtml,
+      output::OutputJson, rune::RuneJson, runes::RunesJson, sat::SatJson, status::StatusHtml,
     },
-    Edict, InscriptionId, Rune, RuneId, Runestone, SatPoint,
+    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,

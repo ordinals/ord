@@ -1,12 +1,12 @@
 use super::*;
 
-pub(crate) type RuneJson = RuneHtml;
+pub type RuneJson = RuneHtml;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct RuneHtml {
-  pub(crate) entry: RuneEntry,
-  pub(crate) id: RuneId,
-  pub(crate) parent: Option<InscriptionId>,
+pub struct RuneHtml {
+  pub entry: RuneEntry,
+  pub id: RuneId,
+  pub parent: Option<InscriptionId>,
 }
 
 impl PageContent for RuneHtml {
