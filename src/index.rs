@@ -11,7 +11,7 @@ use {
   super::*,
   crate::{
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
-    templates::{RuneHtml, StatusHtml},
+    templates::StatusHtml,
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -30,7 +30,7 @@ use {
   },
 };
 
-pub(crate) use self::entry::RuneEntry;
+pub use self::entry::RuneEntry;
 
 pub(crate) mod entry;
 mod fetcher;
@@ -855,29 +855,10 @@ impl Index {
     )
   }
 
-  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
-    let rtx = self.database.begin_read()?;
-
-    let Some(id) = rtx
-      .open_table(RUNE_TO_RUNE_ID)?
-      .get(rune.0)?
-      .map(|guard| guard.value())
-    else {
-      return Ok(None);
-    };
-
-    let entry = RuneEntry::load(
-      rtx
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(id)?
-        .unwrap()
-        .value(),
-    );
-
-    Ok(Some((RuneId::load(id), entry)))
-  }
-
-  pub(crate) fn rune_html(&self, rune: Rune) -> Result<Option<RuneHtml>> {
+  pub(crate) fn rune(
+    &self,
+    rune: Rune,
+  ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
     let rtx = self.database.begin_read()?;
 
     let Some(id) = rtx
@@ -907,11 +888,7 @@ impl Index {
       .is_some()
       .then_some(parent);
 
-    Ok(Some(RuneHtml {
-      entry,
-      id: RuneId::load(id),
-      parent,
-    }))
+    Ok(Some((RuneId::load(id), entry, parent)))
   }
 
   pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {

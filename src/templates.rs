@@ -20,8 +20,8 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
-  rune::RuneHtml,
-  runes::RunesHtml,
+  rune::{RuneHtml, RuneJson},
+  runes::{RunesHtml, RunesJson},
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
   status::StatusHtml,
@@ -44,8 +44,8 @@ pub mod output;
 mod preview;
 mod range;
 mod rare;
-mod rune;
-mod runes;
+pub mod rune;
+pub mod runes;
 pub mod sat;
 pub mod status;
 mod transaction;
