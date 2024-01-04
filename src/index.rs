@@ -5596,6 +5596,9 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
+      // Before the jubilee, an inscription on a sat using a pushnum opcode is
+      // cursed and not vindicated.
+
       let script = script::Builder::new()
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
@@ -5634,6 +5637,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, -1);
 
+      // Before the jubilee, reinscription on the same sat is not cursed and
+      // not vindicated.
+
       let inscription = Inscription::default();
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -5662,6 +5668,9 @@ mod tests {
         .any(|charm| *charm == Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
+
+      // Before the jubilee, a third reinscription on the same sat is cursed
+      // and not vindicated.
 
       let inscription = Inscription::default();
 
@@ -5698,6 +5707,8 @@ mod tests {
   fn post_jubilee_first_reinscription_after_vindicated_inscription_not_vindicated() {
     for context in Context::configurations() {
       context.mine_blocks(110);
+      // After the jubilee, an inscription on a sat using a pushnum opcode is
+      // vindicated and not cursed.
 
       let script = script::Builder::new()
         .push_opcode(opcodes::OP_FALSE)
@@ -5737,6 +5748,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
+      // After the jubilee, a reinscription on the same is not cursed and not
+      // vindicated.
+
       let inscription = Inscription::default();
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -5765,6 +5779,9 @@ mod tests {
       assert_eq!(entry.inscription_number, 1);
 
       assert_eq!(sat, entry.sat);
+
+      // After the jubilee, a third reinscription on the same is vindicated and
+      // not cursed.
 
       let inscription = Inscription::default();
 
