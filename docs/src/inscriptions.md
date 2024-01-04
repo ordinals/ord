@@ -133,3 +133,14 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
+
+Reinscription
+-------------
+
+Previously inscribed sats can be reinscribed with the `--reinscribe` command.
+
+Reinscription wtih a Satpoint:
+`ord wallet inscribe --fee-rate FEE_RATE --reinscribe --file FILE --satpoint SATPOINT`
+
+Reinscription with a Sat:
+`ord wallet inscribe --fee-rate FEE_RATE --reinscribe --file FILE --sat SAT`
