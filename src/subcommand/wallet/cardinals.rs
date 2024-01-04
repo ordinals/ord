@@ -6,15 +6,11 @@ pub struct CardinalUtxo {
   pub amount: u64,
 }
 
-pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-
-  index.update()?;
-
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let inscribed_utxos = index
-    .get_inscriptions(&unspent_outputs)?
+  let inscribed_utxos = wallet
+    .get_inscriptions()?
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();

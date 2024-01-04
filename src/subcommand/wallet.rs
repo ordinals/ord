@@ -125,8 +125,8 @@ impl WalletCommand {
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet, options),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
-      Subcommand::Outputs => outputs::run(wallet, options),
-      Subcommand::Cardinals => cardinals::run(wallet, options),
+      Subcommand::Outputs => outputs::run(wallet),
+      Subcommand::Cardinals => cardinals::run(wallet),
     }
   }
 }
