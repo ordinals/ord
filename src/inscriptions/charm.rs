@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Charm {
   Coin = 0,
   Cursed = 1,
@@ -73,11 +73,11 @@ impl Charm {
   }
 
   #[cfg(test)]
-  pub(crate) fn charms(charms: u16) -> Vec<&'static str> {
+  pub(crate) fn charms(charms: u16) -> Vec<Charm> {
     Self::ALL
       .iter()
       .filter(|charm| charm.is_set(charms))
-      .map(|charm| charm.title())
+      .cloned()
       .collect()
   }
 }

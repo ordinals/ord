@@ -5663,7 +5663,10 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      dbg!(Charm::charms(entry.charms));
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Cursed)
+        .is_some());
 
       let sat = entry.sat;
 
@@ -5677,7 +5680,7 @@ mod tests {
         ..Default::default()
       });
 
-      let blocks = context.mine_blocks(1);
+      context.mine_blocks(1);
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
@@ -5687,9 +5690,12 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      dbg!(Charm::charms(entry.charms));
-
       assert_eq!(entry.inscription_number, 0);
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Cursed)
+        .is_none());
 
       assert_eq!(sat, entry.sat);
     }
@@ -5726,7 +5732,15 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      dbg!(Charm::charms(entry.charms));
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Cursed)
+        .is_some());
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Vindicated)
+        .is_none());
 
       let sat = entry.sat;
 
@@ -5742,7 +5756,7 @@ mod tests {
         ..Default::default()
       });
 
-      let blocks = context.mine_blocks(1);
+      context.mine_blocks(1);
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
@@ -5752,9 +5766,15 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      dbg!(Charm::charms(entry.charms));
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Cursed)
+        .is_none());
 
-      assert!(!Charm::Vindicated.is_set(dbg!(entry.charms)));
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .find(|charm| **charm == Charm::Vindicated)
+        .is_none());
 
       assert_eq!(entry.inscription_number, 0);
 
