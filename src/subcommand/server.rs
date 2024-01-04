@@ -14,8 +14,8 @@ use {
       InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, TransactionHtml,
+      RangeHtml, RareTxt, RunesHtml, RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson,
+      SatJson, StatusHtml, TransactionHtml,
     },
   },
   axum::{
@@ -44,7 +44,6 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
-use crate::templates::RunesJson;
 
 mod accept_encoding;
 mod accept_json;
@@ -618,25 +617,31 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
-  ) -> ServerResult<PageHtml<RuneHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
     if !index.has_rune_index() {
       return Err(ServerError::NotFound(
         "this server has no rune index".to_string(),
       ));
     }
 
-    Ok(
+    let output_rune_json = index.rune_json(spaced_rune.rune).unwrap();
+    Ok(if accept_json {
+      Json(output_rune_json).into_response()
+    }else{
       index
-        .rune_html(spaced_rune.rune)?
-        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
-        .page(server_config),
+          .rune_html(spaced_rune.rune)?
+          .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+          .page(server_config)
+          .into_response()
+    }
     )
   }
 
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    AcceptJson(accept_json): AcceptJson
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     Ok(if accept_json {
       Json(RunesJson {
