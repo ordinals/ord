@@ -167,15 +167,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             let initial_inscription_sequence_number =
               self.id_to_sequence_number.get(id.store())?.unwrap().value();
 
-            let initial_inscription_is_cursed = InscriptionEntry::load(
+            let entry = InscriptionEntry::load(
               self
                 .sequence_number_to_entry
                 .get(initial_inscription_sequence_number)?
                 .unwrap()
                 .value(),
-            )
-            .inscription_number
-              < 0;
+            );
+
+            let initial_inscription_is_cursed =
+              entry.inscription_number < 0 || Charm::Vindicated.is_set(entry.charms);
 
             if initial_inscription_is_cursed {
               None

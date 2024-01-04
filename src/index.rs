@@ -5591,47 +5591,6 @@ mod tests {
     }
   }
 
-  // todo:
-  // - write tests
-  //
-  // - test reinscription edge case:
-  //   - pre-jubilee, inscribe using pushnum: cursed
-  //   - inscribe again on same sat: blessed
-  //
-  //   - pre-jubilee, inscribe using pushnum: cursed
-  //   - post-jubilee, inscribe using pushnum: vindicated
-  //
-  // Re-inscribing on a vindicated inscription will continue
-  // to yield a vindicated inscription, which may inconsistent
-  // with the process before Jubilee.
-  //
-  // Re-inscribing on a vindicated inscription will continue
-  // to yield a vindicated inscription, which may inconsistent
-  // with the process before Jubilee.
-  //
-  // ```
-  // .inscription_number
-  //   < 0;
-  // if initial_inscription_is_cursed {
-  // ```
-  //
-  // We can fix that by also checking the vindicated charm.
-  // initial_inscription_is_cursed should be true if either
-  // inscription_number < 0 or inscription has vindicated charm.
-  //
-  // yes, we also think this is what we want, and vindicated
-  // will be consistant with release 0.9 after being fixed
-  //
-  //```
-  // let entry = InscriptionEntry::load(
-  //  self
-  //    .sequence_number_to_entry
-  //    .get(initial_inscription_sequence_number)?
-  //    .unwrap()
-  //    .value(),
-  //);
-  //```
-
   #[test]
   fn pre_jubilee_first_reinscription_after_cursed_inscription_is_blessed() {
     for context in Context::configurations() {
@@ -5665,8 +5624,11 @@ mod tests {
 
       assert!(Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Cursed)
-        .is_some());
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -5676,7 +5638,6 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 1, 0, inscription.to_witness())],
-        fee: 50 * COIN_VALUE,
         ..Default::default()
       });
 
@@ -5692,19 +5653,51 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(sat, entry.sat);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
       assert!(Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Cursed)
-        .is_none());
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(entry.inscription_number, -2);
 
       assert_eq!(sat, entry.sat);
     }
   }
 
   #[test]
-  fn post_jubilee_first_reinscription_after_cursed_inscription_not_vindicated() {
+  fn post_jubilee_first_reinscription_after_vindicated_inscription_not_vindicated() {
     for context in Context::configurations() {
-      context.mine_blocks(1);
+      context.mine_blocks(110);
 
       let script = script::Builder::new()
         .push_opcode(opcodes::OP_FALSE)
@@ -5732,27 +5725,22 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
+      assert!(!Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Cursed)
-        .is_some());
+        .any(|charm| *charm == Charm::Cursed));
 
       assert!(Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Vindicated)
-        .is_none());
+        .any(|charm| *charm == Charm::Vindicated));
 
       let sat = entry.sat;
 
-      assert_eq!(entry.inscription_number, -1);
-
-      context.mine_blocks(120);
+      assert_eq!(entry.inscription_number, 0);
 
       let inscription = Inscription::default();
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 1, 0, inscription.to_witness())],
-        fee: 50 * COIN_VALUE,
+        inputs: &[(111, 1, 0, inscription.to_witness())],
         ..Default::default()
       });
 
@@ -5766,17 +5754,44 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
+      assert!(!Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Cursed)
-        .is_none());
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(entry.inscription_number, 1);
+
+      assert_eq!(sat, entry.sat);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(112, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
 
       assert!(Charm::charms(entry.charms)
         .iter()
-        .find(|charm| **charm == Charm::Vindicated)
-        .is_none());
+        .any(|charm| *charm == Charm::Vindicated));
 
-      assert_eq!(entry.inscription_number, 0);
+      assert_eq!(entry.inscription_number, 2);
 
       assert_eq!(sat, entry.sat);
     }
