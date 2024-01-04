@@ -11,7 +11,8 @@ pub(crate) struct RuneHtml {
 pub struct RuneJson {
   pub entry: RuneEntry,
   pub id: RuneId,
-  pub rune: u128,
+  pub height: u32,
+  pub index: u16,
   pub parent: Option<InscriptionId>,
 }
 

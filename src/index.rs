@@ -943,9 +943,11 @@ impl Index {
         .is_some()
         .then_some(parent);
 
+    let rune_id = RuneId::load(id);
     Ok(Some(RuneJson {
       entry,
-      rune: RuneId::load(id).into(),
+      height: rune_id.height,
+      index: rune_id.index,
       id: RuneId::load(id),
       parent,
     }))
