@@ -628,14 +628,13 @@ impl Server {
     let output_rune_json = index.rune_json(spaced_rune.rune).unwrap();
     Ok(if accept_json {
       Json(output_rune_json).into_response()
-    }else{
+    } else {
       index
-          .rune_html(spaced_rune.rune)?
-          .ok_or_not_found(|| format!("rune {spaced_rune}"))?
-          .page(server_config)
-          .into_response()
-    }
-    )
+        .rune_html(spaced_rune.rune)?
+        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+        .page(server_config)
+        .into_response()
+    })
   }
 
   async fn runes(
@@ -647,13 +646,13 @@ impl Server {
       Json(RunesJson {
         runes: index.runes()?,
       })
-          .into_response()
-    }else {
+      .into_response()
+    } else {
       RunesHtml {
         entries: index.runes()?,
       }
-          .page(server_config)
-          .into_response()
+      .page(server_config)
+      .into_response()
     })
   }
 

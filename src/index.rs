@@ -926,10 +926,10 @@ impl Index {
 
     let entry = RuneEntry::load(
       rtx
-          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-          .get(id)?
-          .unwrap()
-          .value(),
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+        .get(id)?
+        .unwrap()
+        .value(),
     );
 
     let parent = InscriptionId {
@@ -938,10 +938,10 @@ impl Index {
     };
 
     let parent = rtx
-        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
-        .get(&parent.store())?
-        .is_some()
-        .then_some(parent);
+      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+      .get(&parent.store())?
+      .is_some()
+      .then_some(parent);
 
     let rune_id = RuneId::load(id);
     Ok(Some(RuneJson {

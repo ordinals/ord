@@ -7,7 +7,7 @@ pub(crate) struct RunesHtml {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesJson {
-  pub runes: Vec<(RuneId, RuneEntry)>
+  pub runes: Vec<(RuneId, RuneEntry)>,
 }
 
 impl PageContent for RunesHtml {
