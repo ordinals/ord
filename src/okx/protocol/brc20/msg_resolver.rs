@@ -32,6 +32,7 @@ impl Message {
       Action::New {
         cursed: false,
         unbound: false,
+        vindicated: false,
         inscription: _,
       } if sat_in_outputs => {
         match deserialize_brc20_operation(

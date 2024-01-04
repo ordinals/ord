@@ -662,10 +662,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             reinscription: _,
             unbound,
             inscription,
-            vindicated: _,
+            vindicated,
           } => Action::New {
             cursed,
             unbound,
+            vindicated,
             inscription,
           },
         },
