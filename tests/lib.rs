@@ -108,25 +108,13 @@ fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
-    .write("foo.txt", "FOO")
-    .rpc_server(rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
-
-  rpc_server.mine_blocks(1);
-
-  assert_eq!(output.inscriptions.len(), 1);
-
-  (output.inscriptions[0].id, output.reveal)
-}
-
-fn inscribe_regtest(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
-  rpc_server.mine_blocks(1);
-
-  let output = CommandBuilder::new("--regtest wallet inscribe --fee-rate 1 --file foo.txt")
-    .write("foo.txt", "FOO")
-    .rpc_server(rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+  let output = CommandBuilder::new(format!(
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
+    rpc_server.network()
+  ))
+  .write("foo.txt", "FOO")
+  .rpc_server(rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 

@@ -375,7 +375,7 @@ fn get_status() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  inscribe_regtest(&rpc_server);
+  inscribe(&rpc_server);
 
   let response = TestServer::spawn_with_server_args(
     &rpc_server,

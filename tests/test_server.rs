@@ -27,19 +27,28 @@ impl TestServer {
     server_args: &[&str],
   ) -> Self {
     let tempdir = TempDir::new().unwrap();
-    let cookie_file = tempdir.path().join(".cookie");
+
+    let cookie_file = match rpc_server.network().as_str() {
+      "mainnet" => tempdir.path().join(".cookie"),
+      network => {
+        fs::create_dir(tempdir.path().join(network)).unwrap();
+        tempdir.path().join(format!("{network}/.cookie"))
+      }
+    };
+
     fs::write(cookie_file.clone(), "foo:bar").unwrap();
+
     let port = TcpListener::bind("127.0.0.1:0")
       .unwrap()
       .local_addr()
       .unwrap()
       .port();
+
     let child = Command::new(executable_path("ord")).args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} --cookie-file {} {} server {} --http-port {port} --address 127.0.0.1",
+      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display(),
-      cookie_file.display(),
       ord_args.join(" "),
       server_args.join(" "),
     ).to_args())
