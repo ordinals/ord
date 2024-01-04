@@ -188,8 +188,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        let vindicated = jubilant && curse.is_some();
-
         let unbound = current_input_value == 0
           || curse == Some(Curse::UnrecognizedEvenField)
           || inscription.payload.unrecognized_even_field;
@@ -211,7 +209,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.get(&offset).is_some(),
             unbound,
-            vindicated,
+            vindicated: curse.is_some() && jubilant,
           },
         });
 
