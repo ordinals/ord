@@ -118,7 +118,7 @@ impl WalletCommand {
       Subcommand::Balance => balance::run(wallet, options),
       Subcommand::Create(create) => create.run(wallet, options),
       Subcommand::Etch(etch) => etch.run(wallet, options),
-      Subcommand::Inscribe(inscribe) => inscribe.run(wallet, options),
+      Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet, options),
       Subcommand::Receive => receive::run(wallet),
       Subcommand::Restore(restore) => restore.run(wallet, options),
@@ -249,6 +249,69 @@ impl Wallet {
 
   pub(crate) fn get_inscription_satpoint(&self, inscription_id: InscriptionId) -> Result<SatPoint> {
     Ok(self.get_inscription(inscription_id)?.satpoint)
+  }
+
+  pub(crate) fn find_sat_in_outputs(
+    &self,
+    sat: Sat,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<SatPoint> {
+    if !self.get_server_status()?.sat_index {
+      return Err(anyhow!(
+        "index must be built with `--index-sats` to use `--sat`"
+      ));
+    }
+
+    for output in utxos.keys() {
+      let output_json: OutputJson = serde_json::from_str(
+        &self
+          .ord_http_client
+          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+          .send()?
+          .text()?,
+      )?;
+
+      if let Some(sat_ranges) = output_json.sat_ranges {
+        let mut offset = 0;
+        for (start, end) in sat_ranges {
+          if start <= sat.n() && sat.n() < end {
+            return Ok(SatPoint {
+              outpoint: *output,
+              offset: offset + sat.n() - start,
+            });
+          }
+          offset += end - start;
+        }
+      } else {
+        continue;
+      }
+    }
+
+    Err(anyhow!(format!(
+      "could not find sat `{sat}` in wallet outputs"
+    )))
+  }
+
+  pub(crate) fn get_runic_outputs(
+    &self,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<BTreeSet<OutPoint>> {
+    let mut runic_outputs = BTreeSet::new();
+    for output in utxos.keys() {
+      let output_json: OutputJson = serde_json::from_str(
+        &self
+          .ord_http_client
+          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+          .send()?
+          .text()?,
+      )?;
+
+      if !output_json.runes.is_empty() {
+        runic_outputs.insert(*output);
+      }
+    }
+
+    Ok(runic_outputs)
   }
 
   pub(crate) fn get_server_status(&self) -> Result<StatusJson> {

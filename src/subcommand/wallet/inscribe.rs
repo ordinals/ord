@@ -107,17 +107,14 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, wallet: Wallet, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
-
-    let index = Index::open(&options)?;
-    index.update()?;
 
     let utxos = wallet.get_unspent_outputs()?;
 
     let locked_utxos = wallet.get_locked_outputs()?;
 
-    let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
+    let runic_utxos = wallet.get_runic_outputs(&utxos)?;
 
     let chain = wallet.chain;
 
@@ -184,15 +181,7 @@ impl Inscribe {
     }
 
     let satpoint = if let Some(sat) = sat {
-      if !wallet.get_server_status()?.sat_index {
-        return Err(anyhow!(
-          "index must be built with `--index-sats` to use `--sat`"
-        ));
-      }
-      match index.find(sat)? {
-        Some(satpoint) => Some(satpoint),
-        None => return Err(anyhow!(format!("could not find sat `{sat}`"))),
-      }
+      Some(wallet.find_sat_in_outputs(sat, &utxos)?)
     } else {
       self.satpoint
     };
