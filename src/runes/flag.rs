@@ -20,3 +20,32 @@ impl Flag {
     *flags |= self.mask()
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn mask() {
+    assert_eq!(Flag::Etch.mask(), 0b1);
+    assert_eq!(Flag::Burn.mask(), 1 << 127);
+  }
+
+  #[test]
+  fn take() {
+    let mut flags = 1;
+    assert!(Flag::Etch.take(&mut flags));
+    assert_eq!(flags, 0);
+
+    let mut flags = 0;
+    assert!(!Flag::Etch.take(&mut flags));
+    assert_eq!(flags, 0);
+  }
+
+  #[test]
+  fn set() {
+    let mut flags = 0;
+    Flag::Etch.set(&mut flags);
+    assert_eq!(flags, 1);
+  }
+}
