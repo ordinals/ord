@@ -625,15 +625,9 @@ impl Server {
       ));
     }
 
-    let rune = index
-      .rune_html(spaced_rune.rune)?
-      .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
     Ok(if accept_json {
-      Json(RuneJson {
-        parent: rune.parent,
-        id: rune.id,
-        entry: rune.entry,
-      })
+      Json(index
+      .rune_html(spaced_rune.rune)?).into_response()
       .into_response()
     } else {
       index
