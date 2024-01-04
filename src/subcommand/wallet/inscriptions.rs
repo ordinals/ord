@@ -11,7 +11,7 @@ pub struct Output {
 pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
   let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let inscriptions = wallet.get_inscriptions(&unspent_outputs)?;
+  let inscriptions = wallet.get_inscriptions()?;
 
   let explorer = match options.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",

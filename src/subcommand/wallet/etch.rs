@@ -100,10 +100,8 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = wallet.get_unspent_outputs()?;
-
     let inscriptions = wallet
-      .get_inscriptions(&unspent_outputs)?
+      .get_inscriptions()?
       .keys()
       .map(|satpoint| satpoint.outpoint)
       .collect::<Vec<OutPoint>>();

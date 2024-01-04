@@ -33,10 +33,9 @@ impl Send {
 
     let locked_outputs = wallet.get_locked_outputs()?;
 
-    let inscriptions = index.get_inscriptions(&unspent_outputs)?;
+    let inscriptions = wallet.get_inscriptions()?;
 
-    let runic_outputs =
-      index.get_runic_outputs(&unspent_outputs.keys().cloned().collect::<Vec<OutPoint>>())?;
+    let runic_outputs = wallet.get_runic_outputs()?;
 
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
@@ -44,9 +43,7 @@ impl Send {
         let transaction = Self::send_amount(&wallet, amount, address, self.fee_rate)?;
         return Ok(Box::new(Output { transaction }));
       }
-      Outgoing::InscriptionId(id) => index
-        .get_inscription_satpoint_by_id(id)?
-        .ok_or_else(|| anyhow!("inscription {id} not found"))?,
+      Outgoing::InscriptionId(id) => wallet.get_inscription_satpoint(id)?,
       Outgoing::Rune { decimal, rune } => {
         let transaction = Self::send_runes(
           address,
@@ -168,7 +165,7 @@ impl Send {
     wallet: &Wallet,
   ) -> Result<Txid> {
     ensure!(
-      index.has_rune_index(),
+      wallet.get_server_status()?.rune_index,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
@@ -193,7 +190,7 @@ impl Send {
         continue;
       }
 
-      let balance = index.get_rune_balance(output, id)?;
+      let balance = wallet.get_rune_balance_in_output(&output, entry.rune)?;
 
       if balance > 0 {
         input_runes += balance;

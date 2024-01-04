@@ -15,7 +15,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.get_unspent_outputs()?;
 
   let inscription_outputs = wallet
-    .get_inscriptions(&unspent_outputs)?
+    .get_inscriptions()?
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
@@ -26,7 +26,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runic = 0;
 
   for (output, amount) in unspent_outputs {
-    let rune_balances = wallet.get_rune_balances_for_outputs(&output)?;
+    let rune_balances = wallet.get_runes_balances_for_output(&output)?;
 
     if inscription_outputs.contains(&output) {
       ordinal += amount.to_sat();

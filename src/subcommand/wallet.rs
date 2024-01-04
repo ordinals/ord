@@ -242,29 +242,27 @@ impl Wallet {
     Ok(serde_json::from_str(&response.text()?)?)
   }
 
-  pub(crate) fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
-    let inscription_json: InscriptionJson = serde_json::from_str(
-      &self
-        .ord_http_client
-        .get(
-          self
-            .ord_api_url
-            .join(&format!("/inscription/{inscription_id}"))
-            .unwrap(),
-        )
-        .send()?
-        .text()?,
-    )?;
+  fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
+    let response = self
+      .ord_http_client
+      .get(
+        self
+          .ord_api_url
+          .join(&format!("/inscription/{inscription_id}"))
+          .unwrap(),
+      )
+      .send()?;
 
-    Ok(inscription_json)
+    if response.status().is_client_error() {
+      bail!("inscription {inscription_id} not found");
+    }
+
+    Ok(serde_json::from_str(&response.text()?)?)
   }
 
-  pub(crate) fn get_inscriptions(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let mut inscriptions = BTreeMap::new();
-    for output in utxos.keys() {
+    for output in self.get_unspent_outputs()?.keys() {
       for inscription in self.get_output(&output)?.inscriptions {
         inscriptions.insert(self.get_inscription_satpoint(inscription)?, inscription);
       }
@@ -277,12 +275,9 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
-  pub(crate) fn get_runic_outputs(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<BTreeSet<OutPoint>> {
+  pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     let mut runic_outputs = BTreeSet::new();
-    for output in utxos.keys() {
+    for output in self.get_unspent_outputs()?.keys() {
       if !self.get_output(output)?.runes.is_empty() {
         runic_outputs.insert(*output);
       }
@@ -291,11 +286,27 @@ impl Wallet {
     Ok(runic_outputs)
   }
 
-  pub(crate) fn get_rune_balances_for_outputs(
+  pub(crate) fn get_runes_balances_for_output(
     &self,
     output: &OutPoint,
   ) -> Result<Vec<(SpacedRune, Pile)>> {
     Ok(self.get_output(output)?.runes)
+  }
+
+  pub(crate) fn get_rune_balance_in_output(&self, output: &OutPoint, rune: Rune) -> Result<u128> {
+    Ok(
+      self
+        .get_runes_balances_for_output(output)?
+        .iter()
+        .map(|(spaced_rune, pile)| {
+          if spaced_rune.rune == rune {
+            pile.amount
+          } else {
+            0
+          }
+        })
+        .sum(),
+    )
   }
 
   pub(crate) fn get_rune_balances(
@@ -304,7 +315,7 @@ impl Wallet {
   ) -> Result<Vec<(SpacedRune, Pile)>> {
     let mut rune_balances = Vec::new();
     for output in utxos.keys() {
-      rune_balances.append(&mut self.get_rune_balances_for_outputs(output)?);
+      rune_balances.append(&mut self.get_runes_balances_for_output(output)?);
     }
 
     Ok(rune_balances)

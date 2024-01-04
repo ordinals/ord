@@ -114,7 +114,7 @@ impl Inscribe {
 
     let locked_utxos = wallet.get_locked_outputs()?;
 
-    let runic_utxos = wallet.get_runic_outputs(&utxos)?;
+    let runic_utxos = wallet.get_runic_outputs()?;
 
     let chain = wallet.chain;
 
