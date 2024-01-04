@@ -15,7 +15,7 @@ use {
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
-      SatInscriptionsJson, SatJson, StatusHtml, TransactionHtml,
+      SatInscriptionsJson, SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -625,7 +625,9 @@ impl Server {
       ));
     }
 
-    let rune = index.rune_html(spaced_rune.rune)?.ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+    let rune = index
+      .rune_html(spaced_rune.rune)?
+      .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
     Ok(if accept_json {
       Json(RuneJson {
         parent: rune.parent,
@@ -786,8 +788,13 @@ impl Server {
   async fn status(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<StatusHtml>> {
-    Ok(index.status()?.page(server_config))
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(index.status()?).into_response()
+    } else {
+      index.status()?.page(server_config).into_response()
+    })
   }
 
   async fn search_by_query(
@@ -2569,6 +2576,8 @@ mod tests {
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
+  <dt>chain</dt>
+  <dd>mainnet</dd>
   <dt>height</dt>
   <dd>0</dd>
   <dt>inscriptions</dt>
