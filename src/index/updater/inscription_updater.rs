@@ -175,10 +175,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
                 .value(),
             );
 
-            let initial_inscription_is_cursed =
+            let initial_inscription_was_cursed_or_vindicated =
               entry.inscription_number < 0 || Charm::Vindicated.is_set(entry.charms);
 
-            if initial_inscription_is_cursed {
+            if initial_inscription_was_cursed_or_vindicated {
               None
             } else {
               Some(Curse::Reinscription)
