@@ -5590,4 +5590,175 @@ mod tests {
       );
     }
   }
+
+  // todo:
+  // - write tests
+  //
+  // - test reinscription edge case:
+  //   - pre-jubilee, inscribe using pushnum: cursed
+  //   - inscribe again on same sat: blessed
+  //
+  //   - pre-jubilee, inscribe using pushnum: cursed
+  //   - post-jubilee, inscribe using pushnum: vindicated
+  //
+  // Re-inscribing on a vindicated inscription will continue
+  // to yield a vindicated inscription, which may inconsistent
+  // with the process before Jubilee.
+  //
+  // Re-inscribing on a vindicated inscription will continue
+  // to yield a vindicated inscription, which may inconsistent
+  // with the process before Jubilee.
+  //
+  // ```
+  // .inscription_number
+  //   < 0;
+  // if initial_inscription_is_cursed {
+  // ```
+  //
+  // We can fix that by also checking the vindicated charm.
+  // initial_inscription_is_cursed should be true if either
+  // inscription_number < 0 or inscription has vindicated charm.
+  //
+  // yes, we also think this is what we want, and vindicated
+  // will be consistant with release 0.9 after being fixed
+  //
+  //```
+  // let entry = InscriptionEntry::load(
+  //  self
+  //    .sequence_number_to_entry
+  //    .get(initial_inscription_sequence_number)?
+  //    .unwrap()
+  //    .value(),
+  //);
+  //```
+
+  #[test]
+  fn pre_jubilee_first_reinscription_after_cursed_inscription_is_blessed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      dbg!(Charm::charms(entry.charms));
+
+      let sat = entry.sat;
+
+      assert_eq!(entry.inscription_number, -1);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0, inscription.to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let blocks = context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      dbg!(Charm::charms(entry.charms));
+
+      assert_eq!(entry.inscription_number, 0);
+
+      assert_eq!(sat, entry.sat);
+    }
+  }
+
+  #[test]
+  fn post_jubilee_first_reinscription_after_cursed_inscription_not_vindicated() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      dbg!(Charm::charms(entry.charms));
+
+      let sat = entry.sat;
+
+      assert_eq!(entry.inscription_number, -1);
+
+      context.mine_blocks(120);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0, inscription.to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let blocks = context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      dbg!(Charm::charms(entry.charms));
+
+      assert!(!Charm::Vindicated.is_set(dbg!(entry.charms)));
+
+      assert_eq!(entry.inscription_number, 0);
+
+      assert_eq!(sat, entry.sat);
+    }
+  }
 }

@@ -71,4 +71,13 @@ impl Charm {
       Self::Vindicated => "vindicated",
     }
   }
+
+  #[cfg(test)]
+  pub(crate) fn charms(charms: u16) -> Vec<&'static str> {
+    Self::ALL
+      .iter()
+      .filter(|charm| charm.is_set(charms))
+      .map(|charm| charm.title())
+      .collect()
+  }
 }
