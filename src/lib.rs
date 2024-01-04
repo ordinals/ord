@@ -21,7 +21,7 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
-    index::{List, RuneEntry},
+    index::List,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
     outgoing::Outgoing,
     representation::Representation,
@@ -48,7 +48,6 @@ use {
     Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
-  chain::Chain,
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
@@ -84,8 +83,9 @@ use {
 };
 
 pub use self::{
+  chain::Chain,
   fee_rate::FeeRate,
-  index::Index,
+  index::{Index, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
@@ -115,7 +115,7 @@ macro_rules! tprintln {
 
 mod arguments;
 mod blocktime;
-mod chain;
+pub mod chain;
 mod config;
 mod decimal;
 mod decimal_sat;

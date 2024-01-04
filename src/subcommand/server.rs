@@ -14,8 +14,8 @@ use {
       InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, StatusHtml, TransactionHtml,
+      RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
+      SatInscriptionsJson, SatJson, TransactionHtml,
     },
   },
   axum::{
@@ -617,31 +617,44 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
-  ) -> ServerResult<PageHtml<RuneHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
     if !index.has_rune_index() {
       return Err(ServerError::NotFound(
         "this server has no rune index".to_string(),
       ));
     }
 
-    Ok(
-      index
-        .rune_html(spaced_rune.rune)?
-        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
-        .page(server_config),
-    )
+    let (id, entry, parent) = index
+      .rune(spaced_rune.rune)?
+      .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+
+    Ok(if accept_json {
+      Json(RuneJson { entry, id, parent }).into_response()
+    } else {
+      RuneHtml { entry, id, parent }
+        .page(server_config)
+        .into_response()
+    })
   }
 
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<RunesHtml>> {
-    Ok(
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(RunesJson {
+        entries: index.runes()?,
+      })
+      .into_response()
+    } else {
       RunesHtml {
         entries: index.runes()?,
       }
-      .page(server_config),
-    )
+      .page(server_config)
+      .into_response()
+    })
   }
 
   async fn home(
@@ -769,8 +782,13 @@ impl Server {
   async fn status(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<StatusHtml>> {
-    Ok(index.status()?.page(server_config))
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(index.status()?).into_response()
+    } else {
+      index.status()?.page(server_config).into_response()
+    })
   }
 
   async fn search_by_query(
@@ -2557,6 +2575,8 @@ mod tests {
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
+  <dt>chain</dt>
+  <dd>mainnet</dd>
   <dt>height</dt>
   <dd>0</dd>
   <dt>inscriptions</dt>
