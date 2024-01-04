@@ -12,12 +12,12 @@ pub struct Runestone {
 
 struct Message {
   fields: HashMap<u128, u128>,
-  body: Vec<Edict>,
+  edicts: Vec<Edict>,
 }
 
 impl Message {
   fn from_integers(payload: &[u128]) -> Self {
-    let mut body = Vec::new();
+    let mut edicts = Vec::new();
     let mut fields = HashMap::new();
 
     for i in (0..payload.len()).step_by(2) {
@@ -27,7 +27,7 @@ impl Message {
         let mut id = 0u128;
         for chunk in payload[i + 1..].chunks_exact(3) {
           id = id.saturating_add(chunk[0]);
-          body.push(Edict {
+          edicts.push(Edict {
             id,
             amount: chunk[1],
             output: chunk[2],
@@ -43,7 +43,7 @@ impl Message {
       fields.entry(tag).or_insert(value);
     }
 
-    Self { fields, body }
+    Self { fields, edicts }
   }
 }
 
@@ -59,7 +59,7 @@ impl Runestone {
 
     let integers = Runestone::integers(&payload);
 
-    let Message { mut fields, body } = Message::from_integers(&integers);
+    let Message { mut fields, edicts } = Message::from_integers(&integers);
 
     let deadline = Tag::Deadline
       .take(&mut fields)
@@ -117,7 +117,7 @@ impl Runestone {
     Ok(Some(Self {
       burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
       default_output,
-      edicts: body,
+      edicts,
       etching,
     }))
   }
@@ -161,7 +161,7 @@ impl Runestone {
     }
 
     if let Some(default_output) = self.default_output {
-      Tag::Term.encode(default_output.into(), &mut payload);
+      Tag::DefaultOutput.encode(default_output.into(), &mut payload);
     }
 
     if self.burn {
