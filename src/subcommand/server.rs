@@ -14,8 +14,8 @@ use {
       InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RunesHtml, RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, StatusHtml, TransactionHtml,
+      RangeHtml, RareTxt, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
+      SatInscriptionsJson, SatJson, StatusHtml, TransactionHtml,
     },
   },
   axum::{
@@ -625,9 +625,14 @@ impl Server {
       ));
     }
 
-    let output_rune_json = index.rune_json(spaced_rune.rune).unwrap();
+    let rune = index.rune_html(spaced_rune.rune)?.ok_or_not_found(|| format!("rune {spaced_rune}"))?;
     Ok(if accept_json {
-      Json(output_rune_json).into_response()
+      Json(RuneJson {
+        parent: rune.parent,
+        id: rune.id,
+        entry: rune.entry,
+      })
+      .into_response()
     } else {
       index
         .rune_html(spaced_rune.rune)?
@@ -644,7 +649,7 @@ impl Server {
   ) -> ServerResult<Response> {
     Ok(if accept_json {
       Json(RunesJson {
-        runes: index.runes()?,
+        entries: index.runes()?,
       })
       .into_response()
     } else {

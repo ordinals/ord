@@ -1,14 +1,12 @@
 use super::*;
 
-#[derive(Boilerplate)]
+pub(crate) type RunesJson = RunesHtml;
+
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct RunesHtml {
   pub(crate) entries: Vec<(RuneId, RuneEntry)>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct RunesJson {
-  pub runes: Vec<(RuneId, RuneEntry)>,
-}
 
 impl PageContent for RunesHtml {
   fn title(&self) -> String {
