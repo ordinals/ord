@@ -7,6 +7,13 @@ pub(crate) struct RuneHtml {
   pub(crate) parent: Option<InscriptionId>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct RuneJson {
+  pub entry: RuneEntry,
+  pub id: RuneId,
+  pub parent: Option<InscriptionId>,
+}
+
 impl PageContent for RuneHtml {
   fn title(&self) -> String {
     format!("Rune {}", self.entry.spaced_rune())

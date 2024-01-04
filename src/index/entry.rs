@@ -28,7 +28,7 @@ impl Entry for Header {
   }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) deadline: Option<u32>,

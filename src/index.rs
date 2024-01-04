@@ -11,7 +11,7 @@ use {
   super::*,
   crate::{
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
-    templates::{RuneHtml, StatusHtml},
+    templates::{RuneHtml, RuneJson, StatusHtml},
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -908,6 +908,42 @@ impl Index {
       .then_some(parent);
 
     Ok(Some(RuneHtml {
+      entry,
+      id: RuneId::load(id),
+      parent,
+    }))
+  }
+  pub(crate) fn rune_json(&self, rune: Rune) -> Result<Option<RuneJson>> {
+    let rtx = self.database.begin_read()?;
+
+    let Some(id) = rtx
+      .open_table(RUNE_TO_RUNE_ID)?
+      .get(rune.0)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(None);
+    };
+
+    let entry = RuneEntry::load(
+      rtx
+          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+          .get(id)?
+          .unwrap()
+          .value(),
+    );
+
+    let parent = InscriptionId {
+      txid: entry.etching,
+      index: 0,
+    };
+
+    let parent = rtx
+        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+        .get(&parent.store())?
+        .is_some()
+        .then_some(parent);
+
+    Ok(Some(RuneJson {
       entry,
       id: RuneId::load(id),
       parent,

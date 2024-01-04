@@ -20,7 +20,7 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
-  rune::RuneHtml,
+  rune::{RuneHtml, RuneJson},
   runes::RunesHtml,
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
