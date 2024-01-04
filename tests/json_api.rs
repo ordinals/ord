@@ -368,19 +368,21 @@ fn get_block() {
 
 #[test]
 fn get_status() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  // .network(Network::Regtest)
-  // .build();
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   create_wallet(&rpc_server);
-
   rpc_server.mine_blocks(1);
 
-  inscribe(&rpc_server);
+  inscribe_regtest(&rpc_server);
 
-  let response =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
-      .json_request("/status");
+  let response = TestServer::spawn_with_server_args(
+    &rpc_server,
+    &["--regtest", "--index-sats", "--index-runes"],
+    &["--enable-json-api"],
+  )
+  .json_request("/status");
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -400,12 +402,12 @@ fn get_status() {
     StatusHtml {
       blessed_inscriptions: 1,
       cursed_inscriptions: 0,
-      chain: Chain::Mainnet,
+      chain: Chain::Regtest,
       height: Some(3),
       inscriptions: 1,
       lost_sats: 0,
-      minimum_rune_for_next_block: Rune(99246114928149462),
-      rune_index: false,
+      minimum_rune_for_next_block: Rune(99218849511960410),
+      rune_index: true,
       runes: 0,
       sat_index: true,
       started: dummy_started,
