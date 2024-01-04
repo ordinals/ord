@@ -115,7 +115,7 @@ impl WalletCommand {
     };
 
     match self.subcommand {
-      Subcommand::Balance => balance::run(wallet, options),
+      Subcommand::Balance => balance::run(wallet),
       Subcommand::Create(create) => create.run(wallet, options),
       Subcommand::Etch(etch) => etch.run(wallet, options),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
@@ -312,6 +312,34 @@ impl Wallet {
     }
 
     Ok(runic_outputs)
+  }
+
+  pub(crate) fn get_rune_balances_for_outpoint(
+    &self,
+    output: &OutPoint,
+  ) -> Result<Vec<(SpacedRune, Pile)>> {
+    Ok(
+      serde_json::from_str::<OutputJson>(
+        &self
+          .ord_http_client
+          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+          .send()?
+          .text()?,
+      )?
+      .runes,
+    )
+  }
+
+  pub(crate) fn get_rune_balances(
+    &self,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<Vec<(SpacedRune, Pile)>> {
+    let mut rune_balances = Vec::new();
+    for output in utxos.keys() {
+      rune_balances.append(&mut self.get_rune_balances_for_outpoint(output)?);
+    }
+
+    Ok(rune_balances)
   }
 
   pub(crate) fn get_server_status(&self) -> Result<StatusJson> {

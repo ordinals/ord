@@ -18,7 +18,7 @@ pub struct OutputJson {
   pub transaction: String,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<Rune, u128>,
+  pub runes: Vec<(SpacedRune, Pile)>,
 }
 
 impl OutputJson {
@@ -28,7 +28,7 @@ impl OutputJson {
     chain: Chain,
     output: TxOut,
     inscriptions: Vec<InscriptionId>,
-    runes: BTreeMap<Rune, u128>,
+    runes: Vec<(SpacedRune, Pile)>,
   ) -> Self {
     Self {
       value: output.value,

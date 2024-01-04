@@ -11,13 +11,10 @@ pub struct Output {
   pub total: u64,
 }
 
-pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-  index.update()?;
-
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let inscription_outputs = index
+  let inscription_outputs = wallet
     .get_inscriptions(&unspent_outputs)?
     .keys()
     .map(|satpoint| satpoint.outpoint)
@@ -29,7 +26,7 @@ pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
   let mut runic = 0;
 
   for (outpoint, amount) in unspent_outputs {
-    let rune_balances = index.get_rune_balances_for_outpoint(outpoint)?;
+    let rune_balances = wallet.get_rune_balances_for_outpoint(&outpoint)?;
 
     if inscription_outputs.contains(&outpoint) {
       ordinal += amount.to_sat();
@@ -46,8 +43,8 @@ pub(crate) fn run(wallet: Wallet, options: Options) -> SubcommandResult {
   Ok(Box::new(Output {
     cardinal,
     ordinal,
-    runes: index.has_rune_index().then_some(runes),
-    runic: index.has_rune_index().then_some(runic),
+    runes: wallet.get_server_status()?.rune_index.then_some(runes),
+    runic: wallet.get_server_status()?.rune_index.then_some(runic),
     total: cardinal + ordinal + runic,
   }))
 }

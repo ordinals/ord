@@ -573,10 +573,7 @@ impl Server {
         server_config.chain,
         output,
         inscriptions,
-        runes
-          .into_iter()
-          .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
-          .collect(),
+        runes,
       ))
       .into_response()
     } else {
