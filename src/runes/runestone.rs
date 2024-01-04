@@ -61,36 +61,54 @@ impl Runestone {
 
     let Message { mut fields, body } = Message::from_integers(&integers);
 
-    let deadline = Tag::Deadline.take(&mut fields);
-    let default_output = Tag::DefaultOutput.take(&mut fields);
-    let divisibility = Tag::Divisibility.take(&mut fields);
-    let limit = Tag::Limit.take(&mut fields);
-    let rune = Tag::Rune.take(&mut fields);
-    let spacers = Tag::Spacers.take(&mut fields);
-    let symbol = Tag::Symbol.take(&mut fields);
-    let term = Tag::Term.take(&mut fields);
+    let deadline = Tag::Deadline
+      .take(&mut fields)
+      .and_then(|deadline| u32::try_from(deadline).ok());
+
+    let default_output = Tag::DefaultOutput
+      .take(&mut fields)
+      .and_then(|default| u32::try_from(default).ok());
+
+    let divisibility = Tag::Divisibility
+      .take(&mut fields)
+      .and_then(|divisibility| u8::try_from(divisibility).ok())
+      .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
+      .unwrap_or_default();
+
+    let limit = Tag::Limit
+      .take(&mut fields)
+      .and_then(|limit| (limit <= MAX_LIMIT).then_some(limit));
+
+    let rune = Tag::Rune.take(&mut fields).map(Rune);
+
+    let spacers = Tag::Spacers
+      .take(&mut fields)
+      .and_then(|spacers| u32::try_from(spacers).ok())
+      .and_then(|spacers| (spacers <= MAX_SPACERS).then_some(spacers))
+      .unwrap_or_default();
+
+    let symbol = Tag::Symbol
+      .take(&mut fields)
+      .and_then(|symbol| u32::try_from(symbol).ok())
+      .and_then(char::from_u32);
+
+    let term = Tag::Term
+      .take(&mut fields)
+      .and_then(|term| u32::try_from(term).ok());
 
     let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
+
     let etch = Flag::Etch.take(&mut flags);
 
     let etching = if etch {
       Some(Etching {
-        deadline: deadline.and_then(|deadline| u32::try_from(deadline).ok()),
-        divisibility: divisibility
-          .and_then(|divisibility| u8::try_from(divisibility).ok())
-          .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
-          .unwrap_or_default(),
-        limit: limit.and_then(|limit| (limit <= MAX_LIMIT).then_some(limit)),
-        rune: rune.map(Rune),
-        spacers: spacers
-          .and_then(|spacers| u32::try_from(spacers).ok())
-          .and_then(|spacers| (spacers <= MAX_SPACERS).then_some(spacers))
-          .unwrap_or_default(),
-        symbol: symbol
-          .and_then(|symbol| u32::try_from(symbol).ok())
-          .and_then(char::from_u32),
-        term: term.and_then(|term| u32::try_from(term).ok()),
-        open: None,
+        deadline,
+        divisibility,
+        limit,
+        rune,
+        spacers,
+        symbol,
+        term,
       })
     } else {
       None
@@ -98,7 +116,7 @@ impl Runestone {
 
     Ok(Some(Self {
       burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
-      default_output: default_output.and_then(|default| u32::try_from(default).ok()),
+      default_output,
       edicts: body,
       etching,
     }))
@@ -876,7 +894,6 @@ mod tests {
           term: Some(2),
           limit: Some(3),
           spacers: 5,
-          open: None,
         }),
         ..Default::default()
       },
@@ -1202,7 +1219,6 @@ mod tests {
         limit: Some(1),
         spacers: 1,
         term: Some(1),
-        open: None,
       }),
       19,
     );
@@ -1481,7 +1497,6 @@ mod tests {
           rune: Some(Rune(4)),
           term: Some(5),
           spacers: 6,
-          open: None,
         }),
         edicts: vec![
           Edict {
@@ -1537,7 +1552,6 @@ mod tests {
           rune: Some(Rune(3)),
           term: None,
           spacers: 0,
-          open: None,
         }),
         burn: false,
         ..Default::default()
@@ -1555,7 +1569,6 @@ mod tests {
           rune: None,
           term: None,
           spacers: 0,
-          open: None,
         }),
         burn: false,
         ..Default::default()

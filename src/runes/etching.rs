@@ -6,11 +6,7 @@ pub struct Etching {
   pub divisibility: u8,
   pub limit: Option<u128>,
   pub rune: Option<Rune>,
+  pub spacers: u32,
   pub symbol: Option<char>,
   pub term: Option<u32>,
-  pub spacers: u32,
-  pub open: Option<Open>,
 }
-
-#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone)]
-pub struct Open {}

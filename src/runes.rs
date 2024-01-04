@@ -948,7 +948,6 @@ mod tests {
             symbol: Some('$'),
             term: Some(1),
             spacers: 1,
-            open: None,
           }),
           default_output: None,
           burn: true,
