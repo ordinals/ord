@@ -21,13 +21,12 @@ pub struct Output {
 
 impl Etch {
   pub(crate) fn run(self, wallet: Wallet, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
-
     ensure!(
-      index.has_rune_index(),
+      wallet.get_server_status()?.rune_index,
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
+    let index = Index::open(&options)?;
     index.update()?;
 
     let SpacedRune { rune, spacers } = self.rune;
@@ -103,7 +102,7 @@ impl Etch {
 
     let unspent_outputs = wallet.get_unspent_outputs()?;
 
-    let inscriptions = index
+    let inscriptions = wallet
       .get_inscriptions(&unspent_outputs)?
       .keys()
       .map(|satpoint| satpoint.outpoint)
