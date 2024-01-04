@@ -11,12 +11,12 @@ struct Allocation {
   balance: u128,
   deadline: Option<u32>,
   divisibility: u8,
+  end: Option<u32>,
   id: u128,
   limit: Option<u128>,
   rune: Rune,
   spacers: u32,
   symbol: Option<char>,
-  term: Option<u32>,
 }
 
 #[derive(Default)]
@@ -135,7 +135,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 },
                 deadline: etching.deadline,
                 divisibility: etching.divisibility,
-                term: etching.term,
+                end: term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
                 limit,
                 rune,
@@ -280,12 +280,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         balance,
         deadline,
         divisibility,
+        end,
         id,
         limit,
         rune,
         spacers,
         symbol,
-        term,
       }) = allocation
       {
         let id = RuneId::try_from(id).unwrap();
@@ -308,11 +308,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             rune,
             spacers,
             supply: if let Some(limit) = limit {
-              limit
+              if end == Some(self.height) {
+                0
+              } else {
+                limit
+              }
             } else {
               u128::max_value()
             } - balance,
-            end: term.and_then(|term| (!burn).then_some(term + self.height)),
+            end: end.and_then(|end| (!burn).then_some(end)),
             symbol,
             limit: limit.and_then(|limit| (!burn).then_some(limit)),
             timestamp: self.timestamp,
