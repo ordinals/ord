@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet};
+use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -8,11 +8,14 @@ pub struct Output {
   pub postage: u64,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
+pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+
+  let unspent_outputs = get_unspent_outputs(&client, &index)?;
+
   let inscriptions = index.get_inscriptions(&unspent_outputs)?;
 
   let explorer = match options.chain() {

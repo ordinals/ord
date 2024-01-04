@@ -6,6 +6,7 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
+  pub default_output: Option<u32>,
   pub burn: bool,
 }
 
@@ -61,14 +62,15 @@ impl Runestone {
     let Message { mut fields, body } = Message::from_integers(&integers);
 
     let deadline = Tag::Deadline.take(&mut fields);
+    let default_output = Tag::DefaultOutput.take(&mut fields);
     let divisibility = Tag::Divisibility.take(&mut fields);
-    let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
     let limit = Tag::Limit.take(&mut fields);
     let rune = Tag::Rune.take(&mut fields);
     let spacers = Tag::Spacers.take(&mut fields);
     let symbol = Tag::Symbol.take(&mut fields);
     let term = Tag::Term.take(&mut fields);
 
+    let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
     let etch = Flag::Etch.take(&mut flags);
 
     let etching = if etch {
@@ -95,9 +97,10 @@ impl Runestone {
     };
 
     Ok(Some(Self {
+      burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
+      default_output: default_output.and_then(|default| u32::try_from(default).ok()),
       edicts: body,
       etching,
-      burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
     }))
   }
 
@@ -137,6 +140,10 @@ impl Runestone {
       if let Some(term) = etching.term {
         Tag::Term.encode(term.into(), &mut payload);
       }
+    }
+
+    if let Some(default_output) = self.default_output {
+      Tag::Term.encode(default_output.into(), &mut payload);
     }
 
     if self.burn {
@@ -902,6 +909,7 @@ mod tests {
           output: 3,
         }],
         etching: None,
+        default_output: None,
         burn: false,
       },
     );
@@ -1487,6 +1495,7 @@ mod tests {
             output: 7,
           },
         ],
+        default_output: Some(11),
         burn: false,
       },
       &[
@@ -1506,6 +1515,8 @@ mod tests {
         3,
         Tag::Term.into(),
         5,
+        Tag::DefaultOutput.into(),
+        11,
         Tag::Body.into(),
         6,
         5,

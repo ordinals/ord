@@ -14,19 +14,15 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    charm::Charm,
     config::Config,
     decimal::Decimal,
     decimal_sat::DecimalSat,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
-    envelope::ParsedEnvelope,
     epoch::Epoch,
     height::Height,
-    index::{Index, List, RuneEntry},
-    inscription_id::InscriptionId,
-    media::Media,
-    options::Options,
+    index::{List, RuneEntry},
+    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
     outgoing::Outgoing,
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
@@ -38,7 +34,9 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::{
-      constants::{COIN_VALUE, DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
+      constants::{
+        COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,
+      },
       locktime::absolute::LockTime,
     },
     consensus::{self, Decodable, Encodable},
@@ -50,7 +48,6 @@ use {
     Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
-  chain::Chain,
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
@@ -67,6 +64,7 @@ use {
     fmt::{self, Display, Formatter},
     fs::{self, File},
     io::{self, Cursor},
+    mem,
     net::{TcpListener, ToSocketAddrs},
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
@@ -79,15 +77,18 @@ use {
     thread,
     time::{Duration, Instant, SystemTime},
   },
-  sysinfo::{System, SystemExt},
+  sysinfo::System,
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
 };
 
 pub use self::{
+  chain::Chain,
   fee_rate::FeeRate,
-  inscription::Inscription,
+  index::Index,
+  inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
+  options::Options,
   rarity::Rarity,
   runes::{Edict, Rune, RuneId, Runestone},
   sat::Sat,
@@ -114,21 +115,17 @@ macro_rules! tprintln {
 
 mod arguments;
 mod blocktime;
-mod chain;
-mod charm;
+pub mod chain;
 mod config;
 mod decimal;
 mod decimal_sat;
 mod degree;
 mod deserialize_from_str;
-mod envelope;
 mod epoch;
 mod fee_rate;
 mod height;
 mod index;
-mod inscription;
-pub mod inscription_id;
-mod media;
+mod inscriptions;
 mod object;
 mod options;
 mod outgoing;
@@ -140,9 +137,7 @@ mod sat_point;
 mod server_config;
 pub mod subcommand;
 mod tally;
-mod teleburn;
 pub mod templates;
-mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

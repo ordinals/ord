@@ -8,17 +8,23 @@ pub(crate) trait Entry: Sized {
   fn store(self) -> Self::Value;
 }
 
-pub(super) type BlockHashValue = [u8; 32];
+pub(super) type HeaderValue = [u8; 80];
 
-impl Entry for BlockHash {
-  type Value = BlockHashValue;
+impl Entry for Header {
+  type Value = HeaderValue;
 
   fn load(value: Self::Value) -> Self {
-    BlockHash::from_raw_hash(Hash::from_byte_array(value))
+    consensus::encode::deserialize(&value).unwrap()
   }
 
   fn store(self) -> Self::Value {
-    *self.as_ref()
+    let mut buffer = Cursor::new([0; 80]);
+    let len = self
+      .consensus_encode(&mut buffer)
+      .expect("in-memory writers don't error");
+    let buffer = buffer.into_inner();
+    debug_assert_eq!(len, buffer.len());
+    buffer
   }
 }
 
@@ -30,6 +36,7 @@ pub(crate) struct RuneEntry {
   pub(crate) end: Option<u32>,
   pub(crate) etching: Txid,
   pub(crate) limit: Option<u128>,
+  pub(crate) mints: u64,
   pub(crate) number: u64,
   pub(crate) rune: Rune,
   pub(crate) spacers: u32,
@@ -45,7 +52,10 @@ pub(super) type RuneEntryValue = (
   Option<u32>,  // end
   (u128, u128), // etching
   Option<u128>, // limit
-  u64,          // number
+  (
+    u64, // mints
+    u64, // number
+  ),
   u128,         // rune
   u32,          // spacers
   u128,         // supply
@@ -71,6 +81,7 @@ impl Default for RuneEntry {
       end: None,
       etching: Txid::all_zeros(),
       limit: None,
+      mints: 0,
       number: 0,
       rune: Rune(0),
       spacers: 0,
@@ -92,7 +103,7 @@ impl Entry for RuneEntry {
       end,
       etching,
       limit,
-      number,
+      (mints, number),
       rune,
       spacers,
       supply,
@@ -116,6 +127,7 @@ impl Entry for RuneEntry {
         ])
       },
       limit,
+      mints,
       number,
       rune: Rune(rune),
       spacers,
@@ -145,7 +157,7 @@ impl Entry for RuneEntry {
         )
       },
       self.limit,
-      self.number,
+      (self.mints, self.number),
       self.rune.0,
       self.spacers,
       self.supply,
@@ -431,6 +443,7 @@ mod tests {
         0x1E, 0x1F,
       ]),
       limit: Some(5),
+      mints: 11,
       number: 6,
       rune: Rune(7),
       spacers: 8,
@@ -449,7 +462,7 @@ mod tests {
         0x1F1E1D1C1B1A19181716151413121110,
       ),
       Some(5),
-      6,
+      (11, 6),
       7,
       8,
       9,
@@ -479,5 +492,20 @@ mod tests {
       },
       RuneId::load((1, 2)),
     );
+  }
+
+  #[test]
+  fn header() {
+    let expected = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+      49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+      72, 73, 74, 75, 76, 77, 78, 79,
+    ];
+
+    let header = Header::load(expected);
+    let actual = header.store();
+
+    assert_eq!(actual, expected);
   }
 }
