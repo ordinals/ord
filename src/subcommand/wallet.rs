@@ -122,7 +122,7 @@ impl WalletCommand {
       Subcommand::Inscriptions => inscriptions::run(wallet, options),
       Subcommand::Receive => receive::run(wallet),
       Subcommand::Restore(restore) => restore.run(wallet, options),
-      Subcommand::Sats(sats) => sats.run(wallet, options),
+      Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet, options),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
       Subcommand::Outputs => outputs::run(wallet, options),
@@ -170,42 +170,76 @@ impl Wallet {
       );
     }
 
-    for outpoint in utxos.keys() {
-      if self
-        .ord_http_client
-        .get(
-          self
-            .ord_api_url
-            .join(&format!("/output/{outpoint}"))
-            .unwrap(),
-        )
-        .send()
-        .unwrap()
-        .status()
-        .is_client_error()
-      {
-        return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
-        ));
-      }
+    for output in utxos.keys() {
+      self.get_output(output)?;
     }
 
     Ok(utxos)
   }
 
-  pub(crate) fn get_unspent_output_ranges(
+  pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    if !self.get_server_status()?.sat_index {
+      return Err(anyhow!(
+        "index must be built with `--index-sats` to use `--sat`"
+      ));
+    }
+
+    let mut output_sat_ranges = Vec::new();
+    for output in self.get_unspent_outputs()?.keys() {
+      if let Some(sat_ranges) = self.get_output(output)?.sat_ranges {
+        output_sat_ranges.push((*output, sat_ranges));
+      } else {
+        bail!("output {output} in wallet but is spent according to index");
+      }
+    }
+
+    Ok(output_sat_ranges)
+  }
+
+  pub(crate) fn find_sat_in_outputs(
     &self,
-    index: &Index,
-  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-    self
-      .get_unspent_outputs()?
-      .into_keys()
-      .map(|outpoint| match index.list(outpoint)? {
-        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("index has not seen {outpoint}"),
-      })
-      .collect()
+    sat: Sat,
+    utxos: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<SatPoint> {
+    if !self.get_server_status()?.sat_index {
+      return Err(anyhow!(
+        "index must be built with `--index-sats` to use `--sat`"
+      ));
+    }
+
+    for output in utxos.keys() {
+      if let Some(sat_ranges) = self.get_output(&output)?.sat_ranges {
+        let mut offset = 0;
+        for (start, end) in sat_ranges {
+          if start <= sat.n() && sat.n() < end {
+            return Ok(SatPoint {
+              outpoint: *output,
+              offset: offset + sat.n() - start,
+            });
+          }
+          offset += end - start;
+        }
+      } else {
+        continue;
+      }
+    }
+
+    Err(anyhow!(format!(
+      "could not find sat `{sat}` in wallet outputs"
+    )))
+  }
+
+  fn get_output(&self, output: &OutPoint) -> Result<OutputJson> {
+    let response = self
+      .ord_http_client
+      .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+      .send()?;
+
+    if response.status().is_client_error() {
+      bail!("output in Bitcoin Core wallet but not in ord index: {output}");
+    }
+
+    Ok(serde_json::from_str(&response.text()?)?)
   }
 
   pub(crate) fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
@@ -231,15 +265,7 @@ impl Wallet {
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let mut inscriptions = BTreeMap::new();
     for output in utxos.keys() {
-      let output_json: OutputJson = serde_json::from_str(
-        &self
-          .ord_http_client
-          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
-          .send()?
-          .text()?,
-      )?;
-
-      for inscription in output_json.inscriptions {
+      for inscription in self.get_output(&output)?.inscriptions {
         inscriptions.insert(self.get_inscription_satpoint(inscription)?, inscription);
       }
     }
@@ -251,62 +277,13 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
-  pub(crate) fn find_sat_in_outputs(
-    &self,
-    sat: Sat,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<SatPoint> {
-    if !self.get_server_status()?.sat_index {
-      return Err(anyhow!(
-        "index must be built with `--index-sats` to use `--sat`"
-      ));
-    }
-
-    for output in utxos.keys() {
-      let output_json: OutputJson = serde_json::from_str(
-        &self
-          .ord_http_client
-          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
-          .send()?
-          .text()?,
-      )?;
-
-      if let Some(sat_ranges) = output_json.sat_ranges {
-        let mut offset = 0;
-        for (start, end) in sat_ranges {
-          if start <= sat.n() && sat.n() < end {
-            return Ok(SatPoint {
-              outpoint: *output,
-              offset: offset + sat.n() - start,
-            });
-          }
-          offset += end - start;
-        }
-      } else {
-        continue;
-      }
-    }
-
-    Err(anyhow!(format!(
-      "could not find sat `{sat}` in wallet outputs"
-    )))
-  }
-
   pub(crate) fn get_runic_outputs(
     &self,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeSet<OutPoint>> {
     let mut runic_outputs = BTreeSet::new();
     for output in utxos.keys() {
-      let output_json: OutputJson = serde_json::from_str(
-        &self
-          .ord_http_client
-          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
-          .send()?
-          .text()?,
-      )?;
-
-      if !output_json.runes.is_empty() {
+      if !self.get_output(output)?.runes.is_empty() {
         runic_outputs.insert(*output);
       }
     }
@@ -314,20 +291,11 @@ impl Wallet {
     Ok(runic_outputs)
   }
 
-  pub(crate) fn get_rune_balances_for_outpoint(
+  pub(crate) fn get_rune_balances_for_outputs(
     &self,
     output: &OutPoint,
   ) -> Result<Vec<(SpacedRune, Pile)>> {
-    Ok(
-      serde_json::from_str::<OutputJson>(
-        &self
-          .ord_http_client
-          .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
-          .send()?
-          .text()?,
-      )?
-      .runes,
-    )
+    Ok(self.get_output(output)?.runes)
   }
 
   pub(crate) fn get_rune_balances(
@@ -336,7 +304,7 @@ impl Wallet {
   ) -> Result<Vec<(SpacedRune, Pile)>> {
     let mut rune_balances = Vec::new();
     for output in utxos.keys() {
-      rune_balances.append(&mut self.get_rune_balances_for_outpoint(output)?);
+      rune_balances.append(&mut self.get_rune_balances_for_outputs(output)?);
     }
 
     Ok(rune_balances)

@@ -24,16 +24,12 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, wallet: Wallet, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
-
-    if !index.has_sat_index() {
+  pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    if !wallet.get_server_status()?.sat_index {
       bail!("sats requires index created with `--index-sats` flag");
     }
 
-    index.update()?;
-
-    let utxos = wallet.get_unspent_output_ranges(&index)?;
+    let utxos = wallet.get_output_sat_ranges()?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();
