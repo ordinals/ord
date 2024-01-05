@@ -2,7 +2,6 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
-  std::sync::Arc,
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
@@ -24,6 +23,7 @@ use {
   regex::Regex,
   reqwest::{StatusCode, Url},
   serde::de::DeserializeOwned,
+  std::sync::Arc,
   std::{
     collections::BTreeMap,
     fs,
