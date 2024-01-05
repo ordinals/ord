@@ -173,7 +173,7 @@ pub(crate) struct Server {
   #[arg(
     long,
     alias = "nosync",
-    help = "Don't update the index."
+    help = "Do not update the index."
   )]
   no_sync: bool,
 }
