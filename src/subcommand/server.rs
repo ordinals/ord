@@ -1237,6 +1237,11 @@ impl Server {
     Ok(if accept_json {
       Json(InscriptionJson {
         inscription_id: info.entry.id,
+        charms: Charm::ALL
+          .iter()
+          .filter(|charm| charm.is_set(info.charms))
+          .map(|charm| charm.title().into())
+          .collect(),
         children: info.children,
         inscription_number: info.entry.inscription_number,
         genesis_height: info.entry.height,
@@ -4370,6 +4375,45 @@ next
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_vindicated() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(110);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, Witness::default()),
+        (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
+      ],
+      outputs: 2,
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=vindicated>❤️‍🔥</span>
   </dd>
   .*
 </dl>
