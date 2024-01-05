@@ -260,7 +260,7 @@ fn splitting_merged_inscriptions_is_possible() {
           index: 2
         },
       ],
-      runes: BTreeMap::new(),
+      runes: Vec::new(),
     }
   );
 

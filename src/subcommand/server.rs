@@ -2542,9 +2542,17 @@ mod tests {
         transaction: txid.to_string(),
         sat_ranges: None,
         inscriptions: Vec::new(),
-        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
-          .into_iter()
-          .collect(),
+        runes: vec![(
+          SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
+          Pile {
+            amount: 340282366920938463463374607431768211455,
+            divisibility: 1,
+            symbol: None,
+          }
+        )],
       }
     );
   }

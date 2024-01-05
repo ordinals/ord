@@ -323,7 +323,7 @@ fn get_output() {
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
-      runes: BTreeMap::new(),
+      runes: Vec::new(),
     }
   );
 }
