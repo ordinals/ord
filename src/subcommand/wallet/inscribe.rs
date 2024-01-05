@@ -89,6 +89,7 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[arg(
     long,
+    alias = "nobackup",
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
