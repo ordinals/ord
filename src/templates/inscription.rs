@@ -23,6 +23,7 @@ pub(crate) struct InscriptionHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
   pub address: Option<String>,
+  pub charms: Vec<String>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,

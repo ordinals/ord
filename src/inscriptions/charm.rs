@@ -1,19 +1,20 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Charm {
-  Coin,
-  Cursed,
-  Epic,
-  Legendary,
-  Lost,
-  Nineball,
-  Rare,
-  Reinscription,
-  Unbound,
-  Uncommon,
+  Coin = 0,
+  Cursed = 1,
+  Epic = 2,
+  Legendary = 3,
+  Lost = 4,
+  Nineball = 5,
+  Rare = 6,
+  Reinscription = 7,
+  Unbound = 8,
+  Uncommon = 9,
+  Vindicated = 10,
 }
 
 impl Charm {
-  pub(crate) const ALL: [Charm; 10] = [
+  pub(crate) const ALL: [Charm; 11] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -24,6 +25,7 @@ impl Charm {
     Self::Cursed,
     Self::Unbound,
     Self::Lost,
+    Self::Vindicated,
   ];
 
   fn flag(self) -> u16 {
@@ -50,6 +52,7 @@ impl Charm {
       Self::Reinscription => "♻️",
       Self::Unbound => "🔓",
       Self::Uncommon => "🌱",
+      Self::Vindicated => "❤️‍🔥",
     }
   }
 
@@ -65,6 +68,16 @@ impl Charm {
       Self::Reinscription => "reinscription",
       Self::Unbound => "unbound",
       Self::Uncommon => "uncommon",
+      Self::Vindicated => "vindicated",
     }
+  }
+
+  #[cfg(test)]
+  pub(crate) fn charms(charms: u16) -> Vec<Charm> {
+    Self::ALL
+      .iter()
+      .filter(|charm| charm.is_set(charms))
+      .cloned()
+      .collect()
   }
 }
