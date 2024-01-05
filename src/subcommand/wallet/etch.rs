@@ -16,6 +16,7 @@ pub(crate) struct Etch {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
+  pub rune: SpacedRune,
   pub transaction: Txid,
 }
 
@@ -125,6 +126,9 @@ impl Etch {
       .bitcoin_rpc_client
       .send_raw_transaction(&signed_transaction)?;
 
-    Ok(Box::new(Output { transaction }))
+    Ok(Box::new(Output {
+      rune: self.rune,
+      transaction,
+    }))
   }
 }
