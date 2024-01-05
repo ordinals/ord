@@ -79,7 +79,7 @@ use {
   },
   sysinfo::System,
   tempfile::TempDir,
-  templates::{InscriptionJson, OutputJson, StatusJson},
+  templates::{InscriptionJson, OutputJson, StatusJson, RuneJson},
   tokio::{runtime::Runtime, task},
 };
 

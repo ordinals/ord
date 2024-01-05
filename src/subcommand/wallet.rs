@@ -275,6 +275,24 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
+  pub(crate) fn get_rune_info(&self, rune: Rune) -> Result<Option<RuneJson>> {
+    let response = self
+      .ord_http_client
+      .get(
+        self
+          .ord_api_url
+          .join(&format!("/rune/{}", SpacedRune { rune, spacers: 0 }))
+          .unwrap(),
+      )
+      .send()?;
+
+    if response.status().is_client_error() {
+      return Ok(None);
+    }
+
+    Ok(serde_json::from_str(&response.text()?)?)
+  }
+
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     let mut runic_outputs = BTreeSet::new();
     for output in self.get_unspent_outputs()?.keys() {

@@ -27,15 +27,12 @@ impl Etch {
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    let index = Index::open(&options)?;
-    index.update()?;
-
     let SpacedRune { rune, spacers } = self.rune;
 
     let count = wallet.bitcoin_rpc_client.get_block_count()?;
 
     ensure!(
-      index.rune(rune)?.is_none(),
+      wallet.get_rune_info(rune)?.is_none(),
       "rune `{}` has already been etched",
       rune,
     );
