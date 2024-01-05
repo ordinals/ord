@@ -25,10 +25,6 @@ impl Send {
       .clone()
       .require_network(options.chain().network())?;
 
-    let index = Index::open(&options)?;
-
-    index.update()?;
-
     let unspent_outputs = wallet.get_unspent_outputs()?;
 
     let locked_outputs = wallet.get_locked_outputs()?;
@@ -49,7 +45,6 @@ impl Send {
           address,
           decimal,
           self.fee_rate,
-          &index,
           inscriptions,
           rune,
           runic_outputs,
@@ -157,7 +152,6 @@ impl Send {
     address: Address,
     decimal: Decimal,
     fee_rate: FeeRate,
-    index: &Index,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     spaced_rune: SpacedRune,
     runic_outputs: BTreeSet<OutPoint>,
@@ -171,8 +165,8 @@ impl Send {
 
     Self::lock_non_cardinal_outputs(wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
 
-    let (id, entry, _parent) = index
-      .rune(spaced_rune.rune)?
+    let (id, entry, _parent) = wallet
+      .get_rune_info(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
     let amount = decimal.to_amount(entry.divisibility)?;

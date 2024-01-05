@@ -275,7 +275,10 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
-  pub(crate) fn get_rune_info(&self, rune: Rune) -> Result<Option<RuneJson>> {
+  pub(crate) fn get_rune_info(
+    &self,
+    rune: Rune,
+  ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
     let response = self
       .ord_http_client
       .get(
@@ -290,7 +293,9 @@ impl Wallet {
       return Ok(None);
     }
 
-    Ok(serde_json::from_str(&response.text()?)?)
+    let rune_json: RuneJson = serde_json::from_str(&response.text()?)?;
+
+    Ok(Some((rune_json.id, rune_json.entry, rune_json.parent)))
   }
 
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
