@@ -4346,7 +4346,7 @@ next
   }
 
   #[test]
-  fn charm_cursed_present_before_jubilee() {
+  fn charm_cursed() {
     let server = TestServer::new_with_regtest();
 
     server.mine_blocks(2);
