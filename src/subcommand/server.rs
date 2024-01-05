@@ -170,7 +170,11 @@ pub(crate) struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
-  #[arg(long, help = "Run the server without updating the index.")]
+  #[arg(
+    long,
+    alias = "nosync",
+    help = "Don't update the index."
+  )]
   no_sync: bool,
 }
 
