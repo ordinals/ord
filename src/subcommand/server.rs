@@ -268,6 +268,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/balance", get(Self::runes_balance))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
@@ -659,6 +660,13 @@ impl Server {
       .page(server_config)
       .into_response()
     })
+  }
+
+  async fn runes_balance(
+    Extension(_): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Ok(Json(index.get_rune_balance_map()?).into_response())
   }
 
   async fn home(
