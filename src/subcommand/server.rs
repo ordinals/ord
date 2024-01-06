@@ -543,6 +543,8 @@ impl Server {
   ) -> ServerResult<Response> {
     let list = index.list(outpoint)?;
 
+    let mut in_index = false;
+
     let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
@@ -552,11 +554,15 @@ impl Server {
         }
       }
 
+      in_index = true;
+
       TxOut {
         value,
         script_pubkey: ScriptBuf::new(),
       }
     } else {
+      in_index = index.contains(&outpoint)?;
+
       index
         .get_transaction(outpoint.txid)?
         .ok_or_not_found(|| format!("output {outpoint}"))?
@@ -577,6 +583,7 @@ impl Server {
         server_config.chain,
         output,
         inscriptions,
+        in_index,
         runes,
       ))
       .into_response()
@@ -2545,6 +2552,7 @@ mod tests {
         address: None,
         transaction: txid.to_string(),
         sat_ranges: None,
+        in_index: true,
         inscriptions: Vec::new(),
         runes: vec![(
           SpacedRune {

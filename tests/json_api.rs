@@ -323,6 +323,7 @@ fn get_output() {
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
+      in_index: true,
       runes: Vec::new(),
     }
   );
