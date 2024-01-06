@@ -19,11 +19,11 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, wallet: Wallet, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let address = self
       .address
       .clone()
-      .require_network(options.chain().network())?;
+      .require_network(wallet.chain().network())?;
 
     let unspent_outputs = wallet.get_unspent_outputs()?;
 

@@ -117,7 +117,7 @@ impl Inscribe {
 
     let runic_utxos = wallet.get_runic_outputs()?;
 
-    let chain = wallet.chain;
+    let chain = wallet.chain();
 
     let postage;
     let destinations;

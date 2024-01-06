@@ -49,7 +49,7 @@ impl Batch {
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
-        wallet.chain,
+        wallet.chain(),
         locked_utxos.clone(),
         runic_utxos,
         utxos.clone(),
@@ -97,7 +97,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Self::backup_recovery_key(wallet, recovery_key_pair, wallet.chain.network())?;
+      Self::backup_recovery_key(wallet, recovery_key_pair, wallet.chain().network())?;
     }
 
     let commit = wallet

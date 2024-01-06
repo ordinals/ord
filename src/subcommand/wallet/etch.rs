@@ -21,7 +21,7 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, wallet: Wallet, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       wallet.get_server_status()?.rune_index,
       "`ord wallet etch` requires index created with `--index-runes` flag",
@@ -38,7 +38,7 @@ impl Etch {
     );
 
     let minimum_at_height =
-      Rune::minimum_at_height(options.chain(), Height(u32::try_from(count).unwrap() + 1));
+      Rune::minimum_at_height(wallet.chain(), Height(u32::try_from(count).unwrap() + 1));
 
     ensure!(
       rune >= minimum_at_height,

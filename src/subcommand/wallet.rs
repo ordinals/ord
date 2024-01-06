@@ -100,7 +100,7 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
-      chain: options.chain(),
+      options: options.clone(),
       ord_api_url,
       ord_http_client: {
         let mut headers = header::HeaderMap::new();
@@ -112,20 +112,19 @@ impl WalletCommand {
 
         builder.build()?
       },
-      wallet_name: self.name.clone(),
-      options: options.clone(),
+      name: self.name.clone(),
     };
 
     let result = match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
-      Subcommand::Create(create) => create.run(wallet, options),
-      Subcommand::Etch(etch) => etch.run(wallet, options),
+      Subcommand::Create(create) => create.run(wallet),
+      Subcommand::Etch(etch) => etch.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
-      Subcommand::Inscriptions => inscriptions::run(wallet, options),
+      Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Receive => receive::run(wallet),
-      Subcommand::Restore(restore) => restore.run(wallet, options),
+      Subcommand::Restore(restore) => restore.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
-      Subcommand::Send(send) => send.run(wallet, options),
+      Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
       Subcommand::Outputs => outputs::run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
@@ -142,11 +141,10 @@ impl WalletCommand {
 }
 
 pub(crate) struct Wallet {
-  pub(crate) chain: Chain,
+  pub(crate) name: String,
+  pub(crate) options: Options,
   pub(crate) ord_api_url: Url,
   pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
-  pub(crate) wallet_name: String,
-  pub(crate) options: Options,
 }
 
 impl Wallet {
@@ -154,11 +152,11 @@ impl Wallet {
     let client = check_version(
       self
         .options
-        .bitcoin_rpc_client(Some(self.wallet_name.clone()))?,
+        .bitcoin_rpc_client(Some(self.name.clone()))?,
     )?;
 
-    if !client.list_wallets()?.contains(&self.wallet_name) {
-      client.load_wallet(&self.wallet_name)?;
+    if !client.list_wallets()?.contains(&self.name) {
+      client.load_wallet(&self.name)?;
     }
 
     let descriptors = client.list_descriptors(None)?.descriptors;
@@ -174,10 +172,14 @@ impl Wallet {
       .count();
 
     if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet_name);
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.name);
     }
 
     Ok(client)
+  }
+
+  pub(crate) fn chain(&self) -> Chain {
+    self.options.chain()
   }
 
   pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
@@ -376,18 +378,6 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_rune_balances(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<Vec<(SpacedRune, Pile)>> {
-    let mut rune_balances = Vec::new();
-    for output in utxos.keys() {
-      rune_balances.append(&mut self.get_runes_balances_for_output(output)?);
-    }
-
-    Ok(rune_balances)
-  }
-
   pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
     let status: StatusJson = serde_json::from_str(
       &self
@@ -423,20 +413,20 @@ impl Wallet {
         .bitcoin_client(false)?
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
-        .require_network(self.chain.network())?,
+        .require_network(self.chain().network())?,
     )
   }
 
-  pub(crate) fn initialize(&self, options: &Options, seed: [u8; 64]) -> Result {
-    check_version(options.bitcoin_rpc_client(None)?)?.create_wallet(
-      &self.wallet_name,
+  pub(crate) fn initialize(&self, seed: [u8; 64]) -> Result {
+    check_version(self.options.bitcoin_rpc_client(None)?)?.create_wallet(
+      &self.name,
       None,
       Some(true),
       None,
       None,
     )?;
 
-    let network = self.chain.network();
+    let network = self.chain().network();
 
     let secp = Secp256k1::new();
 
@@ -455,7 +445,6 @@ impl Wallet {
 
     for change in [false, true] {
       self.derive_and_import_descriptor(
-        options,
         &secp,
         (fingerprint, derivation_path.clone()),
         derived_private_key,
@@ -468,7 +457,6 @@ impl Wallet {
 
   fn derive_and_import_descriptor(
     &self,
-    options: &Options,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
     derived_private_key: ExtendedPrivKey,
@@ -490,8 +478,9 @@ impl Wallet {
 
     let desc = Descriptor::new_tr(public_key, None)?;
 
-    options
-      .bitcoin_rpc_client(Some(self.wallet_name.clone()))?
+    self
+      .options
+      .bitcoin_rpc_client(Some(self.name.clone()))?
       .import_descriptors(ImportDescriptors {
         descriptor: desc.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
@@ -504,35 +493,6 @@ impl Wallet {
 
     Ok(())
   }
-}
-
-pub(crate) fn bitcoin_rpc_client_for_wallet(
-  wallet_name: String,
-  options: &Options,
-) -> Result<Client> {
-  let client = check_version(options.bitcoin_rpc_client(Some(wallet_name.clone()))?)?;
-
-  if !client.list_wallets()?.contains(&wallet_name) {
-    client.load_wallet(&wallet_name)?;
-  }
-
-  let descriptors = client.list_descriptors(None)?.descriptors;
-
-  let tr = descriptors
-    .iter()
-    .filter(|descriptor| descriptor.desc.starts_with("tr("))
-    .count();
-
-  let rawtr = descriptors
-    .iter()
-    .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-    .count();
-
-  if tr != 2 || descriptors.len() != 2 + rawtr {
-    bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
-  }
-
-  Ok(client)
 }
 
 pub(crate) fn check_version(client: Client) -> Result<Client> {
