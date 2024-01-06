@@ -98,14 +98,7 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn temp_dir(self, tempdir: TempDir) -> Self {
-    Self {
-      tempdir: Arc::new(tempdir),
-      ..self
-    }
-  }
-
-  pub(crate) fn temp_dir_arc(self, tempdir: Arc<TempDir>) -> Self {
+  pub(crate) fn temp_dir(self, tempdir: Arc<TempDir>) -> Self {
     Self { tempdir, ..self }
   }
 

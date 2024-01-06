@@ -507,7 +507,7 @@ fn run_no_sync() {
 
   let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}",))
     .rpc_server(&rpc_server)
-    .temp_dir_arc(tempdir.clone());
+    .temp_dir(tempdir.clone());
 
   let mut command = builder.command();
 
@@ -536,7 +536,7 @@ fn run_no_sync() {
     "server --no-sync --address 127.0.0.1 --http-port {port}",
   ))
   .rpc_server(&rpc_server)
-  .temp_dir_arc(tempdir);
+  .temp_dir(tempdir);
 
   let mut command = builder.command();
 
