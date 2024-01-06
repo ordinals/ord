@@ -27,7 +27,17 @@ impl TestServer {
     server_args: &[&str],
   ) -> Self {
     let tempdir = TempDir::new().unwrap();
-    fs::write(tempdir.path().join(".cookie"), "foo:bar").unwrap();
+
+    let cookie_file = match rpc_server.network().as_str() {
+      "mainnet" => tempdir.path().join(".cookie"),
+      network => {
+        fs::create_dir(tempdir.path().join(network)).unwrap();
+        tempdir.path().join(format!("{network}/.cookie"))
+      }
+    };
+
+    fs::write(cookie_file.clone(), "foo:bar").unwrap();
+
     let port = TcpListener::bind("127.0.0.1:0")
       .unwrap()
       .local_addr()

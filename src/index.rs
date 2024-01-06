@@ -11,7 +11,7 @@ use {
   super::*,
   crate::{
     subcommand::{find::FindRangeOutput, server::InscriptionQuery},
-    templates::{RuneHtml, StatusHtml},
+    templates::StatusHtml,
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -30,7 +30,7 @@ use {
   },
 };
 
-pub(crate) use self::entry::RuneEntry;
+pub use self::entry::RuneEntry;
 
 pub(crate) mod entry;
 mod fetcher;
@@ -87,18 +87,18 @@ pub enum List {
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
   Schema = 0,
-  BlessedInscriptions,
-  Commits,
-  CursedInscriptions,
-  IndexRunes,
-  IndexSats,
-  LostSats,
-  OutputsTraversed,
-  ReservedRunes,
-  Runes,
-  SatRanges,
-  UnboundInscriptions,
-  IndexTransactions,
+  BlessedInscriptions = 1,
+  Commits = 2,
+  CursedInscriptions = 3,
+  IndexRunes = 4,
+  IndexSats = 5,
+  LostSats = 6,
+  OutputsTraversed = 7,
+  ReservedRunes = 8,
+  Runes = 9,
+  SatRanges = 10,
+  UnboundInscriptions = 11,
+  IndexTransactions = 12,
 }
 
 impl Statistic {
@@ -855,29 +855,10 @@ impl Index {
     )
   }
 
-  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
-    let rtx = self.database.begin_read()?;
-
-    let Some(id) = rtx
-      .open_table(RUNE_TO_RUNE_ID)?
-      .get(rune.0)?
-      .map(|guard| guard.value())
-    else {
-      return Ok(None);
-    };
-
-    let entry = RuneEntry::load(
-      rtx
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(id)?
-        .unwrap()
-        .value(),
-    );
-
-    Ok(Some((RuneId::load(id), entry)))
-  }
-
-  pub(crate) fn rune_html(&self, rune: Rune) -> Result<Option<RuneHtml>> {
+  pub(crate) fn rune(
+    &self,
+    rune: Rune,
+  ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
     let rtx = self.database.begin_read()?;
 
     let Some(id) = rtx
@@ -907,11 +888,7 @@ impl Index {
       .is_some()
       .then_some(parent);
 
-    Ok(Some(RuneHtml {
-      entry,
-      id: RuneId::load(id),
-      parent,
-    }))
+    Ok(Some((RuneId::load(id), entry, parent)))
   }
 
   pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
@@ -5589,6 +5566,229 @@ mod tests {
         },
         Some(50 * COIN_VALUE),
       );
+    }
+  }
+
+  #[test]
+  fn pre_jubilee_first_reinscription_after_cursed_inscription_is_blessed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      // Before the jubilee, an inscription on a sat using a pushnum opcode is
+      // cursed and not vindicated.
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      let sat = entry.sat;
+
+      assert_eq!(entry.inscription_number, -1);
+
+      // Before the jubilee, reinscription on the same sat is not cursed and
+      // not vindicated.
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert_eq!(entry.inscription_number, 0);
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(sat, entry.sat);
+
+      // Before the jubilee, a third reinscription on the same sat is cursed
+      // and not vindicated.
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(entry.inscription_number, -2);
+
+      assert_eq!(sat, entry.sat);
+    }
+  }
+
+  #[test]
+  fn post_jubilee_first_reinscription_after_vindicated_inscription_not_vindicated() {
+    for context in Context::configurations() {
+      context.mine_blocks(110);
+      // After the jubilee, an inscription on a sat using a pushnum opcode is
+      // vindicated and not cursed.
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([])
+        .push_opcode(opcodes::all::OP_PUSHNUM_1)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      let sat = entry.sat;
+
+      assert_eq!(entry.inscription_number, 0);
+
+      // After the jubilee, a reinscription on the same is not cursed and not
+      // vindicated.
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(111, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(entry.inscription_number, 1);
+
+      assert_eq!(sat, entry.sat);
+
+      // After the jubilee, a third reinscription on the same is vindicated and
+      // not cursed.
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(112, 1, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let entry = context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert!(!Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Cursed));
+
+      assert!(Charm::charms(entry.charms)
+        .iter()
+        .any(|charm| *charm == Charm::Vindicated));
+
+      assert_eq!(entry.inscription_number, 2);
+
+      assert_eq!(sat, entry.sat);
     }
   }
 }
