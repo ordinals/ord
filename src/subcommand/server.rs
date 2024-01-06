@@ -543,7 +543,7 @@ impl Server {
   ) -> ServerResult<Response> {
     let list = index.list(outpoint)?;
 
-    let mut in_index = false;
+    let in_index: bool;
 
     let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;

@@ -211,7 +211,6 @@ impl Wallet {
     }
 
     for output in utxos.keys() {
-      println!("{output}");
       self.get_output(output)?;
     }
 
@@ -249,7 +248,7 @@ impl Wallet {
     }
 
     for output in utxos.keys() {
-      if let Some(sat_ranges) = self.get_output(&output)?.sat_ranges {
+      if let Some(sat_ranges) = self.get_output(output)?.sat_ranges {
         let mut offset = 0;
         for (start, end) in sat_ranges {
           if start <= sat.n() && sat.n() < end {
@@ -280,7 +279,7 @@ impl Wallet {
 
     let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
 
-    if not_found  || !output_json.in_index {
+    if not_found || !output_json.in_index {
       bail!("output in Bitcoin Core wallet but not in ord index: {output}");
     }
 
@@ -308,7 +307,7 @@ impl Wallet {
   pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let mut inscriptions = BTreeMap::new();
     for output in self.get_unspent_outputs()?.keys() {
-      for inscription in self.get_output(&output)?.inscriptions {
+      for inscription in self.get_output(output)?.inscriptions {
         inscriptions.insert(self.get_inscription_satpoint(inscription)?, inscription);
       }
     }
@@ -393,7 +392,7 @@ impl Wallet {
     let status: StatusJson = serde_json::from_str(
       &self
         .ord_http_client
-        .get(self.ord_api_url.join(&format!("/status")).unwrap())
+        .get(self.ord_api_url.join("/status").unwrap())
         .send()?
         .text()?,
     )?;

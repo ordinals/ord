@@ -206,7 +206,6 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
-    println!("Opening.................................");
     let client = options.bitcoin_rpc_client(None)?;
 
     let path = options
@@ -2083,7 +2082,6 @@ mod tests {
   use {
     super::*,
     crate::index::testing::Context,
-    bitcoin::secp256k1::rand::{self, RngCore},
   };
 
   #[test]
@@ -3383,6 +3381,8 @@ mod tests {
 
       let options = Options::try_parse_from(command.into_iter()).unwrap();
 
+      context.rpc_server.mine_blocks(2);
+
       Arguments {
         options: options.clone(),
         subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
@@ -3416,23 +3416,21 @@ mod tests {
 
       let options = Options::try_parse_from(command.into_iter()).unwrap();
 
-      context.rpc_server.mine_blocks(1);
-
-      let output = Arguments {
-        options: options.clone(),
-        subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
-          name: "ord".into(),
-          no_sync: true,
-          subcommand: crate::subcommand::wallet::Subcommand::Balance,
-        }),
-      }
-      .run()
-      .err()
-      .unwrap()
-      .to_string();
+      context.rpc_server.mine_blocks(2);
 
       assert_regex_match!(
-        format!("{output}"),
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
+            name: "ord".into(),
+            no_sync: true,
+            subcommand: crate::subcommand::wallet::Subcommand::Balance,
+          }),
+        }
+        .run()
+        .err()
+        .unwrap()
+        .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }
