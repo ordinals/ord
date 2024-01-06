@@ -171,7 +171,7 @@ pub(crate) struct Server {
   )]
   pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
-  no_sync: bool,
+  pub(crate) no_sync: bool,
 }
 
 impl Server {

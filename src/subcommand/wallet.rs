@@ -33,6 +33,8 @@ pub mod transactions;
 pub(crate) struct WalletCommand {
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) name: String,
+  #[arg(long, alias = "nosync", help = "Do not update index.")]
+  pub(crate) no_sync: bool,
   #[command(subcommand)]
   pub(crate) subcommand: Subcommand,
 }
@@ -90,6 +92,7 @@ impl WalletCommand {
           redirect_http_to_https: false,
           enable_json_api: true,
           decompress: false,
+          no_sync: self.no_sync,
         }
         .run(options, index, handle)
         .unwrap()
@@ -97,8 +100,6 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
-      // TODO: this won't work for create and restore
-      bitcoin_rpc_client: bitcoin_rpc_client_for_wallet(self.name.clone(), &options)?,
       chain: options.chain(),
       ord_api_url,
       ord_http_client: {
@@ -112,9 +113,10 @@ impl WalletCommand {
         builder.build()?
       },
       wallet_name: self.name.clone(),
+      options: options.clone(),
     };
 
-    match self.subcommand {
+    let result = match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Create(create) => create.run(wallet, options),
       Subcommand::Etch(etch) => etch.run(wallet, options),
@@ -127,24 +129,62 @@ impl WalletCommand {
       Subcommand::Transactions(transactions) => transactions.run(wallet),
       Subcommand::Outputs => outputs::run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
-    }
+    };
+
+    LISTENERS
+      .lock()
+      .unwrap()
+      .iter()
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    result
   }
 }
 
 pub(crate) struct Wallet {
-  pub(crate) bitcoin_rpc_client: Client, // TODO: make this a function instead
   pub(crate) chain: Chain,
   pub(crate) ord_api_url: Url,
   pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
   pub(crate) wallet_name: String,
+  pub(crate) options: Options,
 }
 
 impl Wallet {
+  pub(crate) fn bitcoin_client(&self, _create: bool) -> Result<Client> {
+    let client = check_version(
+      self
+        .options
+        .bitcoin_rpc_client(Some(self.wallet_name.clone()))?,
+    )?;
+
+    if !client.list_wallets()?.contains(&self.wallet_name) {
+      client.load_wallet(&self.wallet_name)?;
+    }
+
+    let descriptors = client.list_descriptors(None)?.descriptors;
+
+    let tr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      .count();
+
+    let rawtr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      .count();
+
+    if tr != 2 || descriptors.len() != 2 + rawtr {
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet_name);
+    }
+
+    Ok(client)
+  }
+
   pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
-        .bitcoin_rpc_client
+        .bitcoin_client(false)?
         .list_unspent(None, None, None, None, None)?
         .into_iter()
         .map(|utxo| {
@@ -162,7 +202,7 @@ impl Wallet {
         outpoint,
         Amount::from_sat(
           self
-            .bitcoin_rpc_client
+            .bitcoin_client(false)?
             .get_raw_transaction(&outpoint.txid, None)?
             .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
           .value,
@@ -171,6 +211,7 @@ impl Wallet {
     }
 
     for output in utxos.keys() {
+      println!("{output}");
       self.get_output(output)?;
     }
 
@@ -365,7 +406,7 @@ impl Wallet {
 
     Ok(
       self
-        .bitcoin_rpc_client
+        .bitcoin_client(false)?
         .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
         .into_iter()
         .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
@@ -376,7 +417,7 @@ impl Wallet {
   pub(crate) fn get_change_address(&self) -> Result<Address> {
     Ok(
       self
-        .bitcoin_rpc_client
+        .bitcoin_client(false)?
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
         .require_network(self.chain.network())?,

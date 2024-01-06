@@ -87,6 +87,7 @@ impl Preview {
       options: options.clone(),
       subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
         name: "ord".into(),
+        no_sync: false,
         subcommand: crate::subcommand::wallet::Subcommand::Create(
           crate::subcommand::wallet::create::Create {
             passphrase: "".into(),
@@ -113,6 +114,7 @@ impl Preview {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
+            no_sync: false,
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: None,
               cbor_metadata: None,
@@ -146,6 +148,7 @@ impl Preview {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
+            no_sync: false,
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: Some(batch),
               cbor_metadata: None,

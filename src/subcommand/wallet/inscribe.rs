@@ -242,7 +242,7 @@ impl Inscribe {
         id: parent_id,
         location: satpoint,
         tx_out: wallet
-          .bitcoin_rpc_client
+          .bitcoin_client(false)?
           .get_raw_transaction(&satpoint.outpoint.txid, None)
           .expect("parent transaction not found in index")
           .output

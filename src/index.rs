@@ -206,6 +206,7 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
+    println!("Opening.................................");
     let client = options.bitcoin_rpc_client(None)?;
 
     let path = options
@@ -3355,13 +3356,29 @@ mod tests {
   #[test]
   fn unsynced_index_fails() {
     for context in Context::configurations() {
-      let mut entropy = [0; 16];
-      rand::thread_rng().fill_bytes(&mut entropy);
+      let tempdir = TempDir::new().unwrap();
+      let cookie_file = tempdir.path().join("cookie");
+
+      fs::write(&cookie_file, "username:password").unwrap();
+
+      let command: Vec<OsString> = vec![
+        "ord".into(),
+        "--data-dir".into(),
+        tempdir.path().into(),
+        "--cookie-file".into(),
+        cookie_file.into(),
+        "--chain=regtest".into(),
+        "--rpc-url".into(),
+        context.options.rpc_url.clone().unwrap().into(),
+      ];
+
+      let options = Options::try_parse_from(command.into_iter()).unwrap();
 
       Arguments {
-        options: context.options.clone(),
+        options: options.clone(),
         subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
           name: "ord".into(),
+          no_sync: false,
           subcommand: crate::subcommand::wallet::Subcommand::Create(
             crate::subcommand::wallet::create::Create {
               passphrase: "".into(),
@@ -3372,22 +3389,41 @@ mod tests {
       .run()
       .unwrap();
 
+      let tempdir = TempDir::new().unwrap();
+      let cookie_file = tempdir.path().join("cookie");
+
+      fs::write(&cookie_file, "username:password").unwrap();
+
+      let command: Vec<OsString> = vec![
+        "ord".into(),
+        "--data-dir".into(),
+        tempdir.path().into(),
+        "--cookie-file".into(),
+        cookie_file.into(),
+        "--chain=regtest".into(),
+        "--rpc-url".into(),
+        context.options.rpc_url.unwrap().into(),
+      ];
+
+      let options = Options::try_parse_from(command.into_iter()).unwrap();
+
       context.rpc_server.mine_blocks(1);
 
-      let wallet = crate::subcommand::wallet::Wallet {
-        bitcoin_rpc_client: crate::subcommand::wallet::bitcoin_rpc_client_for_wallet(
-          "ord".into(),
-          &context.options,
-        )
-        .unwrap(),
-        chain: context.options.chain(),
-        ord_api_url: "127.0.0.1:8080".parse().unwrap(),
-        ord_http_client: reqwest::blocking::Client::new(),
-        wallet_name: "ord".into(),
-      };
+      let output = Arguments {
+        options: options.clone(),
+        subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
+          name: "ord".into(),
+          no_sync: true,
+          subcommand: crate::subcommand::wallet::Subcommand::Balance,
+        }),
+      }
+      .run()
+      .err()
+      .unwrap()
+      .to_string();
 
       assert_regex_match!(
-        wallet.get_unspent_outputs().unwrap_err().to_string(),
+        format!("{output}"),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }

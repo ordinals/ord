@@ -14,7 +14,7 @@ pub struct Output {
 
 impl Transactions {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let client = wallet.bitcoin_rpc_client;
+    let client = wallet.bitcoin_client(false)?;
 
     let mut output = Vec::new();
     for tx in client.list_transactions(
