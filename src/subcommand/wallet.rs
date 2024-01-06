@@ -276,11 +276,15 @@ impl Wallet {
       .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
       .send()?;
 
-    if response.status().is_client_error() {
+    let not_found = response.status().is_client_error();
+
+    let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
+
+    if not_found  || !output_json.in_index {
       bail!("output in Bitcoin Core wallet but not in ord index: {output}");
     }
 
-    Ok(serde_json::from_str(&response.text()?)?)
+    Ok(output_json)
   }
 
   fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
