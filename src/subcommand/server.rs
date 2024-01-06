@@ -170,6 +170,8 @@ pub(crate) struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
+  #[arg(long, alias = "nosync", help = "Do not update the index.")]
+  no_sync: bool,
 }
 
 impl Server {
@@ -181,8 +183,10 @@ impl Server {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
-        if let Err(error) = index_clone.update() {
-          log::warn!("Updating index: {error}");
+        if !self.no_sync {
+          if let Err(error) = index_clone.update() {
+            log::warn!("Updating index: {error}");
+          }
         }
         thread::sleep(Duration::from_millis(5000));
       });

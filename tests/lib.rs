@@ -29,6 +29,7 @@ use {
   regex::Regex,
   reqwest::{StatusCode, Url},
   serde::de::DeserializeOwned,
+  std::sync::Arc,
   std::{
     collections::BTreeMap,
     fs,

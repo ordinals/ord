@@ -492,3 +492,72 @@ fn inscription_transactions_are_stored_with_transaction_index() {
     StatusCode::NOT_FOUND,
   );
 }
+
+#[test]
+fn run_no_sync() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}",))
+    .rpc_server(&rpc_server)
+    .temp_dir(tempdir.clone());
+
+  let mut command = builder.command();
+
+  let mut child = command.spawn().unwrap();
+
+  rpc_server.mine_blocks(1);
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "1");
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  child.kill().unwrap();
+
+  let builder = CommandBuilder::new(format!(
+    "server --no-sync --address 127.0.0.1 --http-port {port}",
+  ))
+  .rpc_server(&rpc_server)
+  .temp_dir(tempdir);
+
+  let mut command = builder.command();
+
+  let mut child = command.spawn().unwrap();
+
+  rpc_server.mine_blocks(2);
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "1");
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  child.kill().unwrap();
+}
