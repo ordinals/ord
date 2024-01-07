@@ -401,16 +401,6 @@ impl Server {
     }))
   }
 
-  async fn dispatch<F, T>(f: F) -> ServerResult<T>
-  where
-    F: FnOnce() -> ServerResult<T> + Send + 'static,
-    T: Send + 'static,
-  {
-    task::spawn_blocking(f)
-      .await
-      .map_err(|join_error| ServerError::Internal(join_error.into()))?
-  }
-
   fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> PathBuf {
     acme_cache
       .unwrap_or(&options.data_dir().join("acme-cache"))
@@ -483,7 +473,7 @@ impl Server {
   }
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         (
           [(
@@ -495,7 +485,6 @@ impl Server {
           .into_response(),
       )
     })
-    .await
   }
 
   async fn sat(
@@ -504,7 +493,7 @@ impl Server {
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let inscriptions = index.get_inscription_ids_by_sat(sat)?;
       let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
         inscriptions.first().and_then(|&first_inscription_id| {
@@ -544,7 +533,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn ordinal(Path(sat): Path<String>) -> Redirect {
@@ -557,7 +545,7 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let list = index.list(outpoint)?;
 
       let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
@@ -613,7 +601,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn range(
@@ -633,7 +620,7 @@ impl Server {
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Self::dispatch(move || Ok(RareTxt(index.rare_sat_satpoints()?))).await
+    task::block_in_place(|| Ok(RareTxt(index.rare_sat_satpoints()?)))
   }
 
   async fn rune(
@@ -642,7 +629,7 @@ impl Server {
     Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       if !index.has_rune_index() {
         return Err(ServerError::NotFound(
           "this server has no rune index".to_string(),
@@ -661,7 +648,6 @@ impl Server {
           .into_response()
       })
     })
-    .await
   }
 
   async fn runes(
@@ -669,7 +655,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(if accept_json {
         Json(RunesJson {
           entries: index.runes()?,
@@ -683,14 +669,13 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn home(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         HomeHtml {
           inscriptions: index.get_home_inscriptions()?,
@@ -698,14 +683,13 @@ impl Server {
         .page(server_config),
       )
     })
-    .await
   }
 
   async fn blocks(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<BlocksHtml>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let blocks = index.blocks(100)?;
       let mut featured_blocks = BTreeMap::new();
       for (height, hash) in blocks.iter().take(5) {
@@ -717,7 +701,6 @@ impl Server {
 
       Ok(BlocksHtml::new(blocks, featured_blocks).page(server_config))
     })
-    .await
   }
 
   async fn install_script() -> Redirect {
@@ -730,7 +713,7 @@ impl Server {
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let (block, height) = match query {
         BlockQuery::Height(height) => {
           let block = index
@@ -775,7 +758,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn transaction(
@@ -783,7 +765,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let transaction = index
         .get_transaction(txid)?
         .ok_or_not_found(|| format!("transaction {txid}"))?;
@@ -804,14 +786,13 @@ impl Server {
         .page(server_config),
       )
     })
-    .await
   }
 
   async fn metadata(
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Json<String>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let metadata = index
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?
@@ -820,7 +801,6 @@ impl Server {
 
       Ok(Json(hex::encode(metadata)))
     })
-    .await
   }
 
   async fn status(
@@ -828,14 +808,13 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(if accept_json {
         Json(index.status()?).into_response()
       } else {
         index.status()?.page(server_config).into_response()
       })
     })
-    .await
   }
 
   async fn search_by_query(
@@ -857,7 +836,7 @@ impl Server {
   }
 
   async fn search_inner(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       lazy_static! {
         static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
         static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
@@ -892,7 +871,6 @@ impl Server {
         Ok(Redirect::to(&format!("/sat/{query}")))
       }
     })
-    .await
   }
 
   async fn favicon(user_agent: Option<TypedHeader<UserAgent>>) -> ServerResult<Response> {
@@ -927,7 +905,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let mut builder = rss::ChannelBuilder::default();
 
       let chain = server_config.chain;
@@ -965,7 +943,6 @@ impl Server {
           .into_response(),
       )
     })
-    .await
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
@@ -986,11 +963,11 @@ impl Server {
   }
 
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Self::dispatch(move || Ok(index.block_count()?.to_string())).await
+    task::block_in_place(|| Ok(index.block_count()?.to_string()))
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         index
           .block_height()?
@@ -998,11 +975,10 @@ impl Server {
           .to_string(),
       )
     })
-    .await
   }
 
   async fn block_hash(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         index
           .block_hash(None)?
@@ -1010,11 +986,10 @@ impl Server {
           .to_string(),
       )
     })
-    .await
   }
 
   async fn block_hash_json(Extension(index): Extension<Arc<Index>>) -> ServerResult<Json<String>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(Json(
         index
           .block_hash(None)?
@@ -1022,14 +997,13 @@ impl Server {
           .to_string(),
       ))
     })
-    .await
   }
 
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u32>,
   ) -> ServerResult<String> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         index
           .block_hash(Some(height))?
@@ -1037,14 +1011,13 @@ impl Server {
           .to_string(),
       )
     })
-    .await
   }
 
   async fn block_hash_from_height_json(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u32>,
   ) -> ServerResult<Json<String>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(Json(
         index
           .block_hash(Some(height))?
@@ -1052,11 +1025,10 @@ impl Server {
           .to_string(),
       ))
     })
-    .await
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       Ok(
         index
           .block_time(index.block_height()?.ok_or_not_found(|| "blocktime")?)?
@@ -1064,7 +1036,6 @@ impl Server {
           .to_string(),
       )
     })
-    .await
   }
 
   async fn input(
@@ -1072,7 +1043,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u32, usize, usize)>,
   ) -> ServerResult<PageHtml<InputHtml>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
       let block = index
@@ -1093,7 +1064,6 @@ impl Server {
 
       Ok(InputHtml { path, input }.page(server_config))
     })
-    .await
   }
 
   async fn faq() -> Redirect {
@@ -1111,7 +1081,7 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       if config.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
@@ -1132,7 +1102,6 @@ impl Server {
           .into_response(),
       )
     })
-    .await
   }
 
   fn content_response(
@@ -1212,7 +1181,7 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       if config.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
@@ -1302,7 +1271,6 @@ impl Server {
         Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
       }
     })
-    .await
   }
 
   async fn inscription(
@@ -1311,7 +1279,7 @@ impl Server {
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let info = Index::inscription_info(&index, query)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
@@ -1372,7 +1340,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn collections(
@@ -1387,7 +1354,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(page_index): Path<usize>,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let (collections, more_collections) = index.get_collections_paginated(100, page_index)?;
 
       let prev = page_index.checked_sub(1);
@@ -1404,7 +1371,6 @@ impl Server {
         .into_response(),
       )
     })
-    .await
   }
 
   async fn children(
@@ -1425,7 +1391,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let entry = index
         .get_inscription_entry(parent)?
         .ok_or_not_found(|| format!("inscription {parent}"))?;
@@ -1451,7 +1417,6 @@ impl Server {
         .into_response(),
       )
     })
-    .await
   }
 
   async fn children_recursive(
@@ -1465,7 +1430,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let parent_sequence_number = index
         .get_inscription_entry(parent)?
         .ok_or_not_found(|| format!("inscription {parent}"))?
@@ -1476,7 +1441,6 @@ impl Server {
 
       Ok(Json(ChildrenJson { ids, more, page }).into_response())
     })
-    .await
   }
 
   async fn inscriptions(
@@ -1499,7 +1463,7 @@ impl Server {
     Path(page_index): Path<usize>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
 
       let prev = page_index.checked_sub(1);
@@ -1523,7 +1487,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn inscriptions_in_block(
@@ -1547,7 +1510,7 @@ impl Server {
     Path((block_height, page_index)): Path<(u32, usize)>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       let page_size = 100;
 
       let mut inscriptions = index
@@ -1582,7 +1545,6 @@ impl Server {
         .into_response()
       })
     })
-    .await
   }
 
   async fn sat_inscriptions(
@@ -1596,7 +1558,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path((sat, page)): Path<(u64, u64)>,
   ) -> ServerResult<Json<SatInscriptionsJson>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       if !index.has_sat_index() {
         return Err(ServerError::NotFound(
           "this server has no sat index".to_string(),
@@ -1607,14 +1569,13 @@ impl Server {
 
       Ok(Json(SatInscriptionsJson { ids, more, page }))
     })
-    .await
   }
 
   async fn sat_inscription_at_index(
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
   ) -> ServerResult<Json<SatInscriptionJson>> {
-    Self::dispatch(move || {
+    task::block_in_place(|| {
       if !index.has_sat_index() {
         return Err(ServerError::NotFound(
           "this server has no sat index".to_string(),
@@ -1625,7 +1586,6 @@ impl Server {
 
       Ok(Json(SatInscriptionJson { id }))
     })
-    .await
   }
 
   async fn redirect_http_to_https(
