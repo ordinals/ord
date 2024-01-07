@@ -1460,21 +1460,21 @@ impl Server {
   async fn inscriptions_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(page_index): Path<usize>,
+    Path(page_index): Path<u32>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      let (inscriptions, more_inscriptions) = index.get_inscriptions_paginated(100, page_index)?;
+      let (inscriptions, more) = index.get_inscriptions_paginated(100, page_index)?;
 
       let prev = page_index.checked_sub(1);
 
-      let next = more_inscriptions.then_some(page_index + 1);
+      let next = more.then_some(page_index + 1);
 
       Ok(if accept_json {
         Json(InscriptionsJson {
           inscriptions,
           page_index,
-          more: more_inscriptions,
+          more,
         })
         .into_response()
       } else {
@@ -1507,20 +1507,23 @@ impl Server {
   async fn inscriptions_in_block_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page_index)): Path<(u32, usize)>,
+    Path((block_height, page_index)): Path<(u32, u32)>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
       let page_size = 100;
 
+      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
+      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+
       let mut inscriptions = index
         .get_inscriptions_in_block(block_height)?
         .into_iter()
-        .skip(page_index.saturating_mul(page_size))
-        .take(page_size.saturating_add(1))
+        .skip(page_index_usize.saturating_mul(page_size_usize))
+        .take(page_size_usize.saturating_add(1))
         .collect::<Vec<InscriptionId>>();
 
-      let more = inscriptions.len() > page_size;
+      let more = inscriptions.len() > page_size_usize;
 
       if more {
         inscriptions.pop();
