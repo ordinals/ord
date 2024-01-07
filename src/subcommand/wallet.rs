@@ -134,7 +134,7 @@ impl WalletCommand {
       .lock()
       .unwrap()
       .iter()
-      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+      .for_each(|handle| handle.shutdown());
 
     result
   }
@@ -149,11 +149,7 @@ pub(crate) struct Wallet {
 
 impl Wallet {
   pub(crate) fn bitcoin_client(&self, _create: bool) -> Result<Client> {
-    let client = check_version(
-      self
-        .options
-        .bitcoin_rpc_client(Some(self.name.clone()))?,
-    )?;
+    let client = check_version(self.options.bitcoin_rpc_client(Some(self.name.clone()))?)?;
 
     if !client.list_wallets()?.contains(&self.name) {
       client.load_wallet(&self.name)?;
@@ -282,7 +278,7 @@ impl Wallet {
     let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
 
     if not_found || !output_json.in_index {
-      bail!("output in Bitcoin Core wallet but not in ord index: {output}");
+      // bail!("output in Bitcoin Core wallet but not in ord index: {output}");
     }
 
     Ok(output_json)
