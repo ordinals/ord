@@ -15,7 +15,7 @@ use {
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
-      SatInscriptionsJson, SatJson, TransactionHtml,
+      SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -268,6 +268,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/balance", get(Self::runes_balance))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
@@ -661,6 +662,13 @@ impl Server {
     })
   }
 
+  async fn runes_balance(
+    Extension(_): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Ok(Json(index.get_rune_balance_map()?).into_response())
+  }
+
   async fn home(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -748,7 +756,8 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
-  ) -> ServerResult<PageHtml<TransactionHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
     let transaction = index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?;
@@ -757,7 +766,17 @@ impl Server {
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
-    Ok(
+    Ok(if accept_json {
+      Json(TransactionJson {
+        blockhash,
+        transaction,
+        txid,
+        inscription_count,
+        chain: server_config.chain,
+        etching: index.get_etching(txid)?,
+      })
+      .into_response()
+    } else {
       TransactionHtml {
         blockhash,
         transaction,
@@ -766,8 +785,9 @@ impl Server {
         chain: server_config.chain,
         etching: index.get_etching(txid)?,
       }
-      .page(server_config),
-    )
+      .page(server_config)
+      .into_response()
+    })
   }
 
   async fn metadata(
