@@ -100,9 +100,7 @@ impl Send {
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let txid = wallet
-      .bitcoin_client()?
-      .send_raw_transaction(&signed_tx)?;
+    let txid = wallet.bitcoin_client()?.send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
   }
@@ -125,10 +123,7 @@ impl Send {
       .cloned()
       .collect::<Vec<OutPoint>>();
 
-    if !wallet
-      .bitcoin_client()?
-      .lock_unspent(&locked_outputs)?
-    {
+    if !wallet.bitcoin_client()?.lock_unspent(&locked_outputs)? {
       bail!("failed to lock UTXOs");
     }
 
