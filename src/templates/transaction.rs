@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Boilerplate)]
+pub(crate) type TransactionJson = TransactionHtml;
+
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct TransactionHtml {
   pub(crate) blockhash: Option<BlockHash>,
   pub(crate) chain: Chain,

@@ -14,8 +14,8 @@ use {
       InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RunesHtml, RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson,
-      SatJson, StatusHtml, TransactionHtml,
+      RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
+      SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -170,6 +170,8 @@ pub(crate) struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
+  #[arg(long, alias = "nosync", help = "Do not update the index.")]
+  no_sync: bool,
 }
 
 impl Server {
@@ -181,8 +183,10 @@ impl Server {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
-        if let Err(error) = index_clone.update() {
-          log::warn!("Updating index: {error}");
+        if !self.no_sync {
+          if let Err(error) = index_clone.update() {
+            log::warn!("Updating index: {error}");
+          }
         }
         thread::sleep(Duration::from_millis(5000));
       });
@@ -264,6 +268,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
@@ -625,13 +630,14 @@ impl Server {
       ));
     }
 
-    let output_rune_json = index.rune_json(spaced_rune.rune).unwrap();
+    let (id, entry, parent) = index
+      .rune(spaced_rune.rune)?
+      .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+
     Ok(if accept_json {
-      Json(output_rune_json).into_response()
+      Json(RuneJson { entry, id, parent }).into_response()
     } else {
-      index
-        .rune_html(spaced_rune.rune)?
-        .ok_or_not_found(|| format!("rune {spaced_rune}"))?
+      RuneHtml { entry, id, parent }
         .page(server_config)
         .into_response()
     })
@@ -644,7 +650,7 @@ impl Server {
   ) -> ServerResult<Response> {
     Ok(if accept_json {
       Json(RunesJson {
-        runes: index.runes()?,
+        entries: index.runes()?,
       })
       .into_response()
     } else {
@@ -654,6 +660,13 @@ impl Server {
       .page(server_config)
       .into_response()
     })
+  }
+
+  async fn runes_balances(
+    Extension(_): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Ok(Json(index.get_rune_balance_map()?).into_response())
   }
 
   async fn home(
@@ -743,7 +756,8 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
-  ) -> ServerResult<PageHtml<TransactionHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
     let transaction = index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?;
@@ -752,7 +766,17 @@ impl Server {
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
-    Ok(
+    Ok(if accept_json {
+      Json(TransactionJson {
+        blockhash,
+        transaction,
+        txid,
+        inscription_count,
+        chain: server_config.chain,
+        etching: index.get_etching(txid)?,
+      })
+      .into_response()
+    } else {
       TransactionHtml {
         blockhash,
         transaction,
@@ -761,8 +785,9 @@ impl Server {
         chain: server_config.chain,
         etching: index.get_etching(txid)?,
       }
-      .page(server_config),
-    )
+      .page(server_config)
+      .into_response()
+    })
   }
 
   async fn metadata(
@@ -781,8 +806,13 @@ impl Server {
   async fn status(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<StatusHtml>> {
-    Ok(index.status()?.page(server_config))
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(if accept_json {
+      Json(index.status()?).into_response()
+    } else {
+      index.status()?.page(server_config).into_response()
+    })
   }
 
   async fn search_by_query(
@@ -1231,6 +1261,11 @@ impl Server {
     Ok(if accept_json {
       Json(InscriptionJson {
         inscription_id: info.entry.id,
+        charms: Charm::ALL
+          .iter()
+          .filter(|charm| charm.is_set(info.charms))
+          .map(|charm| charm.title().into())
+          .collect(),
         children: info.children,
         inscription_number: info.entry.inscription_number,
         genesis_height: info.entry.height,
@@ -2564,6 +2599,8 @@ mod tests {
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
+  <dt>chain</dt>
+  <dd>mainnet</dd>
   <dt>height</dt>
   <dd>0</dd>
   <dt>inscriptions</dt>
@@ -4362,6 +4399,45 @@ next
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_vindicated() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(110);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, Witness::default()),
+        (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
+      ],
+      outputs: 2,
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=vindicated>❤️‍🔥</span>
   </dd>
   .*
 </dl>
