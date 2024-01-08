@@ -15,6 +15,7 @@ use {
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
+  bitcoincore_rpc::jsonrpc::client,
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -40,6 +41,7 @@ mod updater;
 
 #[cfg(test)]
 pub(crate) mod testing;
+pub mod transport;
 
 const SCHEMA_VERSION: u64 = 16;
 
@@ -5630,4 +5632,17 @@ mod tests {
       );
     }
   }
+}
+
+#[test]
+fn http_client() {
+  let rpc_url = "https://some.rpc.com";
+  let auth_token = "Basic AUTH_TOKEN";
+  let t = transport::CustomTransport::new(rpc_url, auth_token);
+  let http_client = client::Client::with_transport(t);
+
+  let client = Client::from_jsonrpc(http_client);
+
+  let data = client.get_best_block_hash().unwrap_or_else(|err|panic!("failed to send request. detail: {}", err));
+  println!("{}", data)
 }
