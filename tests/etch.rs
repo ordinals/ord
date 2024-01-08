@@ -401,7 +401,7 @@ fn send_inscription_does_not_select_runic_utxos() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
-  // assert_eq!(output.cardinal, 0);
+  assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 10000);
   assert_eq!(output.runic, Some(10000));
 
