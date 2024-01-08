@@ -1620,7 +1620,7 @@ fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
     .write("foo.txt", "FOO")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: could not find sat `5000000000`\n")
+    .expected_stderr("error: could not find sat `5000000000` in wallet outputs\n")
     .run_and_extract_stdout();
 }
 

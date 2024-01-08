@@ -33,6 +33,11 @@ impl Send {
 
     let runic_outputs = wallet.get_runic_outputs()?;
 
+    // dbg!(&unspent_outputs);
+    // dbg!(&locked_outputs);
+    // dbg!(&inscriptions);
+    // dbg!(&runic_outputs);
+
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
         Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
@@ -91,12 +96,12 @@ impl Send {
     .build_transaction()?;
 
     let signed_tx = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
     let txid = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .send_raw_transaction(&signed_tx)?;
 
     Ok(Box::new(Output { transaction: txid }))
@@ -121,7 +126,7 @@ impl Send {
       .collect::<Vec<OutPoint>>();
 
     if !wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .lock_unspent(&locked_outputs)?
     {
       bail!("failed to lock UTXOs");
@@ -136,7 +141,7 @@ impl Send {
     address: Address,
     fee_rate: FeeRate,
   ) -> Result<Txid> {
-    Ok(wallet.bitcoin_client(false)?.call(
+    Ok(wallet.bitcoin_client()?.call(
       "sendtoaddress",
       &[
         address.to_string().into(), //  1. address
@@ -249,20 +254,17 @@ impl Send {
       ],
     };
 
-    let unsigned_transaction = fund_raw_transaction(
-      &wallet.bitcoin_client(false)?,
-      fee_rate,
-      &unfunded_transaction,
-    )?;
+    let unsigned_transaction =
+      fund_raw_transaction(&wallet.bitcoin_client()?, fee_rate, &unfunded_transaction)?;
 
     let signed_transaction = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
     Ok(
       wallet
-        .bitcoin_client(false)?
+        .bitcoin_client()?
         .send_raw_transaction(&signed_transaction)?,
     )
   }

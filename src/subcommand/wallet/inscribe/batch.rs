@@ -66,13 +66,13 @@ impl Batch {
     }
 
     let signed_commit_tx = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
     let signed_reveal_tx = if self.parent_info.is_some() {
       wallet
-        .bitcoin_client(false)?
+        .bitcoin_client()?
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
           Some(
@@ -101,11 +101,11 @@ impl Batch {
     }
 
     let commit = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .send_raw_transaction(&signed_commit_tx)?;
 
     let reveal = match wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .send_raw_transaction(&signed_reveal_tx)
     {
       Ok(txid) => txid,
@@ -454,11 +454,11 @@ impl Batch {
     let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
 
     let info = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 
     let response = wallet
-      .bitcoin_client(false)?
+      .bitcoin_client()?
       .import_descriptors(ImportDescriptors {
         descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
         timestamp: Timestamp::Now,

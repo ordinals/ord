@@ -109,16 +109,6 @@ impl WalletCommand {
     let wallet = Wallet {
       options,
       ord_url,
-      ord_http_client: {
-        let mut headers = header::HeaderMap::new();
-        headers.insert(
-          header::ACCEPT,
-          header::HeaderValue::from_static("application/json"),
-        );
-        let builder = reqwest::blocking::ClientBuilder::new().default_headers(headers);
-
-        builder.build()?
-      },
       name: self.name.clone(),
     };
 
@@ -151,11 +141,10 @@ pub(crate) struct Wallet {
   pub(crate) name: String,
   pub(crate) options: Options,
   pub(crate) ord_url: Url,
-  pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
 }
 
 impl Wallet {
-  pub(crate) fn bitcoin_client(&self, _create: bool) -> Result<Client> {
+  pub(crate) fn bitcoin_client(&self) -> Result<Client> {
     let client = check_version(self.options.bitcoin_rpc_client(Some(self.name.clone()))?)?;
 
     if !client.list_wallets()?.contains(&self.name) {
@@ -181,15 +170,69 @@ impl Wallet {
     Ok(client)
   }
 
-  pub(crate) fn chain(&self) -> Chain {
-    self.options.chain()
+  pub(crate) fn ord_client(&self) -> Result<reqwest::blocking::Client> {
+    let mut headers = header::HeaderMap::new();
+    headers.insert(
+      header::ACCEPT,
+      header::HeaderValue::from_static("application/json"),
+    );
+    let builder = reqwest::blocking::ClientBuilder::new().default_headers(headers);
+
+    let client = builder.build().map_err(|err| anyhow!(err))?;
+
+    let status: StatusJson = serde_json::from_str(
+      &client
+        .get(self.ord_url.join("/status").unwrap())
+        .send()?
+        .text()?,
+    )?;
+
+    if let Some(ord_height) = status.height {
+      let bitcoin_height = self.bitcoin_client()?.get_blockchain_info()?.blocks;
+      if (ord_height as u64) < bitcoin_height {
+        return Err(anyhow!(
+          "unsynced: ord is at {ord_height} and bitcoind is at {bitcoin_height}"
+        ));
+      }
+    }
+
+    Ok(client)
+  }
+
+  pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
+    let status: StatusJson = serde_json::from_str(
+      &self
+        .ord_client()?
+        .get(self.ord_url.join("/status").unwrap())
+        .send()?
+        .text()?,
+    )?;
+
+    Ok(status)
+  }
+
+  fn get_output(&self, output: &OutPoint) -> Result<OutputJson> {
+    let response = self
+      .ord_client()?
+      .get(self.ord_url.join(&format!("/output/{output}")).unwrap())
+      .send()?;
+
+    let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
+
+    // dbg!(&output_json);
+
+    if !output_json.in_index {
+      // bail!("output in Bitcoin Core wallet but not in ord index: {output}");
+    }
+
+    Ok(output_json)
   }
 
   pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
-        .bitcoin_client(false)?
+        .bitcoin_client()?
         .list_unspent(None, None, None, None, None)?
         .into_iter()
         .map(|utxo| {
@@ -207,7 +250,7 @@ impl Wallet {
         outpoint,
         Amount::from_sat(
           self
-            .bitcoin_client(false)?
+            .bitcoin_client()?
             .get_raw_transaction(&outpoint.txid, None)?
             .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
           .value,
@@ -274,26 +317,9 @@ impl Wallet {
     )))
   }
 
-  fn get_output(&self, output: &OutPoint) -> Result<OutputJson> {
-    let response = self
-      .ord_http_client
-      .get(self.ord_url.join(&format!("/output/{output}")).unwrap())
-      .send()?;
-
-    let not_found = response.status().is_client_error();
-
-    let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
-
-    if not_found || !output_json.in_index {
-      // bail!("output in Bitcoin Core wallet but not in ord index: {output}");
-    }
-
-    Ok(output_json)
-  }
-
   fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
     let response = self
-      .ord_http_client
+      .ord_client()?
       .get(
         self
           .ord_url
@@ -329,7 +355,7 @@ impl Wallet {
     rune: Rune,
   ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
     let response = self
-      .ord_http_client
+      .ord_client()?
       .get(
         self
           .ord_url
@@ -381,18 +407,6 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
-    let status: StatusJson = serde_json::from_str(
-      &self
-        .ord_http_client
-        .get(self.ord_url.join("/status").unwrap())
-        .send()?
-        .text()?,
-    )?;
-
-    Ok(status)
-  }
-
   pub(crate) fn get_locked_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
@@ -402,7 +416,7 @@ impl Wallet {
 
     Ok(
       self
-        .bitcoin_client(false)?
+        .bitcoin_client()?
         .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
         .into_iter()
         .map(|outpoint| OutPoint::new(outpoint.txid, outpoint.vout))
@@ -413,7 +427,7 @@ impl Wallet {
   pub(crate) fn get_change_address(&self) -> Result<Address> {
     Ok(
       self
-        .bitcoin_client(false)?
+        .bitcoin_client()?
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
@@ -495,6 +509,10 @@ impl Wallet {
       })?;
 
     Ok(())
+  }
+
+  pub(crate) fn chain(&self) -> Chain {
+    self.options.chain()
   }
 }
 
