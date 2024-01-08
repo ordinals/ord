@@ -73,17 +73,24 @@ impl WalletCommand {
     let handle = axum_server::Handle::new();
     LISTENERS.lock().unwrap().push(handle.clone());
 
-    let ord_api_url: Url = "http://127.0.0.1:8080".parse().unwrap();
+    let ord_url: Url = {
+      format!(
+        "http://127.0.0.1:{}",
+        TcpListener::bind("127.0.0.1:0")?.local_addr()?.port() // very hacky
+      )
+      .parse()
+      .unwrap()
+    };
 
     {
       let options = options.clone();
-      let ord_api_url = ord_api_url.clone();
+      let ord_url = ord_url.clone();
       std::thread::spawn(move || {
         crate::subcommand::server::Server {
-          address: ord_api_url.host_str().map(|a| a.to_string()),
+          address: ord_url.host_str().map(|a| a.to_string()),
           acme_domain: vec![],
           csp_origin: None,
-          http_port: ord_api_url.port(),
+          http_port: ord_url.port(),
           https_port: None,
           acme_cache: None,
           acme_contact: vec![],
@@ -100,8 +107,8 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
-      options: options.clone(),
-      ord_api_url,
+      options,
+      ord_url,
       ord_http_client: {
         let mut headers = header::HeaderMap::new();
         headers.insert(
@@ -143,7 +150,7 @@ impl WalletCommand {
 pub(crate) struct Wallet {
   pub(crate) name: String,
   pub(crate) options: Options,
-  pub(crate) ord_api_url: Url,
+  pub(crate) ord_url: Url,
   pub(crate) ord_http_client: reqwest::blocking::Client, // TODO: make async instead of blocking
 }
 
@@ -270,7 +277,7 @@ impl Wallet {
   fn get_output(&self, output: &OutPoint) -> Result<OutputJson> {
     let response = self
       .ord_http_client
-      .get(self.ord_api_url.join(&format!("/output/{output}")).unwrap())
+      .get(self.ord_url.join(&format!("/output/{output}")).unwrap())
       .send()?;
 
     let not_found = response.status().is_client_error();
@@ -289,7 +296,7 @@ impl Wallet {
       .ord_http_client
       .get(
         self
-          .ord_api_url
+          .ord_url
           .join(&format!("/inscription/{inscription_id}"))
           .unwrap(),
       )
@@ -325,7 +332,7 @@ impl Wallet {
       .ord_http_client
       .get(
         self
-          .ord_api_url
+          .ord_url
           .join(&format!("/rune/{}", SpacedRune { rune, spacers: 0 }))
           .unwrap(),
       )
@@ -378,7 +385,7 @@ impl Wallet {
     let status: StatusJson = serde_json::from_str(
       &self
         .ord_http_client
-        .get(self.ord_api_url.join("/status").unwrap())
+        .get(self.ord_url.join("/status").unwrap())
         .send()?
         .text()?,
     )?;
