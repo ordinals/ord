@@ -517,7 +517,7 @@ OP_IF
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
 OP_ENDIF
 </code></pre>
-<p>Note that the value of tag <code>11</code> is binary, not hex.</p>
+<p>Note that the value of tag <code>11</code> is decimal, not hex.</p>
 <p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscrpition ID encodings;</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="元数据"><a class="header" href="#元数据">元数据</a></h1>
 <p>铭文可能包含<a href="https://cbor.io/">CBOR</a> 元数据, 将以数据推送的形式储存在带有标签 <code>5</code>的字段中. 由于数据推送的限制为520 字节 因此超过520字节的元数据必须拆分到多个标签为 <code>5</code> 的字段中, 然后在解码前进行连接。</p>

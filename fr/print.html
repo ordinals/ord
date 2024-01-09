@@ -517,7 +517,7 @@ OP_IF
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
 OP_ENDIF
 </code></pre>
-<p>Note that the value of tag <code>11</code> is binary, not hex.</p>
+<p>Note that the value of tag <code>11</code> is decimal, not hex.</p>
 <p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscrpition ID encodings;</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="métadonnées"><a class="header" href="#métadonnées">Métadonnées</a></h1>
 <p>Les inscriptions peuvent inclure des métadonnées <a href="https://cbor.io/">CBOR</a>, stockées sous forme de pushs de données dans des champs avec étiquette <code>5</code>. Vu que les pushs de données sont limités à 520 octets, les métadonnées de plus de 520 octets doivent être divisées en plusieurs champs avec étiquette <code>5</code>, qui seront ensuite concaténés avant le décodage.</p>
