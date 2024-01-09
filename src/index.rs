@@ -1,3 +1,4 @@
+use bitcoincore_rpc::Auth;
 use {
   self::{
     entry::{
@@ -5798,7 +5799,9 @@ mod tests {
 #[test]
 fn http_client() {
   let rpc_url = "https://some.rpc.com";
-  let auth_token = "Basic AUTH_TOKEN";
+  let user = "__cookie__".to_string();
+  let pass = "".to_string();
+  let auth_token = Auth::UserPass(user, pass);
   let t = transport::CustomTransport::new(rpc_url, auth_token);
   let http_client = client::Client::with_transport(t);
 

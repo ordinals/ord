@@ -1,4 +1,6 @@
+use bitcoincore_rpc::jsonrpc::client;
 use {super::*, bitcoincore_rpc::Auth};
+use crate::index::transport;
 
 #[derive(Clone, Default, Debug, Parser)]
 #[command(group(
@@ -228,9 +230,12 @@ impl Options {
       );
     }
 
-    let client = Client::new(&rpc_url, auth)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+    // let client = Client::new(&rpc_url, auth);
+    //   .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+    let t = transport::CustomTransport::new(&rpc_url, auth);
+    let http_client = client::Client::with_transport(t);
 
+    let client = Client::from_jsonrpc(http_client);
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
       "test" => Chain::Testnet,

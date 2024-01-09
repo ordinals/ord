@@ -1,8 +1,9 @@
 use std::fmt;
 use std::io;
 use std::time::Duration;
+use base64::Engine;
 
-use bitcoincore_rpc::jsonrpc;
+use bitcoincore_rpc::{Auth, jsonrpc};
 use bitcoincore_rpc::jsonrpc::{Request, Response, Transport};
 use http::Method;
 use hyper::client;
@@ -22,7 +23,7 @@ fn error(err: String) -> io::Error {
 }
 impl CustomTransport {
     /// Construct a new `SimpleHttpTransport` with default parameters
-    pub fn new(url: &str, auth: &str) -> Self {
+    pub fn new(url: &str, auth: Auth) -> Self {
         // Prepare the TLS client config
         let tls = rustls::ClientConfig::builder()
             .with_native_roots().unwrap_or_else(|err| panic!("init tls failed: {}", err))
@@ -34,13 +35,19 @@ impl CustomTransport {
             .enable_http1()
             .build();
         let client: client::Client<_, hyper::Body> = client::Client::builder().build(https);
+        let (user, password) = auth.get_user_pass().unwrap();
+        let auth_token = format!("{}:{}", user.unwrap(), password.unwrap());
+        let auth_token = format!(
+            "Basic {}",
+            &base64::engine::general_purpose::STANDARD.encode(auth_token)
+        );
 
         CustomTransport {
             url: url.to_string(),
             timeout: Duration::from_secs(15),
             client: client,
             is_https: url.starts_with("https://"),
-            auth: auth.to_string(),
+            auth: auth_token.to_string(),
         }
     }
 
