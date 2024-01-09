@@ -62,12 +62,12 @@ impl Batch {
       )?;
 
     if self.dry_run {
-      return Ok(Box::new(self.output(
+      return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         reveal_tx.txid(),
         total_fees,
         self.inscriptions.clone(),
-      )));
+      ))));
     }
 
     let signed_commit_tx = client
@@ -114,12 +114,12 @@ impl Batch {
       }
     };
 
-    Ok(Box::new(self.output(
+    Ok(Some(Box::new(self.output(
       commit,
       reveal,
       total_fees,
       self.inscriptions.clone(),
-    )))
+    ))))
   }
 
   fn output(

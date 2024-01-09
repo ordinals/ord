@@ -35,7 +35,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   index.update()?;
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     runes: index
       .runes()?
       .into_iter()
@@ -82,5 +82,5 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
         },
       )
       .collect::<BTreeMap<Rune, RuneInfo>>(),
-  }))
+  })))
 }

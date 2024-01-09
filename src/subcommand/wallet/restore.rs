@@ -20,6 +20,6 @@ impl Restore {
       self.mnemonic.to_seed(self.passphrase),
     )?;
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }

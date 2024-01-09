@@ -22,7 +22,7 @@ pub struct Output {
 
 impl Traits {
   pub(crate) fn run(self) -> SubcommandResult {
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       number: self.sat.n(),
       decimal: self.sat.decimal().to_string(),
       degree: self.sat.degree().to_string(),
@@ -33,6 +33,6 @@ impl Traits {
       period: self.sat.period(),
       offset: self.sat.third(),
       rarity: self.sat.rarity(),
-    }))
+    })))
   }
 }
