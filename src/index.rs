@@ -1656,23 +1656,32 @@ impl Index {
 
   pub(crate) fn get_inscriptions_paginated(
     &self,
-    page_size: usize,
-    page_index: usize,
+    page_size: u32,
+    page_index: u32,
   ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let mut inscriptions = sequence_number_to_inscription_entry
+    let last = sequence_number_to_inscription_entry
       .iter()?
-      .rev()
-      .skip(page_size.saturating_mul(page_index))
-      .take(page_size.saturating_add(1))
-      .flat_map(|result| result.map(|(_number, entry)| InscriptionEntry::load(entry.value()).id))
-      .collect::<Vec<InscriptionId>>();
+      .next_back()
+      .map(|result| result.map(|(number, _entry)| number.value()))
+      .transpose()?
+      .unwrap_or_default();
 
-    let more = inscriptions.len() > page_size;
+    let start = last.saturating_sub(page_size.saturating_mul(page_index));
+
+    let end = start.saturating_sub(page_size);
+
+    let mut inscriptions = sequence_number_to_inscription_entry
+      .range(end..=start)?
+      .rev()
+      .map(|result| result.map(|(_number, entry)| InscriptionEntry::load(entry.value()).id))
+      .collect::<Result<Vec<InscriptionId>, StorageError>>()?;
+
+    let more = u32::try_from(inscriptions.len()).unwrap_or(u32::MAX) > page_size;
 
     if more {
       inscriptions.pop();
@@ -3348,7 +3357,7 @@ mod tests {
   }
 
   #[test]
-  fn get_latest_inscriptions_with_no_prev_and_next() {
+  fn get_latest_inscriptions_with_no_more() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
@@ -3363,6 +3372,33 @@ mod tests {
       let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
       assert_eq!(inscriptions, &[inscription_id]);
       assert!(!more);
+    }
+  }
+
+  #[test]
+  fn get_latest_inscriptions_with_more() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let mut ids = Vec::new();
+
+      for i in 0..101 {
+        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+          ..Default::default()
+        });
+        context.mine_blocks(1);
+        ids.push(InscriptionId { txid, index: 0 });
+      }
+
+      ids.reverse();
+      ids.pop();
+
+      assert_eq!(ids.len(), 100);
+
+      let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
+      assert_eq!(inscriptions, ids);
+      assert!(more);
     }
   }
 
