@@ -28,21 +28,21 @@ impl Entry for Header {
   }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) struct RuneEntry {
-  pub(crate) burned: u128,
-  pub(crate) deadline: Option<u32>,
-  pub(crate) divisibility: u8,
-  pub(crate) end: Option<u32>,
-  pub(crate) etching: Txid,
-  pub(crate) limit: Option<u128>,
-  pub(crate) mints: u64,
-  pub(crate) number: u64,
-  pub(crate) rune: Rune,
-  pub(crate) spacers: u32,
-  pub(crate) supply: u128,
-  pub(crate) symbol: Option<char>,
-  pub(crate) timestamp: u32,
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub struct RuneEntry {
+  pub burned: u128,
+  pub deadline: Option<u32>,
+  pub divisibility: u8,
+  pub end: Option<u32>,
+  pub etching: Txid,
+  pub limit: Option<u128>,
+  pub mints: u64,
+  pub number: u64,
+  pub rune: Rune,
+  pub spacers: u32,
+  pub supply: u128,
+  pub symbol: Option<char>,
+  pub timestamp: u32,
 }
 
 pub(super) type RuneEntryValue = (
