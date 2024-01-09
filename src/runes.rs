@@ -1,10 +1,11 @@
-use super::*;
+use {
+  self::{flag::Flag, tag::Tag},
+  super::*,
+};
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
 pub(crate) use {etching::Etching, pile::Pile, spaced_rune::SpacedRune};
-
-use {flag::Flag, tag::Tag};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
