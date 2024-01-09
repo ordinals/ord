@@ -1,6 +1,34 @@
 Changelog
 =========
 
+[0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2023-01-08
+--------------------------------------------------------------------------
+
+### Added
+- Add no sync option to server command (#2966)
+- Vindicate cursed inscriptions (#2950)
+- Add JSON endpoints for Runes (#2941)
+- Add JSON endpoint for status (#2955)
+- Add chain to status page (#2953)
+
+### Changed
+- Enter beta (#2973)
+
+### Performance
+- Avoid skip when getting paginated inscriptions (#2975)
+- Dispatch requests to tokio thread pool (#2974)
+
+### Misc
+- Fix Project Board link (#2991)
+- Update server names in justfile (#2954)
+- Update delegate.md (#2976)
+- Fix a typo (#2980)
+- Use enums for runestone tags and flags (#2956)
+- Make `FundRawTransactionOptions ` public (#2938)
+- Deduplicate deploy script case statements (#2962)
+- Remove quotes around key to allow shell expansion (#2951)
+- Restart sshd in deploy script (#2952)
+
 [0.14.1](https://github.com/ordinals/ord/releases/tag/0.14.1) - 2023-01-03
 --------------------------------------------------------------------------
 
