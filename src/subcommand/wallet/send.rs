@@ -182,7 +182,7 @@ impl Send {
 
     Self::lock_non_cardinal_outputs(client, &inscriptions, &runic_outputs, unspent_outputs)?;
 
-    let (id, entry) = index
+    let (id, entry, _parent) = index
       .rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
