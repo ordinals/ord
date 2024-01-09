@@ -1,4 +1,4 @@
-use {super::*, crate::command_builder::ToArgs, ord::subcommand::Empty};
+use {super::*, crate::command_builder::ToArgs};
 
 #[test]
 fn run_is_an_alias_for_update() {
@@ -11,7 +11,7 @@ fn run_is_an_alias_for_update() {
 
   CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Empty>();
+    .run_and_extract_stdout();
 
   assert!(index_path.is_file())
 }
@@ -27,7 +27,7 @@ fn custom_index_path() {
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Empty>();
+    .run_and_extract_stdout();
 
   assert!(index_path.is_file())
 }
@@ -43,13 +43,13 @@ fn re_opening_database_does_not_trigger_schema_check() {
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Empty>();
+    .run_and_extract_stdout();
 
   assert!(index_path.is_file());
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Empty>();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -96,7 +96,6 @@ fn export_inscription_number_to_id_tsv() {
   let tsv = CommandBuilder::new("index export --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .temp_dir(Arc::new(temp_dir))
-    .stdout_regex(r"\{\}\n")
     .run_and_extract_file("foo.tsv");
 
   let entries: std::collections::BTreeMap<i64, ord::Object> = tsv

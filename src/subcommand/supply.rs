@@ -18,10 +18,10 @@ pub(crate) fn run() -> SubcommandResult {
     last += 1;
   }
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     supply: Sat::SUPPLY,
     first: 0,
     last: Sat::SUPPLY - 1,
     last_mined_in_block: last,
-  }))
+  })))
 }
