@@ -27,9 +27,9 @@ deploy branch remote chain domain:
 
 deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-balance branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'balance.ordinals.net')
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-mainnet-stability branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'stability.ordinals.net')
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
 
 deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
@@ -53,37 +53,11 @@ install-personal-key key='~/.ssh/id_ed25519.pub':
   #!/usr/bin/env bash
   set -euxo pipefail
   for server in alpha balance regtest signet stability testnet; do
-    ssh-copy-id -i '{{ key }}' root@$server.ordinals.net
+    ssh-copy-id -i {{ key }} root@$server.ordinals.net
   done
 
-save-ord-dev-state domain='ordinals-dev.com':
-  $EDITOR ./deploy/save-ord-dev-state
-  scp ./deploy/save-ord-dev-state root@{{domain}}:~
-  ssh root@{{domain}} "./save-ord-dev-state"
-
-log unit='ord' domain='ordinals.net':
+log unit='ord' domain='alpha.ordinals.net':
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
-
-test-deploy:
-  ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
-  vagrant up
-  ssh-keyscan 192.168.56.4 >> ~/.ssh/known_hosts
-  rsync -avz \
-    --delete \
-    --exclude .git \
-    --exclude target \
-    --exclude .vagrant \
-    --exclude index.redb \
-    . root@192.168.56.4:ord
-  ssh root@192.168.56.4 'cd ord && ./deploy/setup'
-
-time-tests:
-  cargo +nightly test -- -Z unstable-options --report-time
-
-profile-tests:
-  cargo +nightly test -- -Z unstable-options --report-time \
-    | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
-    | tee test-times.txt
 
 fuzz:
   #!/usr/bin/env bash
@@ -95,9 +69,6 @@ fuzz:
     cargo +nightly fuzz run varint-decode -- -max_total_time=60
     cargo +nightly fuzz run varint-encode -- -max_total_time=60
   done
-
-decode txid:
-  bitcoin-cli getrawtransaction {{txid}} | xxd -r -p - | cargo run decode
 
 open:
   open http://localhost
@@ -155,62 +126,15 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-download-log unit='ord' host='ordinals.net':
+download-log unit='ord' host='alpha.ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
-
-download-index unit='ord' host='ordinals.net':
-  rsync --progress --compress root@{{host}}:/var/lib/{{unit}}/index.redb tmp/{{unit}}.index.redb
 
 graph log:
   ./bin/graph $1
 
 flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph $1
-
-benchmark index height-limit:
-  ./bin/benchmark $1 $2
-
-benchmark-revision rev:
-  ssh root@ordinals.net 'mkdir -p benchmark \
-    && apt-get update --yes \
-    && apt-get upgrade --yes \
-    && apt-get install --yes git rsync'
-  rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
-  ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
-
-benchmark-branch branch:
-  #/usr/bin/env bash
-  # rm -f master.redb
-  rm -f {{branch}}.redb
-  # git checkout master
-  # cargo build --release
-  # time ./target/release/ord --index master.redb index update
-  # ll master.redb
-  git checkout {{branch}}
-  cargo build --release
-  time ./target/release/ord --index {{branch}}.redb index update
-  ll {{branch}}.redb
-
-build-snapshots:
-  #!/usr/bin/env bash
-  set -euxo pipefail
-  rm -rf tmp/snapshots
-  mkdir -p tmp/snapshots
-  cargo build --release
-  cp ./target/release/ord tmp/snapshots
-  cd tmp/snapshots
-  for start in {0..750000..50000}; do
-    height_limit=$((start+50000))
-    if [[ -f $start.redb ]]; then
-      cp -c $start.redb index.redb
-    fi
-    a=`date +%s`
-    time ./ord --data-dir . --height-limit $height_limit index
-    b=`date +%s`
-    mv index.redb $height_limit.redb
-    printf "$height_limit\t$((b - a))\n" >> time.txt
-  done
 
 serve-docs: build-docs
   open http://127.0.0.1:8080

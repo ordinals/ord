@@ -95,7 +95,7 @@ fn export_inscription_number_to_id_tsv() {
 
   let tsv = CommandBuilder::new("index export --tsv foo.tsv")
     .rpc_server(&rpc_server)
-    .temp_dir(temp_dir)
+    .temp_dir(Arc::new(temp_dir))
     .stdout_regex(r"\{\}\n")
     .run_and_extract_file("foo.tsv");
 
