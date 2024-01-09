@@ -181,6 +181,9 @@ update-mdbook-theme:
 audit-cache:
   cargo run --package audit-cache
 
+audit-content-security-policy:
+  cargo run --package audit-content-security-policy
+
 coverage:
   cargo llvm-cov
 
