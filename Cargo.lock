@@ -345,6 +345,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "audit-content-security-policy"
+version = "0.0.0"
+dependencies = [
+ "colored",
+ "reqwest",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
