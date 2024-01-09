@@ -25,9 +25,9 @@ impl Create {
 
     wallet::initialize(wallet, &options, mnemonic.to_seed(self.passphrase.clone()))?;
 
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       mnemonic,
       passphrase: Some(self.passphrase),
-    }))
+    })))
   }
 }

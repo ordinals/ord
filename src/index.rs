@@ -1257,6 +1257,8 @@ impl Index {
     let mut ids = rtx
       .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
       .get(&sat.n())?
+      .skip(page_index.saturating_mul(page_size).try_into().unwrap())
+      .take(page_size.saturating_add(1).try_into().unwrap())
       .map(|result| {
         result
           .and_then(|sequence_number| {
@@ -1267,8 +1269,6 @@ impl Index {
           })
           .map_err(|err| err.into())
       })
-      .skip(page_index.saturating_mul(page_size).try_into().unwrap())
-      .take(page_size.saturating_add(1).try_into().unwrap())
       .collect::<Result<Vec<InscriptionId>>>()?;
 
     let more = ids.len() > page_size.try_into().unwrap();

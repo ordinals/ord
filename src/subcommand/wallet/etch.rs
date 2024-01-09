@@ -124,9 +124,9 @@ impl Etch {
 
     let transaction = client.send_raw_transaction(&signed_transaction)?;
 
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       rune: self.rune,
       transaction,
-    }))
+    })))
   }
 }
