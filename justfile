@@ -37,6 +37,14 @@ deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'sign
 
 deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
 
+deploy-all: \
+  deploy-regtest \
+  deploy-testnet \
+  deploy-signet \
+  deploy-mainnet-alpha \
+  deploy-mainnet-bravo \
+  deploy-mainnet-charlie
+
 servers := 'alpha bravo charlie regtest signet testnet'
 
 initialize-server-keys:
