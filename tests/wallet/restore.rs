@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::create, ord::subcommand::Empty};
+use {super::*, ord::subcommand::wallet::create};
 
 #[test]
 fn restore_generates_same_descriptors() {
@@ -16,7 +16,7 @@ fn restore_generates_same_descriptors() {
 
   CommandBuilder::new(["wallet", "restore", &mnemonic.to_string()])
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Empty>();
+    .run_and_extract_stdout();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
@@ -45,7 +45,7 @@ fn restore_generates_same_descriptors_with_passphrase() {
     &mnemonic.to_string(),
   ])
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Empty>();
+  .run_and_extract_stdout();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }

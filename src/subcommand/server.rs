@@ -334,7 +334,7 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      Ok(Box::new(Empty {}) as Box<dyn Output>)
+      Ok(None)
     })
   }
 
