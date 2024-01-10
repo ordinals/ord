@@ -548,10 +548,10 @@ impl Server {
     task::block_in_place(|| {
       let list = index.list(outpoint)?;
 
-    let in_index;
+      let in_index;
 
-    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
-      let mut value = 0;
+      let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+        let mut value = 0;
 
         if let Some(List::Unspent(ranges)) = &list {
           for (start, end) in ranges {
@@ -559,48 +559,19 @@ impl Server {
           }
         }
 
-      in_index = true;
+        in_index = true;
 
-      TxOut {
-        value,
-        script_pubkey: ScriptBuf::new(),
-      }
-    } else {
-      in_index = index.contains(&outpoint)?;
-
-      index
-        .get_transaction(outpoint.txid)?
-        .ok_or_not_found(|| format!("output {outpoint}"))?
-        .output
-        .into_iter()
-        .nth(outpoint.vout as usize)
-        .ok_or_not_found(|| format!("output {outpoint}"))?
-    };
-
-    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
-
-    let runes = index.get_rune_balances_for_outpoint(outpoint)?;
-
-    Ok(if accept_json {
-      Json(OutputJson::new(
-        outpoint,
-        list,
-        server_config.chain,
-        output,
-        inscriptions,
-        in_index,
-        runes
-=======
         TxOut {
           value,
           script_pubkey: ScriptBuf::new(),
         }
       } else {
+        in_index = index.contains(&outpoint)?;
+
         index
           .get_transaction(outpoint.txid)?
           .ok_or_not_found(|| format!("output {outpoint}"))?
           .output
->>>>>>> 61593470af6e2389f03d0ad82ccc95233670084d
           .into_iter()
           .nth(outpoint.vout as usize)
           .ok_or_not_found(|| format!("output {outpoint}"))?
@@ -617,6 +588,7 @@ impl Server {
           server_config.chain,
           output,
           inscriptions,
+          in_index,
           runes
             .into_iter()
             .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))

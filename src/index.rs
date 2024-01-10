@@ -399,7 +399,9 @@ impl Index {
     let rtx = self.database.begin_read()?;
     let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
 
-    Ok(outpoint_to_value.get(&output.store())?.is_some())
+    let contains = outpoint_to_value.get(&output.store())?.is_some();
+
+    Ok(contains)
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {
