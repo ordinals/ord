@@ -316,14 +316,13 @@ fn get_output() {
   assert!(
     !serde_json::from_str::<OutputJson>(&response.text().unwrap())
       .unwrap()
-      .in_index
+      .indexed
   );
 
   let server =
     TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", txid));
-indexed
   assert_eq!(response.status(), StatusCode::OK);
 
   let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -345,7 +344,7 @@ indexed
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
-      in_index: true,
+      indexed: true,
       runes: BTreeMap::new(),
     }
   );

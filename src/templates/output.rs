@@ -29,7 +29,7 @@ impl OutputJson {
     chain: Chain,
     output: TxOut,
     inscriptions: Vec<InscriptionId>,
-    in_index: bool,
+    indexed: bool,
     runes: BTreeMap<Rune, u128>,
   ) -> Self {
     Self {
@@ -45,7 +45,7 @@ impl OutputJson {
         Some(List::Unspent(ranges)) => Some(ranges),
         _ => None,
       },
-      indexed: in_index,
+      indexed,
       inscriptions,
     }
   }
