@@ -16,7 +16,7 @@ use std::str::FromStr;
 
 lazy_static! {
   static ref CLIENT: StreamClient = StreamClient::new();
-  static ref OLD_OWNER_CACHE: Cache<Txid, Option<Address>> =
+  static ref OLD_OWNER_CACHE: Cache<OutPoint, Option<Address>> =
     Cache::new(Some(Duration::from_secs(60)));
   static ref IS_BRC20: bool = env::var("KAFKA_TOPIC")
     .map(|kafka_topic| kafka_topic.to_lowercase().contains("brc20"))
@@ -298,28 +298,29 @@ impl StreamEvent {
   pub(crate) fn with_transfer(&mut self, old_satpoint: SatPoint, index: &Index) -> &mut Self {
     self.old_location = Some(old_satpoint);
 
-    let txid = old_satpoint.outpoint.txid;
-    self.old_owner = OLD_OWNER_CACHE.get(&txid).unwrap_or_else(|| {
-      let old_owner = index
-        .get_transaction(old_satpoint.outpoint.txid)
-        .unwrap_or(None)
-        .and_then(|tx| {
-          tx.output
-            .get(old_satpoint.outpoint.vout as usize)
-            .and_then(|txout| {
-              Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
-                .map_err(|e| {
-                  warn!(
-                    "StreamEvent::with_transfer could not parse old_owner address: {}",
-                    e
-                  );
-                })
-                .ok()
-            })
-        });
-      OLD_OWNER_CACHE.set(txid, old_owner.clone());
-      old_owner
-    });
+    self.old_owner = OLD_OWNER_CACHE
+      .get(&old_satpoint.outpoint)
+      .unwrap_or_else(|| {
+        let old_owner = index
+          .get_transaction(old_satpoint.outpoint.txid)
+          .unwrap_or(None)
+          .and_then(|tx| {
+            tx.output
+              .get(old_satpoint.outpoint.vout as usize)
+              .and_then(|txout| {
+                Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
+                  .map_err(|e| {
+                    warn!(
+                      "StreamEvent::with_transfer could not parse old_owner address: {}",
+                      e
+                    );
+                  })
+                  .ok()
+              })
+          });
+        OLD_OWNER_CACHE.set(old_satpoint.outpoint, old_owner.clone());
+        old_owner
+      });
 
     // Only enrich the inscription if it is a BRC20 transfer
     if *IS_BRC20 {
