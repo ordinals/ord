@@ -1548,26 +1548,6 @@ impl Index {
     Ok(true)
   }
 
-  pub(crate) fn list_skip_pending_check(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    if !self.index_sats || outpoint == unbound_outpoint() {
-      return Ok(None);
-    }
-
-    let array = outpoint.store();
-
-    let sat_ranges = self.list_inner(array)?;
-
-    match sat_ranges {
-      Some(sat_ranges) => Ok(Some(List::Unspent(
-        sat_ranges
-          .chunks_exact(11)
-          .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
-          .collect(),
-      ))),
-      None => Ok(None),
-    }
-  }
-
   pub(crate) fn block_time(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 

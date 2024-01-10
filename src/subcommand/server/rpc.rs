@@ -100,7 +100,7 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
       sat_ranges: vec![],
       rare_sats: vec![],
     };
-    let list = match index.list_skip_pending_check(outpoint) {
+    let list = match index.list(outpoint) {
       Ok(list) => list,
       Err(err) => return invalid_params(answer_id, err.to_string()),
     };
