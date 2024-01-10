@@ -108,6 +108,7 @@ impl WalletCommand {
     }
 
     let wallet = Wallet {
+      no_sync: self.no_sync,
       options,
       ord_url,
       name: self.name.clone(),
@@ -140,6 +141,7 @@ impl WalletCommand {
 
 pub(crate) struct Wallet {
   pub(crate) name: String,
+  pub(crate) no_sync: bool,
   pub(crate) options: Options,
   pub(crate) ord_url: Url,
 }
@@ -185,20 +187,22 @@ impl Wallet {
 
     let chain_block_count = self.bitcoin_client()?.get_block_count().unwrap() + 1;
 
-    for i in 0.. {
-      let response = client
-        .get(self.ord_url.join("/blockcount").unwrap())
-        .send()?;
+    if !self.no_sync {
+      for i in 0.. {
+        let response = client
+          .get(self.ord_url.join("/blockcount").unwrap())
+          .send()?;
 
-      assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
 
-      if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("wallet failed to synchronize index");
+        if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
+          break;
+        } else if i == 20 {
+          panic!("wallet failed to synchronize to index");
+        }
+
+        thread::sleep(Duration::from_millis(25));
       }
-
-      thread::sleep(Duration::from_millis(25));
     }
 
     Ok(client)

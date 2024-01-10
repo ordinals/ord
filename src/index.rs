@@ -3337,23 +3337,20 @@ mod tests {
 
       fs::write(&cookie_file, "username:password").unwrap();
 
-      let command: Vec<OsString> = vec![
-        "ord".into(),
-        "--data-dir".into(),
-        tempdir.path().into(),
-        "--cookie-file".into(),
-        cookie_file.into(),
-        "--chain=regtest".into(),
-        "--rpc-url".into(),
-        context.options.rpc_url.clone().unwrap().into(),
-      ];
-
-      let options = Options::try_parse_from(command.into_iter()).unwrap();
+      let options = Options {
+        chain_argument: Chain::Regtest,
+        bitcoin_data_dir: Some(tempdir.path().into()),
+        data_dir: tempdir.path().into(),
+        rpc_url: context.options.rpc_url.clone(),
+        index_sats: true,
+        cookie_file: Some(cookie_file.clone()),
+        ..Options::default()
+      };
 
       context.rpc_server.mine_blocks(2);
 
       Arguments {
-        options: options.clone(),
+        options,
         subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
           name: "ord".into(),
           no_sync: false,
@@ -3367,41 +3364,38 @@ mod tests {
       .run()
       .unwrap();
 
-      // let tempdir = TempDir::new().unwrap();
-      // let cookie_file = tempdir.path().join("cookie");
+      let tempdir = TempDir::new().unwrap();
+      let cookie_file = tempdir.path().join("cookie");
 
-      // fs::write(&cookie_file, "username:password").unwrap();
+      fs::write(&cookie_file, "username:password").unwrap();
 
-      // let command: Vec<OsString> = vec![
-      //   "ord".into(),
-      //   "--data-dir".into(),
-      //   tempdir.path().into(),
-      //   "--cookie-file".into(),
-      //   cookie_file.into(),
-      //   "--chain=regtest".into(),
-      //   "--rpc-url".into(),
-      //   context.options.rpc_url.unwrap().into(),
-      // ];
+      let options = Options {
+        chain_argument: Chain::Regtest,
+        bitcoin_data_dir: Some(tempdir.path().into()),
+        data_dir: tempdir.path().into(),
+        rpc_url: context.options.rpc_url.clone(),
+        index_sats: true,
+        cookie_file: Some(cookie_file.clone()),
+        ..Options::default()
+      };
 
-      // let options = Options::try_parse_from(command.into_iter()).unwrap();
+      context.rpc_server.mine_blocks(2);
 
-      // context.rpc_server.mine_blocks(2);
-
-      // assert_regex_match!(
-      //   Arguments {
-      //     options: options.clone(),
-      //     subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
-      //       name: "ord".into(),
-      //       no_sync: true,
-      //       subcommand: crate::subcommand::wallet::Subcommand::Balance,
-      //     }),
-      //   }
-      //   .run()
-      //   .err()
-      //   .unwrap()
-      //   .to_string(),
-      //   r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
-      // );
+      assert_regex_match!(
+        Arguments {
+          options,
+          subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
+            name: "ord".into(),
+            no_sync: true,
+            subcommand: crate::subcommand::wallet::Subcommand::Balance,
+          }),
+        }
+        .run()
+        .err()
+        .unwrap()
+        .to_string(),
+        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
     }
   }
 
