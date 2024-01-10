@@ -26,7 +26,7 @@ impl Cancel {
       )));
     }
 
-    let old_transaction_info = client.get_raw_transaction_info(&self.transaction, None)?;
+    let old_transaction_info = client.decode_raw_transaction(&old_transaction.hex, None)?;
     let vin: Vec<CreateRawTransactionInput> = old_transaction_info
       .vin
       .into_iter()
