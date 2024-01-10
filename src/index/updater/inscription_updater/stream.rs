@@ -146,6 +146,7 @@ pub struct StreamEvent {
   sat: Option<Sat>,
   sat_details: Option<Output>, // Output is borrowed from subcommand::traits::Output, to show the details of the sat
   inscription_number: Option<i64>,
+  charms: Option<u16>,
   content_type: Option<String>,
   content_length: Option<usize>,
   content_media: Option<String>,
@@ -206,6 +207,7 @@ impl StreamEvent {
       tx_is_coinbase: tx.is_coin_base(),
       sat: None,
       inscription_number: None,
+      charms: None,
       content_type: None,
       content_length: None,
       content_media: None,
@@ -345,11 +347,13 @@ impl StreamEvent {
     inscription_number: i64,
     inscription: Inscription,
     parent: Option<InscriptionId>,
+    charms: u16,
   ) -> &mut Self {
     self.enrich_content(inscription);
     self.sat = sat;
     self.inscription_number = Some(inscription_number);
     self.parent = parent;
+    self.charms = Some(charms);
     self.sat_details = match self.sat {
       Some(Sat(n)) => {
         let sat = Sat(n);

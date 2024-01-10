@@ -609,7 +609,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.height,
           self.block_hash,
         )
-        .with_create(sat, i64::from(inscription_number), inscription, parent)
+        .with_create(
+          sat,
+          i64::from(inscription_number),
+          inscription,
+          parent,
+          charms,
+        )
         .publish()?;
 
         (unbound, sequence_number)
