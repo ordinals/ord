@@ -15,11 +15,8 @@ See [the docs](https://docs.ordinals.com) for documentation and guides.
 See [the BIP](bip.mediawiki) for a technical description of the assignment and
 transfer algorithm.
 
-See [the project board](https://github.com/users/casey/projects/3/) for
+See [the project board](https://github.com/orgs/ordinals/projects/1) for
 currently prioritized issues.
-
-See [milestones](https://github.com/ordinals/ord/milestones) to get a sense of
-where the project is and where it's going.
 
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.

@@ -248,7 +248,11 @@ pub fn main() {
 
       process::exit(1);
     }
-    Ok(output) => output.print_json(),
+    Ok(output) => {
+      if let Some(output) = output {
+        output.print_json();
+      }
+    }
   }
 
   gracefully_shutdown_indexer();

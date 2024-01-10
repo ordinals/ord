@@ -46,7 +46,7 @@ impl Send {
       Outgoing::Amount(amount) => {
         Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, unspent_outputs)?;
         let transaction = Self::send_amount(&client, amount, address, self.fee_rate)?;
-        return Ok(Box::new(Output { transaction }));
+        return Ok(Some(Box::new(Output { transaction })));
       }
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
@@ -64,7 +64,7 @@ impl Send {
           runic_outputs,
           unspent_outputs,
         )?;
-        return Ok(Box::new(Output { transaction }));
+        return Ok(Some(Box::new(Output { transaction })));
       }
       Outgoing::SatPoint(satpoint) => {
         for inscription_satpoint in inscriptions.keys() {
@@ -112,7 +112,7 @@ impl Send {
 
     let txid = client.send_raw_transaction(&signed_tx)?;
 
-    Ok(Box::new(Output { transaction: txid }))
+    Ok(Some(Box::new(Output { transaction: txid })))
   }
 
   fn lock_non_cardinal_outputs(

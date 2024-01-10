@@ -29,6 +29,6 @@ impl Transactions {
       });
     }
 
-    Ok(Box::new(output))
+    Ok(Some(Box::new(output)))
   }
 }
