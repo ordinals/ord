@@ -16,6 +16,6 @@ impl Restore {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     wallet.initialize(self.mnemonic.to_seed(self.passphrase))?;
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }

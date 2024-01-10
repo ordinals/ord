@@ -88,15 +88,15 @@ impl Decode {
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);
 
     if self.compact {
-      Ok(Box::new(CompactOutput {
+      Ok(Some(Box::new(CompactOutput {
         inscriptions: inscriptions
           .clone()
           .into_iter()
           .map(|inscription| inscription.payload.try_into())
           .collect::<Result<Vec<CompactInscription>>>()?,
-      }))
+      })))
     } else {
-      Ok(Box::new(RawOutput { inscriptions }))
+      Ok(Some(Box::new(RawOutput { inscriptions })))
     }
   }
 }

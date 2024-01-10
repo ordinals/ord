@@ -43,7 +43,7 @@ impl Sats {
           output: outpoint,
         });
       }
-      Ok(Box::new(output))
+      Ok(Some(Box::new(output)))
     } else {
       let mut output = Vec::new();
       for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
@@ -54,7 +54,7 @@ impl Sats {
           rarity,
         });
       }
-      Ok(Box::new(output))
+      Ok(Some(Box::new(output)))
     }
   }
 }

@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.14.1"
+version = "0.15.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false

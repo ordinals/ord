@@ -37,7 +37,7 @@ impl Send {
       Outgoing::Amount(amount) => {
         Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
         let transaction = Self::send_amount(&wallet, amount, address, self.fee_rate)?;
-        return Ok(Box::new(Output { transaction }));
+        return Ok(Some(Box::new(Output { transaction })));
       }
       Outgoing::InscriptionId(id) => wallet.get_inscription_satpoint(id)?,
       Outgoing::Rune { decimal, rune } => {
@@ -51,7 +51,7 @@ impl Send {
           unspent_outputs,
           &wallet,
         )?;
-        return Ok(Box::new(Output { transaction }));
+        return Ok(Some(Box::new(Output { transaction })));
       }
       Outgoing::SatPoint(satpoint) => {
         for inscription_satpoint in inscriptions.keys() {
@@ -97,7 +97,7 @@ impl Send {
 
     let txid = wallet.bitcoin_client()?.send_raw_transaction(&signed_tx)?;
 
-    Ok(Box::new(Output { transaction: txid }))
+    Ok(Some(Box::new(Output { transaction: txid })))
   }
 
   fn lock_non_cardinal_outputs(

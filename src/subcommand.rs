@@ -77,9 +77,6 @@ impl Subcommand {
   }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Empty {}
-
 pub(crate) trait Output: Send {
   fn print_json(&self);
 }
@@ -94,4 +91,4 @@ where
   }
 }
 
-pub(crate) type SubcommandResult = Result<Box<dyn Output>>;
+pub(crate) type SubcommandResult = Result<Option<Box<dyn Output>>>;

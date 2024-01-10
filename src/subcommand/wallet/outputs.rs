@@ -15,5 +15,5 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     });
   }
 
-  Ok(Box::new(outputs))
+  Ok(Some(Box::new(outputs)))
 }

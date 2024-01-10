@@ -10,5 +10,5 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     .bitcoin_client()?
     .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
 
-  Ok(Box::new(Output { address }))
+  Ok(Some(Box::new(Output { address })))
 }

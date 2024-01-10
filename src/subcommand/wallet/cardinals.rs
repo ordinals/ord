@@ -29,5 +29,5 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     })
     .collect::<Vec<CardinalUtxo>>();
 
-  Ok(Box::new(cardinal_utxos))
+  Ok(Some(Box::new(cardinal_utxos)))
 }

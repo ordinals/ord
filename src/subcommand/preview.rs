@@ -212,6 +212,6 @@ impl Preview {
       .run()?;
     }
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }

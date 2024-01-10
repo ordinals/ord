@@ -40,13 +40,13 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     }
   }
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
     runes: wallet.get_server_status()?.rune_index.then_some(runes),
     runic: wallet.get_server_status()?.rune_index.then_some(runic),
     total: cardinal + ordinal + runic,
-  }))
+  })))
 }
 
 #[cfg(test)]

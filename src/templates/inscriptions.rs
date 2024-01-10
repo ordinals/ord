@@ -3,15 +3,15 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev: Option<usize>,
-  pub(crate) next: Option<usize>,
+  pub(crate) prev: Option<u32>,
+  pub(crate) next: Option<u32>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionsJson {
   pub inscriptions: Vec<InscriptionId>,
   pub more: bool,
-  pub page_index: usize,
+  pub page_index: u32,
 }
 
 impl PageContent for InscriptionsHtml {
