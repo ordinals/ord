@@ -159,14 +159,14 @@ impl Send {
     wallet: &Wallet,
   ) -> Result<Txid> {
     ensure!(
-      wallet.get_server_status()?.rune_index,
+      wallet.check_rune_index()?,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
     Self::lock_non_cardinal_outputs(wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
 
     let (id, entry, _parent) = wallet
-      .get_rune_info(spaced_rune.rune)?
+      .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
     let amount = decimal.to_amount(entry.divisibility)?;

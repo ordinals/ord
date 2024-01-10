@@ -23,7 +23,7 @@ pub struct Output {
 impl Etch {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.get_server_status()?.rune_index,
+      wallet.check_rune_index()?,
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
@@ -32,7 +32,7 @@ impl Etch {
     let count = wallet.bitcoin_client()?.get_block_count()?;
 
     ensure!(
-      wallet.get_rune_info(rune)?.is_none(),
+      wallet.get_rune(rune)?.is_none(),
       "rune `{}` has already been etched",
       rune,
     );

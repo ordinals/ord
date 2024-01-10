@@ -142,7 +142,7 @@ impl WalletCommand {
 pub(crate) struct Wallet {
   pub(crate) name: String,
   pub(crate) no_sync: bool,
-  pub(crate) options: Options,
+  pub(crate) options: Options, // Only need for bitcoin_rpc_client() and chain()
   pub(crate) ord_url: Url,
 }
 
@@ -208,18 +208,6 @@ impl Wallet {
     Ok(client)
   }
 
-  pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
-    let status: StatusJson = serde_json::from_str(
-      &self
-        .ord_client()?
-        .get(self.ord_url.join("/status").unwrap())
-        .send()?
-        .text()?,
-    )?;
-
-    Ok(status)
-  }
-
   fn get_output(&self, output: &OutPoint) -> Result<OutputJson> {
     let response = self
       .ord_client()?
@@ -266,18 +254,17 @@ impl Wallet {
     }
 
     for output in utxos.keys() {
-      self.get_output(output)?;
+      self.get_output(output)?; //check that wallet outputs in ord index
     }
 
     Ok(utxos)
   }
 
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-    if !self.get_server_status()?.sat_index {
-      return Err(anyhow!(
-        "index must be built with `--index-sats` to use `--sat`"
-      ));
-    }
+    ensure!(
+      self.check_sat_index()?,
+      "index must be built with `--index-sats` to use `--sat`"
+    );
 
     let mut output_sat_ranges = Vec::new();
     for output in self.get_unspent_outputs()?.keys() {
@@ -296,11 +283,10 @@ impl Wallet {
     sat: Sat,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<SatPoint> {
-    if !self.get_server_status()?.sat_index {
-      return Err(anyhow!(
-        "index must be built with `--index-sats` to use `--sat`"
-      ));
-    }
+    ensure!(
+      self.check_sat_index()?,
+      "index must be built with `--index-sats` to use `--sat`"
+    );
 
     for output in utxos.keys() {
       if let Some(sat_ranges) = self.get_output(output)?.sat_ranges {
@@ -357,7 +343,7 @@ impl Wallet {
     Ok(self.get_inscription(inscription_id)?.satpoint)
   }
 
-  pub(crate) fn get_rune_info(
+  pub(crate) fn get_rune(
     &self,
     rune: Rune,
   ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
@@ -441,6 +427,30 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
+    let status: StatusJson = serde_json::from_str(
+      &self
+        .ord_client()?
+        .get(self.ord_url.join("/status").unwrap())
+        .send()?
+        .text()?,
+    )?;
+
+    Ok(status)
+  }
+
+  pub(crate) fn check_rune_index(&self) -> Result<bool> {
+    Ok(self.get_server_status()?.rune_index)
+  }
+
+  pub(crate) fn check_sat_index(&self) -> Result<bool> {
+    Ok(self.get_server_status()?.sat_index)
+  }
+
+  pub(crate) fn chain(&self) -> Chain {
+    self.options.chain()
+  }
+
   pub(crate) fn initialize(&self, seed: [u8; 64]) -> Result {
     check_version(self.options.bitcoin_rpc_client(None)?)?.create_wallet(
       &self.name,
@@ -516,10 +526,6 @@ impl Wallet {
       })?;
 
     Ok(())
-  }
-
-  pub(crate) fn chain(&self) -> Chain {
-    self.options.chain()
   }
 }
 
