@@ -296,12 +296,34 @@ fn get_output() {
     ],
     ..Default::default()
   });
+
   rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_server_args(
+    &rpc_server,
+    &["--index-sats"],
+    &["--no-sync", "--enable-json-api"],
+  );
+
+  let response = reqwest::blocking::Client::new()
+    .get(server.url().join(&format!("/output/{}:0", txid)).unwrap())
+    .header(reqwest::header::ACCEPT, "application/json")
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert!(
+    !serde_json::from_str::<OutputJson>(&response.text().unwrap())
+      .unwrap()
+      .in_index
+  );
 
   let server =
     TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
 
   let response = server.json_request(format!("/output/{}:0", txid));
+
   assert_eq!(response.status(), StatusCode::OK);
 
   let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
