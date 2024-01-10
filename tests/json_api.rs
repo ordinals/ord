@@ -296,7 +296,28 @@ fn get_output() {
     ],
     ..Default::default()
   });
+
   rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_server_args(
+    &rpc_server,
+    &["--index-sats"],
+    &["--no-sync", "--enable-json-api"],
+  );
+
+  let response = reqwest::blocking::Client::new()
+    .get(server.url().join(&format!("/output/{}:0", txid)).unwrap())
+    .header(reqwest::header::ACCEPT, "application/json")
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert!(
+    !serde_json::from_str::<OutputJson>(&response.text().unwrap())
+      .unwrap()
+      .indexed
+  );
 
   let server =
     TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
@@ -323,6 +344,7 @@ fn get_output() {
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
+      indexed: true,
       runes: BTreeMap::new(),
     }
   );
