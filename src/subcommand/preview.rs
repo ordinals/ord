@@ -64,7 +64,7 @@ impl Preview {
 
     let options = Options {
       chain_argument: Chain::Regtest,
-      bitcoin_data_dir: Some(bitcoin_data_dir),
+      bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
       data_dir: tmpdir.path().into(),
       rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
       index_sats: true,
@@ -110,6 +110,17 @@ impl Preview {
 
     if let Some(files) = self.files {
       for file in files {
+        let tmpdir = TempDir::new()?;
+
+        let options = Options {
+          chain_argument: Chain::Regtest,
+          bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
+          data_dir: tmpdir.path().into(),
+          rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
+          index_sats: true,
+          ..Options::default()
+        };
+
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
@@ -144,6 +155,16 @@ impl Preview {
 
     if let Some(batches) = self.batches {
       for batch in batches {
+        let tmpdir = TempDir::new()?;
+
+        let options = Options {
+          chain_argument: Chain::Regtest,
+          bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
+          data_dir: tmpdir.path().into(),
+          rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
+          index_sats: true,
+          ..Options::default()
+        };
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
@@ -175,6 +196,17 @@ impl Preview {
         rpc_client.generate_to_address(1, &address)?;
       }
     }
+
+    let tmpdir = TempDir::new()?;
+
+    let options = Options {
+      chain_argument: Chain::Regtest,
+      bitcoin_data_dir: Some(bitcoin_data_dir),
+      data_dir: tmpdir.path().into(),
+      rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
+      index_sats: true,
+      ..Options::default()
+    };
 
     if let Some(blocktime) = self.blocktime {
       eprintln!(
