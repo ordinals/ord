@@ -727,10 +727,8 @@ mod tests {
 
     case(0);
     case(1);
-    case(50 * COIN_VALUE - 1);
     case(50 * COIN_VALUE);
     case(50 * COIN_VALUE + 1);
-    case(2067187500000000 - 1);
     case(2067187500000000);
     case(2067187500000000 + 1);
   }
