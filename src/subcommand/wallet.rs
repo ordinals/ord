@@ -10,6 +10,7 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
+  http::StatusCode,
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
   transaction_builder::TransactionBuilder,
@@ -176,24 +177,28 @@ impl Wallet {
       header::ACCEPT,
       header::HeaderValue::from_static("application/json"),
     );
-    let builder = reqwest::blocking::ClientBuilder::new().default_headers(headers);
 
-    let client = builder.build().map_err(|err| anyhow!(err))?;
+    let client = reqwest::blocking::ClientBuilder::new()
+      .default_headers(headers)
+      .build()
+      .map_err(|err| anyhow!(err))?;
 
-    let status: StatusJson = serde_json::from_str(
-      &client
-        .get(self.ord_url.join("/status").unwrap())
-        .send()?
-        .text()?,
-    )?;
+    let chain_block_count = self.bitcoin_client()?.get_block_count().unwrap() + 1;
 
-    if let Some(ord_height) = status.height {
-      let bitcoin_height = self.bitcoin_client()?.get_blockchain_info()?.blocks;
-      if (ord_height as u64) < bitcoin_height {
-        return Err(anyhow!(
-          "unsynced: ord is at {ord_height} and bitcoind is at {bitcoin_height}"
-        ));
+    for i in 0.. {
+      let response = client
+        .get(self.ord_url.join("/blockcount").unwrap())
+        .send()?;
+
+      assert_eq!(response.status(), StatusCode::OK);
+
+      if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
+        break;
+      } else if i == 20 {
+        panic!("wallet failed to synchronize index");
       }
+
+      thread::sleep(Duration::from_millis(25));
     }
 
     Ok(client)
@@ -219,10 +224,8 @@ impl Wallet {
 
     let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
 
-    // dbg!(&output_json);
-
     if !output_json.in_index {
-      // bail!("output in Bitcoin Core wallet but not in ord index: {output}");
+      bail!("output in Bitcoin Core wallet but not in ord index: {output}");
     }
 
     Ok(output_json)

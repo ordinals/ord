@@ -9,6 +9,8 @@ fn flag_is_required() {
     .network(Network::Regtest)
     .build();
 
+  create_wallet(&rpc_server);
+
   CommandBuilder::new(format!(
     "--regtest wallet etch --rune {} --divisibility 39 --fee-rate 1 --supply 1000 --symbol ¢",
     Rune(RUNE),

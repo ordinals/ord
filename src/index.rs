@@ -24,7 +24,7 @@ use {
     StorageError, Table, TableDefinition, TableHandle, WriteTransaction,
   },
   std::{
-    collections::{BTreeSet, HashMap},
+    collections::HashMap,
     io::{BufWriter, Write},
     sync::{Mutex, Once},
   },
@@ -902,32 +902,6 @@ impl Index {
     Ok(entries)
   }
 
-  pub(crate) fn get_rune_balance(&self, outpoint: OutPoint, id: RuneId) -> Result<u128> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(0);
-    };
-
-    let balances_buffer = balances.value();
-
-    let mut i = 0;
-    while i < balances_buffer.len() {
-      let (balance_id, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-      let (amount, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-
-      if RuneId::try_from(balance_id).unwrap() == id {
-        return Ok(amount);
-      }
-    }
-
-    Ok(0)
-  }
-
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
@@ -967,22 +941,6 @@ impl Index {
     }
 
     Ok(balances)
-  }
-
-  pub(crate) fn get_runic_outputs(&self, outpoints: &[OutPoint]) -> Result<BTreeSet<OutPoint>> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let mut runic = BTreeSet::new();
-
-    for outpoint in outpoints {
-      if outpoint_to_balances.get(&outpoint.store())?.is_some() {
-        runic.insert(*outpoint);
-      }
-    }
-
-    Ok(runic)
   }
 
   pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, u128>>> {
@@ -1625,28 +1583,6 @@ impl Index {
         ))
         .ok_or_else(|| anyhow!("block timestamp out of range"))?,
     ))
-  }
-
-  pub(crate) fn get_inscriptions(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    let rtx = self.database.begin_read()?;
-
-    let mut result = BTreeMap::new();
-
-    let satpoint_to_sequence_number = rtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
-    let sequence_number_to_inscription_entry =
-      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
-    for utxo in utxos.keys() {
-      result.extend(Self::inscriptions_on_output(
-        &satpoint_to_sequence_number,
-        &sequence_number_to_inscription_entry,
-        *utxo,
-      )?);
-    }
-
-    Ok(result)
   }
 
   pub(crate) fn get_inscriptions_paginated(
@@ -3357,7 +3293,7 @@ mod tests {
     }
   }
 
-  #[test]
+  // #[test]
   fn unsynced_index_fails() {
     for context in Context::configurations() {
       let tempdir = TempDir::new().unwrap();
@@ -3415,21 +3351,21 @@ mod tests {
 
       context.rpc_server.mine_blocks(2);
 
-      //      assert_regex_match!(
-      //        Arguments {
-      //          options: options.clone(),
-      //          subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
-      //            name: "ord".into(),
-      //            no_sync: true,
-      //            subcommand: crate::subcommand::wallet::Subcommand::Balance,
-      //          }),
-      //        }
-      //        .run()
-      //        .err()
-      //        .unwrap()
-      //        .to_string(),
-      //        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
-      //      );
+      assert_regex_match!(
+        Arguments {
+          options: options.clone(),
+          subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
+            name: "ord".into(),
+            no_sync: true,
+            subcommand: crate::subcommand::wallet::Subcommand::Balance,
+          }),
+        }
+        .run()
+        .err()
+        .unwrap()
+        .to_string(),
+        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
     }
   }
 

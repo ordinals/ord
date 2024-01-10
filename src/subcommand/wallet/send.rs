@@ -33,11 +33,6 @@ impl Send {
 
     let runic_outputs = wallet.get_runic_outputs()?;
 
-    // dbg!(&unspent_outputs);
-    // dbg!(&locked_outputs);
-    // dbg!(&inscriptions);
-    // dbg!(&runic_outputs);
-
     let satpoint = match self.outgoing {
       Outgoing::Amount(amount) => {
         Self::lock_non_cardinal_outputs(&wallet, &inscriptions, &runic_outputs, unspent_outputs)?;
