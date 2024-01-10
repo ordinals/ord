@@ -48,4 +48,3 @@ Videos
 
 - [Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin](https://www.youtube.com/watch?v=rSS0O2KQpsI)
 - [Ordinals Workshop with Rodarmor](https://www.youtube.com/watch?v=MC_haVa6N3I)
-- [Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www.youtube.com/watch?v=j5V33kV3iqo)
