@@ -395,13 +395,15 @@ impl Index {
     Ok(true)
   }
 
-  pub(crate) fn contains(&self, output: &OutPoint) -> Result<bool> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
-
-    let contains = outpoint_to_value.get(&output.store())?.is_some();
-
-    Ok(contains)
+  pub(crate) fn contains_output(&self, output: &OutPoint) -> Result<bool> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(OUTPOINT_TO_VALUE)?
+        .get(&output.store())?
+        .is_some(),
+    )
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {

@@ -566,7 +566,7 @@ impl Server {
           script_pubkey: ScriptBuf::new(),
         }
       } else {
-        in_index = index.contains(&outpoint)?;
+        in_index = index.contains_output(&outpoint)?;
 
         index
           .get_transaction(outpoint.txid)?
