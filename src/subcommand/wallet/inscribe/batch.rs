@@ -97,7 +97,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Self::backup_recovery_key(wallet, recovery_key_pair, wallet.chain().network())?;
+      Self::backup_recovery_key(wallet, recovery_key_pair)?;
     }
 
     let commit = wallet
@@ -446,12 +446,11 @@ impl Batch {
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
   }
 
-  fn backup_recovery_key(
-    wallet: &Wallet,
-    recovery_key_pair: TweakedKeyPair,
-    network: Network,
-  ) -> Result {
-    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeyPair) -> Result {
+    let recovery_private_key = PrivateKey::new(
+      recovery_key_pair.to_inner().secret_key(),
+      wallet.chain().network(),
+    );
 
     let info = wallet
       .bitcoin_client()?
@@ -591,12 +590,11 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
-    chain: Chain,
+    wallet: &Wallet,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
     compress: bool,
-    wallet: &Wallet,
   ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
 
@@ -623,7 +621,7 @@ impl Batchfile {
     let mut inscriptions = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
-        chain,
+        wallet.chain(),
         &entry.file,
         self.parent,
         if i == 0 { None } else { Some(pointer) },
@@ -649,7 +647,7 @@ impl Batchfile {
             |address| {
               address
                 .clone()
-                .require_network(chain.network())
+                .require_network(wallet.chain().network())
                 .map_err(|e| e.into())
             },
           )

@@ -162,12 +162,11 @@ impl Inscribe {
           .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
-          chain,
+          &wallet,
           parent_info.as_ref().map(|info| info.tx_out.value),
           metadata,
           postage,
           self.compress,
-          &wallet,
         )?;
 
         mode = batchfile.mode;
