@@ -117,6 +117,8 @@ impl CommandBuilder {
           .to_str()
           .unwrap(),
       ]);
+    } else {
+      fs::write("~/.bitcoin/.cookie", "username:password").unwrap();
     }
 
     command
