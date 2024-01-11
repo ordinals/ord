@@ -17,7 +17,7 @@ pub struct OutputJson {
   pub address: Option<String>,
   pub transaction: String,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
-  pub in_index: bool,
+  pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<(SpacedRune, Pile)>,
 }
@@ -29,7 +29,7 @@ impl OutputJson {
     chain: Chain,
     output: TxOut,
     inscriptions: Vec<InscriptionId>,
-    in_index: bool,
+    indexed: bool,
     runes: Vec<(SpacedRune, Pile)>,
   ) -> Self {
     Self {
@@ -45,7 +45,7 @@ impl OutputJson {
         Some(List::Unspent(ranges)) => Some(ranges),
         _ => None,
       },
-      in_index,
+      indexed,
       inscriptions,
     }
   }

@@ -548,7 +548,7 @@ impl Server {
     task::block_in_place(|| {
       let list = index.list(outpoint)?;
 
-      let in_index;
+      let indexed;
 
       let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
         let mut value = 0;
@@ -559,14 +559,14 @@ impl Server {
           }
         }
 
-        in_index = true;
+        indexed = true;
 
         TxOut {
           value,
           script_pubkey: ScriptBuf::new(),
         }
       } else {
-        in_index = index.contains(&outpoint)?;
+        indexed = index.contains_output(&outpoint)?;
 
         index
           .get_transaction(outpoint.txid)?
@@ -588,7 +588,7 @@ impl Server {
           server_config.chain,
           output,
           inscriptions,
-          in_index,
+          indexed,
           runes,
         ))
         .into_response()
@@ -2615,7 +2615,7 @@ mod tests {
         address: None,
         transaction: txid.to_string(),
         sat_ranges: None,
-        in_index: true,
+        indexed: true,
         inscriptions: Vec::new(),
         runes: vec![(
           SpacedRune {

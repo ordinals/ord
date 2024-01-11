@@ -216,7 +216,7 @@ impl Wallet {
 
     let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
 
-    if !output_json.in_index {
+    if !output_json.indexed {
       bail!("output in Bitcoin Core wallet but not in ord index: {output}");
     }
 
