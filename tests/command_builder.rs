@@ -118,7 +118,11 @@ impl CommandBuilder {
           .unwrap(),
       ]);
     } else {
-      fs::write("~/.bitcoin/.cookie", "username:password").unwrap();
+      let bitcoin_dir = dirs::home_dir().unwrap().join(".bitcoin");
+      if !bitcoin_dir.exists() {
+        fs::create_dir_all(bitcoin_dir.clone()).unwrap();
+        fs::write(bitcoin_dir.join(".cookie"), "username:password").unwrap();
+      }
     }
 
     command
