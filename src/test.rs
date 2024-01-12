@@ -16,10 +16,8 @@ macro_rules! assert_regex_match {
     let string = $value.to_string();
 
     if !regex.is_match(string.as_ref()) {
-      panic!(
-        "Regex:\n\n{}\n\n…did not match string:\n\n{}",
-        regex, string
-      );
+      eprintln!("Regex did not match:");
+      pretty_assert_eq!(regex.as_str(), string);
     }
   };
 }

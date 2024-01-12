@@ -154,8 +154,10 @@ flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph $1
 
 serve-docs: build-docs
-  open http://127.0.0.1:8080
   python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
+
+open-docs:
+  open http://127.0.0.1:8080
 
 build-docs:
   #!/usr/bin/env bash
