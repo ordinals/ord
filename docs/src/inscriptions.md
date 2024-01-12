@@ -137,9 +137,9 @@ the `sandbox` attribute, as well as serving inscription content with
 Reinscriptions
 --------------
 
-Previously inscribed sats can be reinscribed with the `--reinscribe` command.
-This will append an inscription to a sat, not change the initial inscription in
-any way.
+Previously inscribed sats can be reinscribed with the `--reinscribe` command if
+the inscription is present in the wallet. This will only append an inscription to
+a sat, not change the initial inscription.
 
 Reinscribe with satpoint:
 `ord wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --satpoint <SATPOINT>`
