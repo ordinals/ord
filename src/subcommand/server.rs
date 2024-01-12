@@ -680,11 +680,11 @@ impl Server {
   async fn home(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<HomeHtml>> {
+  ) -> ServerResult<PageHtml<HomeHtml<impl Iterator<Item = InscriptionId>>>> {
     task::block_in_place(|| {
       Ok(
         HomeHtml {
-          inscriptions: index.get_home_inscriptions()?,
+          inscriptions: Mutex::new(Some(index.get_home_inscriptions()?)),
         }
         .page(server_config),
       )

@@ -1,6 +1,6 @@
 <h1>Latest Inscriptions</h1>
 <div class=thumbnails>
-%% for inscription in &self.inscriptions {
-  {{ Iframe::thumbnail(*inscription) }}
+%% for inscription in self.inscriptions.lock().unwrap().take().unwrap() {
+  {{ Iframe::thumbnail(inscription) }}
 %% }
 </div>

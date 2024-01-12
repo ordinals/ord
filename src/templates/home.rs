@@ -1,11 +1,11 @@
 use super::*;
 
 #[derive(Boilerplate)]
-pub(crate) struct HomeHtml {
-  pub(crate) inscriptions: Vec<InscriptionId>,
+pub(crate) struct HomeHtml<T: Iterator<Item = InscriptionId> + 'static> {
+  pub(crate) inscriptions: Mutex<Option<T>>,
 }
 
-impl PageContent for HomeHtml {
+impl<T: Iterator<Item = InscriptionId>> PageContent for HomeHtml<T> {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }
@@ -19,7 +19,7 @@ mod tests {
   fn html() {
     assert_regex_match!(
       HomeHtml {
-        inscriptions: vec![inscription_id(1), inscription_id(2)],
+        inscriptions: Mutex::new(Some(vec![inscription_id(1), inscription_id(2)].into_iter())),
       }
       .to_string()
       .unindent(),

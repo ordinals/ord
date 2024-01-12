@@ -1762,16 +1762,15 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_home_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_home_inscriptions(&self) -> Result<impl Iterator<Item = InscriptionId>> {
     Ok(
       self
         .database
         .begin_read()?
         .open_table(HOME_INSCRIPTIONS)?
-        .iter()?
+        .range_arc::<u32>(..)?
         .rev()
-        .flat_map(|result| result.map(|(_number, id)| InscriptionId::load(id.value())))
-        .collect(),
+        .flat_map(|result| result.map(|(_number, id)| InscriptionId::load(id.value()))),
     )
   }
 

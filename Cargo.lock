@@ -2515,8 +2515,7 @@ dependencies = [
 [[package]]
 name = "redb"
 version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08837f9a129bde83c51953b8c96cbb3422b940166b730caa954836106eb1dfd2"
+source = "git+https://github.com/cberner/redb.git?branch=arc#867743842c17ab6987b18835d38b8dfe8c0eab69"
 dependencies = [
  "libc",
 ]
