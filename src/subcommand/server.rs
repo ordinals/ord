@@ -1140,7 +1140,7 @@ impl Server {
 
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_static("public, max-age=31536000, immutable"),
+      HeaderValue::from_static("public, max-age=1209600, immutable"),
     );
 
     headers.insert(
@@ -3921,7 +3921,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
-      "public, max-age=31536000, immutable"
+      "public, max-age=1209600, immutable"
     );
   }
 
