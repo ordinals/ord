@@ -1,18 +1,16 @@
 use {
   self::batch::{Batch, Batchfile, Mode},
   super::*,
-  crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
+  crate::subcommand::wallet::transaction_builder::Target,
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
     key::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
-    locktime::absolute::LockTime,
     policy::MAX_STANDARD_TX_WEIGHT,
     secp256k1::{self, constants::SCHNORR_SIGNATURE_SIZE, rand, Secp256k1, XOnlyPublicKey},
     sighash::{Prevouts, SighashCache, TapSighashType},
     taproot::Signature,
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
-    ScriptBuf, Witness,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
   bitcoincore_rpc::Client,
@@ -87,10 +85,11 @@ pub(crate) struct Inscribe {
   pub(crate) json_metadata: Option<PathBuf>,
   #[clap(long, help = "Set inscription metaprotocol to <METAPROTOCOL>.")]
   pub(crate) metaprotocol: Option<String>,
-  #[arg(long, help = "Do not back up recovery key.")]
+  #[arg(long, alias = "nobackup", help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
   #[arg(
     long,
+    alias = "nolimit",
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
@@ -110,21 +109,19 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;
 
-    let wallet = Wallet::load(&options)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
 
-    let utxos = index.get_unspent_outputs(wallet)?;
+    let utxos = get_unspent_outputs(&client, &index)?;
 
-    let locked_utxos = index.get_locked_outputs(wallet)?;
+    let locked_utxos = get_locked_outputs(&client)?;
 
     let runic_utxos = index.get_runic_outputs(&utxos.keys().cloned().collect::<Vec<OutPoint>>())?;
-
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let chain = options.chain();
 
@@ -546,6 +543,7 @@ mod tests {
 
     let child_inscription = InscriptionTemplate {
       parent: Some(parent_inscription),
+      ..Default::default()
     }
     .into();
 
@@ -887,14 +885,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
     ];
@@ -985,14 +986,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
     ];
@@ -1060,14 +1064,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
     ];
@@ -1227,14 +1234,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
+        ..Default::default()
       }
       .into(),
     ];

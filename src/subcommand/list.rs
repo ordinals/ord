@@ -51,7 +51,7 @@ impl List {
           });
         }
 
-        Ok(Box::new(outputs))
+        Ok(Some(Box::new(outputs)))
       }
       Some(crate::index::List::Spent) => Err(anyhow!("output spent.")),
       None => Err(anyhow!("output not found")),

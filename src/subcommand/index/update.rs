@@ -5,5 +5,5 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   index.update()?;
 
-  Ok(Box::new(Empty {}))
+  Ok(None)
 }

@@ -15,57 +15,66 @@ fmt:
   cargo fmt --all
 
 clippy:
-  cargo clippy --all --all-targets -- -D warnings
+  cargo clippy --all --all-targets -- --deny warnings
 
-lclippy:
-  cargo lclippy --all --all-targets -- -D warnings
-
-deploy branch chain domain:
-  ssh root@{{domain}} "mkdir -p deploy \
+deploy branch remote chain domain:
+  ssh root@{{domain}} 'mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
-    && apt-get install --yes git rsync"
+    && apt-get install --yes git rsync'
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
-  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-all: deploy-testnet deploy-signet deploy-mainnet
+deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
+deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
-deploy-ord-dev branch="master" chain="main" domain="ordinals-dev.com": (deploy branch chain domain)
+deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
 
-save-ord-dev-state domain="ordinals-dev.com":
-  $EDITOR ./deploy/save-ord-dev-state
-  scp ./deploy/save-ord-dev-state root@{{domain}}:~
-  ssh root@{{domain}} "./save-ord-dev-state"
+deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
 
-log unit="ord" domain="ordinals.net":
+deploy-all: \
+  deploy-regtest \
+  deploy-testnet \
+  deploy-signet \
+  deploy-mainnet-alpha \
+  deploy-mainnet-bravo \
+  deploy-mainnet-charlie
+
+servers := 'alpha bravo charlie regtest signet testnet'
+
+initialize-server-keys:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  rm -rf tmp/ssh
+  mkdir -p tmp/ssh
+  ssh-keygen -C ordinals -f tmp/ssh/id_ed25519 -t ed25519 -N ''
+  for server in {{ servers }}; do
+    ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$server.ordinals.net
+    scp tmp/ssh/* root@$server.ordinals.net:.ssh
+  done
+  rm -rf tmp/ssh
+
+install-personal-key key='~/.ssh/id_ed25519.pub':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  for server in {{ servers }}; do
+    ssh-copy-id -i {{ key }} root@$server.ordinals.net
+  done
+
+server-keys:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  for server in {{ servers }}; do
+    ssh root@$server.ordinals.net cat .ssh/authorized_keys
+  done
+
+log unit='ord' domain='alpha.ordinals.net':
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
-
-test-deploy:
-  ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
-  vagrant up
-  ssh-keyscan 192.168.56.4 >> ~/.ssh/known_hosts
-  rsync -avz \
-    --delete \
-    --exclude .git \
-    --exclude target \
-    --exclude .vagrant \
-    --exclude index.redb \
-    . root@192.168.56.4:ord
-  ssh root@192.168.56.4 'cd ord && ./deploy/setup'
-
-time-tests:
-  cargo +nightly test -- -Z unstable-options --report-time
-
-profile-tests:
-  cargo +nightly test -- -Z unstable-options --report-time \
-    | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
-    | tee test-times.txt
 
 fuzz:
   #!/usr/bin/env bash
@@ -77,9 +86,6 @@ fuzz:
     cargo +nightly fuzz run varint-decode -- -max_total_time=60
     cargo +nightly fuzz run varint-encode -- -max_total_time=60
   done
-
-decode txid:
-  bitcoin-cli getrawtransaction {{txid}} | xxd -r -p - | cargo run decode
 
 open:
   open http://localhost
@@ -96,11 +102,11 @@ prepare-release revision='master':
   git log --pretty='format:- %s' >> CHANGELOG.md
   $EDITOR CHANGELOG.md
   $EDITOR Cargo.toml
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  version=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
   cargo check
-  git checkout -b release-$VERSION
+  git checkout -b release-$version
   git add -u
-  git commit -m "Release $VERSION"
+  git commit -m "Release $version"
   gh pr create --web
 
 publish-release revision='master':
@@ -121,9 +127,9 @@ publish-tag-and-crate revision='master':
   git clone git@github.com:ordinals/ord.git tmp/release
   cd tmp/release
   git checkout {{revision}}
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
-  git tag -a $VERSION -m "Release $VERSION"
-  git push git@github.com:ordinals/ord.git $VERSION
+  version=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  git tag -a $version -m "Release $version"
+  git push git@github.com:ordinals/ord.git $version
   cargo publish
   cd ../..
   rm -rf tmp/release
@@ -137,62 +143,15 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-download-log unit='ord' host='ordinals.net':
+download-log unit='ord' host='alpha.ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
-
-download-index unit='ord' host='ordinals.net':
-  rsync --progress --compress root@{{host}}:/var/lib/{{unit}}/index.redb tmp/{{unit}}.index.redb
 
 graph log:
   ./bin/graph $1
 
 flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph $1
-
-benchmark index height-limit:
-  ./bin/benchmark $1 $2
-
-benchmark-revision rev:
-  ssh root@ordinals.net "mkdir -p benchmark \
-    && apt-get update --yes \
-    && apt-get upgrade --yes \
-    && apt-get install --yes git rsync"
-  rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
-  ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
-
-benchmark-branch branch:
-  #/usr/bin/env bash
-  # rm -f master.redb
-  rm -f {{branch}}.redb
-  # git checkout master
-  # cargo build --release
-  # time ./target/release/ord --index master.redb index update
-  # ll master.redb
-  git checkout {{branch}}
-  cargo build --release
-  time ./target/release/ord --index {{branch}}.redb index update
-  ll {{branch}}.redb
-
-build-snapshots:
-  #!/usr/bin/env bash
-  set -euxo pipefail
-  rm -rf tmp/snapshots
-  mkdir -p tmp/snapshots
-  cargo build --release
-  cp ./target/release/ord tmp/snapshots
-  cd tmp/snapshots
-  for start in {0..750000..50000}; do
-    height_limit=$((start+50000))
-    if [[ -f $start.redb ]]; then
-      cp -c $start.redb index.redb
-    fi
-    a=`date +%s`
-    time ./ord --data-dir . --height-limit $height_limit index
-    b=`date +%s`
-    mv index.redb $height_limit.redb
-    printf "$height_limit\t$((b - a))\n" >> time.txt
-  done
 
 serve-docs: build-docs
   open http://127.0.0.1:8080
@@ -201,10 +160,9 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "de" "fr" "es" "pt" "ru" "zh" "ja" "ko" "fil" "ar" "hi"; do
-    MDBOOK_BOOK__LANGUAGE=$lang \
-      mdbook build docs -d build/$lang
-    mv docs/build/$lang/html docs/build/html/$lang
+  for language in ar de es fil fr hi it ja ko pt ru zh; do
+    MDBOOK_BOOK__LANGUAGE=$language mdbook build docs -d build/$language
+    mv docs/build/$language/html docs/build/html/$language
   done
 
 update-changelog:
@@ -219,3 +177,15 @@ convert-logo-to-favicon:
 
 update-mdbook-theme:
   curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+
+audit-cache:
+  cargo run --package audit-cache
+
+audit-content-security-policy:
+  cargo run --package audit-content-security-policy
+
+coverage:
+  cargo llvm-cov
+
+benchmark-server:
+  cargo bench --bench server

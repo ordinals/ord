@@ -53,6 +53,11 @@ impl ContextBuilder {
     self
   }
 
+  pub(crate) fn chain(mut self, chain: Chain) -> Self {
+    self.chain = chain;
+    self
+  }
+
   pub(crate) fn tempdir(mut self, tempdir: TempDir) -> Self {
     self.tempdir = Some(tempdir);
     self
@@ -113,7 +118,7 @@ impl Context {
 
     assert_eq!(runes, self.index.runes().unwrap());
 
-    assert_eq!(balances, self.index.get_rune_balances());
+    assert_eq!(balances, self.index.get_rune_balances().unwrap());
 
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
 

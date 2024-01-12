@@ -36,7 +36,7 @@ pub(crate) struct CommandBuilder {
   rpc_server_cookie_file: Option<PathBuf>,
   rpc_server_url: Option<String>,
   stdin: Vec<u8>,
-  tempdir: TempDir,
+  tempdir: Arc<TempDir>,
 }
 
 impl CommandBuilder {
@@ -49,7 +49,7 @@ impl CommandBuilder {
       rpc_server_cookie_file: None,
       rpc_server_url: None,
       stdin: Vec::new(),
-      tempdir: TempDir::new().unwrap(),
+      tempdir: Arc::new(TempDir::new().unwrap()),
     }
   }
 
@@ -98,7 +98,7 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn temp_dir(self, tempdir: TempDir) -> Self {
+  pub(crate) fn temp_dir(self, tempdir: Arc<TempDir>) -> Self {
     Self { tempdir, ..self }
   }
 
@@ -124,7 +124,7 @@ impl CommandBuilder {
       .stdin(Stdio::piped())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
-      .current_dir(&self.tempdir)
+      .current_dir(&*self.tempdir)
       .arg("--data-dir")
       .arg(self.tempdir.path())
       .args(&self.args);
@@ -132,8 +132,10 @@ impl CommandBuilder {
     command
   }
 
+  #[track_caller]
   fn run(self) -> (TempDir, String) {
-    let child = self.command().spawn().unwrap();
+    let mut command = self.command();
+    let child = command.spawn().unwrap();
 
     child
       .stdin
@@ -156,7 +158,7 @@ impl CommandBuilder {
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
 
-    (self.tempdir, stdout.into())
+    (Arc::try_unwrap(self.tempdir).unwrap(), stdout.into())
   }
 
   pub(crate) fn run_and_extract_file(self, path: impl AsRef<Path>) -> String {
@@ -164,10 +166,12 @@ impl CommandBuilder {
     fs::read_to_string(tempdir.path().join(path)).unwrap()
   }
 
+  #[track_caller]
   pub(crate) fn run_and_extract_stdout(self) -> String {
     self.run().1
   }
 
+  #[track_caller]
   pub(crate) fn run_and_deserialize_output<T: DeserializeOwned>(self) -> T {
     let stdout = self.stdout_regex(".*").run_and_extract_stdout();
     serde_json::from_str(&stdout)

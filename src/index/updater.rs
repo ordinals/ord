@@ -118,7 +118,7 @@ impl<'index> Updater<'_> {
         uncommitted = 0;
         wtx = self.index.begin_write()?;
         let height = wtx
-          .open_table(HEIGHT_TO_BLOCK_HASH)?
+          .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
           .and_then(|result| result.ok())
@@ -165,7 +165,7 @@ impl<'index> Updater<'_> {
 
     let height_limit = index.height_limit;
 
-    let client = index.options.bitcoin_rpc_client()?;
+    let client = index.options.bitcoin_rpc_client(None)?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -340,7 +340,8 @@ impl<'index> Updater<'_> {
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-    let index_inscriptions = self.height >= index.first_inscription_height;
+    let index_inscriptions =
+      self.height >= index.first_inscription_height && !index.options.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -376,7 +377,7 @@ impl<'index> Updater<'_> {
       }
     }
 
-    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    let mut height_to_block_header = wtx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_id_to_sequence_number =
@@ -390,6 +391,7 @@ impl<'index> Updater<'_> {
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+    let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
@@ -429,6 +431,7 @@ impl<'index> Updater<'_> {
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,
       id_to_sequence_number: &mut inscription_id_to_sequence_number,
+      index_transactions: self.index.index_transactions,
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
       next_sequence_number,
@@ -440,6 +443,8 @@ impl<'index> Updater<'_> {
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
       sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
       timestamp: block.header.time,
+      transaction_buffer: Vec::new(),
+      transaction_id_to_transaction: &mut transaction_id_to_transaction,
       unbound_inscriptions,
       value_cache,
       value_receiver,
@@ -497,7 +502,7 @@ impl<'index> Updater<'_> {
         coinbase_inputs.extend(input_sat_ranges);
       }
 
-      if let Some((tx, txid)) = block.txdata.get(0) {
+      if let Some((tx, txid)) = block.txdata.first() {
         self.index_transaction_sats(
           tx,
           *txid,
@@ -517,7 +522,7 @@ impl<'index> Updater<'_> {
           .unwrap_or_default();
 
         for (start, end) in coinbase_inputs {
-          if !Sat(start).is_common() {
+          if !Sat(start).common() {
             sat_to_satpoint.insert(
               &start,
               &SatPoint {
@@ -535,7 +540,7 @@ impl<'index> Updater<'_> {
 
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
-    } else {
+    } else if index_inscriptions {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
         inscription_updater.index_envelopes(tx, *txid, None)?;
       }
@@ -570,11 +575,11 @@ impl<'index> Updater<'_> {
       &inscription_updater.unbound_inscriptions,
     )?;
 
-    if index.index_runes {
+    if index.index_runes && self.height >= self.index.options.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
-      let mut sequence_number_to_rune = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE)?;
+      let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
 
       let runes = statistic_to_count
@@ -586,22 +591,38 @@ impl<'index> Updater<'_> {
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
-        minimum: Rune::minimum_at_height(Height(self.height)),
+        minimum: Rune::minimum_at_height(self.index.options.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,
-        sequence_number_to_rune: &mut sequence_number_to_rune,
+        sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
         statistic_to_count: &mut statistic_to_count,
         timestamp: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,
+        updates: HashMap::new(),
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
         rune_updater.index_runes(i, tx, *txid)?;
       }
+
+      for (rune_id, update) in rune_updater.updates {
+        let mut entry = RuneEntry::load(
+          rune_id_to_rune_entry
+            .get(&rune_id.store())?
+            .unwrap()
+            .value(),
+        );
+
+        entry.burned += update.burned;
+        entry.mints += update.mints;
+        entry.supply += update.supply;
+
+        rune_id_to_rune_entry.insert(&rune_id.store(), entry.store())?;
+      }
     }
 
-    height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
+    height_to_block_header.insert(&self.height, &block.header.store())?;
 
     self.height += 1;
     self.outputs_traversed += outputs_in_block;
@@ -642,7 +663,7 @@ impl<'index> Updater<'_> {
           .pop_front()
           .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
-        if !Sat(range.0).is_common() {
+        if !Sat(range.0).common() {
           sat_to_satpoint.insert(
             &range.0,
             &SatPoint {

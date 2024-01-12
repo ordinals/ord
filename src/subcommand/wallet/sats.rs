@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sats {
@@ -24,7 +24,7 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(&self, wallet: String, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     if !index.has_sat_index() {
@@ -33,7 +33,9 @@ impl Sats {
 
     index.update()?;
 
-    let utxos = index.get_unspent_output_ranges(Wallet::load(&options)?)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+
+    let utxos = get_unspent_output_ranges(&client, &index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();
@@ -47,7 +49,7 @@ impl Sats {
           output: outpoint,
         });
       }
-      Ok(Box::new(output))
+      Ok(Some(Box::new(output)))
     } else {
       let mut output = Vec::new();
       for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
@@ -58,7 +60,7 @@ impl Sats {
           rarity,
         });
       }
-      Ok(Box::new(output))
+      Ok(Some(Box::new(output)))
     }
   }
 }

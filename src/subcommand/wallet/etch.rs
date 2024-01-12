@@ -1,4 +1,4 @@
-use {super::*, bitcoin::blockdata::locktime::absolute::LockTime};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Etch {
@@ -6,68 +6,77 @@ pub(crate) struct Etch {
   divisibility: u8,
   #[clap(long, help = "Etch with fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
-  #[clap(long, help = "Etch rune <RUNE>.")]
-  rune: Rune,
+  #[clap(long, help = "Etch rune <RUNE>. May contain `.` or `•`as spacers.")]
+  rune: SpacedRune,
   #[clap(long, help = "Set supply to <SUPPLY>.")]
-  supply: u128,
+  supply: Decimal,
   #[clap(long, help = "Set currency symbol to <SYMBOL>.")]
   symbol: char,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
+  pub rune: SpacedRune,
   pub transaction: Txid,
 }
 
 impl Etch {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     ensure!(
       index.has_rune_index(),
-      "`ord wallet etch` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag",
+      "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
     index.update()?;
 
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+
+    let SpacedRune { rune, spacers } = self.rune;
 
     let count = client.get_block_count()?;
 
     ensure!(
-      index.rune(self.rune)?.is_none(),
+      index.rune(rune)?.is_none(),
       "rune `{}` has already been etched",
-      self.rune
+      rune,
     );
 
-    let minimum_at_height = Rune::minimum_at_height(Height(u32::try_from(count).unwrap() + 1));
+    let minimum_at_height =
+      Rune::minimum_at_height(options.chain(), Height(u32::try_from(count).unwrap() + 1));
 
     ensure!(
-      self.rune >= minimum_at_height,
+      rune >= minimum_at_height,
       "rune is less than minimum for next block: {} < {minimum_at_height}",
-      self.rune
+      rune,
     );
+
+    ensure!(!rune.is_reserved(), "rune `{}` is reserved", rune);
 
     ensure!(
       self.divisibility <= crate::runes::MAX_DIVISIBILITY,
-      "<DIVISBILITY> must be equal to or less than 38"
+      "<DIVISIBILITY> must be equal to or less than 38"
     );
 
     let destination = get_change_address(&client, options.chain())?;
 
     let runestone = Runestone {
       etching: Some(Etching {
+        deadline: None,
         divisibility: self.divisibility,
-        rune: self.rune,
         limit: None,
+        rune: Some(rune),
+        spacers,
         symbol: Some(self.symbol),
         term: None,
       }),
       edicts: vec![Edict {
-        amount: self.supply,
+        amount: self.supply.to_amount(self.divisibility)?,
         id: 0,
         output: 1,
       }],
+      default_output: None,
       burn: false,
     };
 
@@ -80,7 +89,7 @@ impl Etch {
     );
 
     let unfunded_transaction = Transaction {
-      version: 1,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![
@@ -95,7 +104,7 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = index.get_unspent_outputs(crate::wallet::Wallet::load(&options)?)?;
+    let unspent_outputs = get_unspent_outputs(&client, &index)?;
 
     let inscriptions = index
       .get_inscriptions(&unspent_outputs)?
@@ -107,25 +116,17 @@ impl Etch {
       bail!("failed to lock UTXOs");
     }
 
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    let unsigned_transaction = client.fund_raw_transaction(
-      &unfunded_transaction,
-      Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
-        // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
-        // and *not* fee per vB. So, we multiply the fee rate given by the user
-        // by 1000.
-        fee_rate: Some(Amount::from_sat((self.fee_rate.n() * 1000.0).ceil() as u64)),
-        ..Default::default()
-      }),
-      Some(false),
-    )?;
+    let unsigned_transaction = fund_raw_transaction(&client, self.fee_rate, &unfunded_transaction)?;
 
-    let signed_tx = client
-      .sign_raw_transaction_with_wallet(&unsigned_transaction.hex, None, None)?
+    let signed_transaction = client
+      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let transaction = client.send_raw_transaction(&signed_tx)?;
+    let transaction = client.send_raw_transaction(&signed_transaction)?;
 
-    Ok(Box::new(Output { transaction }))
+    Ok(Some(Box::new(Output {
+      rune: self.rune,
+      transaction,
+    })))
   }
 }

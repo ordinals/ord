@@ -13,7 +13,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
-  pub(crate) rune: Option<Rune>,
+  pub(crate) rune: Option<SpacedRune>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
@@ -23,6 +23,7 @@ pub(crate) struct InscriptionHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
   pub address: Option<String>,
+  pub charms: Vec<String>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -34,7 +35,7 @@ pub struct InscriptionJson {
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
-  pub rune: Option<Rune>,
+  pub rune: Option<SpacedRune>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
@@ -411,7 +412,10 @@ mod tests {
         inscription_id: inscription_id(1),
         inscription_number: 1,
         satpoint: satpoint(1, 0),
-        rune: Some(Rune(0)),
+        rune: Some(SpacedRune {
+          rune: Rune(26),
+          spacers: 1
+        }),
         ..Default::default()
       },
       "
@@ -420,7 +424,7 @@ mod tests {
         <dl>
           .*
           <dt>rune</dt>
-          <dd><a href=/rune/A>A</a></dd>
+          <dd><a href=/rune/A•A>A•A</a></dd>
         </dl>
       "
       .unindent()

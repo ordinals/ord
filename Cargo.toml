@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.12.2"
+version = "0.15.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -15,12 +15,12 @@ copyright = "The Ord Maintainers"
 maintainer = "The Ord Maintainers"
 
 [workspace]
-members = [".", "test-bitcoincore-rpc"]
+members = [".", "test-bitcoincore-rpc", "crates/*"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 async-trait = "0.1.72"
-axum = { version = "0.6.1", features = ["headers"] }
+axum = { version = "0.6.1", features = ["headers", "http2"] }
 axum-server = "0.5.0"
 base64 = "0.21.0"
 bech32 = "0.9.1"
@@ -39,7 +39,8 @@ futures = "0.3.21"
 hex = "0.4.3"
 html-escaper = "0.2.0"
 http = "0.2.6"
-hyper = { version = "0.14.24", features = ["http1", "client"] }
+humantime = "2.1.0"
+hyper = { version = "0.14.24", features = ["client", "http2"] }
 indicatif = "0.17.1"
 lazy_static = "1.4.0"
 log = "0.4.14"
@@ -52,13 +53,13 @@ redb = "1.4.0"
 regex = "1.6.0"
 rss = "2.0.1"
 rust-embed = "8.0.0"
-rustls = "0.21.1"
-rustls-acme = { version = "0.7.1", features = ["axum"] }
+rustls = "0.22.0"
+rustls-acme = { version = "0.8.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_yaml = "0.9.17"
 sha3 = "0.10.8"
-sysinfo = "0.29.2"
+sysinfo = "0.30.3"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
@@ -66,11 +67,16 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
 
 [dev-dependencies]
+criterion = "0.5.1"
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking", "brotli", "json"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.2.1"
+
+[[bench]]
+name = "server"
+harness = false
 
 [[bin]]
 name = "ord"

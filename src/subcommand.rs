@@ -1,5 +1,6 @@
 use super::*;
 
+pub mod balances;
 pub mod decode;
 pub mod epochs;
 pub mod find;
@@ -8,7 +9,7 @@ pub mod list;
 pub mod parse;
 mod preview;
 pub mod runes;
-mod server;
+pub(crate) mod server;
 pub mod subsidy;
 pub mod supply;
 pub mod teleburn;
@@ -17,6 +18,8 @@ pub mod wallet;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
+  #[command(about = "List all rune balances")]
+  Balances,
   #[command(about = "Decode a transaction")]
   Decode(decode::Decode),
   #[command(about = "List the first satoshis of each reward epoch")]
@@ -43,14 +46,15 @@ pub(crate) enum Subcommand {
   Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[command(subcommand, about = "Wallet commands")]
+  #[command(about = "Wallet commands")]
   Wallet(wallet::Wallet),
 }
 
 impl Subcommand {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
-      Self::Decode(decode) => decode.run(),
+      Self::Balances => balances::run(options),
+      Self::Decode(decode) => decode.run(options),
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
@@ -73,9 +77,6 @@ impl Subcommand {
   }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Empty {}
-
 pub(crate) trait Output: Send {
   fn print_json(&self);
 }
@@ -90,4 +91,4 @@ where
   }
 }
 
-pub(crate) type SubcommandResult = Result<Box<dyn Output>>;
+pub(crate) type SubcommandResult = Result<Option<Box<dyn Output>>>;

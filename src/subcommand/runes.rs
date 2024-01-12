@@ -8,17 +8,20 @@ pub struct Output {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneInfo {
   pub burned: u128,
+  pub deadline: Option<u32>,
   pub divisibility: u8,
+  pub end: Option<u32>,
   pub etching: Txid,
   pub height: u32,
   pub id: RuneId,
   pub index: u16,
+  pub limit: Option<u128>,
+  pub mints: u64,
+  pub number: u64,
   pub rune: Rune,
+  pub spacers: u32,
   pub supply: u128,
   pub symbol: Option<char>,
-  pub end: Option<u32>,
-  pub limit: Option<u128>,
-  pub number: u64,
   pub timestamp: DateTime<Utc>,
 }
 
@@ -27,12 +30,12 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   ensure!(
     index.has_rune_index(),
-    "`ord runes` requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag",
+    "`ord runes` requires index created with `--index-runes` flag",
   );
 
   index.update()?;
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     runes: index
       .runes()?
       .into_iter()
@@ -41,14 +44,17 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
           id,
           RuneEntry {
             burned,
+            deadline,
             divisibility,
+            end,
             etching,
+            limit,
+            mints,
+            number,
             rune,
+            spacers,
             supply,
             symbol,
-            end,
-            limit,
-            number,
             timestamp,
           },
         )| {
@@ -56,22 +62,25 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
             rune,
             RuneInfo {
               burned,
+              deadline,
               divisibility,
+              end,
               etching,
               height: id.height,
               id,
               index: id.index,
-              end,
               limit,
+              mints,
               number,
-              timestamp: crate::timestamp(timestamp),
               rune,
+              spacers,
               supply,
               symbol,
+              timestamp: crate::timestamp(timestamp),
             },
           )
         },
       )
       .collect::<BTreeMap<Rune, RuneInfo>>(),
-  }))
+  })))
 }

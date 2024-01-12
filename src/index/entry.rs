@@ -8,57 +8,83 @@ pub(crate) trait Entry: Sized {
   fn store(self) -> Self::Value;
 }
 
-pub(super) type BlockHashValue = [u8; 32];
+pub(super) type HeaderValue = [u8; 80];
 
-impl Entry for BlockHash {
-  type Value = BlockHashValue;
+impl Entry for Header {
+  type Value = HeaderValue;
 
   fn load(value: Self::Value) -> Self {
-    BlockHash::from_raw_hash(Hash::from_byte_array(value))
+    consensus::encode::deserialize(&value).unwrap()
   }
 
   fn store(self) -> Self::Value {
-    *self.as_ref()
+    let mut buffer = Cursor::new([0; 80]);
+    let len = self
+      .consensus_encode(&mut buffer)
+      .expect("in-memory writers don't error");
+    let buffer = buffer.into_inner();
+    debug_assert_eq!(len, buffer.len());
+    buffer
   }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) struct RuneEntry {
-  pub(crate) burned: u128,
-  pub(crate) divisibility: u8,
-  pub(crate) end: Option<u32>,
-  pub(crate) etching: Txid,
-  pub(crate) limit: Option<u128>,
-  pub(crate) number: u64,
-  pub(crate) rune: Rune,
-  pub(crate) supply: u128,
-  pub(crate) symbol: Option<char>,
-  pub(crate) timestamp: u32,
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub struct RuneEntry {
+  pub burned: u128,
+  pub deadline: Option<u32>,
+  pub divisibility: u8,
+  pub end: Option<u32>,
+  pub etching: Txid,
+  pub limit: Option<u128>,
+  pub mints: u64,
+  pub number: u64,
+  pub rune: Rune,
+  pub spacers: u32,
+  pub supply: u128,
+  pub symbol: Option<char>,
+  pub timestamp: u32,
 }
 
 pub(super) type RuneEntryValue = (
   u128,         // burned
+  Option<u32>,  // deadline
   u8,           // divisibility
   Option<u32>,  // end
   (u128, u128), // etching
   Option<u128>, // limit
-  u64,          // number
+  (
+    u64, // mints
+    u64, // number
+  ),
   u128,         // rune
+  u32,          // spacers
   u128,         // supply
   Option<char>, // symbol
   u32,          // timestamp
 );
 
+impl RuneEntry {
+  pub(crate) fn spaced_rune(&self) -> SpacedRune {
+    SpacedRune {
+      rune: self.rune,
+      spacers: self.spacers,
+    }
+  }
+}
+
 impl Default for RuneEntry {
   fn default() -> Self {
     Self {
       burned: 0,
+      deadline: None,
       divisibility: 0,
       end: None,
       etching: Txid::all_zeros(),
       limit: None,
+      mints: 0,
       number: 0,
       rune: Rune(0),
+      spacers: 0,
       supply: 0,
       symbol: None,
       timestamp: 0,
@@ -70,10 +96,24 @@ impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
   fn load(
-    (burned, divisibility, end, etching, limit, number, rune, supply, symbol, timestamp): RuneEntryValue,
+    (
+      burned,
+      deadline,
+      divisibility,
+      end,
+      etching,
+      limit,
+      (mints, number),
+      rune,
+      spacers,
+      supply,
+      symbol,
+      timestamp,
+    ): RuneEntryValue,
   ) -> Self {
     Self {
       burned,
+      deadline,
       divisibility,
       end,
       etching: {
@@ -87,8 +127,10 @@ impl Entry for RuneEntry {
         ])
       },
       limit,
+      mints,
       number,
       rune: Rune(rune),
+      spacers,
       supply,
       symbol,
       timestamp,
@@ -98,6 +140,7 @@ impl Entry for RuneEntry {
   fn store(self) -> Self::Value {
     (
       self.burned,
+      self.deadline,
       self.divisibility,
       self.end,
       {
@@ -114,8 +157,9 @@ impl Entry for RuneEntry {
         )
       },
       self.limit,
-      self.number,
+      (self.mints, self.number),
       self.rune.0,
+      self.spacers,
       self.supply,
       self.symbol,
       self.timestamp,
@@ -390,35 +434,40 @@ mod tests {
   fn rune_entry() {
     let entry = RuneEntry {
       burned: 1,
-      divisibility: 2,
-      end: Some(3),
+      deadline: Some(2),
+      divisibility: 3,
+      end: Some(4),
       etching: Txid::from_byte_array([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      limit: Some(4),
-      number: 5,
-      rune: Rune(6),
-      supply: 7,
+      limit: Some(5),
+      mints: 11,
+      number: 6,
+      rune: Rune(7),
+      spacers: 8,
+      supply: 9,
       symbol: Some('a'),
-      timestamp: 6,
+      timestamp: 10,
     };
 
     let value = (
       1,
-      2,
-      Some(3),
+      Some(2),
+      3,
+      Some(4),
       (
         0x0F0E0D0C0B0A09080706050403020100,
         0x1F1E1D1C1B1A19181716151413121110,
       ),
-      Some(4),
-      5,
-      6,
+      Some(5),
+      (11, 6),
       7,
+      8,
+      9,
       Some('a'),
-      6,
+      10,
     );
 
     assert_eq!(entry.store(), value);
@@ -443,5 +492,20 @@ mod tests {
       },
       RuneId::load((1, 2)),
     );
+  }
+
+  #[test]
+  fn header() {
+    let expected = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+      49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+      72, 73, 74, 75, 76, 77, 78, 79,
+    ];
+
+    let header = Header::load(expected);
+    let actual = header.store();
+
+    assert_eq!(actual, expected);
   }
 }

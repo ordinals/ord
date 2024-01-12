@@ -62,12 +62,12 @@ impl Batch {
       )?;
 
     if self.dry_run {
-      return Ok(Box::new(self.output(
+      return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         reveal_tx.txid(),
         total_fees,
         self.inscriptions.clone(),
-      )));
+      ))));
     }
 
     let signed_commit_tx = client
@@ -96,7 +96,7 @@ impl Batch {
         )?
         .hex
     } else {
-      bitcoin::consensus::encode::serialize(&reveal_tx)
+      consensus::encode::serialize(&reveal_tx)
     };
 
     if !self.no_backup {
@@ -114,12 +114,12 @@ impl Batch {
       }
     };
 
-    Ok(Box::new(self.output(
+    Ok(Some(Box::new(self.output(
       commit,
       reveal,
       total_fees,
       self.inscriptions.clone(),
-    )))
+    ))))
   }
 
   fn output(
@@ -492,7 +492,7 @@ impl Batch {
         .collect(),
       output: outputs,
       lock_time: LockTime::ZERO,
-      version: 1,
+      version: 2,
     };
 
     let fee = {

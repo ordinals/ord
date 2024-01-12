@@ -1,4 +1,4 @@
-use {super::*, fee_rate::FeeRate};
+use {super::*, fee_rate::FeeRate, std::sync::atomic};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
@@ -10,6 +10,8 @@ pub(crate) struct Preview {
     help = "Inscribe inscriptions defined in <BATCHES>."
   )]
   batches: Option<Vec<PathBuf>>,
+  #[arg(long, help = "Automatically mine a block every <BLOCKTIME> seconds.")]
+  blocktime: Option<u64>,
   #[arg(num_args = 0.., long, help = "Inscribe contents of <FILES>.")]
   files: Option<Vec<PathBuf>>,
 }
@@ -42,6 +44,8 @@ impl Preview {
 
     fs::create_dir(&bitcoin_data_dir)?;
 
+    eprintln!("Spawning bitcoind…");
+
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
         .arg({
@@ -49,9 +53,10 @@ impl Preview {
           arg.push(&bitcoin_data_dir);
           arg
         })
+        .arg("-listen=0")
+        .arg("-printtoconsole=0")
         .arg("-regtest")
         .arg("-txindex")
-        .arg("-listen=0")
         .arg(format!("-rpcport={rpc_port}"))
         .spawn()
         .context("failed to spawn `bitcoind`")?,
@@ -60,14 +65,14 @@ impl Preview {
     let options = Options {
       chain_argument: Chain::Regtest,
       bitcoin_data_dir: Some(bitcoin_data_dir),
-      data_dir: Some(tmpdir.path().into()),
+      data_dir: tmpdir.path().into(),
       rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
       index_sats: true,
       ..Options::default()
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client().is_ok() {
+      if options.bitcoin_rpc_client(None).is_ok() {
         break;
       }
 
@@ -78,16 +83,18 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    super::wallet::Wallet::Create(super::wallet::create::Create {
+    super::wallet::create::Create {
       passphrase: "".into(),
-    })
-    .run(options.clone())?;
+    }
+    .run("ord".into(), options.clone())?;
 
-    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    let rpc_client = options.bitcoin_rpc_client(None)?;
 
     let address = rpc_client
       .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
       .require_network(Network::Regtest)?;
+
+    eprintln!("Mining blocks…");
 
     rpc_client.generate_to_address(101, &address)?;
 
@@ -95,8 +102,9 @@ impl Preview {
       for file in files {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-            super::wallet::inscribe::Inscribe {
+          subcommand: Subcommand::Wallet(super::wallet::Wallet {
+            name: "ord".into(),
+            subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: None,
               cbor_metadata: None,
               commit_fee_rate: None,
@@ -114,8 +122,8 @@ impl Preview {
               reinscribe: false,
               satpoint: None,
               sat: None,
-            },
-          )),
+            }),
+          }),
         }
         .run()?;
 
@@ -127,8 +135,9 @@ impl Preview {
       for batch in batches {
         Arguments {
           options: options.clone(),
-          subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
-            super::wallet::inscribe::Inscribe {
+          subcommand: Subcommand::Wallet(super::wallet::Wallet {
+            name: "ord".into(),
+            subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: Some(batch),
               cbor_metadata: None,
               commit_fee_rate: None,
@@ -146,8 +155,8 @@ impl Preview {
               reinscribe: false,
               satpoint: None,
               sat: None,
-            },
-          )),
+            }),
+          }),
         }
         .run()?;
 
@@ -155,12 +164,42 @@ impl Preview {
       }
     }
 
-    rpc_client.generate_to_address(1, &address)?;
+    if let Some(blocktime) = self.blocktime {
+      eprintln!(
+        "Mining blocks every {}...",
+        "second".tally(blocktime.try_into().unwrap())
+      );
 
-    Arguments {
-      options,
-      subcommand: Subcommand::Server(self.server),
+      let running = Arc::new(AtomicBool::new(true));
+
+      let handle = {
+        let running = running.clone();
+
+        std::thread::spawn(move || {
+          while running.load(atomic::Ordering::SeqCst) {
+            rpc_client.generate_to_address(1, &address).unwrap();
+            thread::sleep(Duration::from_secs(blocktime));
+          }
+        })
+      };
+
+      Arguments {
+        options,
+        subcommand: Subcommand::Server(self.server),
+      }
+      .run()?;
+
+      running.store(false, atomic::Ordering::SeqCst);
+
+      handle.join().unwrap();
+    } else {
+      Arguments {
+        options,
+        subcommand: Subcommand::Server(self.server),
+      }
+      .run()?;
     }
-    .run()
+
+    Ok(None)
   }
 }

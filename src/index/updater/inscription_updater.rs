@@ -30,6 +30,7 @@ enum Origin {
     pointer: Option<u64>,
     reinscription: bool,
     unbound: bool,
+    vindicated: bool,
   },
   Old {
     old_satpoint: SatPoint,
@@ -45,11 +46,15 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'db, 'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) index_transactions: bool,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'db, 'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
   pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   pub(super) reward: u64,
+  pub(super) transaction_buffer: Vec<u8>,
+  pub(super) transaction_id_to_transaction:
+    &'a mut Table<'db, 'tx, &'static TxidValue, &'static [u8]>,
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'db, 'tx, u64, u32>,
   pub(super) satpoint_to_sequence_number:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, u32>,
@@ -69,11 +74,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
-    let mut envelopes = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
-    let mut inscribed_offsets = BTreeMap::new();
-    let mut total_input_value = 0;
     let mut id_counter = 0;
+    let mut inscribed_offsets = BTreeMap::new();
+    let jubilant = self.height >= self.chain.jubilee_height();
+    let mut total_input_value = 0;
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+
+    let envelopes = ParsedEnvelope::from_transaction(tx);
+    let inscriptions = !envelopes.is_empty();
+    let mut envelopes = envelopes.into_iter().peekable();
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
@@ -134,11 +144,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let inscribed_offset = inscribed_offsets.get(&offset);
-
-        let curse = if self.height >= self.chain.jubilee_height() {
-          None
-        } else if inscription.payload.unrecognized_even_field {
+        let curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
         } else if inscription.payload.duplicate_field {
           Some(Curse::DuplicateField)
@@ -154,24 +160,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::Pushnum)
         } else if inscription.stutter {
           Some(Curse::Stutter)
-        } else if let Some((id, count)) = inscribed_offset {
+        } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
           if *count > 1 {
             Some(Curse::Reinscription)
           } else {
             let initial_inscription_sequence_number =
               self.id_to_sequence_number.get(id.store())?.unwrap().value();
 
-            let initial_inscription_is_cursed = InscriptionEntry::load(
+            let entry = InscriptionEntry::load(
               self
                 .sequence_number_to_entry
                 .get(initial_inscription_sequence_number)?
                 .unwrap()
                 .value(),
-            )
-            .inscription_number
-              < 0;
+            );
 
-            if initial_inscription_is_cursed {
+            let initial_inscription_was_cursed_or_vindicated =
+              entry.inscription_number < 0 || Charm::Vindicated.is_set(entry.charms);
+
+            if initial_inscription_was_cursed_or_vindicated {
               None
             } else {
               Some(Curse::Reinscription)
@@ -181,25 +188,50 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0
+          || curse == Some(Curse::UnrecognizedEvenField)
+          || inscription.payload.unrecognized_even_field;
+
+        let offset = inscription
+          .payload
+          .pointer()
+          .filter(|&pointer| pointer < total_output_value)
+          .unwrap_or(offset);
 
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
-            reinscription: inscribed_offset.is_some(),
-            cursed: curse.is_some(),
+            cursed: curse.is_some() && !jubilant,
             fee: 0,
             hidden: inscription.payload.hidden(),
             parent: inscription.payload.parent(),
             pointer: inscription.payload.pointer(),
+            reinscription: inscribed_offsets.get(&offset).is_some(),
             unbound,
+            vindicated: curse.is_some() && jubilant,
           },
         });
+
+        inscribed_offsets
+          .entry(offset)
+          .or_insert((inscription_id, 0))
+          .1 += 1;
 
         envelopes.next();
         id_counter += 1;
       }
+    }
+
+    if self.index_transactions && inscriptions {
+      tx.consensus_encode(&mut self.transaction_buffer)
+        .expect("in-memory writers don't error");
+
+      self
+        .transaction_id_to_transaction
+        .insert(&txid.store(), self.transaction_buffer.as_slice())?;
+
+      self.transaction_buffer.clear();
     }
 
     let potential_parents = floating_inscriptions
@@ -222,8 +254,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     }
 
     // still have to normalize over inscription size
-    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
-
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
         origin: Origin::New { ref mut fee, .. },
@@ -376,6 +406,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         pointer: _,
         reinscription,
         unbound,
+        vindicated,
       } => {
         let inscription_number = if cursed {
           let number: i32 = self.cursed_inscription_count.try_into().unwrap();
@@ -418,6 +449,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             Charm::Nineball.set(&mut charms);
           }
 
+          if sat.coin() {
+            Charm::Coin.set(&mut charms);
+          }
+
           match sat.rarity() {
             Rarity::Common | Rarity::Mythic => {}
             Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
@@ -433,6 +468,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         if unbound {
           Charm::Unbound.set(&mut charms);
+        }
+
+        if vindicated {
+          Charm::Vindicated.set(&mut charms);
         }
 
         if let Some(Sat(n)) = sat {

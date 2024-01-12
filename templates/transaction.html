@@ -1,8 +1,10 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
-%% if let Some(id) = self.inscription {
+%% if self.inscription_count > 0 {
 <h2>Inscription Geneses</h2>
 <div class=thumbnails>
-{{ Iframe::thumbnail(id) }}
+%% for index in 0..self.inscription_count {
+{{ Iframe::thumbnail(InscriptionId { txid: self.txid, index }) }}
+%% }
 </div>
 %% }
 <dl>

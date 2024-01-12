@@ -6,7 +6,7 @@ use {super::*, bitcoincore_rpc::Auth};
     .required(false)
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
-pub(crate) struct Options {
+pub struct Options {
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
@@ -26,8 +26,8 @@ pub(crate) struct Options {
   pub(crate) config_dir: Option<PathBuf>,
   #[arg(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[arg(long, help = "Store index in <DATA_DIR>.")]
-  pub(crate) data_dir: Option<PathBuf>,
+  #[arg(long, help = "Store index in <DATA_DIR>.", default_value_os_t = Options::default_data_dir())]
+  pub(crate) data_dir: PathBuf,
   #[arg(
     long,
     help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
@@ -46,9 +46,18 @@ pub(crate) struct Options {
     long,
     help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
   )]
-  pub(crate) index_runes_pre_alpha_i_agree_to_get_rekt: bool,
+  pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(long, help = "Store transactions in index.")]
+  pub(crate) index_transactions: bool,
+  #[arg(
+    long,
+    short,
+    alias = "noindex_inscriptions",
+    help = "Do not index inscriptions."
+  )]
+  pub(crate) no_index_inscriptions: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
   #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
@@ -57,8 +66,6 @@ pub(crate) struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
-  #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
-  pub(crate) wallet: String,
 }
 
 impl Options {
@@ -75,9 +82,7 @@ impl Options {
   }
 
   pub(crate) fn first_inscription_height(&self) -> u32 {
-    if self.chain() == Chain::Regtest {
-      self.first_inscription_height.unwrap_or(0)
-    } else if integration_test() {
+    if integration_test() {
       0
     } else {
       self
@@ -86,19 +91,27 @@ impl Options {
     }
   }
 
-  pub(crate) fn index_runes(&self) -> bool {
-    self.index_runes_pre_alpha_i_agree_to_get_rekt && self.chain() != Chain::Mainnet
+  pub(crate) fn first_rune_height(&self) -> u32 {
+    if integration_test() {
+      0
+    } else {
+      self.chain().first_rune_height()
+    }
   }
 
-  pub(crate) fn rpc_url(&self) -> String {
-    if let Some(rpc_url) = &self.rpc_url {
-      format!("{rpc_url}/wallet/{}", self.wallet)
-    } else {
-      format!(
-        "127.0.0.1:{}/wallet/{}",
-        self.chain().default_rpc_port(),
-        self.wallet
-      )
+  pub(crate) fn index_runes(&self) -> bool {
+    self.index_runes && self.chain() != Chain::Mainnet
+  }
+
+  pub(crate) fn rpc_url(&self, wallet_name: Option<String>) -> String {
+    let base_url = self
+      .rpc_url
+      .clone()
+      .unwrap_or(format!("127.0.0.1:{}", self.chain().default_rpc_port()));
+
+    match wallet_name {
+      Some(wallet_name) => format!("{base_url}/wallet/{wallet_name}"),
+      None => format!("{base_url}/"),
     }
   }
 
@@ -124,15 +137,14 @@ impl Options {
     Ok(path.join(".cookie"))
   }
 
-  pub(crate) fn data_dir(&self) -> Result<PathBuf> {
-    let base = match &self.data_dir {
-      Some(base) => base.clone(),
-      None => dirs::data_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
-        .join("ord"),
-    };
+  fn default_data_dir() -> PathBuf {
+    dirs::data_dir()
+      .map(|dir| dir.join("ord"))
+      .expect("failed to retrieve data dir")
+  }
 
-    Ok(self.chain().join_with_data_dir(&base))
+  pub(crate) fn data_dir(&self) -> PathBuf {
+    self.chain().join_with_data_dir(&self.data_dir)
   }
 
   pub(crate) fn load_config(&self) -> Result<Config> {
@@ -145,15 +157,6 @@ impl Options {
         Some(_) | None => Ok(Default::default()),
       },
     }
-  }
-
-  fn format_bitcoin_core_version(version: usize) -> String {
-    format!(
-      "{}.{}.{}",
-      version / 10000,
-      version % 10000 / 100,
-      version % 100
-    )
   }
 
   fn derive_var(
@@ -205,12 +208,12 @@ impl Options {
     }
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let rpc_url = self.rpc_url();
+  pub(crate) fn bitcoin_rpc_client(&self, wallet: Option<String>) -> Result<Client> {
+    let rpc_url = self.rpc_url(wallet);
 
     let auth = self.auth()?;
 
-    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
+    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url(None));
 
     if let Auth::CookieFile(cookie_file) = &auth {
       log::info!(
@@ -244,45 +247,6 @@ impl Options {
 
     Ok(client)
   }
-
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
-
-    const MIN_VERSION: usize = 240000;
-
-    let bitcoin_version = client.version()?;
-    if bitcoin_version < MIN_VERSION {
-      bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
-        Self::format_bitcoin_core_version(MIN_VERSION),
-        Self::format_bitcoin_core_version(bitcoin_version),
-      );
-    }
-
-    if !create {
-      if !client.list_wallets()?.contains(&self.wallet) {
-        client.load_wallet(&self.wallet)?;
-      }
-
-      let descriptors = client.list_descriptors(None)?.descriptors;
-
-      let tr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("tr("))
-        .count();
-
-      let rawtr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-        .count();
-
-      if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
-      }
-    }
-
-    Ok(client)
-  }
 }
 
 #[cfg(test)]
@@ -301,8 +265,8 @@ mod tests {
       ])
       .unwrap()
       .options
-      .rpc_url(),
-      "127.0.0.1:1234/wallet/ord"
+      .rpc_url(None),
+      "127.0.0.1:1234/"
     );
   }
 
@@ -328,7 +292,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index", "update"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:8332/");
 
     assert!(arguments
       .options
@@ -342,7 +306,7 @@ mod tests {
     let arguments =
       Arguments::try_parse_from(["ord", "--chain=signet", "index", "update"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:38332/");
 
     assert!(arguments
       .options
@@ -428,7 +392,6 @@ mod tests {
       .unwrap()
       .options
       .data_dir()
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -443,7 +406,6 @@ mod tests {
       .unwrap()
       .options
       .data_dir()
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -469,7 +431,6 @@ mod tests {
     .unwrap()
     .options
     .data_dir()
-    .unwrap()
     .display()
     .to_string();
     assert!(
@@ -489,7 +450,6 @@ mod tests {
         .unwrap()
         .options
         .data_dir()
-        .unwrap()
         .display()
         .to_string();
 
@@ -548,7 +508,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      options.bitcoin_rpc_client(None).unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }
@@ -607,23 +567,23 @@ mod tests {
     );
   }
 
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::Wallet) {
+    match Arguments::try_parse_from(args.split_whitespace()) {
+      Ok(arguments) => match arguments.subcommand {
+        Subcommand::Wallet(wallet) => (arguments.options, wallet),
+        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+      },
+      Err(err) => panic!("error parsing arguments: {err}"),
+    }
+  }
+
   #[test]
   fn wallet_flag_overrides_default_name() {
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "wallet", "create"])
-        .unwrap()
-        .options
-        .wallet,
-      "ord"
-    );
+    let (_, wallet) = parse_wallet_args("ord wallet create");
+    assert_eq!(wallet.name, "ord");
 
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
-        .unwrap()
-        .options
-        .wallet,
-      "foo"
-    )
+    let (_, wallet) = parse_wallet_args("ord wallet --name foo create");
+    assert_eq!(wallet.name, "foo")
   }
 
   #[test]
@@ -635,6 +595,16 @@ mod tests {
         .load_config()
         .unwrap(),
       Default::default()
+    );
+  }
+
+  #[test]
+  fn uses_wallet_rpc() {
+    let (options, _) = parse_wallet_args("ord wallet --name foo balance");
+
+    assert_eq!(
+      options.rpc_url(Some("foo".into())),
+      "127.0.0.1:8332/wallet/foo"
     );
   }
 
@@ -805,26 +775,23 @@ mod tests {
     assert!(Arguments::try_parse_from([
       "ord",
       "--chain=signet",
-      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "--index-runes",
       "index",
       "update"
     ])
     .unwrap()
     .options
-    .index_runes(),);
-    assert!(!Arguments::try_parse_from([
-      "ord",
-      "--index-runes-pre-alpha-i-agree-to-get-rekt",
-      "index",
-      "update"
-    ])
-    .unwrap()
-    .options
-    .index_runes(),);
+    .index_runes());
+    assert!(
+      !Arguments::try_parse_from(["ord", "--index-runes", "index", "update"])
+        .unwrap()
+        .options
+        .index_runes()
+    );
     assert!(!Arguments::try_parse_from(["ord", "index", "update"])
       .unwrap()
       .options
-      .index_runes(),);
+      .index_runes());
   }
 
   #[test]
@@ -834,7 +801,7 @@ mod tests {
         cookie_file: Some("/foo/bar/baz/qux/.cookie".into()),
         ..Default::default()
       }
-      .bitcoin_rpc_client()
+      .bitcoin_rpc_client(None)
       .map(|_| "")
       .unwrap_err()
       .to_string(),

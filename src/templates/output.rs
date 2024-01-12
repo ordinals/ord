@@ -7,7 +7,7 @@ pub(crate) struct OutputHtml {
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) runes: Vec<(Rune, Pile)>,
+  pub(crate) runes: Vec<(SpacedRune, Pile)>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -17,6 +17,7 @@ pub struct OutputJson {
   pub address: Option<String>,
   pub transaction: String,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: BTreeMap<Rune, u128>,
 }
@@ -28,11 +29,12 @@ impl OutputJson {
     chain: Chain,
     output: TxOut,
     inscriptions: Vec<InscriptionId>,
+    indexed: bool,
     runes: BTreeMap<Rune, u128>,
   ) -> Self {
     Self {
       value: output.value,
-      runes: runes.into_iter().collect(),
+      runes,
       script_pubkey: output.script_pubkey.to_asm_string(),
       address: chain
         .address_from_script(&output.script_pubkey)
@@ -43,6 +45,7 @@ impl OutputJson {
         Some(List::Unspent(ranges)) => Some(ranges),
         _ => None,
       },
+      indexed,
       inscriptions,
     }
   }
@@ -189,7 +192,10 @@ mod tests {
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
         runes: vec![(
-          Rune(0),
+          SpacedRune {
+            rune: Rune(26),
+            spacers: 1
+          },
           Pile {
             amount: 11,
             divisibility: 1,
@@ -208,7 +214,7 @@ mod tests {
                 <th>balance</th>
               </tr>
               <tr>
-                <td><a href=/rune/A>A</a></td>
+                <td><a href=/rune/A•A>A•A</a></td>
                 <td>1.1</td>
               </tr>
             </table>
