@@ -134,7 +134,9 @@ mod tests {
     <meta property=og:image content='https://signet.ordinals.com/static/favicon.png'>
     <meta property=twitter:card content=summary>
     <title>Foo</title>
-    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription RSS Feed'>
+    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription Feed'>
+    <link rel=icon href=/static/favicon.png>
+    <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
     <script src=/static/index.js defer></script>
