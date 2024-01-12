@@ -138,9 +138,11 @@ Reinscriptions
 --------------
 
 Previously inscribed sats can be reinscribed with the `--reinscribe` command.
+This will append an inscription to a sat, not change the initial inscription in
+any way.
 
-Reinscription with a satpoint:
+Reinscribe with satpoint:
 `ord wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --satpoint <SATPOINT>`
 
-Reinscription with a sat:
-`ord wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`
+Reinscribe on a sat (requires sat index):
+`ord --index-sats wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`
