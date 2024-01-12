@@ -16,6 +16,36 @@ impl PageContent for TransactionHtml {
   }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct TransactionJson {
+  pub(crate) blockhash: Option<BlockHash>,
+  pub(crate) chain: Chain,
+  pub(crate) etching: Option<SpacedRune>,
+  pub(crate) inscription_count: u32,
+  pub(crate) transaction: Transaction,
+  pub(crate) txid: Txid,
+}
+
+impl TransactionJson {
+  pub fn new(
+    blockhash: Option<BlockHash>,
+    chain: Chain,
+    etching: Option<SpacedRune>,
+    inscription_count: u32,
+    transaction: Transaction,
+    txid: Txid,
+  ) -> Self {
+    Self {
+      blockhash,
+      chain,
+      etching,
+      inscription_count,
+      transaction,
+      txid,
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use {super::*, bitcoin::blockdata::script};
