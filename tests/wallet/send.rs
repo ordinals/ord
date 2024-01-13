@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::wallet::{create, send, balance},
+  ord::wallet::{balance, create, send},
   std::collections::BTreeMap,
 };
 

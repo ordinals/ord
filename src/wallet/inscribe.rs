@@ -1,7 +1,6 @@
 use {
   self::batch::{Batch, Batchfile, Mode},
   super::*,
-  wallet::transaction_builder::Target,
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
@@ -13,6 +12,7 @@ use {
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
+  wallet::transaction_builder::Target,
 };
 
 mod batch;
