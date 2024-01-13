@@ -54,7 +54,7 @@ This has a number of implications that you must understand in order to use
   lead to loss of inscriptions.
 
 - `ord wallet` commands automatically load the `ord` wallet given by the
-  `--wallet` option, which defaults to 'ord'. Keep in mind that after running
+  `--name` option, which defaults to 'ord'. Keep in mind that after running
   an `ord wallet` command, an `ord` wallet may be loaded.
 
 - Because `ord` has access to your Bitcoin Core wallets, `ord` should not be
