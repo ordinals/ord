@@ -1,4 +1,8 @@
-use {super::*, std::ops::Deref};
+use {
+  super::*,
+  ord::wallet::{create, inscriptions, receive},
+  std::ops::Deref,
+};
 
 #[test]
 fn inscribe_creates_inscriptions() {
@@ -336,7 +340,7 @@ fn inscribe_with_wallet_named_foo() {
 
   CommandBuilder::new("wallet --name foo create")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+    .run_and_deserialize_output::<create::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -398,7 +402,7 @@ fn inscribe_to_specific_destination() {
 
   let destination = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .run_and_deserialize_output::<receive::Output>()
     .address;
 
   let txid = CommandBuilder::new(format!(
@@ -462,7 +466,7 @@ fn inscribe_works_with_postage() {
   let inscriptions = CommandBuilder::new("wallet inscriptions".to_string())
     .write("foo.txt", [0; 350])
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::inscriptions::Output>>();
+    .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   pretty_assert_eq!(inscriptions[0].postage, 5 * COIN_VALUE);
 }

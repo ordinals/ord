@@ -1,7 +1,7 @@
 use {
   self::batch::{Batch, Batchfile, Mode},
   super::*,
-  crate::subcommand::wallet::transaction_builder::Target,
+  wallet::transaction_builder::Target,
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,

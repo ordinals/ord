@@ -1,6 +1,9 @@
 use {
   super::*,
-  ord::{subcommand::wallet::etch::Output, Rune},
+  ord::{
+    wallet::{balance, etch::Output},
+    Rune,
+  },
 };
 
 #[test]
@@ -176,7 +179,7 @@ fn runes_can_be_etched() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+    .run_and_deserialize_output::<balance::Output>();
 
   assert_eq!(output.runes.unwrap()[&Rune(RUNE)], 10000);
 }
@@ -251,7 +254,7 @@ fn etch_does_not_select_inscribed_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+    .run_and_deserialize_output::<ord::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 5000000000);
 
@@ -264,7 +267,7 @@ fn etch_does_not_select_inscribed_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+    .run_and_deserialize_output::<ord::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
 
@@ -303,7 +306,7 @@ fn inscribe_does_not_select_runic_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+    .run_and_deserialize_output::<ord::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 0);
@@ -401,7 +404,7 @@ fn send_inscription_does_not_select_runic_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+    .run_and_deserialize_output::<ord::wallet::balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 10000);

@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::{cardinals::CardinalUtxo, outputs::Output},
+  ord::wallet::{cardinals::CardinalUtxo, outputs::Output},
 };
 
 #[test]

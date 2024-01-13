@@ -14,7 +14,6 @@ pub mod subsidy;
 pub mod supply;
 pub mod teleburn;
 pub mod traits;
-pub mod wallet;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {

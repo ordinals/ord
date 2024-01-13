@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::sats::{OutputRare, OutputTsv},
+  ord::wallet::sats::{OutputRare, OutputTsv},
 };
 
 #[test]

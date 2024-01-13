@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::receive::Output};
+use {super::*, ord::wallet::receive};
 
 #[test]
 fn receive() {
@@ -7,7 +7,7 @@ fn receive() {
 
   let output = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<receive::Output>();
 
   assert!(output.address.is_valid_for_network(Network::Bitcoin));
 }

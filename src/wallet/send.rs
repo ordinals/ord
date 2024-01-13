@@ -1,4 +1,4 @@
-use {super::*, crate::subcommand::wallet::transaction_builder::Target};
+use {super::*, wallet::transaction_builder::Target};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {

@@ -94,7 +94,7 @@ pub use self::{
   runes::{Edict, Rune, RuneId, Runestone},
   sat::Sat,
   sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
+  wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -139,6 +139,7 @@ mod server_config;
 pub mod subcommand;
 mod tally;
 pub mod templates;
+pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

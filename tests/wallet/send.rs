@@ -1,4 +1,8 @@
-use {super::*, ord::subcommand::wallet::send::Output, std::collections::BTreeMap};
+use {
+  super::*,
+  ord::wallet::{create, send, balance},
+  std::collections::BTreeMap,
+};
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -15,7 +19,7 @@ fn inscriptions_can_be_sent() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(txid, output.transaction);
@@ -73,7 +77,7 @@ fn send_inscribed_sat() {
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -95,13 +99,13 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("wallet --name foo create")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+    .run_and_deserialize_output::<create::Output>();
 
   CommandBuilder::new(format!(
     "wallet --name foo send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 }
 
 #[test]
@@ -131,7 +135,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   assert_eq!(rpc_server.mempool()[0].txid(), output.transaction);
 }
@@ -202,7 +206,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:330"
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 }
 
 #[test]
@@ -283,7 +287,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -293,7 +297,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -303,7 +307,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 }
 
 #[test]
@@ -335,7 +339,7 @@ fn send_btc_with_fee_rate() {
     "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
   )
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -377,7 +381,7 @@ fn send_btc_locks_inscriptions() {
 
   CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<send::Output>();
 
   assert_eq!(
     rpc_server.sent(),
@@ -423,7 +427,7 @@ fn wallet_send_with_fee_rate() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -474,7 +478,7 @@ fn wallet_send_with_fee_rate_and_target_postage() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -586,7 +590,7 @@ fn sending_rune_works() {
     Rune(RUNE)
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -629,7 +633,7 @@ fn sending_spaced_rune_works() {
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000A•AAAAAAAAAAAA",
   )
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -686,7 +690,7 @@ fn sending_rune_with_divisibility_works() {
     rune
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -739,7 +743,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
     Rune(RUNE)
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -805,7 +809,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
     rune,
   ))
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Output>();
+  .run_and_deserialize_output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -912,8 +916,8 @@ fn sending_rune_does_not_send_inscription() {
   assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>(),
-    ord::subcommand::wallet::balance::Output {
+      .run_and_deserialize_output::<balance::Output>(),
+    balance::Output {
       cardinal: 10000,
       ordinal: 10000,
       runic: Some(0),
@@ -936,8 +940,8 @@ fn sending_rune_does_not_send_inscription() {
   assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .rpc_server(&rpc_server)
-      .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>(),
-    ord::subcommand::wallet::balance::Output {
+      .run_and_deserialize_output::<balance::Output>(),
+    balance::Output {
       cardinal: 0,
       ordinal: 10000,
       runic: Some(10000),

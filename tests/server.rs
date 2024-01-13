@@ -1,6 +1,6 @@
 use {
   super::*, crate::command_builder::ToArgs, ciborium::value::Integer,
-  ord::subcommand::wallet::send::Output,
+  ord::wallet::send::Output,
 };
 
 #[test]

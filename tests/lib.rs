@@ -55,13 +55,13 @@ macro_rules! assert_regex_match {
 
 const RUNE: u128 = 99246114928149462;
 
-type Inscribe = ord::subcommand::wallet::inscribe::Output;
-type Etch = ord::subcommand::wallet::etch::Output;
+type Inscribe = ord::wallet::inscribe::Output;
+type Etch = ord::wallet::etch::Output;
 
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+    .run_and_deserialize_output::<ord::wallet::create::Output>();
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
