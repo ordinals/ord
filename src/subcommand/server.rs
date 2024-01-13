@@ -21,11 +21,10 @@ use {
   axum::{
     body,
     extract::{Extension, Json, Path, Query},
-    headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
-    Router, TypedHeader,
+    Router,
   },
   axum_server::Handle,
   brotli::Decompressor,
@@ -877,32 +876,12 @@ impl Server {
     })
   }
 
-  async fn favicon(user_agent: Option<TypedHeader<UserAgent>>) -> ServerResult<Response> {
-    if user_agent
-      .map(|user_agent| {
-        user_agent.as_str().contains("Safari/")
-          && !user_agent.as_str().contains("Chrome/")
-          && !user_agent.as_str().contains("Chromium/")
-      })
-      .unwrap_or_default()
-    {
-      Ok(
-        Self::static_asset(Path("/favicon.png".to_string()))
-          .await
-          .into_response(),
-      )
-    } else {
-      Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            HeaderValue::from_static("default-src 'unsafe-inline'"),
-          )],
-          Self::static_asset(Path("/favicon.svg".to_string())).await?,
-        )
-          .into_response(),
-      )
-    }
+  async fn favicon() -> ServerResult<Response> {
+    Ok(
+      Self::static_asset(Path("/favicon.png".to_string()))
+        .await
+        .into_response(),
+    )
   }
 
   async fn feed(
@@ -1137,7 +1116,7 @@ impl Server {
 
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_static("public, max-age=31536000, immutable"),
+      HeaderValue::from_static("public, max-age=1209600, immutable"),
     );
 
     headers.insert(
@@ -3926,7 +3905,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
-      "public, max-age=31536000, immutable"
+      "public, max-age=1209600, immutable"
     );
   }
 
