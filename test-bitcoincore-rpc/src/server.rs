@@ -166,6 +166,34 @@ impl Api for Server {
     )
   }
 
+  fn get_tx_out(
+    &self,
+    txid: Txid,
+    vout: u32,
+    _include_mempool: Option<bool>,
+  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .utxos
+        .get(&OutPoint { txid, vout })
+        .map(|&value| GetTxOutResult {
+          bestblock: bitcoin::BlockHash::all_zeros(),
+          confirmations: 0,
+          value,
+          script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+            asm: String::new(),
+            hex: Vec::new(),
+            req_sigs: None,
+            type_: None,
+            addresses: Vec::new(),
+            address: None,
+          },
+          coinbase: false,
+        }),
+    )
+  }
+
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
     if let Some(wallet_name) = self.state().loaded_wallets.first().cloned() {
       Ok(GetWalletInfoResult {
