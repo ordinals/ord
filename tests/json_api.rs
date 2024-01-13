@@ -390,6 +390,37 @@ fn get_block() {
 }
 
 #[test]
+fn get_transaction() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  rpc_server.mine_blocks(1);
+
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+    .json_request("/tx/0");
+
+  dbg!(response);
+
+  // assert_eq!(response.status(), StatusCode::OK);
+
+  // let block_json: BlockJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  // assert_eq!(
+  //   block_json,
+  //   BlockJson {
+  //     hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+  //       .parse::<BlockHash>()
+  //       .unwrap(),
+  //     target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+  //       .parse::<BlockHash>()
+  //       .unwrap(),
+  //     best_height: 1,
+  //     height: 0,
+  //     inscriptions: vec![],
+  //   }
+  // );
+}
+
+#[test]
 fn get_status() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)

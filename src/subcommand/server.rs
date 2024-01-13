@@ -782,14 +782,14 @@ impl Server {
       let blockhash = index.get_transaction_blockhash(txid)?;
 
       Ok(if accept_json {
-        Json(TransactionJson::new(
+        Json(TransactionJson {
           blockhash,
-          server_config.chain,
-          index.get_etching(txid)?,
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
           inscription_count,
           transaction,
           txid,
-        ))
+        })
         .into_response()
       } else {
         TransactionHtml {
