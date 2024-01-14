@@ -290,12 +290,12 @@ impl Inscription {
   pub(crate) fn hidden(&self) -> bool {
     use regex::bytes::Regex;
 
+    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
+                        <h1 style=\"height:100%\">bvm.network</h1></body>";
+
     lazy_static! {
       static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
     }
-
-    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
-                        <h1 style=\"height:100%\">bvm.network</h1></body>";
 
     self
       .body()
