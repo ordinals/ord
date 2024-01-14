@@ -297,23 +297,12 @@ impl Inscription {
     const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
                         <h1 style=\"height:100%\">bvm.network</h1></body>";
 
-    if self
+    self
       .body()
       .map(|body| BRC_420.is_match(body) || body.starts_with(BVM_NETWORK))
       .unwrap_or_default()
-    {
-      return true;
-    }
-
-    if self.metaprotocol.is_some() {
-      return true;
-    }
-
-    if let Media::Code(_) | Media::Text | Media::Unknown = self.media() {
-      return true;
-    }
-
-    false
+      || self.metaprotocol.is_some()
+      || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 }
 
