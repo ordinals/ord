@@ -291,12 +291,15 @@ impl Inscription {
     use regex::bytes::Regex;
 
     lazy_static! {
-      static ref CONTENT: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
+      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
     }
+
+    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
+                        <h1 style=\"height:100%\">bvm.network</h1></body>";
 
     if self
       .body()
-      .map(|body| CONTENT.is_match(body))
+      .map(|body| BRC_420.is_match(body) || body.starts_with(BVM_NETWORK))
       .unwrap_or_default()
     {
       return true;
