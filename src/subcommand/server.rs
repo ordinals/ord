@@ -545,14 +545,14 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      let list = index.list(outpoint)?;
+      let sat_ranges = index.list(outpoint)?;
 
       let indexed;
 
       let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
         let mut value = 0;
 
-        if let Some(List::Unspent(ranges)) = &list {
+        if let Some(ranges) = &sat_ranges {
           for (start, end) in ranges {
             value += end - start;
           }
@@ -580,28 +580,32 @@ impl Server {
 
       let runes = index.get_rune_balances_for_outpoint(outpoint)?;
 
+      let spent = index.is_output_spent(outpoint)?;
+
       Ok(if accept_json {
         Json(OutputJson::new(
-          outpoint,
-          list,
           server_config.chain,
-          output,
           inscriptions,
+          outpoint,
+          output,
           indexed,
           runes
             .into_iter()
             .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
             .collect(),
+          sat_ranges,
+          spent,
         ))
         .into_response()
       } else {
         OutputHtml {
-          outpoint,
-          inscriptions,
-          list,
           chain: server_config.chain,
+          inscriptions,
+          outpoint,
           output,
           runes,
+          sat_ranges,
+          spent,
         }
         .page(server_config)
         .into_response()
@@ -2599,6 +2603,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        spent: false,
         runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
           .into_iter()
           .collect(),
@@ -2858,6 +2863,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
@@ -2879,6 +2885,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
     );
@@ -2896,6 +2903,7 @@ mod tests {
   <dt>value</dt><dd>0</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>0 Sat Ranges</h2>
 <ul class=monospace>
@@ -2921,6 +2929,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
