@@ -1486,22 +1486,6 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
-  pub(crate) fn get_transaction_blockhash(&self, txid: Txid) -> Result<Option<BlockHash>> {
-    Ok(
-      self
-        .client
-        .get_raw_transaction_info(&txid, None)
-        .into_option()?
-        .and_then(|info| {
-          if info.in_active_chain.unwrap_or_default() {
-            info.blockhash
-          } else {
-            None
-          }
-        }),
-    )
-  }
-
   pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;
