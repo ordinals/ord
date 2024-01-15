@@ -141,6 +141,13 @@ impl Inscribe {
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
+        if let Some(delegate) = self.delegate {
+          ensure! {
+            index.inscription_exists(delegate)?,
+            "delegate {delegate} does not exist"
+          }
+        }
+
         inscriptions = vec![Inscription::from_file(
           chain,
           self.compress,

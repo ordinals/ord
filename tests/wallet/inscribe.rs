@@ -1800,3 +1800,21 @@ fn server_can_decompress_brotli() {
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(response.bytes().unwrap().deref(), [0; 350_000]);
 }
+
+#[test]
+fn inscribe_with_non_existent_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = "0000000000000000000000000000000000000000000000000000000000000000i0";
+
+  CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {parent_id} --file child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_stderr(format!("error: delegate {parent_id} does not exist\n"))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
