@@ -430,10 +430,8 @@ fn get_transaction() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let transaction_json: TransactionJson = serde_json::from_str(&response.text().unwrap()).unwrap();
-
   assert_eq!(
-    transaction_json,
+    serde_json::from_str::<TransactionJson>(&response.text().unwrap()).unwrap(),
     TransactionJson {
       blockhash: None,
       chain: Chain::Mainnet,
