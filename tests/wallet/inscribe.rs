@@ -1853,7 +1853,7 @@ fn batch_inscribe_with_delegate_inscription() {
 
   let (delegate, _) = inscribe(&rpc_server);
 
-  let inscribe = CommandBuilder::new(format!("wallet inscribe --fee-rate 1.0 --batch batch.yaml"))
+  let inscribe = CommandBuilder::new("wallet inscribe --fee-rate 1.0 --batch batch.yaml")
     .write("inscription.txt", "INSCRIPTION")
     .write(
       "batch.yaml",
@@ -1887,7 +1887,7 @@ fn batch_inscribe_with_non_existent_delegate_inscription() {
 
   let delegate = "0000000000000000000000000000000000000000000000000000000000000000i0";
 
-  CommandBuilder::new(format!("wallet inscribe --fee-rate 1.0 --batch batch.yaml"))
+  CommandBuilder::new("wallet inscribe --fee-rate 1.0 --batch batch.yaml")
     .write("hello.txt", "Hello, world!")
     .write(
       "batch.yaml",
