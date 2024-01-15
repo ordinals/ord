@@ -628,7 +628,7 @@ impl Batchfile {
       inscriptions.push(Inscription::from_file(
         chain,
         compress,
-        None,
+        entry.delegate,
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
