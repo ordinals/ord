@@ -1,11 +1,13 @@
 use super::*;
 
-#[derive(Boilerplate)]
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct BlocksHtml {
   last: u32,
   blocks: Vec<BlockHash>,
   featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
 }
+
+pub(crate) type BlocksJson = BlocksHtml;
 
 impl BlocksHtml {
   pub(crate) fn new(

@@ -9,13 +9,13 @@ use {
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, ChildrenHtml, ChildrenJson, ClockSvg, CollectionsHtml,
-      HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsBlockHtml,
-      InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml,
-      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson,
-      SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
+      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
+      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
+      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -694,7 +694,8 @@ impl Server {
   async fn blocks(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<BlocksHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
     task::block_in_place(|| {
       let blocks = index.blocks(100)?;
       let mut featured_blocks = BTreeMap::new();
@@ -705,7 +706,13 @@ impl Server {
         featured_blocks.insert(*hash, inscriptions);
       }
 
-      Ok(BlocksHtml::new(blocks, featured_blocks).page(server_config))
+      Ok(if accept_json {
+        Json(BlocksJson::new(blocks, featured_blocks)).into_response()
+      } else {
+        BlocksHtml::new(blocks, featured_blocks)
+          .page(server_config)
+          .into_response()
+      })
     })
   }
 
