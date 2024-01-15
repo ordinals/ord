@@ -1,18 +1,18 @@
 use super::*;
 
-pub(super) struct Batch {
-  pub(super) commit_fee_rate: FeeRate,
-  pub(super) destinations: Vec<Address>,
-  pub(super) dry_run: bool,
-  pub(super) inscriptions: Vec<Inscription>,
-  pub(super) mode: Mode,
-  pub(super) no_backup: bool,
-  pub(super) no_limit: bool,
-  pub(super) parent_info: Option<ParentInfo>,
-  pub(super) postage: Amount,
-  pub(super) reinscribe: bool,
-  pub(super) reveal_fee_rate: FeeRate,
-  pub(super) satpoint: Option<SatPoint>,
+pub(crate) struct Batch {
+  pub(crate) commit_fee_rate: FeeRate,
+  pub(crate) destinations: Vec<Address>,
+  pub(crate) dry_run: bool,
+  pub(crate) inscriptions: Vec<Inscription>,
+  pub(crate) mode: Mode,
+  pub(crate) no_backup: bool,
+  pub(crate) no_limit: bool,
+  pub(crate) parent_info: Option<ParentInfo>,
+  pub(crate) postage: Amount,
+  pub(crate) reinscribe: bool,
+  pub(crate) reveal_fee_rate: FeeRate,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl Default for Batch {
