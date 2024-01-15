@@ -819,6 +819,20 @@ mod tests {
       Some("  /content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0  \n"),
       true,
     );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>"#,
+      ),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>foo"#,
+      ),
+      true,
+    );
 
     assert!(Inscription {
       content_type: Some("text/plain".as_bytes().into()),
