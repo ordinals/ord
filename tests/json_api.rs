@@ -391,6 +391,33 @@ fn get_block() {
 }
 
 #[test]
+fn get_blocks() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let blocks = rpc_server
+    .mine_blocks(12)
+    .iter()
+    .map(|block| block.block_hash())
+    .collect();
+
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+    .json_request("/block/0");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let blocks_json: BlocksJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(
+    blocks_json,
+    BlocksJson {
+      last: 12,
+      blocks,
+      featured_blocks: BTreeMap::new(),
+    }
+  );
+}
+
+#[test]
 fn get_transaction() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 

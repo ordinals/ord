@@ -29,7 +29,7 @@ pub(crate) use {
 };
 
 pub mod block;
-mod blocks;
+pub mod blocks;
 mod children;
 mod clock;
 pub mod collections;
