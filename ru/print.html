@@ -1106,32 +1106,31 @@ postage: 12345
 # sat: 5000000000
 
 # inscriptions to inscribe
-#
-# each inscription has the following fields:
-#
-# `file`: path to inscription contents
-# `metadata`: inscription metadata (optional)
-# `metaprotocol`: inscription metaprotocol (optional)
-# `destination`: destination for that inscription (optional). Note: If no destination is specified a new wallet change address will be used
 inscriptions:
-  - file: mango.avif
-    metadata:
-      title: Delicious Mangos
-      description: &gt;
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper,
-        ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit
-        metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
-        mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
-        dolor et luctus euismod.
-    destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+  # path to inscription content
+- file: mango.avif
+  # inscription to delegate content to (optional)
+  delegate: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+  # destination (optional, if no destination is specified a new wallet change address will be used)
+  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+  # inscription metadata (optional)
+  metadata:
+    title: Delicious Mangos
+    description: &gt;
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper,
+      ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit
+      metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
+      mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
+      dolor et luctus euismod.
+    # inscription metaprotocol (optional)
+    metaprotocol: DOPEPROTOCOL-42069
 
-  - file: token.json
-    metaprotocol: brc-20
+- file: token.json
 
-  - file: tulip.png
-    metadata:
-      author: Satoshi Nakamoto
-    destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6
+- file: tulip.png
+  destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6
+  metadata:
+    author: Satoshi Nakamoto
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="Охота-на-сатоши"><a class="header" href="#Охота-на-сатоши">Охота на сатоши</a></h1>
 <p><em>Данное руководство устарело. С момента его написания бинарник <code>ord</code> был изменен таким образом, чтобы собирать полный индекс сатоши только при наличии флага <code>--index-sats</code>. Кроме того, <code>ord</code> теперь имеет встроенный кошелек, который оборачивает кошелек Bitcoin Core. Смотрите раздел <code>ord wallet --help</code>.</em></p>
