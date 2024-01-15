@@ -37,6 +37,7 @@ pub(crate) struct Wallet {
 }
 
 #[derive(Debug, Parser)]
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
   #[command(about = "Get wallet balance")]
   Balance,
