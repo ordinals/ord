@@ -16,8 +16,8 @@ pub(super) struct Batch {
 }
 
 impl Default for Batch {
-  fn default() -> Batch {
-    Batch {
+  fn default() -> Self {
+    Self {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
@@ -543,6 +543,7 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
+  pub(crate) delegate: Option<InscriptionId>,
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
@@ -618,15 +619,16 @@ impl Batchfile {
     for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
-        &entry.file,
-        self.parent,
-        if i == 0 { None } else { Some(pointer) },
-        entry.metaprotocol.clone(),
+        compress,
+        None,
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
-        compress,
+        entry.metaprotocol.clone(),
+        self.parent,
+        &entry.file,
+        if i == 0 { None } else { Some(pointer) },
       )?);
 
       pointer += postage.to_sat();

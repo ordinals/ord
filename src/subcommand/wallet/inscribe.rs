@@ -52,7 +52,8 @@ pub(crate) struct Inscribe {
     long,
     help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
-      "cbor_metadata", "destination", "file", "json_metadata", "metaprotocol", "parent", "postage", "reinscribe", "satpoint"
+      "cbor_metadata", "delegate", "destination", "file", "json_metadata", "metaprotocol",
+      "parent", "postage", "reinscribe", "satpoint"
     ]
   )]
   pub(crate) batch: Option<PathBuf>,
@@ -69,6 +70,8 @@ pub(crate) struct Inscribe {
   pub(crate) commit_fee_rate: Option<FeeRate>,
   #[arg(long, help = "Compress inscription content with brotli.")]
   pub(crate) compress: bool,
+  #[arg(long, help = "Delegate inscriptio content to <DELEGATE>.")]
+  pub(crate) delegate: Option<InscriptionId>,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Don't sign or broadcast transactions.")]
@@ -140,12 +143,13 @@ impl Inscribe {
 
         inscriptions = vec![Inscription::from_file(
           chain,
-          file,
-          self.parent,
-          None,
-          self.metaprotocol,
-          metadata,
           self.compress,
+          self.delegate,
+          metadata,
+          self.metaprotocol,
+          self.parent,
+          file,
+          None,
         )?];
 
         mode = Mode::SeparateOutputs;
@@ -1327,6 +1331,10 @@ inscriptions:
   fn flags_conflict_with_batch() {
     for (flag, value) in [
       ("--file", Some("foo")),
+      (
+        "--delegate",
+        Some("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33bi0"),
+      ),
       (
         "--destination",
         Some("tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm"),
