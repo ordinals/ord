@@ -1,4 +1,7 @@
-use {super::*, ord::subcommand::list::Output};
+use {
+  super::*,
+  ord::subcommand::list::{Output, Range},
+};
 
 #[test]
 fn output_found() {
@@ -7,21 +10,21 @@ fn output_found() {
     "--index-sats list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
   )
   .rpc_server(&rpc_server)
-  .run_and_deserialize_output::<Vec<Output>>();
+  .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     output,
-    vec![Output {
-      output: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
-        .parse()
-        .unwrap(),
-      start: 0,
-      end: 50 * COIN_VALUE,
-      size: 50 * COIN_VALUE,
-      offset: 0,
-      rarity: "mythic".parse().unwrap(),
-      name: "nvtdijuwxlp".into(),
-    }]
+    Output {
+      ranges: Some(vec![Range {
+        end: 50 * COIN_VALUE,
+        name: "nvtdijuwxlp".into(),
+        offset: 0,
+        rarity: "mythic".parse().unwrap(),
+        size: 50 * COIN_VALUE,
+        start: 0,
+      }]),
+      spent: false,
+    }
   );
 }
 

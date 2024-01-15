@@ -78,12 +78,6 @@ define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
-#[derive(Debug, PartialEq)]
-pub enum List {
-  Spent,
-  Unspent(Vec<(u64, u64)>),
-}
-
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
   Schema = 0,
@@ -99,6 +93,7 @@ pub(crate) enum Statistic {
   SatRanges = 10,
   UnboundInscriptions = 11,
   IndexTransactions = 12,
+  IndexSpentSats = 13,
 }
 
 impl Statistic {
@@ -197,6 +192,7 @@ pub struct Index {
   height_limit: Option<u32>,
   index_runes: bool,
   index_sats: bool,
+  index_spent_sats: bool,
   index_transactions: bool,
   options: Options,
   path: PathBuf,
@@ -237,10 +233,6 @@ impl Index {
       redb::Durability::Immediate
     };
 
-    let index_runes;
-    let index_sats;
-    let index_transactions;
-
     let index_path = path.clone();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
@@ -269,10 +261,8 @@ impl Index {
     {
       Ok(database) => {
         {
-          let tx = database.begin_read()?;
-          let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
-
-          let schema_version = statistics
+          let schema_version = database.begin_read()?
+            .open_table(STATISTIC_TO_COUNT)?
             .get(&Statistic::Schema.key())?
             .map(|x| x.value())
             .unwrap_or(0);
@@ -291,11 +281,6 @@ impl Index {
             cmp::Ordering::Equal => {
             }
           }
-
-
-          index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
-          index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
-          index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
         }
 
         database
@@ -338,14 +323,35 @@ impl Index {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
-          index_runes = options.index_runes();
-          index_sats = options.index_sats;
-          index_transactions = options.index_transactions;
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexRunes,
+            u64::from(options.index_runes()),
+          )?;
 
-          Self::set_statistic(&mut statistics, Statistic::IndexRunes, u64::from(index_runes))?;
-          Self::set_statistic(&mut statistics, Statistic::IndexSats, u64::from(index_sats))?;
-          Self::set_statistic(&mut statistics, Statistic::IndexTransactions, u64::from(index_transactions))?;
-          Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexSats,
+            u64::from(options.index_sats || options.index_spent_sats),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexSpentSats,
+            u64::from(options.index_spent_sats),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexTransactions,
+            u64::from(options.index_transactions),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::Schema,
+            SCHEMA_VERSION,
+          )?;
         }
 
         tx.commit()?;
@@ -354,6 +360,20 @@ impl Index {
       }
       Err(error) => bail!("failed to open index: {error}"),
     };
+
+    let index_runes;
+    let index_sats;
+    let index_spent_sats;
+    let index_transactions;
+
+    {
+      let tx = database.begin_read()?;
+      let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
+      index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
+      index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
+      index_spent_sats = Self::is_statistic_set(&statistics, Statistic::IndexSpentSats)?;
+      index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
+    }
 
     let genesis_block_coinbase_transaction =
       options.chain().genesis_block().coinbase().unwrap().clone();
@@ -368,6 +388,7 @@ impl Index {
       height_limit: options.height_limit,
       index_runes,
       index_sats,
+      index_spent_sats,
       index_transactions,
       options: options.clone(),
       path,
@@ -1481,17 +1502,6 @@ impl Index {
     )
   }
 
-  pub(crate) fn is_transaction_in_active_chain(&self, txid: Txid) -> Result<bool> {
-    Ok(
-      self
-        .client
-        .get_raw_transaction_info(&txid, None)
-        .into_option()?
-        .and_then(|info| info.in_active_chain)
-        .unwrap_or(false),
-    )
-  }
-
   pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;
@@ -1573,41 +1583,60 @@ impl Index {
     Ok(Some(result))
   }
 
-  fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
     Ok(
       self
         .database
         .begin_read()?
         .open_table(OUTPOINT_TO_SAT_RANGES)?
-        .get(&outpoint)?
-        .map(|outpoint| outpoint.value().to_vec()),
+        .get(&outpoint.store())?
+        .map(|outpoint| outpoint.value().to_vec())
+        .map(|sat_ranges| {
+          sat_ranges
+            .chunks_exact(11)
+            .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
+            .collect::<Vec<(u64, u64)>>()
+        }),
     )
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    if !self.index_sats || outpoint == unbound_outpoint() {
-      return Ok(None);
+  pub(crate) fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
+    Ok(
+      outpoint != OutPoint::null()
+        && outpoint != self.options.chain().genesis_coinbase_outpoint()
+        && self
+          .client
+          .get_tx_out(&outpoint.txid, outpoint.vout, Some(false))?
+          .is_none(),
+    )
+  }
+
+  pub(crate) fn is_output_in_active_chain(&self, outpoint: OutPoint) -> Result<bool> {
+    if outpoint == OutPoint::null() {
+      return Ok(true);
     }
 
-    let array = outpoint.store();
-
-    let sat_ranges = self.list_inner(array)?;
-
-    match sat_ranges {
-      Some(sat_ranges) => Ok(Some(List::Unspent(
-        sat_ranges
-          .chunks_exact(11)
-          .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
-          .collect(),
-      ))),
-      None => {
-        if self.is_transaction_in_active_chain(outpoint.txid)? {
-          Ok(Some(List::Spent))
-        } else {
-          Ok(None)
-        }
-      }
+    if outpoint == self.options.chain().genesis_coinbase_outpoint() {
+      return Ok(true);
     }
+
+    let Some(info) = self
+      .client
+      .get_raw_transaction_info(&outpoint.txid, None)
+      .into_option()?
+    else {
+      return Ok(false);
+    };
+
+    if !info.in_active_chain.unwrap_or_default() {
+      return Ok(false);
+    }
+
+    if usize::try_from(outpoint.vout).unwrap() >= info.vout.len() {
+      return Ok(false);
+    }
+
+    Ok(true)
   }
 
   pub(crate) fn block_time(&self, height: Height) -> Result<Blocktime> {
@@ -2247,7 +2276,7 @@ mod tests {
         )
         .unwrap()
         .unwrap(),
-      List::Unspent(vec![(0, 50 * COIN_VALUE)])
+      &[(0, 50 * COIN_VALUE)],
     )
   }
 
@@ -2257,7 +2286,7 @@ mod tests {
     let txid = context.mine_blocks(1)[0].txdata[0].txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![(50 * COIN_VALUE, 100 * COIN_VALUE)])
+      &[(50 * COIN_VALUE, 100 * COIN_VALUE)],
     )
   }
 
@@ -2278,12 +2307,12 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![(50 * COIN_VALUE, 75 * COIN_VALUE)])
+      &[(50 * COIN_VALUE, 75 * COIN_VALUE)],
     );
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 1)).unwrap().unwrap(),
-      List::Unspent(vec![(75 * COIN_VALUE, 100 * COIN_VALUE)])
+      &[(75 * COIN_VALUE, 100 * COIN_VALUE)],
     );
   }
 
@@ -2303,10 +2332,10 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![
+      &[
         (50 * COIN_VALUE, 100 * COIN_VALUE),
         (100 * COIN_VALUE, 150 * COIN_VALUE)
-      ]),
+      ],
     );
   }
 
@@ -2326,12 +2355,12 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![(50 * COIN_VALUE, 7499999995)]),
+      &[(50 * COIN_VALUE, 7499999995)],
     );
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 1)).unwrap().unwrap(),
-      List::Unspent(vec![(7499999995, 9999999990)]),
+      &[(7499999995, 9999999990)],
     );
 
     assert_eq!(
@@ -2340,7 +2369,7 @@ mod tests {
         .list(OutPoint::new(coinbase_txid, 0))
         .unwrap()
         .unwrap(),
-      List::Unspent(vec![(10000000000, 15000000000), (9999999990, 10000000000)])
+      &[(10000000000, 15000000000), (9999999990, 10000000000)],
     );
   }
 
@@ -2370,11 +2399,11 @@ mod tests {
         .list(OutPoint::new(coinbase_txid, 0))
         .unwrap()
         .unwrap(),
-      List::Unspent(vec![
+      &[
         (15000000000, 20000000000),
         (9999999990, 10000000000),
         (14999999990, 15000000000)
-      ])
+      ],
     );
   }
 
@@ -2393,7 +2422,7 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(Vec::new())
+      &[],
     );
   }
 
@@ -2420,7 +2449,7 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(Vec::new())
+      &[],
     );
   }
 
@@ -2435,10 +2464,7 @@ mod tests {
     });
     context.mine_blocks(1);
     let txid = context.rpc_server.tx(1, 0).txid();
-    assert_eq!(
-      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Spent,
-    );
+    assert_matches!(context.index.list(OutPoint::new(txid, 0)).unwrap(), None);
   }
 
   #[test]
@@ -3012,10 +3038,7 @@ mod tests {
       .args(["--index-sats", "--first-inscription-height", "10"])
       .build();
 
-    let null_ranges = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
-      List::Unspent(ranges) => ranges,
-      _ => panic!(),
-    };
+    let null_ranges = || context.index.list(OutPoint::null()).unwrap().unwrap();
 
     assert!(null_ranges().is_empty());
 
@@ -5837,5 +5860,188 @@ mod tests {
 
       assert_eq!(sat, entry.sat);
     }
+  }
+
+  #[test]
+  fn index_spent_sats_retains_spent_sat_range_entries() {
+    let ranges = {
+      let context = Context::builder().arg("--index-sats").build();
+
+      context.mine_blocks(1);
+
+      let outpoint = OutPoint {
+        txid: context.rpc_server.tx(1, 0).into(),
+        vout: 0,
+      };
+
+      let ranges = context.index.list(outpoint).unwrap().unwrap();
+
+      assert!(!ranges.is_empty());
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, Default::default())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      assert!(context.index.list(outpoint).unwrap().is_none());
+
+      ranges
+    };
+
+    {
+      let context = Context::builder()
+        .arg("--index-sats")
+        .arg("--index-spent-sats")
+        .build();
+
+      context.mine_blocks(1);
+
+      let outpoint = OutPoint {
+        txid: context.rpc_server.tx(1, 0).into(),
+        vout: 0,
+      };
+
+      let unspent_ranges = context.index.list(outpoint).unwrap().unwrap();
+
+      assert!(!unspent_ranges.is_empty());
+
+      assert_eq!(unspent_ranges, ranges);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, Default::default())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let spent_ranges = context.index.list(outpoint).unwrap().unwrap();
+
+      assert_eq!(spent_ranges, ranges);
+    }
+  }
+
+  #[test]
+  fn index_spent_sats_implies_index_sats() {
+    let context = Context::builder().arg("--index-spent-sats").build();
+
+    context.mine_blocks(1);
+
+    let outpoint = OutPoint {
+      txid: context.rpc_server.tx(1, 0).into(),
+      vout: 0,
+    };
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context.index.list(outpoint).unwrap().is_some());
+  }
+
+  #[test]
+  fn spent_sats_are_retained_after_flush() {
+    let context = Context::builder().arg("--index-spent-sats").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks_with_update(1, false);
+
+    let outpoint = OutPoint { txid, vout: 0 };
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context.index.list(outpoint).unwrap().is_some());
+  }
+
+  #[test]
+  fn is_output_spent() {
+    let context = Context::builder().build();
+
+    assert!(!context.index.is_output_spent(OutPoint::null()).unwrap());
+    assert!(!context
+      .index
+      .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
+      .unwrap());
+
+    context.mine_blocks(1);
+
+    assert!(!context
+      .index
+      .is_output_spent(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context
+      .index
+      .is_output_spent(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+  }
+
+  #[test]
+  fn is_output_in_active_chain() {
+    let context = Context::builder().build();
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(OutPoint::null())
+      .unwrap());
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
+      .unwrap());
+
+    context.mine_blocks(1);
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+
+    assert!(!context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 1,
+      })
+      .unwrap());
+
+    assert!(!context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: Txid::all_zeros(),
+        vout: 0,
+      })
+      .unwrap());
   }
 }

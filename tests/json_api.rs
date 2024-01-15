@@ -330,15 +330,7 @@ fn get_output() {
   pretty_assert_eq!(
     output_json,
     OutputJson {
-      value: 3 * 50 * COIN_VALUE,
-      script_pubkey: "".to_string(),
       address: None,
-      transaction: txid.to_string(),
-      sat_ranges: Some(vec![
-        (5000000000, 10000000000,),
-        (10000000000, 15000000000,),
-        (15000000000, 20000000000,),
-      ],),
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
@@ -346,6 +338,15 @@ fn get_output() {
       ],
       indexed: true,
       runes: BTreeMap::new(),
+      sat_ranges: Some(vec![
+        (5000000000, 10000000000,),
+        (10000000000, 15000000000,),
+        (15000000000, 20000000000,),
+      ],),
+      script_pubkey: "".to_string(),
+      spent: false,
+      transaction: txid.to_string(),
+      value: 3 * 50 * COIN_VALUE,
     }
   );
 }
