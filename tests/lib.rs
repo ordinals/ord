@@ -16,6 +16,7 @@ use {
     templates::{
       block::BlockJson, inscription::InscriptionJson, inscriptions::InscriptionsJson,
       output::OutputJson, rune::RuneJson, runes::RunesJson, sat::SatJson, status::StatusHtml,
+      transaction::TransactionJson,
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },

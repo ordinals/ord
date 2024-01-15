@@ -393,31 +393,28 @@ fn get_block() {
 fn get_transaction() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  rpc_server.mine_blocks(1);
+  let transaction = rpc_server.mine_blocks(1)[0].txdata[0].clone();
+
+  let txid = transaction.txid();
 
   let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
-    .json_request("/tx/0");
+    .json_request(format!("/tx/{txid}"));
 
-  dbg!(response);
+  assert_eq!(response.status(), StatusCode::OK);
 
-  // assert_eq!(response.status(), StatusCode::OK);
+  let transaction_json: TransactionJson = serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  // let block_json: BlockJson = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  // assert_eq!(
-  //   block_json,
-  //   BlockJson {
-  //     hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-  //       .parse::<BlockHash>()
-  //       .unwrap(),
-  //     target: "00000000ffff0000000000000000000000000000000000000000000000000000"
-  //       .parse::<BlockHash>()
-  //       .unwrap(),
-  //     best_height: 1,
-  //     height: 0,
-  //     inscriptions: vec![],
-  //   }
-  // );
+  assert_eq!(
+    transaction_json,
+    TransactionJson {
+      blockhash: None,
+      chain: Chain::Mainnet,
+      etching: None,
+      inscription_count: 0,
+      transaction,
+      txid,
+    }
+  );
 }
 
 #[test]

@@ -1,13 +1,15 @@
 use super::*;
 
+pub type TransactionJson = TransactionHtml;
+
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct TransactionHtml {
-  pub(crate) blockhash: Option<BlockHash>,
-  pub(crate) chain: Chain,
-  pub(crate) etching: Option<SpacedRune>,
-  pub(crate) inscription_count: u32,
-  pub(crate) transaction: Transaction,
-  pub(crate) txid: Txid,
+pub struct TransactionHtml {
+  pub blockhash: Option<BlockHash>,
+  pub chain: Chain,
+  pub etching: Option<SpacedRune>,
+  pub inscription_count: u32,
+  pub transaction: Transaction,
+  pub txid: Txid,
 }
 
 impl PageContent for TransactionHtml {
@@ -15,8 +17,6 @@ impl PageContent for TransactionHtml {
     format!("Transaction {}", self.txid)
   }
 }
-
-pub(crate) type TransactionJson = TransactionHtml;
 
 #[cfg(test)]
 mod tests {

@@ -48,7 +48,7 @@ pub mod rune;
 pub mod runes;
 pub mod sat;
 pub mod status;
-mod transaction;
+pub mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml<T: PageContent> {
