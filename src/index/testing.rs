@@ -82,8 +82,14 @@ impl Context {
   }
 
   pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {
+    self.mine_blocks_with_update(n, true)
+  }
+
+  pub(crate) fn mine_blocks_with_update(&self, n: u64, update: bool) -> Vec<Block> {
     let blocks = self.rpc_server.mine_blocks(n);
-    self.index.update().unwrap();
+    if update {
+      self.index.update().unwrap();
+    }
     blocks
   }
 

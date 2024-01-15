@@ -332,7 +332,7 @@ impl Index {
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(options.index_sats),
+            u64::from(options.index_sats || options.index_spent_sats),
           )?;
 
           Self::set_statistic(
@@ -5920,5 +5920,128 @@ mod tests {
 
       assert_eq!(spent_ranges, ranges);
     }
+  }
+
+  #[test]
+  fn index_spent_sats_implies_index_sats() {
+    let context = Context::builder().arg("--index-spent-sats").build();
+
+    context.mine_blocks(1);
+
+    let outpoint = OutPoint {
+      txid: context.rpc_server.tx(1, 0).into(),
+      vout: 0,
+    };
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context.index.list(outpoint).unwrap().is_some());
+  }
+
+  #[test]
+  fn spent_sats_are_retained_after_flush() {
+    let context = Context::builder().arg("--index-spent-sats").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks_with_update(1, false);
+
+    let outpoint = OutPoint { txid, vout: 0 };
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context.index.list(outpoint).unwrap().is_some());
+  }
+
+  #[test]
+  fn is_output_spent() {
+    let context = Context::builder().build();
+
+    assert!(!context.index.is_output_spent(OutPoint::null()).unwrap());
+    assert!(!context
+      .index
+      .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
+      .unwrap());
+
+    context.mine_blocks(1);
+
+    assert!(!context
+      .index
+      .is_output_spent(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert!(context
+      .index
+      .is_output_spent(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+  }
+
+  #[test]
+  fn is_output_in_active_chain() {
+    let context = Context::builder().build();
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(OutPoint::null())
+      .unwrap());
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
+      .unwrap());
+
+    context.mine_blocks(1);
+
+    assert!(context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 0,
+      })
+      .unwrap());
+
+    assert!(!context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: context.rpc_server.tx(1, 0).txid(),
+        vout: 1,
+      })
+      .unwrap());
+
+    assert!(!context
+      .index
+      .is_output_in_active_chain(OutPoint {
+        txid: Txid::all_zeros(),
+        vout: 0,
+      })
+      .unwrap());
   }
 }
