@@ -70,7 +70,7 @@ pub(crate) struct Inscribe {
   pub(crate) commit_fee_rate: Option<FeeRate>,
   #[arg(long, help = "Compress inscription content with brotli.")]
   pub(crate) compress: bool,
-  #[arg(long, help = "Delegate inscriptio content to <DELEGATE>.")]
+  #[arg(long, help = "Delegate inscription content to <DELEGATE>.")]
   pub(crate) delegate: Option<InscriptionId>,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
