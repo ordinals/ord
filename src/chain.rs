@@ -70,6 +70,13 @@ impl Chain {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }
 
+  pub(crate) fn genesis_coinbase_outpoint(self) -> OutPoint {
+    OutPoint {
+      txid: self.genesis_block().coinbase().unwrap().txid(),
+      vout: 0,
+    }
+  }
+
   pub(crate) fn address_from_script(
     self,
     script: &Script,
