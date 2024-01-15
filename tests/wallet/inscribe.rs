@@ -1802,7 +1802,7 @@ fn server_can_decompress_brotli() {
 }
 
 #[test]
-fn inscribe_with_non_existent_delegate_inscription() {
+fn file_inscribe_with_non_existent_delegate_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
@@ -1817,4 +1817,30 @@ fn inscribe_with_non_existent_delegate_inscription() {
   .expected_stderr(format!("error: delegate {parent_id} does not exist\n"))
   .expected_exit_code(1)
   .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_non_existent_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = "0000000000000000000000000000000000000000000000000000000000000000i0";
+
+  CommandBuilder::new(format!("wallet inscribe --fee-rate 1.0 --batch batch.yaml"))
+    .write("hello.txt", "Hello, world!")
+    .write(
+      "batch.yaml",
+      format!(
+        "mode: shared-output
+inscriptions:
+- delegate: {parent_id}
+  file: hello.txt
+"
+      ),
+    )
+    .rpc_server(&rpc_server)
+    .expected_stderr(format!("error: delegate {parent_id} does not exist\n"))
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
 }

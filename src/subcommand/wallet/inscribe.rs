@@ -179,6 +179,7 @@ impl Inscribe {
           .unwrap_or(TARGET_POSTAGE);
 
         (inscriptions, destinations) = batchfile.inscriptions(
+          &index,
           &client,
           chain,
           parent_info.as_ref().map(|info| info.tx_out.value),

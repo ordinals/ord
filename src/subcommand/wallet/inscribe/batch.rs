@@ -586,6 +586,7 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
+    index: &Index,
     client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
@@ -617,6 +618,13 @@ impl Batchfile {
 
     let mut inscriptions = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
+      if let Some(delegate) = entry.delegate {
+        ensure! {
+          index.inscription_exists(delegate)?,
+          "delegate {delegate} does not exist"
+        }
+      }
+
       inscriptions.push(Inscription::from_file(
         chain,
         compress,
