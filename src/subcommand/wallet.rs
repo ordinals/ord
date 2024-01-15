@@ -123,11 +123,19 @@ pub(crate) fn get_unspent_output_ranges(
   index: &Index,
 ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   get_unspent_outputs(client, index)?
-    .into_keys()
-    .map(|outpoint| match index.list(outpoint)? {
-      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-      None => bail!("index has not seen {outpoint}"),
+    .iter()
+    .map(|(outpoint, value)| match index.list(*outpoint)? {
+      Some(sat_ranges) => {
+        assert_eq!(
+          sat_ranges
+            .iter()
+            .map(|(start, end)| end - start)
+            .sum::<u64>(),
+          value.to_sat()
+        );
+        Ok((*outpoint, sat_ranges))
+      }
+      None => bail!("index does not have sat index"),
     })
     .collect()
 }

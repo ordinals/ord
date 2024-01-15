@@ -166,6 +166,34 @@ impl Api for Server {
     )
   }
 
+  fn get_tx_out(
+    &self,
+    txid: Txid,
+    vout: u32,
+    _include_mempool: Option<bool>,
+  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .utxos
+        .get(&OutPoint { txid, vout })
+        .map(|&value| GetTxOutResult {
+          bestblock: bitcoin::BlockHash::all_zeros(),
+          confirmations: 0,
+          value,
+          script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+            asm: String::new(),
+            hex: Vec::new(),
+            req_sigs: None,
+            type_: None,
+            addresses: Vec::new(),
+            address: None,
+          },
+          coinbase: false,
+        }),
+    )
+  }
+
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
     if let Some(wallet_name) = self.state().loaded_wallets.first().cloned() {
       Ok(GetWalletInfoResult {
@@ -484,7 +512,7 @@ impl Api for Server {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     if verbose.unwrap_or(false) {
       match self.state().transactions.get(&txid) {
-        Some(_) => Ok(
+        Some(transaction) => Ok(
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
             hex: Vec::new(),
@@ -495,7 +523,23 @@ impl Api for Server {
             version: 2,
             locktime: 0,
             vin: Vec::new(),
-            vout: Vec::new(),
+            vout: transaction
+              .output
+              .iter()
+              .enumerate()
+              .map(|(n, output)| GetRawTransactionResultVout {
+                n: n.try_into().unwrap(),
+                value: Amount::from_sat(output.value),
+                script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+                  asm: String::new(),
+                  hex: Vec::new(),
+                  req_sigs: None,
+                  type_: None,
+                  addresses: Vec::new(),
+                  address: None,
+                },
+              })
+              .collect(),
             blockhash: None,
             confirmations: Some(1),
             time: None,
