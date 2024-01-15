@@ -433,7 +433,6 @@ fn get_transaction() {
   assert_eq!(
     serde_json::from_str::<TransactionJson>(&response.text().unwrap()).unwrap(),
     TransactionJson {
-      blockhash: None,
       chain: Chain::Mainnet,
       etching: None,
       inscription_count: 0,

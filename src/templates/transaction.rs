@@ -4,7 +4,6 @@ pub type TransactionJson = TransactionHtml;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TransactionHtml {
-  pub blockhash: Option<BlockHash>,
   pub chain: Chain,
   pub etching: Option<SpacedRune>,
   pub inscription_count: u32,
@@ -49,7 +48,6 @@ mod tests {
 
     pretty_assert_eq!(
       TransactionHtml {
-        blockhash: None,
         chain: Chain::Mainnet,
         etching: None,
         inscription_count: 0,
@@ -112,7 +110,6 @@ mod tests {
 
     assert_regex_match!(
       TransactionHtml {
-        blockhash: Some(blockhash(0)),
         chain: Chain::Mainnet,
         etching: None,
         inscription_count: 0,
