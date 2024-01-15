@@ -290,27 +290,19 @@ impl Inscription {
   pub(crate) fn hidden(&self) -> bool {
     use regex::bytes::Regex;
 
+    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
+                        <h1 style=\"height:100%\">bvm.network</h1></body>";
+
     lazy_static! {
-      static ref CONTENT: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
+      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
     }
 
-    if self
+    self
       .body()
-      .map(|body| CONTENT.is_match(body))
+      .map(|body| BRC_420.is_match(body) || body.starts_with(BVM_NETWORK))
       .unwrap_or_default()
-    {
-      return true;
-    }
-
-    if self.metaprotocol.is_some() {
-      return true;
-    }
-
-    if let Media::Code(_) | Media::Text | Media::Unknown = self.media() {
-      return true;
-    }
-
-    false
+      || self.metaprotocol.is_some()
+      || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 }
 
@@ -825,6 +817,20 @@ mod tests {
     case(
       Some("text/html"),
       Some("  /content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0  \n"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>"#,
+      ),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>foo"#,
+      ),
       true,
     );
 
