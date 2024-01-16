@@ -1,7 +1,7 @@
 use {
   super::*,
   crate::wallet::{
-    inscribe::batch::{Batch, Batchfile, Mode},
+    inscribe::{Batch, Batchfile, Mode},
     Wallet,
   },
   reqwest::Url,

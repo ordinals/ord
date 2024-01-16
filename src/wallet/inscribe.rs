@@ -1,5 +1,4 @@
 use {
-  // self::batch::{Batch, Batchfile, Mode},
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
@@ -15,7 +14,12 @@ use {
   wallet::transaction_builder::Target,
 };
 
+pub use {batch::Batch, batchentry::BatchEntry, batchfile::Batchfile, mode::Mode};
+
 pub mod batch;
+pub mod batchentry;
+pub mod batchfile;
+pub mod mode;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct InscriptionInfo {

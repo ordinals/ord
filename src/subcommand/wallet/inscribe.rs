@@ -187,7 +187,7 @@ impl Inscribe {
 mod tests {
   use {
     super::*,
-    crate::wallet::inscribe::{batch::BatchEntry, ParentInfo},
+    crate::wallet::inscribe::{BatchEntry, ParentInfo},
     bitcoin::policy::MAX_STANDARD_TX_WEIGHT,
     serde_yaml::{Mapping, Value},
   };
