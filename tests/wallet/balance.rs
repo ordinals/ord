@@ -1,4 +1,4 @@
-use {super::*, ord::wallet::balance::Output};
+use {super::*, ord::subcommand::wallet::balance::Output};
 
 #[test]
 fn wallet_balance() {

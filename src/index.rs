@@ -3353,10 +3353,10 @@ mod tests {
 
       Arguments {
         options,
-        subcommand: Subcommand::Wallet(wallet::WalletCommand {
+        subcommand: Subcommand::Wallet(subcommand::wallet::WalletCommand {
           name: "ord".into(),
           no_sync: false,
-          subcommand: wallet::Subcommand::Create(wallet::create::Create {
+          subcommand: subcommand::wallet::Subcommand::Create(subcommand::wallet::create::Create {
             passphrase: "".into(),
           }),
         }),
@@ -3384,10 +3384,10 @@ mod tests {
       assert_regex_match!(
         Arguments {
           options,
-          subcommand: Subcommand::Wallet(wallet::WalletCommand {
+          subcommand: Subcommand::Wallet(subcommand::wallet::WalletCommand {
             name: "ord".into(),
             no_sync: true,
-            subcommand: wallet::Subcommand::Balance,
+            subcommand: subcommand::wallet::Subcommand::Balance,
           }),
         }
         .run()

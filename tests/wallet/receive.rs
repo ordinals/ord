@@ -1,4 +1,4 @@
-use {super::*, ord::wallet::receive};
+use {super::*, ord::subcommand::wallet::receive};
 
 #[test]
 fn receive() {

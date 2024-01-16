@@ -1,7 +1,7 @@
 use {
   super::*,
   ord::{
-    wallet::{balance, etch::Output},
+    subcommand::wallet::{balance, etch::Output},
     Rune,
   },
 };
@@ -254,7 +254,7 @@ fn etch_does_not_select_inscribed_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::wallet::balance::Output>();
+    .run_and_deserialize_output::<balance::Output>();
 
   assert_eq!(output.cardinal, 5000000000);
 
@@ -267,7 +267,7 @@ fn etch_does_not_select_inscribed_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::wallet::balance::Output>();
+    .run_and_deserialize_output::<balance::Output>();
 
   assert_eq!(output.cardinal, 0);
 
@@ -306,7 +306,7 @@ fn inscribe_does_not_select_runic_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::wallet::balance::Output>();
+    .run_and_deserialize_output::<balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 0);
@@ -404,7 +404,7 @@ fn send_inscription_does_not_select_runic_utxos() {
 
   let output = CommandBuilder::new("--regtest --index-runes wallet balance")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<ord::wallet::balance::Output>();
+    .run_and_deserialize_output::<balance::Output>();
 
   assert_eq!(output.cardinal, 0);
   assert_eq!(output.ordinal, 10000);

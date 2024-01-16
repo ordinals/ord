@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::wallet::{create, inscriptions, receive},
+  ord::subcommand::wallet::{create, inscriptions, receive},
   std::ops::Deref,
 };
 
