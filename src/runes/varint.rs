@@ -1,5 +1,3 @@
-use super::*;
-
 #[cfg(test)]
 pub fn encode(n: u128) -> Vec<u8> {
   let mut v = Vec::new();
@@ -11,40 +9,34 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   let mut out = [0; 19];
   let mut i = 18;
 
-  loop {
-    let mut byte = n.to_le_bytes()[0] & 0b0111_1111;
+  out[i] = n.to_le_bytes()[0] & 0b0111_1111;
 
-    if i < 18 {
-      byte |= 0b1000_0000;
-    }
-
-    out[i] = byte;
-
-    if n < 0b1000_0000 {
-      break;
-    }
-
+  while n > 0b0111_1111 {
     n = n / 128 - 1;
     i -= 1;
+    out[i] = n.to_le_bytes()[0] | 0b1000_0000;
   }
 
   v.extend_from_slice(&out[i..]);
 }
 
-pub fn decode(buffer: &[u8]) -> Result<(u128, usize)> {
+pub fn decode(buffer: &[u8]) -> (u128, usize) {
   let mut n = 0;
   let mut i = 0;
 
   loop {
-    let b = u128::from(buffer.get(i).cloned().ok_or(Error::Varint)?);
+    let b = match buffer.get(i) {
+      Some(b) => u128::from(*b),
+      None => return (n, i),
+    };
+
+    n = n.saturating_mul(128);
 
     if b < 128 {
-      return Ok((n + b, i + 1));
+      return (n.saturating_add(b), i + 1);
     }
 
-    n += b - 127;
-
-    n = n.checked_mul(128).ok_or(Error::Varint)?;
+    n = n.saturating_add(b - 127);
 
     i += 1;
   }
@@ -58,7 +50,7 @@ mod tests {
   fn u128_max_round_trips_successfully() {
     let n = u128::max_value();
     let encoded = encode(n);
-    let (decoded, length) = decode(&encoded).unwrap();
+    let (decoded, length) = decode(&encoded);
     assert_eq!(decoded, n);
     assert_eq!(length, encoded.len());
   }
@@ -68,7 +60,7 @@ mod tests {
     for i in 0..128 {
       let n = 1 << i;
       let encoded = encode(n);
-      let (decoded, length) = decode(&encoded).unwrap();
+      let (decoded, length) = decode(&encoded);
       assert_eq!(decoded, n);
       assert_eq!(length, encoded.len());
     }
@@ -81,20 +73,42 @@ mod tests {
     for i in 0..129 {
       n = n << 1 | (i % 2);
       let encoded = encode(n);
-      let (decoded, length) = decode(&encoded).unwrap();
+      let (decoded, length) = decode(&encoded);
       assert_eq!(decoded, n);
       assert_eq!(length, encoded.len());
     }
   }
 
   #[test]
-  fn decoding_integer_over_max_is_an_error() {
+  fn large_varints_saturate_to_maximum() {
     assert_eq!(
       decode(&[
         130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
         0,
       ]),
-      Err(Error::Varint)
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
+  fn truncated_varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        255,
+      ]),
+      (u128::MAX, 19)
+    );
+  }
+
+  #[test]
+  fn varints_with_large_final_byte_saturate_to_maximum() {
+    assert_eq!(
+      decode(&[
+        130, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255,
+        127,
+      ]),
+      (u128::MAX, 19)
     );
   }
 
@@ -117,14 +131,14 @@ mod tests {
     for (n, encoding) in TEST_VECTORS {
       let actual = encode(*n);
       assert_eq!(actual, *encoding);
-      let (actual, length) = decode(encoding).unwrap();
+      let (actual, length) = decode(encoding);
       assert_eq!(actual, *n);
       assert_eq!(length, encoding.len());
     }
   }
 
   #[test]
-  fn truncated_varint_returns_error() {
-    assert_eq!(decode(&[128]), Err(Error::Varint));
+  fn varints_may_be_truncated() {
+    assert_eq!(decode(&[128]), (1, 1));
   }
 }

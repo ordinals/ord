@@ -16,8 +16,8 @@ pub(super) struct Batch {
 }
 
 impl Default for Batch {
-  fn default() -> Batch {
-    Batch {
+  fn default() -> Self {
+    Self {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
@@ -40,6 +40,8 @@ impl Batch {
     chain: Chain,
     index: &Index,
     client: &Client,
+    locked_utxos: &BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos)?;
@@ -53,17 +55,19 @@ impl Batch {
       .create_batch_inscription_transactions(
         wallet_inscriptions,
         chain,
+        locked_utxos.clone(),
+        runic_utxos,
         utxos.clone(),
         commit_tx_change,
       )?;
 
     if self.dry_run {
-      return Ok(Box::new(self.output(
+      return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         reveal_tx.txid(),
         total_fees,
         self.inscriptions.clone(),
-      )));
+      ))));
     }
 
     let signed_commit_tx = client
@@ -92,7 +96,7 @@ impl Batch {
         )?
         .hex
     } else {
-      bitcoin::consensus::encode::serialize(&reveal_tx)
+      consensus::encode::serialize(&reveal_tx)
     };
 
     if !self.no_backup {
@@ -110,12 +114,12 @@ impl Batch {
       }
     };
 
-    Ok(Box::new(self.output(
+    Ok(Some(Box::new(self.output(
       commit,
       reveal,
       total_fees,
       self.inscriptions.clone(),
-    )))
+    ))))
   }
 
   fn output(
@@ -130,7 +134,7 @@ impl Batch {
       let index = u32::try_from(index).unwrap();
 
       let vout = match self.mode {
-        Mode::SharedOutput => {
+        Mode::SharedOutput | Mode::SameSat => {
           if self.parent_info.is_some() {
             1
           } else {
@@ -148,7 +152,7 @@ impl Batch {
 
       let offset = match self.mode {
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
-        Mode::SeparateOutputs => 0,
+        Mode::SeparateOutputs | Mode::SameSat => 0,
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -176,6 +180,8 @@ impl Batch {
     &self,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
+    locked_utxos: BTreeSet<OutPoint>,
+    runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
@@ -186,15 +192,12 @@ impl Batch {
         .all(|inscription| inscription.parent().unwrap() == parent_info.id))
     }
 
-    if self.satpoint.is_some() {
-      assert_eq!(
-        self.inscriptions.len(),
-        1,
-        "invariant: satpoint may only be specified when making a single inscription",
-      );
-    }
-
     match self.mode {
+      Mode::SameSat => assert_eq!(
+        self.destinations.len(),
+        1,
+        "invariant: same-sat has only one destination"
+      ),
       Mode::SeparateOutputs => assert_eq!(
         self.destinations.len(),
         self.inscriptions.len(),
@@ -216,9 +219,14 @@ impl Batch {
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .keys()
-        .find(|outpoint| !inscribed_utxos.contains(outpoint))
-        .map(|outpoint| SatPoint {
+        .iter()
+        .find(|(outpoint, amount)| {
+          amount.to_sat() > 0
+            && !inscribed_utxos.contains(outpoint)
+            && !locked_utxos.contains(outpoint)
+            && !runic_utxos.contains(outpoint)
+        })
+        .map(|(outpoint, _amount)| SatPoint {
           outpoint: *outpoint,
           offset: 0,
         })
@@ -274,7 +282,12 @@ impl Batch {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = self.postage * u64::try_from(self.inscriptions.len()).unwrap();
+    let total_postage = match self.mode {
+      Mode::SameSat => self.postage,
+      Mode::SharedOutput | Mode::SeparateOutputs => {
+        self.postage * u64::try_from(self.inscriptions.len()).unwrap()
+      }
+    };
 
     let mut reveal_inputs = vec![OutPoint::null()];
     let mut reveal_outputs = self
@@ -284,7 +297,7 @@ impl Batch {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
           Mode::SeparateOutputs => self.postage.to_sat(),
-          Mode::SharedOutput => total_postage.to_sat(),
+          Mode::SharedOutput | Mode::SameSat => total_postage.to_sat(),
         },
       })
       .collect::<Vec<TxOut>>();
@@ -321,6 +334,8 @@ impl Batch {
       satpoint,
       wallet_inscriptions,
       utxos.clone(),
+      locked_utxos.clone(),
+      runic_utxos,
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
@@ -477,7 +492,7 @@ impl Batch {
         .collect(),
       output: outputs,
       lock_time: LockTime::ZERO,
-      version: 1,
+      version: 2,
     };
 
     let fee = {
@@ -514,8 +529,11 @@ impl Batch {
   }
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum Mode {
+  #[serde(rename = "same-sat")]
+  SameSat,
+  #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,
   #[serde(rename = "shared-output")]
@@ -525,6 +543,8 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
+  pub(crate) delegate: Option<InscriptionId>,
+  pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
@@ -543,12 +563,14 @@ impl BatchEntry {
   }
 }
 
-#[derive(Deserialize, PartialEq, Debug, Clone)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Batchfile {
   pub(crate) inscriptions: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
+  pub(crate) postage: Option<u64>,
+  pub(crate) sat: Option<Sat>,
 }
 
 impl Batchfile {
@@ -564,12 +586,26 @@ impl Batchfile {
 
   pub(crate) fn inscriptions(
     &self,
+    index: &Index,
+    client: &Client,
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
-  ) -> Result<Vec<Inscription>> {
+    compress: bool,
+  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
+
+    if self
+      .inscriptions
+      .iter()
+      .any(|entry| entry.destination.is_some())
+      && self.mode == Mode::SharedOutput
+    {
+      return Err(anyhow!(
+        "individual inscription destinations cannot be set in shared-output mode"
+      ));
+    }
 
     if metadata.is_some() {
       assert!(self
@@ -582,21 +618,49 @@ impl Batchfile {
 
     let mut inscriptions = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
+      if let Some(delegate) = entry.delegate {
+        ensure! {
+          index.inscription_exists(delegate)?,
+          "delegate {delegate} does not exist"
+        }
+      }
+
       inscriptions.push(Inscription::from_file(
         chain,
-        &entry.file,
-        self.parent,
-        if i == 0 { None } else { Some(pointer) },
-        entry.metaprotocol.clone(),
+        compress,
+        entry.delegate,
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
+        entry.metaprotocol.clone(),
+        self.parent,
+        &entry.file,
+        if i == 0 { None } else { Some(pointer) },
       )?);
 
       pointer += postage.to_sat();
     }
 
-    Ok(inscriptions)
+    let destinations = match self.mode {
+      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
+      Mode::SeparateOutputs => self
+        .inscriptions
+        .iter()
+        .map(|entry| {
+          entry.destination.as_ref().map_or_else(
+            || get_change_address(client, chain),
+            |address| {
+              address
+                .clone()
+                .require_network(chain.network())
+                .map_err(|e| e.into())
+            },
+          )
+        })
+        .collect::<Result<Vec<_>, _>>()?,
+    };
+
+    Ok((inscriptions, destinations))
   }
 }

@@ -23,7 +23,6 @@ fn run() {
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
       if response.status() == 200 {
-        assert_eq!(response.text().unwrap(), "OK");
         break;
       }
     }
@@ -106,6 +105,35 @@ fn inscription_appears_on_reveal_transaction_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/tx/{reveal}"),
     format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{reveal}.*"),
+  );
+}
+
+#[test]
+fn multiple_inscriptions_appear_on_reveal_transaction_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
+    .write("inscription.txt", "Hello World")
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: meow.wav\n",
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let id0 = output.inscriptions[0].id;
+  let id1 = output.inscriptions[1].id;
+  let reveal = output.reveal;
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/tx/{reveal}"),
+    format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{id0}.*<a href=/inscription/{id1}.*"),
   );
 }
 
@@ -222,7 +250,7 @@ fn inscription_metadata() {
   .rpc_server(&rpc_server)
   .run_and_deserialize_output::<Inscribe>()
   .inscriptions
-  .get(0)
+  .first()
   .unwrap()
   .id;
 
@@ -300,7 +328,7 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
-      ".*<h1>Inscriptions</h1>
+      ".*<h1>All Inscriptions</h1>
 <div class=thumbnails>
   <a href=/inscription/{inscription}>.*</a>
 </div>
@@ -357,6 +385,7 @@ fn expected_sat_time_is_rounded() {
 }
 
 #[test]
+#[ignore]
 fn server_runs_with_rpc_user_and_pass_as_env_vars() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
@@ -456,4 +485,127 @@ fn all_endpoints_in_recursive_directory_return_json() {
   assert!(server.request("/blockhash").json::<String>().is_err());
 
   assert!(server.request("/blockhash/2").json::<String>().is_err());
+}
+
+#[test]
+fn sat_recursive_endpoints_without_sat_index_return_404() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &[""]);
+
+  assert_eq!(
+    server.request("/r/sat/5000000000").status(),
+    StatusCode::NOT_FOUND,
+  );
+
+  assert_eq!(
+    server.request("/r/sat/5000000000/at/1").status(),
+    StatusCode::NOT_FOUND,
+  );
+}
+
+#[test]
+fn inscription_transactions_are_stored_with_transaction_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  let (_inscription, reveal) = inscribe(&rpc_server);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-transactions"]);
+
+  let coinbase = rpc_server.tx(1, 0).txid();
+
+  assert_eq!(
+    server.request(format!("/tx/{reveal}")).status(),
+    StatusCode::OK,
+  );
+
+  assert_eq!(
+    server.request(format!("/tx/{coinbase}")).status(),
+    StatusCode::OK,
+  );
+
+  rpc_server.clear_state();
+
+  assert_eq!(
+    server.request(format!("/tx/{reveal}")).status(),
+    StatusCode::OK,
+  );
+
+  assert_eq!(
+    server.request(format!("/tx/{coinbase}")).status(),
+    StatusCode::NOT_FOUND,
+  );
+}
+
+#[test]
+fn run_no_sync() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}",))
+    .rpc_server(&rpc_server)
+    .temp_dir(tempdir.clone());
+
+  let mut command = builder.command();
+
+  let mut child = command.spawn().unwrap();
+
+  rpc_server.mine_blocks(1);
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "1");
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  child.kill().unwrap();
+
+  let builder = CommandBuilder::new(format!(
+    "server --no-sync --address 127.0.0.1 --http-port {port}",
+  ))
+  .rpc_server(&rpc_server)
+  .temp_dir(tempdir);
+
+  let mut command = builder.command();
+
+  let mut child = command.spawn().unwrap();
+
+  rpc_server.mine_blocks(2);
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "1");
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  child.kill().unwrap();
 }

@@ -1,32 +1,33 @@
 use {
   self::{
+    accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
   crate::{
-    page_config::PageConfig,
-    runes::Rune,
+    server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, ChildrenHtml, ClockSvg, HomeHtml, InputHtml, InscriptionDetailsJson,
-      InscriptionHtml, InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
-      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
-      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml,
-      SatJson, TransactionHtml,
+      BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
+      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionDetailsJson, InscriptionJson,
+      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
+      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
+      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
     },
   },
   axum::{
     body,
     extract::{Extension, Json, Path, Query},
-    headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
-    Router, TypedHeader,
+    Router,
   },
   axum_server::Handle,
+  brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -34,7 +35,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{cmp::Ordering, io::Read, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -43,17 +44,14 @@ use {
   },
 };
 
+mod accept_encoding;
 mod accept_json;
 mod error;
 
-#[derive(Clone)]
-pub struct ServerConfig {
-  pub is_json_api_enabled: bool,
-}
-
-enum InscriptionQuery {
+#[derive(Copy, Clone)]
+pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
-  Number(i64),
+  Number(i32),
 }
 
 impl FromStr for InscriptionQuery {
@@ -61,15 +59,24 @@ impl FromStr for InscriptionQuery {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(if s.contains('i') {
-      InscriptionQuery::Id(s.parse()?)
+      Self::Id(s.parse()?)
     } else {
-      InscriptionQuery::Number(s.parse()?)
+      Self::Number(s.parse()?)
     })
   }
 }
 
+impl Display for InscriptionQuery {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Id(id) => write!(f, "{id}"),
+      Self::Number(number) => write!(f, "{number}"),
+    }
+  }
+}
+
 enum BlockQuery {
-  Height(u64),
+  Height(u32),
   Hash(BlockHash),
 }
 
@@ -121,10 +128,9 @@ impl Display for StaticHtml {
 pub(crate) struct Server {
   #[arg(
     long,
-    default_value = "0.0.0.0",
-    help = "Listen on <ADDRESS> for incoming requests."
+    help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
   )]
-  address: String,
+  address: Option<String>,
   #[arg(
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
@@ -132,13 +138,18 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[arg(
     long,
-    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
+    help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
+  )]
+  csp_origin: Option<String>,
+  #[arg(
+    long,
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
   http_port: Option<u16>,
   #[arg(
     long,
     group = "port",
-    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]."
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]"
   )]
   https_port: Option<u16>,
   #[arg(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -153,6 +164,13 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
   #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
+  #[arg(
+    long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(long, alias = "nosync", help = "Do not update the index.")]
+  no_sync: bool,
 }
 
 impl Server {
@@ -164,24 +182,25 @@ impl Server {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
-        if let Err(error) = index_clone.update() {
-          log::warn!("Updating index: {error}");
+        if !self.no_sync {
+          if let Err(error) = index_clone.update() {
+            log::warn!("Updating index: {error}");
+          }
         }
         thread::sleep(Duration::from_millis(5000));
       });
       INDEXER.lock().unwrap().replace(index_thread);
 
-      let server_config = Arc::new(ServerConfig {
-        is_json_api_enabled: self.enable_json_api,
-      });
-
-      let config = options.load_config()?;
+      let config = Arc::new(options.load_config()?);
       let acme_domains = self.acme_domains()?;
 
-      let page_config = Arc::new(PageConfig {
+      let server_config = Arc::new(ServerConfig {
         chain: options.chain(),
+        csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
+        is_json_api_enabled: self.enable_json_api,
+        decompress: self.decompress,
       });
 
       let router = Router::new()
@@ -191,30 +210,32 @@ impl Server {
         .route("/blockhash", get(Self::block_hash))
         .route("/blockhash/:height", get(Self::block_hash_from_height))
         .route("/blockheight", get(Self::block_height))
+        .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
+        .route("/children/:inscription_id", get(Self::children))
+        .route(
+          "/children/:inscription_id/:page",
+          get(Self::children_paginated),
+        )
         .route("/clock", get(Self::clock))
+        .route("/collections", get(Self::collections))
+        .route("/collections/:page", get(Self::collections_paginated))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
-        .route("/children/:inscription_id", get(Self::children))
-        .route(
-          "/children/:inscription_id/:page",
-          get(Self::children_paginated),
-        )
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/:from", get(Self::inscriptions_from))
-        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
+        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
           get(Self::inscriptions_in_block),
         )
         .route(
           "/inscriptions/block/:height/:page",
-          get(Self::inscriptions_in_block_from_page),
+          get(Self::inscriptions_in_block_paginated),
         )
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
@@ -227,11 +248,22 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/inscription/:inscription_id", get(Self::inscription_details)
+        .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
-          "/r/inscription/:inscription_id",
-          get(Self::inscription_details),
+          "/r/children/:inscription_id/:page",
+          get(Self::children_recursive_paginated),
         )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+        .route(
+          "/r/sat/:sat_number/:page",
+          get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/sat/:sat_number/at/:index",
+          get(Self::sat_inscription_at_index),
+        )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -243,8 +275,8 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(page_config))
-        .layer(Extension(Arc::new(config)))
+        .layer(Extension(server_config.clone()))
+        .layer(Extension(config))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -302,7 +334,7 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      Ok(Box::new(Empty {}) as Box<dyn Output>)
+      Ok(None)
     })
   }
 
@@ -313,7 +345,18 @@ impl Server {
     port: u16,
     config: SpawnConfig,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
-    let addr = (self.address.as_str(), port)
+    let address = match &self.address {
+      Some(address) => address.as_str(),
+      None => {
+        if cfg!(test) || integration_test() {
+          "127.0.0.1"
+        } else {
+          "0.0.0.0"
+        }
+      }
+    };
+
+    let addr = (address, port)
       .to_socket_addrs()?
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
@@ -358,23 +401,19 @@ impl Server {
     }))
   }
 
-  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
-    let acme_cache = if let Some(acme_cache) = acme_cache {
-      acme_cache.clone()
-    } else {
-      options.data_dir()?.join("acme-cache")
-    };
-
-    Ok(acme_cache)
+  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> PathBuf {
+    acme_cache
+      .unwrap_or(&options.data_dir().join("acme-cache"))
+      .to_path_buf()
   }
 
   fn acme_domains(&self) -> Result<Vec<String>> {
     if !self.acme_domain.is_empty() {
       Ok(self.acme_domain.clone())
     } else {
-      Ok(vec![System::new()
-        .host_name()
-        .ok_or(anyhow!("no hostname found"))?])
+      Ok(vec![
+        System::host_name().ok_or(anyhow!("no hostname found"))?
+      ])
     }
   }
 
@@ -400,7 +439,7 @@ impl Server {
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
         options,
-      )?)))
+      ))))
       .directory(if cfg!(test) {
         LETS_ENCRYPT_STAGING_DIRECTORY
       } else {
@@ -409,12 +448,13 @@ impl Server {
 
     let mut state = config.state();
 
-    let acceptor = state.axum_acceptor(Arc::new(
-      rustls::ServerConfig::builder()
-        .with_safe_defaults()
-        .with_no_client_auth()
-        .with_cert_resolver(state.resolver()),
-    ));
+    let mut server_config = rustls::ServerConfig::builder()
+      .with_no_client_auth()
+      .with_cert_resolver(state.resolver());
+
+    server_config.alpn_protocols = vec!["h2".into(), "http/1.1".into()];
+
+    let acceptor = state.axum_acceptor(Arc::new(server_config));
 
     tokio::spawn(async move {
       while let Some(result) = state.next().await {
@@ -433,61 +473,65 @@ impl Server {
   }
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
-    Ok(
-      (
-        [(
-          header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src 'unsafe-inline'"),
-        )],
-        ClockSvg::new(Self::index_height(&index)?),
+    task::block_in_place(|| {
+      Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("default-src 'unsafe-inline'"),
+          )],
+          ClockSvg::new(Self::index_height(&index)?),
+        )
+          .into_response(),
       )
-        .into_response(),
-    )
+    })
   }
 
   async fn sat(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index.get_inscription_ids_by_sat(sat)?;
-    let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
-      inscriptions.first().and_then(|&first_inscription_id| {
-        index
-          .get_inscription_satpoint_by_id(first_inscription_id)
-          .ok()
-          .flatten()
+    task::block_in_place(|| {
+      let inscriptions = index.get_inscription_ids_by_sat(sat)?;
+      let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
+        inscriptions.first().and_then(|&first_inscription_id| {
+          index
+            .get_inscription_satpoint_by_id(first_inscription_id)
+            .ok()
+            .flatten()
+        })
+      });
+      let blocktime = index.block_time(sat.height())?;
+      Ok(if accept_json {
+        Json(SatJson {
+          number: sat.0,
+          decimal: sat.decimal().to_string(),
+          degree: sat.degree().to_string(),
+          name: sat.name(),
+          block: sat.height().0,
+          cycle: sat.cycle(),
+          epoch: sat.epoch().0,
+          period: sat.period(),
+          offset: sat.third(),
+          rarity: sat.rarity(),
+          percentile: sat.percentile(),
+          satpoint,
+          timestamp: blocktime.timestamp().timestamp(),
+          inscriptions,
+        })
+        .into_response()
+      } else {
+        SatHtml {
+          sat,
+          satpoint,
+          blocktime,
+          inscriptions,
+        }
+        .page(server_config)
+        .into_response()
       })
-    });
-    let blocktime = index.block_time(sat.height())?;
-    Ok(if accept_json.0 {
-      Json(SatJson {
-        number: sat.0,
-        decimal: sat.decimal().to_string(),
-        degree: sat.degree().to_string(),
-        name: sat.name(),
-        block: sat.height().0,
-        cycle: sat.cycle(),
-        epoch: sat.epoch().0,
-        period: sat.period(),
-        offset: sat.third(),
-        rarity: sat.rarity(),
-        percentile: sat.percentile(),
-        satpoint,
-        timestamp: blocktime.timestamp().timestamp(),
-        inscriptions,
-      })
-      .into_response()
-    } else {
-      SatHtml {
-        sat,
-        satpoint,
-        blocktime,
-        inscriptions,
-      }
-      .page(page_config)
-      .into_response()
     })
   }
 
@@ -496,69 +540,82 @@ impl Server {
   }
 
   async fn output(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let list = index.list(outpoint)?;
+    task::block_in_place(|| {
+      let sat_ranges = index.list(outpoint)?;
 
-    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
-      let mut value = 0;
+      let indexed;
 
-      if let Some(List::Unspent(ranges)) = &list {
-        for (start, end) in ranges {
-          value += end - start;
+      let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+        let mut value = 0;
+
+        if let Some(ranges) = &sat_ranges {
+          for (start, end) in ranges {
+            value += end - start;
+          }
         }
-      }
 
-      TxOut {
-        value,
-        script_pubkey: ScriptBuf::new(),
-      }
-    } else {
-      index
-        .get_transaction(outpoint.txid)?
-        .ok_or_not_found(|| format!("output {outpoint}"))?
-        .output
-        .into_iter()
-        .nth(outpoint.vout as usize)
-        .ok_or_not_found(|| format!("output {outpoint}"))?
-    };
+        indexed = true;
 
-    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+        TxOut {
+          value,
+          script_pubkey: ScriptBuf::new(),
+        }
+      } else {
+        indexed = index.contains_output(&outpoint)?;
 
-    let runes = index.get_rune_balances_for_outpoint(outpoint)?;
-
-    Ok(if accept_json.0 {
-      Json(OutputJson::new(
-        outpoint,
-        list,
-        page_config.chain,
-        output,
-        inscriptions,
-        runes
+        index
+          .get_transaction(outpoint.txid)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?
+          .output
           .into_iter()
-          .map(|(rune, pile)| (rune, pile.amount))
-          .collect(),
-      ))
-      .into_response()
-    } else {
-      OutputHtml {
-        outpoint,
-        inscriptions,
-        list,
-        chain: page_config.chain,
-        output,
-        runes,
-      }
-      .page(page_config)
-      .into_response()
+          .nth(outpoint.vout as usize)
+          .ok_or_not_found(|| format!("output {outpoint}"))?
+      };
+
+      let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+
+      let runes = index.get_rune_balances_for_outpoint(outpoint)?;
+
+      let spent = index.is_output_spent(outpoint)?;
+
+      Ok(if accept_json {
+        Json(OutputJson::new(
+          server_config.chain,
+          inscriptions,
+          outpoint,
+          output,
+          indexed,
+          runes
+            .into_iter()
+            .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
+            .collect(),
+          sat_ranges,
+          spent,
+        ))
+        .into_response()
+      } else {
+        OutputHtml {
+          chain: server_config.chain,
+          inscriptions,
+          outpoint,
+          output,
+          runes,
+          sat_ranges,
+          spent,
+        }
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 
   async fn range(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
@@ -569,61 +626,99 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(server_config)),
     }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Ok(RareTxt(index.rare_sat_satpoints()?))
+    task::block_in_place(|| Ok(RareTxt(index.rare_sat_satpoints()?)))
   }
 
   async fn rune(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(rune)): Path<DeserializeFromStr<Rune>>,
-  ) -> ServerResult<PageHtml<RuneHtml>> {
-    let (id, entry) = index.rune(rune)?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag".into(),
-      )
-    })?;
+    Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      if !index.has_rune_index() {
+        return Err(ServerError::NotFound(
+          "this server has no rune index".to_string(),
+        ));
+      }
 
-    let parent = InscriptionId {
-      txid: entry.etching,
-      index: 0,
-    };
+      let (id, entry, parent) = index
+        .rune(spaced_rune.rune)?
+        .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
 
-    let parent = index.inscription_exists(parent)?.then_some(parent);
-
-    Ok(RuneHtml { id, entry, parent }.page(page_config))
+      Ok(if accept_json {
+        Json(RuneJson { entry, id, parent }).into_response()
+      } else {
+        RuneHtml { entry, id, parent }
+          .page(server_config)
+          .into_response()
+      })
+    })
   }
 
   async fn runes(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<RunesHtml>> {
-    Ok(
-      RunesHtml {
-        entries: index.runes()?,
-      }
-      .page(page_config),
-    )
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        Json(RunesJson {
+          entries: index.runes()?,
+        })
+        .into_response()
+      } else {
+        RunesHtml {
+          entries: index.runes()?,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
   }
 
   async fn home(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    let blocks = index.blocks(100)?;
-    let mut featured_blocks = BTreeMap::new();
-    for (height, hash) in blocks.iter().take(5) {
-      let (inscriptions, _total_num) =
-        index.get_highest_paying_inscriptions_in_block(*height, 8)?;
+    task::block_in_place(|| {
+      Ok(
+        HomeHtml {
+          inscriptions: index.get_home_inscriptions()?,
+        }
+        .page(server_config),
+      )
+    })
+  }
 
-      featured_blocks.insert(*hash, inscriptions);
-    }
+  async fn blocks(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let blocks = index.blocks(100)?;
+      let mut featured_blocks = BTreeMap::new();
+      for (height, hash) in blocks.iter().take(5) {
+        let (inscriptions, _total_num) =
+          index.get_highest_paying_inscriptions_in_block(*height, 8)?;
 
-    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config))
+        featured_blocks.insert(*hash, inscriptions);
+      }
+
+      Ok(if accept_json {
+        Json(BlocksJson::new(blocks, featured_blocks)).into_response()
+      } else {
+        BlocksHtml::new(blocks, featured_blocks)
+          .page(server_config)
+          .into_response()
+      })
+    })
   }
 
   async fn install_script() -> Redirect {
@@ -631,90 +726,107 @@ impl Server {
   }
 
   async fn block(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let (block, height) = match query {
-      BlockQuery::Height(height) => {
-        let block = index
-          .get_block_by_height(height)?
-          .ok_or_not_found(|| format!("block {height}"))?;
+    task::block_in_place(|| {
+      let (block, height) = match query {
+        BlockQuery::Height(height) => {
+          let block = index
+            .get_block_by_height(height)?
+            .ok_or_not_found(|| format!("block {height}"))?;
 
-        (block, height)
-      }
-      BlockQuery::Hash(hash) => {
-        let info = index
-          .block_header_info(hash)?
-          .ok_or_not_found(|| format!("block {hash}"))?;
+          (block, height)
+        }
+        BlockQuery::Hash(hash) => {
+          let info = index
+            .block_header_info(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
 
-        let block = index
-          .get_block_by_hash(hash)?
-          .ok_or_not_found(|| format!("block {hash}"))?;
+          let block = index
+            .get_block_by_hash(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
 
-        (block, info.height as u64)
-      }
-    };
+          (block, u32::try_from(info.height).unwrap())
+        }
+      };
 
-    Ok(if accept_json.0 {
-      let inscriptions = index.get_inscriptions_in_block(height)?;
-      Json(BlockJson::new(
-        block,
-        Height(height),
-        Self::index_height(&index)?,
-        inscriptions,
-      ))
-      .into_response()
-    } else {
-      let (featured_inscriptions, total_num) =
-        index.get_highest_paying_inscriptions_in_block(height, 8)?;
-      BlockHtml::new(
-        block,
-        Height(height),
-        Self::index_height(&index)?,
-        total_num,
-        featured_inscriptions,
-      )
-      .page(page_config)
-      .into_response()
+      Ok(if accept_json {
+        let inscriptions = index.get_inscriptions_in_block(height)?;
+        Json(BlockJson::new(
+          block,
+          Height(height),
+          Self::index_height(&index)?,
+          inscriptions,
+        ))
+        .into_response()
+      } else {
+        let (featured_inscriptions, total_num) =
+          index.get_highest_paying_inscriptions_in_block(height, 8)?;
+        BlockHtml::new(
+          block,
+          Height(height),
+          Self::index_height(&index)?,
+          total_num,
+          featured_inscriptions,
+        )
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 
   async fn transaction(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
-  ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
 
-    let blockhash = index.get_transaction_blockhash(txid)?;
+      let inscription_count = index.inscription_count(txid)?;
 
-    Ok(
-      TransactionHtml::new(
-        index
-          .get_transaction(txid)?
-          .ok_or_not_found(|| format!("transaction {txid}"))?,
-        blockhash,
-        inscription.map(|_| InscriptionId { txid, index: 0 }),
-        page_config.chain,
-        index.get_etching(txid)?,
-      )
-      .page(page_config),
-    )
+      Ok(if accept_json {
+        Json(TransactionJson {
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
+        })
+        .into_response()
+      } else {
+        TransactionHtml {
+          transaction,
+          txid,
+          inscription_count,
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
   }
 
   async fn metadata(
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Json<String>> {
-    let metadata = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
-      .metadata
-      .ok_or_not_found(|| format!("inscription {inscription_id} metadata"))?;
+    task::block_in_place(|| {
+      let metadata = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+        .metadata
+        .ok_or_not_found(|| format!("inscription {inscription_id} metadata"))?;
 
-    Ok(Json(hex::encode(metadata)))
+      Ok(Json(hex::encode(metadata)))
+    })
   }
 
   async fn inscription_details(
@@ -768,142 +880,126 @@ impl Server {
     )
   }
 
-  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
-    if index.is_unrecoverably_reorged() {
-      (
-        StatusCode::OK,
-        "unrecoverable reorg detected, please rebuild the database.",
-      )
-    } else {
-      (
-        StatusCode::OK,
-        StatusCode::OK.canonical_reason().unwrap_or_default(),
-      )
-    }
+  async fn status(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        Json(index.status()?).into_response()
+      } else {
+        index.status()?.page(server_config).into_response()
+      })
+    })
   }
 
   async fn search_by_query(
     Extension(index): Extension<Arc<Index>>,
     Query(search): Query<Search>,
   ) -> ServerResult<Redirect> {
-    Self::search(&index, &search.query).await
+    Self::search(index, search.query).await
   }
 
   async fn search_by_path(
     Extension(index): Extension<Arc<Index>>,
     Path(search): Path<Search>,
   ) -> ServerResult<Redirect> {
-    Self::search(&index, &search.query).await
+    Self::search(index, search.query).await
   }
 
-  async fn search(index: &Index, query: &str) -> ServerResult<Redirect> {
-    Self::search_inner(index, query)
+  async fn search(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
+    Self::search_inner(index, query).await
   }
 
-  fn search_inner(index: &Index, query: &str) -> ServerResult<Redirect> {
-    lazy_static! {
-      static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
-      static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
-      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
-      static ref RUNE: Regex = Regex::new(r"^[A-Z]+$").unwrap();
-      static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
-    }
-
-    let query = query.trim();
-
-    if HASH.is_match(query) {
-      if index.block_header(query.parse().unwrap())?.is_some() {
-        Ok(Redirect::to(&format!("/block/{query}")))
-      } else {
-        Ok(Redirect::to(&format!("/tx/{query}")))
+  async fn search_inner(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
+    task::block_in_place(|| {
+      lazy_static! {
+        static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
+        static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
+        static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+        static ref RUNE: Regex = Regex::new(r"^[A-Z•.]+$").unwrap();
+        static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
       }
-    } else if OUTPOINT.is_match(query) {
-      Ok(Redirect::to(&format!("/output/{query}")))
-    } else if INSCRIPTION_ID.is_match(query) {
-      Ok(Redirect::to(&format!("/inscription/{query}")))
-    } else if RUNE.is_match(query) {
-      Ok(Redirect::to(&format!("/rune/{query}")))
-    } else if RUNE_ID.is_match(query) {
-      let id = query
-        .parse::<RuneId>()
-        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let rune = index.get_rune_by_id(id)?.ok_or_not_found(|| "rune ID")?;
+      let query = query.trim();
 
-      Ok(Redirect::to(&format!("/rune/{rune}")))
-    } else {
-      Ok(Redirect::to(&format!("/sat/{query}")))
-    }
+      if HASH.is_match(query) {
+        if index.block_header(query.parse().unwrap())?.is_some() {
+          Ok(Redirect::to(&format!("/block/{query}")))
+        } else {
+          Ok(Redirect::to(&format!("/tx/{query}")))
+        }
+      } else if OUTPOINT.is_match(query) {
+        Ok(Redirect::to(&format!("/output/{query}")))
+      } else if INSCRIPTION_ID.is_match(query) {
+        Ok(Redirect::to(&format!("/inscription/{query}")))
+      } else if RUNE.is_match(query) {
+        Ok(Redirect::to(&format!("/rune/{query}")))
+      } else if RUNE_ID.is_match(query) {
+        let id = query
+          .parse::<RuneId>()
+          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+        let rune = index.get_rune_by_id(id)?.ok_or_not_found(|| "rune ID")?;
+
+        Ok(Redirect::to(&format!("/rune/{rune}")))
+      } else {
+        Ok(Redirect::to(&format!("/sat/{query}")))
+      }
+    })
   }
 
-  async fn favicon(user_agent: Option<TypedHeader<UserAgent>>) -> ServerResult<Response> {
-    if user_agent
-      .map(|user_agent| {
-        user_agent.as_str().contains("Safari/")
-          && !user_agent.as_str().contains("Chrome/")
-          && !user_agent.as_str().contains("Chromium/")
-      })
-      .unwrap_or_default()
-    {
-      Ok(
-        Self::static_asset(Path("/favicon.png".to_string()))
-          .await
-          .into_response(),
-      )
-    } else {
-      Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            HeaderValue::from_static("default-src 'unsafe-inline'"),
-          )],
-          Self::static_asset(Path("/favicon.svg".to_string())).await?,
-        )
-          .into_response(),
-      )
-    }
+  async fn favicon() -> ServerResult<Response> {
+    Ok(
+      Self::static_asset(Path("/favicon.png".to_string()))
+        .await
+        .into_response(),
+    )
   }
 
   async fn feed(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
-    let mut builder = rss::ChannelBuilder::default();
+    task::block_in_place(|| {
+      let mut builder = rss::ChannelBuilder::default();
 
-    let chain = page_config.chain;
-    match chain {
-      Chain::Mainnet => builder.title("Inscriptions".to_string()),
-      _ => builder.title(format!("Inscriptions – {chain:?}")),
-    };
+      let chain = server_config.chain;
+      match chain {
+        Chain::Mainnet => builder.title("Inscriptions".to_string()),
+        _ => builder.title(format!("Inscriptions – {chain:?}")),
+      };
 
-    builder.generator(Some("ord".to_string()));
+      builder.generator(Some("ord".to_string()));
 
-    for (number, id) in index.get_feed_inscriptions(300)? {
-      builder.item(
-        rss::ItemBuilder::default()
-          .title(Some(format!("Inscription {number}")))
-          .link(Some(format!("/inscription/{id}")))
-          .guid(Some(rss::Guid {
-            value: format!("/inscription/{id}"),
-            permalink: true,
-          }))
-          .build(),
-      );
-    }
+      for (number, id) in index.get_feed_inscriptions(300)? {
+        builder.item(
+          rss::ItemBuilder::default()
+            .title(Some(format!("Inscription {number}")))
+            .link(Some(format!("/inscription/{id}")))
+            .guid(Some(rss::Guid {
+              value: format!("/inscription/{id}"),
+              permalink: true,
+            }))
+            .build(),
+        );
+      }
 
-    Ok(
-      (
-        [
-          (header::CONTENT_TYPE, "application/rss+xml"),
-          (
-            header::CONTENT_SECURITY_POLICY,
-            "default-src 'unsafe-inline'",
-          ),
-        ],
-        builder.build().to_string(),
+      Ok(
+        (
+          [
+            (header::CONTENT_TYPE, "application/rss+xml"),
+            (
+              header::CONTENT_SECURITY_POLICY,
+              "default-src 'unsafe-inline'",
+            ),
+          ],
+          builder.build().to_string(),
+        )
+          .into_response(),
       )
-        .into_response(),
-    )
+    })
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
@@ -924,93 +1020,107 @@ impl Server {
   }
 
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(index.block_count()?.to_string())
+    task::block_in_place(|| Ok(index.block_count()?.to_string()))
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(
-      index
-        .block_height()?
-        .ok_or_not_found(|| "blockheight")?
-        .to_string(),
-    )
+    task::block_in_place(|| {
+      Ok(
+        index
+          .block_height()?
+          .ok_or_not_found(|| "blockheight")?
+          .to_string(),
+      )
+    })
   }
 
   async fn block_hash(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(
-      index
-        .block_hash(None)?
-        .ok_or_not_found(|| "blockhash")?
-        .to_string(),
-    )
+    task::block_in_place(|| {
+      Ok(
+        index
+          .block_hash(None)?
+          .ok_or_not_found(|| "blockhash")?
+          .to_string(),
+      )
+    })
   }
 
   async fn block_hash_json(Extension(index): Extension<Arc<Index>>) -> ServerResult<Json<String>> {
-    Ok(Json(
-      index
-        .block_hash(None)?
-        .ok_or_not_found(|| "blockhash")?
-        .to_string(),
-    ))
+    task::block_in_place(|| {
+      Ok(Json(
+        index
+          .block_hash(None)?
+          .ok_or_not_found(|| "blockhash")?
+          .to_string(),
+      ))
+    })
   }
 
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<String> {
-    Ok(
-      index
-        .block_hash(Some(height))?
-        .ok_or_not_found(|| "blockhash")?
-        .to_string(),
-    )
+    task::block_in_place(|| {
+      Ok(
+        index
+          .block_hash(Some(height))?
+          .ok_or_not_found(|| "blockhash")?
+          .to_string(),
+      )
+    })
   }
 
   async fn block_hash_from_height_json(
     Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u64>,
+    Path(height): Path<u32>,
   ) -> ServerResult<Json<String>> {
-    Ok(Json(
-      index
-        .block_hash(Some(height))?
-        .ok_or_not_found(|| "blockhash")?
-        .to_string(),
-    ))
+    task::block_in_place(|| {
+      Ok(Json(
+        index
+          .block_hash(Some(height))?
+          .ok_or_not_found(|| "blockhash")?
+          .to_string(),
+      ))
+    })
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(
-      index
-        .block_time(index.block_height()?.ok_or_not_found(|| "blocktime")?)?
-        .unix_timestamp()
-        .to_string(),
-    )
+    task::block_in_place(|| {
+      Ok(
+        index
+          .block_time(index.block_height()?.ok_or_not_found(|| "blocktime")?)?
+          .unix_timestamp()
+          .to_string(),
+      )
+    })
   }
 
   async fn input(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(path): Path<(u64, usize, usize)>,
-  ) -> Result<PageHtml<InputHtml>, ServerError> {
-    let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
+    Path(path): Path<(u32, usize, usize)>,
+  ) -> ServerResult<PageHtml<InputHtml>> {
+    task::block_in_place(|| {
+      let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
-    let block = index
-      .get_block_by_height(path.0)?
-      .ok_or_not_found(not_found)?;
+      let block = index
+        .get_block_by_height(path.0)?
+        .ok_or_not_found(not_found)?;
 
-    let transaction = block
-      .txdata
-      .into_iter()
-      .nth(path.1)
-      .ok_or_not_found(not_found)?;
+      let transaction = block
+        .txdata
+        .into_iter()
+        .nth(path.1)
+        .ok_or_not_found(not_found)?;
 
-    let input = transaction
-      .input
-      .into_iter()
-      .nth(path.2)
-      .ok_or_not_found(not_found)?;
+      let input = transaction
+        .input
+        .into_iter()
+        .nth(path.2)
+        .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(page_config))
+      Ok(InputHtml { path, input }.page(server_config))
+    })
   }
 
   async fn faq() -> Redirect {
@@ -1024,25 +1134,64 @@ impl Server {
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
+    accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
-    if config.is_hidden(inscription_id) {
-      return Ok(PreviewUnknownHtml.into_response());
-    }
+    task::block_in_place(|| {
+      if config.is_hidden(inscription_id) {
+        return Ok(PreviewUnknownHtml.into_response());
+      }
 
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      let mut inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    Ok(
-      Self::content_response(inscription)
-        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-        .into_response(),
-    )
+      if let Some(delegate) = inscription.delegate() {
+        inscription = index
+          .get_inscription_by_id(delegate)?
+          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+      }
+
+      Ok(
+        Self::content_response(inscription, accept_encoding, &server_config)?
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      )
+    })
   }
 
-  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
+  fn content_response(
+    inscription: Inscription,
+    accept_encoding: AcceptEncoding,
+    server_config: &ServerConfig,
+  ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let mut headers = HeaderMap::new();
+
+    match &server_config.csp_origin {
+      None => {
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+        headers.append(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        );
+      }
+      Some(origin) => {
+        let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+        headers.insert(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
+        );
+      }
+    }
+
+    headers.insert(
+      header::CACHE_CONTROL,
+      HeaderValue::from_static("public, max-age=1209600, immutable"),
+    );
 
     headers.insert(
       header::CONTENT_TYPE,
@@ -1051,210 +1200,243 @@ impl Server {
         .and_then(|content_type| content_type.parse().ok())
         .unwrap_or(HeaderValue::from_static("application/octet-stream")),
     );
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-    headers.insert(
-      header::CACHE_CONTROL,
-      HeaderValue::from_static("max-age=31536000, immutable"),
-    );
 
-    Some((headers, inscription.into_body()?))
+    if let Some(content_encoding) = inscription.content_encoding() {
+      if accept_encoding.is_acceptable(&content_encoding) {
+        headers.insert(header::CONTENT_ENCODING, content_encoding);
+      } else if server_config.decompress && content_encoding == "br" {
+        let Some(body) = inscription.into_body() else {
+          return Ok(None);
+        };
+
+        let mut decompressed = Vec::new();
+
+        Decompressor::new(body.as_slice(), 4096)
+          .read_to_end(&mut decompressed)
+          .map_err(|err| ServerError::Internal(err.into()))?;
+
+        return Ok(Some((headers, decompressed)));
+      } else {
+        return Err(ServerError::NotAcceptable {
+          accept_encoding,
+          content_encoding,
+        });
+      }
+    }
+
+    let Some(body) = inscription.into_body() else {
+      return Ok(None);
+    };
+
+    Ok(Some((headers, body)))
   }
 
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
+    accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
-    if config.is_hidden(inscription_id) {
-      return Ok(PreviewUnknownHtml.into_response());
-    }
-
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    match inscription.media() {
-      Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
-      Media::Code => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net; href-src 'self' https://cdn.jsdelivr.net",
-          )],
-          PreviewCodeHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Iframe => Ok(
-        Self::content_response(inscription)
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-          .into_response(),
-      ),
-      Media::Image => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "default-src 'self' 'unsafe-inline'",
-          )],
-          PreviewImageHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Markdown => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net",
-          )],
-          PreviewMarkdownHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Model => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://ajax.googleapis.com",
-          )],
-          PreviewModelHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Pdf => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net",
-          )],
-          PreviewPdfHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Text => {
-        let content = inscription
-          .body()
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
-        Ok(
-          PreviewTextHtml {
-            text: str::from_utf8(content)
-              .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?,
-          }
-          .into_response(),
-        )
+    task::block_in_place(|| {
+      if config.is_hidden(inscription_id) {
+        return Ok(PreviewUnknownHtml.into_response());
       }
-      Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
-      Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
-    }
+
+      let mut inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      if let Some(delegate) = inscription.delegate() {
+        inscription = index
+          .get_inscription_by_id(delegate)?
+          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+      }
+
+      match inscription.media() {
+        Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+        Media::Code(language) => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://cdn.jsdelivr.net",
+            )],
+            PreviewCodeHtml {
+              inscription_id,
+              language,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Font => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
+            )],
+            PreviewFontHtml { inscription_id },
+          )
+            .into_response(),
+        ),
+        Media::Iframe => Ok(
+          Self::content_response(inscription, accept_encoding, &server_config)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+            .into_response(),
+        ),
+        Media::Image => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "default-src 'self' 'unsafe-inline'",
+            )],
+            PreviewImageHtml { inscription_id },
+          )
+            .into_response(),
+        ),
+        Media::Markdown => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://cdn.jsdelivr.net",
+            )],
+            PreviewMarkdownHtml { inscription_id },
+          )
+            .into_response(),
+        ),
+        Media::Model => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://ajax.googleapis.com",
+            )],
+            PreviewModelHtml { inscription_id },
+          )
+            .into_response(),
+        ),
+        Media::Pdf => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://cdn.jsdelivr.net",
+            )],
+            PreviewPdfHtml { inscription_id },
+          )
+            .into_response(),
+        ),
+        Media::Text => Ok(PreviewTextHtml { inscription_id }.into_response()),
+        Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
+        Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
+      }
+    })
   }
 
   async fn inscription(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let inscription_id = match query {
-      InscriptionQuery::Id(id) => id,
-      InscriptionQuery::Number(inscription_number) => index
-        .get_inscription_id_by_inscription_number(inscription_number)?
-        .ok_or_not_found(|| format!("{inscription_number}"))?,
-    };
+    task::block_in_place(|| {
+      let info = Index::inscription_info(&index, query)?
+        .ok_or_not_found(|| format!("inscription {query}"))?;
 
-    let entry = index
-      .get_inscription_entry(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      Ok(if accept_json {
+        Json(InscriptionJson {
+          inscription_id: info.entry.id,
+          charms: Charm::ALL
+            .iter()
+            .filter(|charm| charm.is_set(info.charms))
+            .map(|charm| charm.title().into())
+            .collect(),
+          children: info.children,
+          inscription_number: info.entry.inscription_number,
+          genesis_height: info.entry.height,
+          parent: info.parent,
+          genesis_fee: info.entry.fee,
+          output_value: info.output.as_ref().map(|o| o.value),
+          address: info
+            .output
+            .as_ref()
+            .and_then(|o| {
+              server_config
+                .chain
+                .address_from_script(&o.script_pubkey)
+                .ok()
+            })
+            .map(|address| address.to_string()),
+          sat: info.entry.sat,
+          satpoint: info.satpoint,
+          content_type: info.inscription.content_type().map(|s| s.to_string()),
+          content_length: info.inscription.content_length(),
+          timestamp: timestamp(info.entry.timestamp).timestamp(),
+          previous: info.previous,
+          next: info.next,
+          rune: info.rune,
+        })
+        .into_response()
+      } else {
+        InscriptionHtml {
+          chain: server_config.chain,
+          charms: info.charms,
+          children: info.children,
+          genesis_fee: info.entry.fee,
+          genesis_height: info.entry.height,
+          inscription: info.inscription,
+          inscription_id: info.entry.id,
+          inscription_number: info.entry.inscription_number,
+          next: info.next,
+          output: info.output,
+          parent: info.parent,
+          previous: info.previous,
+          rune: info.rune,
+          sat: info.entry.sat,
+          satpoint: info.satpoint,
+          timestamp: timestamp(info.entry.timestamp),
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
+  }
 
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+  async fn collections(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Self::collections_paginated(Extension(server_config), Extension(index), Path(0)).await
+  }
 
-    let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+  async fn collections_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let (collections, more_collections) = index.get_collections_paginated(100, page_index)?;
 
-    let output = if satpoint.outpoint == unbound_outpoint() {
-      None
-    } else {
-      Some(
-        index
-          .get_transaction(satpoint.outpoint.txid)?
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
+      let prev = page_index.checked_sub(1);
+
+      let next = more_collections.then_some(page_index + 1);
+
+      Ok(
+        CollectionsHtml {
+          inscriptions: collections,
+          prev,
+          next,
+        }
+        .page(server_config)
+        .into_response(),
       )
-    };
-
-    let previous = if let Some(n) = entry.sequence_number.checked_sub(1) {
-      index.get_inscription_id_by_sequence_number(n)?
-    } else {
-      None
-    };
-
-    let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
-
-    let (children, _more_children) =
-      index.get_children_by_inscription_id_paginated(inscription_id, 4, 0)?;
-
-    let rune = index.get_rune_by_inscription_id(inscription_id)?;
-
-    Ok(if accept_json.0 {
-      Json(InscriptionJson::new(
-        page_config.chain,
-        children,
-        entry.fee,
-        entry.height,
-        inscription,
-        inscription_id,
-        entry.parent,
-        next,
-        entry.inscription_number,
-        output,
-        previous,
-        entry.sat,
-        satpoint,
-        timestamp(entry.timestamp),
-        rune,
-      ))
-      .into_response()
-    } else {
-      InscriptionHtml {
-        chain: page_config.chain,
-        children,
-        genesis_fee: entry.fee,
-        genesis_height: entry.height,
-        inscription,
-        inscription_id,
-        inscription_number: entry.inscription_number,
-        next,
-        output,
-        parent: entry.parent,
-        previous,
-        rune,
-        sat: entry.sat,
-        satpoint,
-        timestamp: timestamp(entry.timestamp),
-      }
-      .page(page_config)
-      .into_response()
     })
   }
 
   async fn children(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
     Self::children_paginated(
-      Extension(page_config),
+      Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
     )
@@ -1262,124 +1444,207 @@ impl Server {
   }
 
   async fn children_paginated(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
-    let parent_number = index
-      .get_inscription_entry(parent)?
-      .ok_or_not_found(|| format!("inscription {parent}"))?
-      .inscription_number;
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(parent)?
+        .ok_or_not_found(|| format!("inscription {parent}"))?;
 
-    let (children, more_children) =
-      index.get_children_by_inscription_id_paginated(parent, 100, page)?;
+      let parent_number = entry.inscription_number;
 
-    let prev_page = page.checked_sub(1);
+      let (children, more_children) =
+        index.get_children_by_sequence_number_paginated(entry.sequence_number, 100, page)?;
 
-    let next_page = more_children.then_some(page + 1);
+      let prev_page = page.checked_sub(1);
 
-    Ok(
-      ChildrenHtml {
-        parent,
-        parent_number,
-        children,
-        prev_page,
-        next_page,
-      }
-      .page(page_config)
-      .into_response(),
-    )
+      let next_page = more_children.then_some(page + 1);
+
+      Ok(
+        ChildrenHtml {
+          parent,
+          parent_number,
+          children,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response(),
+      )
+    })
+  }
+
+  async fn children_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::children_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+  }
+
+  async fn children_recursive_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let parent_sequence_number = index
+        .get_inscription_entry(parent)?
+        .ok_or_not_found(|| format!("inscription {parent}"))?
+        .sequence_number;
+
+      let (ids, more) =
+        index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
+
+      Ok(Json(ChildrenJson { ids, more, page }).into_response())
+    })
   }
 
   async fn inscriptions(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, None, 100, accept_json).await
-  }
-
-  async fn inscriptions_in_block(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(block_height): Path<u64>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::inscriptions_in_block_from_page(
-      Extension(page_config),
+    Self::inscriptions_paginated(
+      Extension(server_config),
       Extension(index),
-      Path((block_height, 0)),
+      Path(0),
       accept_json,
     )
     .await
   }
 
-  async fn inscriptions_in_block_from_page(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+  async fn inscriptions_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page)): Path<(u64, usize)>,
-    accept_json: AcceptJson,
+    Path(page_index): Path<u32>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index.get_inscriptions_in_block(block_height)?;
+    task::block_in_place(|| {
+      let (inscriptions, more) = index.get_inscriptions_paginated(100, page_index)?;
 
-    Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
-    } else {
-      InscriptionsBlockHtml::new(
-        block_height,
-        index.block_height()?.unwrap_or(Height(0)).n(),
-        inscriptions,
-        page,
-      )?
-      .page(page_config)
-      .into_response()
+      let prev = page_index.checked_sub(1);
+
+      let next = more.then_some(page_index + 1);
+
+      Ok(if accept_json {
+        Json(InscriptionsJson {
+          inscriptions,
+          page_index,
+          more,
+        })
+        .into_response()
+      } else {
+        InscriptionsHtml {
+          inscriptions,
+          next,
+          prev,
+        }
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 
-  async fn inscriptions_from(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+  async fn inscriptions_in_block(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
-    accept_json: AcceptJson,
+    Path(block_height): Path<u32>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
+    Self::inscriptions_in_block_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((block_height, 0)),
+      AcceptJson(accept_json),
+    )
+    .await
   }
 
-  async fn inscriptions_from_n(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+  async fn inscriptions_in_block_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(u64, usize)>,
-    accept_json: AcceptJson,
+    Path((block_height, page_index)): Path<(u32, u32)>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
-  }
+    task::block_in_place(|| {
+      let page_size = 100;
 
-  async fn inscriptions_inner(
-    page_config: Arc<PageConfig>,
-    index: Arc<Index>,
-    from: Option<u64>,
-    n: usize,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    let (inscriptions, prev, next, lowest, highest) =
-      index.get_latest_inscriptions_with_prev_and_next(n, from)?;
-    Ok(if accept_json.0 {
-      Json(InscriptionsJson::new(
-        inscriptions,
-        prev,
-        next,
-        Some(lowest),
-        Some(highest),
-      ))
-      .into_response()
-    } else {
-      InscriptionsHtml {
-        inscriptions,
-        next,
-        prev,
+      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
+      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+
+      let mut inscriptions = index
+        .get_inscriptions_in_block(block_height)?
+        .into_iter()
+        .skip(page_index_usize.saturating_mul(page_size_usize))
+        .take(page_size_usize.saturating_add(1))
+        .collect::<Vec<InscriptionId>>();
+
+      let more = inscriptions.len() > page_size_usize;
+
+      if more {
+        inscriptions.pop();
       }
-      .page(page_config)
-      .into_response()
+
+      Ok(if accept_json {
+        Json(InscriptionsJson {
+          inscriptions,
+          page_index,
+          more,
+        })
+        .into_response()
+      } else {
+        InscriptionsBlockHtml::new(
+          block_height,
+          index.block_height()?.unwrap_or(Height(0)).n(),
+          inscriptions,
+          more,
+          page_index,
+        )?
+        .page(server_config)
+        .into_response()
+      })
+    })
+  }
+
+  async fn sat_inscriptions(
+    Extension(index): Extension<Arc<Index>>,
+    Path(sat): Path<u64>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
+  }
+
+  async fn sat_inscriptions_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((sat, page)): Path<(u64, u64)>,
+  ) -> ServerResult<Json<SatInscriptionsJson>> {
+    task::block_in_place(|| {
+      if !index.has_sat_index() {
+        return Err(ServerError::NotFound(
+          "this server has no sat index".to_string(),
+        ));
+      }
+
+      let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
+
+      Ok(Json(SatInscriptionsJson { ids, more, page }))
+    })
+  }
+
+  async fn sat_inscription_at_index(
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
+  ) -> ServerResult<Json<SatInscriptionJson>> {
+    task::block_in_place(|| {
+      if !index.has_sat_index() {
+        return Err(ServerError::NotFound(
+          "this server has no sat index".to_string(),
+        ));
+      }
+
+      let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
+
+      Ok(Json(SatInscriptionJson { id }))
     })
   }
 
@@ -1468,11 +1733,7 @@ mod tests {
           .network(bitcoin::Network::Regtest)
           .build(),
         None,
-        &[
-          "--chain",
-          "regtest",
-          "--index-runes-pre-alpha-i-agree-to-get-rekt",
-        ],
+        &["--chain", "regtest", "--index-runes"],
         &["--enable-json-api"],
       )
     }
@@ -1598,6 +1859,7 @@ mod tests {
       pretty_assert_eq!(response.text().unwrap(), expected_response);
     }
 
+    #[track_caller]
     fn assert_response_regex(
       &self,
       path: impl AsRef<str>,
@@ -1628,6 +1890,7 @@ mod tests {
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
+    #[track_caller]
     fn assert_redirect(&self, path: &str, location: &str) {
       let response = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -1793,7 +2056,6 @@ mod tests {
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert!(
@@ -1812,7 +2074,6 @@ mod tests {
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
-      .unwrap()
       .display()
       .to_string();
     assert_eq!(acme_cache, "bar")
@@ -1823,7 +2084,7 @@ mod tests {
     let (_, server) = parse_server_args("ord server");
     assert_eq!(
       server.acme_domains().unwrap(),
-      &[System::new().host_name().unwrap()]
+      &[System::host_name().unwrap()]
     );
   }
 
@@ -1864,6 +2125,11 @@ mod tests {
   #[test]
   fn search_by_query_returns_rune() {
     TestServer::new().assert_redirect("/search?query=ABCD", "/rune/ABCD");
+  }
+
+  #[test]
+  fn search_by_query_returns_spaced_rune() {
+    TestServer::new().assert_redirect("/search?query=AB•CD", "/rune/AB•CD");
   }
 
   #[test]
@@ -1922,6 +2188,11 @@ mod tests {
   }
 
   #[test]
+  fn search_by_path_returns_spaced_rune() {
+    TestServer::new().assert_redirect("/search/AB•CD", "/rune/AB•CD");
+  }
+
+  #[test]
   fn search_by_rune_id_returns_rune() {
     let server = TestServer::new_with_regtest_with_index_runes();
 
@@ -1941,7 +2212,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune,
+            rune: Some(rune),
             ..Default::default()
           }),
           ..Default::default()
@@ -1966,24 +2237,511 @@ mod tests {
   }
 
   #[test]
+  fn runes_are_displayed_on_runes_page() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(Rune(RUNE)),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*
+<h1>Runes</h1>
+<ul>
+  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
+</ul>.*",
+    );
+  }
+
+  #[test]
+  fn runes_are_displayed_on_rune_page() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            symbol: Some('%'),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune,
+          supply: u128::max_value(),
+          symbol: Some('%'),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/rune/{rune}"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Rune AAAAAAAAAAAAA</title>.*
+<h1>AAAAAAAAAAAAA</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
+<dl>
+  <dt>number</dt>
+  <dd>0</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
+  <dt>id</dt>
+  <dd>2/1</dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>1</dd>
+  <dt>mints</dt>
+  <dd>0</dd>
+  <dt>supply</dt>
+  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dt>burned</dt>
+  <dd>0\u{00A0}%</dd>
+  <dt>divisibility</dt>
+  <dd>0</dd>
+  <dt>symbol</dt>
+  <dd>%</dd>
+  <dt>etching</dt>
+  <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>parent</dt>
+  <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
+</dl>
+.*"
+      ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*
+<dl>
+  .*
+  <dt>rune</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+</dl>
+.*",
+    );
+  }
+
+  #[test]
+  fn runes_are_spaced() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            symbol: Some('%'),
+            spacers: 1,
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune,
+          supply: u128::max_value(),
+          symbol: Some('%'),
+          timestamp: 2,
+          spacers: 1,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/rune/{rune}"),
+      StatusCode::OK,
+      r".*<title>Rune A•AAAAAAAAAAAA</title>.*<h1>A•AAAAAAAAAAAA</h1>.*",
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*<dt>rune</dt>.*<dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>.*",
+    );
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<li><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></li>.*",
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>
+.*",
+    );
+
+    server.assert_response_regex(
+      format!("/output/{txid}:0"),
+      StatusCode::OK,
+      ".*<tr>
+        <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
+        <td>340282366920938463463374607431768211455\u{00A0}%</td>
+      </tr>.*",
+    );
+  }
+
+  #[test]
+  fn transactions_link_to_etching() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(Rune(RUNE)),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+.*",
+    );
+  }
+
+  #[test]
+  fn runes_are_displayed_on_output_page() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 1,
+            rune: Some(rune),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          divisibility: 1,
+          etching: txid,
+          rune,
+          supply: u128::max_value(),
+          timestamp: 2,
+          ..Default::default()
+        }
+      )]
+    );
+
+    let output = OutPoint { txid, vout: 0 };
+
+    assert_eq!(
+      server.index.get_rune_balances().unwrap(),
+      [(output, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/output/{output}"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {output}</title>.*<h1>Output <span class=monospace>{output}</span></h1>.*
+  <dt>runes</dt>
+  <dd>
+    <table>
+      <tr>
+        <th>rune</th>
+        <th>balance</th>
+      </tr>
+      <tr>
+        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
+        <td>34028236692093846346337460743176821145.5</td>
+      </tr>
+    </table>
+  </dd>
+.*"
+      ),
+    );
+
+    assert_eq!(
+      server.get_json::<OutputJson>(format!("/output/{output}")),
+      OutputJson {
+        value: 5000000000,
+        script_pubkey: String::new(),
+        address: None,
+        transaction: txid.to_string(),
+        sat_ranges: None,
+        indexed: true,
+        inscriptions: Vec::new(),
+        spent: false,
+        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
+          .into_iter()
+          .collect(),
+      }
+    );
+  }
+
+  #[test]
   fn http_to_https_redirect_with_path() {
     TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
       "/sat/0",
-      &format!("https://{}/sat/0", System::new().host_name().unwrap()),
+      &format!("https://{}/sat/0", System::host_name().unwrap()),
     );
   }
 
   #[test]
   fn http_to_https_redirect_with_empty() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
-      "/",
-      &format!("https://{}/", System::new().host_name().unwrap()),
-    );
+    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"])
+      .assert_redirect("/", &format!("https://{}/", System::host_name().unwrap()));
   }
 
   #[test]
   fn status() {
-    TestServer::new().assert_response("/status", StatusCode::OK, "OK");
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<h1>Status</h1>
+<dl>
+  <dt>chain</dt>
+  <dd>mainnet</dd>
+  <dt>height</dt>
+  <dd>0</dd>
+  <dt>inscriptions</dt>
+  <dd>0</dd>
+  <dt>blessed inscriptions</dt>
+  <dd>0</dd>
+  <dt>cursed inscriptions</dt>
+  <dd>0</dd>
+  <dt>runes</dt>
+  <dd>0</dd>
+  <dt>lost sats</dt>
+  <dd>.*</dd>
+  <dt>started</dt>
+  <dd>.*</dd>
+  <dt>uptime</dt>
+  <dd>.*</dd>
+  <dt>minimum rune for next block</dt>
+  <dd>AAAAAAAAAAAAA</dd>
+  <dt>version</dt>
+  <dd>.*</dd>
+  <dt>unrecoverably reorged</dt>
+  <dd>false</dd>
+  <dt>rune index</dt>
+  <dd>false</dd>
+  <dt>sat index</dt>
+  <dd>false</dd>
+  <dt>transaction index</dt>
+  <dd>false</dd>
+  <dt>git branch</dt>
+  <dd>.*</dd>
+  <dt>git commit</dt>
+  <dd>
+    <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+      [[:xdigit:]]{40}
+    </a>
+  </dd>
+</dl>
+.*",
+    );
   }
 
   #[test]
@@ -2172,6 +2930,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
@@ -2193,6 +2952,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
     );
@@ -2210,6 +2970,7 @@ mod tests {
   <dt>value</dt><dd>0</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>0 Sat Ranges</h2>
 <ul class=monospace>
@@ -2235,6 +2996,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
@@ -2246,7 +3008,7 @@ mod tests {
 
   #[test]
   fn unbound_output_receives_unbound_inscriptions() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::new_with_regtest_with_index_sats();
 
     server.mine_blocks(1);
 
@@ -2278,10 +3040,20 @@ mod tests {
       format!(
         ".*<dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>
-  <dt>preview</dt>.*<dt>output</dt>
+  <dd class=monospace>{inscription_id}</dd>.*<dt>output</dt>
   <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
+    );
+
+    server.assert_response_regex(
+      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      StatusCode::OK,
+      ".*<h1>Output <span class=monospace>0000000000000000000000000000000000000000000000000000000000000000:0</span></h1>
+<dl>
+  <dt>inscriptions</dt>
+  <dd class=thumbnails>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
+  </dd>.*",
     );
   }
 
@@ -2305,14 +3077,56 @@ mod tests {
 
   #[test]
   fn home() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+
+    for i in 0..101 {
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("image/png", "hello").to_witness())],
+        ..Default::default()
+      });
+      ids.push(InscriptionId { txid, index: 0 });
+      server.mine_blocks(1);
+    }
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "{}").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/",
+      StatusCode::OK,
+      format!(
+        r".*<title>Ordinals</title>.*
+<h1>Latest Inscriptions</h1>
+<div class=thumbnails>
+  <a href=/inscription/{}>.*</a>
+  (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
+</div>
+.*
+",
+        ids[100]
+      ),
+    );
+  }
+
+  #[test]
+  fn blocks() {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(1);
 
     test_server.assert_response_regex(
-      "/",
+      "/blocks",
       StatusCode::OK,
-      ".*<title>Ordinals</title>.*
+      ".*<title>Blocks</title>.*
+<h1>Blocks</h1>
 <div class=block>
   <h2><a href=/block/1>Block 1</a></h2>
   <div class=thumbnails>
@@ -2332,21 +3146,21 @@ mod tests {
     TestServer::new_with_regtest().assert_response_regex(
       "/",
       StatusCode::OK,
-      ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",
+      ".*<a href=/ title=home>Ordinals<sup>regtest</sup></a>.*",
     );
   }
 
   #[test]
-  fn home_block_limit() {
+  fn blocks_block_limit() {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(101);
 
     test_server.assert_response_regex(
-    "/",
-    StatusCode::OK,
-    ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
-  );
+      "/blocks",
+      StatusCode::OK,
+      ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
+    );
   }
 
   #[test]
@@ -2448,8 +3262,8 @@ mod tests {
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0 class=monospace>
-      30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0
+    <a href=/output/84aca0d43f45ac753d4744f40b2f54edec3a496b298951735d450e601386089d:0 class=monospace>
+      84aca0d43f45ac753d4744f40b2f54edec3a496b298951735d450e601386089d:0
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
@@ -2467,7 +3281,11 @@ mod tests {
 
     test_server.mine_blocks(21);
 
-    test_server.assert_response("/status", StatusCode::OK, "OK");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>false</dd>.*",
+    );
 
     for _ in 0..15 {
       test_server.bitcoin_rpc_server.invalidate_tip();
@@ -2475,7 +3293,11 @@ mod tests {
 
     test_server.bitcoin_rpc_server.mine_blocks(21);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "unrecoverable reorg detected.*");
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::OK,
+      ".*<dt>unrecoverably reorged</dt>\n  <dd>true</dd>.*",
+    );
   }
 
   #[test]
@@ -2505,9 +3327,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=/rare.txt title=rare>.*</a>.*",
     );
   }
 
@@ -2526,8 +3347,8 @@ mod tests {
       "/",
       StatusCode::OK,
       ".*
-      <a href=/clock>Clock</a>
-      <form action=/search method=get>.*",
+      <a href=/clock title=clock>.*</a>
+      <a href=https://docs.ordinals.com/.*",
     );
   }
 
@@ -2691,24 +3512,60 @@ mod tests {
   #[test]
   fn content_response_no_content() {
     assert_eq!(
-      Server::content_response(Inscription::new(
-        Some("text/plain".as_bytes().to_vec()),
-        None
-      )),
+      Server::content_response(
+        Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
+        AcceptEncoding::default(),
+        &ServerConfig::default(),
+      )
+      .unwrap(),
       None
     );
   }
 
   #[test]
   fn content_response_with_content() {
-    let (headers, body) = Server::content_response(Inscription::new(
-      Some("text/plain".as_bytes().to_vec()),
-      Some(vec![1, 2, 3]),
-    ))
+    let (headers, body) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "text/plain");
     assert_eq!(body, vec![1, 2, 3]);
+  }
+
+  #[test]
+  fn content_security_policy_no_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(
+      headers["content-security-policy"],
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:")
+    );
+  }
+
+  #[test]
+  fn content_security_policy_with_origin() {
+    let (headers, _) = Server::content_response(
+      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      AcceptEncoding::default(),
+      &ServerConfig {
+        csp_origin: Some("https://ordinals.com".into()),
+        ..Default::default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(headers["content-security-policy"], HeaderValue::from_static("default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"));
   }
 
   #[test]
@@ -2732,14 +3589,19 @@ mod tests {
     server.assert_response_regex(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
+      format!(r".*<html lang=en data-inscription={inscription_id} data-language=javascript>.*"),
     );
   }
 
   #[test]
   fn content_response_no_content_type() {
-    let (headers, body) =
-      Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
+    let (headers, body) = Server::content_response(
+      Inscription::new(None, Some(Vec::new())),
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
@@ -2747,10 +3609,12 @@ mod tests {
 
   #[test]
   fn content_response_bad_content_type() {
-    let (headers, body) = Server::content_response(Inscription::new(
-      Some("\n".as_bytes().to_vec()),
-      Some(Vec::new()),
-    ))
+    let (headers, body) = Server::content_response(
+      Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
     .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
@@ -2772,66 +3636,15 @@ mod tests {
       ..Default::default()
     });
 
-    server.mine_blocks(1);
-
-    server.assert_response_csp(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
-      StatusCode::OK,
-      "default-src 'self'",
-      ".*<pre>hello</pre>.*",
-    );
-  }
-
-  #[test]
-  fn text_preview_returns_error_when_content_is_not_utf8() {
-    let server = TestServer::new_with_regtest();
-    server.mine_blocks(1);
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(
-        1,
-        0,
-        0,
-        inscription("text/plain;charset=utf-8", b"\xc3\x28").to_witness(),
-      )],
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
-    server.assert_response(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
-      StatusCode::INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-    );
-  }
-
-  #[test]
-  fn text_preview_text_is_escaped() {
-    let server = TestServer::new_with_regtest();
-    server.mine_blocks(1);
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(
-        1,
-        0,
-        0,
-        inscription(
-          "text/plain;charset=utf-8",
-          "<script>alert('hello');</script>",
-        )
-        .to_witness(),
-      )],
-      ..Default::default()
-    });
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId { txid, index: 0 }),
+      format!("/preview/{}", inscription_id),
       StatusCode::OK,
       "default-src 'self'",
-      r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
+      format!(".*<html lang=en data-inscription={}>.*", inscription_id),
     );
   }
 
@@ -2852,6 +3665,26 @@ mod tests {
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
       format!(r".*<audio .*>\s*<source src=/content/{inscription_id}>.*"),
+    );
+  }
+
+  #[test]
+  fn font_preview() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("font/ttf", "hello").to_witness())],
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*src: url\(/content/{inscription_id}\).*"),
     );
   }
 
@@ -3143,7 +3976,20 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
-      "max-age=31536000, immutable"
+      "public, max-age=1209600, immutable"
+    );
+  }
+
+  #[test]
+  fn error_content_responses_have_max_age_zero_cache_control_headers() {
+    let server = TestServer::new_with_regtest();
+    let response =
+      server.get("/content/6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0");
+
+    assert_eq!(response.status(), 404);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "no-store"
     );
   }
 
@@ -3171,7 +4017,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/inscriptions",
+      "/inscriptions/1",
       StatusCode::OK,
       ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
     );
@@ -3194,7 +4040,85 @@ mod tests {
     server.assert_response_regex(
       "/inscriptions/0",
       StatusCode::OK,
-      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+      ".*prev\n<a class=next href=/inscriptions/1>next</a>.*",
+    );
+  }
+
+  #[test]
+  fn collections_page_prev_and_next() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    let mut parent_ids = Vec::new();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+
+      parent_ids.push(InscriptionId {
+        txid: server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+          ..Default::default()
+        }),
+        index: 0,
+      });
+    }
+
+    for (i, parent_id) in parent_ids.iter().enumerate().take(101) {
+      server.mine_blocks(1);
+
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (i + 2, 1, 0, Default::default()),
+          (
+            i + 102,
+            0,
+            0,
+            Inscription {
+              content_type: Some("text/plain".into()),
+              body: Some("hello".into()),
+              parent: Some(parent_id.value()),
+              ..Default::default()
+            }
+            .to_witness(),
+          ),
+        ],
+        outputs: 2,
+        output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      r".*
+<h1>Collections</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){99}
+</div>
+<div class=center>
+prev
+<a class=next href=/collections/1>next</a>
+</div>.*"
+        .to_string()
+        .unindent(),
+    );
+
+    server.assert_response_regex(
+      "/collections/1",
+      StatusCode::OK,
+      ".*
+<h1>Collections</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+</div>
+<div class=center>
+<a class=prev href=/collections/0>prev</a>
+next
+</div>.*"
+        .unindent(),
     );
   }
 
@@ -3230,6 +4154,7 @@ mod tests {
 
     let response = reqwest::blocking::Client::builder()
       .default_headers(headers)
+      .brotli(false)
       .build()
       .unwrap()
       .get(server.join_url("/"))
@@ -3302,7 +4227,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3375,7 +4300,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3422,7 +4347,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3434,7 +4359,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3446,7 +4371,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3458,7 +4383,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3470,7 +4395,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.parent_value()),
+            parent: Some(parent_inscription_id.value()),
             ..Default::default()
           }
           .to_witness(),
@@ -3495,181 +4420,6 @@ mod tests {
       <a href=/children/{parent_inscription_id}>all</a>
     </div>.*"
       ),
-    );
-  }
-
-  #[test]
-  fn runes_are_displayed_on_runes_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex(
-      "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
-    );
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: 0,
-            amount: u128::max_value(),
-            output: 0,
-          }],
-          etching: Some(Etching {
-            rune: Rune(RUNE),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
-
-    assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          etching: txid,
-          rune: Rune(RUNE),
-          supply: u128::max_value(),
-          timestamp: 2,
-          ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      server.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
-    );
-
-    server.assert_response_regex(
-      "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*
-<h1>Runes</h1>
-<ul>
-  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
-</ul>.*",
-    );
-  }
-
-  #[test]
-  fn runes_are_displayed_on_rune_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: 0,
-            amount: u128::max_value(),
-            output: 0,
-          }],
-          etching: Some(Etching {
-            rune,
-            symbol: Some('$'),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    server.mine_blocks(1);
-
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
-
-    assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          etching: txid,
-          rune,
-          supply: u128::max_value(),
-          symbol: Some('$'),
-          timestamp: 2,
-          ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      server.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
-    );
-
-    server.assert_response_regex(
-      format!("/rune/{rune}"),
-      StatusCode::OK,
-      format!(
-        r".*<title>Rune AAAAAAAAAAAAA</title>.*
-<h1>Rune AAAAAAAAAAAAA</h1>
-<iframe .* src=/preview/{txid}i0></iframe>
-<dl>
-  <dt>id</dt>
-  <dd>2/1</dd>
-  <dt>number</dt>
-  <dd>0</dd>
-  <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>etching block height</dt>
-  <dd><a href=/block/2>2</a></dd>
-  <dt>etching transaction index</dt>
-  <dd>1</dd>
-  <dt>supply</dt>
-  <dd>\$340282366920938463463374607431768211455</dd>
-  <dt>burned</dt>
-  <dd>\$0</dd>
-  <dt>divisibility</dt>
-  <dd>0</dd>
-  <dt>symbol</dt>
-  <dd>\$</dd>
-  <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
-</dl>
-.*"
-      ),
-    );
-
-    server.assert_response_regex(
-      format!("/inscription/{txid}i0"),
-      StatusCode::OK,
-      ".*
-<dl>
-  .*
-  <dt>rune</dt>
-  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
-</dl>
-.*",
     );
   }
 
@@ -3726,168 +4476,729 @@ mod tests {
   }
 
   #[test]
-  fn transactions_link_to_etching() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+  fn charm_cursed() {
+    let server = TestServer::new_with_regtest();
 
-    server.mine_blocks(1);
-
-    server.assert_response_regex(
-      "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
-    );
+    server.mine_blocks(2);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: 0,
-            amount: u128::max_value(),
-            output: 0,
-          }],
-          etching: Some(Etching {
-            rune: Rune(RUNE),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
+      inputs: &[
+        (1, 0, 0, Witness::default()),
+        (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
+      ],
+      outputs: 2,
       ..Default::default()
     });
 
+    let id = InscriptionId { txid, index: 0 };
+
     server.mine_blocks(1);
 
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
-
-    assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          etching: txid,
-          rune: Rune(RUNE),
-          supply: u128::max_value(),
-          timestamp: 2,
-          ..Default::default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      server.index.get_rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
-    );
-
     server.assert_response_regex(
-      format!("/tx/{txid}"),
+      format!("/inscription/{id}"),
       StatusCode::OK,
-      ".*
-  <dt>etching</dt>
-  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
-.*",
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=cursed>👹</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
     );
   }
 
   #[test]
-  fn runes_are_displayed_on_output_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+  fn charm_vindicated() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(110);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, Witness::default()),
+        (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
+      ],
+      outputs: 2,
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
-    let rune = Rune(RUNE);
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=vindicated>❤️‍🔥</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
 
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+  #[test]
+  fn charm_coin() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Default::default())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: 0,
-            amount: u128::max_value(),
-            output: 0,
-          }],
-          etching: Some(Etching {
-            divisibility: 1,
-            rune,
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=coin>🪙</span>.*</dd>
+  .*
+</dl>
+.*
+"
       ),
+    );
+  }
+
+  #[test]
+  fn charm_uncommon() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(2);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=uncommon>🌱</span>.*</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_nineball() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    server.mine_blocks(9);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(9, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>.*<span title=nineball>9️⃣</span>.*</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_reinscription() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..Default::default()
     });
 
     server.mine_blocks(1);
 
-    let id = RuneId {
-      height: 2,
-      index: 1,
-    };
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, inscription("text/plain", "bar").to_witness())],
+      ..Default::default()
+    });
 
-    assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          divisibility: 1,
-          etching: txid,
-          rune,
-          supply: u128::max_value(),
-          timestamp: 2,
-          ..Default::default()
-        }
-      )]
-    );
+    server.mine_blocks(1);
 
-    let output = OutPoint { txid, vout: 0 };
-
-    assert_eq!(
-      server.index.get_rune_balances(),
-      [(output, vec![(id, u128::max_value())])]
-    );
+    let id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      format!("/output/{output}"),
+      format!("/inscription/{id}"),
       StatusCode::OK,
       format!(
-        ".*<title>Output {output}</title>.*<h1>Output <span class=monospace>{output}</span></h1>.*
-  <dt>runes</dt>
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
   <dd>
-    <table>
-      <tr>
-        <th>rune</th>
-        <th>balance</th>
-      </tr>
-      <tr>
-        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
-        <td>34028236692093846346337460743176821145.5</td>
-      </tr>
-    </table>
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>
   </dd>
-.*"
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_reinscription_in_same_tx_input() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"foo")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"bar")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice([1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice([])
+      .push_slice(b"qix")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, witness)],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>output value</dt>
+  .*
+</dl>
+.*
+"
       ),
     );
 
+    let id = InscriptionId { txid, index: 1 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
+    );
+
+    let id = InscriptionId { txid, index: 2 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
+    );
+  }
+
+  #[test]
+  fn charm_reinscription_in_same_tx_with_pointer() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(3);
+
+    let cursed_inscription = inscription("text/plain", "bar");
+    let reinscription: Inscription = InscriptionTemplate {
+      pointer: Some(0),
+      ..Default::default()
+    }
+    .into();
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (1, 0, 0, inscription("text/plain", "foo").to_witness()),
+        (2, 0, 0, cursed_inscription.to_witness()),
+        (3, 0, 0, reinscription.to_witness()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>output value</dt>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+
+    let id = InscriptionId { txid, index: 1 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=cursed>👹</span>.*",
+    );
+
+    let id = InscriptionId { txid, index: 2 };
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      ".*
+    <span title=reinscription>♻️</span>
+    <span title=cursed>👹</span>.*",
+    );
+  }
+
+  #[test]
+  fn charm_unbound() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, envelope(&[b"ord", &[128], &[0]]))],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription -1</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=cursed>👹</span>
+    <span title=unbound>🔓</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn charm_lost() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>output value</dt>
+  <dd>5000000000</dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      fee: 50 * COIN_VALUE,
+      ..Default::default()
+    });
+
+    server.mine_blocks_with_subsidy(1, 0);
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{id}</dd>
+  <dt>charms</dt>
+  <dd>
+    <span title=lost>🤔</span>
+  </dd>
+  .*
+</dl>
+.*
+"
+      ),
+    );
+  }
+
+  #[test]
+  fn sat_recursive_endpoints() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
     assert_eq!(
-      server.get_json::<OutputJson>(format!("/output/{output}")),
-      OutputJson {
-        value: 5000000000,
-        script_pubkey: String::new(),
-        address: None,
-        transaction: txid.to_string(),
-        sat_ranges: None,
-        inscriptions: Vec::new(),
-        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
-          .into_iter()
-          .collect(),
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000"),
+      SatInscriptionsJson {
+        ids: vec![],
+        page: 0,
+        more: false
       }
     );
+
+    assert_eq!(
+      server.get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0"),
+      SatInscriptionJson { id: None }
+    );
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+    ids.push(InscriptionId { txid, index: 0 });
+
+    for i in 1..111 {
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 1, 0, inscription("text/plain", "foo").to_witness())],
+        ..Default::default()
+      });
+
+      server.mine_blocks(1);
+
+      ids.push(InscriptionId { txid, index: 0 });
+    }
+
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000");
+
+    let equivalent_paginated_response =
+      server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/0");
+
+    assert_eq!(paginated_response.ids.len(), 100);
+    assert!(paginated_response.more);
+    assert_eq!(paginated_response.page, 0);
+
+    assert_eq!(
+      paginated_response.ids.len(),
+      equivalent_paginated_response.ids.len()
+    );
+    assert_eq!(paginated_response.more, equivalent_paginated_response.more);
+    assert_eq!(paginated_response.page, equivalent_paginated_response.page);
+
+    let paginated_response = server.get_json::<SatInscriptionsJson>("/r/sat/5000000000/1");
+
+    assert_eq!(paginated_response.ids.len(), 11);
+    assert!(!paginated_response.more);
+    assert_eq!(paginated_response.page, 1);
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/0")
+        .id,
+      Some(ids[0])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-111")
+        .id,
+      Some(ids[0])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/110")
+        .id,
+      Some(ids[110])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/-1")
+        .id,
+      Some(ids[110])
+    );
+
+    assert!(server
+      .get_json::<SatInscriptionJson>("/r/sat/5000000000/at/111")
+      .id
+      .is_none());
+  }
+
+  #[test]
+  fn children_recursive_endpoint() {
+    let server = TestServer::new_with_regtest_with_json_api();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/children/{parent_inscription_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
+    assert_eq!(children_json.ids.len(), 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parent: Some(parent_inscription_id.value()),
+        unrecognized_even_field: false,
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}"));
+
+    assert_eq!(children_json.ids.len(), 100);
+    assert_eq!(children_json.ids[0], first_child_inscription_id);
+    assert_eq!(children_json.ids[99], hundredth_child_inscription_id);
+    assert!(children_json.more);
+    assert_eq!(children_json.page, 0);
+
+    let children_json =
+      server.get_json::<ChildrenJson>(format!("/r/children/{parent_inscription_id}/1"));
+
+    assert_eq!(children_json.ids.len(), 11);
+    assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);
+    assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn inscriptions_in_block_page() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+
+    for _ in 0..101 {
+      server.mine_blocks(1);
+    }
+
+    for i in 0..101 {
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/block/102",
+      StatusCode::OK,
+      r".*(<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*){100}.*",
+    );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/1",
+      StatusCode::OK,
+      r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
+    );
+  }
+
+  #[test]
+  fn inscription_query_display() {
+    assert_eq!(
+      InscriptionQuery::Id(inscription_id(1)).to_string(),
+      "1111111111111111111111111111111111111111111111111111111111111111i1"
+    );
+    assert_eq!(InscriptionQuery::Number(1).to_string(), "1")
+  }
+
+  #[test]
+  fn inscription_not_found() {
+    TestServer::new_with_regtest_with_json_api().assert_response(
+      "/inscription/0",
+      StatusCode::NOT_FOUND,
+      "inscription 0 not found",
+    );
+  }
+
+  #[test]
+  fn delegate() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let delegate = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, delegate.to_witness())],
+      ..Default::default()
+    });
+
+    let delegate = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      delegate: Some(delegate.value()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription.to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 1</h1>.*
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>{id}</dd>
+          .*
+          <dt>delegate</dt>
+          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
+          .*
+        </dl>.*"
+      )
+      .unindent(),
+    );
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
   }
 }

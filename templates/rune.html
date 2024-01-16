@@ -1,14 +1,14 @@
-<h1>Rune {{ self.entry.rune }}</h1>
+<h1>{{ self.entry.spaced_rune() }}</h1>
 %% if let Some(parent) = self.parent {
 {{Iframe::main(parent)}}
 %% }
 <dl>
-  <dt>id</dt>
-  <dd>{{ self.id }}</dd>
   <dt>number</dt>
   <dd>{{ self.entry.number }}</dd>
   <dt>timestamp</dt>
   <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
+  <dt>id</dt>
+  <dd>{{ self.id }}</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
   <dt>etching transaction index</dt>
@@ -17,10 +17,16 @@
   <dt>open etching end</dt>
   <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
 %% }
+%% if let Some(deadline) = self.entry.deadline {
+  <dt>open etching deadline</dt>
+  <dd><time>{{ timestamp(deadline) }}</time></dd>
+%% }
 %% if let Some(limit) = self.entry.limit {
   <dt>open etching limit</dt>
   <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
 %% }
+  <dt>mints</dt>
+  <dd>{{ self.entry.mints }}</dd>
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
   <dt>burned</dt>

@@ -1,10 +1,11 @@
 use {
   super::*,
   bitcoin::{
+    consensus::Decodable,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },
-  bitcoincore_rpc::RawTx,
+  std::io::Cursor,
 };
 
 pub(crate) struct Server {
@@ -165,6 +166,34 @@ impl Api for Server {
     )
   }
 
+  fn get_tx_out(
+    &self,
+    txid: Txid,
+    vout: u32,
+    _include_mempool: Option<bool>,
+  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .utxos
+        .get(&OutPoint { txid, vout })
+        .map(|&value| GetTxOutResult {
+          bestblock: bitcoin::BlockHash::all_zeros(),
+          confirmations: 0,
+          value,
+          script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+            asm: String::new(),
+            hex: Vec::new(),
+            req_sigs: None,
+            type_: None,
+            addresses: Vec::new(),
+            address: None,
+          },
+          coinbase: false,
+        }),
+    )
+  }
+
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
     if let Some(wallet_name) = self.state().loaded_wallets.first().cloned() {
       Ok(GetWalletInfoResult {
@@ -200,7 +229,7 @@ impl Api for Server {
     assert_eq!(replaceable, None, "replaceable param not supported");
 
     let tx = Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: utxos
         .iter()
@@ -238,6 +267,100 @@ impl Api for Server {
     })
   }
 
+  fn fund_raw_transaction(
+    &self,
+    tx: String,
+    options: Option<FundRawTransactionOptions>,
+    _is_witness: Option<bool>,
+  ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
+    let options = options.unwrap();
+
+    let mut cursor = Cursor::new(hex::decode(tx).unwrap());
+
+    let version = i32::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+    let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+
+    let mut transaction = Transaction {
+      version,
+      input,
+      output,
+      lock_time,
+    };
+
+    assert_eq!(
+      options.change_position,
+      Some(transaction.output.len().try_into().unwrap())
+    );
+
+    let state = self.state();
+
+    let output_value = transaction
+      .output
+      .iter()
+      .map(|txout| txout.value)
+      .sum::<u64>();
+
+    let mut utxos = state
+      .utxos
+      .clone()
+      .into_iter()
+      .map(|(outpoint, value)| (value, outpoint))
+      .collect::<Vec<(Amount, OutPoint)>>();
+
+    let mut input_value = transaction
+      .input
+      .iter()
+      .map(|txin| state.utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>();
+
+    let shortfall = output_value.saturating_sub(input_value);
+
+    utxos.sort();
+    utxos.reverse();
+
+    if shortfall > 0 {
+      let (additional_input_value, outpoint) = utxos
+        .iter()
+        .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
+        .ok_or_else(Self::not_found)?;
+
+      transaction.input.push(TxIn {
+        previous_output: *outpoint,
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::default(),
+      });
+
+      input_value += additional_input_value.to_sat();
+    }
+
+    let change_position = transaction.output.len() as i32;
+
+    transaction.output.push(TxOut {
+      value: input_value - output_value,
+      script_pubkey: ScriptBuf::new(),
+    });
+
+    let fee = if let Some(fee_rate) = options.fee_rate {
+      // increase vsize to account for the witness that `fundrawtransaction` will add
+      let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
+      let funded_kwu = funded_vsize / 1000.0;
+      let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
+      transaction.output.last_mut().unwrap().value -= fee;
+      fee
+    } else {
+      0
+    };
+
+    Ok(FundRawTransactionResult {
+      hex: serialize(&transaction),
+      fee: Amount::from_sat(fee),
+      change_position,
+    })
+  }
+
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
@@ -255,7 +378,7 @@ impl Api for Server {
 
     Ok(
       serde_json::to_value(SignRawTransactionResult {
-        hex: hex::decode(transaction.raw_hex()).unwrap(),
+        hex: serialize(&transaction),
         complete: true,
         errors: None,
       })
@@ -298,14 +421,17 @@ impl Api for Server {
 
     let value = Amount::from_btc(amount).expect("error converting amount to sat");
 
-    let (outpoint, utxo_amount) = state
+    let (outpoint, utxo_amount) = match state
       .utxos
       .iter()
       .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
-      .expect("failed to get a utxo");
+    {
+      Some((outpoint, utxo_amount)) => (outpoint, utxo_amount),
+      _ => return Err(Self::not_found()),
+    };
 
     let mut transaction = Transaction {
-      version: 1,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: *outpoint,
@@ -331,6 +457,8 @@ impl Api for Server {
 
     transaction.output[1].value -= fee;
 
+    let txid = transaction.txid();
+
     state.mempool.push(transaction);
 
     state.sent.push(Sent {
@@ -339,11 +467,7 @@ impl Api for Server {
       locked,
     });
 
-    Ok(
-      "0000000000000000000000000000000000000000000000000000000000000000"
-        .parse()
-        .unwrap(),
-    )
+    Ok(txid)
   }
 
   fn get_transaction(
@@ -388,7 +512,7 @@ impl Api for Server {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     if verbose.unwrap_or(false) {
       match self.state().transactions.get(&txid) {
-        Some(_) => Ok(
+        Some(transaction) => Ok(
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
             hex: Vec::new(),
@@ -396,10 +520,26 @@ impl Api for Server {
             hash: Wtxid::all_zeros(),
             size: 0,
             vsize: 0,
-            version: 0,
+            version: 2,
             locktime: 0,
             vin: Vec::new(),
-            vout: Vec::new(),
+            vout: transaction
+              .output
+              .iter()
+              .enumerate()
+              .map(|(n, output)| GetRawTransactionResultVout {
+                n: n.try_into().unwrap(),
+                value: Amount::from_sat(output.value),
+                script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+                  asm: String::new(),
+                  hex: Vec::new(),
+                  req_sigs: None,
+                  type_: None,
+                  addresses: Vec::new(),
+                  address: None,
+                },
+              })
+              .collect(),
             blockhash: None,
             confirmations: Some(1),
             time: None,
@@ -476,6 +616,7 @@ impl Api for Server {
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+    self.state().change_addresses.push(address.clone());
 
     Ok(address)
   }

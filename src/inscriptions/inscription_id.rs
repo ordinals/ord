@@ -16,7 +16,7 @@ impl Default for InscriptionId {
 }
 
 impl InscriptionId {
-  pub(crate) fn parent_value(self) -> Vec<u8> {
+  pub(crate) fn value(self) -> Vec<u8> {
     let index = self.index.to_le_bytes();
     let mut index_slice = index.as_slice();
 
@@ -72,7 +72,7 @@ impl Display for ParseError {
     match self {
       Self::Character(c) => write!(f, "invalid character: '{c}'"),
       Self::Length(len) => write!(f, "invalid length: {len}"),
-      Self::Separator(c) => write!(f, "invalid seprator: `{c}`"),
+      Self::Separator(c) => write!(f, "invalid separator: `{c}`"),
       Self::Txid(err) => write!(f, "invalid txid: {err}"),
       Self::Index(err) => write!(f, "invalid index: {err}"),
     }

@@ -1,10 +1,7 @@
 use {
-  crate::Options,
-  anyhow::{anyhow, Result},
+  super::*,
   base64::Engine,
-  bitcoin::{Transaction, Txid},
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
-  serde::Deserialize,
   serde_json::{json, Value},
 };
 
@@ -31,10 +28,10 @@ impl Fetcher {
   pub(crate) fn new(options: &Options) -> Result<Self> {
     let client = Client::new();
 
-    let url = if options.rpc_url().starts_with("http://") {
-      options.rpc_url()
+    let url = if options.rpc_url(None).starts_with("http://") {
+      options.rpc_url(None)
     } else {
-      "http://".to_string() + &options.rpc_url()
+      "http://".to_string() + &options.rpc_url(None)
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;

@@ -53,6 +53,11 @@ impl ContextBuilder {
     self
   }
 
+  pub(crate) fn chain(mut self, chain: Chain) -> Self {
+    self.chain = chain;
+    self
+  }
+
   pub(crate) fn tempdir(mut self, tempdir: TempDir) -> Self {
     self.tempdir = Some(tempdir);
     self
@@ -77,8 +82,14 @@ impl Context {
   }
 
   pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {
+    self.mine_blocks_with_update(n, true)
+  }
+
+  pub(crate) fn mine_blocks_with_update(&self, n: u64, update: bool) -> Vec<Block> {
     let blocks = self.rpc_server.mine_blocks(n);
-    self.index.update().unwrap();
+    if update {
+      self.index.update().unwrap();
+    }
     blocks
   }
 
@@ -113,7 +124,7 @@ impl Context {
 
     assert_eq!(runes, self.index.runes().unwrap());
 
-    assert_eq!(balances, self.index.get_rune_balances());
+    assert_eq!(balances, self.index.get_rune_balances().unwrap());
 
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
 

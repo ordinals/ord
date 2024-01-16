@@ -1,8 +1,13 @@
-use super::*;
+use {super::*, std::fmt::Write};
 
+#[derive(Debug)]
 pub(super) enum ServerError {
-  Internal(Error),
   BadRequest(String),
+  Internal(Error),
+  NotAcceptable {
+    accept_encoding: AcceptEncoding,
+    content_encoding: HeaderValue,
+  },
   NotFound(String),
 }
 
@@ -11,6 +16,7 @@ pub(super) type ServerResult<T> = Result<T, ServerError>;
 impl IntoResponse for ServerError {
   fn into_response(self) -> Response {
     match self {
+      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
       Self::Internal(error) => {
         eprintln!("error serving request: {error}");
         (
@@ -21,8 +27,29 @@ impl IntoResponse for ServerError {
         )
           .into_response()
       }
-      Self::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
-      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
+      Self::NotAcceptable {
+        accept_encoding,
+        content_encoding,
+      } => {
+        let mut message = format!(
+          "inscription content encoding `{}` is not acceptable.",
+          String::from_utf8_lossy(content_encoding.as_bytes())
+        );
+
+        if let Some(accept_encoding) = accept_encoding.0 {
+          write!(message, " `Accept-Encoding` header: `{accept_encoding}`").unwrap();
+        } else {
+          write!(message, " `Accept-Encoding` header not present").unwrap();
+        };
+
+        (StatusCode::NOT_ACCEPTABLE, message).into_response()
+      }
+      Self::NotFound(message) => (
+        StatusCode::NOT_FOUND,
+        [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
+        message,
+      )
+        .into_response(),
     }
   }
 }

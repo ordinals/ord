@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# This script is idempotent in the sense that running it more
-# than once will not change the state beyond the initial application
+# This script is idempotent.
 
 set -euxo pipefail
 
@@ -13,27 +12,15 @@ REVISION="ord-$BRANCH-$COMMIT"
 
 touch ~/.hushlogin
 
-sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-
-mkdir -p \
-  /etc/systemd/system/bitcoind.service.d \
-  /etc/systemd/system/ord.service.d
-
-printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
-  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
-  > /etc/systemd/system/ord.service.d/override.conf
-
-printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
-  && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
-  && printf 'REVISION=%s\n' $REVISION >> /etc/environment
-
 hostnamectl set-hostname $DOMAIN
 
 apt-get install --yes \
   acl \
   clang \
+  curl \
   libsqlite3-dev\
   libssl-dev \
+  locales-all \
   pkg-config \
   ufw \
   vim
@@ -48,12 +35,23 @@ ufw allow ssh
 
 case $CHAIN in
   main)
+    COOKIE_FILE_DIR=/var/lib/bitcoind
+    CSP_ORIGIN=ordinals.com
     ufw allow 8333
     ;;
+  regtest)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
+    CSP_ORIGIN=regtest.ordinals.com
+    ufw allow 18444
+    ;;
   signet)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    CSP_ORIGIN=signet.ordinals.com
     ufw allow 38333
     ;;
   test)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
+    CSP_ORIGIN=testnet.ordinals.com
     ufw allow 18333
     ;;
   *)
@@ -61,6 +59,18 @@ case $CHAIN in
     exit 1
     ;;
 esac
+
+mkdir -p \
+  /etc/systemd/system/bitcoind.service.d \
+  /etc/systemd/system/ord.service.d
+
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CSP_ORIGIN \
+  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
+  > /etc/systemd/system/ord.service.d/override.conf
+
+sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sshd -t
+systemctl restart sshd
 
 ufw --force enable
 
@@ -79,36 +89,24 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
-fi
-cp target/release/ord /usr/local/bin/ord
+install --backup target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
 cp deploy/bitcoind.service /etc/systemd/system/
+
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+
+if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
+  mkdir -p ~/.bitcoin
+  ln -s /etc/bitcoin/bitcoin.conf ~/.bitcoin/bitcoin.conf
+fi
+
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
-
-case $CHAIN in
-  main)
-    COOKIE_FILE_DIR=/var/lib/bitcoind
-    ;;
-  signet)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/signet
-    ;;
-  test)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
-    ;;
-  *)
-    echo "Unknown chain: $CHAIN"
-    exit 1
-    ;;
-esac
 
 while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
   echo "Waiting for bitcoind…"
@@ -127,7 +125,7 @@ systemctl daemon-reload
 systemctl enable ord
 systemctl restart ord
 
-while ! curl --fail https://$DOMAIN/status; do
+while ! curl --fail https://$DOMAIN/status > /dev/null; do
   echo "Waiting for ord at https://$DOMAIN/status…"
   sleep 1
 done

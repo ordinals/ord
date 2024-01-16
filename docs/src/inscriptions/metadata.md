@@ -82,5 +82,5 @@ OP_IF
 OP_ENDIF
 ```
 
-Which would then be concatinated into
+Which would then be concatenated into
 `{"very":"long","metadata":"is","finally":"done"}`.

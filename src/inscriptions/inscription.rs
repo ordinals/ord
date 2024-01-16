@@ -1,5 +1,6 @@
 use {
   super::*,
+  anyhow::ensure,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -7,26 +8,18 @@ use {
     },
     ScriptBuf,
   },
-  io::Cursor,
+  brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
+  http::header::HeaderValue,
+  io::{Cursor, Read, Write},
   std::str,
 };
-
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Curse {
-  DuplicateField,
-  IncompleteField,
-  NotAtOffsetZero,
-  NotInFirstInput,
-  Pointer,
-  Pushnum,
-  Reinscription,
-  UnrecognizedEvenField,
-}
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
+  pub content_encoding: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
+  pub delegate: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
   pub metadata: Option<Vec<u8>>,
@@ -48,15 +41,55 @@ impl Inscription {
 
   pub(crate) fn from_file(
     chain: Chain,
-    path: impl AsRef<Path>,
-    parent: Option<InscriptionId>,
-    pointer: Option<u64>,
-    metaprotocol: Option<String>,
+    compress: bool,
+    delegate: Option<InscriptionId>,
     metadata: Option<Vec<u8>>,
+    metaprotocol: Option<String>,
+    parent: Option<InscriptionId>,
+    path: impl AsRef<Path>,
+    pointer: Option<u64>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+
+    let (content_type, compression_mode) = Media::content_type_for_path(path)?;
+
+    let (body, content_encoding) = if compress {
+      let mut compressed = Vec::new();
+
+      {
+        CompressorWriter::with_params(
+          &mut compressed,
+          body.len(),
+          &BrotliEncoderParams {
+            lgblock: 24,
+            lgwin: 24,
+            mode: compression_mode,
+            quality: 11,
+            size_hint: body.len(),
+            ..Default::default()
+          },
+        )
+        .write_all(&body)?;
+
+        let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+
+        let mut decompressed = Vec::new();
+
+        decompressor.read_to_end(&mut decompressed)?;
+
+        ensure!(decompressed == body, "decompression roundtrip failed");
+      }
+
+      if compressed.len() < body.len() {
+        (compressed, Some("br".as_bytes().to_vec()))
+      } else {
+        (body, None)
+      }
+    } else {
+      (body, None)
+    };
 
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = body.len();
@@ -65,20 +98,20 @@ impl Inscription {
       }
     }
 
-    let content_type = Media::content_type_for_path(path)?;
-
     Ok(Self {
       body: Some(body),
+      content_encoding,
       content_type: Some(content_type.into()),
+      delegate: delegate.map(|delegate| delegate.value()),
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|id| id.parent_value()),
+      parent: parent.map(|parent| parent.value()),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
   }
 
-  fn pointer_value(pointer: u64) -> Vec<u8> {
+  pub(crate) fn pointer_value(pointer: u64) -> Vec<u8> {
     let mut bytes = pointer.to_le_bytes().to_vec();
 
     while bytes.last().copied() == Some(0) {
@@ -97,40 +130,17 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    if let Some(content_type) = self.content_type.clone() {
-      builder = builder
-        .push_slice(envelope::CONTENT_TYPE_TAG)
-        .push_slice(PushBytesBuf::try_from(content_type).unwrap());
-    }
-
-    if let Some(protocol) = self.metaprotocol.clone() {
-      builder = builder
-        .push_slice(envelope::METAPROTOCOL_TAG)
-        .push_slice(PushBytesBuf::try_from(protocol).unwrap());
-    }
-
-    if let Some(parent) = self.parent.clone() {
-      builder = builder
-        .push_slice(envelope::PARENT_TAG)
-        .push_slice(PushBytesBuf::try_from(parent).unwrap());
-    }
-
-    if let Some(pointer) = self.pointer.clone() {
-      builder = builder
-        .push_slice(envelope::POINTER_TAG)
-        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
-    }
-
-    if let Some(metadata) = &self.metadata {
-      for chunk in metadata.chunks(520) {
-        builder = builder.push_slice(envelope::METADATA_TAG);
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-      }
-    }
+    Tag::ContentType.encode(&mut builder, &self.content_type);
+    Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
+    Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
+    Tag::Parent.encode(&mut builder, &self.parent);
+    Tag::Delegate.encode(&mut builder, &self.delegate);
+    Tag::Pointer.encode(&mut builder, &self.pointer);
+    Tag::Metadata.encode(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
-      for chunk in body.chunks(520) {
+      for chunk in body.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
         builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
       }
     }
@@ -161,44 +171,8 @@ impl Inscription {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
-  pub(crate) fn media(&self) -> Media {
-    if self.body.is_none() {
-      return Media::Unknown;
-    }
-
-    let Some(content_type) = self.content_type() else {
-      return Media::Unknown;
-    };
-
-    content_type.parse().unwrap_or(Media::Unknown)
-  }
-
-  pub(crate) fn body(&self) -> Option<&[u8]> {
-    Some(self.body.as_ref()?)
-  }
-
-  pub(crate) fn into_body(self) -> Option<Vec<u8>> {
-    self.body
-  }
-
-  pub(crate) fn content_length(&self) -> Option<usize> {
-    Some(self.body()?.len())
-  }
-
-  pub(crate) fn content_type(&self) -> Option<&str> {
-    str::from_utf8(self.content_type.as_ref()?).ok()
-  }
-
-  pub(crate) fn metadata(&self) -> Option<Value> {
-    ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
-  }
-
-  pub(crate) fn metaprotocol(&self) -> Option<&str> {
-    str::from_utf8(self.metaprotocol.as_ref()?).ok()
-  }
-
-  pub(crate) fn parent(&self) -> Option<InscriptionId> {
-    let value = self.parent.as_ref()?;
+  fn inscription_id_field(field: &Option<Vec<u8>>) -> Option<InscriptionId> {
+    let value = field.as_ref()?;
 
     if value.len() < Txid::LEN {
       return None;
@@ -230,6 +204,54 @@ impl Inscription {
     let index = u32::from_le_bytes(index);
 
     Some(InscriptionId { txid, index })
+  }
+
+  pub(crate) fn media(&self) -> Media {
+    if self.body.is_none() {
+      return Media::Unknown;
+    }
+
+    let Some(content_type) = self.content_type() else {
+      return Media::Unknown;
+    };
+
+    content_type.parse().unwrap_or(Media::Unknown)
+  }
+
+  pub(crate) fn body(&self) -> Option<&[u8]> {
+    Some(self.body.as_ref()?)
+  }
+
+  pub(crate) fn into_body(self) -> Option<Vec<u8>> {
+    self.body
+  }
+
+  pub(crate) fn content_length(&self) -> Option<usize> {
+    Some(self.body()?.len())
+  }
+
+  pub(crate) fn content_type(&self) -> Option<&str> {
+    str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn content_encoding(&self) -> Option<HeaderValue> {
+    HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
+  }
+
+  pub(crate) fn delegate(&self) -> Option<InscriptionId> {
+    Self::inscription_id_field(&self.delegate)
+  }
+
+  pub(crate) fn metadata(&self) -> Option<Value> {
+    ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
+  }
+
+  pub(crate) fn metaprotocol(&self) -> Option<&str> {
+    str::from_utf8(self.metaprotocol.as_ref()?).ok()
+  }
+
+  pub(crate) fn parent(&self) -> Option<InscriptionId> {
+    Self::inscription_id_field(&self.parent)
   }
 
   pub(crate) fn pointer(&self) -> Option<u64> {
@@ -265,6 +287,24 @@ impl Inscription {
     witness.push([]);
 
     witness
+  }
+
+  pub(crate) fn hidden(&self) -> bool {
+    use regex::bytes::Regex;
+
+    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
+                        <h1 style=\"height:100%\">bvm.network</h1></body>";
+
+    lazy_static! {
+      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
+    }
+
+    self
+      .body()
+      .map(|body| BRC_420.is_match(body) || body.starts_with(BVM_NETWORK))
+      .unwrap_or_default()
+      || self.metaprotocol.is_some()
+      || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 }
 
@@ -437,6 +477,26 @@ mod tests {
     }
     .parent()
     .is_none());
+  }
+
+  #[test]
+  fn inscription_delegate_txid_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        delegate: Some(vec![
+          0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+          0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
+          0x1e, 0x1f,
+        ]),
+        ..Default::default()
+      }
+      .delegate()
+      .unwrap()
+      .txid,
+      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
+        .parse()
+        .unwrap()
+    );
   }
 
   #[test]
@@ -669,24 +729,138 @@ mod tests {
 
     write!(file, "foo").unwrap();
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      None,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, None);
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(0), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(0),
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(Vec::new()));
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(1), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(1),
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(vec![1]));
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(256),
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, Some(vec![0, 1]));
+  }
+
+  #[test]
+  fn hidden() {
+    #[track_caller]
+    fn case(content_type: Option<&str>, body: Option<&str>, expected: bool) {
+      assert_eq!(
+        Inscription {
+          content_type: content_type.map(|content_type| content_type.as_bytes().into()),
+          body: body.map(|content_type| content_type.as_bytes().into()),
+          ..Default::default()
+        }
+        .hidden(),
+        expected
+      );
+    }
+
+    case(None, None, true);
+    case(Some("foo"), Some(""), true);
+    case(Some("text/plain"), None, true);
+    case(
+      Some("text/plain"),
+      Some("The fox jumped. The cow danced."),
+      true,
+    );
+    case(Some("text/plain;charset=utf-8"), Some("foo"), true);
+    case(Some("text/plain;charset=cn-big5"), Some("foo"), true);
+    case(Some("application/json"), Some("foo"), true);
+    case(
+      Some("text/markdown"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      true,
+    );
+    case(Some("application/yaml"), Some(""), true);
+    case(
+      Some("text/html;charset=utf-8"),
+      Some("/content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some("  /content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0  \n"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>"#,
+      ),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>foo"#,
+      ),
+      true,
+    );
+
+    assert!(Inscription {
+      content_type: Some("text/plain".as_bytes().into()),
+      body: Some(b"{\xc3\x28}".as_slice().into()),
+      ..Default::default()
+    }
+    .hidden());
+
+    assert!(Inscription {
+      content_type: Some("text/html".as_bytes().into()),
+      body: Some("hello".as_bytes().into()),
+      metaprotocol: Some(Vec::new()),
+      ..Default::default()
+    }
+    .hidden());
   }
 }

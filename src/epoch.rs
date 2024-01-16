@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Serialize, PartialOrd)]
-pub(crate) struct Epoch(pub(crate) u64);
+pub(crate) struct Epoch(pub(crate) u32);
 
 impl Epoch {
   pub(crate) const STARTING_SATS: [Sat; 34] = [
@@ -61,8 +61,8 @@ impl Epoch {
   }
 }
 
-impl PartialEq<u64> for Epoch {
-  fn eq(&self, other: &u64) -> bool {
+impl PartialEq<u32> for Epoch {
+  fn eq(&self, other: &u32) -> bool {
     self.0 == *other
   }
 }
@@ -156,11 +156,11 @@ mod tests {
     assert_eq!(Epoch(0).starting_sat(), 0);
     assert_eq!(
       Epoch(1).starting_sat(),
-      Epoch(0).subsidy() * SUBSIDY_HALVING_INTERVAL
+      Epoch(0).subsidy() * u64::from(SUBSIDY_HALVING_INTERVAL)
     );
     assert_eq!(
       Epoch(2).starting_sat(),
-      (Epoch(0).subsidy() + Epoch(1).subsidy()) * SUBSIDY_HALVING_INTERVAL
+      (Epoch(0).subsidy() + Epoch(1).subsidy()) * u64::from(SUBSIDY_HALVING_INTERVAL)
     );
     assert_eq!(Epoch(33).starting_sat(), Sat(Sat::SUPPLY));
     assert_eq!(Epoch(34).starting_sat(), Sat(Sat::SUPPLY));
@@ -174,7 +174,7 @@ mod tests {
 
     for epoch in 0..34 {
       epoch_sats.push(sat);
-      sat += SUBSIDY_HALVING_INTERVAL * Epoch(epoch).subsidy();
+      sat += u64::from(SUBSIDY_HALVING_INTERVAL) * Epoch(epoch).subsidy();
     }
 
     assert_eq!(Epoch::STARTING_SATS.as_slice(), epoch_sats);
@@ -209,11 +209,17 @@ mod tests {
       if epoch > 0 {
         assert_eq!(
           Epoch::from(Sat(starting_sat.n() - 1)),
-          Epoch(epoch as u64 - 1)
+          Epoch(u32::try_from(epoch).unwrap() - 1)
         );
       }
-      assert_eq!(Epoch::from(starting_sat), Epoch(epoch as u64));
-      assert_eq!(Epoch::from(starting_sat + 1), Epoch(epoch as u64));
+      assert_eq!(
+        Epoch::from(starting_sat),
+        Epoch(u32::try_from(epoch).unwrap())
+      );
+      assert_eq!(
+        Epoch::from(starting_sat + 1),
+        Epoch(u32::try_from(epoch).unwrap())
+      );
     }
     assert_eq!(Epoch::from(Sat(0)), 0);
     assert_eq!(Epoch::from(Sat(1)), 0);

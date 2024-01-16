@@ -28,6 +28,14 @@ pub trait Api {
   #[rpc(name = "getblockcount")]
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error>;
 
+  #[rpc(name = "gettxout")]
+  fn get_tx_out(
+    &self,
+    txid: Txid,
+    vout: u32,
+    include_mempool: Option<bool>,
+  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error>;
+
   #[rpc(name = "getwalletinfo")]
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error>;
 
@@ -49,6 +57,14 @@ pub trait Api {
     passphrase: Option<String>,
     avoid_reuse: Option<bool>,
   ) -> Result<LoadWalletResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "fundrawtransaction")]
+  fn fund_raw_transaction(
+    &self,
+    tx: String,
+    options: Option<FundRawTransactionOptions>,
+    is_witness: Option<bool>,
+  ) -> Result<FundRawTransactionResult, jsonrpc_core::Error>;
 
   #[rpc(name = "signrawtransactionwithwallet")]
   fn sign_raw_transaction_with_wallet(

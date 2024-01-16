@@ -2,14 +2,10 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Export {
-  #[arg(
-    long,
-    default_value = "inscription_number_to_id.tsv",
-    help = "<TSV> file to write to"
-  )]
-  tsv: String,
-  #[arg(long, help = "Whether to include addresses in export")]
+  #[arg(long, help = "Include addresses in export")]
   include_addresses: bool,
+  #[arg(long, help = "Write export to <TSV>")]
+  tsv: String,
 }
 
 impl Export {
@@ -19,6 +15,6 @@ impl Export {
     index.update()?;
     index.export(&self.tsv, self.include_addresses)?;
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }

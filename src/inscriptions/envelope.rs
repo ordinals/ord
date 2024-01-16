@@ -2,58 +2,29 @@ use {
   super::*,
   bitcoin::blockdata::{
     opcodes,
-    script::{self, Instruction, Instructions},
+    script::{
+      self,
+      Instruction::{self, Op, PushBytes},
+      Instructions,
+    },
   },
+  std::iter::Peekable,
 };
 
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
-
 pub(crate) const BODY_TAG: [u8; 0] = [];
-pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
-pub(crate) const POINTER_TAG: [u8; 1] = [2];
-pub(crate) const PARENT_TAG: [u8; 1] = [3];
-pub(crate) const METADATA_TAG: [u8; 1] = [5];
-pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
 pub(crate) type ParsedEnvelope = Envelope<Inscription>;
 
-#[derive(Debug, Default, PartialEq, Clone)]
-pub(crate) struct Envelope<T> {
-  pub(crate) payload: T,
-  pub(crate) input: u32,
-  pub(crate) offset: u32,
-  pub(crate) pushnum: bool,
-}
-
-fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
-  let values = fields.get_mut(field)?;
-
-  if values.is_empty() {
-    None
-  } else {
-    let value = values.remove(0).to_vec();
-
-    if values.is_empty() {
-      fields.remove(field);
-    }
-
-    Some(value)
-  }
-}
-
-fn remove_and_concatenate_field(
-  fields: &mut BTreeMap<&[u8], Vec<&[u8]>>,
-  field: &[u8],
-) -> Option<Vec<u8>> {
-  let value = fields.remove(field)?;
-
-  if value.is_empty() {
-    None
-  } else {
-    Some(value.into_iter().flatten().cloned().collect())
-  }
+#[derive(Default, PartialEq, Clone, Serialize, Deserialize, Debug, Eq)]
+pub struct Envelope<T> {
+  pub input: u32,
+  pub offset: u32,
+  pub payload: T,
+  pub pushnum: bool,
+  pub stutter: bool,
 }
 
 impl From<RawEnvelope> for ParsedEnvelope {
@@ -77,11 +48,13 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
-    let parent = remove_field(&mut fields, &PARENT_TAG);
-    let pointer = remove_field(&mut fields, &POINTER_TAG);
-    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
-    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
+    let content_encoding = Tag::ContentEncoding.remove_field(&mut fields);
+    let content_type = Tag::ContentType.remove_field(&mut fields);
+    let delegate = Tag::Delegate.remove_field(&mut fields);
+    let metadata = Tag::Metadata.remove_field(&mut fields);
+    let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
+    let parent = Tag::Parent.remove_field(&mut fields);
+    let pointer = Tag::Pointer.remove_field(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
@@ -96,18 +69,21 @@ impl From<RawEnvelope> for ParsedEnvelope {
             .cloned()
             .collect()
         }),
+        content_encoding,
         content_type,
+        delegate,
+        duplicate_field,
+        incomplete_field,
+        metadata,
+        metaprotocol,
         parent,
         pointer,
         unrecognized_even_field,
-        duplicate_field,
-        incomplete_field,
-        metaprotocol,
-        metadata,
       },
       input: envelope.input,
       offset: envelope.offset,
       pushnum: envelope.pushnum,
+      stutter: envelope.stutter,
     }
   }
 }
@@ -139,13 +115,17 @@ impl RawEnvelope {
   fn from_tapscript(tapscript: &Script, input: usize) -> Result<Vec<Self>> {
     let mut envelopes = Vec::new();
 
-    let mut instructions = tapscript.instructions();
+    let mut instructions = tapscript.instructions().peekable();
 
-    while let Some(instruction) = instructions.next() {
-      if instruction? == Instruction::PushBytes((&[]).into()) {
-        if let Some(envelope) = Self::from_instructions(&mut instructions, input, envelopes.len())?
-        {
+    let mut stuttered = false;
+    while let Some(instruction) = instructions.next().transpose()? {
+      if instruction == PushBytes((&[]).into()) {
+        let (stutter, envelope) =
+          Self::from_instructions(&mut instructions, input, envelopes.len(), stuttered)?;
+        if let Some(envelope) = envelope {
           envelopes.push(envelope);
+        } else {
+          stuttered = stutter;
         }
       }
     }
@@ -153,17 +133,29 @@ impl RawEnvelope {
     Ok(envelopes)
   }
 
+  fn accept(instructions: &mut Peekable<Instructions>, instruction: Instruction) -> Result<bool> {
+    if instructions.peek() == Some(&Ok(instruction)) {
+      instructions.next().transpose()?;
+      Ok(true)
+    } else {
+      Ok(false)
+    }
+  }
+
   fn from_instructions(
-    instructions: &mut Instructions,
+    instructions: &mut Peekable<Instructions>,
     input: usize,
     offset: usize,
-  ) -> Result<Option<Self>> {
-    if instructions.next().transpose()? != Some(Instruction::Op(opcodes::all::OP_IF)) {
-      return Ok(None);
+    stutter: bool,
+  ) -> Result<(bool, Option<Self>)> {
+    if !Self::accept(instructions, Op(opcodes::all::OP_IF))? {
+      let stutter = instructions.peek() == Some(&Ok(PushBytes((&[]).into())));
+      return Ok((stutter, None));
     }
 
-    if instructions.next().transpose()? != Some(Instruction::PushBytes((&PROTOCOL_ID).into())) {
-      return Ok(None);
+    if !Self::accept(instructions, PushBytes((&PROTOCOL_ID).into()))? {
+      let stutter = instructions.peek() == Some(&Ok(PushBytes((&[]).into())));
+      return Ok((stutter, None));
     }
 
     let mut pushnum = false;
@@ -172,87 +164,91 @@ impl RawEnvelope {
 
     loop {
       match instructions.next().transpose()? {
-        None => return Ok(None),
-        Some(Instruction::Op(opcodes::all::OP_ENDIF)) => {
-          return Ok(Some(Envelope {
-            input: input.try_into().unwrap(),
-            offset: offset.try_into().unwrap(),
-            payload,
-            pushnum,
-          }));
+        None => return Ok((false, None)),
+        Some(Op(opcodes::all::OP_ENDIF)) => {
+          return Ok((
+            false,
+            Some(Envelope {
+              input: input.try_into().unwrap(),
+              offset: offset.try_into().unwrap(),
+              payload,
+              pushnum,
+              stutter,
+            }),
+          ));
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_NEG1)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_NEG1)) => {
           pushnum = true;
           payload.push(vec![0x81]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_1)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_1)) => {
           pushnum = true;
           payload.push(vec![1]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_2)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_2)) => {
           pushnum = true;
           payload.push(vec![2]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_3)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_3)) => {
           pushnum = true;
           payload.push(vec![3]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_4)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_4)) => {
           pushnum = true;
           payload.push(vec![4]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_5)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_5)) => {
           pushnum = true;
           payload.push(vec![5]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_6)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_6)) => {
           pushnum = true;
           payload.push(vec![6]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_7)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_7)) => {
           pushnum = true;
           payload.push(vec![7]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_8)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_8)) => {
           pushnum = true;
           payload.push(vec![8]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_9)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_9)) => {
           pushnum = true;
           payload.push(vec![9]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_10)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_10)) => {
           pushnum = true;
           payload.push(vec![10]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_11)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_11)) => {
           pushnum = true;
           payload.push(vec![11]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_12)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_12)) => {
           pushnum = true;
           payload.push(vec![12]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_13)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_13)) => {
           pushnum = true;
           payload.push(vec![13]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_14)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_14)) => {
           pushnum = true;
           payload.push(vec![14]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_15)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_15)) => {
           pushnum = true;
           payload.push(vec![15]);
         }
-        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_16)) => {
+        Some(Op(opcodes::all::OP_PUSHNUM_16)) => {
           pushnum = true;
           payload.push(vec![16]);
         }
-        Some(Instruction::PushBytes(push)) => {
+        Some(PushBytes(push)) => {
           payload.push(push.as_bytes().to_vec());
         }
-        Some(_) => return Ok(None),
+        Some(_) => return Ok((false, None)),
       }
     }
   }
@@ -260,11 +256,11 @@ impl RawEnvelope {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::absolute::LockTime};
+  use super::*;
 
   fn parse(witnesses: &[Witness]) -> Vec<ParsedEnvelope> {
     ParsedEnvelope::from_transaction(&Transaction {
-      version: 0,
+      version: 2,
       lock_time: LockTime::ZERO,
       input: witnesses
         .iter()
@@ -290,7 +286,7 @@ mod tests {
       parse(&[Witness::from_slice(&[bitcoin::script::Builder::new()
         .push_opcode(bitcoin::opcodes::OP_FALSE)
         .push_opcode(bitcoin::opcodes::all::OP_IF)
-        .push_slice(b"ord")
+        .push_slice(PROTOCOL_ID)
         .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
         .into_script()
         .into_bytes()])]),
@@ -305,7 +301,7 @@ mod tests {
         bitcoin::script::Builder::new()
           .push_opcode(bitcoin::opcodes::OP_FALSE)
           .push_opcode(bitcoin::opcodes::all::OP_IF)
-          .push_slice(b"ord")
+          .push_slice(PROTOCOL_ID)
           .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
@@ -322,7 +318,7 @@ mod tests {
         bitcoin::script::Builder::new()
           .push_opcode(bitcoin::opcodes::OP_FALSE)
           .push_opcode(bitcoin::opcodes::all::OP_IF)
-          .push_slice(b"ord")
+          .push_slice(PROTOCOL_ID)
           .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
@@ -339,7 +335,7 @@ mod tests {
     let mut script_bytes = bitcoin::script::Builder::new()
       .push_opcode(bitcoin::opcodes::OP_FALSE)
       .push_opcode(bitcoin::opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
       .into_script()
       .into_bytes();
@@ -365,7 +361,13 @@ mod tests {
   #[test]
   fn duplicate_field() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[255], &[], &[255], &[]])]),
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::Nop.bytes(),
+        &[],
+        Tag::Nop.bytes(),
+        &[]
+      ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           duplicate_field: true,
@@ -380,8 +382,8 @@ mod tests {
   fn with_content_type() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord",
@@ -394,13 +396,35 @@ mod tests {
   }
 
   #[test]
+  fn with_content_encoding() {
+    assert_eq!(
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
+        b"text/plain;charset=utf-8",
+        &[9],
+        b"br",
+        &[],
+        b"ord",
+      ])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          content_encoding: Some("br".as_bytes().to_vec()),
+          ..inscription("text/plain;charset=utf-8", "ord")
+        },
+        ..Default::default()
+      }]
+    );
+  }
+
+  #[test]
   fn with_unknown_tag() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
-        &[9],
+        Tag::Nop.bytes(),
         b"bar",
         &[],
         b"ord",
@@ -415,7 +439,11 @@ mod tests {
   #[test]
   fn no_body() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])]),
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
+        b"text/plain;charset=utf-8"
+      ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           content_type: Some(b"text/plain;charset=utf-8".to_vec()),
@@ -444,8 +472,8 @@ mod tests {
   fn valid_body_in_multiple_pushes() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"foo",
@@ -461,7 +489,12 @@ mod tests {
   #[test]
   fn valid_body_in_zero_pushes() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])]),
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
+        b"text/plain;charset=utf-8",
+        &[]
+      ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
         ..Default::default()
@@ -473,8 +506,8 @@ mod tests {
   fn valid_body_in_multiple_empty_pushes() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[],
@@ -495,7 +528,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice([])
@@ -519,7 +552,7 @@ mod tests {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice([])
@@ -541,7 +574,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice([])
@@ -549,7 +582,7 @@ mod tests {
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice([])
@@ -577,8 +610,8 @@ mod tests {
   fn invalid_utf8_does_not_render_inscription_invalid() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[0b10000000]
@@ -595,7 +628,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .into_script();
 
     assert_eq!(
@@ -608,7 +641,7 @@ mod tests {
   fn no_op_false() {
     let script = script::Builder::new()
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -632,8 +665,8 @@ mod tests {
   fn extract_from_transaction() {
     assert_eq!(
       parse(&[envelope(&[
-        b"ord",
-        &[1],
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord"
@@ -685,7 +718,13 @@ mod tests {
   #[test]
   fn inscribe_png() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])]),
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::ContentType.bytes(),
+        b"image/png",
+        &[],
+        &[1; 100]
+      ])]),
       vec![ParsedEnvelope {
         payload: inscription("image/png", [1; 100]),
         ..Default::default()
@@ -730,7 +769,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[9], &[0]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, Tag::Nop.bytes(), &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()
@@ -741,7 +780,7 @@ mod tests {
   #[test]
   fn unknown_even_fields() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[22], &[0]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &[22], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
@@ -755,7 +794,7 @@ mod tests {
   #[test]
   fn pointer_field_is_recognized() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[2], &[1]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &[2], &[1]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           pointer: Some(vec![1]),
@@ -769,7 +808,7 @@ mod tests {
   #[test]
   fn duplicate_pointer_field_makes_inscription_unbound() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[2], &[1], &[2], &[0]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &[2], &[1], &[2], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           pointer: Some(vec![1]),
@@ -783,9 +822,23 @@ mod tests {
   }
 
   #[test]
+  fn tag_66_makes_inscriptions_unbound() {
+    assert_eq!(
+      parse(&[envelope(&[&PROTOCOL_ID, Tag::Unbound.bytes(), &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          unrecognized_even_field: true,
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
   fn incomplete_field() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[99]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &[99]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           incomplete_field: true,
@@ -799,7 +852,7 @@ mod tests {
   #[test]
   fn metadata_is_parsed_correctly() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[5], &[]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, Tag::Metadata.bytes(), &[]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           metadata: Some(vec![]),
@@ -813,7 +866,13 @@ mod tests {
   #[test]
   fn metadata_is_parsed_correctly_from_chunks() {
     assert_eq!(
-      parse(&[envelope(&[b"ord", &[5], &[0], &[5], &[1]])]),
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        Tag::Metadata.bytes(),
+        &[0],
+        Tag::Metadata.bytes(),
+        &[1]
+      ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           metadata: Some(vec![0, 1]),
@@ -851,7 +910,7 @@ mod tests {
       let script = script::Builder::new()
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
+        .push_slice(PROTOCOL_ID)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(op)
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -869,5 +928,82 @@ mod tests {
         }],
       );
     }
+  }
+
+  #[test]
+  fn stuttering() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(PROTOCOL_ID)
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+      vec![ParsedEnvelope {
+        payload: Default::default(),
+        stutter: true,
+        ..Default::default()
+      }],
+    );
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(PROTOCOL_ID)
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+      vec![ParsedEnvelope {
+        payload: Default::default(),
+        stutter: true,
+        ..Default::default()
+      }],
+    );
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(PROTOCOL_ID)
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+      vec![ParsedEnvelope {
+        payload: Default::default(),
+        stutter: true,
+        ..Default::default()
+      }],
+    );
+
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_AND)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(PROTOCOL_ID)
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+      vec![ParsedEnvelope {
+        payload: Default::default(),
+        stutter: false,
+        ..Default::default()
+      }],
+    );
   }
 }

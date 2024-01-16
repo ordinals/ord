@@ -11,6 +11,7 @@ pub(crate) enum Representation {
   Name,
   OutPoint,
   Percentile,
+  Rune,
   SatPoint,
 }
 
@@ -28,6 +29,7 @@ impl Representation {
         Self::Name => r"^[a-z]{1,11}$",
         Self::OutPoint => r"^[[:xdigit:]]{64}:\d+$",
         Self::Percentile => r"^.*%$",
+        Self::Rune => r"^[A-Z•.]+$",
         Self::SatPoint => r"^[[:xdigit:]]{64}:\d+:\d+$",
       },
     )
@@ -56,6 +58,7 @@ const PATTERNS: &[(Representation, &str)] = &[
   Representation::Name.pattern(),
   Representation::OutPoint.pattern(),
   Representation::Percentile.pattern(),
+  Representation::Rune.pattern(),
   Representation::SatPoint.pattern(),
 ];
 

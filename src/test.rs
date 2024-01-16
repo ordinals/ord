@@ -16,10 +16,8 @@ macro_rules! assert_regex_match {
     let string = $value.to_string();
 
     if !regex.is_match(string.as_ref()) {
-      panic!(
-        "Regex:\n\n{}\n\n…did not match string:\n\n{}",
-        regex, string
-      );
+      eprintln!("Regex did not match:");
+      pretty_assert_eq!(regex.as_str(), string);
     }
   };
 }
@@ -35,16 +33,6 @@ macro_rules! assert_matches {
       ),
     }
   }
-}
-
-pub(crate) fn blockhash(n: u64) -> BlockHash {
-  let hex = format!("{n:x}");
-
-  if hex.is_empty() || hex.len() > 1 {
-    panic!();
-  }
-
-  hex.repeat(64).parse().unwrap()
 }
 
 pub(crate) fn txid(n: u64) -> Txid {
@@ -111,14 +99,17 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
+#[derive(Default, Debug)]
 pub(crate) struct InscriptionTemplate {
   pub(crate) parent: Option<InscriptionId>,
+  pub(crate) pointer: Option<u64>,
 }
 
 impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
-      parent: template.parent.map(|id| id.parent_value()),
+      parent: template.parent.map(|id| id.value()),
+      pointer: template.pointer.map(Inscription::pointer_value),
       ..Default::default()
     }
   }

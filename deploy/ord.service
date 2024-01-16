@@ -10,12 +10,14 @@ Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
-  --data-dir /var/lib/ord \
-  --config-dir /var/lib/ord \
   --chain ${CHAIN} \
+  --config-dir /var/lib/ord \
+  --data-dir /var/lib/ord \
+  --index-runes \
   --index-sats \
   server \
   --acme-contact mailto:casey@rodarmor.com \
+  --csp-origin https://${CSP_ORIGIN} \
   --http \
   --https
 Group=ord

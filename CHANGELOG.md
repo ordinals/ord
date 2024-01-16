@@ -1,6 +1,274 @@
 Changelog
 =========
 
+[0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2023-01-08
+--------------------------------------------------------------------------
+
+### Added
+- Add no sync option to server command (#2966)
+- Vindicate cursed inscriptions (#2950)
+- Add JSON endpoints for Runes (#2941)
+- Add JSON endpoint for status (#2955)
+- Add chain to status page (#2953)
+
+### Changed
+- Enter beta (#2973)
+
+### Performance
+- Avoid skip when getting paginated inscriptions (#2975)
+- Dispatch requests to tokio thread pool (#2974)
+
+### Misc
+- Fix Project Board link (#2991)
+- Update server names in justfile (#2954)
+- Update delegate.md (#2976)
+- Fix a typo (#2980)
+- Use enums for runestone tags and flags (#2956)
+- Make `FundRawTransactionOptions ` public (#2938)
+- Deduplicate deploy script case statements (#2962)
+- Remove quotes around key to allow shell expansion (#2951)
+- Restart sshd in deploy script (#2952)
+
+[0.14.1](https://github.com/ordinals/ord/releases/tag/0.14.1) - 2023-01-03
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix wallet create (#2943)
+
+## Misc
+- Clean up justfile (#2939)
+
+[0.14.0](https://github.com/ordinals/ord/releases/tag/0.14.0) - 2023-01-02
+--------------------------------------------------------------------------
+
+### Fixed
+- Keep inscriptions with unrecognized even fields unbound after jubilee (#2894)
+
+### Added
+- Allow inscriptions to nominate a delegate (#2912)
+- Display number of times a rune has been minted (#2901)
+- Optionally store transactions in index (#2885)
+- Allow specifying destination for unallocated runes (#2899)
+- Make inscriptions with tag 66 permanently unbound (#2906)
+- Decode transactions from Bitcoin Core with `ord decode --txid` (#2907)
+- Allow skpping indexing inscriptions (#2900)
+- Add optional deadline to open etchings (#2875)
+
+### Changed
+- Only store transactions with inscriptions in the database (#2926)
+- Hide all inscriptions with /content/<INSCRIPTION_ID> content (#2908)
+- Hide code, metaprotocol, and unknown media inscriptions (#2872)
+- Display rune symbol to right of amount (#2871)
+
+### Misc
+- Use install to copy binary in deploy script (#2934)
+- Don't index transactions on production servers (#2933)
+- Add recipes to copy keys to servers (#2927)
+- Clean deploy/save-ord-dev-state (#2932)
+- Refactor bitcoin client for wallet (#2918)
+- Use enum for inscription tags (#2921)
+- Fix CSP origin for different deployments (#2923)
+- Placate clippy (#2924)
+- Display path to default datadir in help output (#2881)
+- Add index repair progress bar (#2904)
+- Listen on 127.0.0.1 to avoid firewall popup on macOS (#2911)
+- Set correct statistic when indexing transactions (#2913)
+- Show if transaction index is enabled on /status (#2910)
+- Optimize /inscription endpoint (#2884)
+- Show all inscription geneses on /tx (#2909)
+- Serve HTTP/2 (#2895)
+- Don't display trailing spacers in spaced runes (#2896)
+- Split runes more evenly (#2897)
+- Dispaly rune ID above height and index (#2874)
+- Use transaction version 2 (#2873)
+
+[0.13.1](https://github.com/ordinals/ord/releases/tag/0.13.1) - 2023-12-16
+--------------------------------------------------------------------------
+
+### Fixed
+- Use pre-segwit transaction serialization for fundrawtransaction (#2865)
+
+[0.13.0](https://github.com/ordinals/ord/releases/tag/0.13.0) - 2023-12-15
+--------------------------------------------------------------------------
+
+### Added
+- Send runes with `ord wallet send` (#2858)
+- Add rune spacers (#2862)
+- Reserve runes for sequential allocation (#2831)
+- Unlock runes over course of halving epoch (#2852)
+- Add flag to decompress brotli server-side (#2854)
+- Add /status page (#2819)
+- Add coin charm (#2821)
+
+### Fixed
+- Fix endpoint `/inscriptions/block/<height>/<page>` (#2798)
+
+### Misc
+- Tweak rune tags and flags (#2860)
+- Unlock runes in first block of interval (#2861)
+- Index runes on testnet and signet deployments (#2857)
+- Fix fuzzers (#2859)
+- Make varint decoding infallible (#2853)
+- Add runes to parse command (#2830)
+- Update dependencies (#2828)
+- Add coverage recipe (#2846)
+- Put `Accept-Encoding` value in backticks (#2840)
+- Don't print status when deploying (#2838)
+- Fix justfile (#2836)
+- Allow deploying remotes other than ordinals/ord (#2829)
+- Include `Accept-Encoding` header value in error message (#2835)
+- Clarify docs (#2827)
+- Fix batch docs (#2823)
+- Add accept encoding test without qvalues (#2822)
+- Italian version of the handbook (#2801)
+- Preview can mine blocks (#2809)
+- Burn input runes if there are no non-op-return outputs (#2812)
+- Update audit-cache binary (#2804)
+
+[0.12.3](https://github.com/ordinals/ord/releases/tag/0.12.3) - 2023-12-01
+--------------------------------------------------------------------------
+
+### Added
+- Add `ord balances` to show rune balances (#2782)
+
+### Fixed
+- Fix preview test (#2795)
+- Fix reinscriptions charm (#2793)
+- Fix fee calculation for batch inscribe on same sat (#2785)
+
+### Misc
+- Add `audit-cache` binary to audit Cloudflare caching (#2787)
+- Fix typos (#2791)
+- Add total bytes and proportion to database info (#2783)
+
+[0.12.2](https://github.com/ordinals/ord/releases/tag/0.12.2) - 2023-11-29
+--------------------------------------------------------------------------
+
+### Added
+- Bless cursed inscriptions after Jubilee height (#2656)
+
+### Misc
+- Hide /content/<INSCRIPTION_ID> HTML inscriptions (#2778)
+
+[0.12.1](https://github.com/ordinals/ord/releases/tag/0.12.1) - 2023-11-29
+--------------------------------------------------------------------------
+
+### Added
+- Add commands to etch and list runes (#2544)
+- Add ability to specify sat to batch inscribe (#2770)
+- Allow setting the sat to inscribe (#2765)
+- Batch inscribe on same sat (#2749)
+- Add stuttering curse (#2745)
+- Add batch to preview command (#2752)
+
+### Misc
+- Add `public` to /content Cache-Control headers (#2773)
+- Set CSP origin in deploy script (#2764)
+- Fix typos (#2768)
+- Select further away coins which meet target (#2724)
+- Hide all text (#2753)
+
+[0.12.0](https://github.com/ordinals/ord/releases/tag/0.12.0) - 2023-11-24
+--------------------------------------------------------------------------
+
+### Added
+- Add /r/children recursive endpoint (#2431)
+- Add sat recursive endpoints with index and pagination (#2680)
+- Allow setting CSP origin (#2708)
+- Add destination field to batch (#2701)
+- Preview font inscriptions (#2692)
+- Add /collections Page (#2561)
+- Add inscription compression (#1713)
+- Add inscription charms (#2681)
+- Hide protocol inscriptions (#2674)
+- Hide JSON and .btc (#2744)
+- Add Hindi version of handbook (#2648)
+
+### Changed
+- Use icons in nav bar (#2722)
+- Remove default file path from `ord index export --tsv` (#2717)
+- Display table stats in `ord index info` (#2711)
+- Move postage into batch file (#2705)
+
+### Performance
+- Use sequence numbers database keys (#2664)
+
+### Misc
+- Add docs for child recursive endpoint (#2743)
+- Update docs to include all fields, including content-encoding (#2740)
+- Ignore flaky test (#2742)
+- Add docs and examples for sat recursive endpoint (#2735)
+- Remove `RUNE` from `<h1>` on /rune (#2728)
+- Add docs for metadata recursive endpoint (#2734)
+- Fix typo in docs/src/inscriptions/metadata.md (#2731)
+- Only accept sat number in recursive endpoint (#2732)
+- Add Homebrew install instructions to readme (#2726)
+- Add Debian packaging instructions (#2725)
+- Use redb's recovery callback API (#2584)
+- Refactor inscriptions paginations (#2715)
+- Update redb to 1.4.0 (#2714)
+- Only try to create the database if it wasn't found (#2703)
+- Only load used language highlight module in code preview (#2696)
+- Clean up install.sh (#2669)
+- Add binary media type (#2671)
+- Fix unbound outpoint server error (#2479)
+- Update schema version for charms (#2687)
+- Fix media table formatting (#2686)
+- Group rune server tests (#2685)
+- Don't color links in headers (#2678)
+- Remove Index::index_block_inscription_numbers (#2667)
+- Fix lost sats bug (#2666)
+
+[0.11.1](https://github.com/ordinals/ord/releases/tag/0.11.1) - 2023-11-09
+--------------------------------------------------------------------------
+
+### Fixed
+- Use new RPC client in Reorg::get_block_with_retries (#2650)
+
+### Misc
+- Refactor varint encoding (#2645)
+
+[0.11.0](https://github.com/ordinals/ord/releases/tag/0.11.0) - 2023-11-07
+--------------------------------------------------------------------------
+
+### Added
+- Add a link to the Ordicord (#2629)
+- Add `/children` with pagination (#2617)
+- Add metadata recursive endpoint (#2604)
+- Add recursive directory and make all endpoints JSON (#2493)
+- Add Portuguese version of handbook (#2572)
+- Add decode just recipe (#2592)
+- Add `/block/:query` JSON API endpoint (#2423)
+- Add syntax highlighting for Python inscriptions (#2538)
+- Add publish-and-tag-crate just recipe (#2576)
+- Document teleburning handbook (#2577)
+
+### Changed
+- Clarify sat hunting guide (#2640)
+- Update docs (#2627)
+- Remove blank line in CI workflow (#2620)
+- Update README.md and zh.po (#2605)
+- Require --batch or --file for `ord wallet inscribe` (#2581)
+
+### Fixed
+- Respect locked coins (#2618)
+- Set `Cache-Control: no-store` header on 404 responses (#2637)
+- Fix statistics table and increment schema version (#2624)
+- Fix broken link in README (#2621)
+- Speed up indexing of re-inscriptions (#2608)
+- Fix docs rendering (#2612)
+- Update docs with new position of --enable-json-api (#2601)
+- Move `--enable-json-api` flag to server options (#2599)
+- Make server_runs_with_rpc_user_and_pass_as_env_vars test less flaky (#2580)
+
+### Runes
+- Implement open etchings (#2548)
+- Add more info to /rune page and link to rune from /tx (#2528)
+- Display inscription on /rune (#2542)
+- Add rune numbers (#2557)
+- Ignore non push opcodes in runestones (#2553)
+- Improve rune minimum at height (#2546)
+
 [0.10.0](https://github.com/ordinals/ord/releases/tag/0.10.0) - 2023-10-23
 --------------------------------------------------------------------------
 

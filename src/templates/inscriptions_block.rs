@@ -2,30 +2,25 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsBlockHtml {
-  pub(crate) block: u64,
+  pub(crate) block: u32,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev_block: Option<u64>,
-  pub(crate) next_block: Option<u64>,
-  pub(crate) prev_page: Option<usize>,
-  pub(crate) next_page: Option<usize>,
+  pub(crate) prev_block: Option<u32>,
+  pub(crate) next_block: Option<u32>,
+  pub(crate) prev_page: Option<u32>,
+  pub(crate) next_page: Option<u32>,
 }
 
 impl InscriptionsBlockHtml {
   pub(crate) fn new(
-    block: u64,
-    current_blockheight: u64,
+    block: u32,
+    current_blockheight: u32,
     inscriptions: Vec<InscriptionId>,
-    page_index: usize,
+    more_inscriptions: bool,
+    page_index: u32,
   ) -> Result<Self> {
-    let num_inscriptions = inscriptions.len();
-
-    let start = page_index * 100;
-    let end = usize::min(start + 100, num_inscriptions);
-
-    if start > num_inscriptions || start > end {
+    if inscriptions.is_empty() {
       return Err(anyhow!("page index {page_index} exceeds inscription count"));
     }
-    let inscriptions = inscriptions[start..end].to_vec();
 
     Ok(Self {
       block,
@@ -36,12 +31,8 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-      prev_page: if page_index > 0 {
-        Some(page_index - 1)
-      } else {
-        None
-      },
-      next_page: if (page_index + 1) * 100 <= num_inscriptions {
+      prev_page: page_index.checked_sub(1),
+      next_page: if more_inscriptions {
         Some(page_index + 1)
       } else {
         None

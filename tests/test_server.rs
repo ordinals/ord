@@ -27,7 +27,17 @@ impl TestServer {
     server_args: &[&str],
   ) -> Self {
     let tempdir = TempDir::new().unwrap();
-    fs::write(tempdir.path().join(".cookie"), "foo:bar").unwrap();
+
+    let cookie_file = match rpc_server.network().as_str() {
+      "mainnet" => tempdir.path().join(".cookie"),
+      network => {
+        fs::create_dir(tempdir.path().join(network)).unwrap();
+        tempdir.path().join(format!("{network}/.cookie"))
+      }
+    };
+
+    fs::write(cookie_file.clone(), "foo:bar").unwrap();
+
     let port = TcpListener::bind("127.0.0.1:0")
       .unwrap()
       .local_addr()
@@ -79,6 +89,18 @@ impl TestServer {
     assert_regex_match!(response.text().unwrap(), regex.as_ref());
   }
 
+  pub(crate) fn assert_response(&self, path: impl AsRef<str>, expected_response: &str) {
+    self.sync_server();
+    let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+    pretty_assert_eq!(response.text().unwrap(), expected_response);
+  }
+
   pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
     self.sync_server();
 
@@ -97,14 +119,14 @@ impl TestServer {
       .unwrap()
   }
 
-  fn sync_server(&self) {
+  pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
       let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
+      if response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count {
         break;
       } else if i == 20 {
         panic!("index failed to synchronize with chain");
