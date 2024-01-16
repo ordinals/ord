@@ -184,7 +184,9 @@ convert-logo-to-favicon:
   convert -background none -resize 256x256 logo.svg static/favicon.png
 
 update-mdbook-theme:
-  curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+  curl \
+    https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs \
+    > docs/theme/index.hbs
 
 audit-cache:
   cargo run --package audit-cache
