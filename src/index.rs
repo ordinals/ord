@@ -20,8 +20,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RepairSession, StorageError, Table,
+    TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::{BTreeSet, HashMap},
@@ -138,6 +138,21 @@ pub(crate) struct TableInfo {
   stored_bytes: u64,
   total_bytes: u64,
   tree_height: u32,
+}
+
+impl From<TableStats> for TableInfo {
+  fn from(stats: TableStats) -> Self {
+    Self {
+      branch_pages: stats.branch_pages(),
+      fragmented_bytes: stats.fragmented_bytes(),
+      leaf_pages: stats.leaf_pages(),
+      metadata_bytes: stats.metadata_bytes(),
+      proportion: 0.0,
+      stored_bytes: stats.stored_bytes(),
+      total_bytes: stats.stored_bytes() + stats.metadata_bytes() + stats.fragmented_bytes(),
+      tree_height: stats.tree_height(),
+    }
+  }
 }
 
 #[derive(Serialize)]
@@ -483,139 +498,43 @@ impl Index {
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
-    fn insert_table_info<K: RedbKey + 'static, V: RedbValue + 'static>(
-      tables: &mut BTreeMap<String, TableInfo>,
-      wtx: &WriteTransaction,
-      database_total_bytes: u64,
-      definition: TableDefinition<K, V>,
-    ) {
-      let stats = wtx.open_table(definition).unwrap().stats().unwrap();
+    let stats = self.database.begin_write()?.stats()?;
 
-      let fragmented_bytes = stats.fragmented_bytes();
-      let metadata_bytes = stats.metadata_bytes();
-      let stored_bytes = stats.stored_bytes();
-      let total_bytes = stored_bytes + metadata_bytes + fragmented_bytes;
-
-      tables.insert(
-        definition.name().into(),
-        TableInfo {
-          branch_pages: stats.branch_pages(),
-          fragmented_bytes,
-          leaf_pages: stats.leaf_pages(),
-          metadata_bytes,
-          proportion: total_bytes as f64 / database_total_bytes as f64,
-          stored_bytes,
-          total_bytes,
-          tree_height: stats.tree_height(),
-        },
-      );
-    }
-
-    fn insert_multimap_table_info<K: RedbKey + 'static, V: RedbValue + RedbKey + 'static>(
-      tables: &mut BTreeMap<String, TableInfo>,
-      wtx: &WriteTransaction,
-      database_total_bytes: u64,
-      definition: MultimapTableDefinition<K, V>,
-    ) {
-      let stats = wtx
-        .open_multimap_table(definition)
-        .unwrap()
-        .stats()
-        .unwrap();
-
-      let fragmented_bytes = stats.fragmented_bytes();
-      let metadata_bytes = stats.metadata_bytes();
-      let stored_bytes = stats.stored_bytes();
-      let total_bytes = stored_bytes + metadata_bytes + fragmented_bytes;
-
-      tables.insert(
-        definition.name().into(),
-        TableInfo {
-          branch_pages: stats.branch_pages(),
-          fragmented_bytes,
-          leaf_pages: stats.leaf_pages(),
-          metadata_bytes,
-          proportion: total_bytes as f64 / database_total_bytes as f64,
-          stored_bytes,
-          total_bytes,
-          tree_height: stats.tree_height(),
-        },
-      );
-    }
-
-    let wtx = self.begin_write()?;
-
-    let stats = wtx.stats()?;
-
-    let fragmented_bytes = stats.fragmented_bytes();
-    let metadata_bytes = stats.metadata_bytes();
-    let stored_bytes = stats.stored_bytes();
-    let total_bytes = fragmented_bytes + metadata_bytes + stored_bytes;
+    let rtx = self.database.begin_read()?;
 
     let mut tables: BTreeMap<String, TableInfo> = BTreeMap::new();
 
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SATPOINT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SAT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_CHILDREN);
-    insert_table_info(&mut tables, &wtx, total_bytes, HEIGHT_TO_BLOCK_HEADER);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      HEIGHT_TO_LAST_SEQUENCE_NUMBER,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, HOME_INSCRIPTIONS);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      INSCRIPTION_ID_TO_SEQUENCE_NUMBER,
-    );
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_RUNE_BALANCES);
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_SAT_RANGES);
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_VALUE);
-    insert_table_info(&mut tables, &wtx, total_bytes, RUNE_ID_TO_RUNE_ENTRY);
-    insert_table_info(&mut tables, &wtx, total_bytes, RUNE_TO_RUNE_ID);
-    insert_table_info(&mut tables, &wtx, total_bytes, SAT_TO_SATPOINT);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_RUNE_ID);
-    insert_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_SATPOINT);
-    insert_table_info(&mut tables, &wtx, total_bytes, STATISTIC_TO_COUNT);
-    insert_table_info(&mut tables, &wtx, total_bytes, TRANSACTION_ID_TO_RUNE);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      TRANSACTION_ID_TO_TRANSACTION,
-    );
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP,
-    );
+    for handle in rtx.list_tables()? {
+      let name = handle.name().into();
+      let stats = rtx.open_untyped_table(handle)?.stats()?;
+      tables.insert(name, stats.into());
+    }
 
-    for table in wtx.list_tables()? {
+    for handle in rtx.list_multimap_tables()? {
+      let name = handle.name().into();
+      let stats = rtx.open_untyped_multimap_table(handle)?.stats()?;
+      tables.insert(name, stats.into());
+    }
+
+    for table in rtx.list_tables()? {
       assert!(tables.contains_key(table.name()));
     }
 
-    for table in wtx.list_multimap_tables()? {
+    for table in rtx.list_multimap_tables()? {
       assert!(tables.contains_key(table.name()));
     }
+
+    let total_bytes = tables
+      .values()
+      .map(|table_info| table_info.total_bytes)
+      .sum();
+
+    tables.values_mut().for_each(|table_info| {
+      table_info.proportion = table_info.total_bytes as f64 / total_bytes as f64
+    });
 
     let info = {
-      let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+      let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
       let sat_ranges = statistic_to_count
         .get(&Statistic::SatRanges.key())?
         .map(|x| x.value())
@@ -625,7 +544,8 @@ impl Index {
         .map(|x| x.value())
         .unwrap_or(0);
       Info {
-        blocks_indexed: wtx
+        index_path: self.path.clone(),
+        blocks_indexed: rtx
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
@@ -633,18 +553,17 @@ impl Index {
           .map(|(height, _header)| height.value() + 1)
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
-        fragmented_bytes,
+        fragmented_bytes: stats.fragmented_bytes(),
         index_file_size: fs::metadata(&self.path)?.len(),
-        index_path: self.path.clone(),
         leaf_pages: stats.leaf_pages(),
-        metadata_bytes,
+        metadata_bytes: stats.metadata_bytes(),
+        sat_ranges,
         outputs_traversed,
         page_size: stats.page_size(),
-        sat_ranges,
-        stored_bytes,
-        tables,
+        stored_bytes: stats.stored_bytes(),
         total_bytes,
-        transactions: wtx
+        tables,
+        transactions: rtx
           .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
           .range(0..)?
           .flat_map(|result| {
@@ -657,7 +576,7 @@ impl Index {
           })
           .collect(),
         tree_height: stats.tree_height(),
-        utxos_indexed: wtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
+        utxos_indexed: rtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
       }
     };
 
