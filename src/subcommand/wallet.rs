@@ -26,6 +26,12 @@ pub(crate) struct WalletCommand {
   pub(crate) name: String,
   #[arg(long, alias = "nosync", help = "Do not update index.")]
   pub(crate) no_sync: bool,
+  #[arg(
+    long,
+    default_value = "http://127.0.0.1:80",
+    help = "Use ord running at <SERVER_URL>."
+  )]
+  pub(crate) server_url: Url,
   #[command(subcommand)]
   pub(crate) subcommand: Subcommand,
 }
@@ -61,51 +67,14 @@ pub(crate) enum Subcommand {
 
 impl WalletCommand {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Arc::new(Index::open(&options)?);
-    let handle = axum_server::Handle::new();
-    LISTENERS.lock().unwrap().push(handle.clone());
-
-    let ord_url: Url = {
-      format!(
-        "http://127.0.0.1:{}",
-        TcpListener::bind("127.0.0.1:0")?.local_addr()?.port() // very hacky
-      )
-      .parse()
-      .unwrap()
-    };
-
-    {
-      let options = options.clone();
-      let ord_url = ord_url.clone();
-      std::thread::spawn(move || {
-        crate::subcommand::server::Server {
-          address: ord_url.host_str().map(|a| a.to_string()),
-          acme_domain: vec![],
-          csp_origin: None,
-          http_port: ord_url.port(),
-          https_port: None,
-          acme_cache: None,
-          acme_contact: vec![],
-          http: true,
-          https: false,
-          redirect_http_to_https: false,
-          enable_json_api: true,
-          decompress: false,
-          no_sync: self.no_sync,
-        }
-        .run(options, index, handle)
-        .unwrap()
-      });
-    }
-
     let wallet = Wallet {
+      name: self.name.clone(),
       no_sync: self.no_sync,
       options,
-      ord_url,
-      name: self.name.clone(),
+      ord_url: self.server_url,
     };
 
-    let result = match self.subcommand {
+    match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Create(create) => create.run(wallet),
       Subcommand::Etch(etch) => etch.run(wallet),
@@ -118,14 +87,6 @@ impl WalletCommand {
       Subcommand::Transactions(transactions) => transactions.run(wallet),
       Subcommand::Outputs => outputs::run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
-    };
-
-    LISTENERS
-      .lock()
-      .unwrap()
-      .iter()
-      .for_each(|handle| handle.shutdown());
-
-    result
+    }
   }
 }

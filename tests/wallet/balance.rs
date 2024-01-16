@@ -100,3 +100,29 @@ fn runic_utxos_are_deducted_from_cardinal() {
     }
   );
 }
+#[test]
+fn unsynced_wallet_fails() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+  assert_eq!(
+    CommandBuilder::new("wallet balance")
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output::<Output>(),
+    Output {
+      cardinal: 0,
+      ordinal: 0,
+      runic: None,
+      runes: None,
+      total: 0,
+    }
+  );
+
+  inscribe(&rpc_server);
+
+  CommandBuilder::new("wallet balance")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex(r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+")
+    .run_and_extract_stdout();
+}

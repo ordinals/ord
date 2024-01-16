@@ -1,4 +1,4 @@
-use {super::*, fee_rate::FeeRate, std::sync::atomic};
+use {super::*, fee_rate::FeeRate, reqwest::Url, std::sync::atomic};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
@@ -62,11 +62,20 @@ impl Preview {
         .context("failed to spawn `bitcoind`")?,
     );
 
+    let server_url: Url = {
+      format!(
+        "http://127.0.0.1:{}",
+        TcpListener::bind("127.0.0.1:0")?.local_addr()?.port() // very hacky
+      )
+      .parse()
+      .unwrap()
+    };
+
     let options = Options {
       chain_argument: Chain::Regtest,
       bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
       data_dir: tmpdir.path().into(),
-      rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
+      rpc_url: Some(format!("http://127.0.0.1:{rpc_port}")),
       index_sats: true,
       ..Options::default()
     };
@@ -87,7 +96,8 @@ impl Preview {
       options: options.clone(),
       subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
         name: "ord".into(),
-        no_sync: false,
+        no_sync: true,
+        server_url: server_url.clone(),
         subcommand: crate::subcommand::wallet::Subcommand::Create(
           crate::subcommand::wallet::create::Create {
             passphrase: "".into(),
@@ -108,24 +118,60 @@ impl Preview {
 
     rpc_client.generate_to_address(101, &address)?;
 
+    {
+      let options = options.clone();
+      let rpc_client = options.bitcoin_rpc_client(None)?;
+      let address = address.clone();
+
+      std::thread::spawn(move || {
+        if let Some(blocktime) = self.blocktime {
+          eprintln!(
+            "Mining blocks every {}...",
+            "second".tally(blocktime.try_into().unwrap())
+          );
+
+          let running = Arc::new(AtomicBool::new(true));
+
+          let handle = {
+            let running = running.clone();
+
+            std::thread::spawn(move || {
+              while running.load(atomic::Ordering::SeqCst) {
+                rpc_client.generate_to_address(1, &address).unwrap();
+                thread::sleep(Duration::from_secs(blocktime));
+              }
+            })
+          };
+
+          Arguments {
+            options,
+            subcommand: Subcommand::Server(self.server),
+          }
+          .run()
+          .unwrap();
+
+          running.store(false, atomic::Ordering::SeqCst);
+
+          handle.join().unwrap();
+        } else {
+          Arguments {
+            options,
+            subcommand: Subcommand::Server(self.server),
+          }
+          .run()
+          .unwrap();
+        }
+      });
+    }
+
     if let Some(files) = self.files {
       for file in files {
-        let tmpdir = TempDir::new()?;
-
-        let options = Options {
-          chain_argument: Chain::Regtest,
-          bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
-          data_dir: tmpdir.path().into(),
-          rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
-          index_sats: true,
-          ..Options::default()
-        };
-
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
             no_sync: false,
+            server_url: server_url.clone(),
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: None,
               cbor_metadata: None,
@@ -156,21 +202,12 @@ impl Preview {
 
     if let Some(batches) = self.batches {
       for batch in batches {
-        let tmpdir = TempDir::new()?;
-
-        let options = Options {
-          chain_argument: Chain::Regtest,
-          bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
-          data_dir: tmpdir.path().into(),
-          rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
-          index_sats: true,
-          ..Options::default()
-        };
         Arguments {
           options: options.clone(),
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
             no_sync: false,
+            server_url: server_url.clone(),
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: Some(batch),
               cbor_metadata: None,
@@ -198,54 +235,6 @@ impl Preview {
         rpc_client.generate_to_address(1, &address)?;
       }
     }
-
-    let tmpdir = TempDir::new()?;
-
-    let options = Options {
-      chain_argument: Chain::Regtest,
-      bitcoin_data_dir: Some(bitcoin_data_dir),
-      data_dir: tmpdir.path().into(),
-      rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
-      index_sats: true,
-      ..Options::default()
-    };
-
-    if let Some(blocktime) = self.blocktime {
-      eprintln!(
-        "Mining blocks every {}...",
-        "second".tally(blocktime.try_into().unwrap())
-      );
-
-      let running = Arc::new(AtomicBool::new(true));
-
-      let handle = {
-        let running = running.clone();
-
-        std::thread::spawn(move || {
-          while running.load(atomic::Ordering::SeqCst) {
-            rpc_client.generate_to_address(1, &address).unwrap();
-            thread::sleep(Duration::from_secs(blocktime));
-          }
-        })
-      };
-
-      Arguments {
-        options,
-        subcommand: Subcommand::Server(self.server),
-      }
-      .run()?;
-
-      running.store(false, atomic::Ordering::SeqCst);
-
-      handle.join().unwrap();
-    } else {
-      Arguments {
-        options,
-        subcommand: Subcommand::Server(self.server),
-      }
-      .run()?;
-    }
-
     Ok(None)
   }
 }

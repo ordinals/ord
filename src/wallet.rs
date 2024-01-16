@@ -20,7 +20,7 @@ pub mod transaction_builder;
 pub(crate) struct Wallet {
   pub(crate) name: String,
   pub(crate) no_sync: bool,
-  pub(crate) options: Options, // Only need for bitcoin_rpc_client() and chain()
+  pub(crate) options: Options,
   pub(crate) ord_url: Url,
 }
 
