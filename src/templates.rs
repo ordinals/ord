@@ -2,7 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
-  blocks::BlocksHtml,
+  blocks::{BlocksHtml, BlocksJson},
   children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
   collections::CollectionsHtml,
@@ -25,11 +25,11 @@ pub(crate) use {
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
   status::{StatusHtml, StatusJson},
-  transaction::TransactionHtml,
+  transaction::{TransactionHtml, TransactionJson},
 };
 
 pub mod block;
-mod blocks;
+pub mod blocks;
 mod children;
 mod clock;
 pub mod collections;
@@ -48,7 +48,7 @@ pub mod rune;
 pub mod runes;
 pub mod sat;
 pub mod status;
-mod transaction;
+pub mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml<T: PageContent> {

@@ -21,7 +21,6 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
-    index::List,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
     outgoing::Outgoing,
     representation::Representation,

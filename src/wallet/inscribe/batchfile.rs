@@ -55,15 +55,16 @@ impl Batchfile {
     for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         wallet.chain(),
-        &entry.file,
-        self.parent,
-        if i == 0 { None } else { Some(pointer) },
-        entry.metaprotocol.clone(),
+        compress,
+        entry.delegate,
         match &metadata {
           Some(metadata) => Some(metadata.clone()),
           None => entry.metadata()?,
         },
-        compress,
+        entry.metaprotocol.clone(),
+        self.parent,
+        &entry.file,
+        if i == 0 { None } else { Some(pointer) },
       )?);
 
       pointer += postage.to_sat();

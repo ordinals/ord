@@ -188,6 +188,22 @@ impl Wallet {
     )))
   }
 
+  pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
+    Ok(
+      self
+        .ord_client()?
+        .get(
+          self
+            .ord_url
+            .join(&format!("/inscription/{inscription_id}"))
+            .unwrap(),
+        )
+        .send()?
+        .status()
+        .is_client_error(),
+    )
+  }
+
   fn get_inscription(&self, inscription_id: InscriptionId) -> Result<InscriptionJson> {
     let response = self
       .ord_client()?

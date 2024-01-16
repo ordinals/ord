@@ -16,8 +16,8 @@ pub struct Batch {
 }
 
 impl Default for Batch {
-  fn default() -> Batch {
-    Batch {
+  fn default() -> Self {
+    Self {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,

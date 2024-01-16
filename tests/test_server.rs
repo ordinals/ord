@@ -89,6 +89,18 @@ impl TestServer {
     assert_regex_match!(response.text().unwrap(), regex.as_ref());
   }
 
+  pub(crate) fn assert_response(&self, path: impl AsRef<str>, expected_response: &str) {
+    self.sync_server();
+    let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+    pretty_assert_eq!(response.text().unwrap(), expected_response);
+  }
+
   pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
     self.sync_server();
 

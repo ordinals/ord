@@ -3,6 +3,7 @@ use super::*;
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct BatchEntry {
+  pub(crate) delegate: Option<InscriptionId>,
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
