@@ -1,6 +1,7 @@
 use super::*;
+use utoipa::ToSchema;
 
-#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize, ToSchema)]
 pub struct StatusHtml {
   pub blessed_inscriptions: u64,
   pub cursed_inscriptions: u64,

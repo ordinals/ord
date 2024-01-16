@@ -15,7 +15,8 @@ use {
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
       PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
-      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      SatInscriptionJson, SatInscriptionsJson, SatJson, StatusHtml, TransactionHtml,
+      TransactionJson,
     },
   },
   axum::{
@@ -47,8 +48,11 @@ use {
 
 mod accept_encoding;
 mod accept_json;
+mod api;
 mod api_response;
 mod error;
+
+use self::api_response::*;
 
 #[derive(Copy, Clone)]
 pub(crate) enum InscriptionQuery {
@@ -194,7 +198,10 @@ impl Server {
       INDEXER.lock().unwrap().replace(index_thread);
 
       #[derive(OpenApi)]
-      #[openapi(paths(), components(schemas(ApiError)))]
+      #[openapi(
+        paths(api::status),
+        components(schemas(StatusHtml, api_response::Status, ApiError))
+      )]
       struct ApiDoc;
 
       let config = Arc::new(options.load_config()?);
@@ -209,12 +216,15 @@ impl Server {
         decompress: self.decompress,
       });
 
-      let api_v1_router = Router::new().route(
-        "/api-docs/openapi.json",
-        get(|| async { ApiDoc::openapi().to_pretty_json().unwrap() }),
-      );
+      let api_v1_router = Router::new()
+        .route(
+          "/api-docs/openapi.json",
+          get(|| async { ApiDoc::openapi().to_pretty_json().unwrap() }),
+        )
+        .route("/status", get(api::status));
 
       let api_router = Router::new().nest("/v1", api_v1_router);
+
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:query", get(Self::block))

@@ -1,10 +1,13 @@
 use {
   super::*,
+  crate::templates::StatusHtml,
   utoipa::{IntoParams, ToSchema},
 };
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, ToSchema)]
-#[aliases()]
+#[aliases(
+  Status = ApiResponse<StatusHtml>
+)]
 pub(crate) struct ApiResponse<T: Serialize> {
   pub code: i32,
   #[schema(example = "ok")]
