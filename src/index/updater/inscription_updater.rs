@@ -26,9 +26,11 @@ enum Origin {
     cursed: bool,
     fee: u64,
     hidden: bool,
+    inscription_number: i32,
     parent: Option<InscriptionId>,
     pointer: Option<u64>,
     reinscription: bool,
+    sequence_number: u32,
     unbound: bool,
     vindicated: bool,
   },
@@ -198,16 +200,33 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .filter(|&pointer| pointer < total_output_value)
           .unwrap_or(offset);
 
+        let cursed = curse.is_some() && !jubilant;
+
+        let inscription_number = if cursed {
+          let number: i32 = self.cursed_inscription_count.try_into().unwrap();
+          self.cursed_inscription_count += 1;
+          -(number + 1)
+        } else {
+          let number: i32 = self.blessed_inscription_count.try_into().unwrap();
+          self.blessed_inscription_count += 1;
+          number
+        };
+
+        let sequence_number = self.next_sequence_number;
+        self.next_sequence_number += 1;
+
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
-            cursed: curse.is_some() && !jubilant,
+            cursed,
             fee: 0,
             hidden: inscription.payload.hidden(),
+            inscription_number,
             parent: inscription.payload.parent(),
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.get(&offset).is_some(),
+            sequence_number,
             unbound,
             vindicated: curse.is_some() && jubilant,
           },
@@ -407,23 +426,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         reinscription,
         unbound,
         vindicated,
+        inscription_number,
+        sequence_number,
       } => {
-        let inscription_number = if cursed {
-          let number: i32 = self.cursed_inscription_count.try_into().unwrap();
-          self.cursed_inscription_count += 1;
-
-          // because cursed numbers start at -1
-          -(number + 1)
-        } else {
-          let number: i32 = self.blessed_inscription_count.try_into().unwrap();
-          self.blessed_inscription_count += 1;
-
-          number
-        };
-
-        let sequence_number = self.next_sequence_number;
-        self.next_sequence_number += 1;
-
         self
           .inscription_number_to_sequence_number
           .insert(inscription_number, sequence_number)?;
