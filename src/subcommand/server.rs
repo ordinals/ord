@@ -3,7 +3,7 @@ use {
     accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
-    error::{OptionExt, ServerError, ServerResult},
+    error::{ApiError, OptionExt, ServerError, ServerResult},
   },
   super::*,
   crate::{
@@ -42,10 +42,12 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
+  utoipa::OpenApi,
 };
 
 mod accept_encoding;
 mod accept_json;
+mod api_response;
 mod error;
 
 #[derive(Copy, Clone)]
@@ -191,6 +193,10 @@ impl Server {
       });
       INDEXER.lock().unwrap().replace(index_thread);
 
+      #[derive(OpenApi)]
+      #[openapi(paths(), components(schemas(ApiError)))]
+      struct ApiDoc;
+
       let config = Arc::new(options.load_config()?);
       let acme_domains = self.acme_domains()?;
 
@@ -203,6 +209,12 @@ impl Server {
         decompress: self.decompress,
       });
 
+      let api_v1_router = Router::new().route(
+        "/api-docs/openapi.json",
+        get(|| async { ApiDoc::openapi().to_pretty_json().unwrap() }),
+      );
+
+      let api_router = Router::new().nest("/v1", api_v1_router);
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:query", get(Self::block))
@@ -273,6 +285,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .nest("/api", api_router)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(config))

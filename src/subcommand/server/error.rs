@@ -1,3 +1,5 @@
+use serde::ser::SerializeStruct;
+use utoipa::ToSchema;
 use {super::*, std::fmt::Write};
 
 #[derive(Debug)]
@@ -70,5 +72,73 @@ impl<T> OptionExt<T> for Option<T> {
 impl From<Error> for ServerError {
   fn from(error: Error) -> Self {
     Self::Internal(error)
+  }
+}
+
+#[repr(i32)]
+#[derive(ToSchema)]
+pub(crate) enum ApiError {
+  /// Internal server error.
+  #[schema(example = json!(&ApiError::internal("internal error")))]
+  Internal(String) = 1,
+
+  /// Bad request.
+  #[schema(example = json!(&ApiError::internal("bad request")))]
+  BadRequest(String) = 2,
+
+  /// Resource not found.
+  #[schema(example = json!(&ApiError::internal("not found")))]
+  NotFound(String) = 3,
+}
+
+impl ApiError {
+  pub(crate) fn code(&self) -> i32 {
+    match self {
+      Self::Internal(_) => 1,
+      Self::BadRequest(_) => 2,
+      Self::NotFound(_) => 3,
+    }
+  }
+
+  pub(crate) fn not_found<S: ToString>(message: S) -> Self {
+    Self::NotFound(message.to_string())
+  }
+
+  pub(crate) fn internal<S: ToString>(message: S) -> Self {
+    Self::Internal(message.to_string())
+  }
+
+  pub(crate) fn bad_request<S: ToString>(message: S) -> Self {
+    Self::BadRequest(message.to_string())
+  }
+}
+impl Serialize for ApiError {
+  fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    let mut state = serializer.serialize_struct("ApiError", 2)?;
+    match self {
+      ApiError::Internal(msg) | ApiError::BadRequest(msg) | ApiError::NotFound(msg) => {
+        state.serialize_field("code", &self.code())?;
+        state.serialize_field("msg", &msg)?;
+        state.end()
+      }
+    }
+  }
+}
+
+impl IntoResponse for ApiError {
+  fn into_response(self) -> Response {
+    let status_code = match &self {
+      Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+      Self::BadRequest(_) => StatusCode::BAD_REQUEST,
+      Self::NotFound(_) => StatusCode::NOT_FOUND,
+    };
+
+    (status_code, axum::Json(self)).into_response()
+  }
+}
+
+impl From<anyhow::Error> for ApiError {
+  fn from(error: anyhow::Error) -> Self {
+    Self::internal(error)
   }
 }
