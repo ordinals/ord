@@ -190,7 +190,7 @@ impl Wallet {
 
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
-      self
+      !self
         .ord_client()?
         .get(
           self

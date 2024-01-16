@@ -53,6 +53,13 @@ impl Batchfile {
 
     let mut inscriptions = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
+      if let Some(delegate) = entry.delegate {
+        ensure! {
+          wallet.inscription_exists(delegate)?,
+          "delegate {delegate} does not exist"
+        }
+      }
+
       inscriptions.push(Inscription::from_file(
         wallet.chain(),
         compress,
