@@ -1,4 +1,5 @@
 use super::*;
+use std::io;
 
 #[derive(Debug, Parser)]
 #[clap(group(
@@ -34,6 +35,17 @@ impl Restore {
       unreachable!();
     }
 
+    let seed = {
+      if self.mnemonic.is_none() {
+        let mut input = String::new();
+        println!("Please input your seed below:");
+        io::stdin().read_line(&mut input).expect("failed to read mnemonic");
+        let input = input.into_bytes();
+        assert_eq!(input.len(), 64);
+        input.try_into().unwrap()
+      } else {self.mnemonic.unwrap().to_seed(self.passphrase)}
+    };
+    wallet::initialize(seed)?;
     Ok(None)
   }
 }
