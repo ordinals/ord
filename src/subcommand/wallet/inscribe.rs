@@ -45,7 +45,7 @@ pub(crate) struct ParentInfo {
 #[clap(
   group = ArgGroup::new("source")
       .required(true)
-      .args(&["file", "batch"]),
+      .args(&["file", "batch", "delegate"]),
 )]
 pub(crate) struct Inscribe {
   #[arg(
@@ -135,8 +135,8 @@ impl Inscribe {
     let parent_info;
     let sat;
 
-    match (self.file, self.batch) {
-      (Some(file), None) => {
+    match (self.file, self.batch, self.delegate) {
+      (Some(file), None, _) => {
         parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
@@ -168,7 +168,7 @@ impl Inscribe {
           None => get_change_address(&client, chain)?,
         }];
       }
-      (None, Some(batch)) => {
+      (None, Some(batch), _) => {
         let batchfile = Batchfile::load(&batch)?;
 
         parent_info = Inscribe::get_parent_info(batchfile.parent, &index, &utxos, &client, chain)?;
@@ -195,6 +195,33 @@ impl Inscribe {
         }
 
         sat = batchfile.sat;
+      }
+      (None, None, Some(delegate)) => {
+        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+
+        postage = self.postage.unwrap_or(TARGET_POSTAGE);
+
+        ensure! {
+          index.inscription_exists(delegate)?,
+          "delegate {delegate} does not exist"
+        }
+
+        inscriptions = vec![Inscription::without_file(
+          self.delegate,
+          metadata,
+          self.metaprotocol,
+          self.parent,
+          None,
+        )?];
+
+        mode = Mode::SeparateOutputs;
+
+        sat = self.sat;
+
+        destinations = vec![match self.destination.clone() {
+          Some(destination) => destination.require_network(chain.network())?,
+          None => get_change_address(&client, chain)?,
+        }];
       }
       _ => unreachable!(),
     }
