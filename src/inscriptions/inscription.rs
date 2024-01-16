@@ -41,12 +41,13 @@ impl Inscription {
 
   pub(crate) fn from_file(
     chain: Chain,
-    path: impl AsRef<Path>,
-    parent: Option<InscriptionId>,
-    pointer: Option<u64>,
-    metaprotocol: Option<String>,
-    metadata: Option<Vec<u8>>,
     compress: bool,
+    delegate: Option<InscriptionId>,
+    metadata: Option<Vec<u8>>,
+    metaprotocol: Option<String>,
+    parent: Option<InscriptionId>,
+    path: impl AsRef<Path>,
+    pointer: Option<u64>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -99,11 +100,12 @@ impl Inscription {
 
     Ok(Self {
       body: Some(body),
-      content_type: Some(content_type.into()),
       content_encoding,
+      content_type: Some(content_type.into()),
+      delegate: delegate.map(|delegate| delegate.value()),
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|id| id.value()),
+      parent: parent.map(|parent| parent.value()),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
@@ -727,19 +729,29 @@ mod tests {
 
     write!(file, "foo").unwrap();
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None, false).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      None,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, None);
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(0),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(0),
     )
     .unwrap();
 
@@ -747,12 +759,13 @@ mod tests {
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(1),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(1),
     )
     .unwrap();
 
@@ -760,12 +773,13 @@ mod tests {
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(256),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(256),
     )
     .unwrap();
 

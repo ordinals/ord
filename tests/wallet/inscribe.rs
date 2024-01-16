@@ -1800,3 +1800,107 @@ fn server_can_decompress_brotli() {
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(response.bytes().unwrap().deref(), [0; 350_000]);
 }
+
+#[test]
+fn file_inscribe_with_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let (delegate, _) = inscribe(&rpc_server);
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {delegate} --file inscription.txt"
+  ))
+  .write("inscription.txt", "INSCRIPTION")
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    format!(r#".*<dt>delegate</dt>\s*<dd><a href=/inscription/{delegate}>{delegate}</a></dd>.*"#,),
+  );
+
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response(format!("/content/{}", inscribe.inscriptions[0].id), "FOO");
+}
+
+#[test]
+fn file_inscribe_with_non_existent_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let delegate = "0000000000000000000000000000000000000000000000000000000000000000i0";
+
+  CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {delegate} --file child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let (delegate, _) = inscribe(&rpc_server);
+
+  let inscribe = CommandBuilder::new("wallet inscribe --fee-rate 1.0 --batch batch.yaml")
+    .write("inscription.txt", "INSCRIPTION")
+    .write(
+      "batch.yaml",
+      format!(
+        "mode: shared-output
+inscriptions:
+- delegate: {delegate}
+  file: inscription.txt
+"
+      ),
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    format!(r#".*<dt>delegate</dt>\s*<dd><a href=/inscription/{delegate}>{delegate}</a></dd>.*"#,),
+  );
+
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response(format!("/content/{}", inscribe.inscriptions[0].id), "FOO");
+}
+
+#[test]
+fn batch_inscribe_with_non_existent_delegate_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let delegate = "0000000000000000000000000000000000000000000000000000000000000000i0";
+
+  CommandBuilder::new("wallet inscribe --fee-rate 1.0 --batch batch.yaml")
+    .write("hello.txt", "Hello, world!")
+    .write(
+      "batch.yaml",
+      format!(
+        "mode: shared-output
+inscriptions:
+- delegate: {delegate}
+  file: hello.txt
+"
+      ),
+    )
+    .rpc_server(&rpc_server)
+    .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}

@@ -391,6 +391,64 @@ fn get_block() {
 }
 
 #[test]
+fn get_blocks() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let blocks: Vec<BlockHash> = rpc_server
+    .mine_blocks(101)
+    .iter()
+    .rev()
+    .take(100)
+    .map(|block| block.block_hash())
+    .collect();
+
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+    .json_request("/blocks");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let blocks_json: BlocksJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    blocks_json,
+    BlocksJson {
+      last: 101,
+      blocks: blocks.clone(),
+      featured_blocks: blocks
+        .into_iter()
+        .take(5)
+        .map(|block_hash| (block_hash, Vec::new()))
+        .collect(),
+    }
+  );
+}
+
+#[test]
+fn get_transaction() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let transaction = rpc_server.mine_blocks(1)[0].txdata[0].clone();
+
+  let txid = transaction.txid();
+
+  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+    .json_request(format!("/tx/{txid}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert_eq!(
+    serde_json::from_str::<TransactionJson>(&response.text().unwrap()).unwrap(),
+    TransactionJson {
+      chain: Chain::Mainnet,
+      etching: None,
+      inscription_count: 0,
+      transaction,
+      txid,
+    }
+  );
+}
+
+#[test]
 fn get_status() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
