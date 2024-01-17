@@ -9,8 +9,15 @@ pub enum BlockRarity {
   FirstTransaction,
   Pizza,
   Block9,
+  Block9_450,
   Block78,
   Palindrome,
+  Alpha,
+  Omega,
+  UniformPalinception,
+  PerfectPalinception,
+  Block286,
+  JPEG,
 }
 
 impl Display for BlockRarity {
@@ -25,7 +32,14 @@ impl Display for BlockRarity {
         Self::Palindrome => "palindrome",
         Self::Pizza => "pizza",
         Self::Block9 => "block9",
+        Self::Block9_450 => "block9_450",
         Self::Block78 => "block78",
+        Self::Alpha => "alpha",
+        Self::Omega => "omega",
+        Self::UniformPalinception => "uniform_palinception",
+        Self::PerfectPalinception => "perfect_palinception",
+        Self::Block286 => "block286",
+        Self::JPEG => "jpeg",
       }
     )
   }
@@ -46,18 +60,39 @@ impl From<Sat> for Vec<BlockRarity> {
       if is_pizza_sat(&sat) {
         res.push(BlockRarity::Pizza);
       }
+      if JPEG_BLOCK_HEIGHTS.contains(&block_height) {
+        res.push(BlockRarity::JPEG);
+      }
       if block_height == BLOCK9_BLOCK_HEIGHT {
         if sat.n() >= FIRST_TRANSACTION_SAT_RANGE.0 && sat.n() < FIRST_TRANSACTION_SAT_RANGE.1 {
           res.push(BlockRarity::FirstTransaction);
         }
+        if sat.n() >= BLOCK9_450_SAT_RANGE.0 && sat.n() < BLOCK9_450_SAT_RANGE.1 {
+          res.push(BlockRarity::Block9_450);
+        }
         res.push(BlockRarity::Block9);
       } else if block_height == BLOCK78_BLOCK_HEIGHT {
         res.push(BlockRarity::Block78);
+      } else if block_height == BLOCK286_BLOCK_HEIGHT {
+        res.push(BlockRarity::Block286);
       }
     }
 
-    if is_palindrome(&sat.n()) {
+    let s = &sat.n().to_string();
+    if is_palindrome(s) {
       res.push(BlockRarity::Palindrome);
+      if is_perfect_palindrome(s) {
+        res.push(BlockRarity::PerfectPalinception);
+      }
+      if is_uniform_palindrome(s) {
+        res.push(BlockRarity::UniformPalinception);
+      }
+    }
+
+    if sat.n() % COIN_VALUE == 0 {
+      res.push(BlockRarity::Alpha)
+    } else if sat.n() % COIN_VALUE == COIN_VALUE - 1 {
+      res.push(BlockRarity::Omega)
     }
     res
   }
@@ -74,7 +109,14 @@ impl FromStr for BlockRarity {
       "palindrome" => Ok(Self::Palindrome),
       "pizza" => Ok(Self::Pizza),
       "block9" => Ok(Self::Block9),
+      "block9_450" => Ok(Self::Block9_450),
       "block78" => Ok(Self::Block78),
+      "alpha" => Ok(Self::Alpha),
+      "omega" => Ok(Self::Omega),
+      "uniform_palinception" => Ok(Self::UniformPalinception),
+      "perfect_palinception" => Ok(Self::PerfectPalinception),
+      "block286" => Ok(Self::Block286),
+      "jpeg" => Ok(Self::JPEG),
       _ => Err(format!("invalid rarity: {s}")),
     }
   }
@@ -98,8 +140,7 @@ impl<'de> Deserialize<'de> for BlockRarity {
   }
 }
 
-pub fn is_palindrome(n: &u64) -> bool {
-  let s = n.to_string();
+pub fn is_palindrome(s: &str) -> bool {
   if s.chars().next() != s.chars().last() {
     return false;
   }
@@ -126,14 +167,92 @@ fn is_pizza_sat(sat: &Sat) -> bool {
   false
 }
 
+fn split_palindrome_evenly(s: &str, n: usize) -> Result<Vec<&str>, &'static str> {
+  if s.len() / n == 1 || s.len() % n != 0 {
+    return Err("Cannot split palindrome evenly");
+  }
+  let len = s.len();
+  let mut start = 0;
+  let mut vec = Vec::new();
+  // for palindrom, we only need the 1st half of substrings.
+  while start < len / 2 {
+    vec.push(&s[start..start + n]);
+    start += n;
+  }
+  Ok(vec)
+}
+
+pub fn is_perfect_palindrome(palindrome: &str) -> bool {
+  // palindrome length <= 16 digits
+  for n in (2..=8).rev() {
+    match split_palindrome_evenly(palindrome, n) {
+      Ok(res) => {
+        let mut satisfied = true;
+        let first_sub_sequence = res[0];
+        if !is_palindrome(first_sub_sequence) {
+          continue;
+        }
+        for s in &res[1..] {
+          if s != &first_sub_sequence {
+            satisfied = false;
+            break;
+          }
+        }
+        if satisfied {
+          return true;
+        }
+      }
+      Err(_) => continue,
+    }
+  }
+  false
+}
+
+pub fn is_uniform_palindrome(palindrome: &str) -> bool {
+  // palindrome length <= 16 digits
+  for n in (2..=8).rev() {
+    match split_palindrome_evenly(palindrome, n) {
+      Ok(res) => {
+        let mut satisfied = true;
+        for s in res {
+          if !is_palindrome(s) {
+            satisfied = false;
+            break;
+          }
+        }
+        if satisfied {
+          return true;
+        }
+      }
+      Err(_) => continue,
+    }
+  }
+  false
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
 
   #[test]
   fn test_is_palindrome() {
-    assert!(is_palindrome(&164114646411461u64));
-    assert!(!is_palindrome(&164114646411462u64));
+    assert!(is_palindrome("164114646411461"));
+    assert!(!is_palindrome("164114646411462"));
+  }
+
+  #[test]
+  fn test_is_perfect_palindrome() {
+    assert!(is_perfect_palindrome("531355313553135"));
+    assert!(is_perfect_palindrome("76858677685867"));
+    assert!(!is_perfect_palindrome("400041111140004"));
+    assert!(!is_perfect_palindrome("787727878727787"));
+  }
+
+  #[test]
+  fn test_is_uniform_palindrome() {
+    assert!(is_uniform_palindrome("400041111140004"));
+    assert!(is_uniform_palindrome("787727878727787"));
+    assert!(!is_uniform_palindrome("164114646411461"));
   }
 
   #[test]
@@ -149,10 +268,24 @@ mod tests {
     assert_eq!(Sat(1000).block_rarities(), [BlockRarity::Vintage]);
     assert_eq!(
       Sat(1430418430854).block_rarities(),
-      [BlockRarity::Vintage, BlockRarity::Nakamoto]
+      [
+        BlockRarity::Vintage,
+        BlockRarity::Nakamoto,
+        BlockRarity::Block286
+      ]
     );
     assert_eq!(
       Sat(45017789073).block_rarities(),
+      [
+        BlockRarity::Vintage,
+        BlockRarity::Nakamoto,
+        BlockRarity::FirstTransaction,
+        BlockRarity::Block9_450,
+        BlockRarity::Block9
+      ]
+    );
+    assert_eq!(
+      Sat(45217789073).block_rarities(),
       [
         BlockRarity::Vintage,
         BlockRarity::Nakamoto,
@@ -225,11 +358,16 @@ pub const MAX_PIZZA_BLOCK_HEIGHT: u32 = 56788;
 pub const VINTAGE_BLOCK_HEIGHT: u32 = 1000;
 pub const BLOCK9_BLOCK_HEIGHT: u32 = 9;
 pub const BLOCK78_BLOCK_HEIGHT: u32 = 78;
+pub const BLOCK286_BLOCK_HEIGHT: u32 = 286;
 pub const NAKAMOTO_BLOCK_HEIGHTS: [u32; 19] = [
   9, 286, 688, 877, 1760, 2459, 2485, 3479, 5326, 9443, 9925, 10645, 14450, 15625, 15817, 19093,
   23014, 28593, 29097,
 ];
+pub const JPEG_BLOCK_HEIGHTS: [u32; 10] = [
+  30340, 30367, 30412, 30441, 30779, 30907, 31511, 32343, 32412, 32952,
+]; // https://mempool.space/tx/298a46fdf18f2096f822577b9661232d4cefba084925eb746939723647f8d18d
 pub const FIRST_TRANSACTION_SAT_RANGE: (u64, u64) = (45000000000, 46000000000);
+pub const BLOCK9_450_SAT_RANGE: (u64, u64) = (45000000000, 45100000000);
 
 lazy_static! {
   pub static ref PIZZA_RANGE_MAP: HashMap<u32, Vec<(u64, u64)>> = {

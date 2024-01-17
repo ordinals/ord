@@ -4,11 +4,13 @@ use axum_jrpc::{
   error::{JsonRpcError, JsonRpcErrorReason},
   JrpcResult, JsonRpcExtractor, JsonRpcResponse,
 };
+use bitcoin::constants::COIN_VALUE;
 use opentelemetry::trace::Tracer;
 use ord_kafka_macros::trace;
 use ordinals::{
   block_rarity::{
-    BLOCK78_BLOCK_HEIGHT, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, NAKAMOTO_BLOCK_HEIGHTS,
+    is_perfect_palindrome, is_uniform_palindrome, BLOCK78_BLOCK_HEIGHT, BLOCK9_450_SAT_RANGE,
+    BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, JPEG_BLOCK_HEIGHTS, NAKAMOTO_BLOCK_HEIGHTS,
     PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
   },
   BlockRarity,
@@ -171,50 +173,72 @@ fn get_block_rarities(start: u64, end: u64) -> Result<Vec<BlockRarityInfo>> {
     BlockRarity::FirstTransaction,
     BlockRarity::Pizza,
     BlockRarity::Palindrome,
+    BlockRarity::Alpha,
+    BlockRarity::Omega,
+    BlockRarity::PerfectPalinception,
+    BlockRarity::UniformPalinception,
+    BlockRarity::Block286,
+    BlockRarity::JPEG,
   ] {
-    let chunks = get_block_rarity_chunks(block_rarity, start, end);
-    if !chunks.is_empty() {
-      block_rarities.push(BlockRarityInfo {
-        block_rarity: block_rarity.clone(),
-        chunks,
-      });
+    let rarities = get_block_rarity_chunks(block_rarity, start, end);
+    for (rarity, chunks) in rarities {
+      if !chunks.is_empty() {
+        block_rarities.push(BlockRarityInfo {
+          block_rarity: rarity,
+          chunks,
+        });
+      }
     }
   }
 
   Ok(block_rarities)
 }
 
-fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> Vec<(u64, u64)> {
-  let mut chunks = vec![];
+fn get_block_rarity_chunks(
+  block_rarity: &BlockRarity,
+  start: u64,
+  end: u64,
+) -> Vec<(BlockRarity, Vec<(u64, u64)>)> {
+  let mut res = vec![];
   let block_height = Sat(start).height().n();
 
   match block_rarity {
     BlockRarity::Vintage => {
       if block_height <= VINTAGE_BLOCK_HEIGHT {
-        chunks.push((start, end));
+        res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
     BlockRarity::Nakamoto => {
       if NAKAMOTO_BLOCK_HEIGHTS.contains(&block_height) {
-        chunks.push((start, end));
+        res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
     BlockRarity::Block9 => {
       if block_height == BLOCK9_BLOCK_HEIGHT {
-        chunks.push((start, end));
+        res.push((block_rarity.clone(), vec![(start, end)]));
+        if start < BLOCK9_450_SAT_RANGE.1 {
+          res.push((
+            BlockRarity::Block9_450,
+            vec![(start, min(BLOCK9_450_SAT_RANGE.1, end))],
+          ))
+        }
       }
     }
     BlockRarity::Block78 => {
       if block_height == BLOCK78_BLOCK_HEIGHT {
-        chunks.push((start, end));
+        res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
     BlockRarity::FirstTransaction => {
       if block_height == BLOCK9_BLOCK_HEIGHT && start < FIRST_TRANSACTION_SAT_RANGE.1 {
-        chunks.push((start, min(FIRST_TRANSACTION_SAT_RANGE.1, end)));
+        res.push((
+          block_rarity.clone(),
+          vec![(start, min(FIRST_TRANSACTION_SAT_RANGE.1, end))],
+        ));
       }
     }
     BlockRarity::Pizza => {
+      let mut chunks = vec![];
       if PIZZA_RANGE_MAP.contains_key(&block_height) {
         let pizza_sat_ranges = PIZZA_RANGE_MAP.get(&block_height).unwrap();
         for range in pizza_sat_ranges {
@@ -224,14 +248,49 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
           chunks.push((max(range.0, start), min(range.1, end)));
         }
       }
+      res.push((block_rarity.clone(), chunks));
     }
     BlockRarity::Palindrome => {
-      for palindrome in get_palindromes_from_sat_range(start, end) {
-        chunks.push((palindrome, palindrome + 1))
+      let mut normal_chunks = vec![];
+      let mut perfect_chunks = vec![];
+      let mut uniform_chunks = vec![];
+      // "end" sat is exclusive, but get_palindromes_from_sat_range wants both start and end
+      // to be inclusive, a.k.a [start, end] range.
+      for palindrome in get_palindromes_from_sat_range(start, end - 1) {
+        normal_chunks.push((palindrome, palindrome + 1));
+        if is_perfect_palindrome(&palindrome.to_string()) {
+          perfect_chunks.push((palindrome, palindrome + 1));
+        }
+        if is_uniform_palindrome(&palindrome.to_string()) {
+          uniform_chunks.push((palindrome, palindrome + 1));
+        }
+      }
+      res.push((BlockRarity::Palindrome, normal_chunks));
+      res.push((BlockRarity::PerfectPalinception, perfect_chunks));
+      res.push((BlockRarity::UniformPalinception, uniform_chunks));
+    }
+    BlockRarity::Alpha => {
+      let mut chunks = vec![];
+      for alpha in get_alpha_from_sat_range(start, end) {
+        chunks.push((alpha, alpha + 1))
+      }
+      res.push((block_rarity.clone(), chunks));
+    }
+    BlockRarity::Omega => {
+      let mut chunks = vec![];
+      for omega in get_omega_from_sat_range(start, end) {
+        chunks.push((omega, omega + 1))
+      }
+      res.push((block_rarity.clone(), chunks));
+    }
+    BlockRarity::JPEG => {
+      if JPEG_BLOCK_HEIGHTS.contains(&block_height) {
+        res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
+    _ => { /* ignore */ }
   }
-  chunks
+  res
 }
 
 fn get_palindromes_from_sat_range(start: u64, end: u64) -> Vec<u64> {
@@ -309,6 +368,26 @@ fn get_palindromes_from_equal_length_range(start_string: String, end_string: Str
   palindromes
 }
 
+fn get_alpha_from_sat_range(start: u64, end: u64) -> Vec<u64> {
+  let mut alphas: Vec<u64> = vec![];
+  let mut alpha = (start - 1) / COIN_VALUE * COIN_VALUE + COIN_VALUE;
+  while alpha < end {
+    alphas.push(alpha);
+    alpha += COIN_VALUE;
+  }
+  alphas
+}
+
+fn get_omega_from_sat_range(start: u64, end: u64) -> Vec<u64> {
+  let mut omegas: Vec<u64> = vec![];
+  let mut omega = end / COIN_VALUE * COIN_VALUE - 1;
+  while omega >= start {
+    omegas.push(omega);
+    omega -= COIN_VALUE;
+  }
+  omegas
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -363,7 +442,55 @@ mod tests {
             (45_999_999_954, 45_999_999_955),
             (46_000_000_064, 46_000_000_065)
           ]
-        }
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Alpha,
+          chunks: vec![(46_000_000_000, 46_000_000_001)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Omega,
+          chunks: vec![(45_999_999_999, 46_000_000_000),]
+        },
+      ]
+    );
+
+    block_rarities =
+      get_block_rarities(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE + 10_000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Vintage,
+          chunks: vec![(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE + 10_000)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Nakamoto,
+          chunks: vec![(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE + 10_000)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Block9,
+          chunks: vec![(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE + 10_000)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Block9_450,
+          chunks: vec![(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::FirstTransaction,
+          chunks: vec![(451 * COIN_VALUE - 10_000, 451 * COIN_VALUE + 10_000)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Palindrome,
+          chunks: vec![(45099999054, 45099999055), (45100000154, 45100000155)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Alpha,
+          chunks: vec![(45_100_000_000, 45_100_000_001)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Omega,
+          chunks: vec![(45_099_999_999, 45_100_000_000),]
+        },
       ]
     );
 
@@ -408,6 +535,58 @@ mod tests {
       ]
     );
 
+    block_rarities = get_block_rarities(3153515_5000000, 3153515_6000000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::Palindrome,
+        chunks: vec![(31535155153513, 31535155153514)],
+      }]
+    );
+
+    block_rarities = get_block_rarities(40004_11111_00000, 40004_11112_00000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Palindrome,
+          chunks: vec![(400041111140004, 400041111140005)],
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::UniformPalinception,
+          chunks: vec![(400041111140004, 400041111140005)],
+        },
+      ]
+    );
+
+    block_rarities = get_block_rarities(7685867_0000000, 7685868_0000000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Palindrome,
+          chunks: vec![(76858677685867, 76858677685868)],
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::PerfectPalinception,
+          chunks: vec![(76858677685867, 76858677685868)],
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::UniformPalinception,
+          chunks: vec![(76858677685867, 76858677685868)],
+        },
+      ]
+    );
+
+    block_rarities = get_block_rarities(3153515_5000000, 3153515_6000000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::Palindrome,
+        chunks: vec![(31535155153513, 31535155153514)],
+      }]
+    );
+
     block_rarities = get_block_rarities(204589006000000, 204589046000000).unwrap();
     assert_eq!(
       block_rarities,
@@ -436,6 +615,15 @@ mod tests {
           ]
         }
       ]
+    );
+
+    block_rarities = get_block_rarities(162064056592929, 162064057592929).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::JPEG,
+        chunks: vec![(162064056592929, 162064057592929),]
+      },]
     );
   }
 
