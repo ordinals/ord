@@ -131,6 +131,7 @@ impl Inscribe {
     let postage;
     let destinations;
     let inscriptions;
+    let mut reveal_satpoints = Vec::new();
     let mode;
     let parent_info;
     let sat;
@@ -178,7 +179,7 @@ impl Inscribe {
           .map(Amount::from_sat)
           .unwrap_or(TARGET_POSTAGE);
 
-        (inscriptions, destinations) = batchfile.inscriptions(
+        (inscriptions, reveal_satpoints, destinations) = batchfile.inscriptions(
           &index,
           &client,
           chain,
@@ -199,7 +200,7 @@ impl Inscribe {
       _ => unreachable!(),
     }
 
-    let satpoint = if let Some(sat) = sat {
+    let commit_satpoint: Option<SatPoint> = if let Some(sat) = sat {
       if !index.has_sat_index() {
         return Err(anyhow!(
           "index must be built with `--index-sats` to use `--sat`"
@@ -225,7 +226,8 @@ impl Inscribe {
       postage,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
-      satpoint,
+      commit_satpoint,
+      reveal_satpoints
     }
     .inscribe(chain, &index, &client, &locked_utxos, runic_utxos, &utxos)
   }

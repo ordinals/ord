@@ -12,7 +12,8 @@ pub(super) struct Batch {
   pub(super) postage: Amount,
   pub(super) reinscribe: bool,
   pub(super) reveal_fee_rate: FeeRate,
-  pub(super) satpoint: Option<SatPoint>,
+  pub(super) commit_satpoint: Option<SatPoint>,
+  pub(super) reveal_satpoints: Vec<SatPoint>
 }
 
 impl Default for Batch {
@@ -29,7 +30,8 @@ impl Default for Batch {
       postage: Amount::from_sat(10_000),
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
-      satpoint: None,
+      commit_satpoint: None,
+      reveal_satpoints: Vec::new()
     }
   }
 }
@@ -150,7 +152,7 @@ impl Batch {
         }
       };
 
-      let offset = match self.mode {
+      let offset: u64 = match self.mode {
         Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
         Mode::SeparateOutputs | Mode::SameSat => 0,
       };
@@ -210,8 +212,8 @@ impl Batch {
       ),
     }
 
-    let satpoint = if let Some(satpoint) = self.satpoint {
-      satpoint
+    let commit_satpoint = if let Some(commit_satpoint) = self.commit_satpoint {
+      commit_satpoint
     } else {
       let inscribed_utxos = wallet_inscriptions
         .keys()
@@ -236,19 +238,23 @@ impl Batch {
     let mut reinscription = false;
 
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
-      if *inscribed_satpoint == satpoint {
+      if reinscription && self.reinscribe {
+        continue;
+      }
+
+      if *inscribed_satpoint == commit_satpoint {
         reinscription = true;
         if self.reinscribe {
           continue;
         } else {
-          return Err(anyhow!("sat at {} already inscribed", satpoint));
+          return Err(anyhow!("sat at {} already inscribed", commit_satpoint));
         }
       }
 
-      if inscribed_satpoint.outpoint == satpoint.outpoint {
+      if inscribed_satpoint.outpoint == commit_satpoint.outpoint {
         return Err(anyhow!(
           "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
-          satpoint.outpoint,
+          commit_satpoint.outpoint,
         ));
       }
     }
@@ -317,9 +323,13 @@ impl Batch {
           value: tx_out.value,
         },
       );
+    } else {
+      for satpoint in self.reveal_satpoints.iter() {
+        reveal_inputs.push(satpoint.outpoint);
+      }
     }
 
-    let commit_input = if self.parent_info.is_some() { 1 } else { 0 };
+    let commit_input = if self.parent_info.is_some() { 1 } else { self.reveal_satpoints.len() };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -331,7 +341,7 @@ impl Batch {
     );
 
     let unsigned_commit_tx = TransactionBuilder::new(
-      satpoint,
+      commit_satpoint,
       wallet_inscriptions,
       utxos.clone(),
       locked_utxos.clone(),
@@ -548,6 +558,7 @@ pub(crate) struct BatchEntry {
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
+  pub(crate) satpoint: Option<SatPoint>
 }
 
 impl BatchEntry {
@@ -570,7 +581,7 @@ pub(crate) struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
-  pub(crate) sat: Option<Sat>,
+  pub(crate) sat: Option<Sat>
 }
 
 impl Batchfile {
@@ -593,7 +604,7 @@ impl Batchfile {
     metadata: Option<Vec<u8>>,
     postage: Amount,
     compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
+  ) -> Result<(Vec<Inscription>, Vec<SatPoint>, Vec<Address>)> {
     assert!(!self.inscriptions.is_empty());
 
     if self
@@ -617,6 +628,7 @@ impl Batchfile {
     let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
+    let mut satpoints = Vec::new();
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {
         ensure! {
@@ -638,6 +650,10 @@ impl Batchfile {
         &entry.file,
         if i == 0 { None } else { Some(pointer) },
       )?);
+
+      if let Some(satpoint) = entry.satpoint {
+        satpoints.push(satpoint);
+      }
 
       pointer += postage.to_sat();
     }
@@ -661,6 +677,6 @@ impl Batchfile {
         .collect::<Result<Vec<_>, _>>()?,
     };
 
-    Ok((inscriptions, destinations))
+    Ok((inscriptions, satpoints, destinations))
   }
 }
