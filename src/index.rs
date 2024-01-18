@@ -1405,6 +1405,17 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
+  pub(crate) fn get_tx_out(&self, satpoint: SatPoint) -> Result<TxOut> {
+    Ok(
+      self.get_transaction(satpoint.outpoint.txid)?
+          .expect("transaction not found in index")
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .expect("current transaction output")
+    )
+  }
+
   pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;

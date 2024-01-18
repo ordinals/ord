@@ -211,7 +211,11 @@ impl Inscribe {
         None => return Err(anyhow!(format!("could not find sat `{sat}`"))),
       }
     } else {
-      self.satpoint
+      if reveal_satpoints.len() > 0 {
+        Some(reveal_satpoints[0])
+      } else {
+        self.satpoint
+      }
     };
 
     Batch {
@@ -268,13 +272,7 @@ impl Inscribe {
           destination: get_change_address(client, chain)?,
           id: parent_id,
           location: satpoint,
-          tx_out: index
-            .get_transaction(satpoint.outpoint.txid)?
-            .expect("parent transaction not found in index")
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .expect("current transaction output"),
+          tx_out: index.get_tx_out(satpoint)?,
         }))
       } else {
         Err(anyhow!(format!("parent {parent_id} does not exist")))

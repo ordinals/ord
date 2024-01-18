@@ -55,6 +55,7 @@ impl Batch {
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
+        &index,
         wallet_inscriptions,
         chain,
         locked_utxos.clone(),
@@ -76,7 +77,7 @@ impl Batch {
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    let signed_reveal_tx = if self.parent_info.is_some() {
+    let signed_reveal_tx = if self.parent_info.is_some() || self.reveal_satpoints.len() > 0 {
       client
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
@@ -180,6 +181,7 @@ impl Batch {
 
   pub(crate) fn create_batch_inscription_transactions(
     &self,
+    index: &Index,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
@@ -296,6 +298,7 @@ impl Batch {
     };
 
     let mut reveal_inputs = vec![OutPoint::null()];
+    let mut reveal_tx_outs = Vec::new();
     let mut reveal_outputs = self
       .destinations
       .iter()
@@ -323,13 +326,20 @@ impl Batch {
           value: tx_out.value,
         },
       );
+      reveal_tx_outs.push(tx_out);
     } else {
-      for satpoint in self.reveal_satpoints.iter() {
+      reveal_inputs = Vec::new();
+
+      for (pos, &satpoint) in self.reveal_satpoints.iter().rev().enumerate() {
+        if let Ok(tx_out) = index.get_tx_out(satpoint) {
+          reveal_tx_outs.push(tx_out.clone());
+          reveal_outputs[pos].value = tx_out.value;
+        }
         reveal_inputs.push(satpoint.outpoint);
       }
     }
 
-    let commit_input = if self.parent_info.is_some() { 1 } else { self.reveal_satpoints.len() };
+    let commit_input = if self.parent_info.is_some() { 1 } else { reveal_inputs.len() - 1 };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -383,10 +393,18 @@ impl Batch {
       bail!("commit transaction output would be dust");
     }
 
-    let mut prevouts = vec![unsigned_commit_tx.output[vout].clone()];
+    let mut prevouts = Vec::new();
 
-    if let Some(parent_info) = self.parent_info.clone() {
-      prevouts.insert(0, parent_info.tx_out);
+    for tx_out in reveal_tx_outs {
+      prevouts.push(tx_out);
+    }
+
+    let commit_tx_out = unsigned_commit_tx.output[vout].clone();
+
+    if self.parent_info.is_some() {
+      prevouts.push(commit_tx_out);
+    } else {
+      prevouts[commit_input] = commit_tx_out;
     }
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
