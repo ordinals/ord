@@ -9,9 +9,9 @@ use opentelemetry::trace::Tracer;
 use ord_kafka_macros::trace;
 use ordinals::{
   block_rarity::{
-    is_perfect_palindrome, is_uniform_palindrome, BLOCK78_BLOCK_HEIGHT, BLOCK9_450_SAT_RANGE,
-    BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, JPEG_BLOCK_HEIGHTS, NAKAMOTO_BLOCK_HEIGHTS,
-    PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
+    is_perfect_palindrome, is_uniform_palindrome, BLOCK286_BLOCK_HEIGHT, BLOCK78_BLOCK_HEIGHT,
+    BLOCK9_450_SAT_RANGE, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, JPEG_BLOCK_HEIGHTS,
+    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
   },
   BlockRarity,
 };
@@ -226,6 +226,11 @@ fn get_block_rarity_chunks(
     }
     BlockRarity::Block78 => {
       if block_height == BLOCK78_BLOCK_HEIGHT {
+        res.push((block_rarity.clone(), vec![(start, end)]))
+      }
+    }
+    BlockRarity::Block286 => {
+      if block_height == BLOCK286_BLOCK_HEIGHT {
         res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
@@ -527,6 +532,13 @@ mod tests {
         },
         BlockRarityInfo {
           block_rarity: BlockRarity::Nakamoto,
+          chunks: vec![(
+            286 * 50 * COIN_VALUE + 10_000,
+            286 * 50 * COIN_VALUE + 20_000
+          )]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Block286,
           chunks: vec![(
             286 * 50 * COIN_VALUE + 10_000,
             286 * 50 * COIN_VALUE + 20_000
