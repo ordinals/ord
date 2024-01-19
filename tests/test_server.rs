@@ -21,6 +21,10 @@ impl TestServer {
     Self::spawn_with_server_args(rpc_server, ord_args, &[])
   }
 
+  pub(crate) fn spawn_with_json_api(rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+    Self::spawn_with_server_args(rpc_server, &[], &["--enable-json-api"])
+  }
+
   pub(crate) fn spawn_with_server_args(
     rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
@@ -125,8 +129,12 @@ impl TestServer {
 
     for i in 0.. {
       let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
+
       assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count {
+
+      let ord_height = response.text().unwrap().parse::<u64>().unwrap();
+
+      if ord_height >= chain_block_count {
         break;
       } else if i == 20 {
         panic!("index failed to synchronize with chain");

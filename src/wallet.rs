@@ -76,7 +76,7 @@ impl Wallet {
         if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
           break;
         } else if i == 20 {
-          panic!("wallet failed to synchronize to index");
+          bail!("wallet failed to synchronize to index");
         }
 
         thread::sleep(Duration::from_millis(25));

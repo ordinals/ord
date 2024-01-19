@@ -101,28 +101,46 @@ fn runic_utxos_are_deducted_from_cardinal() {
   );
 }
 #[test]
-fn unsynced_wallet_fails() {
+fn unsynced_wallet_fails_with_unindexed_output() {
   let rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_server = TestServer::spawn_with_json_api(&rpc_server);
 
-  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  create_wallet_with_ord(&ord_server, &rpc_server);
+
   assert_eq!(
     CommandBuilder::new("wallet balance")
+      .ord_server(&ord_server)
       .rpc_server(&rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
-      cardinal: 0,
+      cardinal: 50 * COIN_VALUE,
       ordinal: 0,
       runic: None,
       runes: None,
-      total: 0,
+      total: 50 * COIN_VALUE,
     }
   );
 
-  inscribe(&rpc_server);
+  let no_sync_ord_server =
+    TestServer::spawn_with_server_args(&rpc_server, &[], &["--no-sync", "--enable-json-api"]);
+
+  inscribe_with_ord(&ord_server, &rpc_server);
 
   CommandBuilder::new("wallet balance")
+    .ord_server(&no_sync_ord_server)
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .stderr_regex(r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+")
+    .expected_stderr("error: wallet failed to synchronize to index\n")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new("wallet --no-sync balance")
+    .ord_server(&no_sync_ord_server)
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex(
+      r"error: output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+.*",
+    )
     .run_and_extract_stdout();
 }

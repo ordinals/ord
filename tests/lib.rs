@@ -57,6 +57,13 @@ const RUNE: u128 = 99246114928149462;
 type Inscribe = ord::wallet::inscribe::Output;
 type Etch = ord::subcommand::wallet::etch::Output;
 
+fn create_wallet_with_ord(ord_server: &TestServer, rpc_server: &test_bitcoincore_rpc::Handle) {
+  CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
+    .ord_server(ord_server)
+    .rpc_server(rpc_server)
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+}
+
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
@@ -103,6 +110,28 @@ fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> 
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<ord::subcommand::runes::Output>()
     .runes
+}
+
+fn inscribe_with_ord(
+  ord_server: &TestServer,
+  rpc_server: &test_bitcoincore_rpc::Handle,
+) -> (InscriptionId, Txid) {
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
+    rpc_server.network()
+  ))
+  .write("foo.txt", "FOO")
+  .ord_server(ord_server)
+  .rpc_server(rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(output.inscriptions.len(), 1);
+
+  (output.inscriptions[0].id, output.reveal)
 }
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {

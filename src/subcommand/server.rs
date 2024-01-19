@@ -187,7 +187,7 @@ impl Server {
             log::warn!("Updating index: {error}");
           }
         }
-        thread::sleep(Duration::from_millis(5000));
+        // thread::sleep(Duration::from_millis(50)); // TODO: What is a good time here?
       });
       INDEXER.lock().unwrap().replace(index_thread);
 

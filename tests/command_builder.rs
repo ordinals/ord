@@ -33,6 +33,7 @@ pub(crate) struct CommandBuilder {
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
+  ord_server_url: Option<Url>,
   rpc_server_cookie_file: Option<PathBuf>,
   rpc_server_url: Option<String>,
   stdin: Vec<u8>,
@@ -46,6 +47,7 @@ impl CommandBuilder {
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
+      ord_server_url: None,
       rpc_server_cookie_file: None,
       rpc_server_url: None,
       stdin: Vec::new(),
@@ -62,6 +64,13 @@ impl CommandBuilder {
     Self {
       rpc_server_url: Some(rpc_server.url()),
       rpc_server_cookie_file: Some(rpc_server.cookie_file()),
+      ..self
+    }
+  }
+
+  pub(crate) fn ord_server(self, ord_server: &TestServer) -> Self {
+    Self {
+      ord_server_url: Some(ord_server.url()),
       ..self
     }
   }
@@ -119,6 +128,18 @@ impl CommandBuilder {
       ]);
     }
 
+    let mut args = Vec::new();
+
+    for arg in self.args.iter() {
+      args.push(arg.clone());
+      if arg == "wallet" {
+        if let Some(ord_server_url) = &self.ord_server_url {
+          args.push("--server-url".to_string());
+          args.push(ord_server_url.to_string());
+        }
+      }
+    }
+
     command
       .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::piped())
@@ -127,7 +148,7 @@ impl CommandBuilder {
       .current_dir(&*self.tempdir)
       .arg("--data-dir")
       .arg(self.tempdir.path())
-      .args(&self.args);
+      .args(&args);
 
     command
   }
