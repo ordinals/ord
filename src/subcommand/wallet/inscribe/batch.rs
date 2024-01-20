@@ -206,7 +206,7 @@ impl Batch {
       Mode::SharedOutput => assert_eq!(
         self.destinations.len(),
         1,
-        "invariant: destination addresses and number of inscriptions doesn't match"
+        "invariant: shared-output has only one destination"
       ),
     }
 
