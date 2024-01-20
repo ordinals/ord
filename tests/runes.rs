@@ -2,12 +2,16 @@ use {super::*, ord::subcommand::runes::Output};
 
 #[test]
 fn flag_is_required() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
+
   CommandBuilder::new("--regtest runes")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: `ord runes` requires index created with `--index-runes` flag\n")
     .run_and_extract_stdout();
@@ -15,13 +19,13 @@ fn flag_is_required() {
 
 #[test]
 fn no_runes() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .rpc_server(&rpc_server)
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: BTreeMap::new(),
@@ -31,17 +35,23 @@ fn no_runes() {
 
 #[test]
 fn one_rune() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server = TestServer::spawn_with_server_args(
+    &bitcoin_rpc_server,
+    &["--regtest", "--index-runes"],
+    &["--enable-json-api"],
+  );
 
-  let etch = etch(&rpc_server, Rune(RUNE));
+  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let etch = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .rpc_server(&rpc_server)
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: vec![(
@@ -76,18 +86,24 @@ fn one_rune() {
 
 #[test]
 fn two_runes() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server = TestServer::spawn_with_server_args(
+    &bitcoin_rpc_server,
+    &["--regtest", "--index-runes"],
+    &["--enable-json-api"],
+  );
 
-  let a = etch(&rpc_server, Rune(RUNE));
-  let b = etch(&rpc_server, Rune(RUNE + 1));
+  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let a = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let b = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .rpc_server(&rpc_server)
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: vec![

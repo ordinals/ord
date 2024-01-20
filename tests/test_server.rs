@@ -10,29 +10,29 @@ pub(crate) struct TestServer {
   port: u16,
   #[allow(unused)]
   tempdir: TempDir,
-  rpc_url: String,
+  ord_rpc_url: String,
 }
 
 impl TestServer {
   pub(crate) fn spawn_with_args(
-    rpc_server: &test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
   ) -> Self {
-    Self::spawn_with_server_args(rpc_server, ord_args, &[])
+    Self::spawn_with_server_args(bitcoin_rpc_server, ord_args, &[])
   }
 
-  pub(crate) fn spawn_with_json_api(rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
-    Self::spawn_with_server_args(rpc_server, &[], &["--enable-json-api"])
+  pub(crate) fn spawn_with_json_api(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &["--enable-json-api"])
   }
 
   pub(crate) fn spawn_with_server_args(
-    rpc_server: &test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
-    server_args: &[&str],
+    ord_server_args: &[&str],
   ) -> Self {
     let tempdir = TempDir::new().unwrap();
 
-    let cookie_file = match rpc_server.network().as_str() {
+    let cookie_file = match bitcoin_rpc_server.network().as_str() {
       "mainnet" => tempdir.path().join(".cookie"),
       network => {
         fs::create_dir(tempdir.path().join(network)).unwrap();
@@ -50,11 +50,11 @@ impl TestServer {
 
     let child = Command::new(executable_path("ord")).args(format!(
       "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
-      rpc_server.url(),
+      bitcoin_rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display(),
       ord_args.join(" "),
-      server_args.join(" "),
+      ord_server_args.join(" "),
     ).to_args())
       .env("ORD_INTEGRATION_TEST", "1")
       .current_dir(&tempdir)
@@ -77,7 +77,7 @@ impl TestServer {
       child,
       tempdir,
       port,
-      rpc_url: rpc_server.url(),
+      ord_rpc_url: bitcoin_rpc_server.url(),
     }
   }
 
@@ -124,7 +124,7 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
-    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
+    let client = Client::new(&self.ord_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {

@@ -33,9 +33,9 @@ pub(crate) struct CommandBuilder {
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
-  ord_server_url: Option<Url>,
-  rpc_server_cookie_file: Option<PathBuf>,
-  rpc_server_url: Option<String>,
+  ord_rpc_server_url: Option<Url>,
+  bitcoin_rpc_server_cookie_file: Option<PathBuf>,
+  bitcoin_rpc_server_url: Option<String>,
   stdin: Vec<u8>,
   tempdir: Arc<TempDir>,
 }
@@ -47,9 +47,9 @@ impl CommandBuilder {
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
-      ord_server_url: None,
-      rpc_server_cookie_file: None,
-      rpc_server_url: None,
+      ord_rpc_server_url: None,
+      bitcoin_rpc_server_cookie_file: None,
+      bitcoin_rpc_server_url: None,
       stdin: Vec::new(),
       tempdir: Arc::new(TempDir::new().unwrap()),
     }
@@ -60,17 +60,20 @@ impl CommandBuilder {
     self
   }
 
-  pub(crate) fn rpc_server(self, rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+  pub(crate) fn bitcoin_rpc_server(
+    self,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  ) -> Self {
     Self {
-      rpc_server_url: Some(rpc_server.url()),
-      rpc_server_cookie_file: Some(rpc_server.cookie_file()),
+      bitcoin_rpc_server_url: Some(bitcoin_rpc_server.url()),
+      bitcoin_rpc_server_cookie_file: Some(bitcoin_rpc_server.cookie_file()),
       ..self
     }
   }
 
-  pub(crate) fn ord_server(self, ord_server: &TestServer) -> Self {
+  pub(crate) fn ord_rpc_server(self, ord_rpc_server: &TestServer) -> Self {
     Self {
-      ord_server_url: Some(ord_server.url()),
+      ord_rpc_server_url: Some(ord_rpc_server.url()),
       ..self
     }
   }
@@ -114,13 +117,13 @@ impl CommandBuilder {
   pub(crate) fn command(&self) -> Command {
     let mut command = Command::new(executable_path("ord"));
 
-    if let Some(rpc_server_url) = &self.rpc_server_url {
+    if let Some(rpc_server_url) = &self.bitcoin_rpc_server_url {
       command.args([
         "--rpc-url",
         rpc_server_url,
         "--cookie-file",
         self
-          .rpc_server_cookie_file
+          .bitcoin_rpc_server_cookie_file
           .as_ref()
           .unwrap()
           .to_str()
@@ -133,7 +136,7 @@ impl CommandBuilder {
     for arg in self.args.iter() {
       args.push(arg.clone());
       if arg == "wallet" {
-        if let Some(ord_server_url) = &self.ord_server_url {
+        if let Some(ord_server_url) = &self.ord_rpc_server_url {
           args.push("--server-url".to_string());
           args.push(ord_server_url.to_string());
         }
