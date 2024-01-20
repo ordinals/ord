@@ -12,7 +12,7 @@ fn cardinals() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let all_outputs = CommandBuilder::new("wallet outputs")
     .bitcoin_rpc_server(&bitcoin_rpc_server)

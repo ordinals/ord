@@ -45,8 +45,8 @@ fn with_runes() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let a = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
-  let b = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
+  let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
     .bitcoin_rpc_server(&bitcoin_rpc_server)

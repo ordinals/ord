@@ -15,7 +15,7 @@ fn inscribe_creates_inscriptions() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
 
@@ -215,7 +215,7 @@ fn refuse_to_reinscribe_sats() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (_, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -237,7 +237,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let output = OutPoint {
     txid: reveal,
@@ -2036,7 +2036,7 @@ fn file_inscribe_with_delegate_inscription() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (delegate, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (delegate, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let inscribe = CommandBuilder::new(format!(
     "wallet inscribe --fee-rate 1.0 --delegate {delegate} --file inscription.txt"
@@ -2091,7 +2091,7 @@ fn batch_inscribe_with_delegate_inscription() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (delegate, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (delegate, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let inscribe = CommandBuilder::new("wallet inscribe --fee-rate 1.0 --batch batch.yaml")
     .write("inscription.txt", "INSCRIPTION")

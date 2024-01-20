@@ -48,7 +48,7 @@ fn get_sat_with_inscription_and_sat_index() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription_id, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let response = ord_rpc_server.json_request(format!("/sat/{}", 50 * COIN_VALUE));
 
@@ -89,7 +89,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -148,7 +148,7 @@ fn get_inscription() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription_id, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let response = ord_rpc_server.json_request(format!("/inscription/{}", inscription_id));
 
@@ -490,7 +490,7 @@ fn get_status() {
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
   bitcoin_rpc_server.mine_blocks(1);
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let response = ord_rpc_server.json_request("/status");
 
@@ -544,9 +544,9 @@ fn get_runes() {
 
   bitcoin_rpc_server.mine_blocks(3);
 
-  let a = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
-  let b = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
-  let c = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 2));
+  let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
+  let c = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 2));
 
   bitcoin_rpc_server.mine_blocks(1);
 

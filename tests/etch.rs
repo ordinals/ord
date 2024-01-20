@@ -152,7 +152,7 @@ fn trying_to_etch_an_existing_rune_is_an_error() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   bitcoin_rpc_server.mine_blocks(1);
 

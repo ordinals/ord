@@ -1,7 +1,8 @@
 #![allow(
   clippy::too_many_arguments,
   clippy::type_complexity,
-  clippy::result_large_err
+  clippy::result_large_err,
+  clippy::large_enum_variant
 )]
 #![deny(
   clippy::cast_lossless,

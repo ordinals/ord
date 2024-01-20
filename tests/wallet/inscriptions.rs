@@ -14,7 +14,7 @@ fn inscriptions() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -69,7 +69,7 @@ fn inscriptions_includes_locked_utxos() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -99,7 +99,7 @@ fn inscriptions_with_postage() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
     .bitcoin_rpc_server(&bitcoin_rpc_server)

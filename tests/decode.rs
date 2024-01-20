@@ -99,7 +99,7 @@ fn from_core() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (_inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new(format!("decode --txid {reveal}"))

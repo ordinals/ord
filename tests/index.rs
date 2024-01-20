@@ -90,10 +90,10 @@ fn export_inscription_number_to_id_tsv() {
 
   let temp_dir = TempDir::new().unwrap();
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 

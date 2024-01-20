@@ -15,7 +15,7 @@ fn inscriptions_can_be_sent() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -84,7 +84,7 @@ fn send_inscribed_sat() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -211,7 +211,7 @@ fn do_not_send_within_dust_limit_of_an_inscription() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -241,7 +241,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (_, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -378,7 +378,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (_, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -450,7 +450,7 @@ fn send_btc_locks_inscriptions() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (_, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -505,7 +505,7 @@ fn wallet_send_with_fee_rate() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
@@ -542,7 +542,7 @@ fn user_must_provide_fee_rate_to_send() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}"
@@ -568,7 +568,7 @@ fn wallet_send_with_fee_rate_and_target_postage() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
@@ -658,7 +658,7 @@ fn sending_rune_with_excessive_precision_is_an_error() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1.1{}",
@@ -685,7 +685,7 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001{}",
@@ -712,7 +712,7 @@ fn sending_rune_works() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000{}",
@@ -764,7 +764,7 @@ fn sending_spaced_rune_works() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000A•AAAAAAAAAAAA",
@@ -890,7 +890,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
@@ -962,7 +962,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
@@ -1045,7 +1045,7 @@ fn error_messages_use_spaced_runes() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001A•AAAAAAAAAAAA",

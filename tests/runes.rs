@@ -47,7 +47,7 @@ fn one_rune() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let etch = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
@@ -98,8 +98,8 @@ fn two_runes() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let a = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
-  let b = etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
+  let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")

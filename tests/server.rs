@@ -44,7 +44,7 @@ fn inscription_page() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let ethereum_teleburn_address = CommandBuilder::new(format!("teleburn {inscription}"))
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -102,7 +102,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (_, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -151,7 +151,7 @@ fn inscription_appears_on_output_page() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -168,7 +168,7 @@ fn inscription_page_after_send() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -205,7 +205,7 @@ fn inscription_content() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -288,7 +288,7 @@ fn inscriptions_page() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   ord_rpc_server.assert_response_regex(
     "/inscriptions",
@@ -312,7 +312,7 @@ fn inscriptions_page_is_sorted() {
   let mut regex = String::new();
 
   for _ in 0..8 {
-    let (inscription, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+    let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
     regex.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
@@ -326,9 +326,9 @@ fn inscriptions_page_has_next_and_previous() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (a, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
-  let (b, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
-  let (c, _) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (a, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (b, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (c, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{b}"),
@@ -492,7 +492,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
 
   create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let (_inscription, reveal) = inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let coinbase = bitcoin_rpc_server.tx(1, 0).txid();
 

@@ -58,7 +58,7 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
     }
   );
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new("wallet balance")
@@ -103,7 +103,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
     }
   );
 
-  etch_new(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
@@ -148,7 +148,7 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     &["--no-sync", "--enable-json-api"],
   );
 
-  inscribe_new(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("wallet balance")
     .ord_rpc_server(&no_sync_ord_rpc_server)
