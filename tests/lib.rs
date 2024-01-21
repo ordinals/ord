@@ -31,7 +31,7 @@ use {
     io::Write,
     net::TcpListener,
     path::{Path, PathBuf},
-    process::{Child, Command, Stdio},
+    process::{Command, Stdio},
     str::{self, FromStr},
     thread,
     time::Duration,

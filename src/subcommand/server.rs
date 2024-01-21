@@ -125,7 +125,7 @@ impl Display for StaticHtml {
 }
 
 #[derive(Debug, Parser)]
-pub(crate) struct Server {
+pub struct Server {
   #[arg(
     long,
     help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
@@ -174,7 +174,7 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
 
@@ -187,7 +187,12 @@ impl Server {
             log::warn!("Updating index: {error}");
           }
         }
-        thread::sleep(Duration::from_millis(500)); // TIDO: What is a good time here?
+
+        if integration_test() {
+          thread::sleep(Duration::from_millis(100));
+        } else {
+          thread::sleep(Duration::from_millis(5000));
+        }
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
@@ -1740,7 +1745,7 @@ mod tests {
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {
-        thread::sleep(Duration::from_millis(25));
+        thread::sleep(Duration::from_millis(50));
       }
 
       let client = reqwest::blocking::Client::builder()
@@ -1753,12 +1758,12 @@ mod tests {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
-              panic!("server failed to start: {err}");
+              panic!("ord server failed to start: {err}");
             }
           }
         }
 
-        thread::sleep(Duration::from_millis(25));
+        thread::sleep(Duration::from_millis(50));
       }
 
       Self {

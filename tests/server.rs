@@ -384,12 +384,12 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
       Ok(_) => break,
       Err(err) => {
         if i == 400 {
-          panic!("Server failed to start: {err}");
+          panic!("ord server failed to start: {err}");
         }
       }
     }
 
-    thread::sleep(Duration::from_millis(25));
+    thread::sleep(Duration::from_millis(50));
   }
 
   rpc_server.mine_blocks(1);
@@ -402,10 +402,10 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
     }
 
     if i == 400 {
-      panic!("server failed to sync");
+      panic!("ord server failed to sync");
     }
 
-    thread::sleep(Duration::from_millis(25));
+    thread::sleep(Duration::from_millis(50));
   }
 
   child.kill().unwrap();

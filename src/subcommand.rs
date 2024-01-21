@@ -77,7 +77,7 @@ impl Subcommand {
   }
 }
 
-pub(crate) trait Output: Send {
+pub trait Output: Send {
   fn print_json(&self);
 }
 

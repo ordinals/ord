@@ -79,7 +79,7 @@ impl Wallet {
           bail!("wallet failed to synchronize to index");
         }
 
-        thread::sleep(Duration::from_millis(25));
+        thread::sleep(Duration::from_millis(50));
       }
     }
 

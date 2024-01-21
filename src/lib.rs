@@ -114,7 +114,7 @@ macro_rules! tprintln {
     };
 }
 
-mod arguments;
+pub mod arguments;
 mod blocktime;
 pub mod chain;
 mod config;
@@ -125,7 +125,7 @@ mod deserialize_from_str;
 mod epoch;
 mod fee_rate;
 mod height;
-mod index;
+pub mod index;
 mod inscriptions;
 mod object;
 mod options;
@@ -203,6 +203,16 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
+pub fn parse_ord_server_args(args: &str) -> (Options, crate::subcommand::server::Server) {
+  match Arguments::try_parse_from(args.split_whitespace()) {
+    Ok(arguments) => match arguments.subcommand {
+      Subcommand::Server(server) => (arguments.options, server),
+      subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+    },
+    Err(err) => panic!("error parsing arguments: {err}"),
+  }
+}
+
 fn gracefully_shutdown_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
     // We explicitly set this to true to notify the thread to not take on new work
@@ -229,6 +239,8 @@ pub fn main() {
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    gracefully_shutdown_indexer(); //TODO
   })
   .expect("Error setting <CTRL-C> handler");
 

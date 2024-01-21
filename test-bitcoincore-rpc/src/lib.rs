@@ -100,7 +100,7 @@ impl Builder {
         Ok(_) => break,
         Err(err) => {
           if i == 400 {
-            panic!("Server failed to start: {err}");
+            panic!("mock bitcoind server failed to start: {err}");
           }
         }
       }
