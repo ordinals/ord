@@ -240,7 +240,7 @@ pub fn main() {
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
 
-    gracefully_shutdown_indexer(); //TODO
+    gracefully_shutdown_indexer(); // TOD
   })
   .expect("Error setting <CTRL-C> handler");
 

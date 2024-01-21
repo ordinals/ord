@@ -89,7 +89,7 @@ impl Preview {
         panic!("Bitcoin Core RPC did not respond");
       }
 
-    thread::sleep(Duration::from_millis(50));
+      thread::sleep(Duration::from_millis(50));
     }
 
     Arguments {
