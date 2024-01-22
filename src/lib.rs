@@ -264,8 +264,7 @@ pub fn main() {
       if let Some(output) = output {
         output.print_json();
       }
+      gracefully_shutdown_indexer();
     }
   }
-
-  gracefully_shutdown_indexer();
 }
