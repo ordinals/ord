@@ -253,7 +253,7 @@ impl Options {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::Network, std::path::Path};
+  use {super::*, bitcoin::Network, std::path::Path, tempfile::TempDir};
 
   #[test]
   fn rpc_url_overrides_network() {

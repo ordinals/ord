@@ -153,7 +153,6 @@ mod expected;
 mod test_server;
 
 mod balances;
-mod core;
 mod decode;
 mod epochs;
 mod etch;

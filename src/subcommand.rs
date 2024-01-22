@@ -7,7 +7,6 @@ pub mod find;
 pub mod index;
 pub mod list;
 pub mod parse;
-mod preview;
 pub mod runes;
 pub(crate) mod server;
 pub mod subsidy;
@@ -32,8 +31,6 @@ pub(crate) enum Subcommand {
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
-  #[command(about = "Run an explorer server populated with inscriptions")]
-  Preview(preview::Preview),
   #[command(about = "List all runes")]
   Runes,
   #[command(about = "Run the explorer server")]
@@ -60,7 +57,6 @@ impl Subcommand {
       Self::Index(index) => index.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
-      Self::Preview(preview) => preview.run(),
       Self::Runes => runes::run(options),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);

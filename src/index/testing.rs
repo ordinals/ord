@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::ffi::OsString, tempfile::TempDir};
 
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,

@@ -201,6 +201,7 @@ mod tests {
     crate::wallet::inscribe::{BatchEntry, ParentInfo},
     bitcoin::policy::MAX_STANDARD_TX_WEIGHT,
     serde_yaml::{Mapping, Value},
+    tempfile::TempDir,
   };
 
   #[test]
