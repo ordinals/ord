@@ -22,7 +22,7 @@ fn preview() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    "preview --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml --blocktime 1"
+    "preview --address 127.0.0.1 --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml --blocktime 1"
   ))
   .write("inscription.txt", "Hello World")
   .write("alert.html", "<script>alert('LFG!')</script>")
@@ -48,7 +48,7 @@ fn preview() {
     }
 
     if attempt == 100 {
-      panic!("Server did not respond to status check",);
+      panic!("Preview server did not respond to status check",);
     }
 
     thread::sleep(Duration::from_millis(500));
@@ -79,6 +79,8 @@ fn preview() {
 
     thread::sleep(Duration::from_millis(250));
   }
+
+  thread::sleep(Duration::from_millis(10000));
 
   assert_regex_match!(
     reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
