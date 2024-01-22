@@ -14,11 +14,11 @@ use {
   wallet::transaction_builder::Target,
 };
 
-pub use {batch::Batch, batchentry::BatchEntry, batchfile::Batchfile, mode::Mode};
+pub use {batch::Batch, batch_entry::BatchEntry, batch_file::Batchfile, mode::Mode};
 
 pub mod batch;
-pub mod batchentry;
-pub mod batchfile;
+pub mod batch_entry;
+pub mod batch_file;
 pub mod mode;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
