@@ -29,7 +29,9 @@ impl Etch {
 
     let SpacedRune { rune, spacers } = self.rune;
 
-    let count = wallet.bitcoin_client()?.get_block_count()?;
+    let bitcoin_client = wallet.bitcoin_client()?;
+
+    let count = bitcoin_client.get_block_count()?;
 
     ensure!(
       wallet.get_rune(rune)?.is_none(),
@@ -104,24 +106,18 @@ impl Etch {
       .map(|satpoint| satpoint.outpoint)
       .collect::<Vec<OutPoint>>();
 
-    if !wallet.bitcoin_client()?.lock_unspent(&inscriptions)? {
+    if !bitcoin_client.lock_unspent(&inscriptions)? {
       bail!("failed to lock UTXOs");
     }
 
-    let unsigned_transaction = fund_raw_transaction(
-      &wallet.bitcoin_client()?,
-      self.fee_rate,
-      &unfunded_transaction,
-    )?;
+    let unsigned_transaction =
+      fund_raw_transaction(&bitcoin_client, self.fee_rate, &unfunded_transaction)?;
 
-    let signed_transaction = wallet
-      .bitcoin_client()?
+    let signed_transaction = bitcoin_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let transaction = wallet
-      .bitcoin_client()?
-      .send_raw_transaction(&signed_transaction)?;
+    let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;
 
     Ok(Some(Box::new(Output {
       rune: self.rune,
