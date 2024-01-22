@@ -4,7 +4,7 @@ use {
   bitcoin::{
     blockdata::{
       opcodes,
-      script::{self},
+      script::{self, PushBytes},
     },
     ScriptBuf,
   },
@@ -141,7 +141,7 @@ impl Inscription {
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
       for chunk in body.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
-        builder = builder.push_slice(chunk);
+        builder = builder.push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
       }
     }
 
