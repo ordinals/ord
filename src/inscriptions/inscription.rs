@@ -2,10 +2,7 @@ use {
   super::*,
   anyhow::ensure,
   bitcoin::{
-    blockdata::{
-      opcodes,
-      script::{self, PushBytes},
-    },
+    blockdata::{opcodes, script},
     ScriptBuf,
   },
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
