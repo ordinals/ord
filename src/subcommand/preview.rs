@@ -1,6 +1,6 @@
 use {super::*, fee_rate::FeeRate, reqwest::Url, std::sync::atomic};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) struct Preview {
   #[command(flatten)]
   server: super::server::Server,
@@ -38,7 +38,7 @@ impl Preview {
   pub(crate) fn run(self) -> SubcommandResult {
     let tmpdir = TempDir::new()?;
 
-    let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
+    let bitcoin_rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
 
     let bitcoin_data_dir = tmpdir.path().join("bitcoin");
 
@@ -57,25 +57,16 @@ impl Preview {
         .arg("-printtoconsole=0")
         .arg("-regtest")
         .arg("-txindex")
-        .arg(format!("-rpcport={rpc_port}"))
+        .arg(format!("-rpcport={bitcoin_rpc_port}"))
         .spawn()
         .context("failed to spawn `bitcoind`")?,
     );
-
-    let server_url: Url = {
-      format!(
-        "http://127.0.0.1:{}",
-        TcpListener::bind("127.0.0.1:0")?.local_addr()?.port() // very hacky
-      )
-      .parse()
-      .unwrap()
-    };
 
     let options = Options {
       chain_argument: Chain::Regtest,
       bitcoin_data_dir: Some(bitcoin_data_dir.clone()),
       data_dir: tmpdir.path().into(),
-      rpc_url: Some(format!("http://127.0.0.1:{rpc_port}")),
+      rpc_url: Some(format!("http://127.0.0.1:{bitcoin_rpc_port}")),
       index_sats: true,
       ..Options::default()
     };
@@ -92,12 +83,23 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
+    let mut ord_server_args = self.server.clone();
+
+    ord_server_args.enable_json_api = true;
+
+    let ord_server_url: Url = format!(
+      "http://127.0.0.1:{}",
+      ord_server_args.http_port.unwrap_or(8080)
+    )
+    .parse()
+    .unwrap();
+
     Arguments {
       options: options.clone(),
       subcommand: Subcommand::Wallet(crate::subcommand::wallet::WalletCommand {
         name: "ord".into(),
-        no_sync: true,
-        server_url: server_url.clone(),
+        no_sync: false,
+        server_url: ord_server_url.clone(),
         subcommand: crate::subcommand::wallet::Subcommand::Create(
           crate::subcommand::wallet::create::Create {
             passphrase: "".into(),
@@ -108,61 +110,50 @@ impl Preview {
     .run()
     .unwrap();
 
-    let rpc_client = options.bitcoin_rpc_client(None)?;
+    let bitcoin_rpc_client = options.bitcoin_rpc_client(None)?;
 
-    let address = rpc_client
+    let address = bitcoin_rpc_client
       .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
       .require_network(Network::Regtest)?;
 
     eprintln!("Mining blocks…");
 
-    rpc_client.generate_to_address(101, &address)?;
+    bitcoin_rpc_client.generate_to_address(101, &address)?;
 
-    {
-      let options = options.clone();
-      let rpc_client = options.bitcoin_rpc_client(None)?;
+    let running = Arc::new(AtomicBool::new(true));
+
+    let mining_handle = if let Some(blocktime) = self.blocktime {
+      let bitcoin_rpc_client = options.bitcoin_rpc_client(None)?;
       let address = address.clone();
+      let running = running.clone();
+
+      eprintln!(
+        "Mining blocks every {}...",
+        "second".tally(blocktime.try_into().unwrap())
+      );
+
+      Some(std::thread::spawn(move || {
+        while running.load(atomic::Ordering::SeqCst) {
+          bitcoin_rpc_client.generate_to_address(1, &address).unwrap();
+          thread::sleep(Duration::from_secs(blocktime));
+        }
+      }))
+    } else {
+      None
+    };
+
+    let ord_server_handle = {
+      let options = options.clone();
 
       std::thread::spawn(move || {
-        if let Some(blocktime) = self.blocktime {
-          eprintln!(
-            "Mining blocks every {}...",
-            "second".tally(blocktime.try_into().unwrap())
-          );
-
-          let running = Arc::new(AtomicBool::new(true));
-
-          let handle = {
-            let running = running.clone();
-
-            std::thread::spawn(move || {
-              while running.load(atomic::Ordering::SeqCst) {
-                rpc_client.generate_to_address(1, &address).unwrap();
-                thread::sleep(Duration::from_secs(blocktime));
-              }
-            })
-          };
-
-          Arguments {
-            options,
-            subcommand: Subcommand::Server(self.server),
-          }
-          .run()
-          .unwrap();
-
-          running.store(false, atomic::Ordering::SeqCst);
-
-          handle.join().unwrap();
-        } else {
-          Arguments {
-            options,
-            subcommand: Subcommand::Server(self.server),
-          }
-          .run()
-          .unwrap();
+        Arguments {
+          options,
+          subcommand: Subcommand::Server(ord_server_args),
         }
-      });
-    }
+        .run()
+        .unwrap()
+      })
+    };
 
     if let Some(files) = self.files {
       for file in files {
@@ -171,7 +162,7 @@ impl Preview {
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
             no_sync: false,
-            server_url: server_url.clone(),
+            server_url: ord_server_url.clone(),
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: None,
               cbor_metadata: None,
@@ -196,9 +187,11 @@ impl Preview {
         }
         .run()?;
 
-        rpc_client.generate_to_address(1, &address)?;
+        bitcoin_rpc_client.generate_to_address(1, &address)?;
       }
     }
+
+    println!("hereasldfkjasdflkjasdf");
 
     if let Some(batches) = self.batches {
       for batch in batches {
@@ -207,7 +200,7 @@ impl Preview {
           subcommand: Subcommand::Wallet(super::wallet::WalletCommand {
             name: "ord".into(),
             no_sync: false,
-            server_url: server_url.clone(),
+            server_url: ord_server_url.clone(),
             subcommand: super::wallet::Subcommand::Inscribe(super::wallet::inscribe::Inscribe {
               batch: Some(batch),
               cbor_metadata: None,
@@ -232,9 +225,18 @@ impl Preview {
         }
         .run()?;
 
-        rpc_client.generate_to_address(1, &address)?;
+        bitcoin_rpc_client.generate_to_address(1, &address)?;
       }
     }
+
+    ord_server_handle.join().unwrap();
+
+    running.store(false, atomic::Ordering::SeqCst);
+
+    if let Some(mining_handle) = mining_handle {
+      mining_handle.join().unwrap();
+    }
+
     Ok(None)
   }
 }

@@ -124,7 +124,7 @@ impl Display for StaticHtml {
   }
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
     long,

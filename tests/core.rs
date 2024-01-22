@@ -54,14 +54,6 @@ fn preview() {
     thread::sleep(Duration::from_millis(500));
   }
 
-  assert_regex_match!(
-    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
-      .unwrap()
-      .text()
-      .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
-  );
-
   let blockheight = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
     .unwrap()
     .text()
@@ -87,4 +79,12 @@ fn preview() {
 
     thread::sleep(Duration::from_millis(250));
   }
+
+  assert_regex_match!(
+    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
+  );
 }
