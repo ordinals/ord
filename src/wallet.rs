@@ -354,15 +354,13 @@ impl Wallet {
   }
 
   pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
-    let status: StatusJson = serde_json::from_str(
+    Ok(serde_json::from_str(
       &self
         .ord_client()?
         .get(self.ord_url.join("/status").unwrap())
         .send()?
         .text()?,
-    )?;
-
-    Ok(status)
+    )?)
   }
 
   pub(crate) fn check_rune_index(&self) -> Result<bool> {
