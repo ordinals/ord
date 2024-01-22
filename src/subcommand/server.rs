@@ -182,6 +182,7 @@ impl Server {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
+
         if !self.no_sync {
           if let Err(error) = index_clone.update() {
             log::warn!("Updating index: {error}");

@@ -21,6 +21,8 @@ fn preview() {
     .unwrap()
     .port();
 
+  let ord_server_url: Url = format!("http://127.0.0.1:{port}").parse().unwrap();
+
   let builder = CommandBuilder::new(format!(
     "preview --address 127.0.0.1 --http-port {port} --files alert.html inscription.txt --batches batch_1.yaml batch_2.yaml --blocktime 1"
   ))
@@ -40,8 +42,19 @@ fn preview() {
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
+  // Leave some time for bitcoind to mine 100 blocks
+  thread::sleep(Duration::from_millis(15000));
+
+  assert_regex_match!(
+    reqwest::blocking::get(format!("{ord_server_url}inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
+  );
+
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+    if let Ok(response) = reqwest::blocking::get(format!("{ord_server_url}status")) {
       if response.status() == 200 {
         break;
       }
@@ -54,7 +67,7 @@ fn preview() {
     thread::sleep(Duration::from_millis(500));
   }
 
-  let blockheight = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+  let blockheight = reqwest::blocking::get(format!("{ord_server_url}blockheight"))
     .unwrap()
     .text()
     .unwrap()
@@ -66,7 +79,7 @@ fn preview() {
       panic!("Bitcoin Core did not mine blocks",);
     }
 
-    if reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight"))
+    if reqwest::blocking::get(format!("{ord_server_url}blockheight"))
       .unwrap()
       .text()
       .unwrap()
@@ -79,14 +92,4 @@ fn preview() {
 
     thread::sleep(Duration::from_millis(250));
   }
-
-  thread::sleep(Duration::from_millis(10000));
-
-  assert_regex_match!(
-    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
-      .unwrap()
-      .text()
-      .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
-  );
 }
