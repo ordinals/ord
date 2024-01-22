@@ -159,7 +159,7 @@ impl Send {
     wallet: &Wallet,
   ) -> Result<Txid> {
     ensure!(
-      wallet.check_rune_index()?,
+      wallet.has_rune_index()?,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 

@@ -23,7 +23,7 @@ pub struct Output {
 impl Etch {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.check_rune_index()?,
+      wallet.has_rune_index()?,
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 

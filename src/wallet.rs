@@ -140,7 +140,7 @@ impl Wallet {
 
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
-      self.check_sat_index()?,
+      self.has_sat_index()?,
       "index must be built with `--index-sats` to use `--sat`"
     );
 
@@ -162,7 +162,7 @@ impl Wallet {
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<SatPoint> {
     ensure!(
-      self.check_sat_index()?,
+      self.has_sat_index()?,
       "index must be built with `--index-sats` to use `--sat`"
     );
 
@@ -363,11 +363,11 @@ impl Wallet {
     )?)
   }
 
-  pub(crate) fn check_rune_index(&self) -> Result<bool> {
+  pub(crate) fn has_rune_index(&self) -> Result<bool> {
     Ok(self.get_server_status()?.rune_index)
   }
 
-  pub(crate) fn check_sat_index(&self) -> Result<bool> {
+  pub(crate) fn has_sat_index(&self) -> Result<bool> {
     Ok(self.get_server_status()?.sat_index)
   }
 
