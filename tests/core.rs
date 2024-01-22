@@ -45,14 +45,6 @@ fn preview() {
   // Leave some time for bitcoind to mine 100 blocks
   thread::sleep(Duration::from_millis(25000));
 
-  assert_regex_match!(
-    reqwest::blocking::get(format!("{ord_server_url}inscriptions"))
-      .unwrap()
-      .text()
-      .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
-  );
-
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("{ord_server_url}status")) {
       if response.status() == 200 {
@@ -92,4 +84,12 @@ fn preview() {
 
     thread::sleep(Duration::from_millis(250));
   }
+
+  assert_regex_match!(
+    reqwest::blocking::get(format!("{ord_server_url}inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{}}}.*", 5)
+  );
 }
