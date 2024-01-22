@@ -36,7 +36,6 @@ impl ContextBuilder {
     index.update().unwrap();
 
     Ok(Context {
-      _options: options,
       rpc_server,
       tempdir,
       index,
@@ -65,7 +64,6 @@ impl ContextBuilder {
 }
 
 pub(crate) struct Context {
-  pub(crate) _options: Options,
   pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
   #[allow(unused)]
   pub(crate) tempdir: TempDir,
