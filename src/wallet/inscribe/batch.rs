@@ -65,14 +65,14 @@ impl Batch {
       ))));
     }
 
-    let signed_commit_tx = wallet
-      .bitcoin_client()?
+    let bitcoin_client = wallet.bitcoin_client()?;
+
+    let signed_commit_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
     let signed_reveal_tx = if self.parent_info.is_some() {
-      wallet
-        .bitcoin_client()?
+      bitcoin_client
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
           Some(
@@ -100,14 +100,9 @@ impl Batch {
       Self::backup_recovery_key(wallet, recovery_key_pair)?;
     }
 
-    let commit = wallet
-      .bitcoin_client()?
-      .send_raw_transaction(&signed_commit_tx)?;
+    let commit = bitcoin_client.send_raw_transaction(&signed_commit_tx)?;
 
-    let reveal = match wallet
-      .bitcoin_client()?
-      .send_raw_transaction(&signed_reveal_tx)
-    {
+    let reveal = match bitcoin_client.send_raw_transaction(&signed_reveal_tx) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
@@ -452,21 +447,18 @@ impl Batch {
       wallet.chain().network(),
     );
 
-    let info = wallet
-      .bitcoin_client()?
-      .get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+    let info =
+      bitcoin_client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 
-    let response = wallet
-      .bitcoin_client()?
-      .import_descriptors(ImportDescriptors {
-        descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
-        timestamp: Timestamp::Now,
-        active: Some(false),
-        range: None,
-        next_index: None,
-        internal: Some(false),
-        label: Some("commit tx recovery key".to_string()),
-      })?;
+    let response = bitcoin_client.import_descriptors(ImportDescriptors {
+      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+      timestamp: Timestamp::Now,
+      active: Some(false),
+      range: None,
+      next_index: None,
+      internal: Some(false),
+      label: Some("commit tx recovery key".to_string()),
+    })?;
 
     for result in response {
       if !result.success {
