@@ -43,7 +43,7 @@ fn preview() {
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
   // Leave some time for bitcoind to mine 100 blocks
-  thread::sleep(Duration::from_millis(15000));
+  thread::sleep(Duration::from_millis(25000));
 
   assert_regex_match!(
     reqwest::blocking::get(format!("{ord_server_url}inscriptions"))
