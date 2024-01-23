@@ -25,13 +25,15 @@ mod tests {
       RuneHtml {
         entry: RuneEntry {
           burned: 123456789123456789,
-          deadline: Some(7),
           divisibility: 9,
-          end: Some(11),
           etching: Txid::all_zeros(),
-          limit: Some(1000000001),
           mints: 100,
           number: 25,
+          open: Some(OpenEntry {
+            end: Some(11),
+            limit: Some(1000000001),
+            deadline: Some(7),
+          }),
           rune: Rune(u128::max_value()),
           spacers: 1,
           supply: 123456789123456789,

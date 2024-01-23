@@ -32,6 +32,8 @@ use {
 
 pub use self::entry::RuneEntry;
 
+pub(crate) use entry::OpenEntry;
+
 pub(crate) mod entry;
 mod fetcher;
 mod reorg;

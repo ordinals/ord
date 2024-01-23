@@ -31,13 +31,11 @@ impl Entry for Header {
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct RuneEntry {
   pub burned: u128,
-  pub deadline: Option<u32>,
   pub divisibility: u8,
-  pub end: Option<u32>,
   pub etching: Txid,
-  pub limit: Option<u128>,
   pub mints: u64,
   pub number: u64,
+  pub open: Option<OpenEntry>,
   pub rune: Rune,
   pub spacers: u32,
   pub supply: u128,
@@ -46,21 +44,31 @@ pub struct RuneEntry {
 }
 
 pub(super) type RuneEntryValue = (
-  u128,         // burned
+  u128,                   // burned
+  u8,                     // divisibility
+  (u128, u128),           // etching
+  u64,                    // mints
+  u64,                    // number
+  Option<OpenEntryValue>, // open etching parameters
+  u128,                   // rune
+  u32,                    // spacers
+  u128,                   // supply
+  Option<char>,           // symbol
+  u32,                    // timestamp
+);
+
+// todo: rename to mint
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub(crate) struct OpenEntry {
+  pub(crate) deadline: Option<u32>,
+  pub(crate) end: Option<u32>,
+  pub(crate) limit: Option<u128>,
+}
+
+type OpenEntryValue = (
   Option<u32>,  // deadline
-  u8,           // divisibility
   Option<u32>,  // end
-  (u128, u128), // etching
   Option<u128>, // limit
-  (
-    u64, // mints
-    u64, // number
-  ),
-  u128,         // rune
-  u32,          // spacers
-  u128,         // supply
-  Option<char>, // symbol
-  u32,          // timestamp
 );
 
 impl RuneEntry {
@@ -76,13 +84,11 @@ impl Default for RuneEntry {
   fn default() -> Self {
     Self {
       burned: 0,
-      deadline: None,
       divisibility: 0,
-      end: None,
       etching: Txid::all_zeros(),
-      limit: None,
       mints: 0,
       number: 0,
+      open: None,
       rune: Rune(0),
       spacers: 0,
       supply: 0,
@@ -98,12 +104,11 @@ impl Entry for RuneEntry {
   fn load(
     (
       burned,
-      deadline,
       divisibility,
-      end,
       etching,
-      limit,
-      (mints, number),
+      mints,
+      number,
+      open,
       rune,
       spacers,
       supply,
@@ -113,9 +118,7 @@ impl Entry for RuneEntry {
   ) -> Self {
     Self {
       burned,
-      deadline,
       divisibility,
-      end,
       etching: {
         let low = etching.0.to_le_bytes();
         let high = etching.1.to_le_bytes();
@@ -126,9 +129,13 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
-      limit,
       mints,
       number,
+      open: open.map(|(deadline, end, limit)| OpenEntry {
+        deadline,
+        end,
+        limit,
+      }),
       rune: Rune(rune),
       spacers,
       supply,
@@ -140,9 +147,7 @@ impl Entry for RuneEntry {
   fn store(self) -> Self::Value {
     (
       self.burned,
-      self.deadline,
       self.divisibility,
-      self.end,
       {
         let bytes = self.etching.to_byte_array();
         (
@@ -156,8 +161,15 @@ impl Entry for RuneEntry {
           ]),
         )
       },
-      self.limit,
-      (self.mints, self.number),
+      self.mints,
+      self.number,
+      self.open.map(
+        |OpenEntry {
+           deadline,
+           end,
+           limit,
+         }| (deadline, end, limit),
+      ),
       self.rune.0,
       self.spacers,
       self.supply,

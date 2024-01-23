@@ -22,6 +22,7 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
+    index::OpenEntry,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},

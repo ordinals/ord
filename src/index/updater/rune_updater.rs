@@ -9,11 +9,9 @@ fn claim(id: u128) -> Option<u128> {
 
 struct Allocation {
   balance: u128,
-  deadline: Option<u32>,
   divisibility: u8,
-  end: Option<u32>,
   id: u128,
-  limit: Option<u128>,
+  open: Option<OpenEntry>,
   rune: Rune,
   spacers: u32,
   symbol: Option<char>,
@@ -124,23 +122,16 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: if let Some(limit) = limit {
-                  if term == Some(0) {
-                    0
-                  } else {
-                    limit
-                  }
-                } else {
-                  u128::max_value()
-                },
-                deadline: etching.deadline,
+                balance: u128::max_value(),
                 divisibility: etching.divisibility,
-                end: term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
-                limit,
                 rune,
                 spacers: etching.spacers,
                 symbol: etching.symbol,
+                // todo: remove
+                // end: term.map(|term| term + self.height),
+                // limit,
+                // deadline: etching.deadline,
               }),
               Err(_) => None,
             }
@@ -163,18 +154,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if let Ok(key) = RuneId::try_from(id) {
             if let Some(entry) = self.id_to_entry.get(&key.store())? {
               let entry = RuneEntry::load(entry.value());
-              if let Some(limit) = entry.limit {
-                if let Some(end) = entry.end {
+              if let Some(open) = entry.open {
+                if let Some(end) = open.end {
                   if self.height >= end {
                     continue;
                   }
                 }
-                if let Some(deadline) = entry.deadline {
+                if let Some(deadline) = open.deadline {
                   if self.timestamp >= deadline {
                     continue;
                   }
                 }
-                mintable.insert(id, limit);
+                mintable.insert(id, open.limit.unwrap_or(u128::MAX));
               }
             }
           }
@@ -278,11 +269,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if let Some(Allocation {
         balance,
-        deadline,
         divisibility,
-        end,
         id,
-        limit,
+        open,
         rune,
         spacers,
         symbol,
@@ -300,25 +289,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           id.store(),
           RuneEntry {
             burned: 0,
-            deadline: deadline.and_then(|deadline| (!burn).then_some(deadline)),
             divisibility,
             etching: txid,
             mints: 0,
             number,
+            open: open.and_then(|open| (!burn).then_some(open)),
             rune,
             spacers,
-            supply: if let Some(limit) = limit {
-              if end == Some(self.height) {
-                0
-              } else {
-                limit
-              }
-            } else {
-              u128::max_value()
-            } - balance,
-            end: end.and_then(|end| (!burn).then_some(end)),
+            supply: u128::max_value() - balance,
             symbol,
-            limit: limit.and_then(|limit| (!burn).then_some(limit)),
             timestamp: self.timestamp,
           }
           .store(),
