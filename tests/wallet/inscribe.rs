@@ -1807,7 +1807,7 @@ fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: index must be built with `--index-sats` to use `--sat`\n")
+    .expected_stderr("error: ord server must run with `--index-sats` to use `--sat`\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("--index-sats wallet inscribe --sat 5000000000 --file foo.txt --fee-rate 1")
