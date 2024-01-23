@@ -502,6 +502,10 @@ OP_ENDIF
 <h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
 <p>Ang mga inskripsiyon na gaya ng HTML at SVG ay nasa-sandbox upang maiwasan ang ma-reference sa off-chain content, sa gayo'y pinapanatili ang mga inskripsiyon na hindi nababago at self-contained.</p>
 <p>Nagagawa ito sa pamamagitan ng pag-load sa mga HTML at SVG na inskripsiyon sa loob <code>iframes</code> na may <code>sandbox</code> na katangian, pati na rin ang pag-serve ng nilalaman ng inskripsiyon na may <code>Content-Security-Policy</code> sa header.</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content and content type of the delegate. This can be used to cheaply create copies of an inscription.</p>
 <h3 id="pagtutukoy"><a class="header" href="#pagtutukoy">Pagtutukoy</a></h3>

@@ -662,6 +662,14 @@ off-chain content, thus keeping inscriptions immutable and self-contained.</p>
 <p>This is accomplished by loading HTML and SVG inscriptions inside <code>iframes</code> with
 the <code>sandbox</code> attribute, as well as serving inscription content with
 <code>Content-Security-Policy</code> headers.</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if
+the inscription is present in the wallet. This will only append an inscription to
+a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint:
+<code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index):
+<code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of
 an inscription with a delegate will instead return the content and content type

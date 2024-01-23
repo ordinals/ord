@@ -307,6 +307,10 @@ OP_ENDIF
 <h2 id="sandboxing-o-aislamiento"><a class="header" href="#sandboxing-o-aislamiento">Sandboxing o Aislamiento</a></h2>
 <p>Las inscripciones en HTML y SVG están restringidas en un entorno aislado llamado sandboxing para evitar referencias a contenido fuera de la cadena, manteniendo así las inscripciones inmutables y contenidas dentro del entorno.</p>
 <p>Esto se logra cargando las inscripciones en HTML y SVG dentro de <code>iframes</code> con el atributo <code>sandbox</code> y agregando <code>Content-Security-Policy</code> a los encabezados.</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 
                     </main>
 

@@ -502,6 +502,10 @@ OP_ENDIF
 <h2 id="sandboxen"><a class="header" href="#sandboxen">Sandboxen</a></h2>
 <p>HTML- und SVG-inscriptions werden in einer Sandbox gespeichert, um Verweise auf Inhalte außerhalb der chain zu verhindern, sodass die inscriptions unveränderlich und in sich geschlossen bleiben.</p>
 <p>Dies wird erreicht, indem HTML und SVG-Inschriften in <code>iframes</code> mit dem <code>Sandbox</code> Attribut geladen werden und inscriptions inhalte mit <code>Content-Security-Policy</code> Headern bereitgestellt werden.</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content and content type of the delegate. This can be used to cheaply create copies of an inscription.</p>
 <h3 id="specification"><a class="header" href="#specification">Specification</a></h3>

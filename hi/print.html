@@ -502,6 +502,10 @@ OP_ENDIF
 <h2 id="सैंडबॉकसिंग"><a class="header" href="#सैंडबॉकसिंग">सैंडबॉक्सिंग</a></h2>
 <p>ऑफ-चेन संदेशों के संदर्भ निर्देशों को रोकने के लिए HTML और SVG इंस्‍क्रि‍प्‍शंस को सैंडबॉक्स कर देता है, इस प्रकार इंस्‍क्रि‍प्‍शंस को स्थिर और पृथक रखा जाता है।</p>
 <p>इसे <code>सैंडबॉक्स</code> गुणों के साथ <code>आईफ्रेम</code> के भीतर HTML और SVG इंस्‍क्रि‍प्‍शंस लोड करने के साथ-साथ इंस्‍क्रि‍प्‍शंस विषय-वस्‍तु को <code>Content-Security-Policy</code> है की सेवा प्रदान करके पूरा किया जाता है।</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content and content type of the delegate. This can be used to cheaply create copies of an inscription.</p>
 <h3 id="विनिरदेश"><a class="header" href="#विनिरदेश">विनिर्देश</a></h3>

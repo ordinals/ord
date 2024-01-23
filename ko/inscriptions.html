@@ -307,6 +307,10 @@ OP_ENDIF
 <h2 id="샌드박싱-sandboxing"><a class="header" href="#샌드박싱-sandboxing">샌드박싱 (sandboxing)</a></h2>
 <p>오프체인 콘텐츠에 대한 참조를 방지하기 위해 HTML 및 SVG 인스크립션은 샌드박스가 적용되어 인스크립션의 변경을 불가능하게 하고 독립적으로 유지될 수 있게 한다.</p>
 <p>이는 HTML 및 SVG 인스크립션을 ‘sandbox’ 속성을 사용하여 'iframe' 내에 로드하고 <code>Content-Security-Policy</code> 헤더를 사용하여 인스크립션 콘텐츠를 제공함으로써 수행된다.</p>
+<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
+<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
+<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 
                     </main>
 
