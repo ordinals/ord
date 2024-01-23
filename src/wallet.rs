@@ -76,7 +76,7 @@ impl Wallet {
         if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
           break;
         } else if i == 20 {
-          bail!("wallet failed to synchronize to index");
+          bail!("wallet failed to synchronize with ord server");
         }
 
         thread::sleep(Duration::from_millis(50));
@@ -92,10 +92,14 @@ impl Wallet {
       .get(self.ord_url.join(&format!("/output/{output}")).unwrap())
       .send()?;
 
+    if !response.status().is_success() {
+      bail!("wallet failed get output: {}", response.text()?);
+    }
+
     let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
 
     if !output_json.indexed {
-      bail!("output in Bitcoin Core wallet but not in ord index: {output}");
+      bail!("output in wallet but not in ord server: {output}");
     }
 
     Ok(output_json)
@@ -141,7 +145,7 @@ impl Wallet {
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
       self.has_sat_index()?,
-      "index must be built with `--index-sats` to use `--sat`"
+      "ord server must run with `--index-sats` to use `--sat`"
     );
 
     let mut output_sat_ranges = Vec::new();
@@ -149,7 +153,7 @@ impl Wallet {
       if let Some(sat_ranges) = self.get_output(output)?.sat_ranges {
         output_sat_ranges.push((*output, sat_ranges));
       } else {
-        bail!("output {output} in wallet but is spent according to index");
+        bail!("output {output} in wallet but is spent according to ord server");
       }
     }
 
@@ -163,7 +167,7 @@ impl Wallet {
   ) -> Result<SatPoint> {
     ensure!(
       self.has_sat_index()?,
-      "index must be built with `--index-sats` to use `--sat`"
+      "ord server must run with `--index-sats` to use `--sat`"
     );
 
     for output in utxos.keys() {
@@ -215,7 +219,7 @@ impl Wallet {
       )
       .send()?;
 
-    if response.status().is_client_error() {
+    if !response.status().is_success() {
       bail!("inscription {inscription_id} not found");
     }
 
@@ -251,7 +255,7 @@ impl Wallet {
       )
       .send()?;
 
-    if response.status().is_client_error() {
+    if !response.status().is_success() {
       return Ok(None);
     }
 
@@ -332,7 +336,7 @@ impl Wallet {
         tx_out: self
           .bitcoin_client()?
           .get_raw_transaction(&satpoint.outpoint.txid, None)
-          .expect("parent transaction not found in index")
+          .expect("parent transaction not found in ord server")
           .output
           .into_iter()
           .nth(satpoint.outpoint.vout.try_into().unwrap())
@@ -354,13 +358,16 @@ impl Wallet {
   }
 
   pub(crate) fn get_server_status(&self) -> Result<StatusJson> {
-    Ok(serde_json::from_str(
-      &self
-        .ord_client()?
-        .get(self.ord_url.join("/status").unwrap())
-        .send()?
-        .text()?,
-    )?)
+    let response = self
+      .ord_client()?
+      .get(self.ord_url.join("/status").unwrap())
+      .send()?;
+
+    if !response.status().is_success() {
+      bail!("could not get status: {}", response.text()?)
+    }
+
+    Ok(serde_json::from_str(&response.text()?)?)
   }
 
   pub(crate) fn has_rune_index(&self) -> Result<bool> {
