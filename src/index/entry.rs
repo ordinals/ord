@@ -354,7 +354,7 @@ impl Entry for SatRange {
 
     let raw_delta = u64::from_le_bytes([b6, b7, b8, b9, b10, 0, 0, 0]);
 
-    // 37 bit delta
+    // 33 bit delta
     let delta = raw_delta >> 3;
 
     (base, base + delta)
