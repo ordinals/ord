@@ -9,7 +9,7 @@ use {
 pub(crate) struct TestServer {
   #[allow(unused)]
   index: Arc<Index>,
-  ord_rpc_url: String,
+  bitcoin_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
   #[allow(unused)]
@@ -81,7 +81,7 @@ impl TestServer {
 
     Self {
       index,
-      ord_rpc_url: bitcoin_rpc_server.url(),
+      bitcoin_rpc_url: bitcoin_rpc_server.url(),
       ord_server_handle,
       port,
       tempdir,
@@ -131,7 +131,7 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
-    let client = Client::new(&self.ord_rpc_url, Auth::None).unwrap();
+    let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
