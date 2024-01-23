@@ -149,3 +149,16 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
+
+Reinscriptions
+--------------
+
+Previously inscribed sats can be reinscribed with the `--reinscribe` command if
+the inscription is present in the wallet. This will only append an inscription to
+a sat, not change the initial inscription.
+
+Reinscribe with satpoint:
+`ord wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --satpoint <SATPOINT>`
+
+Reinscribe on a sat (requires sat index):
+`ord --index-sats wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`
