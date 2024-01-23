@@ -495,6 +495,10 @@ OP_ENDIF
 <tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
 </tbody></table>
 </div>
+<h2 id="inscription-numbers"><a class="header" href="#inscription-numbers">Inscription Numbers</a></h2>
+<p>Inscriptions are assigned inscription numbers starting at zero, first by the order reveal transactions appear in blocks, and the order that reveal envelopes appear in those transactions.</p>
+<p>Due to a historical bug in <code>ord</code> which cannot be fixed without changing a great many inscription numbers, inscriptions which are revealed and then immediately spent to fees are numbered as if they appear last in the block in which they are revealed.</p>
+<p>Inscriptions which are cursed are numbered starting at negative one, counting down. Cursed inscriptions on and after the jubilee at block 824544 are vindicated, and are assigned positive inscription numbers.</p>
 <h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
 <p>Ang mga inskripsiyon na gaya ng HTML at SVG ay nasa-sandbox upang maiwasan ang ma-reference sa off-chain content, sa gayo'y pinapanatili ang mga inskripsiyon na hindi nababago at self-contained.</p>
 <p>Nagagawa ito sa pamamagitan ng pag-load sa mga HTML at SVG na inskripsiyon sa loob <code>iframes</code> na may <code>sandbox</code> na katangian, pati na rin ang pag-serve ng nilalaman ng inskripsiyon na may <code>Content-Security-Policy</code> sa header.</p>
