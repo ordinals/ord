@@ -25,17 +25,23 @@ deploy branch remote chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
+deploy-mainnet-alpha branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
+deploy-regtest branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
-deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
+deploy-signet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'signet' 'signet.ordinals.net')
 
-deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
+deploy-testnet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'test' 'testnet.ordinals.net')
 
 deploy-all: \
   deploy-regtest \
@@ -175,7 +181,9 @@ convert-logo-to-favicon:
   convert -background none -resize 256x256 logo.svg static/favicon.png
 
 update-mdbook-theme:
-  curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+  curl \
+    https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs \
+    > docs/theme/index.hbs
 
 audit-cache:
   cargo run --package audit-cache
