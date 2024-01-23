@@ -161,8 +161,6 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     .ord_rpc_server(&no_sync_ord_rpc_server)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex(
-      r"error: output in wallet but not in ord server: [[:xdigit:]]{64}:\d+.*",
-    )
+    .stderr_regex(r"error: output in wallet but not in ord server: [[:xdigit:]]{64}:\d+.*")
     .run_and_extract_stdout();
 }
