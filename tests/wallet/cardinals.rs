@@ -10,7 +10,7 @@ fn cardinals() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 

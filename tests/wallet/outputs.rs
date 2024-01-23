@@ -7,7 +7,7 @@ fn outputs() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -29,7 +29,7 @@ fn outputs_includes_locked_outputs() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -53,7 +53,7 @@ fn outputs_includes_unbound_outputs() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);

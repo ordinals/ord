@@ -57,10 +57,7 @@ const RUNE: u128 = 99246114928149462;
 type Inscribe = ord::wallet::inscribe::Output;
 type Etch = ord::subcommand::wallet::etch::Output;
 
-fn create_wallet_new(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-  ord_rpc_server: &TestServer,
-) {
+fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {
   CommandBuilder::new(format!(
     "--chain {} wallet create",
     bitcoin_rpc_server.network()
@@ -112,15 +109,6 @@ fn etch(
   bitcoin_rpc_server.mine_blocks(1);
 
   output
-}
-
-fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) {
-  CommandBuilder::new(format!(
-    "--chain {} wallet create",
-    bitcoin_rpc_server.network()
-  ))
-  .bitcoin_rpc_server(bitcoin_rpc_server)
-  .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {

@@ -447,6 +447,8 @@ impl Batch {
       wallet.chain().network(),
     );
 
+    let bitcoin_client = wallet.bitcoin_client()?;
+
     let info =
       bitcoin_client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 

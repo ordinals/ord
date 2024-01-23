@@ -15,7 +15,7 @@ fn flag_is_required() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(format!(
     "--regtest wallet etch --rune {} --divisibility 39 --fee-rate 1 --supply 1000 --symbol ¢",
@@ -40,7 +40,7 @@ fn divisibility_over_max_is_an_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -68,7 +68,7 @@ fn supply_over_max_is_an_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -96,7 +96,7 @@ fn rune_below_minimum_is_an_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -124,7 +124,7 @@ fn reserved_rune_is_an_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -150,7 +150,7 @@ fn trying_to_etch_an_existing_rune_is_an_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -180,7 +180,7 @@ fn runes_can_be_etched() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -243,7 +243,7 @@ fn etch_sets_integer_fee_rate_correctly() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -279,7 +279,7 @@ fn etch_sets_decimal_fee_rate_correctly() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -315,7 +315,7 @@ fn etch_does_not_select_inscribed_utxos() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -365,7 +365,7 @@ fn inscribe_does_not_select_runic_utxos() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
 
@@ -410,7 +410,7 @@ fn send_amount_does_not_select_runic_utxos() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
 
@@ -445,7 +445,7 @@ fn send_satpoint_does_not_send_runic_utxos() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
 
@@ -480,7 +480,7 @@ fn send_inscription_does_not_select_runic_utxos() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
 

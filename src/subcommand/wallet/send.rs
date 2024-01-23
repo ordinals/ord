@@ -258,7 +258,7 @@ impl Send {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(&bitcoin_client, fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
     let signed_transaction = bitcoin_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

@@ -46,7 +46,7 @@ fn get_sat_with_inscription_and_sat_index() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -87,7 +87,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -146,7 +146,7 @@ fn get_inscription() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -193,7 +193,7 @@ fn get_inscriptions() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
@@ -250,7 +250,7 @@ fn get_inscriptions_in_block() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(10);
 
@@ -303,7 +303,7 @@ fn get_output() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
   bitcoin_rpc_server.mine_blocks(3);
 
   let envelope = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
@@ -487,7 +487,7 @@ fn get_status() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
   bitcoin_rpc_server.mine_blocks(1);
 
   inscribe(&bitcoin_rpc_server, &ord_rpc_server);
@@ -540,7 +540,7 @@ fn get_runes() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(3);
 

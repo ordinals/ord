@@ -95,7 +95,7 @@ fn from_core() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 

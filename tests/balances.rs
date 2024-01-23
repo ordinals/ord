@@ -43,7 +43,7 @@ fn with_runes() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
   let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));

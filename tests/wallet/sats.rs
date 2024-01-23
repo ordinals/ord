@@ -10,7 +10,7 @@ fn requires_sat_index() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("wallet sats")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -30,7 +30,7 @@ fn sats() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let second_coinbase = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -53,7 +53,7 @@ fn sats_from_tsv_success() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let second_coinbase = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -77,7 +77,7 @@ fn sats_from_tsv_parse_error() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
@@ -100,7 +100,7 @@ fn sats_from_tsv_file_not_found() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .bitcoin_rpc_server(&bitcoin_rpc_server)

@@ -13,7 +13,7 @@ fn inscribe_creates_inscriptions() {
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 0);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -34,7 +34,7 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -52,7 +52,7 @@ fn metaprotocol_appears_on_inscription_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -93,7 +93,7 @@ fn inscribe_no_backup() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 2);
 
@@ -111,7 +111,7 @@ fn inscribe_unknown_file_extension() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -132,7 +132,7 @@ fn inscribe_exceeds_chain_limit() {
 
   let ord_rpc_server = TestServer::spawn_with_args(&bitcoin_rpc_server, &["--signet"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("--chain signet wallet inscribe --file degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 1025])
@@ -154,7 +154,7 @@ fn regtest_has_no_content_size_limit() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -174,7 +174,7 @@ fn mainnet_has_no_content_size_limit() {
 
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -191,7 +191,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -211,7 +211,7 @@ fn refuse_to_reinscribe_sats() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -235,7 +235,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -266,7 +266,7 @@ fn inscribe_with_optional_satpoint_arg() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -299,7 +299,7 @@ fn inscribe_with_fee_rate() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -356,7 +356,7 @@ fn inscribe_with_commit_fee_rate() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -424,7 +424,7 @@ fn inscribe_with_dry_run_flag() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -451,7 +451,7 @@ fn inscribe_with_dry_run_flag_fees_increase() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -480,7 +480,7 @@ fn inscribe_to_specific_destination() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -513,7 +513,7 @@ fn inscribe_to_address_on_different_network() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -533,7 +533,7 @@ fn inscribe_with_no_limit() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -549,7 +549,7 @@ fn inscribe_works_with_postage() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
   bitcoin_rpc_server.mine_blocks(1);
 
   CommandBuilder::new("wallet inscribe --file foo.txt --postage 5btc --fee-rate 10".to_string())
@@ -574,7 +574,7 @@ fn inscribe_with_non_existent_parent_inscription() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -596,7 +596,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -676,7 +676,7 @@ fn reinscribe_with_flag() {
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 0);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let inscribe = CommandBuilder::new("wallet inscribe --file tulip.png --fee-rate 5.0 ")
     .write("tulip.png", [1; 520])
@@ -721,7 +721,7 @@ fn with_reinscribe_flag_but_not_actually_a_reinscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -751,7 +751,7 @@ fn try_reinscribe_without_flag() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -786,7 +786,7 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -815,7 +815,7 @@ fn json_metadata_appears_on_inscription_page() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -844,7 +844,7 @@ fn cbor_metadata_appears_on_inscription_page() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -909,7 +909,7 @@ fn batch_inscribe_fails_if_batchfile_has_no_inscriptions() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -930,7 +930,7 @@ fn batch_inscribe_can_create_one_inscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -970,7 +970,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1014,7 +1014,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1066,7 +1066,7 @@ fn batch_inscribe_respects_dry_run_flag() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1096,7 +1096,7 @@ fn batch_in_same_output_but_different_satpoints() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1164,7 +1164,7 @@ fn batch_in_same_output_with_non_default_postage() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1232,7 +1232,7 @@ fn batch_in_separate_outputs_with_parent() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1310,7 +1310,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1389,7 +1389,7 @@ fn inscribe_does_not_pick_locked_utxos() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks(1)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -1412,7 +1412,7 @@ fn inscribe_can_compress() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1476,7 +1476,7 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1521,7 +1521,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1542,7 +1542,7 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1564,7 +1564,7 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1616,7 +1616,7 @@ fn batch_same_sat() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1682,7 +1682,7 @@ fn batch_same_sat_with_parent() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1769,7 +1769,7 @@ fn inscribe_with_sat_arg() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(2);
 
@@ -1800,7 +1800,7 @@ fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new("wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1")
     .write("foo.txt", "FOO")
@@ -1833,7 +1833,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1880,7 +1880,7 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1909,7 +1909,7 @@ fn batch_inscribe_with_fee_rate() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(2);
 
@@ -1968,7 +1968,7 @@ fn server_can_decompress_brotli() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2032,7 +2032,7 @@ fn file_inscribe_with_delegate_inscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2063,7 +2063,7 @@ fn file_inscribe_with_non_existent_delegate_inscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2087,7 +2087,7 @@ fn batch_inscribe_with_delegate_inscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2126,7 +2126,7 @@ fn batch_inscribe_with_non_existent_delegate_inscription() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 

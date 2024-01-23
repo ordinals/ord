@@ -7,7 +7,7 @@ fn wallet_balance() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new("wallet balance")
@@ -42,7 +42,7 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new("wallet balance")
@@ -87,7 +87,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
@@ -126,7 +126,7 @@ fn unsynced_wallet_fails_with_unindexed_output() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new("wallet balance")

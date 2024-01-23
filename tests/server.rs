@@ -42,7 +42,7 @@ fn inscription_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -100,7 +100,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -117,7 +117,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -149,7 +149,7 @@ fn inscription_appears_on_output_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -166,7 +166,7 @@ fn inscription_page_after_send() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -203,7 +203,7 @@ fn inscription_content() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -249,7 +249,7 @@ fn inscription_metadata() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -286,7 +286,7 @@ fn inscriptions_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -307,7 +307,7 @@ fn inscriptions_page_is_sorted() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let mut regex = String::new();
 
@@ -324,7 +324,7 @@ fn inscriptions_page_has_next_and_previous() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (a, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
   let (b, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
@@ -490,7 +490,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
     &["--enable-json-api"],
   );
 
-  create_wallet_new(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
