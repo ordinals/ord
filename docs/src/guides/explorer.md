@@ -19,10 +19,6 @@ To enable the JSON-API endpoints add the `--enable-json-api` or `-j` flag (see
 
 `ord server --enable-json-api`
 
-To test how your inscriptions will look you can run:
-
-`ord preview <FILE1> <FILE2> ...`
-
 Search
 ------
 

@@ -16,7 +16,7 @@ use {
     templates::{
       block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
-      sat::SatJson, status::StatusHtml, transaction::TransactionJson,
+      sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
@@ -31,7 +31,7 @@ use {
     io::Write,
     net::TcpListener,
     path::{Path, PathBuf},
-    process::{Child, Command, Stdio},
+    process::{Command, Stdio},
     str::{self, FromStr},
     thread,
     time::Duration,
@@ -54,13 +54,61 @@ macro_rules! assert_regex_match {
 
 const RUNE: u128 = 99246114928149462;
 
-type Inscribe = ord::subcommand::wallet::inscribe::Output;
+type Inscribe = ord::wallet::inscribe::Output;
 type Etch = ord::subcommand::wallet::etch::Output;
 
-fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
-  CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
-    .rpc_server(rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {
+  CommandBuilder::new(format!(
+    "--chain {} wallet create",
+    bitcoin_rpc_server.network()
+  ))
+  .bitcoin_rpc_server(bitcoin_rpc_server)
+  .ord_rpc_server(ord_rpc_server)
+  .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+}
+
+fn inscribe(
+  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  ord_rpc_server: &TestServer,
+) -> (InscriptionId, Txid) {
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
+    bitcoin_rpc_server.network()
+  ))
+  .write("foo.txt", "FOO")
+  .bitcoin_rpc_server(bitcoin_rpc_server)
+  .ord_rpc_server(ord_rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  assert_eq!(output.inscriptions.len(), 1);
+
+  (output.inscriptions[0].id, output.reveal)
+}
+
+fn etch(
+  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  ord_rpc_server: &TestServer,
+  rune: Rune,
+) -> Etch {
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(
+    format!(
+    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 0 --supply 1000 --symbol ¢",
+    rune
+    )
+  )
+  .bitcoin_rpc_server(bitcoin_rpc_server)
+  .ord_rpc_server(ord_rpc_server)
+  .run_and_deserialize_output();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  output
 }
 
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
@@ -81,46 +129,11 @@ fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
   bitcoin::Witness::from_slice(&[script.into_bytes(), Vec::new()])
 }
 
-fn etch(rpc_server: &test_bitcoincore_rpc::Handle, rune: Rune) -> Etch {
-  rpc_server.mine_blocks(1);
-
-  let output = CommandBuilder::new(
-    format!(
-    "--index-runes --regtest wallet etch --rune {} --divisibility 0 --fee-rate 0 --supply 1000 --symbol ¢",
-    rune
-    )
-  )
-  .rpc_server(rpc_server)
-  .run_and_deserialize_output();
-
-  rpc_server.mine_blocks(1);
-
-  output
-}
-
 fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> {
   CommandBuilder::new("--index-runes --regtest runes")
-    .rpc_server(rpc_server)
+    .bitcoin_rpc_server(rpc_server)
     .run_and_deserialize_output::<ord::subcommand::runes::Output>()
     .runes
-}
-
-fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
-  rpc_server.mine_blocks(1);
-
-  let output = CommandBuilder::new(format!(
-    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
-    rpc_server.network()
-  ))
-  .write("foo.txt", "FOO")
-  .rpc_server(rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
-
-  rpc_server.mine_blocks(1);
-
-  assert_eq!(output.inscriptions.len(), 1);
-
-  (output.inscriptions[0].id, output.reveal)
 }
 
 mod command_builder;
@@ -128,7 +141,6 @@ mod expected;
 mod test_server;
 
 mod balances;
-mod core;
 mod decode;
 mod epochs;
 mod etch;

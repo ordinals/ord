@@ -24,7 +24,7 @@ use {
     TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
-    collections::{BTreeSet, HashMap},
+    collections::HashMap,
     io::{BufWriter, Write},
     sync::{Mutex, Once},
   },
@@ -174,7 +174,7 @@ pub(crate) struct InscriptionInfo {
   pub(crate) charms: u16,
 }
 
-trait BitcoinCoreRpcResultExt<T> {
+pub(crate) trait BitcoinCoreRpcResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
 }
 
@@ -415,20 +415,6 @@ impl Index {
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
-  }
-
-  pub(crate) fn check_sync(&self, utxos: &BTreeMap<OutPoint, Amount>) -> Result<bool> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
-    for outpoint in utxos.keys() {
-      if outpoint_to_value.get(&outpoint.store())?.is_none() {
-        return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
-        ));
-      }
-    }
-
-    Ok(true)
   }
 
   pub(crate) fn contains_output(&self, output: &OutPoint) -> Result<bool> {
@@ -867,32 +853,6 @@ impl Index {
     Ok(entries)
   }
 
-  pub(crate) fn get_rune_balance(&self, outpoint: OutPoint, id: RuneId) -> Result<u128> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(0);
-    };
-
-    let balances_buffer = balances.value();
-
-    let mut i = 0;
-    while i < balances_buffer.len() {
-      let (balance_id, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-      let (amount, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-
-      if RuneId::try_from(balance_id).unwrap() == id {
-        return Ok(amount);
-      }
-    }
-
-    Ok(0)
-  }
-
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
@@ -932,22 +892,6 @@ impl Index {
     }
 
     Ok(balances)
-  }
-
-  pub(crate) fn get_runic_outputs(&self, outpoints: &[OutPoint]) -> Result<BTreeSet<OutPoint>> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let mut runic = BTreeSet::new();
-
-    for outpoint in outpoints {
-      if outpoint_to_balances.get(&outpoint.store())?.is_some() {
-        runic.insert(*outpoint);
-      }
-    }
-
-    Ok(runic)
   }
 
   pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, u128>>> {
@@ -1584,28 +1528,6 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_inscriptions(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    let rtx = self.database.begin_read()?;
-
-    let mut result = BTreeMap::new();
-
-    let satpoint_to_sequence_number = rtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
-    let sequence_number_to_inscription_entry =
-      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
-    for utxo in utxos.keys() {
-      result.extend(Self::inscriptions_on_output(
-        &satpoint_to_sequence_number,
-        &sequence_number_to_inscription_entry,
-        *utxo,
-      )?);
-    }
-
-    Ok(result)
-  }
-
   pub(crate) fn get_inscriptions_paginated(
     &self,
     page_size: u32,
@@ -2045,11 +1967,7 @@ impl Index {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    crate::index::testing::Context,
-    bitcoin::secp256k1::rand::{self, RngCore},
-  };
+  use {super::*, crate::index::testing::Context};
 
   #[test]
   fn height_limit() {
@@ -3345,31 +3263,6 @@ mod tests {
       let (inscriptions, more) = context.index.get_inscriptions_paginated(100, 0).unwrap();
       assert_eq!(inscriptions, ids);
       assert!(more);
-    }
-  }
-
-  #[test]
-  fn unsynced_index_fails() {
-    for context in Context::configurations() {
-      let mut entropy = [0; 16];
-      rand::thread_rng().fill_bytes(&mut entropy);
-      let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::initialize("ord".into(), &context.options, mnemonic.to_seed(""))
-        .unwrap();
-      context.rpc_server.mine_blocks(1);
-      assert_regex_match!(
-        crate::subcommand::wallet::get_unspent_outputs(
-          &crate::subcommand::wallet::bitcoin_rpc_client_for_wallet_command(
-            "ord".to_string(),
-            &context.options,
-          )
-          .unwrap(),
-          &context.index
-        )
-        .unwrap_err()
-        .to_string(),
-        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
-      );
     }
   }
 

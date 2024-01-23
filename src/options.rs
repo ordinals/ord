@@ -253,7 +253,7 @@ impl Options {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::Network, std::path::Path};
+  use {super::*, bitcoin::Network, std::path::Path, tempfile::TempDir};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -569,7 +569,7 @@ mod tests {
     );
   }
 
-  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::Wallet) {
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::WalletCommand) {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
         Subcommand::Wallet(wallet) => (arguments.options, wallet),
