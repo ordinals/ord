@@ -25,7 +25,7 @@ use {
     index::OpenEntry,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
     representation::Representation,
-    runes::{Etching, Pile, SpacedRune},
+    runes::{Etching, Open, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },

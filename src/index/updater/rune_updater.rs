@@ -110,11 +110,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               Rune::reserved(reserved_runes.into())
             };
 
-            let (limit, term) = match (etching.limit, etching.term) {
-              (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
-              (limit, term) => (limit, term),
-            };
-
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
             // with 2**16 + 1 transactions, there is no test that checks that
@@ -128,10 +123,21 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 rune,
                 spacers: etching.spacers,
                 symbol: etching.symbol,
-                // todo: remove
-                // end: term.map(|term| term + self.height),
-                // limit,
-                // deadline: etching.deadline,
+                // todo: use then_some?
+                open: if let Some(open) = etching.open {
+                  Some(OpenEntry {
+                    deadline: open.deadline,
+                    end: open.term.map(|term| term + self.height),
+                    // todo: what happens if limit is over max limit?
+                    limit: if let Some(limit) = open.limit {
+                      Some(limit)
+                    } else {
+                      Some(runes::MAX_LIMIT)
+                    },
+                  })
+                } else {
+                  None
+                },
               }),
               Err(_) => None,
             }

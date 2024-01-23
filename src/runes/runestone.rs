@@ -100,15 +100,24 @@ impl Runestone {
 
     let etch = Flag::Etch.take(&mut flags);
 
+    let open = Flag::Open.take(&mut flags);
+
+    // todo: use then some
     let etching = if etch {
       Some(Etching {
-        deadline,
         divisibility,
-        limit,
         rune,
         spacers,
         symbol,
-        term,
+        open: if open {
+          Some(Open {
+            deadline,
+            limit,
+            term,
+          })
+        } else {
+          None
+        },
       })
     } else {
       None
@@ -129,14 +138,14 @@ impl Runestone {
       let mut flags = 0;
       Flag::Etch.set(&mut flags);
 
+      if etching.open.is_some() {
+        Flag::Open.set(&mut flags);
+      }
+
       Tag::Flags.encode(flags, &mut payload);
 
       if let Some(rune) = etching.rune {
         Tag::Rune.encode(rune.0, &mut payload);
-      }
-
-      if let Some(deadline) = etching.deadline {
-        Tag::Deadline.encode(deadline.into(), &mut payload);
       }
 
       if etching.divisibility != 0 {
@@ -151,12 +160,18 @@ impl Runestone {
         Tag::Symbol.encode(symbol.into(), &mut payload);
       }
 
-      if let Some(limit) = etching.limit {
-        Tag::Limit.encode(limit, &mut payload);
-      }
+      if let Some(open) = etching.open {
+        if let Some(deadline) = open.deadline {
+          Tag::Deadline.encode(deadline.into(), &mut payload);
+        }
 
-      if let Some(term) = etching.term {
-        Tag::Term.encode(term.into(), &mut payload);
+        if let Some(limit) = open.limit {
+          Tag::Limit.encode(limit, &mut payload);
+        }
+
+        if let Some(term) = open.term {
+          Tag::Term.encode(term.into(), &mut payload);
+        }
       }
     }
 
