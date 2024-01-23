@@ -132,7 +132,7 @@ impl Wallet {
     }
 
     for output in utxos.keys() {
-      self.get_output(output)?; //check that wallet outputs in ord index
+      self.get_output(output)?;
     }
 
     Ok(utxos)
