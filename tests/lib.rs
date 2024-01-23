@@ -103,7 +103,7 @@ fn etch(
     )
   )
   .bitcoin_rpc_server(bitcoin_rpc_server)
-    .ord_rpc_server(ord_rpc_server)
+  .ord_rpc_server(ord_rpc_server)
   .run_and_deserialize_output();
 
   bitcoin_rpc_server.mine_blocks(1);
