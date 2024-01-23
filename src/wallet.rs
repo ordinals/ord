@@ -167,7 +167,7 @@ impl Wallet {
   ) -> Result<SatPoint> {
     ensure!(
       self.has_sat_index()?,
-      "ord server must run with `--index-sats` to use `--sat`"
+      "ord index must be built with `--index-sats` to use `--sat`"
     );
 
     for output in utxos.keys() {
