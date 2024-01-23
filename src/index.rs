@@ -722,6 +722,15 @@ impl Index {
       .unwrap_or_default()
   }
 
+  #[cfg(test)]
+  pub(crate) fn inscription_number(&self, inscription_id: InscriptionId) -> i32 {
+    self
+      .get_inscription_entry(inscription_id)
+      .unwrap()
+      .unwrap()
+      .inscription_number
+  }
+
   pub(crate) fn block_count(&self) -> Result<u32> {
     self.begin_read()?.block_count()
   }
@@ -3290,15 +3299,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3335,15 +3336,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3371,15 +3364,7 @@ mod tests {
 
       assert_eq!(context.rpc_server.height(), 109);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0, witness)],
@@ -3392,15 +3377,7 @@ mod tests {
 
       assert_eq!(context.rpc_server.height(), 110);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3426,15 +3403,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3454,15 +3423,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3491,15 +3452,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3529,15 +3482,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3573,15 +3518,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3619,15 +3556,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second_inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(second_inscription_id), -1);
     }
   }
 
@@ -3682,35 +3611,9 @@ mod tests {
         Some(150 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(third)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -2
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
+      assert_eq!(context.index.inscription_number(second), -1);
+      assert_eq!(context.index.inscription_number(third), -2);
     }
   }
 
@@ -3786,35 +3689,9 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(third)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -2
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
+      assert_eq!(context.index.inscription_number(second), -1);
+      assert_eq!(context.index.inscription_number(third), -2);
     }
   }
 
@@ -3906,15 +3783,7 @@ mod tests {
         Some(150 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
 
       assert_eq!(
         context
@@ -3925,25 +3794,9 @@ mod tests {
         fourth
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(fourth)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -3
-      );
+      assert_eq!(context.index.inscription_number(fourth), -3);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(ninth)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -8
-      );
+      assert_eq!(context.index.inscription_number(ninth), -8);
     }
   }
 
@@ -4047,15 +3900,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(cursed), -1);
 
       let witness = envelope(&[
         b"ord",
@@ -4083,15 +3928,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        1
-      );
+      assert_eq!(context.index.inscription_number(reinscription_on_cursed), 1);
     }
   }
 
@@ -4128,15 +3965,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(cursed), -1);
 
       let witness = envelope(&[
         b"ord",
@@ -4164,15 +3993,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        1
-      );
+      assert_eq!(context.index.inscription_number(reinscription_on_cursed), 1);
 
       let witness = envelope(&[
         b"ord",
@@ -4203,10 +4024,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscription_entry(second_reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
+          .inscription_number(second_reinscription_on_cursed),
         -2
       );
 
@@ -4934,15 +4752,7 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -4998,15 +4808,7 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(child_inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(child_inscription_id), -1);
 
       assert_eq!(
         context
@@ -5351,23 +5153,10 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
 
       assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed_reinscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
+        context.index.inscription_number(cursed_reinscription_id),
         -1
       );
     }
@@ -5839,5 +5628,32 @@ mod tests {
         vout: 0,
       })
       .unwrap());
+  }
+
+  #[test]
+  fn fee_spent_inscriptions_are_numbered_last_in_block() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let a = InscriptionId { txid, index: 0 };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      let b = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(context.index.inscription_number(a), 1);
+      assert_eq!(context.index.inscription_number(b), 0);
+    }
   }
 }
