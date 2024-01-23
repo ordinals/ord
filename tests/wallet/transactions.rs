@@ -4,7 +4,7 @@ use {super::*, ord::subcommand::wallet::transactions::Output};
 fn transactions() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -31,7 +31,7 @@ fn transactions() {
 fn transactions_with_limit() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
