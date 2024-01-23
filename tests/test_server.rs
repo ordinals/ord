@@ -7,7 +7,8 @@ use {
 };
 
 pub(crate) struct TestServer {
-  _index: Arc<Index>,
+  #[allow(unused)]
+  index: Arc<Index>,
   ord_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
@@ -79,7 +80,7 @@ impl TestServer {
     }
 
     Self {
-      _index: index,
+      index,
       ord_rpc_url: bitcoin_rpc_server.url(),
       ord_server_handle,
       port,
@@ -153,6 +154,5 @@ impl TestServer {
 impl Drop for TestServer {
   fn drop(&mut self) {
     self.ord_server_handle.shutdown();
-    // self.child.kill().unwrap()
   }
 }
