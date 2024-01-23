@@ -124,6 +124,22 @@ go through the inputs consecutively and look for all inscription `envelopes`.
 | 3     | 0                 |            |
 | 4     | 1                 | i6         |
 
+Inscription Numbers
+-------------------
+
+Inscriptions are assigned inscription numbers starting at zero, first by the
+order reveal transactions appear in blocks, and the order that reveal envelopes
+appear in those transactions.
+
+Due to a historical bug in `ord` which cannot be fixed without changing a great
+many inscription numbers, inscriptions which are revealed and then immediately
+spent to fees are numbered as if they appear last in the block in which they
+are revealed.
+
+Inscriptions which are cursed are numbered starting at negative one, counting
+down. Cursed inscriptions on and after the jubilee at block 824544 are
+vindicated, and are assigned positive inscription numbers.
+
 Sandboxing
 ----------
 

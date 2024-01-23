@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::ffi::OsString, tempfile::TempDir};
 
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,
@@ -36,7 +36,6 @@ impl ContextBuilder {
     index.update().unwrap();
 
     Ok(Context {
-      options,
       rpc_server,
       tempdir,
       index,
@@ -65,7 +64,6 @@ impl ContextBuilder {
 }
 
 pub(crate) struct Context {
-  pub(crate) options: Options,
   pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
   #[allow(unused)]
   pub(crate) tempdir: TempDir,
