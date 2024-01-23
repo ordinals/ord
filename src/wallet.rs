@@ -145,7 +145,7 @@ impl Wallet {
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
       self.has_sat_index()?,
-      "ord server must run with `--index-sats` to use `--sat`"
+      "ord index must be built with `--index-sats` to use `--sat`"
     );
 
     let mut output_sat_ranges = Vec::new();
