@@ -177,9 +177,6 @@ update-changelog:
   echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
-preview-examples:
-  cargo run preview examples/*
-
 convert-logo-to-favicon:
   convert -background none -resize 256x256 logo.svg static/favicon.png
 
