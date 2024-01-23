@@ -154,15 +154,13 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     .ord_rpc_server(&no_sync_ord_rpc_server)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: wallet failed to synchronize to index\n")
+    .expected_stderr("error: wallet failed to synchronize with ord server\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("wallet --no-sync balance")
     .ord_rpc_server(&no_sync_ord_rpc_server)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex(
-      r"error: output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+.*",
-    )
+    .stderr_regex(r"error: output in wallet but not in ord server: [[:xdigit:]]{64}:\d+.*")
     .run_and_extract_stdout();
 }
