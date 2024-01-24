@@ -11,6 +11,7 @@ use {
   executable_path::executable_path,
   ord::{
     chain::Chain,
+    inscriptions::inscription_id::InscriptionId,
     rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
@@ -18,7 +19,7 @@ use {
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
       sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
-    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
+    Edict, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,

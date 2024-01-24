@@ -1,15 +1,13 @@
 use super::*;
 
-use tag::Tag;
+// use tag::Tag;
 
-pub(crate) use self::{charm::Charm, envelope::ParsedEnvelope, media::Media};
+use self::{inscription::Inscription, inscription_id::InscriptionId};
 
-pub use self::{envelope::Envelope, inscription::Inscription, inscription_id::InscriptionId};
-
-mod charm;
-mod envelope;
-mod inscription;
-mod inscription_id;
-pub(crate) mod media;
-mod tag;
-pub(crate) mod teleburn;
+pub mod charm;
+pub mod envelope;
+pub mod inscription;
+pub mod inscription_id;
+pub mod media;
+pub mod tag;
+pub mod teleburn;

@@ -22,7 +22,10 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    inscriptions::{
+      charm::Charm, envelope::ParsedEnvelope, inscription::Inscription,
+      inscription_id::InscriptionId, media, media::Media, tag::Tag, teleburn,
+    },
     outgoing::Outgoing,
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
@@ -85,7 +88,6 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
   rarity::Rarity,
@@ -124,7 +126,7 @@ mod epoch;
 mod fee_rate;
 mod height;
 pub mod index;
-mod inscriptions;
+pub mod inscriptions;
 mod object;
 mod options;
 mod outgoing;

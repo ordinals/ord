@@ -1,5 +1,5 @@
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum Charm {
+pub enum Charm {
   Coin = 0,
   Cursed = 1,
   Epic = 2,
@@ -40,7 +40,7 @@ impl Charm {
     charms & self.flag() != 0
   }
 
-  pub(crate) fn icon(self) -> &'static str {
+  pub fn icon(self) -> &'static str {
     match self {
       Self::Coin => "🪙",
       Self::Cursed => "👹",
@@ -56,7 +56,7 @@ impl Charm {
     }
   }
 
-  pub(crate) fn title(self) -> &'static str {
+  pub fn title(self) -> &'static str {
     match self {
       Self::Coin => "coin",
       Self::Cursed => "cursed",

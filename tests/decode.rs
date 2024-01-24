@@ -5,8 +5,9 @@ use {
     TxIn, Witness,
   },
   ord::{
+    inscriptions::envelope::Envelope,
+    inscriptions::inscription::Inscription,
     subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
-    Envelope, Inscription,
   },
 };
 
