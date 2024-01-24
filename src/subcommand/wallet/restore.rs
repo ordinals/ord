@@ -1,8 +1,10 @@
-use super::*;
+use {super::*, bitcoincore_rpc::bitcoincore_rpc_json::Descriptor};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Restore {
-  #[arg(help = "Restore wallet from <MNEMONIC>")]
+  #[arg(long, help = "Restore wallet from <DESCRIPTOR>.")]
+  descriptor: String,
+  #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
   mnemonic: Mnemonic,
   #[arg(
     long,
