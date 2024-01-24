@@ -97,7 +97,7 @@ open:
   open http://localhost
 
 doc:
-  cargo doc --all --open
+  cargo doc --workspace --exclude audit-content-security-policy --exclude audit-cache --open
 
 prepare-release revision='master':
   #!/usr/bin/env bash
