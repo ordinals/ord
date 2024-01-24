@@ -471,16 +471,23 @@ impl<'index> Updater<'_> {
         for input in &tx.input {
           let key = input.previous_output.store();
 
-          let sat_ranges = match self.range_cache.remove(&key) {
+          let sat_ranges = match if index.index_spent_sats {
+            self.range_cache.get(&key).cloned()
+          } else {
+            self.range_cache.remove(&key)
+          } {
             Some(sat_ranges) => {
               self.outputs_cached += 1;
               sat_ranges
             }
-            None => outpoint_to_sat_ranges
-              .remove(&key)?
-              .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-              .value()
-              .to_vec(),
+            None => if index.index_spent_sats {
+              outpoint_to_sat_ranges.get(&key)?
+            } else {
+              outpoint_to_sat_ranges.remove(&key)?
+            }
+            .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
+            .value()
+            .to_vec(),
           };
 
           for chunk in sat_ranges.chunks_exact(11) {

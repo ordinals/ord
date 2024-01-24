@@ -25,17 +25,33 @@ deploy branch remote chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
+deploy-mainnet-alpha branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
+deploy-regtest branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
-deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
+deploy-signet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'signet' 'signet.ordinals.net')
 
-deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
+deploy-testnet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'test' 'testnet.ordinals.net')
+
+deploy-all: \
+  deploy-regtest \
+  deploy-testnet \
+  deploy-signet \
+  deploy-mainnet-alpha \
+  deploy-mainnet-bravo \
+  deploy-mainnet-charlie
+
+servers := 'alpha bravo charlie regtest signet testnet'
 
 initialize-server-keys:
   #!/usr/bin/env bash
@@ -43,8 +59,8 @@ initialize-server-keys:
   rm -rf tmp/ssh
   mkdir -p tmp/ssh
   ssh-keygen -C ordinals -f tmp/ssh/id_ed25519 -t ed25519 -N ''
-  for server in alpha balance regtest signet stability testnet; do
-    ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$SERVER.ordinals.net
+  for server in {{ servers }}; do
+    ssh-copy-id -i tmp/ssh/id_ed25519.pub root@$server.ordinals.net
     scp tmp/ssh/* root@$server.ordinals.net:.ssh
   done
   rm -rf tmp/ssh
@@ -52,8 +68,15 @@ initialize-server-keys:
 install-personal-key key='~/.ssh/id_ed25519.pub':
   #!/usr/bin/env bash
   set -euxo pipefail
-  for server in alpha balance regtest signet stability testnet; do
+  for server in {{ servers }}; do
     ssh-copy-id -i {{ key }} root@$server.ordinals.net
+  done
+
+server-keys:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  for server in {{ servers }}; do
+    ssh root@$server.ordinals.net cat .ssh/authorized_keys
   done
 
 log unit='ord' domain='alpha.ordinals.net':
@@ -74,7 +97,7 @@ open:
   open http://localhost
 
 doc:
-  cargo doc --all --open
+  cargo doc --workspace --exclude audit-content-security-policy --exclude audit-cache --open
 
 prepare-release revision='master':
   #!/usr/bin/env bash
@@ -137,8 +160,10 @@ flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph $1
 
 serve-docs: build-docs
-  open http://127.0.0.1:8080
   python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
+
+open-docs:
+  open http://127.0.0.1:8080
 
 build-docs:
   #!/usr/bin/env bash
@@ -152,17 +177,19 @@ update-changelog:
   echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
-preview-examples:
-  cargo run preview examples/*
-
 convert-logo-to-favicon:
   convert -background none -resize 256x256 logo.svg static/favicon.png
 
 update-mdbook-theme:
-  curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+  curl \
+    https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs \
+    > docs/theme/index.hbs
 
 audit-cache:
   cargo run --package audit-cache
+
+audit-content-security-policy:
+  cargo run --package audit-content-security-policy
 
 coverage:
   cargo llvm-cov

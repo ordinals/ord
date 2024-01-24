@@ -49,6 +49,8 @@ pub struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(long, help = "Keep sat index entries of spent outputs.")]
+  pub(crate) index_spent_sats: bool,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
   #[arg(
@@ -251,7 +253,7 @@ impl Options {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::Network, std::path::Path};
+  use {super::*, bitcoin::Network, std::path::Path, tempfile::TempDir};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -567,7 +569,7 @@ mod tests {
     );
   }
 
-  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::Wallet) {
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::WalletCommand) {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
         Subcommand::Wallet(wallet) => (arguments.options, wallet),

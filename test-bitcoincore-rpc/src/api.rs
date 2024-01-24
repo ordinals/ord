@@ -28,6 +28,14 @@ pub trait Api {
   #[rpc(name = "getblockcount")]
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error>;
 
+  #[rpc(name = "gettxout")]
+  fn get_tx_out(
+    &self,
+    txid: Txid,
+    vout: u32,
+    include_mempool: Option<bool>,
+  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error>;
+
   #[rpc(name = "getwalletinfo")]
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error>;
 

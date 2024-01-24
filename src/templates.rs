@@ -2,7 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::{BlockHtml, BlockJson},
-  blocks::BlocksHtml,
+  blocks::{BlocksHtml, BlocksJson},
   children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
   collections::CollectionsHtml,
@@ -24,12 +24,12 @@ pub(crate) use {
   runes::{RunesHtml, RunesJson},
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
-  status::StatusHtml,
-  transaction::TransactionHtml,
+  status::{StatusHtml, StatusJson},
+  transaction::{TransactionHtml, TransactionJson},
 };
 
 pub mod block;
-mod blocks;
+pub mod blocks;
 mod children;
 mod clock;
 pub mod collections;
@@ -48,7 +48,7 @@ pub mod rune;
 pub mod runes;
 pub mod sat;
 pub mod status;
-mod transaction;
+pub mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml<T: PageContent> {
@@ -74,7 +74,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "alpha".into()
+      "beta".into()
     } else {
       self.config.chain.to_string()
     }
@@ -134,7 +134,9 @@ mod tests {
     <meta property=og:image content='https://signet.ordinals.com/static/favicon.png'>
     <meta property=twitter:card content=summary>
     <title>Foo</title>
-    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription RSS Feed'>
+    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription Feed'>
+    <link rel=icon href=/static/favicon.png>
+    <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
     <script src=/static/index.js defer></script>
@@ -142,7 +144,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
+      <a href=/ title=home>Ordinals<sup>beta</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -172,7 +174,7 @@ mod tests {
         index_sats: true,
         ..Default::default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
     );
   }
 
@@ -186,7 +188,7 @@ mod tests {
         index_sats: false,
         ..Default::default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 
