@@ -1,7 +1,5 @@
 use super::*;
 
-// use tag::Tag;
-
 use self::{inscription::Inscription, inscription_id::InscriptionId};
 
 pub mod charm;
