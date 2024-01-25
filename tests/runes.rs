@@ -6,8 +6,7 @@ fn flag_is_required() {
     .network(Network::Regtest)
     .build();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &["--enable-json-api"]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &[]);
 
   CommandBuilder::new("--regtest runes")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -39,11 +38,8 @@ fn one_rune() {
     .network(Network::Regtest)
     .build();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
-    &["--regtest", "--index-runes"],
-    &["--enable-json-api"],
-  );
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -90,11 +86,8 @@ fn two_runes() {
     .network(Network::Regtest)
     .build();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
-    &["--regtest", "--index-runes"],
-    &["--enable-json-api"],
-  );
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
