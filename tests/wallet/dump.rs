@@ -1,7 +1,7 @@
 use {super::*, ord::subcommand::wallet::dump};
 
 #[test]
-fn dump_descriptors_match() {
+fn dumped_descriptors_match_wallet() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
@@ -9,6 +9,7 @@ fn dump_descriptors_match() {
 
   let output = CommandBuilder::new("wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .stderr_regex(".*")
     .run_and_deserialize_output::<dump::Output>();
 
   assert!(bitcoin_rpc_server
