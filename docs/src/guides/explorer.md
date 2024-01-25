@@ -14,10 +14,10 @@ To specify a port add the `--http-port` flag:
 
 `ord server --http-port 8080`
 
-To enable the JSON-API endpoints add the `--enable-json-api` or `-j` flag (see
-[here](#json-api) for more info):
+The JSON-API endpoints are enabled by default to disable them add the
+`--disable-json-api` flag (see [here](#json-api) for more info):
 
-`ord server --enable-json-api`
+`ord server --disable-json-api`
 
 Search
 ------
@@ -72,7 +72,7 @@ been issued when they are mined:
 JSON-API
 --------
 
-You can run `ord server` with the `--enable-json-api` flag to access endpoints that
+By default the `ord server` gives access to endpoints that
 return JSON instead of HTML if you set the HTTP `Accept: application/json`
 header. The structure of these objects closely follows
 what is shown in the HTML. These endpoints are:
