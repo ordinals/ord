@@ -17,6 +17,35 @@ use {
 pub mod inscribe;
 pub mod transaction_builder;
 
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct BitcoinCoreDescriptor {
+  pub desc: String,
+  pub timestamp: Timestamp,
+  pub active: bool,
+  pub internal: Option<bool>,
+  pub range: Option<(u64, u64)>,
+  pub next: Option<u64>,
+}
+
+impl From<bitcoincore_rpc_json::Descriptor> for BitcoinCoreDescriptor {
+  fn from(descriptor: bitcoincore_rpc_json::Descriptor) -> Self {
+    Self {
+      desc: descriptor.desc,
+      timestamp: descriptor.timestamp,
+      active: descriptor.active,
+      internal: descriptor.internal,
+      range: descriptor.range,
+      next: descriptor.next,
+    }
+  }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct BitcoinCoreDescriptors {
+  pub wallet_name: String,
+  pub descriptors: Vec<BitcoinCoreDescriptor>,
+}
+
 pub(crate) struct Wallet {
   pub(crate) name: String,
   pub(crate) no_sync: bool,
@@ -32,7 +61,14 @@ impl Wallet {
       client.load_wallet(&self.name)?;
     }
 
-    self.check_descriptors(&client.list_descriptors(None)?.descriptors)?;
+    self.check_descriptors(
+      client
+        .list_descriptors(None)?
+        .descriptors
+        .into_iter()
+        .map(|desc| desc.into())
+        .collect(),
+    )?;
 
     Ok(client)
   }
@@ -370,8 +406,8 @@ impl Wallet {
 
   pub(crate) fn check_descriptors(
     &self,
-    descriptors: &Vec<bitcoincore_rpc::bitcoincore_rpc_json::Descriptor>,
-  ) -> Result {
+    descriptors: Vec<BitcoinCoreDescriptor>,
+  ) -> Result<Vec<BitcoinCoreDescriptor>> {
     let tr = descriptors
       .iter()
       .filter(|descriptor| descriptor.desc.starts_with("tr("))
@@ -386,16 +422,16 @@ impl Wallet {
       bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.name);
     }
 
-    Ok(())
+    Ok(descriptors)
   }
 
   pub(crate) fn initialize_from_descriptors(
     &self,
-    descriptors: Vec<bitcoincore_rpc_json::Descriptor>,
+    descriptors: Vec<BitcoinCoreDescriptor>,
   ) -> Result {
     let client = check_version(self.options.bitcoin_rpc_client(None)?)?;
 
-    self.check_descriptors(&descriptors)?;
+    let descriptors = self.check_descriptors(descriptors.into())?;
 
     client.create_wallet(&self.name, None, Some(true), None, None)?;
 

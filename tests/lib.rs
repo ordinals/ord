@@ -18,6 +18,7 @@ use {
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
       sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
+    wallet::BitcoinCoreDescriptors,
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
