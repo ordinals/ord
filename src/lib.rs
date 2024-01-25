@@ -1,7 +1,8 @@
 #![allow(
+  clippy::large_enum_variant,
+  clippy::result_large_err,
   clippy::too_many_arguments,
-  clippy::type_complexity,
-  clippy::result_large_err
+  clippy::type_complexity
 )]
 #![deny(
   clippy::cast_lossless,
@@ -59,15 +60,14 @@ use {
     cmp,
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
-    ffi::OsString,
     fmt::{self, Display, Formatter},
     fs::{self, File},
     io::{self, Cursor},
     mem,
-    net::{TcpListener, ToSocketAddrs},
+    net::ToSocketAddrs,
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
-    process::{self, Command},
+    process,
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -77,7 +77,7 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  tempfile::TempDir,
+  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -92,7 +92,7 @@ pub use self::{
   runes::{Edict, Rune, RuneId, Runestone},
   sat::Sat,
   sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
+  wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -112,7 +112,7 @@ macro_rules! tprintln {
     };
 }
 
-mod arguments;
+pub mod arguments;
 mod blocktime;
 pub mod chain;
 mod config;
@@ -123,7 +123,7 @@ mod deserialize_from_str;
 mod epoch;
 mod fee_rate;
 mod height;
-mod index;
+pub mod index;
 mod inscriptions;
 mod object;
 mod options;
@@ -137,6 +137,7 @@ mod server_config;
 pub mod subcommand;
 mod tally;
 pub mod templates;
+pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
@@ -200,6 +201,16 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
+pub fn parse_ord_server_args(args: &str) -> (Options, crate::subcommand::server::Server) {
+  match Arguments::try_parse_from(args.split_whitespace()) {
+    Ok(arguments) => match arguments.subcommand {
+      Subcommand::Server(server) => (arguments.options, server),
+      subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+    },
+    Err(err) => panic!("error parsing arguments: {err}"),
+  }
+}
+
 fn gracefully_shutdown_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
     // We explicitly set this to true to notify the thread to not take on new work
@@ -226,6 +237,8 @@ pub fn main() {
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    gracefully_shutdown_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
@@ -251,8 +264,7 @@ pub fn main() {
       if let Some(output) = output {
         output.print_json();
       }
+      gracefully_shutdown_indexer();
     }
   }
-
-  gracefully_shutdown_indexer();
 }

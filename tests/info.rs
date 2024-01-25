@@ -4,7 +4,7 @@ use {super::*, ord::subcommand::index::info::TransactionsOutput};
 fn json_with_satoshi_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-sats index info")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&rpc_server)
     .stdout_regex(
       r#"\{
   "blocks_indexed": 1,
@@ -38,7 +38,7 @@ fn json_with_satoshi_index() {
 fn json_without_satoshi_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("index info")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&rpc_server)
     .stdout_regex(
       r#"\{
   "blocks_indexed": 1,
@@ -80,7 +80,7 @@ fn transactions() {
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&rpc_server)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>()
   .is_empty());
 
@@ -90,7 +90,7 @@ fn transactions() {
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&rpc_server)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[0].start, 0);
@@ -103,7 +103,7 @@ fn transactions() {
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&rpc_server)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[1].start, 1);
