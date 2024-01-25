@@ -905,8 +905,8 @@ OP_ENDIF
 <p><code>ord server</code></p>
 <p>Per specificare una porta aggiungere <code>--http-port</code> flag:</p>
 <p><code>ord server --http-port 8080</code></p>
-<p>Per abilitare gli endpoint JSON-API, aggiungere <code>--enable-json-api</code> o <code>-j</code> flag (vedere <a href="guides/explorer.html#json-api">qui</a> per maggiori informazioni):</p>
-<p><code>ord server --enable-json-api</code></p>
+<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/explorer.html#json-api">here</a> for more info):</p>
+<p><code>ord server --disable-json-api</code></p>
 <h2 id="ricerca"><a class="header" href="#ricerca">Ricerca</a></h2>
 <p>La casella di ricerca accetta una varietà di rappresentazioni di oggetti.</p>
 <h3 id="blocchi"><a class="header" href="#blocchi">Blocchi</a></h3>
@@ -930,7 +930,7 @@ OP_ENDIF
 <p>O per percentile, la percentuale della fornitura di bitcoin che è stata o sarà emessa al momento della loro estrazione:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>By default the <code>ord server</code> gives access to endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>

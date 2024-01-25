@@ -256,8 +256,8 @@
 <p><code>ord server</code></p>
 <p>Pour spécifier un port, ajoutez le drapeau <code>--http-port</code> :</p>
 <p><code>ord server --http-port 8080</code></p>
-<p>Pour activer les points de terminaisons JSON-API, ajoutez le drapeau <code>--enable-json-api</code> ou <code>-j</code> (voir <a href="#json-api">ici</a> pour plus d’informations) :</p>
-<p><code>ord server --enable-json-api</code></p>
+<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="#json-api">here</a> for more info):</p>
+<p><code>ord server --disable-json-api</code></p>
 <h2 id="recherche"><a class="header" href="#recherche">Recherche</a></h2>
 <p>La zone de recherche accepte une variété de représentations d’objets.</p>
 <h3 id="blocs"><a class="header" href="#blocs">Blocs</a></h3>
@@ -281,7 +281,7 @@
 <p>Ou par percentile, le pourcentage de l’offre de bitcoins qui a été ou sera émis une fois qu’ils auront été minés :</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
 <h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
-<p>You can run <code>ord server</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
+<p>By default the <code>ord server</code> gives access to endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML. These endpoints are:</p>
 <ul>
 <li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/inscriptions</code></li>
