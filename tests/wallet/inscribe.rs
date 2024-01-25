@@ -1517,7 +1517,7 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: individual inscription destinations cannot be set in shared-output mode\n")
+    .stderr_regex("error: individual inscription destinations cannot be set in shared-output or same-sat mode\n")
     .run_and_extract_stdout();
 }
 
