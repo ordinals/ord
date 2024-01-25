@@ -1,15 +1,18 @@
-use {super::*, bitcoincore_rpc::bitcoincore_rpc_json::Descriptor};
+use super::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
-  pub descriptors: Vec<Descriptor>,
+  pub descriptors: Vec<BitcoinCoreDescriptor>,
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let descriptors = wallet
     .bitcoin_client()?
     .list_descriptors(Some(true))?
-    .descriptors;
+    .descriptors
+    .into_iter()
+    .map(|desc| desc.into())
+    .collect();
 
   eprintln!(
     "

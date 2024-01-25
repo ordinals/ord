@@ -4,6 +4,7 @@ use {
     inscribe::{Batch, Batchfile, Mode},
     Wallet,
   },
+  bitcoincore_rpc::bitcoincore_rpc_json::Descriptor,
   reqwest::Url,
 };
 
@@ -20,6 +21,25 @@ pub mod restore;
 pub mod sats;
 pub mod send;
 pub mod transactions;
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct BitcoinCoreDescriptor(Descriptor);
+
+impl BitcoinCoreDescriptor {
+  pub fn into_inner(self) -> Descriptor {
+    self.0
+  }
+
+  pub fn as_inner(&self) -> &Descriptor {
+    &self.0
+  }
+}
+
+impl From<Descriptor> for BitcoinCoreDescriptor {
+  fn from(descriptor: Descriptor) -> Self {
+    Self(descriptor)
+  }
+}
 
 #[derive(Debug, Parser)]
 pub(crate) struct WalletCommand {

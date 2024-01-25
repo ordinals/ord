@@ -732,7 +732,10 @@ impl Api for Server {
     Ok(true)
   }
 
-  fn list_descriptors(&self, _with_private_keys: Option<bool>) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
+  fn list_descriptors(
+    &self,
+    _with_private_keys: Option<bool>,
+  ) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
     Ok(ListDescriptorsResult {
       wallet_name: "ord".into(),
       descriptors: self
