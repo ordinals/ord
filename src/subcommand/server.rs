@@ -206,7 +206,7 @@ impl Server {
         csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        is_json_api_disabled: self.disable_json_api,
+        json_api_enabled: !self.disable_json_api,
         decompress: self.decompress,
       });
 
