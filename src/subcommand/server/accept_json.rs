@@ -24,7 +24,7 @@ where
     if json_header && !json_api_disabled {
       Ok(Self(true))
     } else if json_header && json_api_disabled {
-      Err((StatusCode::NOT_ACCEPTABLE, "JSON API not enabled"))
+      Err((StatusCode::NOT_ACCEPTABLE, "JSON API disabled"))
     } else {
       Ok(Self(false))
     }
