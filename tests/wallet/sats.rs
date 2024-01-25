@@ -8,7 +8,7 @@ fn requires_sat_index() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -27,7 +27,7 @@ fn sats() {
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
     &["--index-sats"],
-    &["--enable-json-api"],
+    &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -50,7 +50,7 @@ fn sats_from_tsv_success() {
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
     &["--index-sats"],
-    &["--enable-json-api"],
+    &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -74,7 +74,7 @@ fn sats_from_tsv_parse_error() {
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
     &["--index-sats"],
-    &["--enable-json-api"],
+    &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -97,7 +97,7 @@ fn sats_from_tsv_file_not_found() {
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
     &["--index-sats"],
-    &["--enable-json-api"],
+    &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);

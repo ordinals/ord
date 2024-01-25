@@ -162,8 +162,8 @@ pub struct Server {
   pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
-  #[arg(long, short = 'j', help = "Enable JSON API.")]
-  pub(crate) enable_json_api: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
   #[arg(
     long,
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
@@ -206,7 +206,7 @@ impl Server {
         csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        is_json_api_enabled: self.enable_json_api,
+        is_json_api_disabled: self.disable_json_api,
         decompress: self.decompress,
       });
 
@@ -1665,7 +1665,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 
@@ -1687,7 +1687,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest", "--index-runes"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 

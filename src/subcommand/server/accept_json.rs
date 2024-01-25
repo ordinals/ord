@@ -15,15 +15,15 @@ where
     state: &S,
   ) -> Result<Self, Self::Rejection> {
     let state = Arc::from_ref(state);
-    let json_api_enabled = state.is_json_api_enabled;
+    let json_api_disabled = state.is_json_api_disabled;
     let json_header = parts
       .headers
       .get("accept")
       .map(|value| value == "application/json")
       .unwrap_or_default();
-    if json_header && json_api_enabled {
+    if json_header && !json_api_disabled {
       Ok(Self(true))
-    } else if json_header && !json_api_enabled {
+    } else if json_header && json_api_disabled {
       Err((StatusCode::NOT_ACCEPTABLE, "JSON API not enabled"))
     } else {
       Ok(Self(false))

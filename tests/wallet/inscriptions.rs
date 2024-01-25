@@ -8,7 +8,7 @@ fn inscriptions() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -63,7 +63,7 @@ fn inscriptions_includes_locked_utxos() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -93,7 +93,7 @@ fn inscriptions_with_postage() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 

@@ -40,7 +40,7 @@ fn run() {
 #[test]
 fn inscription_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -98,7 +98,7 @@ fn inscription_page() {
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -115,7 +115,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 #[test]
 fn multiple_inscriptions_appear_on_reveal_transaction_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -147,7 +147,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
 #[test]
 fn inscription_appears_on_output_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -164,7 +164,7 @@ fn inscription_appears_on_output_page() {
 #[test]
 fn inscription_page_after_send() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -201,7 +201,7 @@ fn inscription_page_after_send() {
 #[test]
 fn inscription_content() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -247,7 +247,7 @@ fn inscription_metadata() {
   ciborium::ser::into_writer(&cbor_map, &mut encoded_metadata).unwrap();
 
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -284,7 +284,7 @@ fn inscription_metadata() {
 #[test]
 fn inscriptions_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -305,7 +305,7 @@ fn inscriptions_page() {
 #[test]
 fn inscriptions_page_is_sorted() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -322,7 +322,7 @@ fn inscriptions_page_is_sorted() {
 #[test]
 fn inscriptions_page_has_next_and_previous() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -487,7 +487,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
     &["--index-transactions"],
-    &["--enable-json-api"],
+    &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
