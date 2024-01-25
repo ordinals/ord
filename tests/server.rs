@@ -484,11 +484,8 @@ fn sat_recursive_endpoints_without_sat_index_return_404() {
 fn inscription_transactions_are_stored_with_transaction_index() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
-    &["--index-transactions"],
-    &[],
-  );
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-transactions"], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 

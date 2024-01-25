@@ -4,8 +4,7 @@ use {super::*, ord::subcommand::wallet::outputs::Output};
 fn outputs() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -26,8 +25,7 @@ fn outputs() {
 fn outputs_includes_locked_outputs() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -50,8 +48,7 @@ fn outputs_includes_locked_outputs() {
 fn outputs_includes_unbound_outputs() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 

@@ -7,8 +7,7 @@ use {
 fn cardinals() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
