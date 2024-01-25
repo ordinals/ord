@@ -2,6 +2,7 @@ use super::*;
 
 mod balance;
 mod cardinals;
+mod dump;
 mod create;
 mod inscribe;
 mod inscriptions;

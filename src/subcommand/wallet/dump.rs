@@ -1,39 +1,24 @@
-use {
-  super::*,
-  bitcoincore_rpc::bitcoincore_rpc_json::Descriptor,
-};
+use {super::*, bitcoincore_rpc::bitcoincore_rpc_json::Descriptor};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
   pub descriptors: Vec<Descriptor>,
-  pub seed: Option<Mnemonic>,
 }
 
-#[derive(Debug, Parser)]
-pub(crate) struct Dump {
-  #[arg(long, help = "Dump seed phrase as well.")]
-  pub(crate) with_seed: bool,
-}
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let descriptors = wallet
+    .bitcoin_client()?
+    .list_descriptors(Some(true))?
+    .descriptors;
 
-impl Dump {
-  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let descriptors = wallet
-      .bitcoin_client()?
-      .list_descriptors(Some(true))?
-      .descriptors;
-
-    println!(
-      "
+  eprintln!(
+    "
     ===========================================\n
     = THIS STRING GIVES ACCESS TO YOUR WALLET =\n
     =       DO NOT SHARE WITH ANYONE          =\n
     ===========================================\n
     "
-    );
+  );
 
-    Ok(Some(Box::new(Output {
-      descriptors,
-      seed: None,
-    })))
-  }
+  Ok(Some(Box::new(Output { descriptors })))
 }
