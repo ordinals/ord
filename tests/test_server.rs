@@ -17,15 +17,15 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
+  pub(crate) fn spawn(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &[])
+  }
+
   pub(crate) fn spawn_with_args(
     bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
   ) -> Self {
     Self::spawn_with_server_args(bitcoin_rpc_server, ord_args, &[])
-  }
-
-  pub(crate) fn spawn_with_json_api(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
-    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &["--enable-json-api"])
   }
 
   pub(crate) fn spawn_with_server_args(
