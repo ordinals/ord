@@ -2,13 +2,10 @@ use super::*;
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   eprintln!(
-    "
-    ===========================================\n
-    = THIS STRING GIVES ACCESS TO YOUR WALLET =\n
-    =       DO NOT SHARE WITH ANYONE          =\n
-    ===========================================\n
-    "
-  );
+"===========================================
+= THIS STRING GIVES ACCESS TO YOUR WALLET =
+=       DO NOT SHARE WITH ANYONE          =
+===========================================");
 
   let result = wallet.bitcoin_client()?.list_descriptors(Some(true))?;
 

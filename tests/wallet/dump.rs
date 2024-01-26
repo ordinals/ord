@@ -46,13 +46,13 @@ fn dumped_descriptors_restore() {
 }
 
 #[test]
-fn dump_and_restore_descriptors_with_compact() {
+fn dump_and_restore_descriptors_with_minify() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let output = CommandBuilder::new("--compact wallet dump")
+  let output = CommandBuilder::new("--minify wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .stderr_regex(".*")
     .run_and_deserialize_output::<BitcoinCoreDescriptors>();
