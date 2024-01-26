@@ -3,10 +3,10 @@ use std::io::Read;
 use super::*;
 
 #[derive(Debug, Parser)]
-#[clap(group(ArgGroup::new("restore_source").required(true).args(&["from_descriptors", "from_mnemonic"])))]
+#[clap(group(ArgGroup::new("restore_source").required(true).args(&["from_descriptor", "from_mnemonic"])))]
 pub(crate) struct Restore {
-  #[arg(long, conflicts_with_all = &["from_mnemonic", "passphrase"], help = "Restore wallet from a Bitcoin Core <DESCRIPTORS>.")]
-  from_descriptors: bool,
+  #[arg(long, conflicts_with_all = &["from_mnemonic", "passphrase"], help = "Restore wallet from a Bitcoin Core <DESCRIPTOR> passed through STDIN.")]
+  from_descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
   from_mnemonic: Option<Mnemonic>,
   #[arg(
@@ -19,7 +19,7 @@ pub(crate) struct Restore {
 
 impl Restore {
   pub(crate) fn run(self, mut wallet: Wallet) -> SubcommandResult {
-    match (self.from_descriptors, self.from_mnemonic) {
+    match (self.from_descriptor, self.from_mnemonic) {
       (true, None) => {
         let mut buffer = Vec::new();
         std::io::stdin().read_to_end(&mut buffer)?;
