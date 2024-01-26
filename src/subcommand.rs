@@ -74,15 +74,15 @@ impl Subcommand {
 }
 
 pub trait Output: Send {
-  fn print_json(&self, compact: bool);
+  fn print_json(&self, minify: bool);
 }
 
 impl<T> Output for T
 where
   T: Serialize + Send,
 {
-  fn print_json(&self, compact: bool) {
-    if compact {
+  fn print_json(&self, minify: bool) {
+    if minify {
       serde_json::to_writer(io::stdout(), self).ok();
     } else {
       serde_json::to_writer_pretty(io::stdout(), self).ok();

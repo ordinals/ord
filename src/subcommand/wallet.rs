@@ -44,7 +44,7 @@ pub(crate) enum Subcommand {
   Balance,
   #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[command(about = "Dump wallet descriptor")]
+  #[command(about = "Dump wallet descriptors")]
   Dump,
   #[command(about = "Create rune")]
   Etch(etch::Etch),
