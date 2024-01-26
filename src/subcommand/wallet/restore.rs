@@ -1,5 +1,7 @@
-use super::*;
-use std::io;
+use {
+  super::*,
+  std::io,
+};
 
 #[derive(Debug, Parser)]
 #[clap(group(
@@ -9,7 +11,7 @@ pub(crate) struct Restore {
   #[arg(long, help = "Restore wallet from <DESCRIPTOR> from stdin.")]
   descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
-  mnemonic: Option<Mnemonic>,
+  mnemonic: Option<Option<Mnemonic>>,
   #[arg(
     long,
     requires = "mnemonic",
@@ -24,28 +26,21 @@ impl Restore {
 
     if self.descriptor {
       let mut buffer = Vec::new();
-      std::io::stdin().read_to_end(&mut buffer)?;
+      io::stdin().read_to_end(&mut buffer)?;
 
       let wallet_descriptors: ListDescriptorsResult = serde_json::from_slice(&buffer)?;
 
       wallet.initialize_from_descriptors(wallet_descriptors.descriptors)?;
-    } else if let Some(mnemonic) = self.mnemonic {
+    } else if let Some(Some(mnemonic)) = self.mnemonic {
       wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?;
-    } else {
-      unreachable!();
-    }
+    } else if let Some(None) = self.mnemonic {
+      let mut buffer = Vec::new();
+      println!("Please input your seed phrase:");
+      io::stdin().read_to_end(&mut buffer)?;
+      let msg = format!("invalid input as bytes, expected [u8; 64] read [u8; {}]", buffer.len());
+      wallet.initialize(buffer.try_into().expect(&msg))?
+    } else {unreachable!()}
 
-    let seed = {
-      if self.mnemonic.is_none() {
-        let mut input = String::new();
-        println!("Please input your seed below:");
-        io::stdin().read_line(&mut input).expect("failed to read mnemonic");
-        let input = input.into_bytes();
-        assert_eq!(input.len(), 64);
-        input.try_into().unwrap()
-      } else {self.mnemonic.unwrap().to_seed(self.passphrase)}
-    };
-    wallet::initialize(seed)?;
     Ok(None)
   }
 }

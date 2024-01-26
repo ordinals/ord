@@ -147,3 +147,25 @@ fn restore_with_compact_works() {
     .expected_exit_code(0)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn restore_with_blank_mnemonic_generates_same_descriptors() {
+  let (mnemonic, descriptors) = {
+    let rpc_server = test_bitcoincore_rpc::spawn();
+
+    let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
+      .bitcoin_rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+    (mnemonic, rpc_server.descriptors())
+  };
+
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new(["wallet", "restore", "--mnemonic"])
+    .stdin(mnemonic.to_string().as_bytes().to_vec())
+    .bitcoin_rpc_server(&rpc_server)
+    .run_and_extract_stdout();
+
+  assert_eq!(rpc_server.descriptors(), descriptors);
+}
