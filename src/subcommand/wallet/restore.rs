@@ -20,7 +20,7 @@ pub(crate) struct Restore {
 impl Restore {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.exists()?,
+      !wallet.exists()?,
       "cannot restore because wallet named `{}` already exists",
       wallet.name
     );
