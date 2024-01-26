@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn dumped_descriptors_match_wallet() {
+fn dumped_descriptors_match_wallet_descriptors() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
