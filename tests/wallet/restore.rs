@@ -14,14 +14,9 @@ fn restore_generates_same_descriptors() {
 
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new([
-    "wallet",
-    "restore",
-    "--mnemonic",
-    &mnemonic.to_string(),
-  ])
-  .bitcoin_rpc_server(&rpc_server)
-  .run_and_extract_stdout();
+  CommandBuilder::new(["wallet", "restore", "--mnemonic", &mnemonic.to_string()])
+    .bitcoin_rpc_server(&rpc_server)
+    .run_and_extract_stdout();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
