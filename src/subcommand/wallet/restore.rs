@@ -4,9 +4,9 @@ use {super::*, std::io::Read};
 #[clap(group(ArgGroup::new("restore_source").required(true).args(&["from_descriptor", "from_mnemonic"])))]
 pub(crate) struct Restore {
   #[arg(long, conflicts_with_all = &["from_mnemonic", "passphrase"], help = "Restore wallet from a Bitcoin Core <DESCRIPTOR> passed through STDIN.")]
-  from_descriptor: bool,
+  descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
-  from_mnemonic: Option<Mnemonic>,
+  mnemonic: Option<Mnemonic>,
   #[arg(
     long,
     default_value = "",
@@ -17,7 +17,7 @@ pub(crate) struct Restore {
 
 impl Restore {
   pub(crate) fn run(self, mut wallet: Wallet) -> SubcommandResult {
-    match (self.from_descriptor, self.from_mnemonic) {
+    match (self.descriptor, self.mnemonic) {
       (true, None) => {
         let mut buffer = Vec::new();
         std::io::stdin().read_to_end(&mut buffer)?;
