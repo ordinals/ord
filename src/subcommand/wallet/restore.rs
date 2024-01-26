@@ -19,21 +19,16 @@ pub(crate) struct Restore {
 
 impl Restore {
   pub(crate) fn run(self, mut wallet: Wallet) -> SubcommandResult {
-    if wallet.bitcoin_client().is_ok() {
-      bail!(
-        "cannot restore because wallet named `{}` already exists",
-        wallet.name
-      );
-    }
-
     match (self.from_descriptors, self.from_mnemonic) {
       (true, None) => {
+        eprintln!("Input descriptor here: ");
+
         let mut buffer = Vec::new();
         std::io::stdin().read_to_end(&mut buffer)?;
 
-        let input: BitcoinCoreDescriptors = serde_json::from_slice(&buffer)?;
+        let wallet_descriptors: BitcoinCoreDescriptors = serde_json::from_slice(&buffer)?;
 
-        wallet.name = input.wallet_name;
+        wallet.name = wallet_descriptors.wallet_name;
 
         if wallet.bitcoin_client().is_ok() {
           bail!(
@@ -42,9 +37,15 @@ impl Restore {
           );
         }
 
-        wallet.initialize_from_descriptors(input.descriptors)?;
+        wallet.initialize_from_descriptors(wallet_descriptors.descriptors)?;
       }
       (false, Some(mnemonic)) => {
+        if wallet.bitcoin_client().is_ok() {
+          bail!(
+            "cannot restore because wallet named `{}` already exists",
+            wallet.name
+          );
+        }
         wallet.initialize(mnemonic.to_seed(self.passphrase))?;
       }
       _ => {
