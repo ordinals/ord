@@ -5,15 +5,15 @@ use {super::*, std::io::Read};
   ArgGroup::new("source").required(true).args(&["descriptor", "mnemonic"]))
 )]
 pub(crate) struct Restore {
-  #[arg(
-    long,
-    conflicts_with_all = &["mnemonic", "passphrase"],
-    help = "Restore wallet from <DESCRIPTOR> from stdin."
-  )]
+  #[arg(long, help = "Restore wallet from <DESCRIPTOR> from stdin.")]
   descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
   mnemonic: Option<Mnemonic>,
-  #[arg(long, help = "Use <PASSPHRASE> when deriving wallet")]
+  #[arg(
+    long,
+    requires = "mnemonic",
+    help = "Use <PASSPHRASE> when deriving wallet"
+  )]
   pub(crate) passphrase: Option<String>,
 }
 
@@ -53,5 +53,27 @@ impl Restore {
     }
 
     Ok(None)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn descriptor_and_mnemonic_conflict() {
+    assert_regex_match!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "restore",
+        "--descriptor",
+        "--mnemonic",
+        "oil oil oil oil oil oil oil oil oil oil oil oil"
+      ])
+      .unwrap_err()
+      .to_string(),
+      ".*--descriptor.*cannot be used with.*--mnemonic.*"
+    );
   }
 }
