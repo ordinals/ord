@@ -1,6 +1,4 @@
-use std::io::Read;
-
-use super::*;
+use {super::*, std::io::Read};
 
 #[derive(Debug, Parser)]
 #[clap(group(ArgGroup::new("restore_source").required(true).args(&["from_descriptor", "from_mnemonic"])))]
