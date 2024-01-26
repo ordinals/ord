@@ -10,7 +10,7 @@ fn dumped_descriptors_match_wallet_descriptors() {
   let output = CommandBuilder::new("wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<BitcoinCoreDescriptors>();
+    .run_and_deserialize_output::<ListDescriptorsResult>();
 
   assert!(bitcoin_rpc_server
     .descriptors()
@@ -29,7 +29,7 @@ fn dumped_descriptors_restore() {
   let output = CommandBuilder::new("wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<BitcoinCoreDescriptors>();
+    .run_and_deserialize_output::<ListDescriptorsResult>();
 
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -55,7 +55,7 @@ fn dump_and_restore_descriptors_with_minify() {
   let output = CommandBuilder::new("--minify wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<BitcoinCoreDescriptors>();
+    .run_and_deserialize_output::<ListDescriptorsResult>();
 
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 

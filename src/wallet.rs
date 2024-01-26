@@ -5,46 +5,17 @@ use {
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     Network,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{self, ImportDescriptors, Timestamp},
+  bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
   http::StatusCode,
   inscribe::ParentInfo,
-  miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
+  miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
   transaction_builder::TransactionBuilder,
 };
 
 pub mod inscribe;
 pub mod transaction_builder;
-
-#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
-pub struct BitcoinCoreDescriptor {
-  pub desc: String,
-  pub timestamp: Timestamp,
-  pub active: bool,
-  pub internal: Option<bool>,
-  pub range: Option<(u64, u64)>,
-  pub next: Option<u64>,
-}
-
-impl From<bitcoincore_rpc_json::Descriptor> for BitcoinCoreDescriptor {
-  fn from(descriptor: bitcoincore_rpc_json::Descriptor) -> Self {
-    Self {
-      desc: descriptor.desc,
-      timestamp: descriptor.timestamp,
-      active: descriptor.active,
-      internal: descriptor.internal,
-      range: descriptor.range,
-      next: descriptor.next,
-    }
-  }
-}
-
-#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
-pub struct BitcoinCoreDescriptors {
-  pub wallet_name: String,
-  pub descriptors: Vec<BitcoinCoreDescriptor>,
-}
 
 pub(crate) struct Wallet {
   pub(crate) name: String,
@@ -61,14 +32,7 @@ impl Wallet {
       client.load_wallet(&self.name)?;
     }
 
-    self.check_descriptors(
-      client
-        .list_descriptors(None)?
-        .descriptors
-        .into_iter()
-        .map(|desc| desc.into())
-        .collect(),
-    )?;
+    self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
 
     Ok(client)
   }
@@ -415,10 +379,7 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn check_descriptors(
-    &self,
-    descriptors: Vec<BitcoinCoreDescriptor>,
-  ) -> Result<Vec<BitcoinCoreDescriptor>> {
+  pub(crate) fn check_descriptors(&self, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
     let tr = descriptors
       .iter()
       .filter(|descriptor| descriptor.desc.starts_with("tr("))
@@ -436,10 +397,7 @@ impl Wallet {
     Ok(descriptors)
   }
 
-  pub(crate) fn initialize_from_descriptors(
-    &self,
-    descriptors: Vec<BitcoinCoreDescriptor>,
-  ) -> Result {
+  pub(crate) fn initialize_from_descriptors(&self, descriptors: Vec<Descriptor>) -> Result {
     let client = check_version(self.options.bitcoin_rpc_client(Some(self.name.clone()))?)?;
 
     let descriptors = self.check_descriptors(descriptors)?;
@@ -527,13 +485,13 @@ impl Wallet {
     let mut key_map = std::collections::HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
-    let desc = Descriptor::new_tr(public_key, None)?;
+    let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
     self
       .options
       .bitcoin_rpc_client(Some(self.name.clone()))?
       .import_descriptors(ImportDescriptors {
-        descriptor: desc.to_string_with_secret(&key_map),
+        descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
         range: None,

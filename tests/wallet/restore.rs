@@ -63,7 +63,7 @@ fn restore_to_existing_wallet_fails() {
   let output = CommandBuilder::new("wallet dump")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<BitcoinCoreDescriptors>();
+    .run_and_deserialize_output::<ListDescriptorsResult>();
 
   CommandBuilder::new("wallet restore --descriptor")
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())

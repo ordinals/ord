@@ -7,6 +7,7 @@ use {
     blockdata::constants::COIN_VALUE,
     Network, OutPoint, Txid,
   },
+  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
@@ -18,7 +19,6 @@ use {
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
       sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
-    wallet::BitcoinCoreDescriptors,
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,

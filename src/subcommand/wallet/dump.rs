@@ -8,14 +8,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 =========================================="
   );
 
-  let result = wallet.bitcoin_client()?.list_descriptors(Some(true))?;
-
-  Ok(Some(Box::new(BitcoinCoreDescriptors {
-    wallet_name: result.wallet_name,
-    descriptors: result
-      .descriptors
-      .into_iter()
-      .map(|desc| desc.into())
-      .collect(),
-  })))
+  Ok(Some(Box::new(
+    wallet.bitcoin_client()?.list_descriptors(Some(true))?,
+  )))
 }
