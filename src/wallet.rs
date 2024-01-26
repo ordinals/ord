@@ -440,7 +440,7 @@ impl Wallet {
     &self,
     descriptors: Vec<BitcoinCoreDescriptor>,
   ) -> Result {
-    let client = check_version(self.options.bitcoin_rpc_client(None)?)?;
+    let client = check_version(self.options.bitcoin_rpc_client(Some(self.name.clone()))?)?;
 
     let descriptors = self.check_descriptors(descriptors)?;
 
