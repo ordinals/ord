@@ -13,12 +13,8 @@ pub(crate) struct Restore {
   descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
   mnemonic: Option<Mnemonic>,
-  #[arg(
-    long,
-    default_value = "",
-    help = "Use <PASSPHRASE> when deriving wallet"
-  )]
-  pub(crate) passphrase: String,
+  #[arg(long, help = "Use <PASSPHRASE> when deriving wallet")]
+  pub(crate) passphrase: Option<String>,
 }
 
 impl Restore {
@@ -48,7 +44,8 @@ impl Restore {
             wallet.name
           );
         }
-        wallet.initialize(mnemonic.to_seed(self.passphrase))?;
+
+        wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?;
       }
       _ => {
         bail!("either a descriptor or a mnemonic is required.");
