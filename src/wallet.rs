@@ -431,7 +431,7 @@ impl Wallet {
   ) -> Result {
     let client = check_version(self.options.bitcoin_rpc_client(None)?)?;
 
-    let descriptors = self.check_descriptors(descriptors.into())?;
+    let descriptors = self.check_descriptors(descriptors)?;
 
     client.create_wallet(&self.name, None, Some(true), None, None)?;
 

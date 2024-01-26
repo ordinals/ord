@@ -2,9 +2,8 @@ use {
   super::*,
   crate::wallet::{
     inscribe::{Batch, Batchfile, Mode},
-    BitcoinCoreDescriptor, BitcoinCoreDescriptors, Wallet,
+    BitcoinCoreDescriptors, Wallet,
   },
-  // bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, Timestamp},
   reqwest::Url,
 };
 
