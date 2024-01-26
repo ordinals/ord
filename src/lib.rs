@@ -244,7 +244,7 @@ pub fn main() {
 
   let args = Arguments::parse();
 
-  let options = args.options.clone();
+  let compact = args.options.compact;
 
   match args.run() {
     Err(err) => {
@@ -266,7 +266,7 @@ pub fn main() {
     }
     Ok(output) => {
       if let Some(output) = output {
-        output.print_json(options.compact);
+        output.print_json(compact);
       }
       gracefully_shutdown_indexer();
     }
