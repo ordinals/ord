@@ -1,9 +1,15 @@
 use {super::*, std::io::Read};
 
 #[derive(Debug, Parser)]
-#[clap(group(ArgGroup::new("restore_source").required(true).args(&["from_descriptor", "from_mnemonic"])))]
+#[clap(group(
+  ArgGroup::new("source").required(true).args(&["descriptor", "mnemonic"]))
+)]
 pub(crate) struct Restore {
-  #[arg(long, conflicts_with_all = &["from_mnemonic", "passphrase"], help = "Restore wallet from a Bitcoin Core <DESCRIPTOR> passed through STDIN.")]
+  #[arg(
+    long,
+    conflicts_with_all = &["mnemonic", "passphrase"],
+    help = "Restore wallet from <DESCRIPTOR> from stdin."
+  )]
   descriptor: bool,
   #[arg(long, help = "Restore wallet from <MNEMONIC>.")]
   mnemonic: Option<Mnemonic>,
