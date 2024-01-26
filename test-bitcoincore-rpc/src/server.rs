@@ -776,4 +776,14 @@ impl Api for Server {
         .collect::<Vec<String>>(),
     )
   }
+
+  fn list_wallet_dir(&self) -> Result<ListWalletDirResult, jsonrpc_core::Error> {
+    Ok(ListWalletDirResult {
+      wallets: self
+        .list_wallets()?
+        .into_iter()
+        .map(|name| ListWalletDirItem { name })
+        .collect(),
+    })
+  }
 }

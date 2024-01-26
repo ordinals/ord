@@ -173,4 +173,7 @@ pub trait Api {
 
   #[rpc(name = "listwallets")]
   fn list_wallets(&self) -> Result<Vec<String>, jsonrpc_core::Error>;
+
+  #[rpc(name = "listwalletdir")]
+  fn list_wallet_dir(&self) -> Result<ListWalletDirResult, jsonrpc_core::Error>;
 }

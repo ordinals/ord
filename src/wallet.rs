@@ -404,6 +404,17 @@ impl Wallet {
     self.options.chain()
   }
 
+  pub(crate) fn exists(&self) -> Result<bool> {
+    Ok(
+      self
+        .options
+        .bitcoin_rpc_client(None)?
+        .list_wallet_dir()?
+        .iter()
+        .any(|name| name == &self.name),
+    )
+  }
+
   pub(crate) fn check_descriptors(
     &self,
     descriptors: Vec<BitcoinCoreDescriptor>,
