@@ -86,10 +86,10 @@ fn restore_to_existing_wallet_fails() {
 fn restore_with_wrong_descriptors_fails() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet restore --descriptor")
+  CommandBuilder::new("wallet --name foo restore --descriptor")
       .stdin(r#"
 {
-  "wallet_name": "foo",
+  "wallet_name": "bar",
   "descriptors": [
     {
       "desc": "rawtr(cVMYXp8uf1yFU9AAY6NJu1twA2uT94mHQBGkfgqCCzp6RqiTWCvP)#tah5crv7",
