@@ -62,7 +62,7 @@ use {
     env,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    io::{self, Cursor},
+    io::{self, Cursor, Read},
     mem,
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Sub},
@@ -242,7 +242,11 @@ pub fn main() {
   })
   .expect("Error setting <CTRL-C> handler");
 
-  match Arguments::parse().run() {
+  let args = Arguments::parse();
+
+  let minify = args.options.minify;
+
+  match args.run() {
     Err(err) => {
       eprintln!("error: {err}");
       err
@@ -262,7 +266,7 @@ pub fn main() {
     }
     Ok(output) => {
       if let Some(output) = output {
-        output.print_json();
+        output.print_json(minify);
       }
       gracefully_shutdown_indexer();
     }

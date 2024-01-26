@@ -732,7 +732,10 @@ impl Api for Server {
     Ok(true)
   }
 
-  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
+  fn list_descriptors(
+    &self,
+    _with_private_keys: Option<bool>,
+  ) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
     Ok(ListDescriptorsResult {
       wallet_name: "ord".into(),
       descriptors: self
@@ -772,5 +775,15 @@ impl Api for Server {
         .into_iter()
         .collect::<Vec<String>>(),
     )
+  }
+
+  fn list_wallet_dir(&self) -> Result<ListWalletDirResult, jsonrpc_core::Error> {
+    Ok(ListWalletDirResult {
+      wallets: self
+        .list_wallets()?
+        .into_iter()
+        .map(|name| ListWalletDirItem { name })
+        .collect(),
+    })
   }
 }
