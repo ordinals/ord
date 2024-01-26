@@ -69,7 +69,7 @@ fn restore_to_existing_wallet_fails() {
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: cannot restore because wallet named `ord` already exists\n")
+    .expected_stderr("error: wallet `ord` already exists\n")
     .run_and_extract_stdout();
 
   assert_eq!(
