@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use super::*;
 
 #[derive(Debug, Parser)]
@@ -26,15 +28,10 @@ impl Restore {
 
     match (self.from_descriptors, self.from_mnemonic) {
       (true, None) => {
-        let mut buffer = String::new();
-        std::io::stdin().read_line(&mut buffer)?;
+        let mut buffer = Vec::new();
+        std::io::stdin().read_to_end(&mut buffer)?;
 
-        // let input: BitcoinCoreDescriptors = serde_json::from_str(&buffer)?;
-        let input: serde_json::Value = serde_json::from_str(&buffer)?;
-
-        println!("Here: {input}");
-
-        let input: BitcoinCoreDescriptors = serde_json::from_str(&buffer)?;
+        let input: BitcoinCoreDescriptors = serde_json::from_slice(&buffer)?;
 
         wallet.name = input.wallet_name;
 

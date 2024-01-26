@@ -7,6 +7,8 @@ use {super::*, bitcoincore_rpc::Auth};
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
 pub struct Options {
+  #[arg(long, help = "Return compact JSON output.")]
+  pub(crate) compact: bool,
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
