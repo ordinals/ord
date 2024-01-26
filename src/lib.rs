@@ -62,7 +62,7 @@ use {
     env,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    io::{self, Cursor},
+    io::{self, Cursor, Read},
     mem,
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Sub},
