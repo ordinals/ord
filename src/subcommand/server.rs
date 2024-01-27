@@ -843,12 +843,15 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let entry = index
-      .get_inscription_entry(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      .get_inscription_entry(inscription_id)
+      .unwrap()
+      .unwrap();
 
     let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      .get_inscription_satpoint_by_id(inscription_id)
+      .ok()
+      .flatten()
+      .unwrap();
 
     let output = if satpoint.outpoint == unbound_outpoint() {
       None
@@ -866,17 +869,17 @@ impl Server {
 
     let address = output
       .as_ref()
-      .and_then(|o| server_config.chain.address_from_script(&o.script_pubkey).ok())
+      .and_then(|output| server_config.chain.address_from_script(&output.script_pubkey).ok())
       .map(|address| address.to_string());
 
     Ok(
       Json(InscriptionDetailsJson {
         address,
-        inscription_number: entry.inscription_number,
+        number: entry.inscription_number,
         content_type: inscription.content_type().map(|s| s.to_string()),
         content_length: inscription.content_length(),
-        genesis_fee: entry.fee,
-        genesis_height: entry.height,
+        fee: entry.fee,
+        height: entry.height,
         satpoint,
         timestamp: timestamp(entry.timestamp).timestamp(),
       })

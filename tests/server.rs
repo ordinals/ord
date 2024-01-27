@@ -318,11 +318,11 @@ fn recursive_inscription_metadata() {
     inscription_metadata_json,
     InscriptionDetailsJson {
       address: None,
-      inscription_number: 0,
+      number: 0,
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(15),
-      genesis_fee: 141,
-      genesis_height: 2,
+      fee: 141,
+      height: 2,
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,
         offset: 0,
