@@ -290,13 +290,11 @@ fn recursive_inscription_metadata() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new(
-    "wallet inscribe --fee-rate 1 --file wizards.txt",
-  )
-  .write("wizards.txt", "THEWIZARDSOFORD")
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file wizards.txt")
+    .write("wizards.txt", "THEWIZARDSOFORD")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
 
   bitcoin_rpc_server.mine_blocks(1);
 

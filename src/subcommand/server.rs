@@ -10,12 +10,13 @@ use {
     server_config::ServerConfig,
     templates::{
       BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
-      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionDetailsJson, InscriptionJson,
-      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
-      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
-      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      CollectionsHtml, HomeHtml, InputHtml, InscriptionDetailsJson, InscriptionHtml,
+      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
+      OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml,
+      RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
+      TransactionJson,
     },
   },
   axum::{
@@ -255,7 +256,10 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/inscription/:inscription_id", get(Self::inscription_details))
+        .route(
+          "/r/inscription/:inscription_id",
+          get(Self::inscription_details),
+        )
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -869,7 +873,12 @@ impl Server {
 
     let address = output
       .as_ref()
-      .and_then(|output| server_config.chain.address_from_script(&output.script_pubkey).ok())
+      .and_then(|output| {
+        server_config
+          .chain
+          .address_from_script(&output.script_pubkey)
+          .ok()
+      })
       .map(|address| address.to_string());
 
     Ok(
