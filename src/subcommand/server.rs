@@ -851,6 +851,8 @@ impl Server {
       .unwrap()
       .unwrap();
 
+    let sat = entry.sat.ok_or_not_found(|| format!("sat index not found"))?;
+
     let satpoint = index
       .get_inscription_satpoint_by_id(inscription_id)
       .ok()
@@ -889,6 +891,7 @@ impl Server {
         fee: entry.fee,
         height: entry.height,
         number: entry.inscription_number,
+        sat,
         satpoint,
         timestamp: timestamp(entry.timestamp).timestamp(),
       })

@@ -29,6 +29,7 @@ pub struct InscriptionDetailsJson {
   pub height: u32,
   pub number: i32,
   pub timestamp: i64,
+  pub sat: Sat,
   pub satpoint: SatPoint,
 }
 
