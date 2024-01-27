@@ -163,11 +163,17 @@ pub trait Api {
   ) -> Result<bool, jsonrpc_core::Error>;
 
   #[rpc(name = "listdescriptors")]
-  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
+  fn list_descriptors(
+    &self,
+    _with_private_keys: Option<bool>,
+  ) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
 
   #[rpc(name = "loadwallet")]
   fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error>;
 
   #[rpc(name = "listwallets")]
   fn list_wallets(&self) -> Result<Vec<String>, jsonrpc_core::Error>;
+
+  #[rpc(name = "listwalletdir")]
+  fn list_wallet_dir(&self) -> Result<ListWalletDirResult, jsonrpc_core::Error>;
 }

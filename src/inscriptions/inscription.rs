@@ -2,10 +2,7 @@ use {
   super::*,
   anyhow::ensure,
   bitcoin::{
-    blockdata::{
-      opcodes,
-      script::{self, PushBytesBuf},
-    },
+    blockdata::{opcodes, script},
     ScriptBuf,
   },
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
@@ -161,7 +158,7 @@ impl Inscription {
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
       for chunk in body.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
+        builder = builder.push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
       }
     }
 

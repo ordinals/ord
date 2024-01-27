@@ -8,17 +8,12 @@ pub struct Output {
   pub postage: u64,
 }
 
-pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-  index.update()?;
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
+  let inscriptions = wallet.get_inscriptions()?;
 
-  let unspent_outputs = get_unspent_outputs(&client, &index)?;
-
-  let inscriptions = index.get_inscriptions(&unspent_outputs)?;
-
-  let explorer = match options.chain() {
+  let explorer = match wallet.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",
     Chain::Regtest => "http://localhost/inscription/",
     Chain::Signet => "https://signet.ordinals.com/inscription/",

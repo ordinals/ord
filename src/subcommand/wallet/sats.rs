@@ -24,18 +24,13 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, wallet: String, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    ensure!(
+      wallet.has_sat_index()?,
+      "sats requires index created with `--index-sats` flag"
+    );
 
-    if !index.has_sat_index() {
-      bail!("sats requires index created with `--index-sats` flag");
-    }
-
-    index.update()?;
-
-    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
-
-    let utxos = get_unspent_output_ranges(&client, &index)?;
+    let utxos = wallet.get_output_sat_ranges()?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();

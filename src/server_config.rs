@@ -7,5 +7,5 @@ pub(crate) struct ServerConfig {
   pub(crate) decompress: bool,
   pub(crate) domain: Option<String>,
   pub(crate) index_sats: bool,
-  pub(crate) is_json_api_enabled: bool,
+  pub(crate) json_api_enabled: bool,
 }

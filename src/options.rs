@@ -7,6 +7,8 @@ use {super::*, bitcoincore_rpc::Auth};
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
 pub struct Options {
+  #[arg(long, help = "Minify JSON output.")]
+  pub(crate) minify: bool,
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
@@ -253,7 +255,7 @@ impl Options {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::Network, std::path::Path};
+  use {super::*, bitcoin::Network, std::path::Path, tempfile::TempDir};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -569,7 +571,7 @@ mod tests {
     );
   }
 
-  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::Wallet) {
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::WalletCommand) {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
         Subcommand::Wallet(wallet) => (arguments.options, wallet),
