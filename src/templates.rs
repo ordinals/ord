@@ -25,7 +25,7 @@ pub(crate) use {
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   index::entry::InscriptionEntryJson,
   server_config::ServerConfig,
-  status::StatusHtml,
+  status::{StatusHtml, StatusJson},
   transaction::{TransactionHtml, TransactionJson},
 };
 

@@ -124,57 +124,57 @@ impl Display for StaticHtml {
   }
 }
 
-#[derive(Debug, Parser)]
-pub(crate) struct Server {
+#[derive(Debug, Parser, Clone)]
+pub struct Server {
   #[arg(
     long,
     help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
   )]
-  address: Option<String>,
+  pub(crate) address: Option<String>,
   #[arg(
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
   )]
-  acme_domain: Vec<String>,
+  pub(crate) acme_domain: Vec<String>,
   #[arg(
     long,
     help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
   )]
-  csp_origin: Option<String>,
+  pub(crate) csp_origin: Option<String>,
   #[arg(
     long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
-  http_port: Option<u16>,
+  pub(crate) http_port: Option<u16>,
   #[arg(
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]"
   )]
-  https_port: Option<u16>,
+  pub(crate) https_port: Option<u16>,
   #[arg(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
-  acme_cache: Option<PathBuf>,
+  pub(crate) acme_cache: Option<PathBuf>,
   #[arg(long, help = "Provide ACME contact <ACME_CONTACT>.")]
-  acme_contact: Vec<String>,
+  pub(crate) acme_contact: Vec<String>,
   #[arg(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
-  http: bool,
+  pub(crate) http: bool,
   #[arg(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
-  https: bool,
+  pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
-  redirect_http_to_https: bool,
-  #[arg(long, short = 'j', help = "Enable JSON API.")]
-  pub(crate) enable_json_api: bool,
+  pub(crate) redirect_http_to_https: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
   #[arg(
     long,
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
-  no_sync: bool,
+  pub(crate) no_sync: bool,
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
 
@@ -182,13 +182,20 @@ impl Server {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
+
         if !self.no_sync {
           if let Err(error) = index_clone.update() {
             log::warn!("Updating index: {error}");
           }
         }
-        thread::sleep(Duration::from_millis(5000));
+
+        if integration_test() {
+          thread::sleep(Duration::from_millis(100));
+        } else {
+          thread::sleep(Duration::from_millis(5000));
+        }
       });
+
       INDEXER.lock().unwrap().replace(index_thread);
 
       let config = Arc::new(options.load_config()?);
@@ -199,7 +206,7 @@ impl Server {
         csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        is_json_api_enabled: self.enable_json_api,
+        json_api_enabled: !self.disable_json_api,
         decompress: self.decompress,
       });
 
@@ -590,10 +597,7 @@ impl Server {
           outpoint,
           output,
           indexed,
-          runes
-            .into_iter()
-            .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
-            .collect(),
+          runes,
           sat_ranges,
           spent,
         ))
@@ -1640,6 +1644,7 @@ mod tests {
     reqwest::Url,
     serde::de::DeserializeOwned,
     std::net::TcpListener,
+    tempfile::TempDir,
   };
 
   const RUNE: u128 = 99246114928149462;
@@ -1684,7 +1689,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 
@@ -1706,7 +1711,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest", "--index-runes"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 
@@ -1766,7 +1771,7 @@ mod tests {
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {
-        thread::sleep(Duration::from_millis(25));
+        thread::sleep(Duration::from_millis(50));
       }
 
       let client = reqwest::blocking::Client::builder()
@@ -1779,12 +1784,12 @@ mod tests {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
-              panic!("server failed to start: {err}");
+              panic!("ord server failed to start: {err}");
             }
           }
         }
 
-        thread::sleep(Duration::from_millis(25));
+        thread::sleep(Duration::from_millis(50));
       }
 
       Self {
@@ -2642,10 +2647,18 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        runes: vec![(
+          SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
+          Pile {
+            amount: 340282366920938463463374607431768211455,
+            divisibility: 1,
+            symbol: None,
+          }
+        )],
         spent: false,
-        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
-          .into_iter()
-          .collect(),
       }
     );
   }
