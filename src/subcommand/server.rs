@@ -842,6 +842,12 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
+    if !index.has_sat_index() {
+      return Err(ServerError::NotFound(
+        "this server has no sat index".to_string(),
+      ));
+    }
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -851,9 +857,7 @@ impl Server {
       .unwrap()
       .unwrap();
 
-    let sat = entry
-      .sat
-      .ok_or_not_found(|| format!("sat index not found"))?;
+    let sat = entry.sat.unwrap();
 
     let satpoint = index
       .get_inscription_satpoint_by_id(inscription_id)
