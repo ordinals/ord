@@ -194,6 +194,19 @@ pub(crate) struct InscriptionEntry {
   pub(crate) timestamp: u32,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionEntryJson {
+  pub charms: u16,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub inscription_number: i32,
+  pub parent: Option<u32>,
+  pub sat: Option<Sat>,
+  pub sequence_number: u32,
+  pub timestamp: u32,
+}
+
 pub(crate) type InscriptionEntryValue = (
   u16,                // charms
   u64,                // fee

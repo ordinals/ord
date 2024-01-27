@@ -15,7 +15,7 @@ use {
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
       PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
-      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson, InscriptionEntryJson
     },
   },
   axum::{
@@ -254,6 +254,7 @@ impl Server {
           get(Self::children_recursive_paginated),
         )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/info/:inscription_id", get(Self::entry))
         .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
         .route(
           "/r/sat/:sat_number/:page",
@@ -810,6 +811,29 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn entry(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Json<InscriptionEntryJson>> {
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(inscription_id)? // Remove the dereference ?
+        .ok_or_else(|| anyhow!("could not get entry for inscription {inscription_id}"))?;
+
+      Ok(Json(InscriptionEntryJson {
+        charms: entry.charms,
+        fee: entry.fee,
+        height: entry.height,
+        id: entry.id,
+        inscription_number: entry.inscription_number,
+        parent: entry.parent,
+        sat: entry.sat,
+        sequence_number: entry.sequence_number,
+        timestamp: entry.timestamp
+      }))
     })
   }
 
