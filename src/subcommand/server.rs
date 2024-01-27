@@ -851,7 +851,9 @@ impl Server {
       .unwrap()
       .unwrap();
 
-    let sat = entry.sat.ok_or_not_found(|| format!("sat index not found"))?;
+    let sat = entry
+      .sat
+      .ok_or_not_found(|| format!("sat index not found"))?;
 
     let satpoint = index
       .get_inscription_satpoint_by_id(inscription_id)
