@@ -149,12 +149,12 @@ impl Inscribe {
         sat = batchfile.sat;
       }
       (None, None, Some(delegate)) => {
-        parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
+        parent_info = wallet.get_parent_info(self.parent, &utxos)?;
 
         postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
         ensure! {
-          index.inscription_exists(delegate)?,
+          wallet.inscription_exists(delegate)?,
           "delegate {delegate} does not exist"
         }
 
@@ -172,7 +172,7 @@ impl Inscribe {
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
-          None => get_change_address(&client, chain)?,
+          None => wallet.get_change_address()?,
         }];
       }
       _ => unreachable!(),
