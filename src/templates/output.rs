@@ -16,7 +16,7 @@ pub struct OutputJson {
   pub address: Option<String>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<Rune, u128>,
+  pub runes: Vec<(SpacedRune, Pile)>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: String,
   pub spent: bool,
@@ -31,7 +31,7 @@ impl OutputJson {
     outpoint: OutPoint,
     output: TxOut,
     indexed: bool,
-    runes: BTreeMap<Rune, u128>,
+    runes: Vec<(SpacedRune, Pile)>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {

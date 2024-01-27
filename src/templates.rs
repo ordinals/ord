@@ -24,7 +24,7 @@ pub(crate) use {
   runes::{RunesHtml, RunesJson},
   sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
   server_config::ServerConfig,
-  status::StatusHtml,
+  status::{StatusHtml, StatusJson},
   transaction::{TransactionHtml, TransactionJson},
 };
 

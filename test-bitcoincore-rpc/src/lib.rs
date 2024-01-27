@@ -23,7 +23,8 @@ use {
     GetRawTransactionResultVoutScriptPubKey, GetTransactionResult, GetTransactionResultDetail,
     GetTransactionResultDetailCategory, GetTxOutResult, GetWalletInfoResult, ImportDescriptors,
     ImportMultiResult, ListDescriptorsResult, ListTransactionResult, ListUnspentResultEntry,
-    LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult, Timestamp, WalletTxInfo,
+    ListWalletDirItem, ListWalletDirResult, LoadWalletResult, SignRawTransactionInput,
+    SignRawTransactionResult, Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -100,7 +101,7 @@ impl Builder {
         Ok(_) => break,
         Err(err) => {
           if i == 400 {
-            panic!("Server failed to start: {err}");
+            panic!("mock bitcoind server failed to start: {err}");
           }
         }
       }

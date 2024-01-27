@@ -20,11 +20,11 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RedbKey, RedbValue, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RepairSession, StorageError, Table,
+    TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
-    collections::{BTreeSet, HashMap},
+    collections::HashMap,
     io::{BufWriter, Write},
     sync::{Mutex, Once},
   },
@@ -140,6 +140,21 @@ pub(crate) struct TableInfo {
   tree_height: u32,
 }
 
+impl From<TableStats> for TableInfo {
+  fn from(stats: TableStats) -> Self {
+    Self {
+      branch_pages: stats.branch_pages(),
+      fragmented_bytes: stats.fragmented_bytes(),
+      leaf_pages: stats.leaf_pages(),
+      metadata_bytes: stats.metadata_bytes(),
+      proportion: 0.0,
+      stored_bytes: stats.stored_bytes(),
+      total_bytes: stats.stored_bytes() + stats.metadata_bytes() + stats.fragmented_bytes(),
+      tree_height: stats.tree_height(),
+    }
+  }
+}
+
 #[derive(Serialize)]
 pub(crate) struct TransactionInfo {
   pub(crate) starting_block_count: u32,
@@ -159,7 +174,7 @@ pub(crate) struct InscriptionInfo {
   pub(crate) charms: u16,
 }
 
-trait BitcoinCoreRpcResultExt<T> {
+pub(crate) trait BitcoinCoreRpcResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
 }
 
@@ -402,20 +417,6 @@ impl Index {
     self.durability = durability;
   }
 
-  pub(crate) fn check_sync(&self, utxos: &BTreeMap<OutPoint, Amount>) -> Result<bool> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
-    for outpoint in utxos.keys() {
-      if outpoint_to_value.get(&outpoint.store())?.is_none() {
-        return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
-        ));
-      }
-    }
-
-    Ok(true)
-  }
-
   pub(crate) fn contains_output(&self, output: &OutPoint) -> Result<bool> {
     Ok(
       self
@@ -483,139 +484,43 @@ impl Index {
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
-    fn insert_table_info<K: RedbKey + 'static, V: RedbValue + 'static>(
-      tables: &mut BTreeMap<String, TableInfo>,
-      wtx: &WriteTransaction,
-      database_total_bytes: u64,
-      definition: TableDefinition<K, V>,
-    ) {
-      let stats = wtx.open_table(definition).unwrap().stats().unwrap();
+    let stats = self.database.begin_write()?.stats()?;
 
-      let fragmented_bytes = stats.fragmented_bytes();
-      let metadata_bytes = stats.metadata_bytes();
-      let stored_bytes = stats.stored_bytes();
-      let total_bytes = stored_bytes + metadata_bytes + fragmented_bytes;
-
-      tables.insert(
-        definition.name().into(),
-        TableInfo {
-          branch_pages: stats.branch_pages(),
-          fragmented_bytes,
-          leaf_pages: stats.leaf_pages(),
-          metadata_bytes,
-          proportion: total_bytes as f64 / database_total_bytes as f64,
-          stored_bytes,
-          total_bytes,
-          tree_height: stats.tree_height(),
-        },
-      );
-    }
-
-    fn insert_multimap_table_info<K: RedbKey + 'static, V: RedbValue + RedbKey + 'static>(
-      tables: &mut BTreeMap<String, TableInfo>,
-      wtx: &WriteTransaction,
-      database_total_bytes: u64,
-      definition: MultimapTableDefinition<K, V>,
-    ) {
-      let stats = wtx
-        .open_multimap_table(definition)
-        .unwrap()
-        .stats()
-        .unwrap();
-
-      let fragmented_bytes = stats.fragmented_bytes();
-      let metadata_bytes = stats.metadata_bytes();
-      let stored_bytes = stats.stored_bytes();
-      let total_bytes = stored_bytes + metadata_bytes + fragmented_bytes;
-
-      tables.insert(
-        definition.name().into(),
-        TableInfo {
-          branch_pages: stats.branch_pages(),
-          fragmented_bytes,
-          leaf_pages: stats.leaf_pages(),
-          metadata_bytes,
-          proportion: total_bytes as f64 / database_total_bytes as f64,
-          stored_bytes,
-          total_bytes,
-          tree_height: stats.tree_height(),
-        },
-      );
-    }
-
-    let wtx = self.begin_write()?;
-
-    let stats = wtx.stats()?;
-
-    let fragmented_bytes = stats.fragmented_bytes();
-    let metadata_bytes = stats.metadata_bytes();
-    let stored_bytes = stats.stored_bytes();
-    let total_bytes = fragmented_bytes + metadata_bytes + stored_bytes;
+    let rtx = self.database.begin_read()?;
 
     let mut tables: BTreeMap<String, TableInfo> = BTreeMap::new();
 
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SATPOINT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SAT_TO_SEQUENCE_NUMBER);
-    insert_multimap_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_CHILDREN);
-    insert_table_info(&mut tables, &wtx, total_bytes, HEIGHT_TO_BLOCK_HEADER);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      HEIGHT_TO_LAST_SEQUENCE_NUMBER,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, HOME_INSCRIPTIONS);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      INSCRIPTION_ID_TO_SEQUENCE_NUMBER,
-    );
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_RUNE_BALANCES);
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_SAT_RANGES);
-    insert_table_info(&mut tables, &wtx, total_bytes, OUTPOINT_TO_VALUE);
-    insert_table_info(&mut tables, &wtx, total_bytes, RUNE_ID_TO_RUNE_ENTRY);
-    insert_table_info(&mut tables, &wtx, total_bytes, RUNE_TO_RUNE_ID);
-    insert_table_info(&mut tables, &wtx, total_bytes, SAT_TO_SATPOINT);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY,
-    );
-    insert_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_RUNE_ID);
-    insert_table_info(&mut tables, &wtx, total_bytes, SEQUENCE_NUMBER_TO_SATPOINT);
-    insert_table_info(&mut tables, &wtx, total_bytes, STATISTIC_TO_COUNT);
-    insert_table_info(&mut tables, &wtx, total_bytes, TRANSACTION_ID_TO_RUNE);
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      TRANSACTION_ID_TO_TRANSACTION,
-    );
-    insert_table_info(
-      &mut tables,
-      &wtx,
-      total_bytes,
-      WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP,
-    );
+    for handle in rtx.list_tables()? {
+      let name = handle.name().into();
+      let stats = rtx.open_untyped_table(handle)?.stats()?;
+      tables.insert(name, stats.into());
+    }
 
-    for table in wtx.list_tables()? {
+    for handle in rtx.list_multimap_tables()? {
+      let name = handle.name().into();
+      let stats = rtx.open_untyped_multimap_table(handle)?.stats()?;
+      tables.insert(name, stats.into());
+    }
+
+    for table in rtx.list_tables()? {
       assert!(tables.contains_key(table.name()));
     }
 
-    for table in wtx.list_multimap_tables()? {
+    for table in rtx.list_multimap_tables()? {
       assert!(tables.contains_key(table.name()));
     }
+
+    let total_bytes = tables
+      .values()
+      .map(|table_info| table_info.total_bytes)
+      .sum();
+
+    tables.values_mut().for_each(|table_info| {
+      table_info.proportion = table_info.total_bytes as f64 / total_bytes as f64
+    });
 
     let info = {
-      let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+      let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
       let sat_ranges = statistic_to_count
         .get(&Statistic::SatRanges.key())?
         .map(|x| x.value())
@@ -625,7 +530,8 @@ impl Index {
         .map(|x| x.value())
         .unwrap_or(0);
       Info {
-        blocks_indexed: wtx
+        index_path: self.path.clone(),
+        blocks_indexed: rtx
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
@@ -633,18 +539,17 @@ impl Index {
           .map(|(height, _header)| height.value() + 1)
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
-        fragmented_bytes,
+        fragmented_bytes: stats.fragmented_bytes(),
         index_file_size: fs::metadata(&self.path)?.len(),
-        index_path: self.path.clone(),
         leaf_pages: stats.leaf_pages(),
-        metadata_bytes,
+        metadata_bytes: stats.metadata_bytes(),
+        sat_ranges,
         outputs_traversed,
         page_size: stats.page_size(),
-        sat_ranges,
-        stored_bytes,
-        tables,
+        stored_bytes: stats.stored_bytes(),
         total_bytes,
-        transactions: wtx
+        tables,
+        transactions: rtx
           .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
           .range(0..)?
           .flat_map(|result| {
@@ -657,7 +562,7 @@ impl Index {
           })
           .collect(),
         tree_height: stats.tree_height(),
-        utxos_indexed: wtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
+        utxos_indexed: rtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
       }
     };
 
@@ -817,6 +722,15 @@ impl Index {
       .unwrap_or_default()
   }
 
+  #[cfg(test)]
+  pub(crate) fn inscription_number(&self, inscription_id: InscriptionId) -> i32 {
+    self
+      .get_inscription_entry(inscription_id)
+      .unwrap()
+      .unwrap()
+      .inscription_number
+  }
+
   pub(crate) fn block_count(&self) -> Result<u32> {
     self.begin_read()?.block_count()
   }
@@ -939,32 +853,6 @@ impl Index {
     Ok(entries)
   }
 
-  pub(crate) fn get_rune_balance(&self, outpoint: OutPoint, id: RuneId) -> Result<u128> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(0);
-    };
-
-    let balances_buffer = balances.value();
-
-    let mut i = 0;
-    while i < balances_buffer.len() {
-      let (balance_id, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-      let (amount, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-
-      if RuneId::try_from(balance_id).unwrap() == id {
-        return Ok(amount);
-      }
-    }
-
-    Ok(0)
-  }
-
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
@@ -1004,22 +892,6 @@ impl Index {
     }
 
     Ok(balances)
-  }
-
-  pub(crate) fn get_runic_outputs(&self, outpoints: &[OutPoint]) -> Result<BTreeSet<OutPoint>> {
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let mut runic = BTreeSet::new();
-
-    for outpoint in outpoints {
-      if outpoint_to_balances.get(&outpoint.store())?.is_some() {
-        runic.insert(*outpoint);
-      }
-    }
-
-    Ok(runic)
   }
 
   pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, u128>>> {
@@ -1656,28 +1528,6 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_inscriptions(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    let rtx = self.database.begin_read()?;
-
-    let mut result = BTreeMap::new();
-
-    let satpoint_to_sequence_number = rtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
-    let sequence_number_to_inscription_entry =
-      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
-    for utxo in utxos.keys() {
-      result.extend(Self::inscriptions_on_output(
-        &satpoint_to_sequence_number,
-        &sequence_number_to_inscription_entry,
-        *utxo,
-      )?);
-    }
-
-    Ok(result)
-  }
-
   pub(crate) fn get_inscriptions_paginated(
     &self,
     page_size: u32,
@@ -2117,11 +1967,7 @@ impl Index {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    crate::index::testing::Context,
-    bitcoin::secp256k1::rand::{self, RngCore},
-  };
+  use {super::*, crate::index::testing::Context};
 
   #[test]
   fn height_limit() {
@@ -3421,31 +3267,6 @@ mod tests {
   }
 
   #[test]
-  fn unsynced_index_fails() {
-    for context in Context::configurations() {
-      let mut entropy = [0; 16];
-      rand::thread_rng().fill_bytes(&mut entropy);
-      let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
-      crate::subcommand::wallet::initialize("ord".into(), &context.options, mnemonic.to_seed(""))
-        .unwrap();
-      context.rpc_server.mine_blocks(1);
-      assert_regex_match!(
-        crate::subcommand::wallet::get_unspent_outputs(
-          &crate::subcommand::wallet::bitcoin_rpc_client_for_wallet_command(
-            "ord".to_string(),
-            &context.options,
-          )
-          .unwrap(),
-          &context.index
-        )
-        .unwrap_err()
-        .to_string(),
-        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
-      );
-    }
-  }
-
-  #[test]
   fn unrecognized_even_field_inscriptions_are_cursed_and_unbound() {
     for context in Context::configurations() {
       context.mine_blocks(1);
@@ -3478,15 +3299,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3523,15 +3336,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3559,15 +3364,7 @@ mod tests {
 
       assert_eq!(context.rpc_server.height(), 109);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0, witness)],
@@ -3580,15 +3377,7 @@ mod tests {
 
       assert_eq!(context.rpc_server.height(), 110);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3614,15 +3403,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3642,15 +3423,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3679,15 +3452,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3717,15 +3482,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -3761,15 +3518,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
     }
   }
 
@@ -3807,15 +3556,7 @@ mod tests {
         None,
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second_inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(second_inscription_id), -1);
     }
   }
 
@@ -3870,35 +3611,9 @@ mod tests {
         Some(150 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(third)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -2
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
+      assert_eq!(context.index.inscription_number(second), -1);
+      assert_eq!(context.index.inscription_number(third), -2);
     }
   }
 
@@ -3974,35 +3689,9 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(second)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(third)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -2
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
+      assert_eq!(context.index.inscription_number(second), -1);
+      assert_eq!(context.index.inscription_number(third), -2);
     }
   }
 
@@ -4094,15 +3783,7 @@ mod tests {
         Some(150 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(first)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(first), 0);
 
       assert_eq!(
         context
@@ -4113,25 +3794,9 @@ mod tests {
         fourth
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(fourth)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -3
-      );
+      assert_eq!(context.index.inscription_number(fourth), -3);
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(ninth)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -8
-      );
+      assert_eq!(context.index.inscription_number(ninth), -8);
     }
   }
 
@@ -4235,15 +3900,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(cursed), -1);
 
       let witness = envelope(&[
         b"ord",
@@ -4271,15 +3928,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        1
-      );
+      assert_eq!(context.index.inscription_number(reinscription_on_cursed), 1);
     }
   }
 
@@ -4316,15 +3965,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(cursed), -1);
 
       let witness = envelope(&[
         b"ord",
@@ -4352,15 +3993,7 @@ mod tests {
         Some(100 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        1
-      );
+      assert_eq!(context.index.inscription_number(reinscription_on_cursed), 1);
 
       let witness = envelope(&[
         b"ord",
@@ -4391,10 +4024,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscription_entry(second_reinscription_on_cursed)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
+          .inscription_number(second_reinscription_on_cursed),
         -2
       );
 
@@ -5122,15 +4752,7 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), -1);
     }
   }
 
@@ -5186,15 +4808,7 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(child_inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        -1
-      );
+      assert_eq!(context.index.inscription_number(child_inscription_id), -1);
 
       assert_eq!(
         context
@@ -5539,23 +5153,10 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
-        0
-      );
+      assert_eq!(context.index.inscription_number(inscription_id), 0);
 
       assert_eq!(
-        context
-          .index
-          .get_inscription_entry(cursed_reinscription_id)
-          .unwrap()
-          .unwrap()
-          .inscription_number,
+        context.index.inscription_number(cursed_reinscription_id),
         -1
       );
     }
@@ -6027,5 +5628,32 @@ mod tests {
         vout: 0,
       })
       .unwrap());
+  }
+
+  #[test]
+  fn fee_spent_inscriptions_are_numbered_last_in_block() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let a = InscriptionId { txid, index: 0 };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      let b = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(context.index.inscription_number(a), 1);
+      assert_eq!(context.index.inscription_number(b), 0);
+    }
   }
 }
