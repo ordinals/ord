@@ -283,22 +283,25 @@ fn inscription_metadata() {
 
 #[test]
 fn recursive_inscription_metadata() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
-  rpc_server.mine_blocks(1);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file wizards.txt")
-    .write("wizards.txt", "THEWIZARDSOFORD")
-    .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let inscription = output.inscriptions.get(0).unwrap();
+  let output = CommandBuilder::new(
+    "wallet inscribe --fee-rate 1 --file wizards.txt",
+  )
+  .write("wizards.txt", "THEWIZARDSOFORD")
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let response = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/r/inscription/{}", inscription.id));
+  let inscription = output.inscriptions.first().unwrap();
+  let response = ord_rpc_server.request(format!("/r/inscription/{}", inscription.id));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(

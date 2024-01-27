@@ -255,7 +255,7 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/inscription/:inscription_id", get(Self::inscription_details)
+        .route("/r/inscription/:inscription_id", get(Self::inscription_details))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -834,7 +834,7 @@ impl Server {
   }
 
   async fn inscription_details(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
@@ -866,7 +866,7 @@ impl Server {
 
     let address = output
       .as_ref()
-      .and_then(|o| page_config.chain.address_from_script(&o.script_pubkey).ok())
+      .and_then(|o| server_config.chain.address_from_script(&o.script_pubkey).ok())
       .map(|address| address.to_string());
 
     Ok(
