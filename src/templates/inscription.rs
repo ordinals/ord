@@ -23,13 +23,13 @@ pub(crate) struct InscriptionHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionDetailsJson {
   pub address: Option<String>,
-  pub number: i32,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
   pub fee: u64,
   pub height: u32,
-  pub satpoint: SatPoint,
+  pub number: i32,
   pub timestamp: i64,
+  pub satpoint: SatPoint,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -884,11 +884,11 @@ impl Server {
     Ok(
       Json(InscriptionDetailsJson {
         address,
-        number: entry.inscription_number,
         content_type: inscription.content_type().map(|s| s.to_string()),
         content_length: inscription.content_length(),
         fee: entry.fee,
         height: entry.height,
+        number: entry.inscription_number,
         satpoint,
         timestamp: timestamp(entry.timestamp).timestamp(),
       })
