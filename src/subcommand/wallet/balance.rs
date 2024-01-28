@@ -11,16 +11,11 @@ pub struct Output {
   pub total: u64,
 }
 
-pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-  index.update()?;
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
-
-  let unspent_outputs = get_unspent_outputs(&client, &index)?;
-
-  let inscription_outputs = index
-    .get_inscriptions(&unspent_outputs)?
+  let inscription_outputs = wallet
+    .get_inscriptions()?
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
@@ -30,10 +25,10 @@ pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
   let mut runes = BTreeMap::new();
   let mut runic = 0;
 
-  for (outpoint, amount) in unspent_outputs {
-    let rune_balances = index.get_rune_balances_for_outpoint(outpoint)?;
+  for (output, amount) in unspent_outputs {
+    let rune_balances = wallet.get_runes_balances_for_output(&output)?;
 
-    if inscription_outputs.contains(&outpoint) {
+    if inscription_outputs.contains(&output) {
       ordinal += amount.to_sat();
     } else if !rune_balances.is_empty() {
       for (spaced_rune, pile) in rune_balances {
@@ -45,13 +40,13 @@ pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
     }
   }
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: index.has_rune_index().then_some(runes),
-    runic: index.has_rune_index().then_some(runic),
+    runes: wallet.has_rune_index()?.then_some(runes),
+    runic: wallet.has_rune_index()?.then_some(runic),
     total: cardinal + ordinal + runic,
-  }))
+  })))
 }
 
 #[cfg(test)]

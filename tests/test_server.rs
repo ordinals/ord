@@ -1,42 +1,45 @@
 use {
   super::*,
-  crate::command_builder::ToArgs,
+  axum_server::Handle,
   bitcoincore_rpc::{Auth, Client, RpcApi},
+  ord::{parse_ord_server_args, Index},
   reqwest::blocking::Response,
 };
 
 pub(crate) struct TestServer {
-  child: Child,
+  #[allow(unused)]
+  index: Arc<Index>,
+  bitcoin_rpc_url: String,
+  ord_server_handle: Handle,
   port: u16,
   #[allow(unused)]
   tempdir: TempDir,
-  rpc_url: String,
 }
 
 impl TestServer {
+  pub(crate) fn spawn(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &[])
+  }
+
   pub(crate) fn spawn_with_args(
-    rpc_server: &test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
   ) -> Self {
-    Self::spawn_with_server_args(rpc_server, ord_args, &[])
+    Self::spawn_with_server_args(bitcoin_rpc_server, ord_args, &[])
   }
 
   pub(crate) fn spawn_with_server_args(
-    rpc_server: &test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
     ord_args: &[&str],
-    server_args: &[&str],
+    ord_server_args: &[&str],
   ) -> Self {
+    std::env::set_var("ORD_INTEGRATION_TEST", "1");
+
     let tempdir = TempDir::new().unwrap();
 
-    let cookie_file = match rpc_server.network().as_str() {
-      "mainnet" => tempdir.path().join(".cookie"),
-      network => {
-        fs::create_dir(tempdir.path().join(network)).unwrap();
-        tempdir.path().join(format!("{network}/.cookie"))
-      }
-    };
+    let cookiefile = tempdir.path().join("cookie");
 
-    fs::write(cookie_file.clone(), "foo:bar").unwrap();
+    fs::write(&cookiefile, "username:password").unwrap();
 
     let port = TcpListener::bind("127.0.0.1:0")
       .unwrap()
@@ -44,36 +47,44 @@ impl TestServer {
       .unwrap()
       .port();
 
-    let child = Command::new(executable_path("ord")).args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
-      rpc_server.url(),
+    let (options, server) = parse_ord_server_args(&format!(
+      "ord --rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
+      bitcoin_rpc_server.url(),
+      cookiefile.to_str().unwrap(),
       tempdir.path().display(),
       tempdir.path().display(),
       ord_args.join(" "),
-      server_args.join(" "),
-    ).to_args())
-      .env("ORD_INTEGRATION_TEST", "1")
-      .current_dir(&tempdir)
-      .spawn().unwrap();
+      ord_server_args.join(" "),
+    ));
+
+    let index = Arc::new(Index::open(&options).unwrap());
+    let ord_server_handle = Handle::new();
+
+    {
+      let index = index.clone();
+      let ord_server_handle = ord_server_handle.clone();
+      thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+    }
 
     for i in 0.. {
       match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
         Ok(_) => break,
         Err(err) => {
           if i == 400 {
-            panic!("Server failed to start: {err}");
+            panic!("ord server failed to start: {err}");
           }
         }
       }
 
-      thread::sleep(Duration::from_millis(25));
+      thread::sleep(Duration::from_millis(50));
     }
 
     Self {
-      child,
-      tempdir,
+      index,
+      bitcoin_rpc_url: bitcoin_rpc_server.url(),
+      ord_server_handle,
       port,
-      rpc_url: rpc_server.url(),
+      tempdir,
     }
   }
 
@@ -87,6 +98,18 @@ impl TestServer {
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert_regex_match!(response.text().unwrap(), regex.as_ref());
+  }
+
+  pub(crate) fn assert_response(&self, path: impl AsRef<str>, expected_response: &str) {
+    self.sync_server();
+    let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+    pretty_assert_eq!(response.text().unwrap(), expected_response);
   }
 
   pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
@@ -108,24 +131,28 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
-    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
+    let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
       let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
+
       assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count {
+
+      let ord_height = response.text().unwrap().parse::<u64>().unwrap();
+
+      if ord_height >= chain_block_count {
         break;
       } else if i == 20 {
         panic!("index failed to synchronize with chain");
       }
-      thread::sleep(Duration::from_millis(25));
+      thread::sleep(Duration::from_millis(50));
     }
   }
 }
 
 impl Drop for TestServer {
   fn drop(&mut self) {
-    self.child.kill().unwrap()
+    self.ord_server_handle.shutdown();
   }
 }

@@ -31,13 +31,12 @@
   <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
   <dt>transaction</dt><dd><a class=monospace href=/tx/{{ self.outpoint.txid }}>{{ self.outpoint.txid }}</a></dd>
+  <dt>spent</dt><dd>{{ self.spent }}</dd>
 </dl>
-%% if let Some(list) = &self.list {
-%% match list {
-%% List::Unspent(ranges) => {
-<h2>{{"Sat Range".tally(ranges.len())}}</h2>
+%% if let Some(sat_ranges) = &self.sat_ranges {
+<h2>{{"Sat Range".tally(sat_ranges.len())}}</h2>
 <ul class=monospace>
-%% for (start, end) in ranges {
+%% for (start, end) in sat_ranges {
 %% if end - start == 1 {
   <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
@@ -45,9 +44,4 @@
 %% }
 %% }
 </ul>
-%% }
-%% List::Spent => {
-<p>Output has been spent.</p>
-%% }
-%% }
 %% }

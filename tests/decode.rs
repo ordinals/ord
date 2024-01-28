@@ -92,15 +92,18 @@ fn from_stdin() {
 
 #[test]
 fn from_core() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
-  let (_inscription, reveal) = inscribe(&rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
     CommandBuilder::new(format!("decode --txid {reveal}"))
-      .rpc_server(&rpc_server)
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<RawOutput>(),
     RawOutput {
       inscriptions: vec![Envelope {

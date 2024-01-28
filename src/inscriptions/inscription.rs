@@ -2,10 +2,7 @@ use {
   super::*,
   anyhow::ensure,
   bitcoin::{
-    blockdata::{
-      opcodes,
-      script::{self, PushBytesBuf},
-    },
+    blockdata::{opcodes, script},
     ScriptBuf,
   },
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
@@ -41,12 +38,13 @@ impl Inscription {
 
   pub(crate) fn from_file(
     chain: Chain,
-    path: impl AsRef<Path>,
-    parent: Option<InscriptionId>,
-    pointer: Option<u64>,
-    metaprotocol: Option<String>,
-    metadata: Option<Vec<u8>>,
     compress: bool,
+    delegate: Option<InscriptionId>,
+    metadata: Option<Vec<u8>>,
+    metaprotocol: Option<String>,
+    parent: Option<InscriptionId>,
+    path: impl AsRef<Path>,
+    pointer: Option<u64>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -99,11 +97,12 @@ impl Inscription {
 
     Ok(Self {
       body: Some(body),
-      content_type: Some(content_type.into()),
       content_encoding,
+      content_type: Some(content_type.into()),
+      delegate: delegate.map(|delegate| delegate.value()),
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|id| id.value()),
+      parent: parent.map(|parent| parent.value()),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
@@ -139,7 +138,7 @@ impl Inscription {
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
       for chunk in body.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
-        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
+        builder = builder.push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
       }
     }
 
@@ -290,27 +289,19 @@ impl Inscription {
   pub(crate) fn hidden(&self) -> bool {
     use regex::bytes::Regex;
 
+    const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
+                        <h1 style=\"height:100%\">bvm.network</h1></body>";
+
     lazy_static! {
-      static ref CONTENT: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
+      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
     }
 
-    if self
+    self
       .body()
-      .map(|body| CONTENT.is_match(body))
+      .map(|body| BRC_420.is_match(body) || body.starts_with(BVM_NETWORK))
       .unwrap_or_default()
-    {
-      return true;
-    }
-
-    if self.metaprotocol.is_some() {
-      return true;
-    }
-
-    if let Media::Code(_) | Media::Text | Media::Unknown = self.media() {
-      return true;
-    }
-
-    false
+      || self.metaprotocol.is_some()
+      || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 }
 
@@ -735,19 +726,29 @@ mod tests {
 
     write!(file, "foo").unwrap();
 
-    let inscription =
-      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None, false).unwrap();
+    let inscription = Inscription::from_file(
+      Chain::Mainnet,
+      false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      None,
+    )
+    .unwrap();
 
     assert_eq!(inscription.pointer, None);
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(0),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(0),
     )
     .unwrap();
 
@@ -755,12 +756,13 @@ mod tests {
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(1),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(1),
     )
     .unwrap();
 
@@ -768,12 +770,13 @@ mod tests {
 
     let inscription = Inscription::from_file(
       Chain::Mainnet,
-      file.path(),
-      None,
-      Some(256),
-      None,
-      None,
       false,
+      None,
+      None,
+      None,
+      None,
+      file.path(),
+      Some(256),
     )
     .unwrap();
 
@@ -825,6 +828,20 @@ mod tests {
     case(
       Some("text/html"),
       Some("  /content/09a8d837ec0bcaec668ecf405e696a16bee5990863659c224ff888fb6f8f45e7i0  \n"),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>"#,
+      ),
+      true,
+    );
+    case(
+      Some("text/html"),
+      Some(
+        r#"<body style="background:#F61;color:#fff;"><h1 style="height:100%">bvm.network</h1></body>foo"#,
+      ),
       true,
     );
 

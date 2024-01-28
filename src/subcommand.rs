@@ -7,7 +7,6 @@ pub mod find;
 pub mod index;
 pub mod list;
 pub mod parse;
-mod preview;
 pub mod runes;
 pub(crate) mod server;
 pub mod subsidy;
@@ -32,8 +31,6 @@ pub(crate) enum Subcommand {
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
-  #[command(about = "Run an explorer server populated with inscriptions")]
-  Preview(preview::Preview),
   #[command(about = "List all runes")]
   Runes,
   #[command(about = "Run the explorer server")]
@@ -47,7 +44,7 @@ pub(crate) enum Subcommand {
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
   #[command(about = "Wallet commands")]
-  Wallet(wallet::Wallet),
+  Wallet(wallet::WalletCommand),
 }
 
 impl Subcommand {
@@ -60,7 +57,6 @@ impl Subcommand {
       Self::Index(index) => index.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
-      Self::Preview(preview) => preview.run(),
       Self::Runes => runes::run(options),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
@@ -77,21 +73,22 @@ impl Subcommand {
   }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Empty {}
-
-pub(crate) trait Output: Send {
-  fn print_json(&self);
+pub trait Output: Send {
+  fn print_json(&self, minify: bool);
 }
 
 impl<T> Output for T
 where
   T: Serialize + Send,
 {
-  fn print_json(&self) {
-    serde_json::to_writer_pretty(io::stdout(), self).ok();
+  fn print_json(&self, minify: bool) {
+    if minify {
+      serde_json::to_writer(io::stdout(), self).ok();
+    } else {
+      serde_json::to_writer_pretty(io::stdout(), self).ok();
+    }
     println!();
   }
 }
 
-pub(crate) type SubcommandResult = Result<Box<dyn Output>>;
+pub(crate) type SubcommandResult = Result<Option<Box<dyn Output>>>;

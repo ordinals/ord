@@ -49,7 +49,6 @@ mod tests {
 
     pretty_assert_eq!(
       TransactionHtml {
-        blockhash: None,
         chain: Chain::Mainnet,
         etching: None,
         inscription_count: 0,
@@ -88,46 +87,6 @@ mod tests {
         </ul>
       "
       )
-      .unindent()
-    );
-  }
-
-  #[test]
-  fn with_blockhash() {
-    let transaction = Transaction {
-      version: 2,
-      lock_time: LockTime::ZERO,
-      input: Vec::new(),
-      output: vec![
-        TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().push_int(0).into_script(),
-        },
-        TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().push_int(1).into_script(),
-        },
-      ],
-    };
-
-    assert_regex_match!(
-      TransactionHtml {
-        blockhash: Some(blockhash(0)),
-        chain: Chain::Mainnet,
-        etching: None,
-        inscription_count: 0,
-        txid: transaction.txid(),
-        transaction,
-      }
-      .to_string(),
-      "
-        <h1>Transaction <span class=monospace>[[:xdigit:]]{64}</span></h1>
-        <dl>
-          <dt>block</dt>
-          <dd><a href=/block/0{64} class=monospace>0{64}</a></dd>
-        </dl>
-        .*
-      "
       .unindent()
     );
   }

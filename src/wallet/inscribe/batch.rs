@@ -1,23 +1,23 @@
 use super::*;
 
-pub(super) struct Batch {
-  pub(super) commit_fee_rate: FeeRate,
-  pub(super) destinations: Vec<Address>,
-  pub(super) dry_run: bool,
-  pub(super) inscriptions: Vec<Inscription>,
-  pub(super) mode: Mode,
-  pub(super) no_backup: bool,
-  pub(super) no_limit: bool,
-  pub(super) parent_info: Option<ParentInfo>,
-  pub(super) postage: Amount,
-  pub(super) reinscribe: bool,
-  pub(super) reveal_fee_rate: FeeRate,
-  pub(super) satpoint: Option<SatPoint>,
+pub struct Batch {
+  pub(crate) commit_fee_rate: FeeRate,
+  pub(crate) destinations: Vec<Address>,
+  pub(crate) dry_run: bool,
+  pub(crate) inscriptions: Vec<Inscription>,
+  pub(crate) mode: Mode,
+  pub(crate) no_backup: bool,
+  pub(crate) no_limit: bool,
+  pub(crate) parent_info: Option<ParentInfo>,
+  pub(crate) postage: Amount,
+  pub(crate) reinscribe: bool,
+  pub(crate) reveal_fee_rate: FeeRate,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl Default for Batch {
-  fn default() -> Batch {
-    Batch {
+  fn default() -> Self {
+    Self {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
@@ -37,24 +37,19 @@ impl Default for Batch {
 impl Batch {
   pub(crate) fn inscribe(
     &self,
-    chain: Chain,
-    index: &Index,
-    client: &Client,
     locked_utxos: &BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, Amount>,
+    wallet: &Wallet,
   ) -> SubcommandResult {
-    let wallet_inscriptions = index.get_inscriptions(utxos)?;
+    let wallet_inscriptions = wallet.get_inscriptions()?;
 
-    let commit_tx_change = [
-      get_change_address(client, chain)?,
-      get_change_address(client, chain)?,
-    ];
+    let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
-        chain,
+        wallet.chain(),
         locked_utxos.clone(),
         runic_utxos,
         utxos.clone(),
@@ -62,20 +57,22 @@ impl Batch {
       )?;
 
     if self.dry_run {
-      return Ok(Box::new(self.output(
+      return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         reveal_tx.txid(),
         total_fees,
         self.inscriptions.clone(),
-      )));
+      ))));
     }
 
-    let signed_commit_tx = client
+    let bitcoin_client = wallet.bitcoin_client()?;
+
+    let signed_commit_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
     let signed_reveal_tx = if self.parent_info.is_some() {
-      client
+      bitcoin_client
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
           Some(
@@ -100,12 +97,12 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Self::backup_recovery_key(client, recovery_key_pair, chain.network())?;
+      Self::backup_recovery_key(wallet, recovery_key_pair)?;
     }
 
-    let commit = client.send_raw_transaction(&signed_commit_tx)?;
+    let commit = bitcoin_client.send_raw_transaction(&signed_commit_tx)?;
 
-    let reveal = match client.send_raw_transaction(&signed_reveal_tx) {
+    let reveal = match bitcoin_client.send_raw_transaction(&signed_reveal_tx) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
@@ -114,12 +111,12 @@ impl Batch {
       }
     };
 
-    Ok(Box::new(self.output(
+    Ok(Some(Box::new(self.output(
       commit,
       reveal,
       total_fees,
       self.inscriptions.clone(),
-    )))
+    ))))
   }
 
   fn output(
@@ -444,16 +441,18 @@ impl Batch {
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
   }
 
-  fn backup_recovery_key(
-    client: &Client,
-    recovery_key_pair: TweakedKeyPair,
-    network: Network,
-  ) -> Result {
-    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeyPair) -> Result {
+    let recovery_private_key = PrivateKey::new(
+      recovery_key_pair.to_inner().secret_key(),
+      wallet.chain().network(),
+    );
 
-    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+    let bitcoin_client = wallet.bitcoin_client()?;
 
-    let response = client.import_descriptors(ImportDescriptors {
+    let info =
+      bitcoin_client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+
+    let response = bitcoin_client.import_descriptors(ImportDescriptors {
       descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
       timestamp: Timestamp::Now,
       active: Some(false),
@@ -526,131 +525,5 @@ impl Batch {
       .sum::<u64>()
       .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
       .unwrap()
-  }
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Default)]
-pub(crate) enum Mode {
-  #[serde(rename = "same-sat")]
-  SameSat,
-  #[default]
-  #[serde(rename = "separate-outputs")]
-  SeparateOutputs,
-  #[serde(rename = "shared-output")]
-  SharedOutput,
-}
-
-#[derive(Deserialize, Default, PartialEq, Debug, Clone)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BatchEntry {
-  pub(crate) destination: Option<Address<NetworkUnchecked>>,
-  pub(crate) file: PathBuf,
-  pub(crate) metadata: Option<serde_yaml::Value>,
-  pub(crate) metaprotocol: Option<String>,
-}
-
-impl BatchEntry {
-  pub(crate) fn metadata(&self) -> Result<Option<Vec<u8>>> {
-    Ok(match &self.metadata {
-      None => None,
-      Some(metadata) => {
-        let mut cbor = Vec::new();
-        ciborium::into_writer(&metadata, &mut cbor)?;
-        Some(cbor)
-      }
-    })
-  }
-}
-
-#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Batchfile {
-  pub(crate) inscriptions: Vec<BatchEntry>,
-  pub(crate) mode: Mode,
-  pub(crate) parent: Option<InscriptionId>,
-  pub(crate) postage: Option<u64>,
-  pub(crate) sat: Option<Sat>,
-}
-
-impl Batchfile {
-  pub(crate) fn load(path: &Path) -> Result<Batchfile> {
-    let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
-
-    if batchfile.inscriptions.is_empty() {
-      bail!("batchfile must contain at least one inscription");
-    }
-
-    Ok(batchfile)
-  }
-
-  pub(crate) fn inscriptions(
-    &self,
-    client: &Client,
-    chain: Chain,
-    parent_value: Option<u64>,
-    metadata: Option<Vec<u8>>,
-    postage: Amount,
-    compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
-    assert!(!self.inscriptions.is_empty());
-
-    if self
-      .inscriptions
-      .iter()
-      .any(|entry| entry.destination.is_some())
-      && self.mode == Mode::SharedOutput
-    {
-      return Err(anyhow!(
-        "individual inscription destinations cannot be set in shared-output mode"
-      ));
-    }
-
-    if metadata.is_some() {
-      assert!(self
-        .inscriptions
-        .iter()
-        .all(|entry| entry.metadata.is_none()));
-    }
-
-    let mut pointer = parent_value.unwrap_or_default();
-
-    let mut inscriptions = Vec::new();
-    for (i, entry) in self.inscriptions.iter().enumerate() {
-      inscriptions.push(Inscription::from_file(
-        chain,
-        &entry.file,
-        self.parent,
-        if i == 0 { None } else { Some(pointer) },
-        entry.metaprotocol.clone(),
-        match &metadata {
-          Some(metadata) => Some(metadata.clone()),
-          None => entry.metadata()?,
-        },
-        compress,
-      )?);
-
-      pointer += postage.to_sat();
-    }
-
-    let destinations = match self.mode {
-      Mode::SharedOutput | Mode::SameSat => vec![get_change_address(client, chain)?],
-      Mode::SeparateOutputs => self
-        .inscriptions
-        .iter()
-        .map(|entry| {
-          entry.destination.as_ref().map_or_else(
-            || get_change_address(client, chain),
-            |address| {
-              address
-                .clone()
-                .require_network(chain.network())
-                .map_err(|e| e.into())
-            },
-          )
-        })
-        .collect::<Result<Vec<_>, _>>()?,
-    };
-
-    Ok((inscriptions, destinations))
   }
 }
