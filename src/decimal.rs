@@ -68,14 +68,20 @@ impl FromStr for Decimal {
 
 impl Display for Decimal {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let value_str = self.value.to_string();
+    let decimal = self.value.to_string();
 
     if self.scale == 0 {
-      write!(f, "{}", value_str)
+      write!(f, "{}", decimal)
     } else {
-      let split_at = value_str.len().saturating_sub(self.scale as usize);
-      let integer = &value_str[..split_at];
-      let fractional = &value_str[split_at..];
+      let decimal_point = decimal.len().saturating_sub(
+        self
+          .scale
+          .try_into()
+          .expect("should be safe because scale is a u8"),
+      );
+
+      let integer = &decimal[..decimal_point];
+      let fractional = &decimal[decimal_point..].trim_end_matches("0");
 
       if integer.is_empty() {
         write!(f, "0.{}", fractional)
@@ -168,5 +174,51 @@ mod tests {
     case("1.2", 2, 120);
     case("123.456", 3, 123456);
     case("123.456", 6, 123456000);
+  }
+
+  #[test]
+  fn to_string() {
+    #[track_caller]
+    fn case(decimal: Decimal, string: &str) {
+      assert_eq!(decimal.to_string(), string,);
+    }
+
+    case(Decimal { value: 1, scale: 0 }, "1");
+    case(Decimal { value: 1, scale: 1 }, "0.1");
+    case(
+      Decimal {
+        value: 12,
+        scale: 0,
+      },
+      "12",
+    );
+    case(
+      Decimal {
+        value: 12,
+        scale: 1,
+      },
+      "1.2",
+    );
+    case(
+      Decimal {
+        value: 12,
+        scale: 2,
+      },
+      "0.12",
+    );
+    case(
+      Decimal {
+        value: 123456,
+        scale: 3,
+      },
+      "123.456",
+    );
+    case(
+      Decimal {
+        value: 123456000,
+        scale: 6,
+      },
+      "123.456",
+    );
   }
 }
