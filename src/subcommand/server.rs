@@ -801,11 +801,8 @@ impl Server {
 
     let inscription_count = index.inscription_count(txid)?;
 
-    let blockhash = index.get_transaction_blockhash(txid)?;
-
     Ok(if accept_json {
       Json(TransactionJson {
-        blockhash,
         transaction,
         txid,
         inscription_count,
@@ -815,7 +812,6 @@ impl Server {
       .into_response()
     } else {
       TransactionHtml {
-        blockhash,
         transaction,
         txid,
         inscription_count,
