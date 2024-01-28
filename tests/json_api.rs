@@ -635,3 +635,60 @@ fn get_runes() {
     }
   );
 }
+#[test]
+fn get_runes_balances() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(3);
+
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+  let rune2 = Rune(RUNE + 2);
+  let e0 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
+  let e1 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+  let e2 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune2);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let response = ord_rpc_server.json_request("/runes/balances");
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_balance_json: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  let mut runes_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = BTreeMap::new();
+  let mut b0:BTreeMap<OutPoint, u128> = BTreeMap::new();
+  let o0:OutPoint = OutPoint {
+    txid: e0.transaction,
+    vout: 1,
+  };
+  b0.insert(o0, 1000);
+  runes_balances.insert(rune0, b0);
+
+  let mut b1:BTreeMap<OutPoint, u128> = BTreeMap::new();
+  let o1:OutPoint = OutPoint {
+    txid: e1.transaction,
+    vout: 1,
+  };
+  b1.insert(o1, 1000);
+  runes_balances.insert(rune1, b1);
+
+  let mut b2:BTreeMap<OutPoint, u128> = BTreeMap::new();
+  let o2:OutPoint = OutPoint {
+    txid: e2.transaction,
+    vout: 1,
+  };
+  b2.insert(o2, 1000);
+  runes_balances.insert(rune2, b2);
+
+  pretty_assert_eq!(
+    runes_balance_json,
+    runes_balances
+  );
+}

@@ -687,7 +687,6 @@ impl Server {
   }
 
   async fn runes_balances(
-    Extension(_): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
     Ok(Json(index.get_rune_balance_map()?).into_response())
