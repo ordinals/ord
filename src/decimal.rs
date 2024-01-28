@@ -1,7 +1,7 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) struct Decimal {
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
+pub struct Decimal {
   value: u128,
   scale: u8,
 }
@@ -62,6 +62,26 @@ impl FromStr for Decimal {
         value: s.parse::<u128>()?,
         scale: 0,
       })
+    }
+  }
+}
+
+impl Display for Decimal {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let value_str = self.value.to_string();
+
+    if self.scale == 0 {
+      write!(f, "{}", value_str)
+    } else {
+      let split_at = value_str.len().saturating_sub(self.scale as usize);
+      let integer = &value_str[..split_at];
+      let fractional = &value_str[split_at..];
+
+      if integer.is_empty() {
+        write!(f, "0.{}", fractional)
+      } else {
+        write!(f, "{}.{}", integer, fractional)
+      }
     }
   }
 }

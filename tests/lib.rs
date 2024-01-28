@@ -12,6 +12,7 @@ use {
   executable_path::executable_path,
   ord::{
     chain::Chain,
+    outgoing::Outgoing,
     rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{

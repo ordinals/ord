@@ -1090,3 +1090,28 @@ fn sending_rune_does_not_send_inscription() {
   .stderr_regex("error:.*")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn send_dry_run() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription} --dry-run",
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<send::DryRunOutput>();
+
+  assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
+  assert_eq!(output.fee, 0);
+}

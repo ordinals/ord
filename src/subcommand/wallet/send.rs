@@ -1,9 +1,15 @@
-use {super::*, crate::wallet::transaction_builder::Target};
+use {
+  super::*,
+  crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
+  bitcoin::psbt::Psbt,
+};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
+  #[arg(long, help = "Don't sign or broadcast transactions.")]
+  pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
@@ -11,6 +17,14 @@ pub(crate) struct Send {
     help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DryRunOutput {
+  pub txid: Txid,
+  pub psbt: String,
+  pub outgoing: Outgoing,
+  pub fee: u64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -97,6 +111,21 @@ impl Send {
       postage,
     )
     .build_transaction()?;
+
+    if self.dry_run {
+      let psbt = Psbt::from_unsigned_tx(unsigned_transaction)?;
+
+      let tx = psbt.clone().extract_tx();
+
+      let output = DryRunOutput {
+        txid: tx.txid(),
+        psbt: psbt.serialize_hex(),
+        outgoing: self.outgoing,
+        fee: 0,
+      };
+
+      return Ok(Some(Box::new(output)));
+    }
 
     let signed_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

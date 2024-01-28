@@ -1,11 +1,19 @@
-use super::*;
+use {
+  super::*,
+  serde::{Deserialize, Deserializer, Serialize, Serializer},
+};
 
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Outgoing {
+#[derive(Debug, PartialEq, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Outgoing {
+  #[serde(deserialize_with = "deserialize_amount")]
   Amount(Amount),
   InscriptionId(InscriptionId),
   SatPoint(SatPoint),
-  Rune { decimal: Decimal, rune: SpacedRune },
+  Rune {
+    decimal: Decimal,
+    rune: SpacedRune,
+  },
 }
 
 impl FromStr for Outgoing {
@@ -67,6 +75,39 @@ impl FromStr for Outgoing {
       bail!("unrecognized outgoing: {s}");
     })
   }
+}
+
+impl Serialize for Outgoing {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    match *self {
+      Outgoing::Amount(ref amount) => {
+        serializer.serialize_newtype_variant("Outgoing", 0, "amount", &amount.to_string())
+      }
+      Outgoing::InscriptionId(ref id) => {
+        serializer.serialize_newtype_variant("Outgoing", 1, "inscription_id", &id.to_string())
+      }
+      Outgoing::SatPoint(ref satpoint) => {
+        serializer.serialize_newtype_variant("Outgoing", 2, "satpoint", &satpoint.to_string())
+      }
+      Outgoing::Rune { decimal, rune } => serializer.serialize_newtype_variant(
+        "Outgoing",
+        3,
+        "rune",
+        &format!("{} {}", decimal, rune),
+      ),
+    }
+  }
+}
+
+fn deserialize_amount<'de, D>(deserializer: D) -> Result<Amount, D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let s = String::deserialize(deserializer)?;
+  Amount::from_str(&s).map_err(serde::de::Error::custom)
 }
 
 #[cfg(test)]
