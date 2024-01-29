@@ -73,15 +73,10 @@ impl Display for Decimal {
     if self.scale == 0 {
       write!(f, "{}", decimal)
     } else {
-      let decimal_point = decimal.len().saturating_sub(
-        self
-          .scale
-          .try_into()
-          .expect("should be safe because scale is a u8"),
-      );
+      let decimal_point = decimal.len().saturating_sub(self.scale.into());
 
       let integer = &decimal[..decimal_point];
-      let fractional = &decimal[decimal_point..].trim_end_matches("0");
+      let fractional = &decimal[decimal_point..].trim_end_matches('0');
 
       if integer.is_empty() {
         write!(f, "0.{}", fractional)

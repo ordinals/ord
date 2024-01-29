@@ -27,11 +27,11 @@ fn inscriptions_can_be_sent() {
   .run_and_deserialize_output::<send::Output>();
 
   let txid = bitcoin_rpc_server.mempool()[0].txid();
-  assert_eq!(txid, output.transaction);
+  assert_eq!(txid, output.txid);
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let send_txid = output.transaction;
+  let send_txid = output.txid;
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{inscription}"),
@@ -94,7 +94,7 @@ fn send_inscribed_sat() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let send_txid = output.transaction;
+  let send_txid = output.txid;
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{inscription}"),
@@ -164,7 +164,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   .ord_rpc_server(&ord_rpc_server)
   .run_and_deserialize_output::<send::Output>();
 
-  assert_eq!(bitcoin_rpc_server.mempool()[0].txid(), output.transaction);
+  assert_eq!(bitcoin_rpc_server.mempool()[0].txid(), output.txid);
 }
 
 #[test]
@@ -390,13 +390,14 @@ fn send_btc_with_fee_rate() {
   bitcoin_rpc_server.mine_blocks(1);
 
   CommandBuilder::new(
-    "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+    "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 2btc",
   )
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .run_and_deserialize_output::<send::Output>();
 
   let tx = &bitcoin_rpc_server.mempool()[0];
+
   let mut fee = 0;
   for input in &tx.input {
     fee += bitcoin_rpc_server
@@ -404,6 +405,7 @@ fn send_btc_with_fee_rate() {
       .unwrap()
       .to_sat();
   }
+
   for output in &tx.output {
     fee -= output.value;
   }
@@ -413,16 +415,14 @@ fn send_btc_with_fee_rate() {
   assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
   assert_eq!(
-    bitcoin_rpc_server.sent(),
-    &[Sent {
-      amount: 1.0,
-      address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse::<Address<NetworkUnchecked>>()
-        .unwrap()
-        .assume_checked(),
-      locked: Vec::new(),
-    }]
+    Address::from_script(&tx.output[0].script_pubkey, Network::Bitcoin).unwrap(),
+    "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked()
   );
+
+  assert_eq!(tx.output[0].value, 2 * COIN_VALUE);
 }
 
 #[test]
@@ -442,20 +442,10 @@ fn send_btc_locks_inscriptions() {
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<send::Output>();
 
-  assert_eq!(
-    bitcoin_rpc_server.sent(),
-    &[Sent {
-      amount: 1.0,
-      address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse::<Address<NetworkUnchecked>>()
-        .unwrap()
-        .assume_checked(),
-      locked: vec![OutPoint {
-        txid: reveal,
-        vout: 0,
-      }]
-    }]
-  )
+  assert!(bitcoin_rpc_server.get_locked().contains(&OutPoint {
+    txid: reveal,
+    vout: 0,
+  }))
 }
 
 #[test]
@@ -704,7 +694,7 @@ fn sending_rune_works() {
         Rune(RUNE),
         vec![(
           OutPoint {
-            txid: output.transaction,
+            txid: output.txid,
             vout: 2
           },
           1000
@@ -752,7 +742,7 @@ fn sending_spaced_rune_works() {
         Rune(RUNE),
         vec![(
           OutPoint {
-            txid: output.transaction,
+            txid: output.txid,
             vout: 2
           },
           1000
@@ -816,14 +806,14 @@ fn sending_rune_with_divisibility_works() {
         vec![
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 1
             },
             899
           ),
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 2
             },
             101
@@ -874,14 +864,14 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
         vec![
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 1
             },
             250
           ),
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 2
             },
             750
@@ -897,7 +887,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
 
   let tx = bitcoin_rpc_server.tx(3, 1);
 
-  assert_eq!(tx.txid(), output.transaction);
+  assert_eq!(tx.txid(), output.txid);
 
   let address = Address::from_script(&tx.output[1].script_pubkey, Network::Regtest).unwrap();
 
@@ -943,14 +933,14 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         vec![
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 1
             },
             250
           ),
           (
             OutPoint {
-              txid: output.transaction,
+              txid: output.txid,
               vout: 2
             },
             750
@@ -966,7 +956,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
 
   let tx = bitcoin_rpc_server.tx(3, 1);
 
-  assert_eq!(tx.txid(), output.transaction);
+  assert_eq!(tx.txid(), output.txid);
 
   assert_eq!(
     Runestone::from_transaction(&tx).unwrap(),
@@ -1110,7 +1100,7 @@ fn send_dry_run() {
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<send::DryRunOutput>();
+  .run_and_deserialize_output::<send::Output>();
 
   assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
   assert_eq!(output.fee, 0);

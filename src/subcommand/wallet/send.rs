@@ -20,16 +20,11 @@ pub(crate) struct Send {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DryRunOutput {
+pub struct Output {
   pub txid: Txid,
   pub psbt: String,
   pub outgoing: Outgoing,
   pub fee: u64,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Output {
-  pub transaction: Txid,
 }
 
 impl Send {
@@ -49,98 +44,93 @@ impl Send {
 
     let bitcoin_client = wallet.bitcoin_client()?;
 
-    let satpoint = match self.outgoing {
-      Outgoing::Amount(amount) => {
-        Self::lock_non_cardinal_outputs(
-          &bitcoin_client,
-          &inscriptions,
-          &runic_outputs,
-          unspent_outputs,
-        )?;
-        let transaction = Self::send_amount(&wallet, amount, address, self.fee_rate)?;
-        return Ok(Some(Box::new(Output { transaction })));
-      }
-      Outgoing::InscriptionId(id) => wallet.get_inscription_satpoint(id)?,
-      Outgoing::Rune { decimal, rune } => {
-        let transaction = Self::send_runes(
-          address,
-          &bitcoin_client,
-          decimal,
-          self.fee_rate,
-          inscriptions,
-          rune,
-          runic_outputs,
-          unspent_outputs,
-          &wallet,
-        )?;
-        return Ok(Some(Box::new(Output { transaction })));
-      }
-      Outgoing::SatPoint(satpoint) => {
-        for inscription_satpoint in inscriptions.keys() {
-          if satpoint == *inscription_satpoint {
-            bail!("inscriptions must be sent by inscription ID");
+    let unsigned_transaction = match self.outgoing {
+      Outgoing::Amount(amount) => Self::create_unsigned_send_transaction(
+        &wallet,
+        amount,
+        address,
+        self.fee_rate,
+        &inscriptions,
+        &runic_outputs,
+        &unspent_outputs,
+      )?,
+      Outgoing::Rune { decimal, rune } => Self::create_unsigned_send_runes_transaction(
+        address,
+        &bitcoin_client,
+        decimal,
+        self.fee_rate,
+        &inscriptions,
+        rune,
+        &runic_outputs,
+        &unspent_outputs,
+        &wallet,
+      )?,
+      _ => {
+        let satpoint = match self.outgoing {
+          Outgoing::InscriptionId(id) => wallet.get_inscription_satpoint(id)?,
+          Outgoing::SatPoint(satpoint) => {
+            for inscription_satpoint in inscriptions.keys() {
+              if satpoint == *inscription_satpoint {
+                bail!("inscriptions must be sent by inscription ID");
+              }
+            }
+
+            ensure!(
+              !runic_outputs.contains(&satpoint.outpoint),
+              "runic outpoints may not be sent by satpoint"
+            );
+
+            satpoint
           }
-        }
+          _ => unreachable!(),
+        };
 
-        ensure!(
-          !runic_outputs.contains(&satpoint.outpoint),
-          "runic outpoints may not be sent by satpoint"
-        );
+        let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-        satpoint
+        let postage = if let Some(postage) = self.postage {
+          Target::ExactPostage(postage)
+        } else {
+          Target::Postage
+        };
+
+        TransactionBuilder::new(
+          satpoint,
+          inscriptions,
+          unspent_outputs,
+          locked_outputs,
+          runic_outputs,
+          address.clone(),
+          change,
+          self.fee_rate,
+          postage,
+        )
+        .build_transaction()?
       }
     };
 
-    let change = [wallet.get_change_address()?, wallet.get_change_address()?];
+    let txid = if !self.dry_run {
+      let signed_tx = bitcoin_client
+        .sign_raw_transaction_with_wallet(&unsigned_transaction.clone(), None, None)?
+        .hex;
 
-    let postage = if let Some(postage) = self.postage {
-      Target::ExactPostage(postage)
+      bitcoin_client.send_raw_transaction(&signed_tx)?
     } else {
-      Target::Postage
+      unsigned_transaction.txid()
     };
 
-    let unsigned_transaction = TransactionBuilder::new(
-      satpoint,
-      inscriptions,
-      unspent_outputs,
-      locked_outputs,
-      runic_outputs,
-      address.clone(),
-      change,
-      self.fee_rate,
-      postage,
-    )
-    .build_transaction()?;
-
-    if self.dry_run {
-      let psbt = Psbt::from_unsigned_tx(unsigned_transaction)?;
-
-      let tx = psbt.clone().extract_tx();
-
-      let output = DryRunOutput {
-        txid: tx.txid(),
-        psbt: psbt.serialize_hex(),
-        outgoing: self.outgoing,
-        fee: 0,
-      };
-
-      return Ok(Some(Box::new(output)));
-    }
-
-    let signed_tx = bitcoin_client
-      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
-      .hex;
-
-    let txid = bitcoin_client.send_raw_transaction(&signed_tx)?;
-
-    Ok(Some(Box::new(Output { transaction: txid })))
+    Ok(Some(Box::new(Output {
+      txid,
+      psbt: Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize_hex(),
+      outgoing: self.outgoing,
+      fee: 0, // TODO
+    })))
   }
 
   fn lock_non_cardinal_outputs(
     bitcoin_client: &Client,
     inscriptions: &BTreeMap<SatPoint, InscriptionId>,
     runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: BTreeMap<OutPoint, bitcoin::Amount>,
+    unspent_outputs: &BTreeMap<OutPoint, bitcoin::Amount>,
   ) -> Result {
     let all_inscription_outputs = inscriptions
       .keys()
@@ -161,51 +151,71 @@ impl Send {
     Ok(())
   }
 
-  fn send_amount(
+  fn create_unsigned_send_transaction(
     wallet: &Wallet,
     amount: Amount,
-    address: Address,
+    destination: Address,
     fee_rate: FeeRate,
-  ) -> Result<Txid> {
-    Ok(wallet.bitcoin_client()?.call(
-      "sendtoaddress",
-      &[
-        address.to_string().into(), //  1. address
-        amount.to_btc().into(),     //  2. amount
-        serde_json::Value::Null,    //  3. comment
-        serde_json::Value::Null,    //  4. comment_to
-        serde_json::Value::Null,    //  5. subtractfeefromamount
-        serde_json::Value::Null,    //  6. replaceable
-        serde_json::Value::Null,    //  7. conf_target
-        serde_json::Value::Null,    //  8. estimate_mode
-        serde_json::Value::Null,    //  9. avoid_reuse
-        fee_rate.n().into(),        // 10. fee_rate
-      ],
-    )?)
+    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
+    runic_outputs: &BTreeSet<OutPoint>,
+    unspent_outputs: &BTreeMap<OutPoint, Amount>,
+  ) -> Result<Transaction> {
+    let client = wallet.bitcoin_client()?;
+
+    Self::lock_non_cardinal_outputs(&client, inscriptions, runic_outputs, unspent_outputs)?;
+
+    let unfunded_transaction = Transaction {
+      version: 2,
+      lock_time: LockTime::ZERO,
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: destination.script_pubkey(),
+        value: amount.to_sat(),
+      }],
+    };
+
+    let unsigned_transaction = consensus::encode::deserialize(&fund_raw_transaction(
+      &client,
+      fee_rate,
+      &unfunded_transaction,
+    )?)?;
+
+    Ok(unsigned_transaction)
+
+    //Ok(client.call(
+    //  "sendtoaddress",
+    //  &[
+    //    destination.to_string().into(), //  1. address
+    //    amount.to_btc().into(),         //  2. amount
+    //    serde_json::Value::Null,        //  3. comment
+    //    serde_json::Value::Null,        //  4. comment_to
+    //    serde_json::Value::Null,        //  5. subtractfeefromamount
+    //    serde_json::Value::Null,        //  6. replaceable
+    //    serde_json::Value::Null,        //  7. conf_target
+    //    serde_json::Value::Null,        //  8. estimate_mode
+    //    serde_json::Value::Null,        //  9. avoid_reuse
+    //    fee_rate.n().into(),            // 10. fee_rate
+    //  ],
+    //)?)
   }
 
-  fn send_runes(
+  fn create_unsigned_send_runes_transaction(
     address: Address,
     bitcoin_client: &Client,
     decimal: Decimal,
     fee_rate: FeeRate,
-    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
     spaced_rune: SpacedRune,
-    runic_outputs: BTreeSet<OutPoint>,
-    unspent_outputs: BTreeMap<OutPoint, Amount>,
+    runic_outputs: &BTreeSet<OutPoint>,
+    unspent_outputs: &BTreeMap<OutPoint, Amount>,
     wallet: &Wallet,
-  ) -> Result<Txid> {
+  ) -> Result<Transaction> {
     ensure!(
       wallet.has_rune_index()?,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_non_cardinal_outputs(
-      bitcoin_client,
-      &inscriptions,
-      &runic_outputs,
-      unspent_outputs,
-    )?;
+    Self::lock_non_cardinal_outputs(bitcoin_client, inscriptions, runic_outputs, unspent_outputs)?;
 
     let (id, entry, _parent) = wallet
       .get_rune(spaced_rune.rune)?
@@ -222,11 +232,11 @@ impl Send {
     let mut input = Vec::new();
 
     for output in runic_outputs {
-      if inscribed_outputs.contains(&output) {
+      if inscribed_outputs.contains(output) {
         continue;
       }
 
-      let balance = wallet.get_rune_balance_in_output(&output, entry.rune)?;
+      let balance = wallet.get_rune_balance_in_output(output, entry.rune)?;
 
       if balance > 0 {
         input_runes += balance;
@@ -264,7 +274,7 @@ impl Send {
       input: input
         .into_iter()
         .map(|previous_output| TxIn {
-          previous_output,
+          previous_output: *previous_output,
           script_sig: ScriptBuf::new(),
           sequence: Sequence::MAX,
           witness: Witness::new(),
@@ -289,10 +299,6 @@ impl Send {
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
-    let signed_transaction = bitcoin_client
-      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
-      .hex;
-
-    Ok(bitcoin_client.send_raw_transaction(&signed_transaction)?)
+    Ok(consensus::encode::deserialize(&unsigned_transaction)?)
   }
 }

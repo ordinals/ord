@@ -10,6 +10,7 @@ pub enum Outgoing {
   Amount(Amount),
   InscriptionId(InscriptionId),
   SatPoint(SatPoint),
+  #[serde(deserialize_with = "deserialize_rune")]
   Rune {
     decimal: Decimal,
     rune: SpacedRune,
@@ -90,7 +91,7 @@ impl Serialize for Outgoing {
         serializer.serialize_newtype_variant("Outgoing", 1, "inscription_id", &id.to_string())
       }
       Outgoing::SatPoint(ref satpoint) => {
-        serializer.serialize_newtype_variant("Outgoing", 2, "satpoint", &satpoint.to_string())
+        serializer.serialize_newtype_variant("Outgoing", 2, "sat_point", &satpoint.to_string())
       }
       Outgoing::Rune { decimal, rune } => serializer.serialize_newtype_variant(
         "Outgoing",
@@ -108,6 +109,19 @@ where
 {
   let s = String::deserialize(deserializer)?;
   Amount::from_str(&s).map_err(serde::de::Error::custom)
+}
+
+fn deserialize_rune<'de, D>(deserializer: D) -> Result<(Decimal, SpacedRune), D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let s = String::deserialize(deserializer)?;
+  let (decimal, rune) = s.split_once(" ").unwrap_or_default();
+
+  Ok((
+    Decimal::from_str(&decimal).map_err(serde::de::Error::custom)?,
+    SpacedRune::from_str(&rune).map_err(serde::de::Error::custom)?,
+  ))
 }
 
 #[cfg(test)]

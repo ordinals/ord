@@ -388,6 +388,7 @@ impl Api for Server {
 
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
     self.state.lock().unwrap().mempool.push(tx.clone());
 
     Ok(tx.txid().to_string())
@@ -460,12 +461,6 @@ impl Api for Server {
     let txid = transaction.txid();
 
     state.mempool.push(transaction);
-
-    state.sent.push(Sent {
-      address: address.assume_checked(),
-      amount,
-      locked,
-    });
 
     Ok(txid)
   }

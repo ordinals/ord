@@ -39,7 +39,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
-  test_bitcoincore_rpc::{Sent, TransactionTemplate},
+  test_bitcoincore_rpc::TransactionTemplate,
 };
 
 macro_rules! assert_regex_match {
