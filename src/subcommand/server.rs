@@ -14,8 +14,9 @@ use {
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
-      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesBalancesHtml, RunesHtml,
+      RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
+      TransactionJson,
     },
   },
   axum::{
@@ -686,8 +687,22 @@ impl Server {
     })
   }
 
-  async fn runes_balances(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
-    task::block_in_place(|| Ok(Json(index.get_rune_balance_map()?).into_response()))
+  async fn runes_balances(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        Json(index.get_rune_balance_map()?).into_response()
+      } else {
+        RunesBalancesHtml {
+          runes_balances: index.get_rune_balance_map()?,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
   }
 
   async fn home(
