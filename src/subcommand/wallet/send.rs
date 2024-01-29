@@ -193,22 +193,6 @@ impl Send {
     )?)?;
 
     Ok(unsigned_transaction)
-
-    //Ok(client.call(
-    //  "sendtoaddress",
-    //  &[
-    //    destination.to_string().into(), //  1. address
-    //    amount.to_btc().into(),         //  2. amount
-    //    serde_json::Value::Null,        //  3. comment
-    //    serde_json::Value::Null,        //  4. comment_to
-    //    serde_json::Value::Null,        //  5. subtractfeefromamount
-    //    serde_json::Value::Null,        //  6. replaceable
-    //    serde_json::Value::Null,        //  7. conf_target
-    //    serde_json::Value::Null,        //  8. estimate_mode
-    //    serde_json::Value::Null,        //  9. avoid_reuse
-    //    fee_rate.n().into(),            // 10. fee_rate
-    //  ],
-    //)?)
   }
 
   fn create_unsigned_send_runes_transaction(
