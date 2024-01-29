@@ -96,7 +96,7 @@ impl Send {
         TransactionBuilder::new(
           satpoint,
           inscriptions,
-          unspent_outputs,
+          unspent_outputs.clone(),
           locked_outputs,
           runic_outputs,
           address.clone(),
@@ -122,7 +122,19 @@ impl Send {
       txid,
       psbt: Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize_hex(),
       outgoing: self.outgoing,
-      fee: 0, // TODO
+      fee: unsigned_transaction
+        .input
+        .iter()
+        .map(|txin| unspent_outputs.get(&txin.previous_output).unwrap().to_sat())
+        .sum::<u64>()
+        .checked_sub(
+          unsigned_transaction
+            .output
+            .iter()
+            .map(|txout| txout.value)
+            .sum::<u64>(),
+        )
+        .unwrap(),
     })))
   }
 

@@ -1103,5 +1103,5 @@ fn send_dry_run() {
   .run_and_deserialize_output::<send::Output>();
 
   assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
-  assert_eq!(output.fee, 0);
+  assert_eq!(output.fee, 99);
 }

@@ -116,11 +116,11 @@ where
   D: Deserializer<'de>,
 {
   let s = String::deserialize(deserializer)?;
-  let (decimal, rune) = s.split_once(" ").unwrap_or_default();
+  let (decimal, rune) = s.split_once(' ').unwrap_or_default();
 
   Ok((
-    Decimal::from_str(&decimal).map_err(serde::de::Error::custom)?,
-    SpacedRune::from_str(&rune).map_err(serde::de::Error::custom)?,
+    Decimal::from_str(decimal).map_err(serde::de::Error::custom)?,
+    SpacedRune::from_str(rune).map_err(serde::de::Error::custom)?,
   ))
 }
 
