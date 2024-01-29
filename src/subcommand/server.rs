@@ -687,7 +687,7 @@ impl Server {
   }
 
   async fn runes_balances(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
-        task::block_in_place(|| Ok(Json(index.get_rune_balance_map()?).into_response()))
+    task::block_in_place(|| Ok(Json(index.get_rune_balance_map()?).into_response()))
   }
 
   async fn home(
