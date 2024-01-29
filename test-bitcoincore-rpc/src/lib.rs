@@ -19,11 +19,12 @@ use {
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
     GetBalancesResultEntry, GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult,
-    GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
-    GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
-    ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult,
-    Timestamp, WalletTxInfo,
+    GetNetworkInfoResult, GetRawTransactionResult, GetRawTransactionResultVout,
+    GetRawTransactionResultVoutScriptPubKey, GetTransactionResult, GetTransactionResultDetail,
+    GetTransactionResultDetailCategory, GetTxOutResult, GetWalletInfoResult, ImportDescriptors,
+    ImportMultiResult, ListDescriptorsResult, ListTransactionResult, ListUnspentResultEntry,
+    ListWalletDirItem, ListWalletDirResult, LoadWalletResult, SignRawTransactionInput,
+    SignRawTransactionResult, Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -100,7 +101,7 @@ impl Builder {
         Ok(_) => break,
         Err(err) => {
           if i == 400 {
-            panic!("Server failed to start: {err}");
+            panic!("mock bitcoind server failed to start: {err}");
           }
         }
       }
@@ -159,7 +160,7 @@ impl From<OutPoint> for JsonOutPoint {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct FundRawTransactionOptions {
+pub struct FundRawTransactionOptions {
   #[serde(with = "bitcoin::amount::serde::as_btc::opt")]
   fee_rate: Option<Amount>,
   #[serde(skip_serializing_if = "Option::is_none")]

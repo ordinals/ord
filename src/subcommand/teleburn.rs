@@ -13,8 +13,8 @@ pub struct Output {
 
 impl Teleburn {
   pub(crate) fn run(self) -> SubcommandResult {
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       ethereum: self.destination.into(),
-    }))
+    })))
   }
 }

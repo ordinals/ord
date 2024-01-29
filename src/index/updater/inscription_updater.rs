@@ -188,10 +188,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        let unbound = current_input_value == 0
-          || curse == Some(Curse::UnrecognizedEvenField)
-          || inscription.payload.unrecognized_even_field;
-
         let offset = inscription
           .payload
           .pointer()
@@ -208,7 +204,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             parent: inscription.payload.parent(),
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.get(&offset).is_some(),
-            unbound,
+            unbound: current_input_value == 0
+              || curse == Some(Curse::UnrecognizedEvenField)
+              || inscription.payload.unrecognized_even_field,
             vindicated: curse.is_some() && jubilant,
           },
         });
@@ -411,13 +409,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         let inscription_number = if cursed {
           let number: i32 = self.cursed_inscription_count.try_into().unwrap();
           self.cursed_inscription_count += 1;
-
-          // because cursed numbers start at -1
           -(number + 1)
         } else {
           let number: i32 = self.blessed_inscription_count.try_into().unwrap();
           self.blessed_inscription_count += 1;
-
           number
         };
 

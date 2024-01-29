@@ -8,10 +8,6 @@
 </div>
 %% }
 <dl>
-%% if let Some(blockhash) = self.blockhash {
-  <dt>block</dt>
-  <dd><a href=/block/{{ blockhash }} class=monospace>{{ blockhash }}</a></dd>
-%% }
 %% if let Some(rune) = self.etching {
   <dt>etching</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>

@@ -15,6 +15,6 @@ impl Export {
     index.update()?;
     index.export(&self.tsv, self.include_addresses)?;
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }
