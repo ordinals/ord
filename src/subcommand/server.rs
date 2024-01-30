@@ -693,11 +693,11 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      let runes_balances = index.get_rune_balance_map()?;
+      let balances = index.get_rune_balance_map()?;
       Ok(if accept_json {
-        Json(runes_balances).into_response()
+        Json(balances).into_response()
       } else {
-        RuneBalancesHtml { runes_balances }
+        RuneBalancesHtml { balances }
           .page(server_config)
           .into_response()
       })
@@ -2831,7 +2831,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Sat range 0–1</title>.*<h1>Sat range 0–1</h1>
+      r".*<title>Sat Range 0–1</title>.*<h1>Sat Range 0–1</h1>
 <dl>
   <dt>value</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>

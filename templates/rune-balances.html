@@ -1,6 +1,6 @@
 <h1>Rune Balances</h1>
 <ul>
-%% for (rune, runes_balances) in &self.runes_balances {
+%% for (rune, balances) in &self.balances {
   <li>
     <a href=/rune/{{ rune }}>{{ rune }}</a>
     <table>
@@ -8,7 +8,7 @@
         <th>outpoint</th>
         <th>balance</th>
       </tr>
-      %% for (outpoint, balance) in runes_balances {
+      %% for (outpoint, balance) in balances {
       <tr>
         <td>
           <a href=/output/{{outpoint.txid}}:{{outpoint.vout}}>{{outpoint.txid}}:{{outpoint.vout}}</a>
