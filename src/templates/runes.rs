@@ -20,7 +20,7 @@ pub struct RunesBalancesHtml {
 
 impl PageContent for RunesBalancesHtml {
   fn title(&self) -> String {
-    "Runes balances".to_string()
+    "Runes Balances".to_string()
   }
 }
 

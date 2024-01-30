@@ -8,7 +8,7 @@ pub(crate) struct RangeHtml {
 
 impl PageContent for RangeHtml {
   fn title(&self) -> String {
-    format!("Sat range {}–{}", self.start, self.end)
+    format!("Sat Range {}–{}", self.start, self.end)
   }
 }
 
