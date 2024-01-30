@@ -1,24 +1,30 @@
 <h1>Rune Balances</h1>
-<ul>
-%% for (rune, balances) in &self.balances {
-  <li>
-    <a href=/rune/{{ rune }}>{{ rune }}</a>
-    <table>
-      <tr>
-        <th>outpoint</th>
-        <th>balance</th>
-      </tr>
-      %% for (outpoint, balance) in balances {
-      <tr>
-        <td>
-          <a href=/output/{{outpoint.txid}}:{{outpoint.vout}}>{{outpoint.txid}}:{{outpoint.vout}}</a>
-        </td>
-        <td>
-          {{ balance }}
-        </td>
-      </tr>
-      %% }
-    </table>
-  </li>
-%% }
-</ul>
+<table>
+  <tr>
+    <th>rune</th>
+    <th>balances</th>
+  </tr>
+  %% for (rune, balances) in &self.balances {
+  <tr>
+    <td><a href=/rune/{{ rune }}>{{ rune }}</a></td>
+    <td>
+      <table>
+        <tr>
+          <th>outpoint</th>
+          <th>balance</th>
+        </tr>
+        %% for (outpoint, balance) in balances {
+        <tr>
+          <td>
+            <a href=/output/{{ outpoint }}>{{ outpoint }}</a>
+          </td>
+          <td>
+            {{ balance }}
+          </td>
+        </tr>
+        %% }
+      </table>
+    </td>
+  </tr>
+  %% }
+</table>
