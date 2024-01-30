@@ -45,6 +45,7 @@ mod preview;
 mod range;
 mod rare;
 pub mod rune;
+pub mod rune_balances;
 pub mod runes;
 pub mod sat;
 pub mod status;

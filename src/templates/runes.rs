@@ -13,17 +13,6 @@ impl PageContent for RunesHtml {
   }
 }
 
-#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
-pub struct RunesBalancesHtml {
-  pub runes_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>>,
-}
-
-impl PageContent for RunesBalancesHtml {
-  fn title(&self) -> String {
-    "Runes Balances".to_string()
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;
