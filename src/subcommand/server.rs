@@ -815,20 +815,20 @@ impl Server {
 
       Ok(if accept_json {
         Json(TransactionJson {
-          transaction,
-          txid,
-          inscription_count,
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
         })
         .into_response()
       } else {
         TransactionHtml {
-          transaction,
-          txid,
-          inscription_count,
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
         }
         .page(server_config)
         .into_response()
