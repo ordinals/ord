@@ -221,6 +221,13 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
+    Index::open_with_sender(options, None)
+  }
+
+  pub fn open_with_sender(
+    options: &Options,
+    event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
+  ) -> Result<Self> {
     let client = options.bitcoin_rpc_client(None)?;
 
     let path = options
@@ -412,12 +419,8 @@ impl Index {
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
-      event_sender: None,
+      event_sender,
     })
-  }
-
-  pub fn set_event_sender(&mut self, sender: tokio::sync::mpsc::Sender<Event>) {
-    self.event_sender = Some(sender);
   }
 
   #[cfg(test)]
@@ -5667,43 +5670,77 @@ mod tests {
 
   #[test]
   fn event_sender_channel() {
-    for mut context in Context::configurations() {
-      let (sender, mut receiver) = tokio::sync::mpsc::channel::<Event>(1);
+    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
+    let context = Context::builder().event_sender(event_sender).build();
 
-      assert!(context.index.event_sender.is_none());
+    context.mine_blocks(1);
 
-      context.index.set_event_sender(sender);
-      context.mine_blocks(1);
-      let inscription = Inscription::default();
-      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription.to_witness())],
-        fee: COIN_VALUE,
-        ..Default::default()
-      });
+    let inscription = Inscription::default();
+    let create_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      fee: 0,
+      outputs: 1,
+      ..Default::default()
+    });
 
-      context.mine_blocks(1);
+    context.mine_blocks(1);
 
-      let inscription_id = InscriptionId { txid, index: 0 };
+    let inscription_id = InscriptionId {
+      txid: create_txid,
+      index: 0,
+    };
+    let create_event = event_receiver.blocking_recv().unwrap();
+    let expected_charms = if context.index.index_sats { 513 } else { 0 };
+    assert_eq!(
+      create_event,
+      Event::InscriptionCreated {
+        inscription_id,
+        location: Some(SatPoint {
+          outpoint: OutPoint {
+            txid: create_txid,
+            vout: 0
+          },
+          offset: 0
+        }),
+        sequence_number: 0,
+        block_height: 2,
+        charms: expected_charms,
+        parent_inscription_id: None
+      }
+    );
 
-      let event = receiver.blocking_recv().unwrap();
-      receiver.close();
+    // Transfer inscription
+    let transfer_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      fee: 0,
+      outputs: 1,
+      ..Default::default()
+    });
 
-      let expected_charms = if context.index.index_sats { 513 } else { 0 };
+    context.mine_blocks(1);
 
-      assert_eq!(
-        event,
-        Event::InscriptionCreated {
-          id: inscription_id,
-          location: Some(SatPoint {
-            outpoint: OutPoint { txid, vout: 0 },
-            offset: 0
-          }),
-          sequence_number: 0,
-          block_height: 2,
-          charms: expected_charms,
-          parent_inscription_id: None
-        }
-      );
-    }
+    let transfer_event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      transfer_event,
+      Event::InscriptionMoved {
+        block_height: 3,
+        inscription_id,
+        new_location: SatPoint {
+          outpoint: OutPoint {
+            txid: transfer_txid,
+            vout: 0
+          },
+          offset: 0
+        },
+        old_location: SatPoint {
+          outpoint: OutPoint {
+            txid: create_txid,
+            vout: 0
+          },
+          offset: 0
+        },
+        sequence_number: 0,
+      }
+    );
   }
 }

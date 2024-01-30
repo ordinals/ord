@@ -446,7 +446,7 @@ impl<'index> Updater<'_> {
       unbound_inscriptions,
       value_cache,
       value_receiver,
-      event_sender: &self.index.event_sender.clone(),
+      event_sender: self.index.event_sender.as_ref(),
     };
 
     if self.index.index_sats {

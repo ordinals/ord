@@ -4,6 +4,7 @@ pub(crate) struct ContextBuilder {
   args: Vec<OsString>,
   chain: Chain,
   tempdir: Option<TempDir>,
+  event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
 }
 
 impl ContextBuilder {
@@ -32,7 +33,8 @@ impl ContextBuilder {
     ];
 
     let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
-    let index = Index::open(&options)?;
+
+    let index = Index::open_with_sender(&options, self.event_sender)?;
     index.update().unwrap();
 
     Ok(Context {
@@ -61,6 +63,11 @@ impl ContextBuilder {
     self.tempdir = Some(tempdir);
     self
   }
+
+  pub(crate) fn event_sender(mut self, sender: tokio::sync::mpsc::Sender<Event>) -> Self {
+    self.event_sender = Some(sender);
+    self
+  }
 }
 
 pub(crate) struct Context {
@@ -76,6 +83,7 @@ impl Context {
       args: Vec::new(),
       tempdir: None,
       chain: Chain::Regtest,
+      event_sender: None,
     }
   }
 

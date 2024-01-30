@@ -41,7 +41,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) blessed_inscription_count: u64,
   pub(super) chain: Chain,
   pub(super) cursed_inscription_count: u64,
-  pub(super) event_sender: &'a Option<Sender<Event>>,
+  pub(super) event_sender: Option<&'a Sender<Event>>,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
@@ -396,11 +396,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionMoved {
-            id: inscription_id,
-            old_location: old_satpoint,
-            new_location: new_satpoint,
-            sequence_number,
             block_height: self.height,
+            inscription_id,
+            new_location: new_satpoint,
+            old_location: old_satpoint,
+            sequence_number,
           })?;
         }
 
@@ -501,12 +501,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
-            id: inscription_id,
-            location: (!unbound).then_some(new_satpoint),
-            charms,
-            sequence_number,
-            parent_inscription_id: parent,
             block_height: self.height,
+            charms,
+            inscription_id,
+            location: (!unbound).then_some(new_satpoint),
+            parent_inscription_id: parent,
+            sequence_number,
           })?;
         }
 

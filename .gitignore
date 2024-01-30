@@ -1,6 +1,7 @@
 /*.redb
 /.idea/
 /.vagrant
+/.vscode
 /docs/build
 /fuzz/artifacts
 /fuzz/corpus
@@ -10,4 +11,3 @@
 /target
 /test-times.txt
 /tmp
-/.vscode
