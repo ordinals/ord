@@ -11,6 +11,11 @@ pub(crate) struct Send {
     help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
+  #[arg(
+    long,
+    help = "Include OP_RETURN text in the transaction."
+  )]
+  pub(crate) op_return: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -85,7 +90,7 @@ impl Send {
       Target::Postage
     };
 
-    let unsigned_transaction = TransactionBuilder::new(
+    let mut tx_builder =  TransactionBuilder::new(
       satpoint,
       inscriptions,
       unspent_outputs,
@@ -95,8 +100,15 @@ impl Send {
       change,
       self.fee_rate,
       postage,
-    )
-    .build_transaction()?;
+    );
+
+    if let Some(op_return) = self.op_return {
+      // TODO: improve the check for checking byte-length
+      assert!(op_return.len() <= 80);
+      tx_builder = tx_builder.with_op_return(op_return);
+    }
+
+    let unsigned_transaction = tx_builder.build_transaction()?;
 
     let signed_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
