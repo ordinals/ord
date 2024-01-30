@@ -14,7 +14,7 @@ use {
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesBalancesHtml, RunesHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml,
       RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
       TransactionJson,
     },
@@ -697,7 +697,7 @@ impl Server {
       Ok(if accept_json {
         Json(runes_balances).into_response()
       } else {
-        RunesBalancesHtml { runes_balances }
+        RuneBalancesHtml { runes_balances }
           .page(server_config)
           .into_response()
       })
