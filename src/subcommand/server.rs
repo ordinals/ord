@@ -693,14 +693,13 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
+      let runes_balances = index.get_rune_balance_map()?;
       Ok(if accept_json {
-        Json(index.get_rune_balance_map()?).into_response()
+        Json(runes_balances).into_response()
       } else {
-        RunesBalancesHtml {
-          runes_balances: index.get_rune_balance_map()?,
-        }
-        .page(server_config)
-        .into_response()
+        RunesBalancesHtml { runes_balances }
+          .page(server_config)
+          .into_response()
       })
     })
   }
