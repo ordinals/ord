@@ -11,7 +11,7 @@ struct Allocation {
   balance: u128,
   divisibility: u8,
   id: u128,
-  open: Option<OpenEntry>,
+  mint: Option<MintEntry>,
   rune: Rune,
   spacers: u32,
   symbol: Option<char>,
@@ -123,21 +123,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 rune,
                 spacers: etching.spacers,
                 symbol: etching.symbol,
-                // todo: use then_some?
-                open: if let Some(open) = etching.open {
-                  Some(OpenEntry {
-                    deadline: open.deadline,
-                    end: open.term.map(|term| term + self.height),
-                    // todo: what happens if limit is over max limit?
-                    limit: if let Some(limit) = open.limit {
-                      Some(limit)
-                    } else {
-                      Some(runes::MAX_LIMIT)
-                    },
-                  })
-                } else {
-                  None
-                },
+                mint: etching.mint.map(|mint| MintEntry {
+                  deadline: mint.deadline,
+                  end: mint.term.map(|term| term + self.height),
+                  limit: mint.limit.map(|limit| limit.clamp(0, runes::MAX_LIMIT)),
+                }),
               }),
               Err(_) => None,
             }
@@ -160,18 +150,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if let Ok(key) = RuneId::try_from(id) {
             if let Some(entry) = self.id_to_entry.get(&key.store())? {
               let entry = RuneEntry::load(entry.value());
-              if let Some(open) = entry.open {
-                if let Some(end) = open.end {
+              if let Some(mint) = entry.mint {
+                if let Some(end) = mint.end {
                   if self.height >= end {
                     continue;
                   }
                 }
-                if let Some(deadline) = open.deadline {
+                if let Some(deadline) = mint.deadline {
                   if self.timestamp >= deadline {
                     continue;
                   }
                 }
-                mintable.insert(id, open.limit.unwrap_or(u128::MAX));
+                mintable.insert(id, mint.limit.unwrap_or(u128::MAX));
               }
             }
           }
@@ -277,7 +267,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         balance,
         divisibility,
         id,
-        open,
+        mint,
         rune,
         spacers,
         symbol,
@@ -299,7 +289,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             etching: txid,
             mints: 0,
             number,
-            open: open.and_then(|open| (!burn).then_some(open)),
+            mint: mint.and_then(|mint| (!burn).then_some(mint)),
             rune,
             spacers,
             supply: u128::max_value() - balance,

@@ -33,9 +33,9 @@ pub struct RuneEntry {
   pub burned: u128,
   pub divisibility: u8,
   pub etching: Txid,
+  pub mint: Option<MintEntry>,
   pub mints: u64,
   pub number: u64,
-  pub open: Option<OpenEntry>,
   pub rune: Rune,
   pub spacers: u32,
   pub supply: u128,
@@ -47,9 +47,9 @@ pub(super) type RuneEntryValue = (
   u128,                   // burned
   u8,                     // divisibility
   (u128, u128),           // etching
+  Option<MintEntryValue>, // mint parameters
   u64,                    // mints
   u64,                    // number
-  Option<OpenEntryValue>, // open etching parameters
   u128,                   // rune
   u32,                    // spacers
   u128,                   // supply
@@ -57,15 +57,14 @@ pub(super) type RuneEntryValue = (
   u32,                    // timestamp
 );
 
-// todo: rename to mint
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
-pub(crate) struct OpenEntry {
-  pub(crate) deadline: Option<u32>,
-  pub(crate) end: Option<u32>,
-  pub(crate) limit: Option<u128>,
+pub struct MintEntry {
+  pub deadline: Option<u32>,
+  pub end: Option<u32>,
+  pub limit: Option<u128>,
 }
 
-type OpenEntryValue = (
+type MintEntryValue = (
   Option<u32>,  // deadline
   Option<u32>,  // end
   Option<u128>, // limit
@@ -86,9 +85,9 @@ impl Default for RuneEntry {
       burned: 0,
       divisibility: 0,
       etching: Txid::all_zeros(),
+      mint: None,
       mints: 0,
       number: 0,
-      open: None,
       rune: Rune(0),
       spacers: 0,
       supply: 0,
@@ -106,9 +105,9 @@ impl Entry for RuneEntry {
       burned,
       divisibility,
       etching,
+      mint,
       mints,
       number,
-      open,
       rune,
       spacers,
       supply,
@@ -129,13 +128,13 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
-      mints,
-      number,
-      open: open.map(|(deadline, end, limit)| OpenEntry {
+      mint: mint.map(|(deadline, end, limit)| MintEntry {
         deadline,
         end,
         limit,
       }),
+      mints,
+      number,
       rune: Rune(rune),
       spacers,
       supply,
@@ -161,15 +160,15 @@ impl Entry for RuneEntry {
           ]),
         )
       },
-      self.mints,
-      self.number,
-      self.open.map(
-        |OpenEntry {
+      self.mint.map(
+        |MintEntry {
            deadline,
            end,
            limit,
          }| (deadline, end, limit),
       ),
+      self.mints,
+      self.number,
       self.rune.0,
       self.spacers,
       self.supply,

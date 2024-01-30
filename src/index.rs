@@ -32,7 +32,7 @@ use {
 
 pub use self::entry::RuneEntry;
 
-pub(crate) use entry::OpenEntry;
+pub(crate) use entry::MintEntry;
 
 pub(crate) mod entry;
 mod fetcher;

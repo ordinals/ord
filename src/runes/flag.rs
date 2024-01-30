@@ -1,6 +1,6 @@
 pub(super) enum Flag {
   Etch = 0,
-  Open = 1,
+  Mint = 1,
   #[allow(unused)]
   Burn = 127,
 }

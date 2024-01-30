@@ -14,24 +14,24 @@
   <dt>etching transaction index</dt>
   <dd>{{ self.id.index }}</dd>
 
-  <dt>open</dt>
-%% if let Some(open) = self.entry.open {
+  <dt>mint</dt>
+%% if let Some(mint) = self.entry.mint {
   <dd>
     <dl>
       <dt>deadline</dt>
-%% if let Some(deadline) = open.deadline {
+%% if let Some(deadline) = mint.deadline {
       <dd><time>{{ timestamp(deadline) }}</time></dd>
 %% } else {
       <dd>none</dd>
 %% }
       <dt>end</dt>
-%% if let Some(end) = open.end {
+%% if let Some(end) = mint.end {
       <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
 %% } else {
       <dd>none</dd>
 %% }
       <dt>limit</dt>
-%% if let Some(limit) = open.limit {
+%% if let Some(limit) = mint.limit {
       <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
 %% } else {
       <dd>none</dd>

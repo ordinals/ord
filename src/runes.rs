@@ -3,9 +3,12 @@ use {
   super::*,
 };
 
+// todo:
+// - test that limits over max limit are clamped
+
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {etching::Etching, open::Open, pile::Pile, spaced_rune::SpacedRune};
+pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
 
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 pub const MAX_DIVISIBILITY: u8 = 38;
@@ -15,7 +18,7 @@ const RESERVED: u128 = 6402364363415443603228541259936211926;
 mod edict;
 mod etching;
 mod flag;
-mod open;
+mod mint;
 mod pile;
 mod rune;
 mod rune_id;
