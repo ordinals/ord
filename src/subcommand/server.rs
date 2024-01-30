@@ -806,31 +806,33 @@ impl Server {
     Path(txid): Path<Txid>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
-    let transaction = index
-      .get_transaction(txid)?
-      .ok_or_not_found(|| format!("transaction {txid}"))?;
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
 
-    let inscription_count = index.inscription_count(txid)?;
+      let inscription_count = index.inscription_count(txid)?;
 
-    Ok(if accept_json {
-      Json(TransactionJson {
-        transaction,
-        txid,
-        inscription_count,
-        chain: server_config.chain,
-        etching: index.get_etching(txid)?,
+      Ok(if accept_json {
+        Json(TransactionJson {
+          transaction,
+          txid,
+          inscription_count,
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+        })
+        .into_response()
+      } else {
+        TransactionHtml {
+          transaction,
+          txid,
+          inscription_count,
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+        }
+        .page(server_config)
+        .into_response()
       })
-      .into_response()
-    } else {
-      TransactionHtml {
-        transaction,
-        txid,
-        inscription_count,
-        chain: server_config.chain,
-        etching: index.get_etching(txid)?,
-      }
-      .page(server_config)
-      .into_response()
     })
   }
 
