@@ -4,15 +4,10 @@ use {
 };
 
 // todo:
-// - test that limits over max limit are clamped
-//
-// failures:
-//     runes::tests::limit_over_max_limit_is_ignored
-//     runes::tests::omitted_limit_defaults_to_max_limit
-//     runes::tests::open_etchings_with_term_zero_cannot_be_minted
-//     runes::tests::runes_can_be_etched_and_claimed_in_the_same_transaction
-//     runes::tests::transactions_cannot_claim_more_than_limit
-//     subcommand::server::tests::runes_are_displayed_on_rune_page
+// runes::tests::omitted_limit_defaults_to_max_limit
+// runes::tests::open_etchings_with_term_zero_cannot_be_minted
+// runes::tests::runes_can_be_etched_and_claimed_in_the_same_transaction
+// runes::tests::transactions_cannot_claim_more_than_limit
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
