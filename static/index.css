@@ -150,16 +150,6 @@ ul {
   text-align: right;
 }
 
-.full-width-table {
-  position: absolute;
-  right: 0;
-  width: 100vw;
-}
-
-.full-width {
-  width: 100%;
-}
-
 span.common,
 span.uncommon,
 span.rare,

@@ -48,20 +48,20 @@ mod tests {
     assert_regex_match!(
       RuneBalancesHtml { balances }.to_string(),
       "<h1>Rune Balances</h1>
-<table class=full-width-table>
+<table>
   <tr>
     <th>rune</th>
     <th>balances</th>
   </tr>
   <tr>
-    <td class=center><a href=/rune/AAAAAAAAAAAAA>.*</a></td>
+    <td><a href=/rune/AAAAAAAAAAAAA>.*</a></td>
     <td>
-      <table class=full-width>
+      <table>
         <tr>
           <td class=monospace>
             <a href=/output/1111111111111111111111111111111111111111111111111111111111111111:1>.*</a>
           </td>
-          <td class=\"monospace right-align\">
+          <td class=monospace>
             1000
           </td>
         </tr>
@@ -69,14 +69,14 @@ mod tests {
     </td>
   </tr>
   <tr>
-    <td class=center><a href=/rune/AAAAAAAAAAAAB>.*</a></td>
+    <td><a href=/rune/AAAAAAAAAAAAB>.*</a></td>
     <td>
-      <table class=full-width>
+      <table>
         <tr>
           <td class=monospace>
             <a href=/output/2222222222222222222222222222222222222222222222222222222222222222:2>.*</a>
           </td>
-          <td class=\"monospace right-align\">
+          <td class=monospace>
             12345678
           </td>
         </tr>

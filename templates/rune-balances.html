@@ -1,20 +1,20 @@
 <h1>Rune Balances</h1>
-<table class=full-width-table>
+<table>
   <tr>
     <th>rune</th>
     <th>balances</th>
   </tr>
 %% for (rune, balances) in &self.balances {
   <tr>
-    <td class=center><a href=/rune/{{ rune }}>{{ rune }}</a></td>
+    <td><a href=/rune/{{ rune }}>{{ rune }}</a></td>
     <td>
-      <table class=full-width>
+      <table>
 %% for (outpoint, balance) in balances {
         <tr>
           <td class=monospace>
             <a href=/output/{{ outpoint }}>{{ outpoint }}</a>
           </td>
-          <td class="monospace right-align">
+          <td class=monospace>
             {{ balance }}
           </td>
         </tr>
