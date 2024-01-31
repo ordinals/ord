@@ -86,22 +86,18 @@ impl<'de> Deserialize<'de> for Decimal {
 
 impl Display for Decimal {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let decimal = self.value.to_string();
+    let magnitude = 10u128.pow(self.scale.into());
 
-    if self.scale == 0 {
-      write!(f, "{}", decimal)
-    } else {
-      let decimal_point = decimal.len().saturating_sub(self.scale.into());
+    let integer = self.value / magnitude;
+    let fraction = self.value % magnitude;
 
-      let integer = &decimal[..decimal_point];
-      let fractional = &decimal[decimal_point..].trim_end_matches('0');
+    write!(f, "{integer}")?;
 
-      if integer.is_empty() {
-        write!(f, "0.{}", fractional)
-      } else {
-        write!(f, "{}.{}", integer, fractional)
-      }
+    if fraction > 0 {
+      write!(f, ".{fraction}")?;
     }
+
+    Ok(())
   }
 }
 
