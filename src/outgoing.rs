@@ -107,6 +107,7 @@ mod tests {
     #[track_caller]
     fn case(s: &str, outgoing: Outgoing) {
       assert_eq!(s.parse::<Outgoing>().unwrap(), outgoing);
+      assert_eq!(s, outgoing.to_string());
     }
 
     case(
