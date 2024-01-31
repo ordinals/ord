@@ -1,6 +1,7 @@
 use {
   super::*,
   crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
+  base64::{engine::general_purpose::STANDARD as base64_standard, Engine as _},
   bitcoin::psbt::Psbt,
 };
 
@@ -108,19 +109,21 @@ impl Send {
       }
     };
 
-    let txid = if !self.dry_run {
+    let txid = if self.dry_run {
+      unsigned_transaction.txid()
+    } else {
       let signed_tx = bitcoin_client
         .sign_raw_transaction_with_wallet(&unsigned_transaction.clone(), None, None)?
         .hex;
 
       bitcoin_client.send_raw_transaction(&signed_tx)?
-    } else {
-      unsigned_transaction.txid()
     };
+
+    let psbt = Psbt::from_unsigned_tx(unsigned_transaction.clone())?;
 
     Ok(Some(Box::new(Output {
       txid,
-      psbt: Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize_hex(),
+      psbt: base64_standard.encode(psbt.serialize()),
       outgoing: self.outgoing,
       fee: unsigned_transaction
         .input
