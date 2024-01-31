@@ -1,20 +1,22 @@
-use {
-  super::*,
-  serde::{Deserialize, Deserializer, Serialize, Serializer},
-};
+use super::*;
 
-#[derive(Debug, PartialEq, Clone, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Outgoing {
-  #[serde(deserialize_with = "deserialize_amount")]
   Amount(Amount),
   InscriptionId(InscriptionId),
   SatPoint(SatPoint),
-  #[serde(deserialize_with = "deserialize_rune")]
-  Rune {
-    decimal: Decimal,
-    rune: SpacedRune,
-  },
+  Rune { decimal: Decimal, rune: SpacedRune },
+}
+
+impl Display for Outgoing {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::Amount(amount) => amount.fmt(f),
+      Self::InscriptionId(inscription_id) => inscription_id.fmt(f),
+      Self::SatPoint(satpoint) => satpoint.fmt(f),
+      Self::Rune { decimal, rune } => write!(f, "{decimal} {rune}"),
+    }
+  }
 }
 
 impl FromStr for Outgoing {
@@ -83,45 +85,17 @@ impl Serialize for Outgoing {
   where
     S: Serializer,
   {
-    match *self {
-      Outgoing::Amount(ref amount) => {
-        serializer.serialize_newtype_variant("Outgoing", 0, "amount", &amount.to_string())
-      }
-      Outgoing::InscriptionId(ref id) => {
-        serializer.serialize_newtype_variant("Outgoing", 1, "inscription_id", &id.to_string())
-      }
-      Outgoing::SatPoint(ref satpoint) => {
-        serializer.serialize_newtype_variant("Outgoing", 2, "sat_point", &satpoint.to_string())
-      }
-      Outgoing::Rune { decimal, rune } => serializer.serialize_newtype_variant(
-        "Outgoing",
-        3,
-        "rune",
-        &format!("{} {}", decimal, rune),
-      ),
-    }
+    serializer.collect_str(self)
   }
 }
 
-fn deserialize_amount<'de, D>(deserializer: D) -> Result<Amount, D::Error>
-where
-  D: Deserializer<'de>,
-{
-  let s = String::deserialize(deserializer)?;
-  Amount::from_str(&s).map_err(serde::de::Error::custom)
-}
-
-fn deserialize_rune<'de, D>(deserializer: D) -> Result<(Decimal, SpacedRune), D::Error>
-where
-  D: Deserializer<'de>,
-{
-  let s = String::deserialize(deserializer)?;
-  let (decimal, rune) = s.split_once(' ').unwrap_or_default();
-
-  Ok((
-    Decimal::from_str(decimal).map_err(serde::de::Error::custom)?,
-    SpacedRune::from_str(rune).map_err(serde::de::Error::custom)?,
-  ))
+impl<'de> Deserialize<'de> for Outgoing {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+  }
 }
 
 #[cfg(test)]
