@@ -4938,7 +4938,7 @@ mod tests {
   }
 
   #[test]
-  fn limit_over_max_limit_is_ignored() {
+  fn limit_over_max_is_clamped() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -4976,13 +4976,18 @@ mod tests {
           etching,
           rune: Rune(RUNE),
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(MAX_LIMIT),
+            deadline: None,
+            end: None,
+          }),
           ..Default::default()
         },
       )],
       [],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -5007,10 +5012,17 @@ mod tests {
           etching,
           rune: Rune(RUNE),
           timestamp: 2,
+          mints: 1,
+          supply: MAX_LIMIT,
+          mint: Some(MintEntry {
+            limit: Some(MAX_LIMIT),
+            deadline: None,
+            end: None,
+          }),
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, MAX_LIMIT)])],
     );
   }
 
