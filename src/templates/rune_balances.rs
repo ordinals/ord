@@ -62,7 +62,7 @@ mod tests {
       <table>
         <tr>
           <td class=monospace>
-            <a href=/output/1111111111111111111111111111111111111111111111111111111111111111:1>.*</a>
+            <a href=/output/1{64}:1>1{64}:1</a>
           </td>
           <td class=monospace>
             1000
@@ -77,7 +77,7 @@ mod tests {
       <table>
         <tr>
           <td class=monospace>
-            <a href=/output/2222222222222222222222222222222222222222222222222222222222222222:2>.*</a>
+            <a href=/output/2{64}:2>2{64}:2</a>
           </td>
           <td class=monospace>
             12345678
