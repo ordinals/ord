@@ -2383,6 +2383,21 @@ mod tests {
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
+<dt>balances</dt>
+<table>
+  <tr>
+    <th>outpoint</th>
+    <th>balance</th>
+  </tr>
+    <tr>
+    <td>
+      <a href=/output/{txid}:0>{txid}:0</a>
+    </td>
+    <td>
+      340282366920938463463374607431768211455\u{00A0}%
+    </td>
+  </tr>
+  </table>
 </dl>
 .*"
       ),
