@@ -5,11 +5,11 @@ use {
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     Network,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
   http::StatusCode,
   inscribe::ParentInfo,
-  miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
+  miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
   transaction_builder::TransactionBuilder,
 };
@@ -32,21 +32,7 @@ impl Wallet {
       client.load_wallet(&self.name)?;
     }
 
-    let descriptors = client.list_descriptors(None)?.descriptors;
-
-    let tr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("tr("))
-      .count();
-
-    let rawtr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-      .count();
-
-    if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.name);
-    }
+    self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
 
     Ok(client)
   }
@@ -382,6 +368,64 @@ impl Wallet {
     self.options.chain()
   }
 
+  pub(crate) fn exists(&self) -> Result<bool> {
+    Ok(
+      self
+        .options
+        .bitcoin_rpc_client(None)?
+        .list_wallet_dir()?
+        .iter()
+        .any(|name| name == &self.name),
+    )
+  }
+
+  pub(crate) fn check_descriptors(&self, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
+    let tr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      .count();
+
+    let rawtr = descriptors
+      .iter()
+      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      .count();
+
+    if tr != 2 || descriptors.len() != 2 + rawtr {
+      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.name);
+    }
+
+    Ok(descriptors)
+  }
+
+  pub(crate) fn initialize_from_descriptors(&self, descriptors: Vec<Descriptor>) -> Result {
+    let client = check_version(self.options.bitcoin_rpc_client(Some(self.name.clone()))?)?;
+
+    let descriptors = self.check_descriptors(descriptors)?;
+
+    client.create_wallet(&self.name, None, Some(true), None, None)?;
+
+    for descriptor in descriptors {
+      client.import_descriptors(ImportDescriptors {
+        descriptor: descriptor.desc,
+        timestamp: descriptor.timestamp,
+        active: Some(true),
+        range: descriptor.range.map(|(start, end)| {
+          (
+            usize::try_from(start).unwrap_or(0),
+            usize::try_from(end).unwrap_or(0),
+          )
+        }),
+        next_index: descriptor
+          .next
+          .map(|next| usize::try_from(next).unwrap_or(0)),
+        internal: descriptor.internal,
+        label: None,
+      })?;
+    }
+
+    Ok(())
+  }
+
   pub(crate) fn initialize(&self, seed: [u8; 64]) -> Result {
     check_version(self.options.bitcoin_rpc_client(None)?)?.create_wallet(
       &self.name,
@@ -441,13 +485,13 @@ impl Wallet {
     let mut key_map = std::collections::HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
-    let desc = Descriptor::new_tr(public_key, None)?;
+    let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
     self
       .options
       .bitcoin_rpc_client(Some(self.name.clone()))?
       .import_descriptors(ImportDescriptors {
-        descriptor: desc.to_string_with_secret(&key_map),
+        descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
         range: None,

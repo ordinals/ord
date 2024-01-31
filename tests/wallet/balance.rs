@@ -4,8 +4,7 @@ use {super::*, ord::subcommand::wallet::balance::Output};
 fn wallet_balance() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -39,8 +38,7 @@ fn wallet_balance() {
 fn inscribed_utxos_are_deducted_from_cardinal() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--enable-json-api"]);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -81,11 +79,8 @@ fn runic_utxos_are_deducted_from_cardinal() {
     .network(Network::Regtest)
     .build();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
-    &["--regtest", "--index-runes"],
-    &["--enable-json-api"],
-  );
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -122,7 +117,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
 #[test]
 fn unsynced_wallet_fails_with_unindexed_output() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn_with_json_api(&bitcoin_rpc_server);
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -142,11 +137,8 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     }
   );
 
-  let no_sync_ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
-    &[],
-    &["--no-sync", "--enable-json-api"],
-  );
+  let no_sync_ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--no-sync"]);
 
   inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 

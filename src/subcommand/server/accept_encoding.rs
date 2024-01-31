@@ -57,7 +57,7 @@ mod tests {
     let encodings = AcceptEncoding::from_request_parts(
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
+        json_api_enabled: false,
         decompress: false,
         ..Default::default()
       }),
@@ -78,7 +78,7 @@ mod tests {
     let encodings = AcceptEncoding::from_request_parts(
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
+        json_api_enabled: false,
         decompress: false,
         ..Default::default()
       }),
@@ -107,7 +107,7 @@ mod tests {
     let encodings = AcceptEncoding::from_request_parts(
       &mut req.into_parts().0,
       &Arc::new(ServerConfig {
-        is_json_api_enabled: false,
+        json_api_enabled: false,
         decompress: false,
         ..Default::default()
       }),

@@ -35,10 +35,10 @@ impl Batchfile {
       .inscriptions
       .iter()
       .any(|entry| entry.destination.is_some())
-      && self.mode == Mode::SharedOutput
+      && (self.mode == Mode::SharedOutput || self.mode == Mode::SameSat)
     {
       return Err(anyhow!(
-        "individual inscription destinations cannot be set in shared-output mode"
+        "individual inscription destinations cannot be set in shared-output or same-sat mode"
       ));
     }
 

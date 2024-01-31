@@ -14,8 +14,9 @@ use {
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml,
-      SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml, TransactionJson,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml,
+      RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
+      TransactionJson,
     },
   },
   axum::{
@@ -162,8 +163,8 @@ pub struct Server {
   pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
-  #[arg(long, short = 'j', help = "Enable JSON API.")]
-  pub(crate) enable_json_api: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
   #[arg(
     long,
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
@@ -206,7 +207,7 @@ impl Server {
         csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        is_json_api_enabled: self.enable_json_api,
+        json_api_enabled: !self.disable_json_api,
         decompress: self.decompress,
       });
 
@@ -274,6 +275,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
@@ -685,6 +687,23 @@ impl Server {
     })
   }
 
+  async fn runes_balances(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let balances = index.get_rune_balance_map()?;
+      Ok(if accept_json {
+        Json(balances).into_response()
+      } else {
+        RuneBalancesHtml { balances }
+          .page(server_config)
+          .into_response()
+      })
+    })
+  }
+
   async fn home(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -805,11 +824,11 @@ impl Server {
         .into_response()
       } else {
         TransactionHtml {
-          transaction,
-          txid,
-          inscription_count,
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
         }
         .page(server_config)
         .into_response()
@@ -1665,7 +1684,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 
@@ -1687,7 +1706,7 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest", "--index-runes"],
-        &["--enable-json-api"],
+        &[],
       )
     }
 
@@ -2812,7 +2831,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Sat range 0–1</title>.*<h1>Sat range 0–1</h1>
+      r".*<title>Sat Range 0–1</title>.*<h1>Sat Range 0–1</h1>
 <dl>
   <dt>value</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
