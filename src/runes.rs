@@ -5,12 +5,8 @@ use {
 
 // todo:
 // - test that limits over max limit are clamped
+//
 // failures:
-//     runes::runestone::tests::decipher_etching_with_all_etching_tags
-//     runes::runestone::tests::decipher_etching_with_limit
-//     runes::runestone::tests::decipher_etching_with_term
-//     runes::runestone::tests::encipher
-//     runes::tests::etched_rune_open_etching_parameters_are_unset_for_burned_runestone
 //     runes::tests::limit_over_max_limit_is_ignored
 //     runes::tests::omitted_limit_defaults_to_max_limit
 //     runes::tests::open_etchings_with_term_zero_cannot_be_minted
