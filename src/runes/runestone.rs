@@ -587,7 +587,10 @@ mod tests {
           output: 3,
         }],
         etching: Some(Etching {
-          term: Some(4),
+          mint: Some(Mint {
+            term: Some(4),
+            ..Default::default()
+          }),
           ..Default::default()
         }),
         ..Default::default()
@@ -615,7 +618,10 @@ mod tests {
           output: 3,
         }],
         etching: Some(Etching {
-          limit: Some(4),
+          mint: Some(Mint {
+            limit: Some(4),
+            ..Default::default()
+          }),
           ..Default::default()
         }),
         ..Default::default()
@@ -898,11 +904,13 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          deadline: Some(7),
+          mint: Some(Mint {
+            deadline: Some(7),
+            term: Some(2),
+            limit: Some(3),
+          }),
           divisibility: 1,
           symbol: Some('a'),
-          term: Some(2),
-          limit: Some(3),
           spacers: 5,
         }),
         ..Default::default()
@@ -1223,12 +1231,14 @@ mod tests {
       Vec::new(),
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
-        deadline: Some(10000),
+        mint: Some(Mint {
+          deadline: Some(10000),
+          limit: Some(1),
+          term: Some(1),
+        }),
         rune: Some(Rune(0)),
         symbol: Some('$'),
-        limit: Some(1),
         spacers: 1,
-        term: Some(1),
       }),
       19,
     );
@@ -1501,11 +1511,13 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 1,
-          deadline: Some(2),
-          limit: Some(3),
+          mint: Some(Mint {
+            deadline: Some(2),
+            limit: Some(3),
+            term: Some(5),
+          }),
           symbol: Some('@'),
           rune: Some(Rune(4)),
-          term: Some(5),
           spacers: 6,
         }),
         edicts: vec![
@@ -1556,11 +1568,13 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          deadline: None,
-          limit: None,
+          mint: Some(Mint {
+            deadline: None,
+            limit: None,
+            term: None,
+          }),
           symbol: None,
           rune: Some(Rune(3)),
-          term: None,
           spacers: 0,
         }),
         burn: false,
@@ -1573,11 +1587,13 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          deadline: None,
-          limit: None,
+          mint: Some(Mint {
+            deadline: None,
+            limit: None,
+            term: None,
+          }),
           symbol: None,
           rune: None,
-          term: None,
           spacers: 0,
         }),
         burn: false,

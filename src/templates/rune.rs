@@ -29,7 +29,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 100,
           number: 25,
-          open: Some(OpenEntry {
+          mint: Some(MintEntry {
             end: Some(11),
             limit: Some(1000000001),
             deadline: Some(7),
@@ -93,11 +93,13 @@ mod tests {
       RuneHtml {
         entry: RuneEntry {
           burned: 123456789123456789,
-          deadline: None,
+          mint: Some(MintEntry {
+            deadline: None,
+            end: None,
+            limit: None,
+          }),
           divisibility: 9,
-          end: None,
           etching: Txid::all_zeros(),
-          limit: None,
           mints: 0,
           number: 25,
           rune: Rune(u128::max_value()),

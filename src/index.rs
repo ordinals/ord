@@ -30,9 +30,7 @@ use {
   },
 };
 
-pub use self::entry::RuneEntry;
-
-pub(crate) use entry::MintEntry;
+pub use {self::entry::RuneEntry, entry::MintEntry};
 
 pub(crate) mod entry;
 mod fetcher;

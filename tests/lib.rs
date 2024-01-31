@@ -20,7 +20,7 @@ use {
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
       sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
-    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
+    Edict, InscriptionId, MintEntry, Rune, RuneEntry, RuneId, Runestone, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,

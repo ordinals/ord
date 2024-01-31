@@ -57,7 +57,7 @@ pub(super) type RuneEntryValue = (
   u32,                    // timestamp
 );
 
-#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize, Default)]
 pub struct MintEntry {
   pub deadline: Option<u32>,
   pub end: Option<u32>,
@@ -445,15 +445,17 @@ mod tests {
   fn rune_entry() {
     let entry = RuneEntry {
       burned: 1,
-      deadline: Some(2),
       divisibility: 3,
-      end: Some(4),
       etching: Txid::from_byte_array([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      limit: Some(5),
+      mint: Some(MintEntry {
+        deadline: Some(2),
+        end: Some(4),
+        limit: Some(5),
+      }),
       mints: 11,
       number: 6,
       rune: Rune(7),
@@ -465,15 +467,14 @@ mod tests {
 
     let value = (
       1,
-      Some(2),
       3,
-      Some(4),
       (
         0x0F0E0D0C0B0A09080706050403020100,
         0x1F1E1D1C1B1A19181716151413121110,
       ),
-      Some(5),
-      (11, 6),
+      Some((Some(2), Some(4), Some(5))),
+      11,
+      6,
       7,
       8,
       9,
