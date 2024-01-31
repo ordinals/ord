@@ -4,7 +4,7 @@
     <th>rune</th>
     <th>balances</th>
   </tr>
-  %% for (rune, balances) in &self.balances {
+%% for (rune, balances) in &self.balances {
   <tr>
     <td><a href=/rune/{{ rune }}>{{ rune }}</a></td>
     <td>
@@ -13,7 +13,7 @@
           <th>outpoint</th>
           <th>balance</th>
         </tr>
-        %% for (outpoint, balance) in balances {
+%% for (outpoint, balance) in balances {
         <tr>
           <td>
             <a href=/output/{{ outpoint }}>{{ outpoint }}</a>
@@ -22,9 +22,9 @@
             {{ balance }}
           </td>
         </tr>
-        %% }
+%% }
       </table>
     </td>
   </tr>
-  %% }
+%% }
 </table>

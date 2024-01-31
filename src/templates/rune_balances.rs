@@ -54,7 +54,7 @@ mod tests {
     <th>balances</th>
   </tr>
   <tr>
-    <td><a href=/rune/AAAAAAAAAAAA>.*</a></td>
+    <td><a href=/rune/AAAAAAAAAAAAA>.*</a></td>
     <td>
       <table>
         <tr>
@@ -73,7 +73,7 @@ mod tests {
     </td>
   </tr>
   <tr>
-    <td><a href=/rune/AAAAAAAAAAB>.*</a></td>
+    <td><a href=/rune/AAAAAAAAAAAAB>.*</a></td>
     <td>
       <table>
         <tr>
