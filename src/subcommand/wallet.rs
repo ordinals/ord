@@ -4,12 +4,14 @@ use {
     inscribe::{Batch, Batchfile, Mode},
     Wallet,
   },
+  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   reqwest::Url,
 };
 
 pub mod balance;
 pub mod cardinals;
 pub mod create;
+pub mod dump;
 pub mod etch;
 pub mod inscribe;
 pub mod inscriptions;
@@ -43,6 +45,8 @@ pub(crate) enum Subcommand {
   Balance,
   #[command(about = "Create new wallet")]
   Create(create::Create),
+  #[command(about = "Dump wallet descriptors")]
+  Dump,
   #[command(about = "Create rune")]
   Etch(etch::Etch),
   #[command(about = "Create inscription")]
@@ -77,6 +81,7 @@ impl WalletCommand {
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Create(create) => create.run(wallet),
+      Subcommand::Dump => dump::run(wallet),
       Subcommand::Etch(etch) => etch.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
