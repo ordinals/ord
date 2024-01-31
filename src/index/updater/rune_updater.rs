@@ -117,7 +117,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: u128::max_value(),
+                balance: if let Some(mint) = etching.mint {
+                  if mint.term == Some(0) {
+                    0
+                  } else {
+                    mint.limit.unwrap_or(runes::MAX_LIMIT)
+                  }
+                } else {
+                  u128::max_value()
+                },
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
                 rune,
