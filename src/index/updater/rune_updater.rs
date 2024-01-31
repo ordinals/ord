@@ -310,7 +310,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             rune,
             spacers,
             supply: if let Some(limit) = limit {
-              if end == Some(self.height) {
+              if end == Some(self.height)
+                || (deadline.is_some() && self.timestamp >= deadline.unwrap())
+              {
                 0
               } else {
                 limit
