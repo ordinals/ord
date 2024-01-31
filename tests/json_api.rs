@@ -555,6 +555,7 @@ fn get_runes() {
         index: 1
       },
       parent: None,
+      balances: BTreeMap::new(),
     }
   );
 

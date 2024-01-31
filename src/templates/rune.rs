@@ -6,6 +6,7 @@ pub type RuneJson = RuneHtml;
 pub struct RuneHtml {
   pub entry: RuneEntry,
   pub id: RuneId,
+  pub balances: BTreeMap<OutPoint, u128>,
   pub parent: Option<InscriptionId>,
 }
 
@@ -46,6 +47,7 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
+        balances: BTreeMap::new(),
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <iframe .* src=/preview/0{64}i0></iframe>
@@ -109,6 +111,7 @@ mod tests {
           index: 9,
         },
         parent: None,
+        balances: BTreeMap::new(),
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>

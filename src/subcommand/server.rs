@@ -655,13 +655,29 @@ impl Server {
       let (id, entry, parent) = index
         .rune(spaced_rune.rune)?
         .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+      let runes_balances = index.get_rune_balance_map()?;
+      let balances = runes_balances
+        .get(&spaced_rune.rune)
+        .cloned()
+        .unwrap_or_default();
 
       Ok(if accept_json {
-        Json(RuneJson { entry, id, parent }).into_response()
+        Json(RuneJson {
+          entry,
+          id,
+          balances,
+          parent,
+        })
+        .into_response()
       } else {
-        RuneHtml { entry, id, parent }
-          .page(server_config)
-          .into_response()
+        RuneHtml {
+          entry,
+          id,
+          balances,
+          parent,
+        }
+        .page(server_config)
+        .into_response()
       })
     })
   }

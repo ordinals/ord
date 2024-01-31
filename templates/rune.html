@@ -43,4 +43,23 @@
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
+%% if *(&self.balances.len()) as i32 > 0 {
+<dt>balances</dt>
+<table>
+  <tr>
+    <th>outpoint</th>
+    <th>balance</th>
+  </tr>
+  %% for (outpoint, balance) in &self.balances {
+  <tr>
+    <td>
+      <a href=/output/{{ outpoint.txid }}:{{ outpoint.vout }}>{{ outpoint.txid }}:{{ outpoint.vout }}</a>
+    </td>
+    <td>
+      {{ Pile{ amount: *balance, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}
+    </td>
+  </tr>
+  %% }
+</table>
+%% }
 </dl>
