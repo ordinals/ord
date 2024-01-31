@@ -5060,7 +5060,7 @@ mod tests {
           etching,
           rune: Rune(RUNE),
           mint: Some(MintEntry {
-            limit: Some(MAX_LIMIT),
+            limit: None,
             end: Some(3),
             ..Default::default()
           }),

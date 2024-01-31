@@ -161,7 +161,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                     continue;
                   }
                 }
-                mintable.insert(id, mint.limit.unwrap_or(u128::MAX));
+                mintable.insert(id, mint.limit.unwrap_or(runes::MAX_LIMIT));
               }
             }
           }
