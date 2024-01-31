@@ -193,7 +193,8 @@ mod tests {
   fn to_string() {
     #[track_caller]
     fn case(decimal: Decimal, string: &str) {
-      assert_eq!(decimal.to_string(), string,);
+      assert_eq!(decimal.to_string(), string);
+      assert_eq!(decimal, string.parse::<Decimal>().unwrap());
     }
 
     case(Decimal { value: 1, scale: 0 }, "1");
@@ -228,10 +229,10 @@ mod tests {
     );
     case(
       Decimal {
-        value: 123456000,
+        value: 123456789,
         scale: 6,
       },
-      "123.456",
+      "123.456789",
     );
   }
 }
