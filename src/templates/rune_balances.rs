@@ -19,31 +19,34 @@ mod tests {
 
   #[test]
   fn display_rune_balances() {
-    let mut balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = BTreeMap::new();
-
-    let rune_a = Rune(RUNE);
-    let rune_b = Rune(RUNE + 1);
-
-    let mut rune_a_balances: BTreeMap<OutPoint, u128> = BTreeMap::new();
-    rune_a_balances.insert(
-      OutPoint {
-        txid: txid(1),
-        vout: 1,
-      },
-      1000,
-    );
-
-    let mut rune_b_balances: BTreeMap<OutPoint, u128> = BTreeMap::new();
-    rune_b_balances.insert(
-      OutPoint {
-        txid: txid(2),
-        vout: 2,
-      },
-      12345678,
-    );
-
-    balances.insert(rune_a, rune_a_balances);
-    balances.insert(rune_b, rune_b_balances);
+    let balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+      (
+        Rune(RUNE),
+        vec![(
+          OutPoint {
+            txid: txid(1),
+            vout: 1,
+          },
+          1000,
+        )]
+        .into_iter()
+        .collect(),
+      ),
+      (
+        Rune(RUNE + 1),
+        vec![(
+          OutPoint {
+            txid: txid(2),
+            vout: 2,
+          },
+          12345678,
+        )]
+        .into_iter()
+        .collect(),
+      ),
+    ]
+    .into_iter()
+    .collect();
 
     assert_regex_match!(
       RuneBalancesHtml { balances }.to_string(),
