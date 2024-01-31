@@ -572,7 +572,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Term.into(),
         4,
         Tag::Body.into(),
@@ -603,7 +603,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Limit.into(),
         4,
         Tag::Body.into(),
@@ -876,7 +876,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Rune.into(),
         4,
         Tag::Deadline.into(),
@@ -1537,17 +1537,17 @@ mod tests {
       },
       &[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Rune.into(),
         4,
-        Tag::Deadline.into(),
-        2,
         Tag::Divisibility.into(),
         1,
         Tag::Spacers.into(),
         6,
         Tag::Symbol.into(),
         '@'.into(),
+        Tag::Deadline.into(),
+        2,
         Tag::Limit.into(),
         3,
         Tag::Term.into(),
@@ -1568,11 +1568,7 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          mint: Some(Mint {
-            deadline: None,
-            limit: None,
-            term: None,
-          }),
+          mint: None,
           symbol: None,
           rune: Some(Rune(3)),
           spacers: 0,
@@ -1587,11 +1583,7 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          mint: Some(Mint {
-            deadline: None,
-            limit: None,
-            term: None,
-          }),
+          mint: None,
           symbol: None,
           rune: None,
           spacers: 0,

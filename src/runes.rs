@@ -5,6 +5,20 @@ use {
 
 // todo:
 // - test that limits over max limit are clamped
+// failures:
+//     runes::runestone::tests::decipher_etching_with_all_etching_tags
+//     runes::runestone::tests::decipher_etching_with_limit
+//     runes::runestone::tests::decipher_etching_with_term
+//     runes::runestone::tests::encipher
+//     runes::tests::etched_rune_open_etching_parameters_are_unset_for_burned_runestone
+//     runes::tests::limit_over_max_limit_is_ignored
+//     runes::tests::omitted_limit_defaults_to_max_limit
+//     runes::tests::open_etchings_with_term_zero_cannot_be_minted
+//     runes::tests::runes_can_be_etched_and_claimed_in_the_same_transaction
+//     runes::tests::transactions_cannot_claim_more_than_limit
+//     subcommand::server::tests::runes_are_displayed_on_rune_page
+//     templates::rune::tests::display
+//     templates::rune::tests::display_reduced
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
@@ -978,11 +992,7 @@ mod tests {
           burned: 0,
           divisibility: 1,
           etching: txid0,
-          mint: Some(MintEntry {
-            deadline: None,
-            end: None,
-            limit: None,
-          }),
+          mint: None,
           mints: 0,
           number: 0,
           rune: Rune(RUNE),
