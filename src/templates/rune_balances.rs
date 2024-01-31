@@ -48,24 +48,20 @@ mod tests {
     assert_regex_match!(
       RuneBalancesHtml { balances }.to_string(),
       "<h1>Rune Balances</h1>
-<table>
+<table class=full-width-table>
   <tr>
     <th>rune</th>
     <th>balances</th>
   </tr>
   <tr>
-    <td><a href=/rune/AAAAAAAAAAAAA>.*</a></td>
+    <td class=center><a href=/rune/AAAAAAAAAAAAA>.*</a></td>
     <td>
-      <table>
+      <table class=full-width>
         <tr>
-          <th>outpoint</th>
-          <th>balance</th>
-        </tr>
-        <tr>
-          <td>
+          <td class=monospace>
             <a href=/output/1111111111111111111111111111111111111111111111111111111111111111:1>.*</a>
           </td>
-          <td>
+          <td class=\"monospace right-align\">
             1000
           </td>
         </tr>
@@ -73,24 +69,21 @@ mod tests {
     </td>
   </tr>
   <tr>
-    <td><a href=/rune/AAAAAAAAAAAAB>.*</a></td>
+    <td class=center><a href=/rune/AAAAAAAAAAAAB>.*</a></td>
     <td>
-      <table>
+      <table class=full-width>
         <tr>
-          <th>outpoint</th>
-          <th>balance</th>
-        </tr>
-        <tr>
-          <td>
+          <td class=monospace>
             <a href=/output/2222222222222222222222222222222222222222222222222222222222222222:2>.*</a>
           </td>
-          <td>
+          <td class=\"monospace right-align\">
             12345678
           </td>
         </tr>
       </table>
     </td>
   </tr>
-</table>".unindent());
+</table>
+".unindent());
   }
 }

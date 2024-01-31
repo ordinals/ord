@@ -73,7 +73,7 @@ nav {
   padding: 1rem;
 }
 
-nav > :first-child {
+nav> :first-child {
   color: var(--light-fg);
   font-weight: bold;
 }
@@ -104,7 +104,8 @@ dl {
   overflow-wrap: break-word;
 }
 
-ol, ul {
+ol,
+ul {
   overflow: hidden;
 }
 
@@ -145,7 +146,26 @@ ol, ul {
   font-family: monospace, monospace;
 }
 
-span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
+.right-align {
+  text-align: right;
+}
+
+.full-width-table {
+  position: absolute;
+  right: 0;
+  width: 100vw;
+}
+
+.full-width {
+  width: 100%;
+}
+
+span.common,
+span.uncommon,
+span.rare,
+span.epic,
+span.legendary,
+span.mythic {
   border-radius: 0.25rem;
   color: white;
   padding: 0.125rem 0.25rem;
@@ -204,7 +224,7 @@ a.mythic {
   flex-wrap: wrap;
 }
 
-.thumbnails > a {
+.thumbnails>a {
   border-radius: 2%;
   margin: 1%;
   overflow: hidden;
@@ -222,7 +242,8 @@ a.mythic {
   justify-content: center;
 }
 
-.inscription > *:nth-child(1), .inscription > *:nth-child(3) {
+.inscription>*:nth-child(1),
+.inscription>*:nth-child(3) {
   align-items: center;
   color: var(--dark-bg);
   display: flex;
@@ -232,15 +253,16 @@ a.mythic {
   text-decoration: none;
 }
 
-.inscription > a:nth-child(1):hover, .inscription > a:nth-child(3):hover {
+.inscription>a:nth-child(1):hover,
+.inscription>a:nth-child(3):hover {
   color: var(--dark-fg);
 }
 
-.inscription > *:nth-child(2) {
+.inscription>*:nth-child(2) {
   flex: 0 75%;
 }
 
-.inscription > a > iframe {
+.inscription>a>iframe {
   width: 100%;
 }
 
@@ -249,17 +271,17 @@ a.mythic {
   display: flex;
 }
 
-.tabs > a {
+.tabs>a {
   color: var(--light-fg);
   padding: 1rem;
 }
 
-.tabs > *:first-child {
+.tabs>*:first-child {
   flex: 1;
   text-align: right;
 }
 
-.tabs > *:last-child {
+.tabs>*:last-child {
   flex: 1;
   text-align: left;
 }
