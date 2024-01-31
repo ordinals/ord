@@ -555,10 +555,13 @@ fn get_runes() {
         index: 1
       },
       parent: None,
-      balances: BTreeMap::from([(OutPoint {
-        txid: a.transaction,
-        vout: 1,
-      }, 1000)]),
+      balances: BTreeMap::from([(
+        OutPoint {
+          txid: a.transaction,
+          vout: 1,
+        },
+        1000
+      )]),
     }
   );
 
