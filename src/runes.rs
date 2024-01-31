@@ -13,8 +13,6 @@ use {
 //     runes::tests::runes_can_be_etched_and_claimed_in_the_same_transaction
 //     runes::tests::transactions_cannot_claim_more_than_limit
 //     subcommand::server::tests::runes_are_displayed_on_rune_page
-//     templates::rune::tests::display
-//     templates::rune::tests::display_reduced
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
