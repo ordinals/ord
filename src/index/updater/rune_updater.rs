@@ -125,7 +125,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
                 balance: if let Some(limit) = limit {
-                  if term == Some(0) {
+                  if term == Some(0)
+                    || (etching.deadline.is_some() && self.timestamp >= etching.deadline.unwrap())
+                  {
                     0
                   } else {
                     limit
