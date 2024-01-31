@@ -87,6 +87,8 @@ mod tests {
     </td>
   </tr>
 </table>
-".unindent());
+"
+      .unindent()
+    );
   }
 }
