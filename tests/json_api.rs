@@ -537,11 +537,7 @@ fn get_runes() {
     RuneJson {
       entry: RuneEntry {
         burned: 0,
-        mint: Some(MintEntry {
-          limit: None,
-          end: None,
-          deadline: None,
-        }),
+        mint: None,
         divisibility: 0,
         etching: a.transaction,
         mints: 0,
@@ -577,11 +573,7 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            mint: Some(MintEntry {
-              end: None,
-              limit: None,
-              deadline: None,
-            }),
+            mint: None,
             divisibility: 0,
             etching: a.transaction,
             mints: 0,
@@ -600,11 +592,7 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            mint: Some(MintEntry {
-              deadline: None,
-              end: None,
-              limit: None,
-            }),
+            mint: None,
             divisibility: 0,
             etching: b.transaction,
             mints: 0,
@@ -623,11 +611,7 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            mint: Some(MintEntry {
-              deadline: None,
-              end: None,
-              limit: None,
-            }),
+            mint: None,
             divisibility: 0,
             etching: c.transaction,
             mints: 0,

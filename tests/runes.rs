@@ -54,11 +54,7 @@ fn one_rune() {
         Rune(RUNE),
         RuneInfo {
           burned: 0,
-          mint: Some(MintEntry {
-            deadline: None,
-            end: None,
-            limit: None,
-          }),
+          mint: None,
           divisibility: 0,
           etching: etch.transaction,
           height: 2,
@@ -96,7 +92,7 @@ fn two_runes() {
   let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
   let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
 
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
@@ -106,11 +102,7 @@ fn two_runes() {
           Rune(RUNE),
           RuneInfo {
             burned: 0,
-            mint: Some(MintEntry {
-              deadline: None,
-              end: None,
-              limit: None,
-            }),
+            mint: None,
             divisibility: 0,
             etching: a.transaction,
             height: 2,
@@ -132,11 +124,7 @@ fn two_runes() {
           Rune(RUNE + 1),
           RuneInfo {
             burned: 0,
-            mint: Some(MintEntry {
-              deadline: None,
-              end: None,
-              limit: None,
-            }),
+            mint: None,
             divisibility: 0,
             etching: b.transaction,
             height: 4,

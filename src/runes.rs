@@ -3,11 +3,6 @@ use {
   super::*,
 };
 
-// todo:
-// - runes::tests::open_etchings_with_term_zero_cannot_be_minted
-// - runes::tests::runes_can_be_etched_and_claimed_in_the_same_transaction
-// - runes::tests::transactions_cannot_claim_more_than_limit
-
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
 pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};

@@ -300,7 +300,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             mint: mint.and_then(|mint| (!burn).then_some(mint)),
             rune,
             spacers,
-            supply: u128::max_value() - balance,
+            supply: if let Some(mint) = mint {
+              if mint.end == Some(self.height) {
+                0
+              } else {
+                mint.limit.unwrap_or(runes::MAX_LIMIT)
+              }
+            } else {
+              u128::max_value()
+            } - balance,
             symbol,
             timestamp: self.timestamp,
           }
