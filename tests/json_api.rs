@@ -635,3 +635,75 @@ fn get_runes() {
     }
   );
 }
+#[test]
+fn get_runes_balances() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(3);
+
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+  let rune2 = Rune(RUNE + 2);
+
+  let e0 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
+  let e1 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+  let e2 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune2);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+    (
+      rune0,
+      vec![(
+        OutPoint {
+          txid: e0.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune1,
+      vec![(
+        OutPoint {
+          txid: e1.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune2,
+      vec![(
+        OutPoint {
+          txid: e2.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+  ]
+  .into_iter()
+  .collect();
+
+  let response = ord_rpc_server.json_request("/runes/balances");
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_balance_json: BTreeMap<Rune, BTreeMap<OutPoint, u128>> =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(runes_balance_json, rune_balances);
+}
