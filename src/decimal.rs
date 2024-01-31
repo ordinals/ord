@@ -24,6 +24,23 @@ impl Decimal {
   }
 }
 
+impl Display for Decimal {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let magnitude = 10u128.pow(self.scale.into());
+
+    let integer = self.value / magnitude;
+    let fraction = self.value % magnitude;
+
+    write!(f, "{integer}")?;
+
+    if fraction > 0 {
+      write!(f, ".{fraction}")?;
+    }
+
+    Ok(())
+  }
+}
+
 impl FromStr for Decimal {
   type Err = Error;
 
@@ -81,23 +98,6 @@ impl<'de> Deserialize<'de> for Decimal {
     D: Deserializer<'de>,
   {
     Ok(DeserializeFromStr::deserialize(deserializer)?.0)
-  }
-}
-
-impl Display for Decimal {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let magnitude = 10u128.pow(self.scale.into());
-
-    let integer = self.value / magnitude;
-    let fraction = self.value % magnitude;
-
-    write!(f, "{integer}")?;
-
-    if fraction > 0 {
-      write!(f, ".{fraction}")?;
-    }
-
-    Ok(())
   }
 }
 
