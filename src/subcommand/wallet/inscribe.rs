@@ -959,9 +959,7 @@ inscriptions:
   }
 
   #[test]
-  #[should_panic(
-    expected = "invariant: destination addresses and number of inscriptions doesn't match"
-  )]
+  #[should_panic(expected = "invariant: shared-output has only one destination")]
   fn batch_inscribe_with_inconsistent_reveal_addresses_panics() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
