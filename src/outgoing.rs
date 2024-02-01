@@ -228,4 +228,49 @@ mod tests {
       },
     );
   }
+
+  #[test]
+  fn serde() {
+    #[track_caller]
+    fn case(s: &str, j: &str, o: Outgoing) {
+      assert_eq!(s.parse::<Outgoing>().unwrap(), o);
+      assert_eq!(serde_json::to_string(&o).unwrap(), j);
+      assert_eq!(serde_json::from_str::<Outgoing>(j).unwrap(), o);
+    }
+
+    case(
+      "0000000000000000000000000000000000000000000000000000000000000000i0",
+      "\"0000000000000000000000000000000000000000000000000000000000000000i0\"",
+      Outgoing::InscriptionId(
+        "0000000000000000000000000000000000000000000000000000000000000000i0"
+          .parse()
+          .unwrap(),
+      ),
+    );
+
+    case(
+      "0000000000000000000000000000000000000000000000000000000000000000:0:0",
+      "\"0000000000000000000000000000000000000000000000000000000000000000:0:0\"",
+      Outgoing::SatPoint(
+        "0000000000000000000000000000000000000000000000000000000000000000:0:0"
+          .parse()
+          .unwrap(),
+      ),
+    );
+
+    case(
+      "3 btc",
+      "\"3 btc\"",
+      Outgoing::Amount(Amount::from_sat(3 * COIN_VALUE)),
+    );
+
+    case(
+      "6.66 HELL.MONEY",
+      "\"6.66 HELL•MONEY\"",
+      Outgoing::Rune {
+        rune: "HELL•MONEY".parse().unwrap(),
+        decimal: "6.66".parse().unwrap(),
+      },
+    );
+  }
 }
