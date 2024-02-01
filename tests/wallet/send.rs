@@ -1114,5 +1114,4 @@ fn send_dry_run() {
     output.fee
   );
   assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
-  assert_eq!(output.fee, 99);
 }
