@@ -7,13 +7,13 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  #[arg(long, help = "Don't sign or broadcast transaction.")]
+  #[arg(long, help = "Don't sign or broadcast transaction")]
   pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
+    help = "Target amount of postage to include with sent inscriptions [default: 10000 sat]"
   )]
   pub(crate) postage: Option<Amount>,
   address: Address<NetworkUnchecked>,
