@@ -7,14 +7,8 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  address: Address<NetworkUnchecked>,
-  outgoing: Outgoing,
-  #[arg(
-    long,
-    alias = "nobroadcast",
-    help = "Don't sign or broadcast transaction."
-  )]
-  pub(crate) no_broadcast: bool,
+  #[arg(long, help = "Don't sign or broadcast transaction.")]
+  pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
@@ -22,6 +16,8 @@ pub(crate) struct Send {
     help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
+  address: Address<NetworkUnchecked>,
+  outgoing: Outgoing,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -113,7 +109,7 @@ impl Send {
       }
     };
 
-    let txid = if self.no_broadcast {
+    let txid = if self.dry_run {
       unsigned_transaction.txid()
     } else {
       let signed_tx = bitcoin_client
