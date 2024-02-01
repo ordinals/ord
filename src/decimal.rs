@@ -29,12 +29,19 @@ impl Display for Decimal {
     let magnitude = 10u128.pow(self.scale.into());
 
     let integer = self.value / magnitude;
-    let fraction = self.value % magnitude;
+    let mut fraction = self.value % magnitude;
 
     write!(f, "{integer}")?;
 
     if fraction > 0 {
-      write!(f, ".{fraction}")?;
+      let mut width = self.scale.into();
+
+      while fraction % 10 == 0 {
+        fraction /= 10;
+        width -= 1;
+      }
+
+      write!(f, ".{fraction:0>width$}", width = width)?;
     }
 
     Ok(())
@@ -56,11 +63,18 @@ impl FromStr for Decimal {
         integer.parse::<u128>()?
       };
 
+      dbg!(integer);
+
+      let foo = decimal.chars().count();
+      let bar = decimal.chars().rev().take_while(|c| *c == '0').count();
+
       let decimal = if decimal.is_empty() {
         0
       } else {
         decimal.parse::<u128>()?
       };
+
+      dbg!(decimal);
 
       let scale = s
         .trim_end_matches('0')
@@ -69,6 +83,8 @@ impl FromStr for Decimal {
         .skip(1)
         .count()
         .try_into()?;
+
+      dbg!(scale);
 
       Ok(Self {
         value: integer * 10u128.pow(u32::from(scale)) + decimal,
@@ -134,6 +150,7 @@ mod tests {
     case("1.11", 111, 2);
     case("1.", 1, 0);
     case(".1", 1, 1);
+    case("1.10", 11, 1);
   }
 
   #[test]
@@ -195,6 +212,20 @@ mod tests {
 
     case(Decimal { value: 1, scale: 0 }, "1");
     case(Decimal { value: 1, scale: 1 }, "0.1");
+    case(
+      Decimal {
+        value: 101,
+        scale: 2,
+      },
+      "1.01",
+    );
+    case(
+      Decimal {
+        value: 1234,
+        scale: 6,
+      },
+      "0.001234",
+    );
     case(
       Decimal {
         value: 12,
