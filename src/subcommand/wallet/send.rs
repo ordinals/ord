@@ -9,8 +9,12 @@ use {
 pub(crate) struct Send {
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
-  #[arg(long, help = "Don't sign or broadcast transactions.")]
-  pub(crate) dry_run: bool,
+  #[arg(
+    long,
+    alias = "nobroadcast",
+    help = "Don't sign or broadcast transaction."
+  )]
+  pub(crate) no_broadcast: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
   #[arg(
@@ -109,7 +113,7 @@ impl Send {
       }
     };
 
-    let txid = if self.dry_run {
+    let txid = if self.no_broadcast {
       unsigned_transaction.txid()
     } else {
       let signed_tx = bitcoin_client
