@@ -76,6 +76,8 @@ impl FromStr for Decimal {
 
       dbg!(decimal);
 
+      
+
       let scale = s
         .trim_end_matches('0')
         .chars()
