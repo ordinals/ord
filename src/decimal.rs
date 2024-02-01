@@ -63,30 +63,14 @@ impl FromStr for Decimal {
         integer.parse::<u128>()?
       };
 
-      dbg!(integer);
-
-      let foo = decimal.chars().count();
-      let bar = decimal.chars().rev().take_while(|c| *c == '0').count();
-
-      let decimal = if decimal.is_empty() {
-        0
+      let (decimal, scale) = if decimal.is_empty() {
+        (0, 0)
       } else {
-        decimal.parse::<u128>()?
+        let trailing_zeros = decimal.chars().rev().take_while(|c| *c == '0').count();
+        let significant_digits = decimal.chars().count() - trailing_zeros;
+        let decimal = decimal.parse::<u128>()? / 10u128.pow(u32::try_from(trailing_zeros).unwrap());
+        (decimal, u8::try_from(significant_digits).unwrap())
       };
-
-      dbg!(decimal);
-
-      
-
-      let scale = s
-        .trim_end_matches('0')
-        .chars()
-        .skip_while(|c| *c != '.')
-        .skip(1)
-        .count()
-        .try_into()?;
-
-      dbg!(scale);
 
       Ok(Self {
         value: integer * 10u128.pow(u32::from(scale)) + decimal,
