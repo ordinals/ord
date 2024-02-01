@@ -119,11 +119,18 @@ impl Send {
       bitcoin_client.send_raw_transaction(&signed_tx)?
     };
 
-    let psbt = Psbt::from_unsigned_tx(unsigned_transaction.clone())?;
+    let psbt = bitcoin_client
+      .wallet_process_psbt(
+        &base64_standard.encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+        Some(false),
+        None,
+        None,
+      )?
+      .psbt;
 
     Ok(Some(Box::new(Output {
       txid,
-      psbt: base64_standard.encode(psbt.serialize()),
+      psbt,
       outgoing: self.outgoing,
       fee: unsigned_transaction
         .input

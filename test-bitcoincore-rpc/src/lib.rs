@@ -24,7 +24,7 @@ use {
     GetTransactionResultDetailCategory, GetTxOutResult, GetWalletInfoResult, ImportDescriptors,
     ImportMultiResult, ListDescriptorsResult, ListTransactionResult, ListUnspentResultEntry,
     ListWalletDirItem, ListWalletDirResult, LoadWalletResult, SignRawTransactionInput,
-    SignRawTransactionResult, Timestamp, WalletTxInfo,
+    SignRawTransactionResult, Timestamp, WalletProcessPsbtResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},

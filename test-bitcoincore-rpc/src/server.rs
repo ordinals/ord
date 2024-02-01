@@ -1,7 +1,9 @@
 use {
   super::*,
+  base64::{engine::general_purpose::STANDARD as base64_standard, Engine as _},
   bitcoin::{
     consensus::Decodable,
+    psbt::Psbt,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },
@@ -779,6 +781,37 @@ impl Api for Server {
         .into_iter()
         .map(|name| ListWalletDirItem { name })
         .collect(),
+    })
+  }
+
+  fn wallet_process_psbt(
+    &self,
+    psbt: String,
+    sign: Option<bool>,
+    sighash_type: Option<()>,
+    bip32derivs: Option<bool>,
+  ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
+    assert!(sign.is_none() || sign == Some(false));
+    assert!(sighash_type.is_none());
+    assert!(bip32derivs.is_none());
+
+    let mut psbt = Psbt::deserialize(&base64_standard.decode(psbt).unwrap()).unwrap();
+
+    for (i, txin) in psbt.unsigned_tx.input.iter().enumerate() {
+      psbt.inputs[i].witness_utxo = Some(
+        self
+          .state()
+          .transactions
+          .get(&txin.previous_output.txid)
+          .unwrap()
+          .output[txin.previous_output.vout as usize]
+          .clone(),
+      );
+    }
+
+    Ok(WalletProcessPsbtResult {
+      psbt: base64_standard.encode(psbt.serialize()),
+      complete: false,
     })
   }
 }
