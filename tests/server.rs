@@ -322,6 +322,7 @@ fn recursive_inscription_metadata() {
       fee: 141,
       height: 2,
       number: 0,
+      postage: Some(10000),
       sat: ord::Sat(50 * COIN_VALUE),
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,

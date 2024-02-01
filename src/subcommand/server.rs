@@ -897,6 +897,7 @@ impl Server {
         fee: entry.fee,
         height: entry.height,
         number: entry.inscription_number,
+        postage: output.as_ref().map(|o| o.value),
         sat,
         satpoint,
         timestamp: timestamp(entry.timestamp).timestamp(),
