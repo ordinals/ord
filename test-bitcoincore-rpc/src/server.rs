@@ -791,7 +791,7 @@ impl Api for Server {
     sighash_type: Option<()>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
-    assert!(sign.is_none() || sign == Some(false));
+    assert_eq!(sign, Some(false)); // we want to make sure to NOT sign the PSBT
     assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
