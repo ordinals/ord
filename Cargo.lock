@@ -2185,6 +2185,7 @@ dependencies = [
  "miniscript",
  "mp4",
  "ord-bitcoincore-rpc",
+ "ordinals",
  "pretty_assertions",
  "pulldown-cmark",
  "redb",
@@ -2230,6 +2231,16 @@ checksum = "5bb35088f918c775bc27fa79e372d034892b216fb7900aeedd6e06654879ad33"
 dependencies = [
  "bitcoin",
  "bitcoin-private",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ordinals"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "bitcoin",
  "serde",
  "serde_json",
 ]

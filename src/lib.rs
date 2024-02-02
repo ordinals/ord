@@ -54,6 +54,7 @@ use {
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
+  ordinals::SatPoint,
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
@@ -91,7 +92,6 @@ pub use self::{
   rarity::Rarity,
   runes::{Edict, Rune, RuneId, Runestone},
   sat::Sat,
-  sat_point::SatPoint,
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -132,7 +132,6 @@ pub mod rarity;
 mod representation;
 pub mod runes;
 pub mod sat;
-mod sat_point;
 mod server_config;
 pub mod subcommand;
 mod tally;
