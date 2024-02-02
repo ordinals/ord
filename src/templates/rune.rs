@@ -173,6 +173,7 @@ mod tests {
           index: 9,
         },
         parent: None,
+        balances: BTreeMap::new(),
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>
