@@ -15,7 +15,7 @@ copyright = "The Ord Maintainers"
 maintainer = "The Ord Maintainers"
 
 [workspace]
-members = [".", "test-bitcoincore-rpc", "crates/*"]
+members = [".", "crates/*"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
@@ -49,6 +49,7 @@ mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.1"
+ordinals = { version = "0.0.1", path = "crates/ordinals" }
 redb = "1.5.0"
 regex = "1.6.0"
 reqwest = { version = "0.11.23", features = ["blocking", "json"] }
@@ -72,7 +73,7 @@ criterion = "0.5.1"
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking", "brotli", "json"] }
-test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
+test-bitcoincore-rpc = { path = "crates/test-bitcoincore-rpc" }
 unindent = "0.2.1"
 
 [[bench]]

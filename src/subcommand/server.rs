@@ -2,7 +2,6 @@ use {
   self::{
     accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
-    deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
