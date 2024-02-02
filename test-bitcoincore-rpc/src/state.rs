@@ -11,7 +11,6 @@ pub(crate) struct State {
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
   pub(crate) nonce: u32,
-  pub(crate) sent: Vec<Sent>,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
   pub(crate) version: usize,
@@ -38,7 +37,6 @@ impl State {
       mempool: Vec::new(),
       network,
       nonce: 0,
-      sent: Vec::new(),
       transactions: BTreeMap::new(),
       utxos: BTreeMap::new(),
       version,
@@ -206,5 +204,9 @@ impl State {
     }
 
     0
+  }
+
+  pub(crate) fn get_locked(&self) -> BTreeSet<OutPoint> {
+    self.locked.clone()
   }
 }

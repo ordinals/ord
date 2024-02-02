@@ -1,7 +1,9 @@
 use {
   super::*,
+  base64::Engine,
   bitcoin::{
     consensus::Decodable,
+    psbt::Psbt,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },
@@ -388,6 +390,7 @@ impl Api for Server {
 
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
     self.state.lock().unwrap().mempool.push(tx.clone());
 
     Ok(tx.txid().to_string())
@@ -460,12 +463,6 @@ impl Api for Server {
     let txid = transaction.txid();
 
     state.mempool.push(transaction);
-
-    state.sent.push(Sent {
-      address: address.assume_checked(),
-      amount,
-      locked,
-    });
 
     Ok(txid)
   }
@@ -784,6 +781,44 @@ impl Api for Server {
         .into_iter()
         .map(|name| ListWalletDirItem { name })
         .collect(),
+    })
+  }
+
+  fn wallet_process_psbt(
+    &self,
+    psbt: String,
+    sign: Option<bool>,
+    sighash_type: Option<()>,
+    bip32derivs: Option<bool>,
+  ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
+    // we only call this function in `ord wallet send --dry-run` in which case
+    // we don't want to sign the PSBT, so we assert that sign is false.
+    assert_eq!(sign, Some(false));
+    assert!(sighash_type.is_none());
+    assert!(bip32derivs.is_none());
+
+    let mut psbt = Psbt::deserialize(
+      &base64::engine::general_purpose::STANDARD
+        .decode(psbt)
+        .unwrap(),
+    )
+    .unwrap();
+
+    for (i, txin) in psbt.unsigned_tx.input.iter().enumerate() {
+      psbt.inputs[i].witness_utxo = Some(
+        self
+          .state()
+          .transactions
+          .get(&txin.previous_output.txid)
+          .unwrap()
+          .output[txin.previous_output.vout as usize]
+          .clone(),
+      );
+    }
+
+    Ok(WalletProcessPsbtResult {
+      psbt: base64::engine::general_purpose::STANDARD.encode(psbt.serialize()),
+      complete: false,
     })
   }
 }
