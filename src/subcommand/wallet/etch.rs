@@ -59,13 +59,11 @@ impl Etch {
 
     let runestone = Runestone {
       etching: Some(Etching {
-        deadline: None,
         divisibility: self.divisibility,
-        limit: None,
+        mint: None,
         rune: Some(rune),
         spacers,
         symbol: Some(self.symbol),
-        term: None,
       }),
       edicts: vec![Edict {
         amount: self.supply.to_amount(self.divisibility)?,

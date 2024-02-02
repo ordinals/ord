@@ -9,11 +9,9 @@ fn claim(id: u128) -> Option<u128> {
 
 struct Allocation {
   balance: u128,
-  deadline: Option<u32>,
   divisibility: u8,
-  end: Option<u32>,
   id: u128,
-  limit: Option<u128>,
+  mint: Option<MintEntry>,
   rune: Rune,
   spacers: u32,
   symbol: Option<char>,
@@ -112,11 +110,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               Rune::reserved(reserved_runes.into())
             };
 
-            let (limit, term) = match (etching.limit, etching.term) {
-              (None, Some(term)) => (Some(runes::MAX_LIMIT), Some(term)),
-              (limit, term) => (limit, term),
-            };
-
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
             // with 2**16 + 1 transactions, there is no test that checks that
@@ -124,23 +117,25 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                balance: if let Some(limit) = limit {
-                  if term == Some(0) {
+                balance: if let Some(mint) = etching.mint {
+                  if mint.term == Some(0) {
                     0
                   } else {
-                    limit
+                    mint.limit.unwrap_or(runes::MAX_LIMIT)
                   }
                 } else {
                   u128::max_value()
                 },
-                deadline: etching.deadline,
                 divisibility: etching.divisibility,
-                end: term.map(|term| term + self.height),
                 id: u128::from(self.height) << 16 | u128::from(index),
-                limit,
                 rune,
                 spacers: etching.spacers,
                 symbol: etching.symbol,
+                mint: etching.mint.map(|mint| MintEntry {
+                  deadline: mint.deadline,
+                  end: mint.term.map(|term| term + self.height),
+                  limit: mint.limit.map(|limit| limit.clamp(0, runes::MAX_LIMIT)),
+                }),
               }),
               Err(_) => None,
             }
@@ -163,18 +158,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           if let Ok(key) = RuneId::try_from(id) {
             if let Some(entry) = self.id_to_entry.get(&key.store())? {
               let entry = RuneEntry::load(entry.value());
-              if let Some(limit) = entry.limit {
-                if let Some(end) = entry.end {
+              if let Some(mint) = entry.mint {
+                if let Some(end) = mint.end {
                   if self.height >= end {
                     continue;
                   }
                 }
-                if let Some(deadline) = entry.deadline {
+                if let Some(deadline) = mint.deadline {
                   if self.timestamp >= deadline {
                     continue;
                   }
                 }
-                mintable.insert(id, limit);
+                mintable.insert(id, mint.limit.unwrap_or(runes::MAX_LIMIT));
               }
             }
           }
@@ -278,11 +273,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if let Some(Allocation {
         balance,
-        deadline,
         divisibility,
-        end,
         id,
-        limit,
+        mint,
         rune,
         spacers,
         symbol,
@@ -300,25 +293,23 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           id.store(),
           RuneEntry {
             burned: 0,
-            deadline: deadline.and_then(|deadline| (!burn).then_some(deadline)),
             divisibility,
             etching: txid,
             mints: 0,
             number,
+            mint: mint.and_then(|mint| (!burn).then_some(mint)),
             rune,
             spacers,
-            supply: if let Some(limit) = limit {
-              if end == Some(self.height) {
+            supply: if let Some(mint) = mint {
+              if mint.end == Some(self.height) {
                 0
               } else {
-                limit
+                mint.limit.unwrap_or(runes::MAX_LIMIT)
               }
             } else {
               u128::max_value()
             } - balance,
-            end: end.and_then(|end| (!burn).then_some(end)),
             symbol,
-            limit: limit.and_then(|limit| (!burn).then_some(limit)),
             timestamp: self.timestamp,
           }
           .store(),

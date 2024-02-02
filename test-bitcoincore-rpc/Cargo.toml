@@ -9,6 +9,7 @@ repository = "https://github.com/ordinals/ord"
 
 [dependencies]
 bitcoin = { version = "0.30.0", features = ["serde", "rand"] }
+base64 = "0.21.0"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"

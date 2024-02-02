@@ -8,7 +8,7 @@ pub(crate) struct RangeHtml {
 
 impl PageContent for RangeHtml {
   fn title(&self) -> String {
-    format!("Sat range {}–{}", self.start, self.end)
+    format!("Sat Range {}–{}", self.start, self.end)
   }
 }
 
@@ -25,7 +25,7 @@ mod tests {
       }
       .to_string(),
       "
-        <h1>Sat range 0–1</h1>
+        <h1>Sat Range 0–1</h1>
         <dl>
           <dt>value</dt><dd>1</dd>
           <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
@@ -44,7 +44,7 @@ mod tests {
       }
       .to_string(),
       "
-        <h1>Sat range 1–10</h1>
+        <h1>Sat Range 1–10</h1>
         <dl>
           <dt>value</dt><dd>9</dd>
           <dt>first</dt><dd><a href=/sat/1 class=common>1</a></dd>

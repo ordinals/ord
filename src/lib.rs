@@ -23,7 +23,6 @@ use {
     epoch::Epoch,
     height::Height,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
-    outgoing::Outgoing,
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
@@ -84,7 +83,7 @@ use {
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, RuneEntry},
+  index::{Index, MintEntry, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
@@ -127,7 +126,7 @@ pub mod index;
 mod inscriptions;
 mod object;
 mod options;
-mod outgoing;
+pub mod outgoing;
 pub mod rarity;
 mod representation;
 pub mod runes;

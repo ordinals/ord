@@ -186,7 +186,7 @@ fn inscription_page_after_send() {
   .ord_rpc_server(&ord_rpc_server)
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>()
-  .transaction;
+  .txid;
 
   bitcoin_rpc_server.mine_blocks(1);
 
