@@ -967,9 +967,7 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        etching: None,
-        default_output: None,
-        burn: false,
+        ..Default::default()
       },
     );
   }
