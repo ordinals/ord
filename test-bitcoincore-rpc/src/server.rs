@@ -791,7 +791,9 @@ impl Api for Server {
     sighash_type: Option<()>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
-    assert_eq!(sign, Some(false)); // we want to make sure to NOT sign the PSBT
+    // we only call this function in `ord wallet send --dry-run` in which case
+    // we don't want to sign the PSBT, so we assert that sign is false.
+    assert_eq!(sign, Some(false));
     assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
