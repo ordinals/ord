@@ -2,6 +2,11 @@
 name = "ordinals"
 version = "0.0.0"
 edition = "2021"
+description = "Library for interoperating with ordinals and inscriptions"
+homepage = "https://github.com/ordinals/ord"
+repository = "https://github.com/ordinals/ord"
+license = "CC0-1.0"
+rust-version = "1.67"
 
 [dependencies]
 serde = { version = "1.0.137", features = ["derive"] }
