@@ -2369,8 +2369,8 @@ mod tests {
   <dd><a href=/block/2>2</a></dd>
   <dt>etching transaction index</dt>
   <dd>1</dd>
-  <dt>mints</dt>
-  <dd>0</dd>
+  <dt>mint</dt>
+  <dd>no</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>

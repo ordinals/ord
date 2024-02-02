@@ -3214,6 +3214,7 @@ dependencies = [
 name = "test-bitcoincore-rpc"
 version = "0.0.1"
 dependencies = [
+ "base64 0.21.6",
  "bitcoin",
  "hex",
  "jsonrpc-core",

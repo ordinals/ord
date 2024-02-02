@@ -5,16 +5,17 @@ use {
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {etching::Etching, pile::Pile, spaced_rune::SpacedRune};
+pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
 
-pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const CLAIM_BIT: u128 = 1 << 48;
+pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
 mod edict;
 mod etching;
 mod flag;
+mod mint;
 mod pile;
 mod rune;
 mod rune_id;
@@ -943,11 +944,13 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            deadline: Some(1),
+            mint: Some(Mint {
+              deadline: Some(1),
+              limit: Some(1),
+              term: Some(1),
+            }),
             divisibility: 1,
-            limit: Some(1),
             symbol: Some('$'),
-            term: Some(1),
             spacers: 1,
           }),
           default_output: None,
@@ -970,11 +973,9 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          deadline: None,
           divisibility: 1,
-          end: None,
           etching: txid0,
-          limit: None,
+          mint: None,
           mints: 0,
           number: 0,
           rune: Rune(RUNE),
@@ -4258,7 +4259,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4281,9 +4285,12 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
           timestamp: 2,
           mints: 0,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           ..Default::default()
         },
       )],
@@ -4314,7 +4321,10 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           supply: 1000,
           timestamp: 2,
           mints: 1,
@@ -4354,7 +4364,10 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           supply: 2000,
           timestamp: 2,
           mints: 2,
@@ -4392,8 +4405,11 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
-            term: Some(2),
+            mint: Some(Mint {
+              limit: Some(1000),
+              term: Some(2),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4416,8 +4432,11 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
-          end: Some(4),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(4),
+            ..Default::default()
+          }),
           timestamp: 2,
           ..Default::default()
         },
@@ -4449,9 +4468,12 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(4),
+            ..Default::default()
+          }),
           supply: 1000,
-          end: Some(4),
           timestamp: 2,
           mints: 1,
           ..Default::default()
@@ -4490,10 +4512,13 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
           supply: 1000,
-          end: Some(4),
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(4),
+            ..Default::default()
+          }),
           mints: 1,
           ..Default::default()
         },
@@ -4525,8 +4550,11 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
-            term: Some(0),
+            mint: Some(Mint {
+              limit: Some(1000),
+              term: Some(0),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4549,8 +4577,11 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          limit: Some(1000),
-          end: Some(2),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(2),
+            ..Default::default()
+          }),
           timestamp: 2,
           ..Default::default()
         },
@@ -4583,9 +4614,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          limit: Some(1000),
-          end: Some(2),
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(2),
+            ..Default::default()
+          }),
           ..Default::default()
         },
       )],
@@ -4605,8 +4639,11 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
-            deadline: Some(4),
+            mint: Some(Mint {
+              limit: Some(1000),
+              deadline: Some(4),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4627,11 +4664,14 @@ mod tests {
       [(
         id,
         RuneEntry {
-          deadline: Some(4),
           etching: txid0,
-          limit: Some(1000),
           rune: Rune(RUNE),
           timestamp: 2,
+          mint: Some(MintEntry {
+            deadline: Some(4),
+            limit: Some(1000),
+            ..Default::default()
+          }),
           ..Default::default()
         },
       )],
@@ -4660,13 +4700,16 @@ mod tests {
       [(
         id,
         RuneEntry {
-          deadline: Some(4),
-          etching: txid0,
-          limit: Some(1000),
           rune: Rune(RUNE),
           supply: 1000,
           timestamp: 2,
           mints: 1,
+          etching: txid0,
+          mint: Some(MintEntry {
+            deadline: Some(4),
+            limit: Some(1000),
+            ..Default::default()
+          }),
           ..Default::default()
         },
       )],
@@ -4703,10 +4746,13 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
           supply: 1000,
-          deadline: Some(4),
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            deadline: Some(4),
+            ..Default::default()
+          }),
           mints: 1,
           ..Default::default()
         },
@@ -4733,7 +4779,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4756,7 +4805,10 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           ..Default::default()
         },
@@ -4789,9 +4841,12 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          limit: Some(1000),
           supply: 1000,
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           mints: 1,
           ..Default::default()
         },
@@ -4827,7 +4882,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           edicts: vec![Edict {
@@ -4855,7 +4913,10 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           supply: 1000,
           ..Default::default()
@@ -4866,7 +4927,7 @@ mod tests {
   }
 
   #[test]
-  fn limit_over_max_limit_is_ignored() {
+  fn limit_over_max_is_clamped() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -4877,7 +4938,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(MAX_LIMIT + 1),
+            mint: Some(Mint {
+              limit: Some(MAX_LIMIT + 1),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4901,13 +4965,18 @@ mod tests {
           etching,
           rune: Rune(RUNE),
           timestamp: 2,
+          mint: Some(MintEntry {
+            limit: Some(MAX_LIMIT),
+            deadline: None,
+            end: None,
+          }),
           ..Default::default()
         },
       )],
       [],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4932,10 +5001,17 @@ mod tests {
           etching,
           rune: Rune(RUNE),
           timestamp: 2,
+          mints: 1,
+          supply: MAX_LIMIT,
+          mint: Some(MintEntry {
+            limit: Some(MAX_LIMIT),
+            deadline: None,
+            end: None,
+          }),
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, MAX_LIMIT)])],
     );
   }
 
@@ -4951,7 +5027,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            term: Some(1),
+            mint: Some(Mint {
+              term: Some(1),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -4974,8 +5053,11 @@ mod tests {
         RuneEntry {
           etching,
           rune: Rune(RUNE),
-          limit: Some(MAX_LIMIT),
-          end: Some(3),
+          mint: Some(MintEntry {
+            limit: None,
+            end: Some(3),
+            ..Default::default()
+          }),
           timestamp: 2,
           ..Default::default()
         },
@@ -4996,7 +5078,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           edicts: vec![Edict {
@@ -5024,7 +5109,10 @@ mod tests {
         RuneEntry {
           etching,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           supply: 1000,
           ..Default::default()
@@ -5068,7 +5156,10 @@ mod tests {
         RuneEntry {
           etching,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           supply: 2000,
           mints: 1,
@@ -5106,7 +5197,10 @@ mod tests {
         Runestone {
           etching: Some(Etching {
             rune: Some(Rune(RUNE)),
-            limit: Some(1000),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
             ..Default::default()
           }),
           ..Default::default()
@@ -5129,7 +5223,10 @@ mod tests {
         RuneEntry {
           etching,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           ..Default::default()
         },
@@ -5178,7 +5275,10 @@ mod tests {
         RuneEntry {
           etching,
           rune: Rune(RUNE),
-          limit: Some(1000),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
           timestamp: 2,
           supply: 1000,
           mints: 1,

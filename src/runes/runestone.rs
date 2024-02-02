@@ -77,7 +77,7 @@ impl Runestone {
 
     let limit = Tag::Limit
       .take(&mut fields)
-      .and_then(|limit| (limit <= MAX_LIMIT).then_some(limit));
+      .map(|limit| limit.clamp(0, MAX_LIMIT));
 
     let rune = Tag::Rune.take(&mut fields).map(Rune);
 
@@ -100,15 +100,19 @@ impl Runestone {
 
     let etch = Flag::Etch.take(&mut flags);
 
+    let mint = Flag::Mint.take(&mut flags);
+
     let etching = if etch {
       Some(Etching {
-        deadline,
         divisibility,
-        limit,
         rune,
         spacers,
         symbol,
-        term,
+        mint: mint.then_some(Mint {
+          deadline,
+          limit,
+          term,
+        }),
       })
     } else {
       None
@@ -129,14 +133,14 @@ impl Runestone {
       let mut flags = 0;
       Flag::Etch.set(&mut flags);
 
+      if etching.mint.is_some() {
+        Flag::Mint.set(&mut flags);
+      }
+
       Tag::Flags.encode(flags, &mut payload);
 
       if let Some(rune) = etching.rune {
         Tag::Rune.encode(rune.0, &mut payload);
-      }
-
-      if let Some(deadline) = etching.deadline {
-        Tag::Deadline.encode(deadline.into(), &mut payload);
       }
 
       if etching.divisibility != 0 {
@@ -151,12 +155,18 @@ impl Runestone {
         Tag::Symbol.encode(symbol.into(), &mut payload);
       }
 
-      if let Some(limit) = etching.limit {
-        Tag::Limit.encode(limit, &mut payload);
-      }
+      if let Some(mint) = etching.mint {
+        if let Some(deadline) = mint.deadline {
+          Tag::Deadline.encode(deadline.into(), &mut payload);
+        }
 
-      if let Some(term) = etching.term {
-        Tag::Term.encode(term.into(), &mut payload);
+        if let Some(limit) = mint.limit {
+          Tag::Limit.encode(limit, &mut payload);
+        }
+
+        if let Some(term) = mint.term {
+          Tag::Term.encode(term.into(), &mut payload);
+        }
       }
     }
 
@@ -558,11 +568,35 @@ mod tests {
   }
 
   #[test]
+  fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
+    assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Mint.mask(),
+        Tag::Term.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
+      Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        ..Default::default()
+      },
+    );
+  }
+
+  #[test]
   fn decipher_etching_with_term() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Term.into(),
         4,
         Tag::Body.into(),
@@ -577,7 +611,10 @@ mod tests {
           output: 3,
         }],
         etching: Some(Etching {
-          term: Some(4),
+          mint: Some(Mint {
+            term: Some(4),
+            ..Default::default()
+          }),
           ..Default::default()
         }),
         ..Default::default()
@@ -590,7 +627,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Limit.into(),
         4,
         Tag::Body.into(),
@@ -605,7 +642,10 @@ mod tests {
           output: 3,
         }],
         etching: Some(Etching {
-          limit: Some(4),
+          mint: Some(Mint {
+            limit: Some(4),
+            ..Default::default()
+          }),
           ..Default::default()
         }),
         ..Default::default()
@@ -860,7 +900,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Rune.into(),
         4,
         Tag::Deadline.into(),
@@ -888,11 +928,13 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          deadline: Some(7),
+          mint: Some(Mint {
+            deadline: Some(7),
+            term: Some(2),
+            limit: Some(3),
+          }),
           divisibility: 1,
           symbol: Some('a'),
-          term: Some(2),
-          limit: Some(3),
           spacers: 5,
         }),
         ..Default::default()
@@ -1213,12 +1255,14 @@ mod tests {
       Vec::new(),
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
-        deadline: Some(10000),
+        mint: Some(Mint {
+          deadline: Some(10000),
+          limit: Some(1),
+          term: Some(1),
+        }),
         rune: Some(Rune(0)),
         symbol: Some('$'),
-        limit: Some(1),
         spacers: 1,
-        term: Some(1),
       }),
       19,
     );
@@ -1491,11 +1535,13 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 1,
-          deadline: Some(2),
-          limit: Some(3),
+          mint: Some(Mint {
+            deadline: Some(2),
+            limit: Some(3),
+            term: Some(5),
+          }),
           symbol: Some('@'),
           rune: Some(Rune(4)),
-          term: Some(5),
           spacers: 6,
         }),
         edicts: vec![
@@ -1515,17 +1561,17 @@ mod tests {
       },
       &[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Rune.into(),
         4,
-        Tag::Deadline.into(),
-        2,
         Tag::Divisibility.into(),
         1,
         Tag::Spacers.into(),
         6,
         Tag::Symbol.into(),
         '@'.into(),
+        Tag::Deadline.into(),
+        2,
         Tag::Limit.into(),
         3,
         Tag::Term.into(),
@@ -1546,11 +1592,9 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          deadline: None,
-          limit: None,
+          mint: None,
           symbol: None,
           rune: Some(Rune(3)),
-          term: None,
           spacers: 0,
         }),
         burn: false,
@@ -1563,11 +1607,9 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           divisibility: 0,
-          deadline: None,
-          limit: None,
+          mint: None,
           symbol: None,
           rune: None,
-          term: None,
           spacers: 0,
         }),
         burn: false,
