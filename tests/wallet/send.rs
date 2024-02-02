@@ -1,6 +1,6 @@
 use {
   super::*,
-  base64::{engine::general_purpose::STANDARD as base64_standard, Engine as _},
+  base64::Engine,
   bitcoin::psbt::Psbt,
   ord::subcommand::wallet::{balance, create, send},
   std::collections::BTreeMap,
@@ -1106,7 +1106,7 @@ fn send_dry_run() {
 
   assert!(bitcoin_rpc_server.mempool().is_empty());
   assert_eq!(
-    Psbt::deserialize(&base64_standard.decode(output.psbt).unwrap())
+    Psbt::deserialize(&base64::engine::general_purpose::STANDARD.decode(output.psbt).unwrap())
       .unwrap()
       .fee()
       .unwrap()
