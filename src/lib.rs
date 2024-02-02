@@ -19,7 +19,6 @@ use {
     decimal::Decimal,
     decimal_sat::DecimalSat,
     degree::Degree,
-    deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
     inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
@@ -53,7 +52,7 @@ use {
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
-  ordinals::SatPoint,
+  ordinals::{DeserializeFromStr, SatPoint},
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
@@ -118,7 +117,6 @@ mod config;
 mod decimal;
 mod decimal_sat;
 mod degree;
-mod deserialize_from_str;
 mod epoch;
 mod fee_rate;
 mod height;

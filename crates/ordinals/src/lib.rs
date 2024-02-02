@@ -2,7 +2,6 @@
 //! inscriptions.
 
 use {
-  self::deserialize_from_str::DeserializeFromStr,
   bitcoin::{
     consensus::{Decodable, Encodable},
     OutPoint,
@@ -17,6 +16,9 @@ use {
 };
 
 pub use sat_point::SatPoint;
+
+#[doc(hidden)]
+pub use self::deserialize_from_str::DeserializeFromStr;
 
 mod deserialize_from_str;
 mod sat_point;
