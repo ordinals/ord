@@ -2237,7 +2237,7 @@ dependencies = [
 
 [[package]]
 name = "ordinals"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "bitcoin",

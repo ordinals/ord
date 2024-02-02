@@ -15,7 +15,3 @@ anyhow = { version = "1.0.56", features = ["backtrace"] }
 
 [dev-dependencies]
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
-
-[lib]
-name = "ordinals"
-path = "src/lib.rs"
