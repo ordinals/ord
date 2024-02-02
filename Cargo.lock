@@ -2243,6 +2243,7 @@ dependencies = [
  "bitcoin",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]

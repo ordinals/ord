@@ -12,6 +12,7 @@ rust-version = "1.67"
 serde = { version = "1.0.137", features = ["derive"] }
 bitcoin = { version = "0.30.1", features = ["rand"] }
 anyhow = { version = "1.0.56", features = ["backtrace"] }
+thiserror = "1.0.56"
 
 [dev-dependencies]
 serde_json = { version = "1.0.81", features = ["preserve_order"] }

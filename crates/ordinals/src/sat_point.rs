@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoin::transaction::ParseOutPointError, std::num::ParseIntError};
 
 /// A satpoint is an outpoint, which identifies a particular Bitcoin
 /// transaction output, as well as an offset, which identifies a particular
@@ -65,20 +65,60 @@ impl FromStr for SatPoint {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let (outpoint, offset) = s
-      .rsplit_once(':')
-      .ok_or_else(|| anyhow!("invalid satpoint: {s}"))?;
+    let (outpoint, offset) = s.rsplit_once(':').ok_or_else(|| Error::Colon(s.into()))?;
 
     Ok(SatPoint {
-      outpoint: outpoint.parse()?,
-      offset: offset.parse()?,
+      outpoint: outpoint
+        .parse::<OutPoint>()
+        .map_err(|err| Error::Outpoint {
+          outpoint: outpoint.into(),
+          err,
+        })?,
+      offset: offset.parse::<u64>().map_err(|err| Error::Offset {
+        offset: offset.into(),
+        err,
+      })?,
     })
   }
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+  #[error("satpoint `{0}` missing colon")]
+  Colon(String),
+  #[error("satpoint offset `{offset}` invalid: {err}")]
+  Offset { offset: String, err: ParseIntError },
+  #[error("satpoint outpoint `{outpoint}` invalid: {err}")]
+  Outpoint {
+    outpoint: String,
+    err: ParseOutPointError,
+  },
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn error() {
+    assert_eq!(
+      "foo".parse::<SatPoint>().unwrap_err().to_string(),
+      "satpoint `foo` missing colon"
+    );
+
+    assert_eq!(
+      "foo:bar".parse::<SatPoint>().unwrap_err().to_string(),
+      "satpoint outpoint `foo` invalid: OutPoint not in <txid>:<vout> format"
+    );
+
+    assert_eq!(
+      "1111111111111111111111111111111111111111111111111111111111111111:1:bar"
+        .parse::<SatPoint>()
+        .unwrap_err()
+        .to_string(),
+      "satpoint offset `bar` invalid: invalid digit found in string"
+    );
+  }
 
   #[test]
   fn from_str_ok() {

@@ -3,7 +3,6 @@
 
 use {
   self::deserialize_from_str::DeserializeFromStr,
-  anyhow::{anyhow, Error},
   bitcoin::{
     consensus::{Decodable, Encodable},
     OutPoint,
@@ -14,6 +13,7 @@ use {
     io,
     str::FromStr,
   },
+  thiserror::Error,
 };
 
 pub use sat_point::SatPoint;
