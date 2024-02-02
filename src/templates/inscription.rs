@@ -29,7 +29,7 @@ pub struct InscriptionRecursiveJson {
   pub height: u32,
   pub number: i32,
   pub timestamp: i64,
-  pub postage: Option<u64>,
+  pub value: Option<u64>,
   pub sat: Sat,
   pub satpoint: SatPoint,
 }

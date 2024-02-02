@@ -282,7 +282,7 @@ fn inscription_metadata() {
 }
 
 #[test]
-fn recursive_inscription_metadata() {
+fn recursive_inscription_endpoint() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -291,8 +291,8 @@ fn recursive_inscription_metadata() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file wizards.txt")
-    .write("wizards.txt", "THEWIZARDSOFORD")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+    .write("foo.txt", "FOO")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -318,8 +318,8 @@ fn recursive_inscription_metadata() {
     InscriptionRecursiveJson {
       address: None,
       content_type: Some("text/plain;charset=utf-8".to_string()),
-      content_length: Some(15),
-      fee: 141,
+      content_length: Some(3),
+      fee: 138,
       height: 2,
       number: 0,
       value: Some(10000),
