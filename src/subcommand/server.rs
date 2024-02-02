@@ -9,7 +9,7 @@ use {
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
+      BlockHtml, BlockJson, BlocksHtml, BlocksJson, BlockInfoJson, ChildrenHtml, ChildrenJson, ClockSvg,
       CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
@@ -256,6 +256,10 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route(
+          "/r/blockinfo/:height",
+          get(Self::block_info_from_height_json),
+        )
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -1051,6 +1055,34 @@ impl Server {
           .block_hash(Some(height))?
           .ok_or_not_found(|| "blockhash")?
           .to_string(),
+      ))
+    })
+  }
+
+  async fn block_info_from_height_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path(height): Path<u32>,
+  ) -> ServerResult<Json<BlockInfoJson>> {
+    task::block_in_place(|| {
+      let inscriptions = index.get_inscriptions_in_block(height)?;
+      let block = index
+            .get_block_by_height(height)?
+            .ok_or_not_found(|| format!("block {height}"))?;
+      let info = index
+            .block_header_info(block.header.block_hash())?
+            .ok_or_not_found(|| format!("block {height}"))?;
+
+      Ok(Json(
+          BlockInfoJson::new(
+            block,
+            Height(height),
+            info.time,
+            info.n_tx,
+            info.confirmations,
+            info.previous_block_hash,
+            info.next_block_hash,
+            inscriptions,
+        )
       ))
     })
   }

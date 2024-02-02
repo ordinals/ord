@@ -61,6 +61,44 @@ impl BlockJson {
   }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockInfoJson {
+  pub hash: BlockHash,
+  pub target: BlockHash,
+  pub height: u32,
+  pub timestamp: usize,
+  pub n_tx: usize,
+  pub confirmations: i32,
+  pub previous_block_hash: Option<BlockHash>,
+  pub next_block_hash: Option<BlockHash>,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+impl BlockInfoJson {
+  pub(crate) fn new(
+    block: Block,
+    height: Height,
+    timestamp: usize,
+    n_tx: usize,
+    confirmations: i32,
+    previous_block_hash: Option<BlockHash>,
+    next_block_hash: Option<BlockHash>,
+    inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      hash: block.header.block_hash(),
+      target: target_as_block_hash(block.header.target()),
+      height: height.0,
+      timestamp,
+      n_tx,
+      confirmations,
+      previous_block_hash,
+      next_block_hash,
+      inscriptions,
+    }
+  }
+}
+
 impl PageContent for BlockHtml {
   fn title(&self) -> String {
     format!("Block {}", self.height)
