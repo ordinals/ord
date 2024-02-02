@@ -1,6 +1,6 @@
 use {
   super::*,
-  base64::{engine::general_purpose::STANDARD as base64_standard, Engine as _},
+  base64::Engine,
   bitcoin::{
     consensus::Decodable,
     psbt::Psbt,
@@ -795,7 +795,12 @@ impl Api for Server {
     assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
-    let mut psbt = Psbt::deserialize(&base64_standard.decode(psbt).unwrap()).unwrap();
+    let mut psbt = Psbt::deserialize(
+      &base64::engine::general_purpose::STANDARD
+        .decode(psbt)
+        .unwrap(),
+    )
+    .unwrap();
 
     for (i, txin) in psbt.unsigned_tx.input.iter().enumerate() {
       psbt.inputs[i].witness_utxo = Some(
@@ -810,7 +815,7 @@ impl Api for Server {
     }
 
     Ok(WalletProcessPsbtResult {
-      psbt: base64_standard.encode(psbt.serialize()),
+      psbt: base64::engine::general_purpose::STANDARD.encode(psbt.serialize()),
       complete: false,
     })
   }

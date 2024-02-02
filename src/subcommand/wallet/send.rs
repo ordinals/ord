@@ -1,7 +1,7 @@
 use {
   super::*,
   crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
-  base64::{engine::general_purpose::STANDARD as base64_standard, Engine as _},
+  base64::Engine,
   bitcoin::psbt::Psbt,
 };
 
@@ -79,7 +79,8 @@ impl Send {
 
     let psbt = bitcoin_client
       .wallet_process_psbt(
-        &base64_standard.encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+        &base64::engine::general_purpose::STANDARD
+          .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
         Some(false),
         None,
         None,
