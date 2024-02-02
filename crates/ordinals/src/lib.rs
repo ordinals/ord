@@ -1,5 +1,5 @@
-//! This library exposes types that are useful for interoperating with ordinals
-//! and inscriptions.
+//! This library exposes types for interoperating with ordinals and
+//! inscriptions.
 
 use {
   self::deserialize_from_str::DeserializeFromStr,
