@@ -176,4 +176,13 @@ pub trait Api {
 
   #[rpc(name = "listwalletdir")]
   fn list_wallet_dir(&self) -> Result<ListWalletDirResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "walletprocesspsbt")]
+  fn wallet_process_psbt(
+    &self,
+    psbt: String,
+    sign: Option<bool>,
+    sighash_type: Option<()>,
+    bip32derivs: Option<bool>,
+  ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error>;
 }

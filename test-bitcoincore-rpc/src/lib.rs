@@ -24,7 +24,7 @@ use {
     GetTransactionResultDetailCategory, GetTxOutResult, GetWalletInfoResult, ImportDescriptors,
     ImportMultiResult, ListDescriptorsResult, ListTransactionResult, ListUnspentResultEntry,
     ListWalletDirItem, ListWalletDirResult, LoadWalletResult, SignRawTransactionInput,
-    SignRawTransactionResult, Timestamp, WalletTxInfo,
+    SignRawTransactionResult, Timestamp, WalletProcessPsbtResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -134,13 +134,6 @@ pub struct TransactionTemplate<'a> {
   pub op_return_index: Option<usize>,
   pub output_values: &'a [u64],
   pub outputs: usize,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Sent {
-  pub amount: f64,
-  pub address: Address,
-  pub locked: Vec<OutPoint>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -259,10 +252,6 @@ impl Handle {
     self.state().descriptors.push(desc);
   }
 
-  pub fn sent(&self) -> Vec<Sent> {
-    self.state().sent.clone()
-  }
-
   pub fn lock(&self, output: OutPoint) {
     self.state().locked.insert(output);
   }
@@ -287,6 +276,10 @@ impl Handle {
 
   pub fn cookie_file(&self) -> PathBuf {
     self.tempdir.path().join(".cookie")
+  }
+
+  pub fn get_locked(&self) -> BTreeSet<OutPoint> {
+    self.state().get_locked()
   }
 }
 

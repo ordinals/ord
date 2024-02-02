@@ -43,7 +43,7 @@ fn inscriptions() {
   .expected_exit_code(0)
   .stdout_regex(".*")
   .run_and_deserialize_output::<send::Output>()
-  .transaction;
+  .txid;
 
   bitcoin_rpc_server.mine_blocks(1);
 
