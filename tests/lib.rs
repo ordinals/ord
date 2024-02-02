@@ -15,8 +15,8 @@ use {
     rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
-      block::BlockJson, blocks::BlocksJson, inscription::InscriptionDetailsJson,
-      inscription::InscriptionJson, inscriptions::InscriptionsJson, output::OutputJson,
+      block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
+      inscription::InscriptionRecursiveJson, inscriptions::InscriptionsJson, output::OutputJson,
       rune::RuneJson, runes::RunesJson, sat::SatJson, status::StatusJson,
       transaction::TransactionJson,
     },

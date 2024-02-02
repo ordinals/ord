@@ -308,21 +308,21 @@ fn recursive_inscription_metadata() {
     "application/json"
   );
 
-  let mut inscription_metadata_json: InscriptionDetailsJson =
+  let mut inscription_metadata_json: InscriptionRecursiveJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
   assert_regex_match!(inscription_metadata_json.address.unwrap(), r"bc1p.*");
   inscription_metadata_json.address = None;
 
   pretty_assert_eq!(
     inscription_metadata_json,
-    InscriptionDetailsJson {
+    InscriptionRecursiveJson {
       address: None,
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(15),
       fee: 141,
       height: 2,
       number: 0,
-      postage: Some(10000),
+      value: Some(10000),
       sat: ord::Sat(50 * COIN_VALUE),
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,

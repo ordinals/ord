@@ -21,7 +21,7 @@ pub(crate) struct InscriptionHtml {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InscriptionDetailsJson {
+pub struct InscriptionRecursiveJson {
   pub address: Option<String>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,

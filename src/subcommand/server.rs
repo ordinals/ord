@@ -10,13 +10,13 @@ use {
     server_config::ServerConfig,
     templates::{
       BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
-      CollectionsHtml, HomeHtml, InputHtml, InscriptionDetailsJson, InscriptionHtml,
-      InscriptionJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml,
-      OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
-      PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-      PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneJson, RunesHtml,
-      RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
-      TransactionJson,
+      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      InscriptionRecursiveJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml,
+      RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson,
+      TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -890,14 +890,14 @@ impl Server {
       .map(|address| address.to_string());
 
     Ok(
-      Json(InscriptionDetailsJson {
+      Json(InscriptionRecursiveJson {
         address,
         content_type: inscription.content_type().map(|s| s.to_string()),
         content_length: inscription.content_length(),
         fee: entry.fee,
         height: entry.height,
         number: entry.inscription_number,
-        postage: output.as_ref().map(|o| o.value),
+        value: output.as_ref().map(|o| o.value),
         sat,
         satpoint,
         timestamp: timestamp(entry.timestamp).timestamp(),
