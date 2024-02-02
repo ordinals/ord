@@ -568,6 +568,30 @@ mod tests {
   }
 
   #[test]
+  fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
+    assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Mint.mask(),
+        Tag::Term.into(),
+        4,
+        Tag::Body.into(),
+        1,
+        2,
+        3
+      ]),
+      Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        ..Default::default()
+      },
+    );
+  }
+
+  #[test]
   fn decipher_etching_with_term() {
     assert_eq!(
       decipher(&[
