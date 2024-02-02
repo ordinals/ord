@@ -323,13 +323,14 @@ fn recursive_inscription_endpoint() {
       fee: 138,
       height: 2,
       number: 0,
-      value: Some(10000),
+      output: inscription.location.outpoint,
       sat: Some(ord::Sat(50 * COIN_VALUE)),
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,
         offset: 0,
       },
       timestamp: 2,
+      value: Some(10000),
     }
   )
 }

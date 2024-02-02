@@ -29,6 +29,7 @@ pub struct InscriptionRecursiveJson {
   pub fee: u64,
   pub height: u32,
   pub number: i32,
+  pub output: OutPoint,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
