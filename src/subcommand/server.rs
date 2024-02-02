@@ -258,7 +258,7 @@ impl Server {
         .route("/r/blocktime", get(Self::block_time))
         .route(
           "/r/inscription/:inscription_id",
-          get(Self::inscription_details),
+          get(Self::inscription_recursive),
         )
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
@@ -837,7 +837,7 @@ impl Server {
     })
   }
 
-  async fn inscription_details(
+  async fn inscription_recursive(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
