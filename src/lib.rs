@@ -83,7 +83,7 @@ use {
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, RuneEntry},
+  index::{Index, MintEntry, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,

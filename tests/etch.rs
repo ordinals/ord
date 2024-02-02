@@ -174,15 +174,14 @@ fn runes_can_be_etched() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  assert_eq!(
+  pretty_assert_eq!(
     runes(&bitcoin_rpc_server),
     vec![(
       Rune(RUNE),
       RuneInfo {
         burned: 0,
-        deadline: None,
+        mint: None,
         divisibility: 1,
-        end: None,
         etching: output.transaction,
         height: 2,
         id: RuneId {
@@ -190,7 +189,6 @@ fn runes_can_be_etched() {
           index: 1
         },
         index: 1,
-        limit: None,
         mints: 0,
         number: 0,
         rune: Rune(RUNE),

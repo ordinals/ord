@@ -13,20 +13,35 @@
   <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
   <dt>etching transaction index</dt>
   <dd>{{ self.id.index }}</dd>
-%% if let Some(end) = self.entry.end {
-  <dt>open etching end</dt>
-  <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
+  <dt>mint</dt>
+%% if let Some(mint) = self.entry.mint {
+  <dd>
+    <dl>
+      <dt>deadline</dt>
+%% if let Some(deadline) = mint.deadline {
+      <dd><time>{{ timestamp(deadline) }}</time></dd>
+%% } else {
+      <dd>none</dd>
 %% }
-%% if let Some(deadline) = self.entry.deadline {
-  <dt>open etching deadline</dt>
-  <dd><time>{{ timestamp(deadline) }}</time></dd>
+      <dt>end</dt>
+%% if let Some(end) = mint.end {
+      <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
+%% } else {
+      <dd>none</dd>
 %% }
-%% if let Some(limit) = self.entry.limit {
-  <dt>open etching limit</dt>
-  <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
+      <dt>limit</dt>
+%% if let Some(limit) = mint.limit {
+      <dd>{{ Pile{ amount: limit, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
+%% } else {
+      <dd>none</dd>
 %% }
-  <dt>mints</dt>
-  <dd>{{ self.entry.mints }}</dd>
+      <dt>mints</dt>
+      <dd>{{ self.entry.mints }}</dd>
+    </dl>
+  </dd>
+%% } else {
+  <dd>no</dd>
+%% }
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
   <dt>burned</dt>

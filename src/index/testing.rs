@@ -120,9 +120,9 @@ impl Context {
       balances.sort_by_key(|(id, _)| *id);
     }
 
-    assert_eq!(runes, self.index.runes().unwrap());
+    pretty_assert_eq!(runes, self.index.runes().unwrap());
 
-    assert_eq!(balances, self.index.get_rune_balances().unwrap());
+    pretty_assert_eq!(balances, self.index.get_rune_balances().unwrap());
 
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
 
@@ -133,7 +133,7 @@ impl Context {
     }
 
     for (id, entry) in runes {
-      assert_eq!(
+      pretty_assert_eq!(
         outstanding.get(id).copied().unwrap_or_default(),
         entry.supply - entry.burned
       );
