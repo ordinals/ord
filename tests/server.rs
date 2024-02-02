@@ -317,13 +317,14 @@ fn recursive_inscription_endpoint() {
     inscription_metadata_json,
     InscriptionRecursiveJson {
       address: None,
+      charms: vec!["coin".into(), "uncommon".into()],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
       fee: 138,
       height: 2,
       number: 0,
       value: Some(10000),
-      sat: ord::Sat(50 * COIN_VALUE),
+      sat: Some(ord::Sat(50 * COIN_VALUE)),
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,
         offset: 0,

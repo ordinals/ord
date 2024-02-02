@@ -23,15 +23,16 @@ pub(crate) struct InscriptionHtml {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionRecursiveJson {
   pub address: Option<String>,
+  pub charms: Vec<String>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
   pub fee: u64,
   pub height: u32,
   pub number: i32,
+  pub sat: Option<Sat>,
+  pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
-  pub sat: Sat,
-  pub satpoint: SatPoint,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
