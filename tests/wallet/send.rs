@@ -1106,11 +1106,15 @@ fn send_dry_run() {
 
   assert!(bitcoin_rpc_server.mempool().is_empty());
   assert_eq!(
-    Psbt::deserialize(&base64::engine::general_purpose::STANDARD.decode(output.psbt).unwrap())
-      .unwrap()
-      .fee()
-      .unwrap()
-      .to_sat(),
+    Psbt::deserialize(
+      &base64::engine::general_purpose::STANDARD
+        .decode(output.psbt)
+        .unwrap()
+    )
+    .unwrap()
+    .fee()
+    .unwrap()
+    .to_sat(),
     output.fee
   );
   assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
