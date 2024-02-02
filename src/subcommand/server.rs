@@ -842,68 +842,72 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    if !index.has_sat_index() {
-      return Err(ServerError::NotFound(
-        "this server has no sat index".to_string(),
-      ));
-    }
+    task::block_in_place(|| {
+      if !index.has_sat_index() {
+        return Err(ServerError::NotFound(
+          "this server has no sat index".to_string(),
+        ));
+      }
 
-    let inscription = index
-      .get_inscription_by_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      let inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let entry = index
-      .get_inscription_entry(inscription_id)
-      .unwrap()
-      .unwrap();
+      let entry = index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
 
-    let sat = entry.sat.unwrap();
+      let sat = entry.sat.unwrap();
 
-    let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)
-      .ok()
-      .flatten()
-      .unwrap();
+      let satpoint = index
+        .get_inscription_satpoint_by_id(inscription_id)
+        .ok()
+        .flatten()
+        .unwrap();
 
-    let output = if satpoint.outpoint == unbound_outpoint() {
-      None
-    } else {
-      Some(
-        index
-          .get_transaction(satpoint.outpoint.txid)?
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
+      let output = if satpoint.outpoint == unbound_outpoint() {
+        None
+      } else {
+        Some(
+          index
+            .get_transaction(satpoint.outpoint.txid)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+            .output
+            .into_iter()
+            .nth(satpoint.outpoint.vout.try_into().unwrap())
+            .ok_or_not_found(|| {
+              format!("inscription {inscription_id} current transaction output")
+            })?,
+        )
+      };
+
+      let address = output
+        .as_ref()
+        .and_then(|output| {
+          server_config
+            .chain
+            .address_from_script(&output.script_pubkey)
+            .ok()
+        })
+        .map(|address| address.to_string());
+
+      Ok(
+        Json(InscriptionRecursiveJson {
+          address,
+          content_type: inscription.content_type().map(|s| s.to_string()),
+          content_length: inscription.content_length(),
+          fee: entry.fee,
+          height: entry.height,
+          number: entry.inscription_number,
+          value: output.as_ref().map(|o| o.value),
+          sat,
+          satpoint,
+          timestamp: timestamp(entry.timestamp).timestamp(),
+        })
+        .into_response(),
       )
-    };
-
-    let address = output
-      .as_ref()
-      .and_then(|output| {
-        server_config
-          .chain
-          .address_from_script(&output.script_pubkey)
-          .ok()
-      })
-      .map(|address| address.to_string());
-
-    Ok(
-      Json(InscriptionRecursiveJson {
-        address,
-        content_type: inscription.content_type().map(|s| s.to_string()),
-        content_length: inscription.content_length(),
-        fee: entry.fee,
-        height: entry.height,
-        number: entry.inscription_number,
-        value: output.as_ref().map(|o| o.value),
-        sat,
-        satpoint,
-        timestamp: timestamp(entry.timestamp).timestamp(),
-      })
-      .into_response(),
-    )
+    })
   }
 
   async fn status(
