@@ -1,5 +1,4 @@
-//! This library exposes types for interoperating with ordinals and
-//! inscriptions.
+//! Types for interoperating with ordinals and inscriptions.
 
 use {
   bitcoin::{
