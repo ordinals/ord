@@ -2239,7 +2239,6 @@ dependencies = [
 name = "ordinals"
 version = "0.0.1"
 dependencies = [
- "anyhow",
  "bitcoin",
  "serde",
  "serde_json",
