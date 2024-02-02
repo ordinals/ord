@@ -165,7 +165,7 @@ impl Send {
 
   fn create_unsigned_send_satpoint_transaction(
     wallet: &Wallet,
-    address: Address,
+    destination: Address,
     satpoint: SatPoint,
     postage: Option<Amount>,
     fee_rate: FeeRate,
@@ -204,7 +204,7 @@ impl Send {
         unspent_outputs.clone(),
         locked_outputs,
         runic_outputs,
-        address.clone(),
+        destination.clone(),
         change,
         fee_rate,
         postage,
@@ -215,7 +215,7 @@ impl Send {
 
   fn create_unsigned_send_runes_transaction(
     wallet: &Wallet,
-    address: Address,
+    destination: Address,
     spaced_rune: SpacedRune,
     decimal: Decimal,
     fee_rate: FeeRate,
@@ -310,7 +310,7 @@ impl Send {
           value: TARGET_POSTAGE.to_sat(),
         },
         TxOut {
-          script_pubkey: address.script_pubkey(),
+          script_pubkey: destination.script_pubkey(),
           value: TARGET_POSTAGE.to_sat(),
         },
       ],
