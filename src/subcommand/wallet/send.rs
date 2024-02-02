@@ -35,79 +35,37 @@ impl Send {
       .clone()
       .require_network(wallet.chain().network())?;
 
-    let unspent_outputs = wallet.get_unspent_outputs()?;
-
-    let locked_outputs = wallet.get_locked_outputs()?;
-
-    let inscriptions = wallet.get_inscriptions()?;
-
-    let runic_outputs = wallet.get_runic_outputs()?;
-
-    let bitcoin_client = wallet.bitcoin_client()?;
-
     let unsigned_transaction = match self.outgoing {
-      Outgoing::Amount(amount) => Self::create_unsigned_send_transaction(
-        &wallet,
-        amount,
-        address,
-        self.fee_rate,
-        &inscriptions,
-        &runic_outputs,
-        &unspent_outputs,
-      )?,
+      Outgoing::Amount(amount) => {
+        Self::create_unsigned_send_amount_transaction(&wallet, address, amount, self.fee_rate)?
+      }
       Outgoing::Rune { decimal, rune } => Self::create_unsigned_send_runes_transaction(
+        &wallet,
         address,
-        &bitcoin_client,
+        rune,
         decimal,
         self.fee_rate,
-        &inscriptions,
-        rune,
-        &runic_outputs,
-        &unspent_outputs,
-        &wallet,
       )?,
-      _ => {
-        let satpoint = match self.outgoing {
-          Outgoing::InscriptionId(id) => wallet.get_inscription_satpoint(id)?,
-          Outgoing::SatPoint(satpoint) => {
-            for inscription_satpoint in inscriptions.keys() {
-              if satpoint == *inscription_satpoint {
-                bail!("inscriptions must be sent by inscription ID");
-              }
-            }
-
-            ensure!(
-              !runic_outputs.contains(&satpoint.outpoint),
-              "runic outpoints may not be sent by satpoint"
-            );
-
-            satpoint
-          }
-          _ => unreachable!(),
-        };
-
-        let change = [wallet.get_change_address()?, wallet.get_change_address()?];
-
-        let postage = if let Some(postage) = self.postage {
-          Target::ExactPostage(postage)
-        } else {
-          Target::Postage
-        };
-
-        TransactionBuilder::new(
-          satpoint,
-          inscriptions,
-          unspent_outputs.clone(),
-          locked_outputs,
-          runic_outputs,
-          address.clone(),
-          change,
-          self.fee_rate,
-          postage,
-        )
-        .build_transaction()?
-      }
+      Outgoing::InscriptionId(id) => Self::create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        wallet.get_inscription_satpoint(id)?,
+        self.postage,
+        self.fee_rate,
+        true,
+      )?,
+      Outgoing::SatPoint(satpoint) => Self::create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        satpoint,
+        self.postage,
+        self.fee_rate,
+        false,
+      )?,
     };
+
+    let bitcoin_client = wallet.bitcoin_client()?;
+    let unspent_outputs = wallet.get_unspent_outputs()?;
 
     let txid = if self.dry_run {
       unsigned_transaction.txid()
@@ -173,18 +131,18 @@ impl Send {
     Ok(())
   }
 
-  fn create_unsigned_send_transaction(
+  fn create_unsigned_send_amount_transaction(
     wallet: &Wallet,
-    amount: Amount,
     destination: Address,
+    amount: Amount,
     fee_rate: FeeRate,
-    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
-    runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: &BTreeMap<OutPoint, Amount>,
   ) -> Result<Transaction> {
     let client = wallet.bitcoin_client()?;
+    let unspent_outputs = wallet.get_unspent_outputs()?;
+    let inscriptions = wallet.get_inscriptions()?;
+    let runic_outputs = wallet.get_runic_outputs()?;
 
-    Self::lock_non_cardinal_outputs(&client, inscriptions, runic_outputs, unspent_outputs)?;
+    Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, &unspent_outputs)?;
 
     let unfunded_transaction = Transaction {
       version: 2,
@@ -205,23 +163,79 @@ impl Send {
     Ok(unsigned_transaction)
   }
 
-  fn create_unsigned_send_runes_transaction(
+  fn create_unsigned_send_satpoint_transaction(
+    wallet: &Wallet,
     address: Address,
-    bitcoin_client: &Client,
+    satpoint: SatPoint,
+    postage: Option<Amount>,
+    fee_rate: FeeRate,
+    sending_inscription: bool,
+  ) -> Result<Transaction> {
+    let unspent_outputs = wallet.get_unspent_outputs()?;
+    let locked_outputs = wallet.get_locked_outputs()?;
+    let inscriptions = wallet.get_inscriptions()?;
+    let runic_outputs = wallet.get_runic_outputs()?;
+
+    if !sending_inscription {
+      for inscription_satpoint in inscriptions.keys() {
+        if satpoint == *inscription_satpoint {
+          bail!("inscriptions must be sent by inscription ID");
+        }
+      }
+    }
+
+    ensure!(
+      !runic_outputs.contains(&satpoint.outpoint),
+      "runic outpoints may not be sent by satpoint"
+    );
+
+    let change = [wallet.get_change_address()?, wallet.get_change_address()?];
+
+    let postage = if let Some(postage) = postage {
+      Target::ExactPostage(postage)
+    } else {
+      Target::Postage
+    };
+
+    Ok(
+      TransactionBuilder::new(
+        satpoint,
+        inscriptions,
+        unspent_outputs.clone(),
+        locked_outputs,
+        runic_outputs,
+        address.clone(),
+        change,
+        fee_rate,
+        postage,
+      )
+      .build_transaction()?,
+    )
+  }
+
+  fn create_unsigned_send_runes_transaction(
+    wallet: &Wallet,
+    address: Address,
+    spaced_rune: SpacedRune,
     decimal: Decimal,
     fee_rate: FeeRate,
-    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
-    spaced_rune: SpacedRune,
-    runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: &BTreeMap<OutPoint, Amount>,
-    wallet: &Wallet,
   ) -> Result<Transaction> {
     ensure!(
       wallet.has_rune_index()?,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    Self::lock_non_cardinal_outputs(bitcoin_client, inscriptions, runic_outputs, unspent_outputs)?;
+    let unspent_outputs = wallet.get_unspent_outputs()?;
+    let inscriptions = wallet.get_inscriptions()?;
+    let runic_outputs = wallet.get_runic_outputs()?;
+    let bitcoin_client = wallet.bitcoin_client()?;
+
+    Self::lock_non_cardinal_outputs(
+      &bitcoin_client,
+      &inscriptions,
+      &runic_outputs,
+      &unspent_outputs,
+    )?;
 
     let (id, entry, _parent) = wallet
       .get_rune(spaced_rune.rune)?
@@ -238,11 +252,11 @@ impl Send {
     let mut input = Vec::new();
 
     for output in runic_outputs {
-      if inscribed_outputs.contains(output) {
+      if inscribed_outputs.contains(&output) {
         continue;
       }
 
-      let balance = wallet.get_rune_balance_in_output(output, entry.rune)?;
+      let balance = wallet.get_rune_balance_in_output(&output, entry.rune)?;
 
       if balance > 0 {
         input_runes += balance;
@@ -280,7 +294,7 @@ impl Send {
       input: input
         .into_iter()
         .map(|previous_output| TxIn {
-          previous_output: *previous_output,
+          previous_output,
           script_sig: ScriptBuf::new(),
           sequence: Sequence::MAX,
           witness: Witness::new(),
@@ -303,7 +317,7 @@ impl Send {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(&bitcoin_client, fee_rate, &unfunded_transaction)?;
 
     Ok(consensus::encode::deserialize(&unsigned_transaction)?)
   }
