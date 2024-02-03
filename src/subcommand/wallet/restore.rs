@@ -1,6 +1,6 @@
 use {
   super::*,
-  std::io,
+  std::{borrow::Cow, io, io::Write},
 };
 
 #[derive(Debug, Parser)]
@@ -34,12 +34,15 @@ impl Restore {
     } else if let Some(Some(mnemonic)) = self.mnemonic {
       wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?;
     } else if let Some(None) = self.mnemonic {
-      let mut buffer = Vec::new();
-      println!("Please input your seed phrase:");
-      io::stdin().read_to_end(&mut buffer)?;
-      let msg = format!("invalid input as bytes, expected [u8; 64] read [u8; {}]", buffer.len());
-      wallet.initialize(buffer.try_into().expect(&msg))?
-    } else {unreachable!()}
+      let mut buffer = String::new();
+      io::stdout().write_all(b"Please input your seed phrase:")?;
+      io::stdin().read_to_string(&mut buffer)?;
+      let buffer = Cow::<str>::Owned(buffer);
+      let mnemonic: Mnemonic = Mnemonic::parse(buffer)?;
+      wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?
+    } else {
+      unreachable!()
+    }
 
     Ok(None)
   }

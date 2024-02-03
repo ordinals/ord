@@ -163,7 +163,8 @@ fn restore_with_blank_mnemonic_generates_same_descriptors() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   CommandBuilder::new(["wallet", "restore", "--mnemonic"])
-    .stdin(mnemonic.to_string().as_bytes().to_vec())
+    .stdout_regex("Please input your seed phrase:")
+    .stdin(mnemonic.to_string().into_bytes())
     .bitcoin_rpc_server(&rpc_server)
     .run_and_extract_stdout();
 
