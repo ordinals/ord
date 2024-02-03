@@ -75,7 +75,7 @@ impl From<Sat> for Rarity {
 }
 
 impl FromStr for Rarity {
-  type Err = Error;
+  type Err = String;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
@@ -85,15 +85,9 @@ impl FromStr for Rarity {
       "epic" => Ok(Self::Epic),
       "legendary" => Ok(Self::Legendary),
       "mythic" => Ok(Self::Mythic),
-      _ => Err(Error::InvalidRarity(s.into())),
+      _ => Err(format!("invalid rarity `{s}`")),
     }
   }
-}
-
-#[derive(Debug, Error)]
-pub enum Error {
-  #[error("invalid rarity `{0}`")]
-  InvalidRarity(String),
 }
 
 impl Serialize for Rarity {
