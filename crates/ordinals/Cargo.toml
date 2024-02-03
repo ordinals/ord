@@ -9,8 +9,9 @@ license = "CC0-1.0"
 rust-version = "1.67"
 
 [dependencies]
-serde = { version = "1.0.137", features = ["derive"] }
 bitcoin = { version = "0.30.1", features = ["rand"] }
+derive_more = "0.99.17"
+serde = { version = "1.0.137", features = ["derive"] }
 thiserror = "1.0.56"
 
 [dev-dependencies]

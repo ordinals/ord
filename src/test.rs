@@ -2,6 +2,7 @@ pub(crate) use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script, script::PushBytesBuf},
+    constants::COIN_VALUE,
     ScriptBuf, Witness,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,

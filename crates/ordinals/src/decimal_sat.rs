@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(PartialEq, Debug)]
-pub(crate) struct DecimalSat {
+pub struct DecimalSat {
   height: Height,
   offset: u64,
 }

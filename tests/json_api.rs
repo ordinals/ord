@@ -166,7 +166,7 @@ fn get_inscription() {
       parent: None,
       previous: None,
       rune: None,
-      sat: Some(ord::Sat(50 * COIN_VALUE)),
+      sat: Some(ordinals::Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
     }

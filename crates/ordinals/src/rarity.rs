@@ -85,9 +85,15 @@ impl FromStr for Rarity {
       "epic" => Ok(Self::Epic),
       "legendary" => Ok(Self::Legendary),
       "mythic" => Ok(Self::Mythic),
-      _ => Err(anyhow!("invalid rarity: {s}")),
+      _ => Err(Error::InvalidRarity(s.into())),
     }
   }
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+  #[error("invalid rarity `{0}`")]
+  InvalidRarity(String),
 }
 
 impl Serialize for Rarity {

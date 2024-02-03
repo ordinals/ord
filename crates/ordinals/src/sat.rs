@@ -5,71 +5,71 @@ use super::*;
 pub struct Sat(pub u64);
 
 impl Sat {
-  pub(crate) const LAST: Self = Self(Self::SUPPLY - 1);
-  pub(crate) const SUPPLY: u64 = 2099999997690000;
+  pub const LAST: Self = Self(Self::SUPPLY - 1);
+  pub const SUPPLY: u64 = 2099999997690000;
 
-  pub(crate) fn n(self) -> u64 {
+  pub fn n(self) -> u64 {
     self.0
   }
 
-  pub(crate) fn degree(self) -> Degree {
+  pub fn degree(self) -> Degree {
     self.into()
   }
 
-  pub(crate) fn height(self) -> Height {
+  pub fn height(self) -> Height {
     self.epoch().starting_height()
       + u32::try_from(self.epoch_position() / self.epoch().subsidy()).unwrap()
   }
 
-  pub(crate) fn cycle(self) -> u32 {
+  pub fn cycle(self) -> u32 {
     Epoch::from(self).0 / CYCLE_EPOCHS
   }
 
-  pub(crate) fn nineball(self) -> bool {
+  pub fn nineball(self) -> bool {
     self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
   }
 
-  pub(crate) fn percentile(self) -> String {
+  pub fn percentile(self) -> String {
     format!("{}%", (self.0 as f64 / Self::LAST.0 as f64) * 100.0)
   }
 
-  pub(crate) fn epoch(self) -> Epoch {
+  pub fn epoch(self) -> Epoch {
     self.into()
   }
 
-  pub(crate) fn period(self) -> u32 {
+  pub fn period(self) -> u32 {
     self.height().n() / DIFFCHANGE_INTERVAL
   }
 
-  pub(crate) fn third(self) -> u64 {
+  pub fn third(self) -> u64 {
     self.epoch_position() % self.epoch().subsidy()
   }
 
-  pub(crate) fn epoch_position(self) -> u64 {
+  pub fn epoch_position(self) -> u64 {
     self.0 - self.epoch().starting_sat().0
   }
 
-  pub(crate) fn decimal(self) -> DecimalSat {
+  pub fn decimal(self) -> DecimalSat {
     self.into()
   }
 
-  pub(crate) fn rarity(self) -> Rarity {
+  pub fn rarity(self) -> Rarity {
     self.into()
   }
 
   /// `Sat::rarity` is expensive and is called frequently when indexing.
   /// Sat::is_common only checks if self is `Rarity::Common` but is
   /// much faster.
-  pub(crate) fn common(self) -> bool {
+  pub fn common(self) -> bool {
     let epoch = self.epoch();
     (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
 
-  pub(crate) fn coin(self) -> bool {
+  pub fn coin(self) -> bool {
     self.n() % COIN_VALUE == 0
   }
 
-  pub(crate) fn name(self) -> String {
+  pub fn name(self) -> String {
     let mut x = Self::SUPPLY - self.0;
     let mut name = String::new();
     while x > 0 {
@@ -84,42 +84,36 @@ impl Sat {
     name.chars().rev().collect()
   }
 
-  fn from_name(s: &str) -> Result<Self> {
+  fn from_name(s: &str) -> Result<Self, Error> {
     let mut x = 0;
     for c in s.chars() {
       match c {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
           if x > Self::SUPPLY {
-            bail!("sat name out of range");
+            return Err(Error::SatName(s.into()));
           }
         }
-        _ => bail!("invalid character in sat name: {c}"),
+        _ => return Err(Error::Character(c.into())),
       }
     }
     Ok(Sat(Self::SUPPLY - x))
   }
 
-  fn from_degree(degree: &str) -> Result<Self> {
-    let (cycle_number, rest) = degree
-      .split_once('°')
-      .ok_or_else(|| anyhow!("missing degree symbol"))?;
+  fn from_degree(degree: &str) -> Result<Self, Error> {
+    let (cycle_number, rest) = degree.split_once('°').ok_or(Error::MissingDegree)?;
     let cycle_number = cycle_number.parse::<u32>()?;
 
-    let (epoch_offset, rest) = rest
-      .split_once('′')
-      .ok_or_else(|| anyhow!("missing minute symbol"))?;
+    let (epoch_offset, rest) = rest.split_once('′').ok_or(Error::MissingMinute)?;
     let epoch_offset = epoch_offset.parse::<u32>()?;
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
-      bail!("invalid epoch offset");
+      return Err(Error::EpochOffset);
     }
 
-    let (period_offset, rest) = rest
-      .split_once('″')
-      .ok_or_else(|| anyhow!("missing second symbol"))?;
+    let (period_offset, rest) = rest.split_once('″').ok_or(Error::MissingSecond)?;
     let period_offset = period_offset.parse::<u32>()?;
     if period_offset >= DIFFCHANGE_INTERVAL {
-      bail!("invalid period offset");
+      return Err(Error::PeriodOffset);
     }
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
@@ -131,7 +125,7 @@ impl Sat {
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
     if relationship % HALVING_INCREMENT != 0 {
-      bail!("relationship between epoch offset and period offset must be multiple of 336");
+      return Err(Error::EpochPeriodMismatch);
     }
 
     let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
@@ -146,39 +140,37 @@ impl Sat {
     };
 
     if !rest.is_empty() {
-      bail!("trailing characters");
+      return Err(Error::TrailingCharacters);
     }
 
     if block_offset >= height.subsidy() {
-      bail!("invalid block offset");
+      return Err(Error::BlockOffset(block_offset.to_string()));
     }
 
     Ok(height.starting_sat() + block_offset)
   }
 
-  fn from_decimal(decimal: &str) -> Result<Self> {
-    let (height, offset) = decimal
-      .split_once('.')
-      .ok_or_else(|| anyhow!("missing period"))?;
+  fn from_decimal(decimal: &str) -> Result<Self, Error> {
+    let (height, offset) = decimal.split_once('.').ok_or(Error::MissingPeriod)?;
     let height = Height(height.parse()?);
     let offset = offset.parse::<u64>()?;
 
     if offset >= height.subsidy() {
-      bail!("invalid block offset");
+      return Err(Error::BlockOffset(offset.to_string()));
     }
 
     Ok(height.starting_sat() + offset)
   }
 
-  fn from_percentile(percentile: &str) -> Result<Self> {
+  fn from_percentile(percentile: &str) -> Result<Self, Error> {
     if !percentile.ends_with('%') {
-      bail!("invalid percentile: {}", percentile);
+      return Err(Error::Percentile(percentile.into()));
     }
 
     let percentile = percentile[..percentile.len() - 1].parse::<f64>()?;
 
     if percentile < 0.0 {
-      bail!("invalid percentile: {}", percentile);
+      return Err(Error::Percentile(percentile.to_string()));
     }
 
     let last = Sat::LAST.n() as f64;
@@ -186,11 +178,57 @@ impl Sat {
     let n = (percentile / 100.0 * last).round();
 
     if n > last {
-      bail!("invalid percentile: {}", percentile);
+      return Err(Error::Percentile(percentile.to_string()));
     }
 
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     Ok(Sat(n as u64))
+  }
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+  #[error("invalid sat `{0}`")]
+  Sat(String),
+  #[error("sat name out of range `{0}`")]
+  SatName(String),
+  #[error("invalid character in sat name `{0}`")]
+  Character(String),
+  #[error("invalid percentil `{0}`")]
+  Percentile(String),
+  #[error("invalid block offset `{0}`")]
+  BlockOffset(String),
+  #[error("missing period")]
+  MissingPeriod,
+  #[error("trailing characters")]
+  TrailingCharacters,
+  #[error("missing degree symbol")]
+  MissingDegree,
+  #[error("missing minute symbol")]
+  MissingMinute,
+  #[error("missing second symbol")]
+  MissingSecond,
+  #[error("invalid period offset")]
+  PeriodOffset,
+  #[error("invalid epoch offset")]
+  EpochOffset,
+  #[error("relationship between epoch offset and period offset must be multiple of 336")]
+  EpochPeriodMismatch,
+  #[error("error parsing integer")]
+  ParseInt,
+  #[error("error parsing float")]
+  ParseFloat,
+}
+
+impl From<std::num::ParseIntError> for Error {
+  fn from(_value: std::num::ParseIntError) -> Self {
+    Self::ParseInt
+  }
+}
+
+impl From<std::num::ParseFloatError> for Error {
+  fn from(_value: std::num::ParseFloatError) -> Self {
+    Self::ParseFloat
   }
 }
 
@@ -223,7 +261,7 @@ impl AddAssign<u64> for Sat {
 impl FromStr for Sat {
   type Err = Error;
 
-  fn from_str(s: &str) -> Result<Self> {
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
     if s.chars().any(|c| c.is_ascii_lowercase()) {
       Self::from_name(s)
     } else if s.contains('°') {
@@ -235,7 +273,7 @@ impl FromStr for Sat {
     } else {
       let sat = Self(s.parse()?);
       if sat > Self::LAST {
-        Err(anyhow!("invalid sat"))
+        Err(Error::Sat(s.into()))
       } else {
         Ok(sat)
       }
