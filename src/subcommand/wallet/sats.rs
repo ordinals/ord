@@ -278,7 +278,7 @@ mod tests {
       sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
         .unwrap_err()
         .to_string(),
-      "failed to parse sat from string \"===\" on line 2: error parsing integer",
+      "failed to parse sat from string \"===\" on line 2: error parsing `===`: invalid digit found in string",
     )
   }
 

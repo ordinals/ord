@@ -2807,7 +2807,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/=/0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing integer",
+      "Invalid URL: error parsing `=`: invalid digit found in string",
     );
   }
 
@@ -2816,7 +2816,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/0/=",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing integer",
+      "Invalid URL: error parsing `=`: invalid digit found in string",
     );
   }
 
