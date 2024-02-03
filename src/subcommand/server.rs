@@ -856,7 +856,6 @@ impl Server {
   }
 
   async fn inscription_recursive(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
@@ -892,19 +891,8 @@ impl Server {
         )
       };
 
-      let address = output
-        .as_ref()
-        .and_then(|output| {
-          server_config
-            .chain
-            .address_from_script(&output.script_pubkey)
-            .ok()
-        })
-        .map(|address| address.to_string());
-
       Ok(
         Json(InscriptionRecursiveJson {
-          address,
           charms: Charm::ALL
             .iter()
             .filter(|charm| charm.is_set(entry.charms))

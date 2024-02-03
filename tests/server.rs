@@ -308,15 +308,12 @@ fn recursive_inscription_endpoint() {
     "application/json"
   );
 
-  let mut inscription_metadata_json: InscriptionRecursiveJson =
+  let inscription_recursive_json: InscriptionRecursiveJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
-  assert_regex_match!(inscription_metadata_json.address.unwrap(), r"bc1p.*");
-  inscription_metadata_json.address = None;
 
   pretty_assert_eq!(
-    inscription_metadata_json,
+    inscription_recursive_json,
     InscriptionRecursiveJson {
-      address: None,
       charms: vec!["coin".into(), "uncommon".into()],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
