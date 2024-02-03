@@ -91,10 +91,10 @@ impl Sat {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
           if x > Self::SUPPLY {
-            return Err(Error::Name(s.into()));
+            return Err(Error::NameRange(s.into()));
           }
         }
-        _ => return Err(Error::Character(c.into())),
+        _ => return Err(Error::NameCharacter(c.into())),
       }
     }
     Ok(Sat(Self::SUPPLY - x))
@@ -234,9 +234,9 @@ pub enum Error {
   #[error("invalid sat `{0}`")]
   Sat(String),
   #[error("sat name out of range `{0}`")]
-  Name(String),
+  NameRange(String),
   #[error("invalid character in sat name `{0}`")]
-  Character(String),
+  NameCharacter(String),
   #[error("invalid percentil `{0}`")]
   Percentile(String),
   #[error("invalid block offset `{0}`")]
