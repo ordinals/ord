@@ -173,13 +173,6 @@ mod tests {
   }
 
   #[test]
-  fn from_str_err() {
-    "abc".parse::<Rarity>().unwrap_err();
-
-    "".parse::<Rarity>().unwrap_err();
-  }
-
-  #[test]
   fn conversions_with_u8() {
     for &expected in &[
       Rarity::Common,
@@ -195,5 +188,10 @@ mod tests {
     }
 
     assert_eq!(Rarity::try_from(6), Err(6));
+  }
+
+  #[test]
+  fn error() {
+    assert_eq!("foo".parse::<Rarity>().unwrap_err(), "invalid rarity `foo`");
   }
 }
