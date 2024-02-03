@@ -134,7 +134,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 mint: etching.mint.map(|mint| MintEntry {
                   deadline: mint.deadline,
                   end: mint.term.map(|term| term + self.height),
-                  limit: mint.limit.map(|limit| limit.clamp(0, runes::MAX_LIMIT)),
+                  limit: mint.limit.map(|limit| limit.max(runes::MAX_LIMIT)),
                 }),
               }),
               Err(_) => None,
