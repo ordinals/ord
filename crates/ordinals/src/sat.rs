@@ -91,10 +91,10 @@ impl Sat {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
           if x > Self::SUPPLY {
-            return Err(Error::NameRange(s.into()));
+            return Err(ErrorKind::NameRange.error(s));
           }
         }
-        _ => return Err(Error::NameCharacter(c.into())),
+        _ => return Err(ErrorKind::NameCharacter.error(s)),
       }
     }
     Ok(Sat(Self::SUPPLY - x))
@@ -103,39 +103,34 @@ impl Sat {
   fn from_degree(degree: &str) -> Result<Self, Error> {
     let (cycle_number, rest) = degree
       .split_once('°')
-      .ok_or_else(|| Error::MissingDegree(degree.into()))?;
+      .ok_or_else(|| ErrorKind::MissingDegree.error(degree))?;
 
-    let cycle_number = cycle_number.parse::<u32>().map_err(|err| Error::ParseInt {
-      s: degree.to_string(),
-      err,
-    })?;
+    let cycle_number = cycle_number
+      .parse::<u32>()
+      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
 
     let (epoch_offset, rest) = rest
       .split_once('′')
-      .ok_or_else(|| Error::MissingMinute(rest.into()))?;
+      .ok_or_else(|| ErrorKind::MissingMinute.error(degree))?;
 
-    let epoch_offset = epoch_offset.parse::<u32>().map_err(|err| Error::ParseInt {
-      s: degree.to_string(),
-      err,
-    })?;
+    let epoch_offset = epoch_offset
+      .parse::<u32>()
+      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
 
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
-      return Err(Error::EpochOffset(epoch_offset.to_string()));
+      return Err(ErrorKind::EpochOffset.error(degree));
     }
 
     let (period_offset, rest) = rest
       .split_once('″')
-      .ok_or_else(|| Error::MissingSecond(rest.into()))?;
+      .ok_or_else(|| ErrorKind::MissingSecond.error(degree))?;
 
     let period_offset = period_offset
       .parse::<u32>()
-      .map_err(|err| Error::ParseInt {
-        s: degree.to_string(),
-        err,
-      })?;
+      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
 
     if period_offset >= DIFFCHANGE_INTERVAL {
-      return Err(Error::PeriodOffset(period_offset.to_string()));
+      return Err(ErrorKind::PeriodOffset.error(degree));
     }
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
@@ -147,7 +142,7 @@ impl Sat {
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
     if relationship % HALVING_INCREMENT != 0 {
-      return Err(Error::EpochPeriodMismatch(relationship.to_string()));
+      return Err(ErrorKind::EpochPeriodMismatch.error(degree));
     }
 
     let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
@@ -158,21 +153,20 @@ impl Sat {
 
     let (block_offset, rest) = match rest.split_once('‴') {
       Some((block_offset, rest)) => (
-        block_offset.parse::<u64>().map_err(|err| Error::ParseInt {
-          s: block_offset.to_string(),
-          err,
-        })?,
+        block_offset
+          .parse::<u64>()
+          .map_err(|_err| ErrorKind::ParseInt.error(degree))?,
         rest,
       ),
       None => (0, rest),
     };
 
     if !rest.is_empty() {
-      return Err(Error::TrailingCharacters(rest.to_string()));
+      return Err(ErrorKind::TrailingCharacters.error(degree));
     }
 
     if block_offset >= height.subsidy() {
-      return Err(Error::BlockOffset(block_offset.to_string()));
+      return Err(ErrorKind::BlockOffset.error(degree));
     }
 
     Ok(height.starting_sat() + block_offset)
@@ -181,20 +175,20 @@ impl Sat {
   fn from_decimal(decimal: &str) -> Result<Self, Error> {
     let (height, offset) = decimal
       .split_once('.')
-      .ok_or_else(|| Error::MissingPeriod(decimal.into()))?;
+      .ok_or_else(|| ErrorKind::MissingPeriod.error(decimal))?;
 
-    let height = Height(height.parse().map_err(|err| Error::ParseInt {
-      s: height.to_string(),
-      err,
-    })?);
+    let height = Height(
+      height
+        .parse()
+        .map_err(|_err| ErrorKind::ParseInt.error(decimal))?,
+    );
 
-    let offset = offset.parse::<u64>().map_err(|err| Error::ParseInt {
-      s: offset.to_string(),
-      err,
-    })?;
+    let offset = offset
+      .parse::<u64>()
+      .map_err(|_err| ErrorKind::ParseInt.error(decimal))?;
 
     if offset >= height.subsidy() {
-      return Err(Error::BlockOffset(offset.to_string()));
+      return Err(ErrorKind::BlockOffset.error(decimal));
     }
 
     Ok(height.starting_sat() + offset)
@@ -202,18 +196,17 @@ impl Sat {
 
   fn from_percentile(percentile: &str) -> Result<Self, Error> {
     if !percentile.ends_with('%') {
-      return Err(Error::Percentile(percentile.into()));
+      return Err(ErrorKind::Percentile.error(percentile));
     }
+
+    let percentile_string = percentile;
 
     let percentile = percentile[..percentile.len() - 1]
       .parse::<f64>()
-      .map_err(|err| Error::ParseFloat {
-        s: percentile.to_string(),
-        err,
-      })?;
+      .map_err(|_err| ErrorKind::ParseFloat.error(percentile))?;
 
     if percentile < 0.0 {
-      return Err(Error::Percentile(percentile.to_string()));
+      return Err(ErrorKind::Percentile.error(percentile_string));
     }
 
     let last = Sat::LAST.n() as f64;
@@ -221,7 +214,7 @@ impl Sat {
     let n = (percentile / 100.0 * last).round();
 
     if n > last {
-      return Err(Error::Percentile(percentile.to_string()));
+      return Err(ErrorKind::Percentile.error(percentile_string));
     }
 
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
@@ -230,43 +223,68 @@ impl Sat {
 }
 
 #[derive(Debug, Error)]
-pub enum Error {
-  #[error("invalid sat `{0}`")]
-  Sat(String),
-  #[error("sat name out of range `{0}`")]
-  NameRange(String),
-  #[error("invalid character in sat name `{0}`")]
-  NameCharacter(String),
-  #[error("invalid percentil `{0}`")]
-  Percentile(String),
-  #[error("invalid block offset `{0}`")]
-  BlockOffset(String),
-  #[error("missing period `{0}`")]
-  MissingPeriod(String),
-  #[error("trailing characters")]
-  TrailingCharacters(String),
-  #[error("missing degree symbol `{0}`")]
-  MissingDegree(String),
-  #[error("missing minute symbol `{0}`")]
-  MissingMinute(String),
-  #[error("missing second symbol `{0}`")]
-  MissingSecond(String),
-  #[error("invalid period offset `{0}`")]
-  PeriodOffset(String),
-  #[error("invalid epoch offset `{0}`")]
-  EpochOffset(String),
-  #[error("relationship between epoch offset and period offset must be multiple of 336 `{0}`")]
-  EpochPeriodMismatch(String),
-  #[error("error parsing `{s}`: {err}")]
-  ParseInt {
-    s: String,
-    err: std::num::ParseIntError,
-  },
-  #[error("error parsing `{s}`: {err}")]
-  ParseFloat {
-    s: String,
-    err: std::num::ParseFloatError,
-  },
+pub struct Error {
+  input: String,
+  kind: ErrorKind,
+}
+
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    write!(f, "invalid sat `{}`: {}", self.input, self.kind)
+  }
+}
+
+#[derive(Debug, Error)]
+pub enum ErrorKind {
+  IntegerRange,
+  NameRange,
+  NameCharacter,
+  Percentile,
+  BlockOffset,
+  MissingPeriod,
+  TrailingCharacters,
+  MissingDegree,
+  MissingMinute,
+  MissingSecond,
+  PeriodOffset,
+  EpochOffset,
+  EpochPeriodMismatch,
+  ParseInt,
+  ParseFloat,
+}
+
+impl ErrorKind {
+  fn error(self, input: &str) -> Error {
+    Error {
+      input: input.to_string(),
+      kind: self,
+    }
+  }
+}
+
+impl Display for ErrorKind {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::IntegerRange => write!(f, "integer range"),
+      Self::NameRange => write!(f, "name range"),
+      Self::NameCharacter => write!(f, "character in sat name"),
+      Self::Percentile => write!(f, "percentile"),
+      Self::BlockOffset => write!(f, "block offset"),
+      Self::MissingPeriod => write!(f, "missing period"),
+      Self::TrailingCharacters => write!(f, "trailing character"),
+      Self::MissingDegree => write!(f, "missing degree symbol"),
+      Self::MissingMinute => write!(f, "missing minute symbol"),
+      Self::MissingSecond => write!(f, "missing second symbol"),
+      Self::PeriodOffset => write!(f, "period offset"),
+      Self::EpochOffset => write!(f, "epoch offset"),
+      Self::EpochPeriodMismatch => write!(
+        f,
+        "relationship between epoch offset and period offset must be multiple of 336"
+      ),
+      Self::ParseInt => write!(f, "parsing integer"),
+      Self::ParseFloat => write!(f, "parsing float"),
+    }
+  }
 }
 
 impl PartialEq<u64> for Sat {
@@ -308,12 +326,9 @@ impl FromStr for Sat {
     } else if s.contains('.') {
       Self::from_decimal(s)
     } else {
-      let sat = Self(s.parse().map_err(|err| Error::ParseInt {
-        s: s.to_string(),
-        err,
-      })?);
+      let sat = Self(s.parse().map_err(|_err| ErrorKind::ParseInt.error(s))?);
       if sat > Self::LAST {
-        Err(Error::Sat(s.into()))
+        Err(ErrorKind::IntegerRange.error(s))
       } else {
         Ok(sat)
       }
