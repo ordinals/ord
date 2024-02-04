@@ -2,52 +2,52 @@
 
 set -euo pipefail
 
-if [ ! -z ${GITHUB_ACTIONS-} ]; then
-  set -x
-fi
+# Enable tracing in GitHub Actions environment
+[ -n "${GITHUB_ACTIONS-}" ] && set -x
 
 help() {
-  cat <<'EOF'
-Install a binary release of ord hosted on GitHub
+  cat <<EOF
+Advanced install script for ord binary releases from GitHub
 
 USAGE:
-    install.sh [options]
+    install.sh [OPTIONS]
 
 FLAGS:
     -h, --help      Display this message
     -f, --force     Force overwriting an existing binary
 
 OPTIONS:
-    --tag TAG       Tag (version) of the crate to install, defaults to latest release
-    --to LOCATION   Where to install the binary [default: ~/bin]
-    --target TARGET
+    --tag TAG           Tag (version) of the crate to install, defaults to latest release
+    --to LOCATION       Installation location [default: ~/bin]
+    --target TARGET     Target platform (e.g., x86_64-unknown-linux-gnu)
+    --repo REPOSITORY   GitHub repository in the format "owner/repo" [default: ordinals/ord]
 EOF
 }
-
-crate=ord
-url=https://github.com/ordinals/ord
-releases=$url/releases
 
 say() {
   echo "install.sh: $*" >&2
 }
 
 err() {
-  if [ ! -z ${tempdir-} ]; then
-    rm -rf $tempdir
-  fi
-
-  say "error: $*"
+  say "error: $*" >&2
   exit 1
 }
 
 need() {
-  if ! command -v $1 > /dev/null 2>&1; then
-    err "need $1 (command not found)"
-  fi
+  command -v "$1" >/dev/null 2>&1 || err "need $1 (command not found)"
 }
 
+parse_json() {
+  echo "$1" | grep "\"$2\":" | sed -E 's/.*"'$2'": "([^"]+)".*/\1/'
+}
+
+# Defaults
 force=false
+tag=""
+target=""
+dest="${HOME}/bin"
+repo="ordinals/ord"
+
 while test $# -gt 0; do
   case $1 in
     --force | -f)
@@ -69,69 +69,63 @@ while test $# -gt 0; do
       dest=$2
       shift
       ;;
+    --repo)
+      repo=$2
+      shift
+      ;;
     *)
+      err "Unknown option: $1"
       ;;
   esac
   shift
 done
 
 # Dependencies
-need curl
-need install
-need mkdir
-need mktemp
-need tar
+for cmd in curl jq install mkdir mktemp tar; do
+  need "$cmd"
+done
 
-dest=${dest-"$HOME/bin"}
+url="https://github.com/${repo}"
+releases="${url}/releases"
 
-if [ -z ${tag-} ]; then
-  need cut
-
-  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/ordinals/ord/releases/latest |
-    grep tag_name |
-    cut -d'"' -f4
-  )
+if [ -z "$tag" ]; then
+  tag=$(curl --proto =https --tlsv1.2 -sSf "${releases}/latest" | jq -r '.tag_name')
+  [ "$tag" != "null" ] || err "Could not automatically determine the latest tag."
 fi
 
-if [ -z ${target-} ]; then
-  uname_target=`uname -m`-`uname -s`
-
-  case $uname_target in
-    arm64-Darwin) target=aarch64-apple-darwin;;
-    x86_64-Darwin) target=x86_64-apple-darwin;;
-    x86_64-Linux) target=x86_64-unknown-linux-gnu;;
+if [ -z "$target" ]; then
+  platform="$(uname -m)-$(uname -s)"
+  case "$platform" in
+    arm64-Darwin) target="aarch64-apple-darwin" ;;
+    x86_64-Darwin) target="x86_64-apple-darwin" ;;
+    x86_64-Linux) target="x86_64-unknown-linux-gnu" ;;
     *)
-      say 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
-      say 'Target architecture is not supported by this install script.'
-      say 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
-      exit 1
-    ;;
+      err "Unsupported platform: $platform. Please specify --target explicitly."
+      ;;
   esac
 fi
 
-archive="$releases/download/$tag/$crate-$tag-$target.tar.gz"
+archive="${releases}/download/${tag}/${repo}-${tag}-${target}.tar.gz"
 
-say "Repository:  $url"
-say "Crate:       $crate"
+say "Repository:  $repo"
 say "Tag:         $tag"
 say "Target:      $target"
 say "Destination: $dest"
 say "Archive:     $archive"
 
-tempdir=`mktemp -d || mktemp -d -t tmp`
+tempdir=$(mktemp -d)
+trap 'rm -rf "$tempdir"' EXIT
 
-curl --proto =https --tlsv1.2 -sSfL $archive | tar --directory $tempdir --strip-components 1 -xz
+curl --proto =https --tlsv1.2 -sSfL "$archive" | tar --directory "$tempdir" --strip-components 1 -xz
 
-for name in `ls $tempdir`; do
-  file="$tempdir/$name"
-  test -x $file || continue
-
-  if [ -e "$dest/$name" ] && [ $force = false ]; then
-    err "$name already exists in $dest"
+find "$tempdir" -type f -executable | while read -r file; do
+  name=$(basename "$file")
+  dest_path="$dest/$name"
+  if [ -e "$dest_path" ] && [ "$force" = false ]; then
+    err "$name already exists in $dest. Use --force to overwrite."
   else
-    mkdir -p $dest
-    install -m 755 $file $dest
+    mkdir -p "$dest"
+    install -m 755 "$file" "$dest_path"
+    say "Installed $name to $dest_path"
   fi
 done
-
-rm -rf $tempdir
