@@ -167,7 +167,7 @@ impl Inscribe {
       no_limit: self.no_limit,
       parent_info,
       postages,
-      reinscribe: self.reinscribe,
+      reinscribe: self.reinscribe || mode == Mode::SameSat,
       reveal_fee_rate: self.fee_rate,
       reveal_satpoints,
       satpoint,

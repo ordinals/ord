@@ -40,22 +40,22 @@ ufw allow ssh
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
-    CSP_ORIGIN=ordinals.com
+    CSP_ORIGIN=ordinals.inscribingatlantis.com
     ufw allow 8333
     ;;
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
-    CSP_ORIGIN=regtest.ordinals.com
+    CSP_ORIGIN=preview.inscribingatlantis.com
     ufw allow 18444
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
-    CSP_ORIGIN=signet.ordinals.com
+    CSP_ORIGIN=signet.inscribingatlantis.com
     ufw allow 38333
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
-    CSP_ORIGIN=testnet.ordinals.com
+    CSP_ORIGIN=testnet.inscribingatlantis.com
     ufw allow 18333
     ;;
   *)
