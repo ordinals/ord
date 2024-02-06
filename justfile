@@ -1,3 +1,5 @@
+mod atlantis
+
 set positional-arguments
 
 watch +args='test':
