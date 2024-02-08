@@ -2211,8 +2211,6 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc"
 version = "0.17.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d57a4297d466506cde088e020b33819f9a496d50272b14d7890e6fde5595a3e"
 dependencies = [
  "bitcoin-private",
  "jsonrpc",
@@ -2225,8 +2223,6 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc-json"
 version = "0.17.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bb35088f918c775bc27fa79e372d034892b216fb7900aeedd6e06654879ad33"
 dependencies = [
  "bitcoin",
  "bitcoin-private",
