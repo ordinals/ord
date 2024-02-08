@@ -67,25 +67,36 @@ impl Send {
     let bitcoin_client = wallet.bitcoin_client()?;
     let unspent_outputs = wallet.get_unspent_outputs()?;
 
-    let txid = if self.dry_run {
-      unsigned_transaction.txid()
+    let (txid, psbt) = if self.dry_run {
+      let psbt = bitcoin_client
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          Some(false),
+          None,
+          None,
+        )?
+        .psbt;
+
+      (unsigned_transaction.txid(), psbt)
     } else {
+      let psbt = bitcoin_client
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          Some(true),
+          None,
+          None,
+        )?
+        .psbt;
+
       let signed_tx = bitcoin_client
-        .sign_raw_transaction_with_wallet(&unsigned_transaction.clone(), None, None)?
-        .hex;
+        .finalize_psbt(&psbt, None)?
+        .hex
+        .ok_or(anyhow!("unable to sign transaction"))?;
 
-      bitcoin_client.send_raw_transaction(&signed_tx)?
+      (bitcoin_client.send_raw_transaction(&signed_tx)?, psbt)
     };
-
-    let psbt = bitcoin_client
-      .wallet_process_psbt(
-        &base64::engine::general_purpose::STANDARD
-          .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
-        Some(false),
-        None,
-        None,
-      )?
-      .psbt;
 
     Ok(Some(Box::new(Output {
       txid,
