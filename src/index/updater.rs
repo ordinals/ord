@@ -57,15 +57,20 @@ impl<'index> Updater<'_> {
     let mut wtx = self.index.begin_write()?;
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
 
-    wtx
-      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
-      .insert(
-        &self.height,
-        &SystemTime::now()
-          .duration_since(SystemTime::UNIX_EPOCH)
-          .map(|duration| duration.as_millis())
-          .unwrap_or(0),
-      )?;
+    let write_height_to_ts = |wtx: &mut WriteTransaction, height: &u32| {
+      wtx
+        .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)
+        .expect("open table failed")
+        .insert(
+          height,
+          &SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map(|duration| duration.as_millis())
+            .unwrap_or(0),
+        )
+        .expect("insert height failed");
+    };
+    write_height_to_ts(&mut wtx, &self.height);
 
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
@@ -129,15 +134,7 @@ impl<'index> Updater<'_> {
           // write transaction
           break;
         }
-        wtx
-          .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
-          .insert(
-            &self.height,
-            &SystemTime::now()
-              .duration_since(SystemTime::UNIX_EPOCH)
-              .map(|duration| duration.as_millis())
-              .unwrap_or(0),
-          )?;
+        write_height_to_ts(&mut wtx, &self.height);
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
