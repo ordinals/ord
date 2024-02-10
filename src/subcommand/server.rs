@@ -1117,7 +1117,7 @@ impl Server {
       .send()
       .unwrap();
 
-    if response.status().is_client_error() {
+    if response.status() != StatusCode::OK {
       return Ok(None);
     }
 
@@ -5256,7 +5256,7 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     let server_with_proxy =
-      TestServer::new_with_regtest_with_args(&["--proxy", &server.url.to_string()]);
+      TestServer::new_with_regtest_with_args(&["--proxy", server.url.as_ref()]);
 
     server_with_proxy.mine_blocks(1);
 
