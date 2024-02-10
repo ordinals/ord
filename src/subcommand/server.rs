@@ -1109,17 +1109,17 @@ impl Server {
 
   fn content_proxy(
     inscription_id: InscriptionId,
-    server_config: &ServerConfig,
+    proxy: Url,
     _accept_encoding: AcceptEncoding,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let response = reqwest::blocking::Client::new()
-      .get(format!(
-        "{}/content/{}",
-        server_config.proxy.clone().unwrap(),
-        inscription_id
-      ))
+      .get(format!("{}content/{}", proxy, inscription_id))
       .send()
       .unwrap();
+
+    if response.status().is_client_error() {
+      return Ok(None);
+    }
 
     Ok(Some((
       response.headers().clone(),
@@ -1141,11 +1141,18 @@ impl Server {
 
       let mut inscription = match index.get_inscription_by_id(inscription_id)? {
         None => {
-          return Ok(
-            Self::content_proxy(inscription_id, &server_config, accept_encoding)?
-              .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-              .into_response(),
-          )
+          if let Some(proxy) = server_config.proxy.clone() {
+            return Ok(
+              Self::content_proxy(inscription_id, proxy, accept_encoding)?
+                .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+                .into_response(),
+            );
+          } else {
+            return Err(ServerError::NotFound(format!(
+              "{} not found",
+              inscription_id
+            )));
+          }
         }
         Some(inscription) => inscription,
       };
@@ -1706,6 +1713,17 @@ mod tests {
         None,
         &["--chain", "regtest"],
         &[],
+      )
+    }
+
+    fn new_with_regtest_with_args(server_args: &[&str]) -> Self {
+      Self::new_server(
+        test_bitcoincore_rpc::builder()
+          .network(bitcoin::network::constants::Network::Regtest)
+          .build(),
+        None,
+        &["--chain", "regtest"],
+        server_args,
       )
     }
 
@@ -5212,5 +5230,37 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn proxy() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    let server_with_proxy =
+      TestServer::new_with_regtest_with_args(&["--proxy", &server.url.to_string()]);
+
+    server_with_proxy.mine_blocks(1);
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+    server_with_proxy.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
   }
 }
