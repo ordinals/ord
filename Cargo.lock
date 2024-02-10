@@ -2185,6 +2185,7 @@ dependencies = [
  "miniscript",
  "mp4",
  "ord-bitcoincore-rpc",
+ "ordinals",
  "pretty_assertions",
  "pulldown-cmark",
  "redb",
@@ -2232,6 +2233,16 @@ dependencies = [
  "bitcoin-private",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "ordinals"
+version = "0.0.2"
+dependencies = [
+ "bitcoin",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -3214,6 +3225,7 @@ dependencies = [
 name = "test-bitcoincore-rpc"
 version = "0.0.1"
 dependencies = [
+ "base64 0.21.6",
  "bitcoin",
  "hex",
  "jsonrpc-core",

@@ -30,7 +30,7 @@ use {
   },
 };
 
-pub use self::entry::RuneEntry;
+pub use {self::entry::RuneEntry, entry::MintEntry};
 
 pub(crate) mod entry;
 mod fetcher;
@@ -41,7 +41,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 16;
+const SCHEMA_VERSION: u64 = 17;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {

@@ -12,6 +12,7 @@ use {
   executable_path::executable_path,
   ord::{
     chain::Chain,
+    outgoing::Outgoing,
     rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
@@ -19,8 +20,9 @@ use {
       inscriptions::InscriptionsJson, output::OutputJson, rune::RuneJson, runes::RunesJson,
       sat::SatJson, status::StatusJson, transaction::TransactionJson,
     },
-    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone, SatPoint,
+    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },
+  ordinals::SatPoint,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -38,7 +40,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
-  test_bitcoincore_rpc::{Sent, TransactionTemplate},
+  test_bitcoincore_rpc::TransactionTemplate,
 };
 
 macro_rules! assert_regex_match {
