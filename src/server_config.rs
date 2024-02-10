@@ -8,4 +8,5 @@ pub(crate) struct ServerConfig {
   pub(crate) domain: Option<String>,
   pub(crate) index_sats: bool,
   pub(crate) json_api_enabled: bool,
+  pub(crate) proxy: Option<Url>,
 }

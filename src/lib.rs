@@ -54,6 +54,7 @@ use {
   lazy_static::lazy_static,
   ordinals::{DeserializeFromStr, SatPoint},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp,

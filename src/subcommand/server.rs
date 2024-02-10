@@ -171,6 +171,11 @@ pub struct Server {
   pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
+  #[arg(
+    long,
+    help = "Proxy recursive endpoints to this host. `/content` only if it would be a 404."
+  )]
+  pub(crate) proxy: Option<Url>,
 }
 
 impl Server {
@@ -208,6 +213,7 @@ impl Server {
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
         decompress: self.decompress,
+        proxy: self.proxy.clone(),
       });
 
       let router = Router::new()
@@ -1101,6 +1107,26 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounty/")
   }
 
+  fn content_proxy(
+    inscription_id: InscriptionId,
+    server_config: &ServerConfig,
+    _accept_encoding: AcceptEncoding,
+  ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
+    let response = reqwest::blocking::Client::new()
+      .get(format!(
+        "{}/content/{}",
+        server_config.proxy.clone().unwrap(),
+        inscription_id
+      ))
+      .send()
+      .unwrap();
+
+    Ok(Some((
+      response.headers().clone(),
+      response.bytes().unwrap().to_vec(),
+    )))
+  }
+
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
@@ -1113,9 +1139,16 @@ impl Server {
         return Ok(PreviewUnknownHtml.into_response());
       }
 
-      let mut inscription = index
-        .get_inscription_by_id(inscription_id)?
-        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      let mut inscription = match index.get_inscription_by_id(inscription_id)? {
+        None => {
+          return Ok(
+            Self::content_proxy(inscription_id, &server_config, accept_encoding)?
+              .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+              .into_response(),
+          )
+        }
+        Some(inscription) => inscription,
+      };
 
       if let Some(delegate) = inscription.delegate() {
         inscription = index
