@@ -175,7 +175,7 @@ pub struct Server {
     long,
     help = "Proxy recursive endpoints to this host. `/content` only if it would be a 404."
   )]
-  pub(crate) proxy: Option<Url>,
+  pub(crate) proxy_content: Option<Url>,
 }
 
 impl Server {
@@ -213,7 +213,7 @@ impl Server {
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
         decompress: self.decompress,
-        proxy: self.proxy.clone(),
+        proxy: self.proxy_content.clone(),
       });
 
       let router = Router::new()
@@ -1110,7 +1110,6 @@ impl Server {
   fn content_proxy(
     inscription_id: InscriptionId,
     proxy: Url,
-    _accept_encoding: AcceptEncoding,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let response = reqwest::blocking::Client::new()
       .get(format!("{}content/{}", proxy, inscription_id))
@@ -1121,10 +1120,17 @@ impl Server {
       return Ok(None);
     }
 
-    Ok(Some((
-      response.headers().clone(),
-      response.bytes().unwrap().to_vec(),
-    )))
+    let mut headers = response.headers().clone();
+
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_str(&format!(
+        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
+      ))
+      .map_err(|err| ServerError::Internal(Error::from(err)))?,
+    );
+
+    Ok(Some((headers, response.bytes().unwrap().to_vec())))
   }
 
   async fn content(
@@ -1143,7 +1149,7 @@ impl Server {
         None => {
           if let Some(proxy) = server_config.proxy.clone() {
             return Ok(
-              Self::content_proxy(inscription_id, proxy, accept_encoding)?
+              Self::content_proxy(inscription_id, proxy)?
                 .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
                 .into_response(),
             );
@@ -5256,7 +5262,7 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     let server_with_proxy =
-      TestServer::new_with_regtest_with_args(&["--proxy", server.url.as_ref()]);
+      TestServer::new_with_regtest_with_args(&["--proxy-content", server.url.as_ref()]);
 
     server_with_proxy.mine_blocks(1);
 
