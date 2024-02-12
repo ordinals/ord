@@ -238,26 +238,25 @@ impl Batch {
         if self.reinscribe {
           continue;
         } else {
-          return Err(anyhow!("sat at {} already inscribed", satpoint));
+          bail!("sat at {} already inscribed", satpoint);
         }
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
-        return Err(anyhow!(
+        bail!(
           "utxo {} with sat {inscribed_satpoint} already inscribed with the following inscriptions:\n{}",
-          satpoint.outpoint, inscription_ids
-          .iter()
-          .map(|id| id.to_string())
-          .collect::<Vec<_>>()
-          .join("\n"),
-        ));
+          satpoint.outpoint,
+          inscription_ids
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join("\n"),
+        );
       }
     }
 
     if self.reinscribe && !reinscription {
-      return Err(anyhow!(
-        "reinscribe flag set but this would not be a reinscription"
-      ));
+      bail!("reinscribe flag set but this would not be a reinscription");
     }
 
     let secp256k1 = Secp256k1::new();
