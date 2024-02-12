@@ -2807,7 +2807,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/=/0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: failed ot parse sat `=`: invalid integer: invalid digit found in string",
+      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
     );
   }
 
