@@ -333,15 +333,15 @@ and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should
 return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
 <p>If it only returns <code>{}</code>, <code>txindex</code> is not set.
-If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>.
-Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>.
+Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for
 <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="installing-ord"><a class="header" href="#installing-ord">Installing <code>ord</code></a></h2>

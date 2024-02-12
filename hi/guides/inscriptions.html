@@ -287,7 +287,7 @@
 <p>…और <code>getblockcount</code> तक इसे चालू रहने दें:</p>
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
-<p><a href="https://mempool.space/">the mempool.space block explorer</a> ब्लॉक एक्सप्लोरर जैसे ब्लॉक एक्सप्लोरर पर ब्लॉक गणना से सहमत है। <code>ऑर्ड</code> <code>bitcoind</code> &quot;के साथ समन्‍वय करता है, इसलिए जब आप ऑर्ड का उपयोग कर रहे हों तो आपको <code>bitcoind</code> को पृष्ठभूमि में चालू रहने देना चाहिए।</p>
+<p><a href="https://mempool.space/">the mempool.space block explorer</a> ब्लॉक एक्सप्लोरर जैसे ब्लॉक एक्सप्लोरर पर ब्लॉक गणना से सहमत है। <code>ऑर्ड</code> <code>bitcoind</code> "के साथ समन्‍वय करता है, इसलिए जब आप ऑर्ड का उपयोग कर रहे हों तो आपको <code>bitcoind</code> को पृष्ठभूमि में चालू रहने देना चाहिए।</p>
 <p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
 <h2 id="समसया-सुलझाना"><a class="header" href="#समसया-सुलझाना">समस्या सुलझाना</a></h2>
 <p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
@@ -297,13 +297,13 @@
 <p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="ऑरड-इंसटाल-करना"><a class="header" href="#ऑरड-इंसटाल-करना"><code>ऑर्ड</code> इंस्‍टाल करना</a></h2>
 <p><code>ऑर्ड</code> यूटिलिटी रस्ट में लिखी जाती है और इसे <a href="https://github.com/ordinals/ord">सोर्स</a> से बनाया जा सकता है। पूर्व-निर्मित बाइनेरी रिलीज़ पृष्ठ <a href="https://github.com/ordinals/ord/releases">releases page</a> पर उपलब्ध हैं।</p>
@@ -333,13 +333,13 @@
 <p>सैट्स को किसी भी प्रकार की विषय-वस्‍तु के साथ उत्‍कीर्ण किया जा सकता है, लेकिन ऑर्ड वॉलेट केवल उन विषय-वस्‍तु के प्रकारों का समर्थन करता है जिन्हें ऑर्ड ब्लॉक एक्सप्लोरर द्वारा प्रदर्शित किया जा सकता है।</p>
 <p>इसके अतिरिक्त, डिजिटल अभिलेख लेनदेनों में शामिल होते हैं, इसलिए विषय-वस्‍तु जितनी विशाल होगी,डिजिटल अभिलेख लेनदेन के लिए उतने अधिक शुल्क का भुगतान करना होगा।</p>
 <p>डिजिटल अभिलेख विषय-वस्‍तु लेनदेन के साक्ष्‍यों में शामिल होते हैं, जिसमें साक्ष्‍य छूट प्राप्त होती हैं। डिजिटल अभिलेख द्वारा लेनदेन के भुगतान की अनुमानित शुल्क की गणना करने के लिए, विषय-वस्‍तु के आकार को चार से विभाजित करने के बाद उसे शुल्क दर से गुणा कर दें।</p>
-<p>डिजिटल अभिलेख लेनदेन 400,000 भार इकाइयों से कम होने चाहिए, अन्यथा उन्हें बिटकॉइन कोर द्वारा आगे प्रसारित नहीं किया जाएगा। डिजिटल अभिलेख विषय-वस्‍तु के एक बाइट की लागत एक भार इकाई होती है। चूंकि एक डिजिटल अभिलेख लेनदेन में केवल डिजिटल अभिलेख विषय-वस्‍तु ही शामिल नहीं होती है, डिजिटल अभिलेख विषय-वस्‍तु को 400,000 वजन इकाइयों से कम तक सीमित करें। 390,000 भार इकाइयाँ सुरक्षित &quot;होंगी।</p>
+<p>डिजिटल अभिलेख लेनदेन 400,000 भार इकाइयों से कम होने चाहिए, अन्यथा उन्हें बिटकॉइन कोर द्वारा आगे प्रसारित नहीं किया जाएगा। डिजिटल अभिलेख विषय-वस्‍तु के एक बाइट की लागत एक भार इकाई होती है। चूंकि एक डिजिटल अभिलेख लेनदेन में केवल डिजिटल अभिलेख विषय-वस्‍तु ही शामिल नहीं होती है, डिजिटल अभिलेख विषय-वस्‍तु को 400,000 वजन इकाइयों से कम तक सीमित करें। 390,000 भार इकाइयाँ सुरक्षित "होंगी।</p>
 <h2 id="इंसकरीपशंस-डिजिटल-अभिलेखों-का-सृजन"><a class="header" href="#इंसकरीपशंस-डिजिटल-अभिलेखों-का-सृजन">इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) का सृजन</a></h2>
 <p><code>FILE</code> (फ़ाइल) की विषय-वस्‍तु के साथ एक डिजिटल अभिलेख का सृजन करने के लिए, निम्‍नलिखित संचालित करें:</p>
 <pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
 </code></pre>
-<p>ऑर्ड दो लेनदेन आईडी आउटपुट प्रदान करेगा, एक प्रतिबद्ध लेनदेन के लिए, और दूसरी प्रकट लेनदेन, और &quot;डिजिटल अभिलेख आईडी के लिए। डिजिटल अभिलेख आईडी <code>TXIDiN</code> के रूप में है, जिसमें <code>TXID</code> प्रकट लेनदेन की लेनदेन आईडी है, और <code>N</code> प्रकट लेनदेन में डिजिटल अभिलेख का सूचकांक है।</p>
-<p>प्रतिबद्ध लेनदेन एक टेपस्क्रिप्ट के लिए प्रतिबद्ध होता है जिसमें डिजिटल अभिलेख की विषय-वस्‍तु निहित होती है, और प्रकट लेनदेन उस टेपस्क्रिप्ट से खर्च होता है, चेन पर विषय-वस्‍तु को प्रकट करता है और इसे इनपुट के &quot;पहले सेट पर अंकित करता है जिसमें संबंधित टेपस्क्रिप्ट शामिल होती है।</p>
+<p>ऑर्ड दो लेनदेन आईडी आउटपुट प्रदान करेगा, एक प्रतिबद्ध लेनदेन के लिए, और दूसरी प्रकट लेनदेन, और "डिजिटल अभिलेख आईडी के लिए। डिजिटल अभिलेख आईडी <code>TXIDiN</code> के रूप में है, जिसमें <code>TXID</code> प्रकट लेनदेन की लेनदेन आईडी है, और <code>N</code> प्रकट लेनदेन में डिजिटल अभिलेख का सूचकांक है।</p>
+<p>प्रतिबद्ध लेनदेन एक टेपस्क्रिप्ट के लिए प्रतिबद्ध होता है जिसमें डिजिटल अभिलेख की विषय-वस्‍तु निहित होती है, और प्रकट लेनदेन उस टेपस्क्रिप्ट से खर्च होता है, चेन पर विषय-वस्‍तु को प्रकट करता है और इसे इनपुट के "पहले सेट पर अंकित करता है जिसमें संबंधित टेपस्क्रिप्ट शामिल होती है।</p>
 <p>प्रकट लेन-देन के खनन होने की प्रतीक्षा करें। आप <a href="https://mempool.space/">the mempool.space block explorer</a> का उपयोग करके प्रतिबद्धता स्थिति की जांच और लेनदेन का खुलासा कर सकते हैं।</p>
 <p>एक बार प्रकट लेनदेन खनन हो जाने के बाद, जब आप अग्रसर होते हैं तो डिजिटल अभिलेख आईडी मुद्रित होनी चाहिए:</p>
 <pre><code>ord wallet inscriptions

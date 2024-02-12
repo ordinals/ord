@@ -326,9 +326,9 @@
 <li>
 <p>Импортируйте дескрипторы вашего кошелька в <code>foo-watch-only</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>&quot;timestamp&quot;</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
+<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>"timestamp"</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
 </li>
 <li>
 <p>Проверьте, что все работает:</p>
@@ -363,11 +363,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>И для дескриптора адреса изменения, в данном случае <code>64k8wnd7</code>:</p>
@@ -375,11 +375,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -394,16 +394,16 @@
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>&quot;timestamp&quot;</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
+<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>"timestamp"</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
 </li>
 <li>
 <p>Проверьте, что все работает:</p>

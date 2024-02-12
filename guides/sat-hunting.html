@@ -344,10 +344,10 @@ rare ordinals. It will look something like this:</p>
 <li>
 <p>Import your wallet descriptors into <code>foo-watch-only</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
 <p>If you know the Unix timestamp when your wallet first started receive
-transactions, you may use it for the value of <code>&quot;timestamp&quot;</code> instead of <code>0</code>.
+transactions, you may use it for the value of <code>"timestamp"</code> instead of <code>0</code>.
 This will reduce the time it takes for Bitcoin Core to search for your
 wallet's UTXOs.</p>
 </li>
@@ -389,11 +389,11 @@ like this:</p>
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>And for the change address descriptor, in this case <code>64k8wnd7</code>:</p>
@@ -401,11 +401,11 @@ like this:</p>
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -420,17 +420,17 @@ like this:</p>
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
 <p>If you know the Unix timestamp when your wallet first started receive
-transactions, you may use it for the value of the <code>&quot;timestamp&quot;</code> fields
+transactions, you may use it for the value of the <code>"timestamp"</code> fields
 instead of <code>0</code>. This will reduce the time it takes for Bitcoin Core to
 search for your wallet's UTXOs.</p>
 </li>

@@ -259,11 +259,11 @@
 <p>Une inscription textuelle contenant la chaîne « Hello, world! » est sérialisée comme suit :</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Tout d’abord, un push est fait avec la chaîne <code>ord</code>pour distinguer les inscriptions des autres utilisations des enveloppes.</p>

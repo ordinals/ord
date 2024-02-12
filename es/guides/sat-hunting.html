@@ -328,9 +328,9 @@
 <li>
 <p>Importa los descriptores de tu monedero a <code>foo-solo-lectura</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>Si conoces la marca de tiempo Unix cuando tu monedero comenzó a recibir transacciones, puedes usarla para el valor de <code>&quot;timestamp&quot;</code> en lugar de 0. Esto reducirá el tiempo que Bitcoin Core tardará en buscar los UTXO en tu monedero.</p>
+<p>Si conoces la marca de tiempo Unix cuando tu monedero comenzó a recibir transacciones, puedes usarla para el valor de <code>"timestamp"</code> en lugar de 0. Esto reducirá el tiempo que Bitcoin Core tardará en buscar los UTXO en tu monedero.</p>
 </li>
 <li>
 <p>Comprueba que todo haya funcionado correctamente:</p>
@@ -365,11 +365,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>Y para el descriptor de la dirección de cambio, en este caso <code>64k8wnd7</code>:</p>
@@ -377,11 +377,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -396,16 +396,16 @@
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>Si conoces la marca de tiempo de Unix cuando tu monedero comenzó a recibir transacciones por primera vez, puedes utilizarlo como el valor del campo <code>&quot;timestamp&quot;</code> en lugar de <code>0</code>. Esto reducirá el tiempo que tarda Bitcoin Core en buscar los UTXOs de tu monedero.</p>
+<p>Si conoces la marca de tiempo de Unix cuando tu monedero comenzó a recibir transacciones por primera vez, puedes utilizarlo como el valor del campo <code>"timestamp"</code> en lugar de <code>0</code>. Esto reducirá el tiempo que tarda Bitcoin Core en buscar los UTXOs de tu monedero.</p>
 </li>
 <li>
 <p>Comprueba que todo haya funcionado correctamente:</p>

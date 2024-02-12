@@ -256,18 +256,18 @@
 <ul>
 <li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
 <li>字节字符串将呈现为大写十六进制。</li>
-<li>数组将以 <code>&lt;ul&gt;</code> 标签的形式呈现，每个元素都会被<code>&lt;li&gt;</code>标签包裹。 </li>
+<li>数组将以 <code>&lt;ul&gt;</code> 标签的形式呈现，每个元素都会被<code>&lt;li&gt;</code>标签包裹。</li>
 <li>映射将以 <code>&lt;dl&gt;</code> 标签的形式呈现，每一个键被 <code>&lt;dt&gt;</code> 标签包裹，每一个值被 <code>&lt;dd&gt;</code> 标签包裹。</li>
-<li>标签将以 <code>&lt;sup&gt;</code> 标签包裹的标签的形式呈现，紧接着是值。 </li>
+<li>标签将以 <code>&lt;sup&gt;</code> 标签包裹的标签的形式呈现，紧接着是值。</li>
 </ul>
 <p>CBOR是一个包含许多不同数据类型和多种表达相同数据方式的复杂规格。一些特殊的数据类型，如标签、浮点数和大数字，以及某些编码方式，如不定值，可能无法正确或完全显示。欢迎为ord做出贡献来改善这个问题。</p>
 <h2 id="示例"><a class="header" href="#示例">示例</a></h2>
 <p>由于CBOR不属于人类可读的，在这些示例中，它将用JSON格式来表示。但请注意，这只适用于这些示例，JSON元数据将无法正确显示。</p>
-<p>铭文中包含的元数据 <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> </p>
+<p>铭文中包含的元数据 <code>{"foo":"bar","baz":[null,true,false,0]}</code></p>
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    OP_PUSH 0x05 OP_PUSH '{"foo":"bar","baz":[null,true,false,0]}'
     ...
 OP_ENDIF
 </code></pre>
@@ -297,12 +297,12 @@ OP_ENDIF
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
-    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    OP_PUSH 0x05 OP_PUSH '{"very":"long","metadata":'
+    OP_PUSH 0x05 OP_PUSH '"is","finally":"done"}'
     ...
 OP_ENDIF
 </code></pre>
-<p>然后，可以被连接成 <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>然后，可以被连接成 <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
 
                     </main>
 

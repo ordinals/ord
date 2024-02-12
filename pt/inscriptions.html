@@ -255,15 +255,15 @@
 <p>O modelo de conteúdo da inscrição é o da web. Uma inscrição consiste em um tipo de conteúdo, também conhecido como tipo MIME, e o próprio conteúdo, que é uma string de bytes. Isso permite que o conteúdo de inscrições seja retornado de um servidor web, e usado para criar inscrições HTML que usam e remixam o conteúdo de outras inscrições.</p>
 <p>O conteúdo da inscrição é inteiramente on-chain, armazenado em scripts de gasto do caminho do script taproot. Os scripts taproot têm pouquíssimas restrições em seu conteúdo e adicionalmente recebem o desconto da Witness, fazendo com que o armazenamento do conteúdo da inscrição seja relativamente econômico.</p>
 <p>Como os gastos com script taproot só podem ser feitos a partir de saídas taproot existentes, as inscrições são feitas usando um procedimento de confirmação/revelação de duas fases. Primeiro, na transação de confirmação, uma saída taproot confirmando um script contendo o conteúdo da inscrição é criado. Depois, na transação de revelação, a saída criada pela transação de confirmação é gasta, revelando o conteúdo da inscrição na rede.</p>
-<p>O conteúdo da inscrição é serializado usando envios (pushes) de dados em condicionais não executados, chamadas &quot;envelopes&quot;. Os envelopes consistem em um <code>OP_FALSE OP_IF … OP_ENDIF</code> envolvendo qualquer quantidade de envios de dados. Porque os envelopes são efetivamente autônomos, eles não alteram a semântica do script em que eles estão incluídos, e podem ser combinados com qualquer outro script de bloqueio.</p>
-<p>Uma inscrição de texto contendo a string &quot;Hello, world!&quot; é serializada como segue:</p>
+<p>O conteúdo da inscrição é serializado usando envios (pushes) de dados em condicionais não executados, chamadas "envelopes". Os envelopes consistem em um <code>OP_FALSE OP_IF … OP_ENDIF</code> envolvendo qualquer quantidade de envios de dados. Porque os envelopes são efetivamente autônomos, eles não alteram a semântica do script em que eles estão incluídos, e podem ser combinados com qualquer outro script de bloqueio.</p>
+<p>Uma inscrição de texto contendo a string "Hello, world!" é serializada como segue:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Primeiro, se faz um push da string <code>ord</code>, para desambiguar inscrições de outros usos de envelopes.</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>O início do corpo e o final dos campos são indicados com um push de dados vazio.</p>
-<p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra &quot;não há problema ser ímpar&quot; usada pelRede Lightning.</p>
-<p>Etiquetas pares são usadas para campos que podem afetar a criação, atribuição inicial ou transferência de uma inscrição. Assim, inscrições com campos pares não reconhecidos devem ser exibidas como &quot;não vinculadas&quot;, ou seja, sem localização.</p>
+<p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra "não há problema ser ímpar" usada pelRede Lightning.</p>
+<p>Etiquetas pares são usadas para campos que podem afetar a criação, atribuição inicial ou transferência de uma inscrição. Assim, inscrições com campos pares não reconhecidos devem ser exibidas como "não vinculadas", ou seja, sem localização.</p>
 <p>Tags ímpares são usadas para campos que não afetam a criação, atribuição inicial ou transferência, como metadados adicionais, e, portanto, podem ser ignorados com segurança.</p>
 <h2 id="ids-das-inscrições"><a class="header" href="#ids-das-inscrições">IDs das Inscrições</a></h2>
 <p>As inscrições estão contidas nas entradas de uma transação de revelação. Para identificá-las de forma única, elas recebem uma ID no formato:</p>

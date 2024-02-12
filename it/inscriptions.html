@@ -255,15 +255,15 @@
 <p>Il modello di contenuto dell'iscrizione è quello del web. Un'iscrizione consiste in un tipo di contenuto, noto anche come tipo MIME, e nel contenuto stesso, che è una stringa di byte. Ciò consente di restituire il contenuto dell'iscrizione da un server web e di creare iscrizioni HTML che utilizzano e rimescolano il contenuto di altre iscrizioni.</p>
 <p>Il contenuto dell'iscrizione è interamente on-chain,archiviato negli script di spesa del percorso dello script taproot. Gli script taproot hanno pochissime restrizioni sui loro contenuti e ricevono inoltre lo sconto testimone, rendendo relativamente economica la memorizzazione dei contenuti delle iscrizioni.</p>
 <p>Poiché gli script taproot possono essere spesi solo a partire da output taproot esistenti, le iscrizioni vengono effettuate utilizzando una procedura di commit/reveal in due fasi. In primo luogo, nella transazione di commit, viene creata un'uscita taproot che esegue il commit di uno script contenente il contenuto dell'iscrizione. In secondo luogo, nella transazione reveal, l'output creato dalla transazione commit viene speso, rivelando il contenuto dell'iscrizione sulla catena.</p>
-<p>Il contenuto dell'iscrizione viene serializzato utilizzando push di dati all'interno di condizioni non eseguite, chiamate &quot;buste&quot; (envelopes). Queste buste consistono in un <code>OP_FALSE OP_IF … OP_ENDIF</code> che avvolge un numero qualsiasi di push di dati. Poiché questi involucri sono effettivamente no-ops, non cambiano la semantica dello script in cui sono inclusi e possono essere combinati con qualsiasi altro script di chiusura.</p>
-<p>Un'iscrizione di testo contenente la stringa &quot;Hello, world!&quot; viene serializzata come segue:</p>
+<p>Il contenuto dell'iscrizione viene serializzato utilizzando push di dati all'interno di condizioni non eseguite, chiamate "buste" (envelopes). Queste buste consistono in un <code>OP_FALSE OP_IF … OP_ENDIF</code> che avvolge un numero qualsiasi di push di dati. Poiché questi involucri sono effettivamente no-ops, non cambiano la semantica dello script in cui sono inclusi e possono essere combinati con qualsiasi altro script di chiusura.</p>
+<p>Un'iscrizione di testo contenente la stringa "Hello, world!" viene serializzata come segue:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Per prima cosa viene inserita la stringa <code>ord</code>, per distinguere le iscrizioni da altri usi delle buste.</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>L'inizio del corpo e la fine dei campi sono indicati con un push di dati vuoto.</p>
-<p>I tag non riconosciuti vengono interpretati in modo diverso a seconda che siano pari o dispari, seguendo la regola &quot;va bene essere dispari&quot; utilizzata dalla Lightning Network.</p>
-<p>I tag pari sono utilizzati per i campi che possono influenzare la creazione, l'assegnazione iniziale o il trasferimento di un'iscrizione. Pertanto, le iscrizioni con campi pari non riconosciuti devono essere visualizzate come &quot;non vincolate&quot;, cioè senza una posizione.</p>
+<p>I tag non riconosciuti vengono interpretati in modo diverso a seconda che siano pari o dispari, seguendo la regola "va bene essere dispari" utilizzata dalla Lightning Network.</p>
+<p>I tag pari sono utilizzati per i campi che possono influenzare la creazione, l'assegnazione iniziale o il trasferimento di un'iscrizione. Pertanto, le iscrizioni con campi pari non riconosciuti devono essere visualizzate come "non vincolate", cioè senza una posizione.</p>
 <p>I tag dispari sono utilizzati per i campi che non influiscono sulla creazione, sull'assegnazione iniziale o sul trasferimento, come i metadati aggiuntivi, e quindi possono essere tranquillamente ignorati.</p>
 <h2 id="id-delliscrizione"><a class="header" href="#id-delliscrizione">ID dell'iscrizione</a></h2>
 <p>Le iscrizioni sono contenute negli input di una transazione di rivelazione. Per identificarle in modo univoco, viene loro assegnato un ID del tipo:</p>

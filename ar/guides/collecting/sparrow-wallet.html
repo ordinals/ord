@@ -279,22 +279,22 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="التحقق--عرض-الأوردينالس-المستلمة"><a class="header" href="#التحقق--عرض-الأوردينالس-المستلمة">التحقق / عرض الأوردينالس المستلمة</a></h2>
 <p>بمجرد استلامك لنقش، ستظهر صفقة جديدة في علامة <code>Transactions</code> في Sparrow، وكذلك ستظهرUTXO جديدة في علامة <code>UTXOs</code>.</p>
-<p>بداية، قد تكون هذه الصفقة غير مؤكدة &quot;Unconfirmed&quot;، وسيتعين عليك الانتظار حتى تُعدد في كتلة بيتكوين قبل أن تستقبل بشكل كامل.</p>
+<p>بداية، قد تكون هذه الصفقة غير مؤكدة "Unconfirmed"، وسيتعين عليك الانتظار حتى تُعدد في كتلة بيتكوين قبل أن تستقبل بشكل كامل.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>لتتبع حالة صفقتك، يمكنك النقر بزر الماوس الأيمن عليها، ثم اختيار <code>Copy Transaction ID</code> ومن ثم لصق هذا المعرف في <a href="https://mempool.space/">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
 <p>بمجرد تأكيد الصفقة، يمكنك التحقق وعرض النقش الخاص بك عن طريق الانتقال إلى علامة <code>UTXOs</code>، والبحث عنUTXO التي ترغب في التحقق منها، ثم النقر بزر الماوس الأيمن على<code>Output</code> واختيار <code>Copy Transaction Output</code>. يمكن لكتلة الإخراج هذه أن تُلصق في محرك البحث على موقع <a href="https://ordinals.com">ordinals.com</a>.</p>
 <h2 id="تجميد-utxos"><a class="header" href="#تجميد-utxos">تجميد UTXO's</a></h2>
 <p>كما تم شرحه أعلاه، يتم تخزين كل من الإنسكريبشين في ناتج الصفقة غير المنفقة (UTXO). يجب أن تكون حذرًا جدًا لكي لا تنفق الإنسكريبشين عن طريق الخطأ، وطريقة لجعلها أصعب هو تجميدها.</p>
-<p>للقيام بذلك، انتقل إلى علامة &quot;UTXOs&quot;، وابحث عن نقدة التي ترغب في تجميدها، ثم انقر بزر الماوس الأيمن على الإخراج واختر &quot;Freeze UTXO&quot;.</p>
+<p>للقيام بذلك، انتقل إلى علامة "UTXOs"، وابحث عن نقدة التي ترغب في تجميدها، ثم انقر بزر الماوس الأيمن على الإخراج واختر "Freeze UTXO".</p>
 <p>ستكون هذه UTXO (الإنسكريبشين) غير قابلة للإنفاق داخل محفظة Sparrow حتى تُلغى تجميدها.</p>
 <h2 id="استيرادها-إلى-محفظة-ord"><a class="header" href="#استيرادها-إلى-محفظة-ord">استيرادها إلى محفظة <code>ord</code></a></h2>
 <p>للحصول على التفاصيل حول إعداد Bitcoin Core ومحفظة <code>ord</code>، تحقق من دليل<a href="../inscriptions.html">Inscriptions Guide</a></p>
-<p>عند إعداد <code>ord</code>، بدلاً من تشغيل <code>ord wallet create</code> لإنشاء محفظة جديدة تمامًا، يمكنك استيراد محفظتك الحالية باستخدام <code>&quot;ord wallet restore &quot;BIP39 SEED PHRASE</code>باستخدام عبارة البذرة التي أنشأتها باستخدام محفظة Sparrow.</p>
+<p>عند إعداد <code>ord</code>، بدلاً من تشغيل <code>ord wallet create</code> لإنشاء محفظة جديدة تمامًا، يمكنك استيراد محفظتك الحالية باستخدام <code>"ord wallet restore "BIP39 SEED PHRASE</code>باستخدام عبارة البذرة التي أنشأتها باستخدام محفظة Sparrow.</p>
 <p>هناك <a href="https://github.com/ordinals/ord/issues/1589">خلل</a> حاليًا يجعل من المحفظة المستوردة ألا تُمسح تلقائياً ضد سلسلة الكتل. للتغلب على ذلك، ستحتاج إلى تشغيل عملية مسح يدويًا باستخدام واجهة سطر الأوامر للنود البيتكوين: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>بعد ذلك، يمكنك التحقق من الإنسكريبشين محفظتك باستخدام <code>ord wallet inscriptions</code></p>
 <p>يرجى ملاحظة أنه إذا كنت قد أنشأت بالفعل محفظة بواسطة ord في السابق، فسيكون لديك محفظة بالاسم الافتراضي بالفعل، وستحتاج إلى تعيين اسم محفظتك المستوردة باسم مختلف. يمكنك استخدام <code>wallet--</code> براميتير في جميع أوامر <code>ord</code> للإشارة إلى محفظة مختلفة، على سبيل المثال:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow"><a class="header" href="#جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow">جمع الإنسكريبشين باستخدام محفظة سباروو Sparrow</a></h2>

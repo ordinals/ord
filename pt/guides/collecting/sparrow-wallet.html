@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="validando--visualizando-inscrições-recebidas"><a class="header" href="#validando--visualizando-inscrições-recebidas">Validando / Visualizando Inscrições Recebidas</a></h2>
 <p>Depois de receber uma inscrição você verá uma nova transação na aba <code>Transactions</code> do Sparrow, bem como um novo UTXO na aba <code>UTXOs</code>.</p>
-<p>Inicialmente essa transação pode ter um status &quot;Unconfirmed&quot; e você precisará esperar que ela seja minerada em um bloco de bitcoin antes de ser totalmente recebida.</p>
+<p>Inicialmente essa transação pode ter um status "Unconfirmed" e você precisará esperar que ela seja minerada em um bloco de bitcoin antes de ser totalmente recebida.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>Para rastrear o status da sua transação, você pode clicar com o botão direito sobre ela, selecionar <code>Copy Transaction ID</code> e colar o ID da transação no <a href="https://mempool.space">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>Agora este UTXO (Inscrição) não pode ser gasto na carteira Sparrow até que você o descongele.</p>
 <h2 id="importando-para-a-carteira-ord"><a class="header" href="#importando-para-a-carteira-ord">Importando para a carteira <code>ord</code></a></h2>
 <p>Para obter detalhes sobre como configurar o Bitcoin Core e a carteira <code>ord</code>, consulte o <a href="../inscriptions.html">Guia de inscrições</a>.</p>
-<p>Ao configurar <code>ord</code>, em vez de executar <code>ord wallet create</code> para criar uma carteira totalmente nova, você pode importar sua carteira existente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> usando a frase inicial que você gerou na sua carteira Sparrow.</p>
+<p>Ao configurar <code>ord</code>, em vez de executar <code>ord wallet create</code> para criar uma carteira totalmente nova, você pode importar sua carteira existente usando <code>ord wallet restore "BIP39 SEED PHRASE"</code> usando a frase inicial que você gerou na sua carteira Sparrow.</p>
 <p>Atualmente existe um <a href="https://github.com/ordinals/ord/issues/1589">bug</a> que faz com que uma carteira importada não seja automaticamente verificada novamente na blockchain. Para contornar isso, você precisará acionar manualmente uma nova verificação usando o bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Você pode então verificar as inscrições da sua carteira usando<code>ord wallet inscriptions</code></p>
 <p>Observe que se você já criou uma carteira com <code>ord</code>, então você já terá uma carteira com o nome padrão e precisará dar um nome diferente à sua carteira importada. Você pode usar o parâmetro <code>--wallet</code> em todos os comandos <code>ord</code> para referenciar uma carteira diferente, por exemplo:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="enviando-inscrições-com-a-sparrow-wallet"><a class="header" href="#enviando-inscrições-com-a-sparrow-wallet">Enviando inscrições com a Sparrow Wallet</a></h2>

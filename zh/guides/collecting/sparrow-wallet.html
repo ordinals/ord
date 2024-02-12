@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="验证查看收到的铭文"><a class="header" href="#验证查看收到的铭文">验证/查看收到的铭文</a></h2>
 <p>一旦你收到一条铭文，你将在 Sparrow 的 <code>Transactions</code> 选项卡中看到一个新的交易，以及在<code>UTXOs</code>选项卡中看到一个新的 UTXO。</p>
-<p>最初，这笔交易可能有一个&quot;未确认&quot;的状态，你需要等待它被挖矿到一个比特币块中，才算真正收到。</p>
+<p>最初，这笔交易可能有一个"未确认"的状态，你需要等待它被挖矿到一个比特币块中，才算真正收到。</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>要跟踪你的交易状态，你可以右键点击它，选择<code>Copy Transaction ID</code>，然后将该交易 id 粘贴到 <a href="https://mempool.space">mempool.space</a>。</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>这个 UTXO (铭文) 现在在 Sparrow 钱包中是不可消费的，直到你解冻它。</p>
 <h2 id="导入-ord-钱包"><a class="header" href="#导入-ord-钱包">导入 <code>ord</code> 钱包</a></h2>
 <p>关于设置比特币核心和 <code>ord</code> 钱包的详细信息，请查看<a href="../inscriptions.html">铭文指南</a></p>
-<p>设置 <code>ord</code> 时，你可以使用 <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> 命令和你用Sparrow Wallet生成的种子短语，导入你现有的钱包，而不是运行 <code>ord wallet create</code> 来创建一个全新的钱包。</p>
+<p>设置 <code>ord</code> 时，你可以使用 <code>ord wallet restore "BIP39 SEED PHRASE"</code> 命令和你用Sparrow Wallet生成的种子短语，导入你现有的钱包，而不是运行 <code>ord wallet create</code> 来创建一个全新的钱包。</p>
 <p>目前存在一个<a href="https://github.com/ordinals/ord/issues/1589">程序错误</a> 导致导入的钱包无法自动重新扫描区块链。为解决这个问题，你需要手动触发重新扫描，使用比特币核心命令行界面：</p>
 <p>然后，你可以使用<code>ord wallet inscriptions</code>检查你的钱包的铭文.</p>
 <p>注意，如果你之前已经用 <code>ord</code> 创建过一个钱包，那么你已经有一个默认名称的钱包，需要给你导入的钱包取一个不同的名称。你可以在所有的 <code>ord</code>命令中使用 <code>--wallet</code> 参数来引用不同的钱包，例如：</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="使用麻雀钱包发送铭文"><a class="header" href="#使用麻雀钱包发送铭文">使用麻雀钱包发送铭文</a></h2>

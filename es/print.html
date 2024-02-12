@@ -251,7 +251,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="introducción"><a class="header" href="#introducción">Introducción</a></h1>
-<p>Este manual sirve como una guía sobre la teoría ordinal. La teoría Ordinal se encarga de proporcionar a cada Satoshi un identificador único, posibilitando que cada uno pueda ser rastreado, transferido, e imbuido de significado. </p>
+<p>Este manual sirve como una guía sobre la teoría ordinal. La teoría Ordinal se encarga de proporcionar a cada Satoshi un identificador único, posibilitando que cada uno pueda ser rastreado, transferido, e imbuido de significado.</p>
 <p>Los Satoshis y no el Bitcoin, son la divisa atómica y nativa de la red de Bitcoin. Un Bitcoin se subdivide en exactamente 100,000,000 Satoshis, ni más ni menos.</p>
 <p>La teoría Ordinal opera sin la necesidad de una cadena lateral o token distinto a Bitcoin, y puede utilizarse sin ningún cambio en la red Bitcoin. Funciona ahora mismo.</p>
 <p>La teoría Ordinal otorga a los Satoshis un valor numismático, permitiendo que sean coleccionados e intercambiados como coleccionables.</p>
@@ -323,16 +323,16 @@
 <li><code>raro</code>: El primer sat en un periodo de ajuste de dificultad</li>
 <li><code>épico</code>: El primer satoshi después de un halving</li>
 <li><code>legendario</code>: El primer Satoshi de cada ciclo</li>
-<li><code>mítico</code>: El primer Sat del bloque génesis </li>
+<li><code>mítico</code>: El primer Sat del bloque génesis</li>
 </ul>
-<p>Lo cual nos trae a la notación sexagesimal esta representa un numero ordinal de tal manera que nos facilita ver la rareza de un satoshi. </p>
+<p>Lo cual nos trae a la notación sexagesimal esta representa un numero ordinal de tal manera que nos facilita ver la rareza de un satoshi.</p>
 <pre><code>A°B′C″D‴
 │ │ │ ╰─ Index of sat in the block
 │ │ ╰─── Index of block in difficulty adjustment period
 │ ╰───── Index of block in halving epoch
 ╰─────── Cycle, numbered starting from 0
 </code></pre>
-<p>Los teóricos de Ordinals suelen usar los términos &quot;hora&quot;, &quot;minuto&quot;, &quot;segundo&quot; y &quot;tercero&quot; en referencia a <em>A</em>, <em>B</em>, <em>C</em>, y <em>D</em>.</p>
+<p>Los teóricos de Ordinals suelen usar los términos "hora", "minuto", "segundo" y "tercero" en referencia a <em>A</em>, <em>B</em>, <em>C</em>, y <em>D</em>.</p>
 <p>Por ejemplo, este Satoshi es común:</p>
 <pre><code>1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
@@ -403,10 +403,10 @@
 <p>Por el momento, incluso los Satoshis poco comunes son bastante escasos. Hasta la fecha de este escrito, se han minado 745,855 Satoshis poco comunes - uno por cada 25.6 bitcoin en circulación.</p>
 <h2 id="nombres"><a class="header" href="#nombres">Nombres</a></h2>
 <p>Cada Satoshi tiene un nombre compuesto por las letras <em>A</em> hasta la <em>Z</em>. Este nombre se va haciendo más corto cuanto más lejos en el futuro se mine el Satoshi. Podrían comenzar con nombres cortos e irse alargando, pero esto causaría que todos los nombres cortos quedaran atrapados en el bloque génesis el cual no se puede gastar.</p>
-<p>Por ejemplo, el nombre de 1905530482684727°' es &quot;iaiufjszmoba&quot;. El nombre del último satoshi que será minado es &quot;a&quot;. Cada combinación de 10 caracteres o menos ya existe, o existirá, algún día.</p>
+<p>Por ejemplo, el nombre de 1905530482684727°' es "iaiufjszmoba". El nombre del último satoshi que será minado es "a". Cada combinación de 10 caracteres o menos ya existe, o existirá, algún día.</p>
 <h2 id="exóticos"><a class="header" href="#exóticos">Exóticos</a></h2>
 <p>Los satoshis pueden ser valorados por otras características distintas a su nombre o rareza. Esto podría ser alguna cualidad intrínseca con el número, como tener una raíz cuadrada o cúbica. También podría ser debido a una conexión con un evento histórico, tales como los Satoshis del bloque 477,120, el bloque en el que se activó SegWit, o 2099999997689999°, el último satoshi que será minado.</p>
-<p>A estos satoshis se les denomina &quot;exóticos&quot;. Cuales Satoshis son exóticos y lo que los convierte en ello es subjetivo. A los teóricos de Ordinals se les incentiva a buscar sats exóticos basados en sus propios criterios.</p>
+<p>A estos satoshis se les denomina "exóticos". Cuales Satoshis son exóticos y lo que los convierte en ello es subjetivo. A los teóricos de Ordinals se les incentiva a buscar sats exóticos basados en sus propios criterios.</p>
 <h2 id="inscripciones"><a class="header" href="#inscripciones">Inscripciones</a></h2>
 <p>Los satoshis pueden ser inscritos con contenido arbitrario, de este modo creando artefactos digitales nativos en Bitcoin. La inscripción se realiza enviando el satoshi que se desea inscribir en una transacción que revela el contenido adjuntado a la inscripción en la cadena. Este contenido queda inextricablemente vinculado a ese satoshi, convirtiéndolo en un artefacto digital inmutable que puede ser rastreado, transferido, guardado, comprado, vendido, perdido y redescubierto.</p>
 <h2 id="arqueología"><a class="header" href="#arqueología">Arqueología</a></h2>
@@ -450,15 +450,15 @@
 <p>El modelo de contenido de las inscripciones funciona similar al de la web.Una inscripción está conformada por el tipo de contenido, conocido como el tipo MIME, y el contenido que es una cadena de bytes. Esto permite que el contenido de la inscripción se pueda obtener de un servidor web y tener la posibilidad de crear inscripciones HTML que usen el contenido de otras inscripciones.</p>
 <p>El contenido de la inscripción está completamente en la cadena de bloques o blockchain, almacenado en scripts de taproot. Los scripts de taproot tienen muy pocas restricciones en cuanto a lo que pueden contener, y además reciben el descuento de testigo, lo que hace que el almacenamiento de contenido de las inscripciones sea relativamente económico.</p>
 <p>Dado que los gastos de script de taproot (taproot script spends) sólo pueden hacerse desde salidas de taproot existentes, las inscripciones se hacen en dos fases de compromiso/revelación. Primero, en la transacción de compromiso, se crea una salida de taproot que se compromete a un script que contiene el contenido de inscripción. Segundo, en la transacción de revelación, la salida creada por la transacción de compromiso se gasta, revelando el contenido de la inscripción en la cadena.</p>
-<p>El contenido de la inscripción se serializa utilizando push de datos dentro de condicionales que no han sido ejecutados, a estos se les llama &quot;sobres&quot;. Los sobres consisten en un <code>OP_FALSE OP_IF ... OP_ENDIF</code> envolviendo los push de datos. Dado que los sobres son operaciones nulas, no cambian la semántica del script en el que están incluidos y pueden combinarse con cualquier otro script de bloqueo.</p>
-<p>Una inscripción de texto que contiene la cadena &quot;¡Hola, Mundo!&quot; se serializa de la siguiente manera:</p>
+<p>El contenido de la inscripción se serializa utilizando push de datos dentro de condicionales que no han sido ejecutados, a estos se les llama "sobres". Los sobres consisten en un <code>OP_FALSE OP_IF ... OP_ENDIF</code> envolviendo los push de datos. Dado que los sobres son operaciones nulas, no cambian la semántica del script en el que están incluidos y pueden combinarse con cualquier otro script de bloqueo.</p>
+<p>Una inscripción de texto que contiene la cadena "¡Hola, Mundo!" se serializa de la siguiente manera:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;¡Hola, Mundo!&quot;
+  OP_PUSH "¡Hola, Mundo!"
 OP_ENDIF
 </code></pre>
 <p>Primero, se hace un push con el string <code>ord</code> para diferenciar que sobre va a utilizar la inscripción.</p>
@@ -479,8 +479,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Para indicar el principio del cuerpo y el final de los campos se hace un push de datos vacío.</p>
-<p>Las etiquetas no reconocidas se interpretan de forma diferente según sean pares o impares, siguiendo la regla &quot;está bien que sean impares&quot; utilizada por la Lightning Network.</p>
-<p>Las etiquetas pares se utilizan para campos que pueden afectar a la creación, asignación inicial o transferencia de una inscripción. Por esto, las inscripciones con campos pares no reconocidos deben mostrarse como &quot;no vinculadas&quot;, es decir, sin ubicación.</p>
+<p>Las etiquetas no reconocidas se interpretan de forma diferente según sean pares o impares, siguiendo la regla "está bien que sean impares" utilizada por la Lightning Network.</p>
+<p>Las etiquetas pares se utilizan para campos que pueden afectar a la creación, asignación inicial o transferencia de una inscripción. Por esto, las inscripciones con campos pares no reconocidos deben mostrarse como "no vinculadas", es decir, sin ubicación.</p>
 <p>Las etiquetas impares se utilizan para campos que no afectan a la creación,asignación inicial o transferencia, tales como los metadatos adicionales, y por lo tanto se pueden ignorar.</p>
 <h2 id="ids-de-las-inscripciones"><a class="header" href="#ids-de-las-inscripciones">IDs de las Inscripciones</a></h2>
 <p>Las inscripciones están alojadas en las entradas de una transacción de revelación. Para identificarlas se les asigna un ID como este:</p>
@@ -519,7 +519,7 @@ OP_ENDIF
 <p>An example of an inscription which delegates to <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 11
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
 OP_ENDIF
@@ -540,11 +540,11 @@ OP_ENDIF
 <p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
 <h2 id="ejemplo-1"><a class="header" href="#ejemplo-1">Ejemplo</a></h2>
 <p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
-<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<p>The metadata <code>{"foo":"bar","baz":[null,true,false,0]}</code> would be included in an inscription as:</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    OP_PUSH 0x05 OP_PUSH '{"foo":"bar","baz":[null,true,false,0]}'
     ...
 OP_ENDIF
 </code></pre>
@@ -574,51 +574,51 @@ OP_ENDIF
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
-    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    OP_PUSH 0x05 OP_PUSH '{"very":"long","metadata":'
+    OP_PUSH 0x05 OP_PUSH '"is","finally":"done"}'
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
-<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the &quot;pointer&quot;, can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
+<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the "pointer", can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
 <p>An even tag is used, so that old versions of <code>ord</code> consider the inscription to be unbound, instead of assigning it, incorrectly, to the first sat.</p>
 <p>This can be used to create multiple inscriptions in a single transaction on different sats, when otherwise they would be made on the same sat.</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <p>An inscription with pointer 255:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0xff
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x0001
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256, with trailing zeroes, which are ignored:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x000100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="procedencia"><a class="header" href="#procedencia">Procedencia</a></h1>
@@ -636,13 +636,13 @@ OP_ENDIF
 <p>Ejemplo de una inscripción hija de <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 3
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
   OP_PUSH 0
-  OP_PUSH &quot;¡Hola, mundo!&quot;
+  OP_PUSH "¡Hola, mundo!"
 OP_ENDIF
 </code></pre>
 <p>Ten en cuenta que el valor de la etiqueta <code>3</code> es en binario, no hexadecimal,y para que la inscripción hija sea reconocida como tal, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> debe gastarse como una de las entradas de la transacción de inscripción.</p>
@@ -675,7 +675,7 @@ OP_ENDIF
 <p>Combinar el contenido de inscripciones existentes.</p>
 </li>
 <li>
-<p>&quot;Publicar fragmentos de código, imágenes, audio y hojas de cálculo como recursos públicos.</p>
+<p>"Publicar fragmentos de código, imágenes, audio y hojas de cálculo como recursos públicos.</p>
 </li>
 <li>
 <p>Colecciones de arte generativo en donde un algoritmo está inscrito en JavaScript, y se instancia desde múltiples inscripciones con semillas únicas.</p>
@@ -714,7 +714,7 @@ OP_ENDIF
 <ul>
 <li><code>/r/blockhash/0</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f&quot;
+<pre><code class="language-json">"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
 </code></pre>
 <ul>
 <li><code>/r/blocktime</code>:</li>
@@ -724,39 +724,39 @@ OP_ENDIF
 <ul>
 <li><code>/r/metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74&quot;
+<pre><code class="language-json">"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74"
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "ids":[
+      "17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:0
+   "more":false,
+   "page":0
 }
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695/at/-1</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;id&quot;:&quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 </code></pre>
 <ul>
 <li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901&quot;,
+   "ids":[
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901",
       ...
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936&quot;
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:49
+   "more":false,
+   "page":49
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="preguntas-frecuentes-sobre-la-teoría-ordinal"><a class="header" href="#preguntas-frecuentes-sobre-la-teoría-ordinal">Preguntas frecuentes sobre la teoría Ordinal</a></h1>
@@ -772,7 +772,7 @@ OP_ENDIF
 <p>Los números ordinales se asignan a los satoshis en el orden en que se minan. El primer satoshi en el primer bloque tiene el número ordinal 0, el segundo tiene el número ordinal 1 y el último satoshi del primer bloque tiene el número ordinal 4,999,999,999.</p>
 <p>Los satoshis se hallan en las transacciones salientes, pero las transacciones se destruyen cuando son emitidas y se crean nuevas transacciones, lo que la teoría de Ordinals hace es utilizar un algoritmo para determinar cómo los satoshis se mueven entre las transacciones que salen y entran.</p>
 <p>Afortunadamente, ese algoritmo es bastante sencillo.</p>
-<p>Los satoshis se transfieren en orden, el primero que entra, es el primero en salir. Simplemente hay que pensar en las entradas a una transacción como una lista de satoshis, y las salidas como una lista con espacios libres, esperando para recibir un satoshi. Para asignar satoshis a un espacio libre, se asigna uno por uno al próximo espacio que esté disponible. </p>
+<p>Los satoshis se transfieren en orden, el primero que entra, es el primero en salir. Simplemente hay que pensar en las entradas a una transacción como una lista de satoshis, y las salidas como una lista con espacios libres, esperando para recibir un satoshi. Para asignar satoshis a un espacio libre, se asigna uno por uno al próximo espacio que esté disponible.</p>
 <p>Imaginemos una transacción con tres entradas y dos salidas. Las entradas están a la izquierda de la flecha y las salidas a la derecha, todas con sus respectivos valores:</p>
 <pre><code>[2] [1] [3] → [4] [2]
 </code></pre>
@@ -793,10 +793,10 @@ OP_ENDIF
 </code></pre>
 <h2 id="dónde-puedo-encontrar-los-detalles-técnicos"><a class="header" href="#dónde-puedo-encontrar-los-detalles-técnicos">¿Dónde puedo encontrar los detalles técnicos?</a></h2>
 <p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">¡En el BIP!</a></p>
-<h2 id="por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft"><a class="header" href="#por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft">¿Por qué a las inscripciones de Satoshis se les llama &quot;artefactos digitales&quot; en lugar de &quot;NFT&quot;?</a></h2>
-<p>Una inscripción es un NFT, pero se utiliza el término &quot;artefacto digital&quot;, porque es fácil, sugerente y familiar.</p>
-<p>La frase &quot;artefacto digital&quot; es muy sugerente, incluso para alguien que nunca ha oído el término. En comparación, NFT es un acrónimo y no proporciona ninguna indicación de lo que significa si no has escuchado el término.</p>
-<p>Además, la palabra, &quot;NFT&quot; suena como terminología financiera, y tanto la palabra &quot;fungible&quot; como el sentido de la palabra &quot;token&quot; como se usa en los &quot;NFT&quot; no son comunes fuera de los contextos financieros.</p>
+<h2 id="por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft"><a class="header" href="#por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft">¿Por qué a las inscripciones de Satoshis se les llama "artefactos digitales" en lugar de "NFT"?</a></h2>
+<p>Una inscripción es un NFT, pero se utiliza el término "artefacto digital", porque es fácil, sugerente y familiar.</p>
+<p>La frase "artefacto digital" es muy sugerente, incluso para alguien que nunca ha oído el término. En comparación, NFT es un acrónimo y no proporciona ninguna indicación de lo que significa si no has escuchado el término.</p>
+<p>Además, la palabra, "NFT" suena como terminología financiera, y tanto la palabra "fungible" como el sentido de la palabra "token" como se usa en los "NFT" no son comunes fuera de los contextos financieros.</p>
 <h2 id="cómo-se-comparan-las-inscripciones-con"><a class="header" href="#cómo-se-comparan-las-inscripciones-con">¿Cómo se comparan las inscripciones con...</a></h2>
 <h3 id="los-nft-de-ethereum"><a class="header" href="#los-nft-de-ethereum">¿Los NFT de Ethereum?</a></h3>
 <p><em>Las inscripciones siempre son inmutables.</em></p>
@@ -807,7 +807,7 @@ OP_ENDIF
 <p><em>El contenido de la inscripción siempre está en la cadena de Bitcoin.</em></p>
 <p>No hay forma de que una inscripción haga referencia a contenido que esta por fuera de la cadena de Bitcoin. Debido a esto las inscripciones son más duraderas porque el contenido no puede perderse y también las hace más escasas porque los creadores de inscripciones deben pagar comisiones proporcionales al tamaño del contenido.</p>
 <p>Hay algunos NFTs en Ethereum que están en la cadena, pero muchos no lo están y se almacenan en plataformas como IPFS o Arweave, o en servidores web centralizados. No se garantiza que el contenido que esta almacenado en IPFS continue estando disponible, de hecho, ya se ha perdido contenido de NFTs que fueron almacenado en IPFS. Plataformas como Arweave dependen de suposiciones económicas y probablemente fallarán catastróficamente cuando estas suposiciones ya no se cumplan. Los servidores web centralizados pueden desaparecer en cualquier momento.</p>
-<p>Es difícil para un usuario que no tienes habilidades técnicas determinar donde el contenido de un NFT de Ethereum esta alojado </p>
+<p>Es difícil para un usuario que no tienes habilidades técnicas determinar donde el contenido de un NFT de Ethereum esta alojado</p>
 <p><em>Las inscripciones son mucho más sencillas.</em></p>
 <p>Los NFT de Ethereum dependen de la red y la máquina virtual de Ethereum, las cuales son altamente complejas, cambian constantemente e introducen cambios mediante bifurcaciones incompatibles con versiones anteriores.</p>
 <p>Por otro lado, las inscripciones dependen de la blockchain de Bitcoin que es relativamente simple y conservadora, e introduce cambios mediante bifurcaciones suaves compatibles con versiones anteriores.</p>
@@ -925,7 +925,7 @@ OP_ENDIF
 <p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
 <p>Por grado sexagesimal, su ciclo, bloques desde el ultimo halving, bloques desde el último ajuste de dificultad y desplazamiento dentro de su bloque:</p>
 <p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Por nombre, utilizando su representación en base 26 con letras de la &quot;a&quot; hasta la &quot;z&quot;:</p>
+<p>Por nombre, utilizando su representación en base 26 con letras de la "a" hasta la "z":</p>
 <p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
 <p>O por percentil, el cual representa el porcentaje del suministro total de bitcoin que ha sido o será emitido una vez sean minados:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
@@ -943,20 +943,20 @@ OP_ENDIF
 <li><code>/sat/&lt;SAT&gt;</code></li>
 </ul>
 <p>To get a list of the latest 100 inscriptions you would do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 </code></pre>
 <p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
 </code></pre>
 <p>Which returns:</p>
 <pre><code>{
-  &quot;value&quot;: 10000,
-  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
-  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
-  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
-  &quot;sat_ranges&quot;: null,
-  &quot;inscriptions&quot;: [
-    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  "value": 10000,
+  "script_pubkey": "OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "transaction": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed",
+  "sat_ranges": null,
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ]
 }
 </code></pre>
@@ -1008,13 +1008,13 @@ OP_ENDIF
 <p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="instalación-de-ord"><a class="header" href="#instalación-de-ord">Instalación de ord</a></h2>
 <p>La utilidad <code>ord</code> está escrita en Rust y puede ser construida desde el <a href="https://github.com/ordinals/ord">código fuente</a>. Los binarios preconstruidos están disponibles en la página de <a href="https://github.com/ordinals/ord/releases">lanzamientos</a>.</p>
@@ -1217,9 +1217,9 @@ inscriptions:
 <li>
 <p>Importa los descriptores de tu monedero a <code>foo-solo-lectura</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>Si conoces la marca de tiempo Unix cuando tu monedero comenzó a recibir transacciones, puedes usarla para el valor de <code>&quot;timestamp&quot;</code> en lugar de 0. Esto reducirá el tiempo que Bitcoin Core tardará en buscar los UTXO en tu monedero.</p>
+<p>Si conoces la marca de tiempo Unix cuando tu monedero comenzó a recibir transacciones, puedes usarla para el valor de <code>"timestamp"</code> en lugar de 0. Esto reducirá el tiempo que Bitcoin Core tardará en buscar los UTXO en tu monedero.</p>
 </li>
 <li>
 <p>Comprueba que todo haya funcionado correctamente:</p>
@@ -1254,11 +1254,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>Y para el descriptor de la dirección de cambio, en este caso <code>64k8wnd7</code>:</p>
@@ -1266,11 +1266,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -1285,16 +1285,16 @@ inscriptions:
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>Si conoces la marca de tiempo de Unix cuando tu monedero comenzó a recibir transacciones por primera vez, puedes utilizarlo como el valor del campo <code>&quot;timestamp&quot;</code> en lugar de <code>0</code>. Esto reducirá el tiempo que tarda Bitcoin Core en buscar los UTXOs de tu monedero.</p>
+<p>Si conoces la marca de tiempo de Unix cuando tu monedero comenzó a recibir transacciones por primera vez, puedes utilizarlo como el valor del campo <code>"timestamp"</code> en lugar de <code>0</code>. Esto reducirá el tiempo que tarda Bitcoin Core en buscar los UTXOs de tu monedero.</p>
 </li>
 <li>
 <p>Comprueba que todo haya funcionado correctamente:</p>
@@ -1314,7 +1314,7 @@ inscriptions:
 <p>El monedero <code>ord</code> permite la transferencia de satoshis específicos. También puedes usar los comandos <code>bitcoin-cli</code> tales como <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code> y <code>sendrawtransaction</code>, pero hacerlo es complejo y está fuera del alcance de esta guía.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
 <p>Teleburn addresses can be used to burn assets on other blockchains, leaving behind in the smoking rubble a sort of forwarding address pointing to an inscription on Bitcoin.</p>
-<p>Teleburning an asset means something like, &quot;I'm out. Find me on Bitcoin.&quot;</p>
+<p>Teleburning an asset means something like, "I'm out. Find me on Bitcoin."</p>
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
@@ -1326,7 +1326,7 @@ inscriptions:
 </code></pre>
 <p>Returns:</p>
 <pre><code class="language-json">{
-  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+  "ethereum": "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e"
 }
 </code></pre>
 <p>Indicating that <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> is the Ethereum teleburn address for inscription zero, which is, indeed, the current owner, on Ethereum, of <code>rodarmor.eth</code>.</p>
@@ -1366,7 +1366,7 @@ inscriptions:
 <p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
 <h2 id="validando--viendo-inscripciones-recibidas"><a class="header" href="#validando--viendo-inscripciones-recibidas">Validando / Viendo Inscripciones Recibidas</a></h2>
 <p>Una vez que hayas recibido una inscripción, podrás observar una nueva transacción en la pestaña <code>Transactions</code> (transacciones) de Sparrow, así como un nuevo UTXO en la pestaña <code>UTXOs</code>.</p>
-<p>Inicialmente, esta transacción puede tener un estado &quot;Unconfirmed o No confirmado&quot;, y tendrás que esperar a que sea minada en un bloque de bitcoin antes de que la recibas por completo.</p>
+<p>Inicialmente, esta transacción puede tener un estado "Unconfirmed o No confirmado", y tendrás que esperar a que sea minada en un bloque de bitcoin antes de que la recibas por completo.</p>
 <p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
 <p>Para rastrear el estado de tu transacción, puedes hacer clic derecho sobre ella, seleccionar <code>Copy Transaction ID</code> (Copiar ID de Transacción) y luego pegar ese ID en el buscador de <a href="https://mempool.space/">mempool.space</a>.</p>
 <p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
@@ -1377,11 +1377,11 @@ inscriptions:
 <p>Este UTXO (Inscripción) no se podrá gastar dentro del Monedero Sparrow hasta que lo descongeles.</p>
 <h2 id="importando-al-monedero-ord"><a class="header" href="#importando-al-monedero-ord">Importando al monedero <code>ord</code></a></h2>
 <p>Para detalles sobre configurar Bitcoin Core y el monedero ord, revisa la <a href="guides/collecting/../inscriptions.html">Guía de Inscripciones Ordinal</a>.</p>
-<p>Cuando configures <code>ord</code>, en lugar de ejecutar<code> ord wallet create</code> para crear un nuevo monedero, puedes importar tu monedero existente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> con la frase semilla que generaste en el monedero Sparrow.</p>
+<p>Cuando configures <code>ord</code>, en lugar de ejecutar<code> ord wallet create</code> para crear un nuevo monedero, puedes importar tu monedero existente usando <code>ord wallet restore "BIP39 SEED PHRASE"</code> con la frase semilla que generaste en el monedero Sparrow.</p>
 <p>Actualmente hay un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> que impide que un monedero importado no se escanee automáticamente para encontrar su contenido en la blockchain. Para solucionar esto tendrás que ejecutar manualmente un escaneo usando el cli de bitcoin core: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Luego puedes revisar las inscripciones de tu monedero usando <code>ord wallet inscriptions</code></p>
 <p>Ten en cuenta que si has creado previamente una cartera con <code>ord</code>, ya tendrás una cartera con el nombre predeterminado y tendrás que darle un nombre diferente a tu cartera importada. Puedes usar el parámetro <code>--wallet</code> en todos los comandos de <code>ord</code> para hacer referencia a un monedero diferente, por ejemplo:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="enviar-inscripciones-con-el-monedero-sparrow"><a class="header" href="#enviar-inscripciones-con-el-monedero-sparrow">Enviar inscripciones con el Monedero Sparrow</a></h2>
@@ -1591,7 +1591,7 @@ ord index update
 <p><em>La popularidad es la fuente del valor.</em></p>
 <p>La transacción que envía el UTXO que contiene el sat cuyo nombre aparece con el mayor número de ocurrencias en <code>frequency.tsv</code> será el ganador de la parte 1.</p>
 <h3 id="desempate"><a class="header" href="#desempate">Desempate</a></h3>
-<p>Si se produce un empate, donde dos presentaciones registren la misma frecuencia, la presentación que se haya realizado primero será la ganadora. </p>
+<p>Si se produce un empate, donde dos presentaciones registren la misma frecuencia, la presentación que se haya realizado primero será la ganadora.</p>
 <h2 id="recompensa-3"><a class="header" href="#recompensa-3">Recompensa</a></h2>
 <ul>
 <li>Parte 0: 200,000 satoshis</li>

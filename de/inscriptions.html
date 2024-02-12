@@ -256,14 +256,14 @@
 <p>Der Inhalt der Inscription ist vollständig in der Kette und wird in Taproot-Skriptpfad-Ausgabeskripten gespeichert. Für Taproot-Skripte gelten nur sehr wenige Einschränkungen hinsichtlich ihres Inhalts und sie erhalten zusätzlich den Witness-Rabatt, was die Speicherung von Inscription-Inhalten relativ kostengünstig macht.</p>
 <p>Da Ausgaben für Taproot-Skripts nur aus vorhandenen Taproot-Ausgaben getätigt werden können, werden inscriptions mithilfe eines zweiphasigen Commit/Reveal-Verfahrens vorgenommen. Zunächst wird in der Commit-Transaktion eine Taproot-Ausgabe erstellt, die ein Commit für ein Skript mit dem Inhalt der Inschrift durchführt. Zweitens wird bei der Offenlegungstransaktion die durch die Festschreibungstransaktion erzeugte Ausgabe ausgegeben, um den Inhalt der Inschrift in der chain preiszugeben.</p>
 <p>Der Inhalt der Inscription wird mithilfe von Daten-Pushs innerhalb nicht ausgeführter Bedingungen, sogenannter „Umschläge“, serialisiert. Umschläge bestehen aus einem <code>OP_FALSE OP_IF … OP_ENDIF </code>, das eine beliebige Anzahl von Daten-Pushs umschließt. Da Umschläge praktisch No-Ops sind, ändern sie nicht die Semantik des Skripts, in dem sie enthalten sind, und können mit jedem anderen Sperrskript kombiniert werden.</p>
-<p>Eine inscription mit der Zeichenfolge &quot;Hello, world!&quot; wird wie folgt serialisiert:</p>
+<p>Eine inscription mit der Zeichenfolge "Hello, world!" wird wie folgt serialisiert:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Zuerst wird die Zeichenfolge <code>ord</code> gedrückt, um inscriptions von anderen Verwendungszwecken von Umschlägen zu unterscheiden.</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Der Anfang des Hauptteils und das Ende der Felder werden durch einen leeren Daten-Push angezeigt.</p>
-<p>Nicht erkannte Tags werden unterschiedlich interpretiert, je nachdem, ob sie gerade oder ungerade sind. Dabei gilt die vom Lightning Network verwendete Regel &quot;Es ist in Ordnung, ungerade zu sein&quot;.</p>
-<p>Sogar Tags werden für Felder verwendet, die sich auf die Erstellung, Erstzuweisung oder Übertragung einer inscription auswirken können. So müssen inscription mit nicht erkannten geraden Feldern als &quot;ungebunden“, also ohne Ortsangabe, angezeigt werden.</p>
+<p>Nicht erkannte Tags werden unterschiedlich interpretiert, je nachdem, ob sie gerade oder ungerade sind. Dabei gilt die vom Lightning Network verwendete Regel "Es ist in Ordnung, ungerade zu sein".</p>
+<p>Sogar Tags werden für Felder verwendet, die sich auf die Erstellung, Erstzuweisung oder Übertragung einer inscription auswirken können. So müssen inscription mit nicht erkannten geraden Feldern als "ungebunden“, also ohne Ortsangabe, angezeigt werden.</p>
 <p>Ungerade Tags werden für Felder verwendet, die sich nicht auf die Erstellung, anfängliche Zuweisung oder Übertragung auswirken, wie z. B. zusätzliche Metadaten, und daher sicher ignoriert werden können.</p>
 <h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
 <p>Die inscriptions sind in den Eingaben einer Enthüllungstransaktion enthalten. Um sie eindeutig zu identifizieren, wird ihnen eine ID der Form zugewiesen:</p>

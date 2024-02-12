@@ -297,9 +297,9 @@
 <p><code>bitcoin.conf</code> 파일에 <code>disablewallet=1</code>이 <em>없는</em> 것을 확인하자. <code>bitcoin-cli listwallets</code>가 <code>Method not found</code>을 반환하면 지갑이 비활성화된 것이며 <code>ord</code>를 사용할 수 없다.</p>
 <p><code>txindex=1</code>이 설정되어 있는지 확인한다. <code>bitcoin-cli getindexinfo</code>를 실행하면 다음과 같은 결과가 반환되어야 한다</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>

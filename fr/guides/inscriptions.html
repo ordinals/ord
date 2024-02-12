@@ -297,13 +297,13 @@
 <p>Assurez-vous de ne <em>PAS</em> avoir <code>disablewallet=1</code> dans votre fichier <code>bitcoin.conf</code>. Si <code>bitcoin-cli listwallets</code> renvoie <code>Method not found</code> (méthode non trouvée), le portefeuille est désactivé et vous ne pourrez pas utiliser <code>ord</code>.</p>
 <p>Assurez-vous que <code>txindex=1</code> est configuré. Lancez <code>bitcoin-cli getindexinfo</code> et cela devrait retourner quelque chose de ce genre</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>Si cela renvoie uniquement <code>{}</code>, <code>txindex</code> n’est pas défini. Si cela renvoie <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> est encore en train de créer le <code>txindex</code>. Attendez que <code>&quot;synced&quot;: true</code> s’affiche avant d’utiliser <code>ord</code>.</p>
+<p>Si cela renvoie uniquement <code>{}</code>, <code>txindex</code> n’est pas défini. Si cela renvoie <code>"synced": false</code>, <code>bitcoind</code> est encore en train de créer le <code>txindex</code>. Attendez que <code>"synced": true</code> s’affiche avant d’utiliser <code>ord</code>.</p>
 <p>Si vous avez configuré <code>maxuploadtarget</code>, cela peut interférer avec le fetch de blocs pour l’index <code>ord</code>. Il faut soit le supprimer ou définir <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="linstallation-de-ord"><a class="header" href="#linstallation-de-ord">L’installation de <code>ord</code></a></h2>
 <p>L’utilitaire <code>ord</code> est écrit en Rust et peut être compilé à partir des <a href="https://github.com/ordinals/ord">sources</a>. Des binaires préconstruits sont disponibles sur la <a href="https://github.com/ordinals/ord/releases">page des versions</a>.</p>

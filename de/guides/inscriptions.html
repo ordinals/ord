@@ -297,16 +297,16 @@
 <p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="installieren-ord"><a class="header" href="#installieren-ord">Installieren <code>ord</code></a></h2>
-<p>Das Dienstprogramm &quot;ord&quot; ist in Rust geschrieben und kann aus <a href="https://github.com/ordinals/ord">Quelle</a> erstellt werden. Vorgefertigte Binärdateien sind auf der <a href="https://github.com/ordinals/ord/releases">Releases-Seite</a> verfügbar.</p>
+<p>Das Dienstprogramm "ord" ist in Rust geschrieben und kann aus <a href="https://github.com/ordinals/ord">Quelle</a> erstellt werden. Vorgefertigte Binärdateien sind auf der <a href="https://github.com/ordinals/ord/releases">Releases-Seite</a> verfügbar.</p>
 <p>Sie können die neueste vorgefertigte Binärdatei über die Befehlszeile installieren mit:</p>
 <pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 </code></pre>

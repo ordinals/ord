@@ -250,44 +250,44 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
-<p>Per effettuare un'iscrizione su un sat diverso dal primo del suo input, è possibile fornire un intero a base zero, chiamato &quot;puntatore&quot;, con il tag <code>2</code>, che fa sì che l'iscrizione venga effettuata sul sat nella posizione data nei suoi outputs. Se il puntatore è uguale o superiore al numero di sat totali presenti nelle uscite della transazione inscritte, viene ignorato e l'iscrizione viene effettuata come di consueto. Il valore del campo del puntatore è un intero little endian, con gli zeri finali ignorati.</p>
+<p>Per effettuare un'iscrizione su un sat diverso dal primo del suo input, è possibile fornire un intero a base zero, chiamato "puntatore", con il tag <code>2</code>, che fa sì che l'iscrizione venga effettuata sul sat nella posizione data nei suoi outputs. Se il puntatore è uguale o superiore al numero di sat totali presenti nelle uscite della transazione inscritte, viene ignorato e l'iscrizione viene effettuata come di consueto. Il valore del campo del puntatore è un intero little endian, con gli zeri finali ignorati.</p>
 <p>Viene utilizzato un tag pari, in modo che le vecchie versioni di <code>ord</code> considerino l'iscrizione come non vincolata, invece di assegnarla, erroneamente, al primo sat.</p>
 <p>Questo può essere usato per creare più iscrizioni in una singola transazione su satoshi diversi, quando altrimenti verrebbero fatte sullo stesso satoshi.</p>
 <h2 id="esempi"><a class="header" href="#esempi">Esempi</a></h2>
 <p>Un'iscrizione con puntatore 255:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0xff
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Un'iscrizione con puntatore 256:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x0001
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Un'iscrizione con puntatore 256, con zeri finali, che vengono ignorati:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x000100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 

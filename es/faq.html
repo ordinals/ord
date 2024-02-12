@@ -262,7 +262,7 @@
 <p>Los números ordinales se asignan a los satoshis en el orden en que se minan. El primer satoshi en el primer bloque tiene el número ordinal 0, el segundo tiene el número ordinal 1 y el último satoshi del primer bloque tiene el número ordinal 4,999,999,999.</p>
 <p>Los satoshis se hallan en las transacciones salientes, pero las transacciones se destruyen cuando son emitidas y se crean nuevas transacciones, lo que la teoría de Ordinals hace es utilizar un algoritmo para determinar cómo los satoshis se mueven entre las transacciones que salen y entran.</p>
 <p>Afortunadamente, ese algoritmo es bastante sencillo.</p>
-<p>Los satoshis se transfieren en orden, el primero que entra, es el primero en salir. Simplemente hay que pensar en las entradas a una transacción como una lista de satoshis, y las salidas como una lista con espacios libres, esperando para recibir un satoshi. Para asignar satoshis a un espacio libre, se asigna uno por uno al próximo espacio que esté disponible. </p>
+<p>Los satoshis se transfieren en orden, el primero que entra, es el primero en salir. Simplemente hay que pensar en las entradas a una transacción como una lista de satoshis, y las salidas como una lista con espacios libres, esperando para recibir un satoshi. Para asignar satoshis a un espacio libre, se asigna uno por uno al próximo espacio que esté disponible.</p>
 <p>Imaginemos una transacción con tres entradas y dos salidas. Las entradas están a la izquierda de la flecha y las salidas a la derecha, todas con sus respectivos valores:</p>
 <pre><code>[2] [1] [3] → [4] [2]
 </code></pre>
@@ -283,10 +283,10 @@
 </code></pre>
 <h2 id="dónde-puedo-encontrar-los-detalles-técnicos"><a class="header" href="#dónde-puedo-encontrar-los-detalles-técnicos">¿Dónde puedo encontrar los detalles técnicos?</a></h2>
 <p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">¡En el BIP!</a></p>
-<h2 id="por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft"><a class="header" href="#por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft">¿Por qué a las inscripciones de Satoshis se les llama &quot;artefactos digitales&quot; en lugar de &quot;NFT&quot;?</a></h2>
-<p>Una inscripción es un NFT, pero se utiliza el término &quot;artefacto digital&quot;, porque es fácil, sugerente y familiar.</p>
-<p>La frase &quot;artefacto digital&quot; es muy sugerente, incluso para alguien que nunca ha oído el término. En comparación, NFT es un acrónimo y no proporciona ninguna indicación de lo que significa si no has escuchado el término.</p>
-<p>Además, la palabra, &quot;NFT&quot; suena como terminología financiera, y tanto la palabra &quot;fungible&quot; como el sentido de la palabra &quot;token&quot; como se usa en los &quot;NFT&quot; no son comunes fuera de los contextos financieros.</p>
+<h2 id="por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft"><a class="header" href="#por-qué-a-las-inscripciones-de-satoshis-se-les-llama-artefactos-digitales-en-lugar-de-nft">¿Por qué a las inscripciones de Satoshis se les llama "artefactos digitales" en lugar de "NFT"?</a></h2>
+<p>Una inscripción es un NFT, pero se utiliza el término "artefacto digital", porque es fácil, sugerente y familiar.</p>
+<p>La frase "artefacto digital" es muy sugerente, incluso para alguien que nunca ha oído el término. En comparación, NFT es un acrónimo y no proporciona ninguna indicación de lo que significa si no has escuchado el término.</p>
+<p>Además, la palabra, "NFT" suena como terminología financiera, y tanto la palabra "fungible" como el sentido de la palabra "token" como se usa en los "NFT" no son comunes fuera de los contextos financieros.</p>
 <h2 id="cómo-se-comparan-las-inscripciones-con"><a class="header" href="#cómo-se-comparan-las-inscripciones-con">¿Cómo se comparan las inscripciones con...</a></h2>
 <h3 id="los-nft-de-ethereum"><a class="header" href="#los-nft-de-ethereum">¿Los NFT de Ethereum?</a></h3>
 <p><em>Las inscripciones siempre son inmutables.</em></p>
@@ -297,7 +297,7 @@
 <p><em>El contenido de la inscripción siempre está en la cadena de Bitcoin.</em></p>
 <p>No hay forma de que una inscripción haga referencia a contenido que esta por fuera de la cadena de Bitcoin. Debido a esto las inscripciones son más duraderas porque el contenido no puede perderse y también las hace más escasas porque los creadores de inscripciones deben pagar comisiones proporcionales al tamaño del contenido.</p>
 <p>Hay algunos NFTs en Ethereum que están en la cadena, pero muchos no lo están y se almacenan en plataformas como IPFS o Arweave, o en servidores web centralizados. No se garantiza que el contenido que esta almacenado en IPFS continue estando disponible, de hecho, ya se ha perdido contenido de NFTs que fueron almacenado en IPFS. Plataformas como Arweave dependen de suposiciones económicas y probablemente fallarán catastróficamente cuando estas suposiciones ya no se cumplan. Los servidores web centralizados pueden desaparecer en cualquier momento.</p>
-<p>Es difícil para un usuario que no tienes habilidades técnicas determinar donde el contenido de un NFT de Ethereum esta alojado </p>
+<p>Es difícil para un usuario que no tienes habilidades técnicas determinar donde el contenido de un NFT de Ethereum esta alojado</p>
 <p><em>Las inscripciones son mucho más sencillas.</em></p>
 <p>Los NFT de Ethereum dependen de la red y la máquina virtual de Ethereum, las cuales son altamente complejas, cambian constantemente e introducen cambios mediante bifurcaciones incompatibles con versiones anteriores.</p>
 <p>Por otro lado, las inscripciones dependen de la blockchain de Bitcoin que es relativamente simple y conservadora, e introduce cambios mediante bifurcaciones suaves compatibles con versiones anteriores.</p>

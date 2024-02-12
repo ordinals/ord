@@ -302,7 +302,7 @@
 </ol>
 <h3 id="गैर-बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करें"><a class="header" href="#गैर-बिटकॉइन-कोर-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करें">गैर-बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करें</a></h3>
 <p><code>ऑर्ड वॉलेट</code> कमांड बिटकॉइन कोर के आरपीसी एपीआई के इर्द-गिर्द रैप्‍ड हैं, इसलिए गैर-बिटकॉइन कोर वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करने के लिए, आपको अपने वॉलेट के डिस्क्रिप्टर को बिटकॉइन कोर में इंपोर्ट करना होगा।</p>
-<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">डिस्क्रिप्टर्स</a> &quot;उन तरीकों का वर्णन करते हैं जिनसे वॉलेट निजी कुंजी और सार्वजनिक कुंजी का सृजन करते हैं।</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">डिस्क्रिप्टर्स</a> "उन तरीकों का वर्णन करते हैं जिनसे वॉलेट निजी कुंजी और सार्वजनिक कुंजी का सृजन करते हैं।</p>
 <p>केवल वॉलेट की सार्वजनिक कुंजी के लिए आपको अपने बिटकॉइन कोर में डिस्क्रिप्टर इंपोर्ट करना चाहिए, न कि इसकी निजी कुंजी के लिए।</p>
 <p>यदि आपके वॉलेट की सार्वजनिक कुंजी डिस्क्रिप्टर के साथ छेड़छाड़ की गई है, ऐसी सूरत में छेड़छाड़ करने वाला आपके वॉलेट के पते देख सकेगा, लेकिन आपका फंड फिर भी सुरक्षित रहेगा।</p>
 <p>यदि आपके वॉलेट की निजी कुंजी डिस्क्रिप्टर के साथ किसी प्रकार की छेड़छाड़ की गई है, तो ऐसी स्थिति में छेड़छाड़ करने वाला आपके वॉलेट से धनराशि निकाल सकता है।</p>
@@ -326,9 +326,9 @@
 <li>
 <p>अपने वॉलेट डिस्क्रिप्टर को <code>foo-watch-only</code> पर इंपोर्ट करें:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग 0 के बजाय &quot;टाइमस्टैम्प&quot; के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
+<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग 0 के बजाय "टाइमस्टैम्प" के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
 </li>
 <li>
 <p>जांच लें कि सब कुछ सही से काम कर रहा है:</p>
@@ -342,7 +342,7 @@
 </li>
 </ol>
 <h3 id="मलटी-पथ-डिसकरिपटर-निरयात-करने-वाले-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करना"><a class="header" href="#मलटी-पथ-डिसकरिपटर-निरयात-करने-वाले-वॉलेट-में-दुरलभ-ऑरडिनलस-की-खोज-करना">मल्टी-पथ डिस्क्रिप्टर निर्यात करने वाले वॉलेट में दुर्लभ ऑर्डिनल्स की खोज करना</a></h3>
-<p>कुछ डिस्क्रिप्टर कोण कोष्ठक का उपयोग करके एक डिस्क्रिप्टर में एक से अधिक पथों का उल्‍लेख करते हैं, उदाहरण के लिए, <code>&lt;0;1&gt;</code> मल्टी-पथ डिस्क्रिप्टर को वर्तमान में बिटकॉइन कोर द्वारा समर्थन नहीं दिया गया है, &quot;इसलिए आपको पहले उन्हें बहुत सारे डिस्क्रिप्टर्स में बदलना होगा, और फिर उन मल्टीपल डिस्क्रिप्टर को बिटकॉइन कोर में इंपोर्ट करना होगा।</p>
+<p>कुछ डिस्क्रिप्टर कोण कोष्ठक का उपयोग करके एक डिस्क्रिप्टर में एक से अधिक पथों का उल्‍लेख करते हैं, उदाहरण के लिए, <code>&lt;0;1&gt;</code> मल्टी-पथ डिस्क्रिप्टर को वर्तमान में बिटकॉइन कोर द्वारा समर्थन नहीं दिया गया है, "इसलिए आपको पहले उन्हें बहुत सारे डिस्क्रिप्टर्स में बदलना होगा, और फिर उन मल्टीपल डिस्क्रिप्टर को बिटकॉइन कोर में इंपोर्ट करना होगा।</p>
 <ol>
 <li>
 <p>सबसे पहले अपने वॉलेट से मल्टी-पथ डिस्क्रिप्टर प्राप्त करें। यह कुछ इस तरह दिखेगा:</p>
@@ -363,11 +363,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>और परिवर्तन पता डिस्क्रिप्टर के लिए, इस मामले में 64k8wnd7:</p>
@@ -375,11 +375,11 @@
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -394,16 +394,16 @@
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग <code>0</code> के बजाय <code>&quot;टाइमस्टैम्प&quot;</code> के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
+<p>यदि आप यूनिक्स टाइमस्टैम्प से अवगत हैं जब आपके वॉलेट ने पहली बार लेनदेन प्राप्त करना शुरू किया था, तब आप इसका उपयोग <code>0</code> के बजाय <code>"टाइमस्टैम्प"</code> के मूल्य के लिए कर सकते हैं। इससे बिटकॉइन कोर को आपके वॉलेट के यूटीएक्सओ की खोज करने में लगने वाला समय कम हो जाएगा।</p>
 </li>
 <li>
 <p>जांच लें कि सब कुछ सही से काम कर रहा है:</p>

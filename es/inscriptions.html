@@ -255,15 +255,15 @@
 <p>El modelo de contenido de las inscripciones funciona similar al de la web.Una inscripción está conformada por el tipo de contenido, conocido como el tipo MIME, y el contenido que es una cadena de bytes. Esto permite que el contenido de la inscripción se pueda obtener de un servidor web y tener la posibilidad de crear inscripciones HTML que usen el contenido de otras inscripciones.</p>
 <p>El contenido de la inscripción está completamente en la cadena de bloques o blockchain, almacenado en scripts de taproot. Los scripts de taproot tienen muy pocas restricciones en cuanto a lo que pueden contener, y además reciben el descuento de testigo, lo que hace que el almacenamiento de contenido de las inscripciones sea relativamente económico.</p>
 <p>Dado que los gastos de script de taproot (taproot script spends) sólo pueden hacerse desde salidas de taproot existentes, las inscripciones se hacen en dos fases de compromiso/revelación. Primero, en la transacción de compromiso, se crea una salida de taproot que se compromete a un script que contiene el contenido de inscripción. Segundo, en la transacción de revelación, la salida creada por la transacción de compromiso se gasta, revelando el contenido de la inscripción en la cadena.</p>
-<p>El contenido de la inscripción se serializa utilizando push de datos dentro de condicionales que no han sido ejecutados, a estos se les llama &quot;sobres&quot;. Los sobres consisten en un <code>OP_FALSE OP_IF ... OP_ENDIF</code> envolviendo los push de datos. Dado que los sobres son operaciones nulas, no cambian la semántica del script en el que están incluidos y pueden combinarse con cualquier otro script de bloqueo.</p>
-<p>Una inscripción de texto que contiene la cadena &quot;¡Hola, Mundo!&quot; se serializa de la siguiente manera:</p>
+<p>El contenido de la inscripción se serializa utilizando push de datos dentro de condicionales que no han sido ejecutados, a estos se les llama "sobres". Los sobres consisten en un <code>OP_FALSE OP_IF ... OP_ENDIF</code> envolviendo los push de datos. Dado que los sobres son operaciones nulas, no cambian la semántica del script en el que están incluidos y pueden combinarse con cualquier otro script de bloqueo.</p>
+<p>Una inscripción de texto que contiene la cadena "¡Hola, Mundo!" se serializa de la siguiente manera:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;¡Hola, Mundo!&quot;
+  OP_PUSH "¡Hola, Mundo!"
 OP_ENDIF
 </code></pre>
 <p>Primero, se hace un push con el string <code>ord</code> para diferenciar que sobre va a utilizar la inscripción.</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Para indicar el principio del cuerpo y el final de los campos se hace un push de datos vacío.</p>
-<p>Las etiquetas no reconocidas se interpretan de forma diferente según sean pares o impares, siguiendo la regla &quot;está bien que sean impares&quot; utilizada por la Lightning Network.</p>
-<p>Las etiquetas pares se utilizan para campos que pueden afectar a la creación, asignación inicial o transferencia de una inscripción. Por esto, las inscripciones con campos pares no reconocidos deben mostrarse como &quot;no vinculadas&quot;, es decir, sin ubicación.</p>
+<p>Las etiquetas no reconocidas se interpretan de forma diferente según sean pares o impares, siguiendo la regla "está bien que sean impares" utilizada por la Lightning Network.</p>
+<p>Las etiquetas pares se utilizan para campos que pueden afectar a la creación, asignación inicial o transferencia de una inscripción. Por esto, las inscripciones con campos pares no reconocidos deben mostrarse como "no vinculadas", es decir, sin ubicación.</p>
 <p>Las etiquetas impares se utilizan para campos que no afectan a la creación,asignación inicial o transferencia, tales como los metadatos adicionales, y por lo tanto se pueden ignorar.</p>
 <h2 id="ids-de-las-inscripciones"><a class="header" href="#ids-de-las-inscripciones">IDs de las Inscripciones</a></h2>
 <p>Las inscripciones están alojadas en las entradas de una transacción de revelación. Para identificarlas se les asigna un ID como este:</p>

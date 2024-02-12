@@ -332,7 +332,7 @@
 │ ╰───── Index of block in halving epoch
 ╰─────── Cycle, numbered starting from 0
 </code></pre>
-<p>Ang Ordinal theorists ay kadalasang gumagamit ng mga termino &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;, at &quot;third&quot; for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, ayon sa pagkakabanggit.</p>
+<p>Ang Ordinal theorists ay kadalasang gumagamit ng mga termino "hour", "minute", "second", at "third" for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, ayon sa pagkakabanggit.</p>
 <p>Ngayon para sa ilang mga halimbawa. Ang satoshi na ito ay common:</p>
 <pre><code>1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
@@ -403,10 +403,10 @@
 <p>Sa ngayon, kahit na ang hindi pangkaraniwang satoshi ay medyo bihira. Sa pagsulat na ito, 745,855 na hindi pangkaraniwang satoshi ang namina - isa sa bawat 25.6 bitcoin ng sirkulasyon.</p>
 <h2 id="mga-pangalan"><a class="header" href="#mga-pangalan">Mga pangalan</a></h2>
 <p>Ang bawat satoshi ay may pangalan, na binubuo ng mga letrang <em>A</em> hanggang <em>Z</em>, na nagiging mas mas maikli sa hinaharap na pag-mina ang satoshi. Maaari silang magsimula nang mas maikli at mas mahaba, ngunit pagkatapos ay ang lahat ng magagandang, maiikling pangalan ay maiipit sa hindi magugugol na genesis block.</p>
-<p>Bilang halimbawa, ang pangalan ng 1905530482684727°'s ay &quot;iaiufjszmoba&quot;. Ang pangalan ng huling satoshi na namina ay &quot;a&quot;. Ang bawat kumbinasyon ng 10 character o mas kakaunti ay lalabas doon, balang araw.</p>
+<p>Bilang halimbawa, ang pangalan ng 1905530482684727°'s ay "iaiufjszmoba". Ang pangalan ng huling satoshi na namina ay "a". Ang bawat kumbinasyon ng 10 character o mas kakaunti ay lalabas doon, balang araw.</p>
 <h2 id="exotics"><a class="header" href="#exotics">Exotics</a></h2>
 <p>Maaaring mahalaga ang Satoshi para sa mga dahilan maliban sa kanilang pangalan o rarity. Maaaring dahil ito sa kalidad ng numero mismo, tulad ng pagkakaroon ng integer square o cube root. O maaaring dahil ito sa isang koneksyon sa isang makasaysayang kaganapan, tulad ng satoshis mula sa block 477,120, ang block kung saan na-activate ang SegWit, o 2099999997689999°, ang huling satoshi na mamimina.</p>
-<p>Ang ganitong mga satoshi ay tinatawag na &quot;exotic&quot;. Aling satoshi ang kakaiba at kung ano ang dahilan ng mga ito ay subjective. Ang mga ordinal na theorist ay hinihikayat na maghanap ng mga exotics batay sa pamantayan ng kanilang sariling interpertasyon.</p>
+<p>Ang ganitong mga satoshi ay tinatawag na "exotic". Aling satoshi ang kakaiba at kung ano ang dahilan ng mga ito ay subjective. Ang mga ordinal na theorist ay hinihikayat na maghanap ng mga exotics batay sa pamantayan ng kanilang sariling interpertasyon.</p>
 <h2 id="inscriptions"><a class="header" href="#inscriptions">Inscriptions</a></h2>
 <p>Satoshis can be inscribed with arbitrary content, creating Bitcoin-native digital artifacts. Inscribing is done by sending the satoshi to be inscribed in a transaction that reveals the inscription content on-chain. This content is then inextricably linked to that satoshi, turning it into an immutable digital artifact that can be tracked, transferred, hoarded, bought, sold, lost, and rediscovered.</p>
 <h2 id="arkeolohiya"><a class="header" href="#arkeolohiya">Arkeolohiya</a></h2>
@@ -450,15 +450,15 @@
 <p>Ang modelo ng inscription content ay sa web. Ang isang inskripsiyon ay binubuo ng isang uri ng nilalaman, na kilala rin bilang MIME type, at ang nilalaman mismo ay isang byte string. Ito ay nagbibigay-daan sa nilalaman ng inskripsiyon na maibalik mula sa isang web server, at para sa paglikha ng mga HTML inscriptions na gumagamit at nagbubuo ng nilalaman ng iba pang mga inskripsiyon.</p>
 <p>Ang nilalaman ng inskripsiyon ay on-chain, na naka-imbak sa taproot script-path spend scripts. Ang mga script ng Taproot ay may limitasyon sa kanilang nilalaman, at bukod pa rito ay tumatanggap ng witness discount, na ginagawang matipid ang pag-iimbak ang nilalaman ng isang inskripsiyon.</p>
 <p>Dahil ang spend ng taproot script ay maaari lamang gawin mula sa mga kasalukuyang taproot output, ang mga inskripsiyon ay ginawa gamit ang isang two-phase commit/reveal procedure. Una, sa commit transaction, isang taproot output na nag-committ sa isang script na naglalaman ng inskripsyon ay nabuo. Pangalawa, sa reveal ng transaksyon, ang output na nilikha ng commit na transaksyon ay ginamit sa pagbayad, na mag-rereveal ng inscription content sa on-chain.</p>
-<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na &quot;envelopes&quot;. Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
-<p>Isang text inscription na naglalaman ng string na &quot;Hello, world!&quot; ay serialized tulad ng sumusunod:</p>
+<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na "envelopes". Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
+<p>Isang text inscription na naglalaman ng string na "Hello, world!" ay serialized tulad ng sumusunod:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Una ang string na <code>ord</code> ay pushed, upang i-dismbiguate ang mga inskripsiyon mula sa iba pang gamit ng envelopes.</p>
@@ -479,8 +479,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
-<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang &quot;it's okay to be odd&quot; na ginagamit ng Lightning Network.</p>
-<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang &quot;unbound&quot;, iyon ay, walang lokasyon.</p>
+<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang "it's okay to be odd" na ginagamit ng Lightning Network.</p>
+<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang "unbound", iyon ay, walang lokasyon.</p>
 <p>Odd tags ay hindi nakakaapekto sa paggawa, paunang pagtatalaga, o paglilipat, gaya ng karagdagang metadata, at sa gayon ay ligtas na huwag pansinin.</p>
 <h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
 <p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon. Upang natatanging makilala ang mga ito, binibigyan sila ng ID, tulad ng:</p>
@@ -519,7 +519,7 @@ OP_ENDIF
 <p>An example of an inscription which delegates to <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 11
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
 OP_ENDIF
@@ -540,11 +540,11 @@ OP_ENDIF
 <p>Ang CBOR ay isang kumplikadong spec na may maraming iba't ibang uri ng data, at maraming paraan ng na kumakatawan sa parehong data. Mga kakaibang uri ng data, gaya ng mga tag, float, at Ang mga bignum, at pag-encode tulad ng mga hindi tiyak na halaga, ay maaaring mabigong ipakita tama o sa lahat. Ang mga kontribusyon sa <code>ord</code> upang malunasan ito ay malugod na tinatanggap.</p>
 <h2 id="halimbawa-1"><a class="header" href="#halimbawa-1">Halimbawa</a></h2>
 <p>Dahil ang CBOR ay hindi madaling basahin, sa mga halimbawang ito ay kinakatawan ito bilang JSON. Tandaan na ito ay halimbawa lamang, at ang JSON metadata ay <em>hindi</em> mapapakita nang tama.</p>
-<p>Ang metadata na <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> ay kasama sa isang inscription bilang:</p>
+<p>Ang metadata na <code>{"foo":"bar","baz":[null,true,false,0]}</code> ay kasama sa isang inscription bilang:</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    OP_PUSH 0x05 OP_PUSH '{"foo":"bar","baz":[null,true,false,0]}'
     ...
 OP_ENDIF
 </code></pre>
@@ -574,51 +574,51 @@ OP_ENDIF
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
-    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    OP_PUSH 0x05 OP_PUSH '{"very":"long","metadata":'
+    OP_PUSH 0x05 OP_PUSH '"is","finally":"done"}'
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
-<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the &quot;pointer&quot;, can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
+<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the "pointer", can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
 <p>An even tag is used, so that old versions of <code>ord</code> consider the inscription to be unbound, instead of assigning it, incorrectly, to the first sat.</p>
 <p>This can be used to create multiple inscriptions in a single transaction on different sats, when otherwise they would be made on the same sat.</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <p>An inscription with pointer 255:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0xff
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x0001
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256, with trailing zeroes, which are ignored:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x000100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
@@ -636,13 +636,13 @@ OP_ENDIF
 <p>Isang halimbawa ng child inscription <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 3
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Tandaan na ang halaga ng tag <code>3</code> ay binary, hindi hex, at para makilala ang child inscription bilang isang child, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> dapat na gastusin bilang isa sa mga input ng inscription transaction.</p>
@@ -714,7 +714,7 @@ OP_ENDIF
 <ul>
 <li><code>/r/blockhash/0</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f&quot;
+<pre><code class="language-json">"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
 </code></pre>
 <ul>
 <li><code>/r/blocktime</code>:</li>
@@ -724,39 +724,39 @@ OP_ENDIF
 <ul>
 <li><code>/r/metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74&quot;
+<pre><code class="language-json">"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74"
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "ids":[
+      "17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:0
+   "more":false,
+   "page":0
 }
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695/at/-1</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;id&quot;:&quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 </code></pre>
 <ul>
 <li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901&quot;,
+   "ids":[
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901",
       ...
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936&quot;
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:49
+   "more":false,
+   "page":49
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mga-madalas-itanong"><a class="header" href="#mga-madalas-itanong">Mga Madalas Itanong</a></h1>
@@ -793,10 +793,10 @@ OP_ENDIF
 </code></pre>
 <h2 id="saan-ko-mahahanap-ang-pinakatiyak-na-mga-detalye"><a class="header" href="#saan-ko-mahahanap-ang-pinakatiyak-na-mga-detalye">Saan ko mahahanap ang pinakatiyak na mga detalye?</a></h2>
 <p>Dito sa <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP</a></p>
-<h2 id="bakit-tinatawag-na-digital-artifacts-ang-mga-sat-inscriptions-sa-halip-na-nfts"><a class="header" href="#bakit-tinatawag-na-digital-artifacts-ang-mga-sat-inscriptions-sa-halip-na-nfts">Bakit tinatawag na &quot;digital artifacts&quot; ang mga sat inscriptions sa halip na &quot;NFTs&quot;?</a></h2>
-<p>Ang isang inskripsiyon ay isang NFT, ngunit ang terminong &quot;digital artifact&quot; ay ginamit sa halip, dahil ito ay simple, nagpapahiwatig at pamilyar.</p>
-<p>Ang terminong &quot;digital artifact&quot; ay madaling maunawaan, kahit na para sa isang taong hindi pa nakarinig ng terminong ito dati. Sa paghahambing, ang NFT ay isang acronym na hindi nagbibigay ng indikasyon kung ano ang ibig sabihin nito.</p>
-<p>Gayundin, ang &quot;NFT&quot; ay napagkakamalang may kinalaman sa pananalapi, at ang salitang &quot;fungible&quot; pati na rin ang kahulugan ng salitang &quot;token&quot; na ginamit sa &quot;NFT&quot; ay hindi karaniwan sa mga konteksto sa pananalapi.</p>
+<h2 id="bakit-tinatawag-na-digital-artifacts-ang-mga-sat-inscriptions-sa-halip-na-nfts"><a class="header" href="#bakit-tinatawag-na-digital-artifacts-ang-mga-sat-inscriptions-sa-halip-na-nfts">Bakit tinatawag na "digital artifacts" ang mga sat inscriptions sa halip na "NFTs"?</a></h2>
+<p>Ang isang inskripsiyon ay isang NFT, ngunit ang terminong "digital artifact" ay ginamit sa halip, dahil ito ay simple, nagpapahiwatig at pamilyar.</p>
+<p>Ang terminong "digital artifact" ay madaling maunawaan, kahit na para sa isang taong hindi pa nakarinig ng terminong ito dati. Sa paghahambing, ang NFT ay isang acronym na hindi nagbibigay ng indikasyon kung ano ang ibig sabihin nito.</p>
+<p>Gayundin, ang "NFT" ay napagkakamalang may kinalaman sa pananalapi, at ang salitang "fungible" pati na rin ang kahulugan ng salitang "token" na ginamit sa "NFT" ay hindi karaniwan sa mga konteksto sa pananalapi.</p>
 <h2 id="paano-maihahambing-ang-mga-inskripsiyon-sa-sat-sa"><a class="header" href="#paano-maihahambing-ang-mga-inskripsiyon-sa-sat-sa">Paano maihahambing ang mga inskripsiyon sa sat sa...</a></h2>
 <h3 id="nft-ethereum"><a class="header" href="#nft-ethereum">NFT Ethereum?</a></h3>
 <p><em>Ang mga inscription ay hindi nababago or immutable, kailanman.</em></p>
@@ -925,7 +925,7 @@ OP_ENDIF
 <p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
 <p>Ayon sa antas, ang kanilang cycle, mga bloke mula noong huling halving, mga bloke mula noong huling difficulty adjustment, at offset sa kanilang mga bloke:</p>
 <p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Sa kanilang pangalan, ang kanilang representasyon sa base-26 gamit ang mga letrang &quot;a&quot; hanggang &quot;z&quot;:</p>
+<p>Sa kanilang pangalan, ang kanilang representasyon sa base-26 gamit ang mga letrang "a" hanggang "z":</p>
 <p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
 <p>O ayon sa percentile, ang porsyento ng supply ng bitcoin na ibibigay o ibibigay kapag na-mina:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
@@ -943,20 +943,20 @@ OP_ENDIF
 <li><code>/sat/&lt;SAT&gt;</code></li>
 </ul>
 <p>Para makakuha ng listahan ng pinakabagong 100 inskripsiyon na gagawin mo:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 </code></pre>
 <p>Upang makakita ng impormasyon tungkol sa isang UTXO, na may kasamang mga inskripsiyon sa loob nito, gawin ang:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
 </code></pre>
 <p>Na mag re-return ng:</p>
 <pre><code>{
-  &quot;value&quot;: 10000,
-  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
-  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
-  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
-  &quot;sat_ranges&quot;: null,
-  &quot;inscriptions&quot;: [
-    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  "value": 10000,
+  "script_pubkey": "OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "transaction": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed",
+  "sat_ranges": null,
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ]
 }
 </code></pre>
@@ -1008,13 +1008,13 @@ OP_ENDIF
 <p>Tiyaking <em>WALA</em> kang <code>disablewallet=1</code> sa iyong <code>bitcoin.conf</code> file.Kung ibabalik ng <code>bitcoin-cli listwallet</code> ang <code>Method not found</code> ang wallet ay naka-disable at hindi mo magagamit ang <code>ord</code>.</p>
 <p>Tiyaking nakatakda ang <code>txindex=1</code>. Patakbuhin ang <code>bitcoin-cli getindexinfo</code> at dapat itong ibalik ang isang bagay tulad ng</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>Kung ibinabalik nito ang <code>{}</code>, hindi naka-set ang <code>txindex</code>. Kung ibinabalik nito ang <code>&quot;naka-sync&quot;: false</code>, ginagawa pa rin ng <code>bitcoind</code> ang <code>txindex</code>. Maghintay ang <code>&quot;synced&quot;: true</code> bago gamitin ang <code>ord</code>.</p>
+<p>Kung ibinabalik nito ang <code>{}</code>, hindi naka-set ang <code>txindex</code>. Kung ibinabalik nito ang <code>"naka-sync": false</code>, ginagawa pa rin ng <code>bitcoind</code> ang <code>txindex</code>. Maghintay ang <code>"synced": true</code> bago gamitin ang <code>ord</code>.</p>
 <p>Kung mayroon kang naka-set na <code>maxuploadtarget</code> maaari itong makagambala sa pagkuha ng mga bloke para sa index ng <code>ord</code>. Alisin ito o i-set ang <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="pag-install-ng-ord"><a class="header" href="#pag-install-ng-ord">Pag-install ng <code>ord</code></a></h2>
 <p>Ang <code>ord</code> utility ay nakasulat sa Rust at maaaring i-compile mula sa <a href="https://github.com/ordinals/ord">source</a>. Available ang mga pre-built na binary sa page ng mga <a href="https://github.com/ordinals/ord/releases">release page</a>.</p>
@@ -1215,9 +1215,9 @@ inscriptions:
 <li>
 <p>I-import ang iyong mga deskriptor ng wallet sa <code>foo-watch-only</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa halaga ng <code>&quot;timestamp&quot;</code> sa halip na <code>0</code>. Ito ay magbabawas sa oras na kinakailangan ng Bitcoin Core upang mahanap ang iyong mga UTXOs.</p>
+<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa halaga ng <code>"timestamp"</code> sa halip na <code>0</code>. Ito ay magbabawas sa oras na kinakailangan ng Bitcoin Core upang mahanap ang iyong mga UTXOs.</p>
 </li>
 <li>
 <p>Suriin kung gumagana ang lahat:</p>
@@ -1252,11 +1252,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>At para sa change address descriptor, sa case na ito <code>64k8wnd7</code>:</p>
@@ -1264,11 +1264,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -1283,16 +1283,16 @@ inscriptions:
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa value ng mga field na <code>&quot;timestamp&quot;</code> sa halip na <code>0</code>. Babawasan nito ang oras na kinakailangan para sa Bitcoin Core sa hanapin ang mga UTXOs.</p>
+<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa value ng mga field na <code>"timestamp"</code> sa halip na <code>0</code>. Babawasan nito ang oras na kinakailangan para sa Bitcoin Core sa hanapin ang mga UTXOs.</p>
 </li>
 <li>
 <p>Suriin kung gumagana ang lahat:</p>
@@ -1312,7 +1312,7 @@ inscriptions:
 <p>Sinusuportahan ng <code>ord</code> wallet ang pag-transfer ng mga partikular na satoshi. Maaari mo ring gamitin ang <code>bitcoin-cli</code> commands <code>createrawtransaction</code>,<code>signrawtransactionwithwallet</code>, at <code>sendrawtransaction</code>, kung paano gawin ito ay kumplikado at sa labas ng saklaw ng gabay na ito.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
 <p>Teleburn addresses can be used to burn assets on other blockchains, leaving behind in the smoking rubble a sort of forwarding address pointing to an inscription on Bitcoin.</p>
-<p>Teleburning an asset means something like, &quot;I'm out. Find me on Bitcoin.&quot;</p>
+<p>Teleburning an asset means something like, "I'm out. Find me on Bitcoin."</p>
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
@@ -1324,7 +1324,7 @@ inscriptions:
 </code></pre>
 <p>Returns:</p>
 <pre><code class="language-json">{
-  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+  "ethereum": "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e"
 }
 </code></pre>
 <p>Indicating that <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> is the Ethereum teleburn address for inscription zero, which is, indeed, the current owner, on Ethereum, of <code>rodarmor.eth</code>.</p>
@@ -1364,7 +1364,7 @@ inscriptions:
 <p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
 <h2 id="pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon"><a class="header" href="#pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon">Pagpapatunay / Pagtingin sa Mga Natanggap na Inskripsiyon</a></h2>
 <p>Kapag nakatanggap ka ng inskripsiyon makakakita ka ng bagong transaksyon sa tab ng <code>Transactions</code> ng Sparrow, pati na rin ang isang bagong UTXO sa tab na <code>UTXOs</code>.</p>
-<p>Sa una ang transaksyong ito ay maaaring magkaroon ng isang &quot;Unconfirmed&quot; na status, at ikaw ay kailangan maghintay na ito ay mamina sa isang bitcoin block bago ito ganap na matanggap.</p>
+<p>Sa una ang transaksyong ito ay maaaring magkaroon ng isang "Unconfirmed" na status, at ikaw ay kailangan maghintay na ito ay mamina sa isang bitcoin block bago ito ganap na matanggap.</p>
 <p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
 <p>Upang subaybayan ang status ng iyong transaksyon maaari kang mag-right click dito, piliin ang <code>Copy Transaction ID</code> at pagkatapos ay i-paste ang transaction id sa <a href="https://mempool.space">mempool.space</a>.</p>
 <p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
@@ -1375,11 +1375,11 @@ inscriptions:
 <p>Ang UTXO (Inscription) na ito ay hindi na gagastusin sa loob ng Sparrow Wallet hanggang sa i-unfreeze mo ito.</p>
 <h2 id="pag-import-sa-ord-wallet"><a class="header" href="#pag-import-sa-ord-wallet">Pag-import sa <code>ord</code> wallet</a></h2>
 <p>Para sa mga detalye sa pagse-set up ng Bitcoin Core at ang <code>ord</code> wallet tingnan ang <a href="guides/collecting/../inscriptions.html">Inscriptions Guide</a></p>
-<p>Kapag nagse-set up ng <code>ord</code>, sa halip na i-run ang <code>ord wallet create</code> upang lumikha ng isang bagong-bagong pitaka, maaari mong i-import ang iyong existing na pitaka gamit ang <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> gamit ang seed phrase na nabuo mo gamit ang Sparrow Wallet.</p>
+<p>Kapag nagse-set up ng <code>ord</code>, sa halip na i-run ang <code>ord wallet create</code> upang lumikha ng isang bagong-bagong pitaka, maaari mong i-import ang iyong existing na pitaka gamit ang <code>ord wallet restore "BIP39 SEED PHRASE"</code> gamit ang seed phrase na nabuo mo gamit ang Sparrow Wallet.</p>
 <p>Kasalukuyang may <a href="https://github.com/ordinals/ord/issues/1589">bug</a> na nagiging sanhi ng isang na-import na wallet upang hindi awtomatikong muling i-scan versus sa blockchain. Upang magawa ito, kailangan mong manu-manong mag-trigger ang rescan gamit ang bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Pagkatapos ay maaari mong suriin ang mga inskripsiyon ng iyong wallet gamit ang <code>ord wallet inscriptions</code></p>
 <p>Tandaan na kung nakagawa ka dati ng wallet na may <code>ord</code>, pagkatapos ay mayroon nang wallet na may default na pangalan, at kakailanganing ibigay ang iyong imported na wallet ng bagong pangalan. Maaari mong gamitin ang parameter na <code>--wallet</code> sa lahat ng commands ng <code>ord</code> para ma-reference sa ibang wallet, hal:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet"><a class="header" href="#pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet">Pagpapadala ng mga inskripsiyon gamit ang Sparrow Wallet</a></h2>

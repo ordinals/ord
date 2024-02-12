@@ -250,44 +250,44 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="指针"><a class="header" href="#指针">指针</a></h1>
-<p>为了在输入的第一个以外的sat上进行铭刻，可以提供一个以0为基础的整数，称作 &quot;指针&quot;,并配以标签 <code>2</code>, 这将导致铭文被做在给定位置的输出的sat上。 如果指针等于或大于铭文交易输出中的总sat数，那么它将被忽略， 而铭文将像往常一样被铭刻。指针字段的值是一个小端整数，尾随零将被忽略。 </p>
+<p>为了在输入的第一个以外的sat上进行铭刻，可以提供一个以0为基础的整数，称作 "指针",并配以标签 <code>2</code>, 这将导致铭文被做在给定位置的输出的sat上。 如果指针等于或大于铭文交易输出中的总sat数，那么它将被忽略， 而铭文将像往常一样被铭刻。指针字段的值是一个小端整数，尾随零将被忽略。</p>
 <p>使用了偶数标签，所以旧版本的 <code>ord</code> 会把铭文视为无约束，而不是错误地将其分配到第一个sat。</p>
 <p>这可以用于一次性在不同的sat上创建多个铭文，否则它们将被制成在同一个sat上</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <p>An inscription with pointer 255:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0xff
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x0001
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>带有指针256的铭文，尾随零被忽略：</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x000100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 

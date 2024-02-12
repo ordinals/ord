@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="査証受け取った銘文を見ます"><a class="header" href="#査証受け取った銘文を見ます">査証/受け取った銘文を見ます</a></h2>
 <p>銘文を受け取ったら、Sparrowの『Transactions』タブに新しい取引が表示されます。'UTXOs'タブに新しいUTXOが表示されます。</p>
-<p>最初は、この取引には&quot;未確認&quot;の状態があるかもしれません。実際に受け取ったのはビットコインブロックに採掘されるのを待つ必要があります。</p>
+<p>最初は、この取引には"未確認"の状態があるかもしれません。実際に受け取ったのはビットコインブロックに採掘されるのを待つ必要があります。</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>取引状況を追跡するには、右クリックして'Copy Transaction ID'を選択することができます,そして、この取引idを[mempool.space]（https://mempool.space)に貼り付けます。</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>このUTXO（銘文）は現在Sparrowウォレットでは、解凍するまで消費できません。。</p>
 <h2 id="ord-ウォレットを導入します"><a class="header" href="#ord-ウォレットを導入します"><code>ord</code> ウォレットを導入します。</a></h2>
 <p>ビットコインコアと'ord'ウォレットの設定の詳細については、<a href="../inscriptions.html">銘文ガイド</a>をご覧ください。</p>
-<p>'ord'を設定するときは、'ord wallet restore&quot;BIP 39 SE ED PHRASE&quot;'コマンドとSparrow Walletで生成されたシードフレーズを使用して、'ord wallet create'を実行する代わりに、既存のウォレットをインポートします。は新しい財布を作ります。</p>
+<p>'ord'を設定するときは、'ord wallet restore"BIP 39 SE ED PHRASE"'コマンドとSparrow Walletで生成されたシードフレーズを使用して、'ord wallet create'を実行する代わりに、既存のウォレットをインポートします。は新しい財布を作ります。</p>
 <p>現在、[プログラムエラー]が存在します(https://github.com/ordinals/ord/issues/1589)インポートの原因のウォレットはブロックチェーンを自動的に再スキャンできません。この問題を解決するには、手動で再スキャンをトリガーする必要があります。Bitcoinコアコマンドラインインターフェイスを使います：</p>
 <p>そして、'ord wallet inscriptions'を使用して、財布の碑文を確認することができます。.</p>
 <p>前にウォレットを'ord'で作成したことがある場合は、デフォルトの名前のウォレットを既に持っていることに注意してください。はあなたが導入した財布に違う名前を付ける必要があります。すべての'ord'コマンドで'--wallet'引数を使用できます異なる財布を引用するために、例えば：</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="雀の財布を使って銘文を発送します"><a class="header" href="#雀の財布を使って銘文を発送します">雀の財布を使って銘文を発送します。</a></h2>

@@ -297,13 +297,13 @@
 <p>Assicurarsi di <em>NON</em> avere <code>disablewallet=1</code> nel file <code>bitcoin.conf</code>. Se <code>bitcoin-cli listwallets</code> restituisce <code>Method not found</code>, il portafoglio è disabilitato e non sarà possibile utilizzare <code>ord</code>.</p>
 <p>Assicurarsi che <code>txindex=1</code> sia impostato. Eseguite <code>bitcoin-cli getindexinfo</code> e dovrebbe restituire qualcosa come</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>Se restituisce solo <code>{}</code>, il <code>txindex</code> non è impostato. Se restituisce <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> sta ancora creando il <code>txindex</code>. Attendere fino a <code>&quot;synced&quot;: true</code> prima di usare <code>ord</code>.</p>
+<p>Se restituisce solo <code>{}</code>, il <code>txindex</code> non è impostato. Se restituisce <code>"synced": false</code>, <code>bitcoind</code> sta ancora creando il <code>txindex</code>. Attendere fino a <code>"synced": true</code> prima di usare <code>ord</code>.</p>
 <p>Se è impostato <code>maxuploadtarget</code>, può interferire con il recupero dei blocchi per l'indice <code>ord</code>. Rimuoverlo o impostare <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="installazione-di-ord"><a class="header" href="#installazione-di-ord">Installazione di <code>ord</code></a></h2>
 <p>L'utilità <code>ord</code> è scritta in Rust e può essere compilata dalla <a href="https://github.com/ordinals/ord">sorgente</a>. I binari precompilati sono disponibili nella <a href="https://github.com/ordinals/ord/releases">pagina dei rilasci</a>.</p>
@@ -345,7 +345,7 @@
 <pre><code>ord wallet inscriptions
 </code></pre>
 <h2 id="iscrizioni-genitore-figlio"><a class="header" href="#iscrizioni-genitore-figlio">Iscrizioni Genitore-Figlio</a></h2>
-<p>Le iscrizioni &quot;parent-child&quot; consentono di creare quelle che in gergo si chiamano collezioni, per maggiori informazioni, si veda la voce <a href="../inscriptions/provenance.html">provenienza</a>.</p>
+<p>Le iscrizioni "parent-child" consentono di creare quelle che in gergo si chiamano collezioni, per maggiori informazioni, si veda la voce <a href="../inscriptions/provenance.html">provenienza</a>.</p>
 <p>Per rendere un'iscrizione figlia di un'altra, l'iscrizione parent deve essere iscritta e presente nel portafoglio. Per scegliere un genitore, eseguire <code>ord wallet inscriptions</code> e copiare l'id dell'iscrizione (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
 <p>Ora iscrivete l'iscrizione figlia e specificate il genitore in questo modo:</p>
 <pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE

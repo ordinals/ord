@@ -256,7 +256,7 @@
 <p>两个部分任务都使用 <a href="frequency.tsv">frequency.tsv</a>, 一个单词的清单以及他们在 <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>中出现的次数。过滤后仅包含在提交期结束时能被挖掘的聪的名字，这些名称在语料库中出现至少5000次。</p>
 <p><code>frequency.tsv</code> 制表符分割值的文件，第一列是单词，第二列是它在语料库里出现的次数。这些条目从出现频率最低到出现频率最高的顺序进行排序。</p>
 <p><code>frequency.tsv</code> 使用了<a href="https://github.com/casey/onegrams">这个程序</a>进行的编译.</p>
-<p>在<code>ord</code>钱包里搜索<code>frequency.tsv</code>中所包含的聪的名字 , 使用下面的<a href="https://github.com/ordinals/ord"><code>ord</code></a>命令: </p>
+<p>在<code>ord</code>钱包里搜索<code>frequency.tsv</code>中所包含的聪的名字 , 使用下面的<a href="https://github.com/ordinals/ord"><code>ord</code></a>命令:</p>
 <pre><code>ord wallet sats --tsv frequency.tsv
 </code></pre>
 <p>这个命令需要聪的索引，所以 <code>--index-sats</code> 必须在首次创建索引的时候使用。</p>

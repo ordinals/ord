@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon"><a class="header" href="#pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon">Pagpapatunay / Pagtingin sa Mga Natanggap na Inskripsiyon</a></h2>
 <p>Kapag nakatanggap ka ng inskripsiyon makakakita ka ng bagong transaksyon sa tab ng <code>Transactions</code> ng Sparrow, pati na rin ang isang bagong UTXO sa tab na <code>UTXOs</code>.</p>
-<p>Sa una ang transaksyong ito ay maaaring magkaroon ng isang &quot;Unconfirmed&quot; na status, at ikaw ay kailangan maghintay na ito ay mamina sa isang bitcoin block bago ito ganap na matanggap.</p>
+<p>Sa una ang transaksyong ito ay maaaring magkaroon ng isang "Unconfirmed" na status, at ikaw ay kailangan maghintay na ito ay mamina sa isang bitcoin block bago ito ganap na matanggap.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>Upang subaybayan ang status ng iyong transaksyon maaari kang mag-right click dito, piliin ang <code>Copy Transaction ID</code> at pagkatapos ay i-paste ang transaction id sa <a href="https://mempool.space">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>Ang UTXO (Inscription) na ito ay hindi na gagastusin sa loob ng Sparrow Wallet hanggang sa i-unfreeze mo ito.</p>
 <h2 id="pag-import-sa-ord-wallet"><a class="header" href="#pag-import-sa-ord-wallet">Pag-import sa <code>ord</code> wallet</a></h2>
 <p>Para sa mga detalye sa pagse-set up ng Bitcoin Core at ang <code>ord</code> wallet tingnan ang <a href="../inscriptions.html">Inscriptions Guide</a></p>
-<p>Kapag nagse-set up ng <code>ord</code>, sa halip na i-run ang <code>ord wallet create</code> upang lumikha ng isang bagong-bagong pitaka, maaari mong i-import ang iyong existing na pitaka gamit ang <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> gamit ang seed phrase na nabuo mo gamit ang Sparrow Wallet.</p>
+<p>Kapag nagse-set up ng <code>ord</code>, sa halip na i-run ang <code>ord wallet create</code> upang lumikha ng isang bagong-bagong pitaka, maaari mong i-import ang iyong existing na pitaka gamit ang <code>ord wallet restore "BIP39 SEED PHRASE"</code> gamit ang seed phrase na nabuo mo gamit ang Sparrow Wallet.</p>
 <p>Kasalukuyang may <a href="https://github.com/ordinals/ord/issues/1589">bug</a> na nagiging sanhi ng isang na-import na wallet upang hindi awtomatikong muling i-scan versus sa blockchain. Upang magawa ito, kailangan mong manu-manong mag-trigger ang rescan gamit ang bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Pagkatapos ay maaari mong suriin ang mga inskripsiyon ng iyong wallet gamit ang <code>ord wallet inscriptions</code></p>
 <p>Tandaan na kung nakagawa ka dati ng wallet na may <code>ord</code>, pagkatapos ay mayroon nang wallet na may default na pangalan, at kakailanganing ibigay ang iyong imported na wallet ng bagong pangalan. Maaari mong gamitin ang parameter na <code>--wallet</code> sa lahat ng commands ng <code>ord</code> para ma-reference sa ibang wallet, hal:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet"><a class="header" href="#pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet">Pagpapadala ng mga inskripsiyon gamit ang Sparrow Wallet</a></h2>

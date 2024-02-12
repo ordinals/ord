@@ -270,13 +270,13 @@
 <p>Transaction outputs can be searched by outpoint, for example, the only output of the genesis block coinbase transaction:</p>
 <p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
 <h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
-<p>Sats podem ser pesquisados por número inteiro, sua posição dentro de toda a oferta de bitcoin </p>
+<p>Sats podem ser pesquisados por número inteiro, sua posição dentro de toda a oferta de bitcoin</p>
 <p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
 <p>Por decimal, seu bloco e deslocamento dentro daquele bloco:</p>
 <p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
 <p>Por grau, seu ciclo, blocos desde o último halving, blocos desde o último ajuste de dificuldade e deslocamento dentro do bloco:</p>
 <p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Por nome, sua representação na base 26 usando as letras &quot;a&quot; até &quot;z&quot;:</p>
+<p>Por nome, sua representação na base 26 usando as letras "a" até "z":</p>
 <p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
 <p>Ou por percentil, a porcentagem do oferta de bitcoin que foi ou terá sido emitida quando ele for minerado:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
@@ -294,20 +294,20 @@
 <li><code>/sat/&lt;SAT&gt;</code></li>
 </ul>
 <p>To get a list of the latest 100 inscriptions you would do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 </code></pre>
 <p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
 </code></pre>
 <p>Which returns:</p>
 <pre><code>{
-  &quot;value&quot;: 10000,
-  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
-  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
-  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
-  &quot;sat_ranges&quot;: null,
-  &quot;inscriptions&quot;: [
-    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  "value": 10000,
+  "script_pubkey": "OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "transaction": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed",
+  "sat_ranges": null,
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ]
 }
 </code></pre>

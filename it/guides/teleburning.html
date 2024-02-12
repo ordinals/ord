@@ -251,7 +251,7 @@
                     <main>
                         <h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
 <p>Gli indirizzi teleburn possono essere utilizzati per bruciare asset su altre blockchain, lasciando dietro di sé, tra le macerie fumanti, una sorta di indirizzo di spedizione che punta a un'iscrizione su Bitcoin.</p>
-<p>Teleburnare un asset significa qualcosa come &quot;Non esisto più su questa chain. Trovatemi su Bitcoin.&quot;</p>
+<p>Teleburnare un asset significa qualcosa come "Non esisto più su questa chain. Trovatemi su Bitcoin."</p>
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Gli indirizzi teleburn di Ethereum sono ricavati prendendo i primi 20 byte dell'hash SHA-256 dell'ID dell'iscrizione, serializzato come 36 byte, con i primi 32 byte contenenti l'ID della transazione e gli ultimi quattro byte contenenti l'indice dell'iscrizione in big-endian, e interpretandolo come un indirizzo Ethereum.</p>
@@ -263,7 +263,7 @@
 </code></pre>
 <p>Restituisce:</p>
 <pre><code class="language-json">{
-  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+  "ethereum": "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e"
 }
 </code></pre>
 <p>Indicando che <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> è l'indirizzo teleburn di Ethereum per l'iscrizione zero, che è effettivamente l'attuale proprietario, su Ethereum, di <code>rodarmor.eth</code>.</p>

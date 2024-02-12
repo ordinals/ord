@@ -255,15 +255,15 @@
 <p>Ang modelo ng inscription content ay sa web. Ang isang inskripsiyon ay binubuo ng isang uri ng nilalaman, na kilala rin bilang MIME type, at ang nilalaman mismo ay isang byte string. Ito ay nagbibigay-daan sa nilalaman ng inskripsiyon na maibalik mula sa isang web server, at para sa paglikha ng mga HTML inscriptions na gumagamit at nagbubuo ng nilalaman ng iba pang mga inskripsiyon.</p>
 <p>Ang nilalaman ng inskripsiyon ay on-chain, na naka-imbak sa taproot script-path spend scripts. Ang mga script ng Taproot ay may limitasyon sa kanilang nilalaman, at bukod pa rito ay tumatanggap ng witness discount, na ginagawang matipid ang pag-iimbak ang nilalaman ng isang inskripsiyon.</p>
 <p>Dahil ang spend ng taproot script ay maaari lamang gawin mula sa mga kasalukuyang taproot output, ang mga inskripsiyon ay ginawa gamit ang isang two-phase commit/reveal procedure. Una, sa commit transaction, isang taproot output na nag-committ sa isang script na naglalaman ng inskripsyon ay nabuo. Pangalawa, sa reveal ng transaksyon, ang output na nilikha ng commit na transaksyon ay ginamit sa pagbayad, na mag-rereveal ng inscription content sa on-chain.</p>
-<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na &quot;envelopes&quot;. Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
-<p>Isang text inscription na naglalaman ng string na &quot;Hello, world!&quot; ay serialized tulad ng sumusunod:</p>
+<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na "envelopes". Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
+<p>Isang text inscription na naglalaman ng string na "Hello, world!" ay serialized tulad ng sumusunod:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Una ang string na <code>ord</code> ay pushed, upang i-dismbiguate ang mga inskripsiyon mula sa iba pang gamit ng envelopes.</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
-<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang &quot;it's okay to be odd&quot; na ginagamit ng Lightning Network.</p>
-<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang &quot;unbound&quot;, iyon ay, walang lokasyon.</p>
+<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang "it's okay to be odd" na ginagamit ng Lightning Network.</p>
+<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang "unbound", iyon ay, walang lokasyon.</p>
 <p>Odd tags ay hindi nakakaapekto sa paggawa, paunang pagtatalaga, o paglilipat, gaya ng karagdagang metadata, at sa gayon ay ligtas na huwag pansinin.</p>
 <h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
 <p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon. Upang natatanging makilala ang mga ito, binibigyan sila ng ID, tulad ng:</p>

@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="validating--viewing-received-inscriptions"><a class="header" href="#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a></h2>
 <p>Once you have received an inscription you will see a new transaction in the <code>Transactions</code> tab of Sparrow, as well as a new UTXO in the <code>UTXOs</code> tab.</p>
-<p>Initially this transaction may have an &quot;Unconfirmed&quot; status, and you will need to wait for it to be mined into a bitcoin block before it is fully received.</p>
+<p>Initially this transaction may have an "Unconfirmed" status, and you will need to wait for it to be mined into a bitcoin block before it is fully received.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>To track the status of your transaction you can right-click on it,  select <code>Copy Transaction ID</code> and then paste that transaction id into <a href="https://mempool.space">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,12 +290,12 @@
 <p>This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until you unfreeze it.</p>
 <h2 id="importing-into-ord-wallet"><a class="header" href="#importing-into-ord-wallet">Importing into <code>ord</code> wallet</a></h2>
 <p>For details on setting up Bitcoin Core and the <code>ord</code> wallet check out the <a href="../inscriptions.html">Inscriptions Guide</a></p>
-<p>When setting up <code>ord</code>, instead of running <code>ord wallet create</code> to create a brand-new wallet, you can import your existing wallet using <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> using the seed phrase you generated with Sparrow Wallet.</p>
+<p>When setting up <code>ord</code>, instead of running <code>ord wallet create</code> to create a brand-new wallet, you can import your existing wallet using <code>ord wallet restore "BIP39 SEED PHRASE"</code> using the seed phrase you generated with Sparrow Wallet.</p>
 <p>There is currently a <a href="https://github.com/ordinals/ord/issues/1589">bug</a> which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
 <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>You can then check your wallet's inscriptions using <code>ord wallet inscriptions</code></p>
 <p>Note that if you have previously created a wallet with <code>ord</code>, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the <code>--wallet</code> parameter in all <code>ord</code> commands to reference a different wallet, eg:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="sending-inscriptions-with-sparrow-wallet"><a class="header" href="#sending-inscriptions-with-sparrow-wallet">Sending inscriptions with Sparrow Wallet</a></h2>

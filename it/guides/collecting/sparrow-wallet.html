@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="convalida-visualizzazione-delle-iscrizioni-ricevute"><a class="header" href="#convalida-visualizzazione-delle-iscrizioni-ricevute">Convalida/ Visualizzazione delle Iscrizioni Ricevute</a></h2>
 <p>Una volta ricevuta un'iscrizione, si vedrà una nuova transazione nella scheda <code>Transactions</code> di Sparrow e un nuovo UTXO nella scheda <code>UTXOs</code>.</p>
-<p>Inizialmente questa transazione potrebbe avere uno stato &quot;Unconfirmed&quot; e sarà necessario attendere che venga minata in un blocco di bitcoin prima che venga ricevuta completamente.</p>
+<p>Inizialmente questa transazione potrebbe avere uno stato "Unconfirmed" e sarà necessario attendere che venga minata in un blocco di bitcoin prima che venga ricevuta completamente.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>Per seguire lo stato della transazione è possibile fare clic con il tasto destro del mouse, selezionare <code>Copy Transaction ID</code> e incollare l'ID transazione in <a href="https://mempool.space">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>Questo UTXO (Iscrizione) non potrà più essere speso nel Portafoglio Sparrow fino a quando non verrà sbloccato.</p>
 <h2 id="importare-nell-ord-wallet"><a class="header" href="#importare-nell-ord-wallet">Importare nell' <code>ord</code> wallet</a></h2>
 <p>Per maggiori dettagli sull'impostazione di Bitcoin Core e del portafoglio <code>ord</code>, consultare la <a href="../inscriptions.html">Guida alle Iscrizioni</a></p>
-<p>Quando si configura <code>ord</code>, invece di eseguire <code>ord wallet create</code> per creare un portafoglio nuovo di zecca, è possibile importare il portafoglio esistente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> utilizzando la seed phrase generata con Sparrow Wallet.</p>
+<p>Quando si configura <code>ord</code>, invece di eseguire <code>ord wallet create</code> per creare un portafoglio nuovo di zecca, è possibile importare il portafoglio esistente usando <code>ord wallet restore "BIP39 SEED PHRASE"</code> utilizzando la seed phrase generata con Sparrow Wallet.</p>
 <p>Attualmente esiste un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> che fa sì che un portafoglio importato non venga automaticamente ricontrollato rispetto alla blockchain. Per ovviare a questo problema è necessario attivare manualmente una nuova scansione utilizzando il bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>È quindi possibile controllare le iscrizioni del proprio portafoglio utilizzando <code>ord wallet inscriptions</code></p>
 <p>Si noti che se si è precedentemente creato un portafoglio con <code>ord</code>, si avrà già un portafoglio con il nome predefinito e si dovrà dare un nome diverso al portafoglio importato. È possibile utilizzare il parametro <code>--wallet</code> in tutti i comandi <code>ord</code> per fare riferimento a un portafoglio diverso, ad es:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="invio-di-iscrizioni-con-sparrow-wallet"><a class="header" href="#invio-di-iscrizioni-con-sparrow-wallet">Invio di iscrizioni con Sparrow Wallet</a></h2>
@@ -316,7 +316,7 @@
 <ul>
 <li>L'<code>output</code> identificatore corrisponde all'identificatore dell'UTXO che si intende inviare</li>
 <li>L'<code>offset</code> dell'iscrizione è 0 (ciò significa che l'iscrizione si trova sul primo sat dell'UTXO)</li>
-<li>L'<code>output_value</code> ha un numero di sat sufficiente a coprire le commissioni di transazione (&quot;postage&quot;) per l'invio della transazione. L'importo esatto necessario dipende dalla tariffa selezionata per la transazione</li>
+<li>L'<code>output_value</code> ha un numero di sat sufficiente a coprire le commissioni di transazione ("postage") per l'invio della transazione. L'importo esatto necessario dipende dalla tariffa selezionata per la transazione</li>
 </ul>
 <p>Se tutte le condizioni di cui sopra sono vere per la vostra iscrizione, l'invio dovrebbe essere sicuro utilizzando il metodo seguente.</p>
 <p>⚠️⚠️ Fate molta attenzione all'invio dell'iscrizione, soprattutto se il valore dell' <code>offset</code> non è <code>0</code>. Si sconsiglia di utilizzare questo metodo in tal caso, in quanto si potrebbe inviare accidentalmente l'iscrizione a un miner di bitcoin, a meno che non si sappia cosa si sta facendo.</p>

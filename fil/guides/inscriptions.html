@@ -297,13 +297,13 @@
 <p>Tiyaking <em>WALA</em> kang <code>disablewallet=1</code> sa iyong <code>bitcoin.conf</code> file.Kung ibabalik ng <code>bitcoin-cli listwallet</code> ang <code>Method not found</code> ang wallet ay naka-disable at hindi mo magagamit ang <code>ord</code>.</p>
 <p>Tiyaking nakatakda ang <code>txindex=1</code>. Patakbuhin ang <code>bitcoin-cli getindexinfo</code> at dapat itong ibalik ang isang bagay tulad ng</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>Kung ibinabalik nito ang <code>{}</code>, hindi naka-set ang <code>txindex</code>. Kung ibinabalik nito ang <code>&quot;naka-sync&quot;: false</code>, ginagawa pa rin ng <code>bitcoind</code> ang <code>txindex</code>. Maghintay ang <code>&quot;synced&quot;: true</code> bago gamitin ang <code>ord</code>.</p>
+<p>Kung ibinabalik nito ang <code>{}</code>, hindi naka-set ang <code>txindex</code>. Kung ibinabalik nito ang <code>"naka-sync": false</code>, ginagawa pa rin ng <code>bitcoind</code> ang <code>txindex</code>. Maghintay ang <code>"synced": true</code> bago gamitin ang <code>ord</code>.</p>
 <p>Kung mayroon kang naka-set na <code>maxuploadtarget</code> maaari itong makagambala sa pagkuha ng mga bloke para sa index ng <code>ord</code>. Alisin ito o i-set ang <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="pag-install-ng-ord"><a class="header" href="#pag-install-ng-ord">Pag-install ng <code>ord</code></a></h2>
 <p>Ang <code>ord</code> utility ay nakasulat sa Rust at maaaring i-compile mula sa <a href="https://github.com/ordinals/ord">source</a>. Available ang mga pre-built na binary sa page ng mga <a href="https://github.com/ordinals/ord/releases">release page</a>.</p>

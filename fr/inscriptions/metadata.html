@@ -263,11 +263,11 @@
 <p>CBOR est une spécification complexe qui comporte de nombreux types de données différents et de multiples façons de représenter les mêmes données. Les types de données exotiques, tels que les étiquettes, les éléments flottants et les bignums, ainsi que les encodages tels que les valeurs indéfinies, peuvent ne pas s’afficher correctement, voire pas du tout. Les contributions à <code>ord</code> visant à remédier à ce problème sont les bienvenues.</p>
 <h2 id="exemple"><a class="header" href="#exemple">Exemple</a></h2>
 <p>Le CBOR n’étant pas lisible par l’humain, il est représenté sous forme de JSON dans les exemples suivants. Gardez à l’esprit que cela est <em>uniquement</em> pour ces exemples, et que les métadonnées JSON ne seront <em>pas</em> affichées correctement.</p>
-<p>Les métadonnées <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> seraient incluses dans une inscription sous la forme suivante :</p>
+<p>Les métadonnées <code>{"foo":"bar","baz":[null,true,false,0]}</code> seraient incluses dans une inscription sous la forme suivante :</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    OP_PUSH 0x05 OP_PUSH '{"foo":"bar","baz":[null,true,false,0]}'
     ...
 OP_ENDIF
 </code></pre>
@@ -297,12 +297,12 @@ OP_ENDIF
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
-    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    OP_PUSH 0x05 OP_PUSH '{"very":"long","metadata":'
+    OP_PUSH 0x05 OP_PUSH '"is","finally":"done"}'
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
 
                     </main>
 

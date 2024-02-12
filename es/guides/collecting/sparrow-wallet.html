@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="validando--viendo-inscripciones-recibidas"><a class="header" href="#validando--viendo-inscripciones-recibidas">Validando / Viendo Inscripciones Recibidas</a></h2>
 <p>Una vez que hayas recibido una inscripción, podrás observar una nueva transacción en la pestaña <code>Transactions</code> (transacciones) de Sparrow, así como un nuevo UTXO en la pestaña <code>UTXOs</code>.</p>
-<p>Inicialmente, esta transacción puede tener un estado &quot;Unconfirmed o No confirmado&quot;, y tendrás que esperar a que sea minada en un bloque de bitcoin antes de que la recibas por completo.</p>
+<p>Inicialmente, esta transacción puede tener un estado "Unconfirmed o No confirmado", y tendrás que esperar a que sea minada en un bloque de bitcoin antes de que la recibas por completo.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>Para rastrear el estado de tu transacción, puedes hacer clic derecho sobre ella, seleccionar <code>Copy Transaction ID</code> (Copiar ID de Transacción) y luego pegar ese ID en el buscador de <a href="https://mempool.space/">mempool.space</a>.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>Este UTXO (Inscripción) no se podrá gastar dentro del Monedero Sparrow hasta que lo descongeles.</p>
 <h2 id="importando-al-monedero-ord"><a class="header" href="#importando-al-monedero-ord">Importando al monedero <code>ord</code></a></h2>
 <p>Para detalles sobre configurar Bitcoin Core y el monedero ord, revisa la <a href="../inscriptions.html">Guía de Inscripciones Ordinal</a>.</p>
-<p>Cuando configures <code>ord</code>, en lugar de ejecutar<code> ord wallet create</code> para crear un nuevo monedero, puedes importar tu monedero existente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> con la frase semilla que generaste en el monedero Sparrow.</p>
+<p>Cuando configures <code>ord</code>, en lugar de ejecutar<code> ord wallet create</code> para crear un nuevo monedero, puedes importar tu monedero existente usando <code>ord wallet restore "BIP39 SEED PHRASE"</code> con la frase semilla que generaste en el monedero Sparrow.</p>
 <p>Actualmente hay un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> que impide que un monedero importado no se escanee automáticamente para encontrar su contenido en la blockchain. Para solucionar esto tendrás que ejecutar manualmente un escaneo usando el cli de bitcoin core: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Luego puedes revisar las inscripciones de tu monedero usando <code>ord wallet inscriptions</code></p>
 <p>Ten en cuenta que si has creado previamente una cartera con <code>ord</code>, ya tendrás una cartera con el nombre predeterminado y tendrás que darle un nombre diferente a tu cartera importada. Puedes usar el parámetro <code>--wallet</code> en todos los comandos de <code>ord</code> para hacer referencia a un monedero diferente, por ejemplo:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="enviar-inscripciones-con-el-monedero-sparrow"><a class="header" href="#enviar-inscripciones-con-el-monedero-sparrow">Enviar inscripciones con el Monedero Sparrow</a></h2>

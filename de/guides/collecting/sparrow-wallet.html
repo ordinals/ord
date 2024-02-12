@@ -259,7 +259,7 @@
 <p>Laden Sie die Sparrow Wallet von der <a href="https://sparrowwallet.com/download/">Download-Seite</a> für Ihr jeweiliges Betriebssystem herunter.</p>
 <p>Wählen Sie <code>File -&gt; New Wallet</code> und erstellen Sie eine neue Wallet namens <code>ord</code>.</p>
 <p><img src="images/wallet_setup_01.png" alt="" /></p>
-<p>Ändern Sie den &quot;Skripttyp&quot; in &quot;Taproot (P2TR)&quot; und wählen Sie die Option &quot;Neue oder importierte Software-Wallet&quot; aus.</p>
+<p>Ändern Sie den "Skripttyp" in "Taproot (P2TR)" und wählen Sie die Option "Neue oder importierte Software-Wallet" aus.</p>
 <p><img src="images/wallet_setup_02.png" alt="" /></p>
 <p>Wählen Sie <code>Verwenden von 12 Wörtern</code> aus und klicken Sie dann auf <code>Neue generieren</code>. Lassen Sie das Passwortfeld leer.</p>
 <p><img src="images/wallet_setup_03.png" alt="" /></p>
@@ -279,7 +279,7 @@
 <p><img src="images/wallet_setup_08.png" alt="" /></p>
 <h2 id="Überprüfung--anzeige-empfangener-inscriptions"><a class="header" href="#Überprüfung--anzeige-empfangener-inscriptions">Überprüfung / Anzeige empfangener Inscriptions</a></h2>
 <p>Sobald Sie eine Anmeldung erhalten haben, sehen Sie eine neue Transaktion auf der Registerkarte <code>Transactions</code> von Sparrow sowie ein neues UTXO auf der Registerkarte <code>UTXOs</code>.</p>
-<p>Anfänglich hat diese Transaktion möglicherweise den Status &quot;Unconfirmed&quot; und Sie müssen warten, bis sie in einen Bitcoin-Block umgewandelt wurde, bevor sie vollständig empfangen wird.</p>
+<p>Anfänglich hat diese Transaktion möglicherweise den Status "Unconfirmed" und Sie müssen warten, bis sie in einen Bitcoin-Block umgewandelt wurde, bevor sie vollständig empfangen wird.</p>
 <p><img src="images/validating_viewing_01.png" alt="" /></p>
 <p>Um den Status Ihrer Transaktion zu verfolgen, können Sie mit der rechten Maustaste darauf klicken, <code>Copy Transaction ID</code> auswählen und diese Transaktions-ID dann in <a href="https://mempool.space">mempool.space</a> einfügen.</p>
 <p><img src="images/validating_viewing_02.png" alt="" /></p>
@@ -290,11 +290,11 @@
 <p>Dieses UTXO (Inscription) kann jetzt nicht mehr in der Sparrow-Wallet ausgegeben werden, bis Sie es entsperren.</p>
 <h2 id="importieren-in-die-ord-wallet"><a class="header" href="#importieren-in-die-ord-wallet">Importieren in die <code>ord</code> wallet</a></h2>
 <p>Einzelheiten zum Einrichten von Bitcoin Core und der <code>ord</code> Wallet finden Sie im <a href="../inscriptions.html">Inscriptions Guide</a></p>
-<p>Wenn Sie <code>ord</code> einrichten, können Sie, anstatt <code>ord wallet create</code> auszuführen, um ein brandneues Wallet zu erstellen, Ihr vorhandenes Wallet mit <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> importieren und dabei die Seed-Phrase verwenden, die Sie mit Sparrow Wallet generiert haben.</p>
+<p>Wenn Sie <code>ord</code> einrichten, können Sie, anstatt <code>ord wallet create</code> auszuführen, um ein brandneues Wallet zu erstellen, Ihr vorhandenes Wallet mit <code>ord wallet restore "BIP39 SEED PHRASE"</code> importieren und dabei die Seed-Phrase verwenden, die Sie mit Sparrow Wallet generiert haben.</p>
 <p>Derzeit gibt es einen <a href="https://github.com/ordinals/ord/issues/1589">Fehler</a>, der dazu führt, dass eine importierte Wallet nicht automatisch erneut anhand der Blockchain gescannt wird. Um dies zu umgehen, müssen Sie manuell einen erneuten Scan mit der Bitcoin-Core-CLI auslösen: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Anschließend können Sie die Beschriftung Ihrer Brieftasche mithilfe von <code>ord wallet inscriptions</code> überprüfen</p>
 <p>Beachten Sie, dass Sie, wenn Sie zuvor ein Wallet mit <code>ord</code> erstellt haben, bereits über ein Wallet mit dem Standardnamen verfügen und Ihrem importierten Wallet einen anderen Namen geben müssen. Sie können den Parameter <code>--wallet</code> in allen <code>ord</code> -Befehlen verwenden, um auf eine andere Wallet zu verweisen, z. B.:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="inscriptions-mit-sparrow-wallet-versenden"><a class="header" href="#inscriptions-mit-sparrow-wallet-versenden">Inscriptions mit Sparrow Wallet versenden</a></h2>

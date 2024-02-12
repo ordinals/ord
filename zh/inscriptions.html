@@ -250,8 +250,8 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="铭文"><a class="header" href="#铭文">铭文</a></h1>
-<p>铭文里可刻有任意内容，从而创造了比特币原生的数字人工制品，通常被称为 NFT。铭文不需要侧链或单独的代币。 </p>
-<p>这些铭刻的聪，可以使用比特币交易传输发送到比特币地址，保存在比特币 UTXO 中。这些交易、地址 和 UTXO 在所有方面都是正常的比特币交易、地址和 UTXO。除了为了发送单个聪，交易必须根据序数理论控制输入和输出的顺序和值。 </p>
+<p>铭文里可刻有任意内容，从而创造了比特币原生的数字人工制品，通常被称为 NFT。铭文不需要侧链或单独的代币。</p>
+<p>这些铭刻的聪，可以使用比特币交易传输发送到比特币地址，保存在比特币 UTXO 中。这些交易、地址 和 UTXO 在所有方面都是正常的比特币交易、地址和 UTXO。除了为了发送单个聪，交易必须根据序数理论控制输入和输出的顺序和值。</p>
 <p>铭文内容是基于万维网标准的。铭文由内容类型（也称为 MIME 类型）和内容本身（字节串）组成。这允许从 Web 服务器返回铭文内容，并用于创建和使用HTML铭文并重新混合其他铭文内容。</p>
 <p>铭文内容完全在链上，存储在taproot script-path spend脚本中。 Taproot 脚本对其内容的限制很少，并且额外获得见证折扣，使得铭文内容存储相对经济。</p>
 <p>因为taproot script-path spend脚本只能从现有的 taproot 输出中产生，因此使用两阶段commit/reveal过程进行铭刻。首先，在commit中，创建一个提交到包含铭文内容的脚本的taproot 输出。 其次，在reveal交易中，使用commit交易产生的输出，来显示链上的铭文内容。</p>
@@ -259,11 +259,11 @@
 <p>包含字符串“Hello, world!”的文本铭文 序列化如下：</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>首先字符串<code>ord</code>被推送，以消除铭文与信封其他用途的歧义。</p>
@@ -284,8 +284,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>正文的开头和字段的结尾用'空数据'指示推送。</p>
-<p>无法识别的标签的解释不同，取决于它们是否是偶数或奇数，遵循闪电网络&quot;可以是奇数&quot;的规则。</p>
-<p>甚至标签也用于可能影响创建、初始分配的字段，或铭文的转移。因此，即使无法识别的铭文，字段也必须显示为&quot;未绑定&quot;，即没有位置。</p>
+<p>无法识别的标签的解释不同，取决于它们是否是偶数或奇数，遵循闪电网络"可以是奇数"的规则。</p>
+<p>甚至标签也用于可能影响创建、初始分配的字段，或铭文的转移。因此，即使无法识别的铭文，字段也必须显示为"未绑定"，即没有位置。</p>
 <p>奇数标签用于不影响创建、初始的字段,分配或转移，例如附加元数据，因此是选择忽略是安全的。</p>
 <h2 id="铭文身份id"><a class="header" href="#铭文身份id">铭文身份ID</a></h2>
 <p>铭文包含在揭示交易的输入中。为了唯一地识别他们，他们被分配了一个以下形式的 ID：</p>

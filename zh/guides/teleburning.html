@@ -250,20 +250,20 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="燃烧传送"><a class="header" href="#燃烧传送">燃烧传送</a></h1>
-<p>燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个比特币上的铭文这些地址就像是烟熏弹火后的废墟。 </p>
-<p>燃烧传送一个资产似乎意味着 &quot;我走了，在比特币链上找我。&quot;</p>
-<p>Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求 </p>
+<p>燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个比特币上的铭文这些地址就像是烟熏弹火后的废墟。</p>
+<p>燃烧传送一个资产似乎意味着 "我走了，在比特币链上找我。"</p>
+<p>Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这个哈希被序列化为36字节，其中前32字节包含交易ID， 最后四个字节包含大端序的铭文索引，并将其解释为一个Ethereum地址。</p>
 <h2 id="示例"><a class="header" href="#示例">示例</a></h2>
 <p>ENS 域名 <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, 被燃烧传输teleburned 到 <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
 <p>零号铭文的铭文ID是<code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
-<p>使用teleburn命令 <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> </p>
+<p>使用teleburn命令 <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code></p>
 <pre><code class="language-bash">$ ord teleburn 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
 <p>返回</p>
 <pre><code class="language-json">{
-  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+  "ethereum": "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e"
 }
 </code></pre>
 <p>显示出 <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> 是零号铭文的 teleburn地址 ，事实上，它是在Ethereum上的<code>rodarmor.eth</code>的当前所有者</p>

@@ -332,7 +332,7 @@
 │ ╰───── Index of block in halving epoch
 ╰─────── Cycle, numbered starting from 0
 </code></pre>
-<p>Ordinal-Theoretiker verwenden oft die Begriffe &quot;Stunde&quot;, &quot;Minute&quot;, &quot;Sekunde&quot; und &quot;Dritte&quot; für <em>A</em>, <em>B</em>, <em>C</em> und <em>D</em>.</p>
+<p>Ordinal-Theoretiker verwenden oft die Begriffe "Stunde", "Minute", "Sekunde" und "Dritte" für <em>A</em>, <em>B</em>, <em>C</em> und <em>D</em>.</p>
 <p>Jetzt einige Beispiele. Dieser Satoshi ist häufig:</p>
 <pre><code>1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
@@ -451,14 +451,14 @@
 <p>Der Inhalt der Inscription ist vollständig in der Kette und wird in Taproot-Skriptpfad-Ausgabeskripten gespeichert. Für Taproot-Skripte gelten nur sehr wenige Einschränkungen hinsichtlich ihres Inhalts und sie erhalten zusätzlich den Witness-Rabatt, was die Speicherung von Inscription-Inhalten relativ kostengünstig macht.</p>
 <p>Da Ausgaben für Taproot-Skripts nur aus vorhandenen Taproot-Ausgaben getätigt werden können, werden inscriptions mithilfe eines zweiphasigen Commit/Reveal-Verfahrens vorgenommen. Zunächst wird in der Commit-Transaktion eine Taproot-Ausgabe erstellt, die ein Commit für ein Skript mit dem Inhalt der Inschrift durchführt. Zweitens wird bei der Offenlegungstransaktion die durch die Festschreibungstransaktion erzeugte Ausgabe ausgegeben, um den Inhalt der Inschrift in der chain preiszugeben.</p>
 <p>Der Inhalt der Inscription wird mithilfe von Daten-Pushs innerhalb nicht ausgeführter Bedingungen, sogenannter „Umschläge“, serialisiert. Umschläge bestehen aus einem <code>OP_FALSE OP_IF … OP_ENDIF </code>, das eine beliebige Anzahl von Daten-Pushs umschließt. Da Umschläge praktisch No-Ops sind, ändern sie nicht die Semantik des Skripts, in dem sie enthalten sind, und können mit jedem anderen Sperrskript kombiniert werden.</p>
-<p>Eine inscription mit der Zeichenfolge &quot;Hello, world!&quot; wird wie folgt serialisiert:</p>
+<p>Eine inscription mit der Zeichenfolge "Hello, world!" wird wie folgt serialisiert:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Zuerst wird die Zeichenfolge <code>ord</code> gedrückt, um inscriptions von anderen Verwendungszwecken von Umschlägen zu unterscheiden.</p>
@@ -479,8 +479,8 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>Der Anfang des Hauptteils und das Ende der Felder werden durch einen leeren Daten-Push angezeigt.</p>
-<p>Nicht erkannte Tags werden unterschiedlich interpretiert, je nachdem, ob sie gerade oder ungerade sind. Dabei gilt die vom Lightning Network verwendete Regel &quot;Es ist in Ordnung, ungerade zu sein&quot;.</p>
-<p>Sogar Tags werden für Felder verwendet, die sich auf die Erstellung, Erstzuweisung oder Übertragung einer inscription auswirken können. So müssen inscription mit nicht erkannten geraden Feldern als &quot;ungebunden“, also ohne Ortsangabe, angezeigt werden.</p>
+<p>Nicht erkannte Tags werden unterschiedlich interpretiert, je nachdem, ob sie gerade oder ungerade sind. Dabei gilt die vom Lightning Network verwendete Regel "Es ist in Ordnung, ungerade zu sein".</p>
+<p>Sogar Tags werden für Felder verwendet, die sich auf die Erstellung, Erstzuweisung oder Übertragung einer inscription auswirken können. So müssen inscription mit nicht erkannten geraden Feldern als "ungebunden“, also ohne Ortsangabe, angezeigt werden.</p>
 <p>Ungerade Tags werden für Felder verwendet, die sich nicht auf die Erstellung, anfängliche Zuweisung oder Übertragung auswirken, wie z. B. zusätzliche Metadaten, und daher sicher ignoriert werden können.</p>
 <h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
 <p>Die inscriptions sind in den Eingaben einer Enthüllungstransaktion enthalten. Um sie eindeutig zu identifizieren, wird ihnen eine ID der Form zugewiesen:</p>
@@ -519,7 +519,7 @@ OP_ENDIF
 <p>An example of an inscription which delegates to <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 11
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
 OP_ENDIF
@@ -540,11 +540,11 @@ OP_ENDIF
 <p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
 <h2 id="beispiel-1"><a class="header" href="#beispiel-1">Beispiel</a></h2>
 <p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
-<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<p>The metadata <code>{"foo":"bar","baz":[null,true,false,0]}</code> would be included in an inscription as:</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    OP_PUSH 0x05 OP_PUSH '{"foo":"bar","baz":[null,true,false,0]}'
     ...
 OP_ENDIF
 </code></pre>
@@ -574,51 +574,51 @@ OP_ENDIF
 <pre><code>OP_FALSE
 OP_IF
     ...
-    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
-    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    OP_PUSH 0x05 OP_PUSH '{"very":"long","metadata":'
+    OP_PUSH 0x05 OP_PUSH '"is","finally":"done"}'
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatenated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
-<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the &quot;pointer&quot;, can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
+<p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the "pointer", can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
 <p>An even tag is used, so that old versions of <code>ord</code> consider the inscription to be unbound, instead of assigning it, incorrectly, to the first sat.</p>
 <p>This can be used to create multiple inscriptions in a single transaction on different sats, when otherwise they would be made on the same sat.</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <p>An inscription with pointer 255:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0xff
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x0001
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>An inscription with pointer 256, with trailing zeroes, which are ignored:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 2
   OP_PUSH 0x000100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
@@ -636,13 +636,13 @@ OP_ENDIF
 <p>An example of a child inscription of <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
-  OP_PUSH &quot;ord&quot;
+  OP_PUSH "ord"
   OP_PUSH 1
-  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH "text/plain;charset=utf-8"
   OP_PUSH 3
   OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
   OP_PUSH 0
-  OP_PUSH &quot;Hello, world!&quot;
+  OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
 <p>Note that the value of tag <code>3</code> is binary, not hex, and that for the child inscription to be recognized as a child, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> must be spent as one of the inputs of the inscribe transaction.</p>
@@ -714,7 +714,7 @@ OP_ENDIF
 <ul>
 <li><code>/r/blockhash/0</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f&quot;
+<pre><code class="language-json">"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
 </code></pre>
 <ul>
 <li><code>/r/blocktime</code>:</li>
@@ -724,39 +724,39 @@ OP_ENDIF
 <ul>
 <li><code>/r/metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3</code>:</li>
 </ul>
-<pre><code class="language-json">&quot;a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74&quot;
+<pre><code class="language-json">"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74"
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "ids":[
+      "17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:0
+   "more":false,
+   "page":0
 }
 </code></pre>
 <ul>
 <li><code>/r/sat/1023795949035695/at/-1</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;id&quot;:&quot;17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0&quot;
+   "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 </code></pre>
 <ul>
 <li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49</code>:</li>
 </ul>
 <pre><code class="language-json">{
-   &quot;ids&quot;:[
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901&quot;,
+   "ids":[
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901",
       ...
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935&quot;,
-      &quot;7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936&quot;
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935",
+      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936"
    ],
-   &quot;more&quot;:false,
-   &quot;page&quot;:49
+   "more":false,
+   "page":49
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theorie-faq"><a class="header" href="#ordinal-theorie-faq">Ordinal theorie FAQ</a></h1>
@@ -772,7 +772,7 @@ OP_ENDIF
 <p>Ordinalzahlen werden den Satoshis in der Reihenfolge zugewiesen, in der sie geschürft werden. Der erste Satoshi im ersten Block hat die Ordinal zahl 0, der zweite hat die Ordinal zahl 1 und der letzte Satoshi des ersten Blocks hat die Ordinal zahl 4.999.999.999.</p>
 <p>Satoshis leben in Outputs, aber Transaktionen zerstören Outputs und erstellen neue. Daher verwendet die Ordinaltheorie einen Algorithmus, um zu bestimmen, wie Satoshis von den Inputs einer Transaktion zu ihren Outputs springen.</p>
 <p>Glücklicherweise ist dieser Algorithmus sehr einfach.</p>
-<p>Satoshis werden in der Reihenfolge &quot;first-in-first-out&quot; übertragen. Stellen Sie sich die Inputs einer Transaktion als eine Liste von Satoshis vor und die Outputs als eine Liste von Slots, die darauf warten, einen Satoshi zu erhalten. Um Eingabe-Satoshis den Slots zuzuweisen, gehen Sie nacheinander durch jeden Satoshi in den Inputs und weisen Sie ihn dem ersten verfügbaren Slot in den Outputs zu.</p>
+<p>Satoshis werden in der Reihenfolge "first-in-first-out" übertragen. Stellen Sie sich die Inputs einer Transaktion als eine Liste von Satoshis vor und die Outputs als eine Liste von Slots, die darauf warten, einen Satoshi zu erhalten. Um Eingabe-Satoshis den Slots zuzuweisen, gehen Sie nacheinander durch jeden Satoshi in den Inputs und weisen Sie ihn dem ersten verfügbaren Slot in den Outputs zu.</p>
 <p>Stellen Sie sich eine Transaktion mit drei Inputs und zwei Outputs vor. Die Inputs befinden sich auf der linken Seite des Pfeils, und die Outputs auf der rechten Seite, jeweils mit ihren Werten beschriftet:</p>
 <pre><code>[2] [1] [3] → [4] [2]
 </code></pre>
@@ -793,10 +793,10 @@ OP_ENDIF
 </code></pre>
 <h2 id="wo-finde-ich-die-wichtigsten-details"><a class="header" href="#wo-finde-ich-die-wichtigsten-details">Wo finde ich die wichtigsten Details?</a></h2>
 <p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP!</a></p>
-<h2 id="warum-werden-sat-inscriptions-digitale-artefakte-statt-nfts-genannt"><a class="header" href="#warum-werden-sat-inscriptions-digitale-artefakte-statt-nfts-genannt">Warum werden Sat-inscriptions &quot;digitale Artefakte“ statt &quot;NFTs“ genannt?</a></h2>
-<p>Eine inscription ist ein NFT (Non-Fungible Token), aber der Begriff &quot;digitales Artefakt&quot; wird stattdessen verwendet, weil er einfach, anschaulich und vertraut ist.</p>
-<p>Der Ausdruck &quot;digitales Artefakt&quot; ist äußerst anschaulich, selbst für jemanden, der den Begriff zuvor noch nie gehört hat. Im Vergleich dazu ist NFT ein Akronym und gibt keine Hinweise darauf, was es bedeutet, wenn man den Begriff zuvor noch nie gehört hat.</p>
-<p>Außerdem klingt &quot;NFT&quot; nach Finanzterminologie, und sowohl das Wort &quot;fungibel&quot; als auch die Bedeutung des Wortes &quot;Token&quot; im Kontext von &quot;NFT&quot; sind außerhalb finanzieller Zusammenhänge unüblich.</p>
+<h2 id="warum-werden-sat-inscriptions-digitale-artefakte-statt-nfts-genannt"><a class="header" href="#warum-werden-sat-inscriptions-digitale-artefakte-statt-nfts-genannt">Warum werden Sat-inscriptions "digitale Artefakte“ statt "NFTs“ genannt?</a></h2>
+<p>Eine inscription ist ein NFT (Non-Fungible Token), aber der Begriff "digitales Artefakt" wird stattdessen verwendet, weil er einfach, anschaulich und vertraut ist.</p>
+<p>Der Ausdruck "digitales Artefakt" ist äußerst anschaulich, selbst für jemanden, der den Begriff zuvor noch nie gehört hat. Im Vergleich dazu ist NFT ein Akronym und gibt keine Hinweise darauf, was es bedeutet, wenn man den Begriff zuvor noch nie gehört hat.</p>
+<p>Außerdem klingt "NFT" nach Finanzterminologie, und sowohl das Wort "fungibel" als auch die Bedeutung des Wortes "Token" im Kontext von "NFT" sind außerhalb finanzieller Zusammenhänge unüblich.</p>
 <h2 id="wie-vergleichen-sich-sat-inscriptions-mit"><a class="header" href="#wie-vergleichen-sich-sat-inscriptions-mit">Wie vergleichen sich Sat-inscriptions mit…</a></h2>
 <h3 id="ethereum-nfts"><a class="header" href="#ethereum-nfts">Ethereum NFTs?</a></h3>
 <p><em>Inscriptions sind immer unveränderlich.</em></p>
@@ -891,7 +891,7 @@ OP_ENDIF
 <h2 id="achten-sie-auf-fehlermeldungen"><a class="header" href="#achten-sie-auf-fehlermeldungen">Achten Sie auf Fehlermeldungen</a></h2>
 <p>Lesen Sie alle Fehlermeldungen und dulden Sie keine Warnungen.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="spenden"><a class="header" href="#spenden">Spenden</a></h1>
-<p>Ordinals ist Open Source und wird von die community finanziert. Der aktuelle Hauptbetreuer von &quot;ord&quot; ist <a href="https://github.com/raphjaph/">raphjaph</a>. Raphs Arbeit an &quot;ord&quot; wird ausschließlich durch Spenden finanziert. Wenn möglich, erwägen Sie bitte eine Spende!</p>
+<p>Ordinals ist Open Source und wird von die community finanziert. Der aktuelle Hauptbetreuer von "ord" ist <a href="https://github.com/raphjaph/">raphjaph</a>. Raphs Arbeit an "ord" wird ausschließlich durch Spenden finanziert. Wenn möglich, erwägen Sie bitte eine Spende!</p>
 <p>Die Spendenadresse für Bitcoin lautet <a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a>. Die Spendenadresse für inscriptions lautet <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a>.</p>
 <p>Beide Adressen befinden sich in einer 2-aus-4 Multisig-Wallet, bei der die Schlüssel von <a href="https://twitter.com/raphjaph">raphjaph</a>, <a href="https://twitter.com/realizingerin">erin</a>, <a href="https://twitter.com/rodarmor">rodarmor</a> und <a href="https://twitter.com/veryordinally">ordinally</a> gehalten werden.</p>
 <p>Die erhaltenen Spenden werden für die Finanzierung der Wartung und Entwicklung von <code>ord</code> sowie für die Hosting-Kosten von <a href="https://ordinals.com">ordinals.com</a> verwendet.</p>
@@ -925,7 +925,7 @@ OP_ENDIF
 <p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
 <p>Nach Grad, ihrem Zyklus, den Blöcken seit der letzten Halbierung, den Blöcken seit der letzten Schwierigkeitsanpassung und der Position in ihrem Block:</p>
 <p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Nach Namen, ihrer Basis-26-Darstellung mit den Buchstaben &quot;a&quot; bis &quot;z&quot;:</p>
+<p>Nach Namen, ihrer Basis-26-Darstellung mit den Buchstaben "a" bis "z":</p>
 <p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
 <p>Oder nach Prozentil, dem Prozentsatz des Bitcoin-Angebots, das bereits emittiert wurde oder emittiert wird, wenn sie abgebaut werden:</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
@@ -943,20 +943,20 @@ OP_ENDIF
 <li><code>/sat/&lt;SAT&gt;</code></li>
 </ul>
 <p>To get a list of the latest 100 inscriptions you would do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 </code></pre>
 <p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
-<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+<pre><code>curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
 </code></pre>
 <p>Which returns:</p>
 <pre><code>{
-  &quot;value&quot;: 10000,
-  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
-  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
-  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
-  &quot;sat_ranges&quot;: null,
-  &quot;inscriptions&quot;: [
-    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  "value": 10000,
+  "script_pubkey": "OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "transaction": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed",
+  "sat_ranges": null,
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ]
 }
 </code></pre>
@@ -1008,16 +1008,16 @@ OP_ENDIF
 <p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="installieren-ord"><a class="header" href="#installieren-ord">Installieren <code>ord</code></a></h2>
-<p>Das Dienstprogramm &quot;ord&quot; ist in Rust geschrieben und kann aus <a href="https://github.com/ordinals/ord">Quelle</a> erstellt werden. Vorgefertigte Binärdateien sind auf der <a href="https://github.com/ordinals/ord/releases">Releases-Seite</a> verfügbar.</p>
+<p>Das Dienstprogramm "ord" ist in Rust geschrieben und kann aus <a href="https://github.com/ordinals/ord">Quelle</a> erstellt werden. Vorgefertigte Binärdateien sind auf der <a href="https://github.com/ordinals/ord/releases">Releases-Seite</a> verfügbar.</p>
 <p>Sie können die neueste vorgefertigte Binärdatei über die Befehlszeile installieren mit:</p>
 <pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 </code></pre>
@@ -1215,9 +1215,9 @@ inscriptions:
 <li>
 <p>Importieren Sie Ihre Wallet-Deskriptoren in <code>foo-watch-only</code>:</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
-  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>Wenn Sie den Unix-Zeitstempel kennen, zu dem Ihre Wallet zum ersten Mal Transaktionen empfangen hat, können Sie diesen für den Wert von <code>&quot;timestamp&quot;</code> verwenden, anstelle von <code>0</code>. Dadurch wird die Zeit reduziert, die Bitcoin Core benötigt, um nach den UTXOs Ihrer Wallet zu suchen.</p>
+<p>Wenn Sie den Unix-Zeitstempel kennen, zu dem Ihre Wallet zum ersten Mal Transaktionen empfangen hat, können Sie diesen für den Wert von <code>"timestamp"</code> verwenden, anstelle von <code>0</code>. Dadurch wird die Zeit reduziert, die Bitcoin Core benötigt, um nach den UTXOs Ihrer Wallet zu suchen.</p>
 </li>
 <li>
 <p>Überprüfen Sie, ob alles funktioniert hat:</p>
@@ -1252,11 +1252,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
-  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+  "checksum": "tpnxnxax",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 <p>Und für den Änderungsadressdeskriptor, in diesem Fall <code>64k8wnd7</code>:</p>
@@ -1264,11 +1264,11 @@ inscriptions:
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
 <pre><code class="language-json">{
-  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
-  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
-  &quot;isrange&quot;: true,
-  &quot;issolvable&quot;: true,
-  &quot;hasprivatekeys&quot;: false
+  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+  "checksum": "64k8wnd7",
+  "isrange": true,
+  "issolvable": true,
+  "hasprivatekeys": false
 }
 </code></pre>
 </li>
@@ -1283,16 +1283,16 @@ inscriptions:
  importdescriptors \
  '[
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+     "timestamp":0
    },
    {
-     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
-     &quot;timestamp&quot;:0
+     "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+     "timestamp":0
    }
  ]'
 </code></pre>
-<p>Wenn Sie den Unix-Zeitstempel kennen, zu dem Ihre Wallet erstmals Transaktionen empfangen hat, können Sie ihn anstelle von <code>0</code> für die Werte der <code>&quot;timestamp&quot;</code>-Felder verwenden. Dadurch wird die Zeit verkürzt, die Bitcoin Core benötigt, um nach den UTXOs Ihrer Wallet zu suchen.</p>
+<p>Wenn Sie den Unix-Zeitstempel kennen, zu dem Ihre Wallet erstmals Transaktionen empfangen hat, können Sie ihn anstelle von <code>0</code> für die Werte der <code>"timestamp"</code>-Felder verwenden. Dadurch wird die Zeit verkürzt, die Bitcoin Core benötigt, um nach den UTXOs Ihrer Wallet zu suchen.</p>
 </li>
 <li>
 <p>Überprüfen Sie, ob alles funktioniert hat:</p>
@@ -1312,7 +1312,7 @@ inscriptions:
 <p>Die <code>ord</code>-Wallet unterstützt die Übertragung bestimmter Satoshis. Sie können auch <code>bitcoin-cli</code>-Befehle wie <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code> und <code>sendrawtransaction</code> verwenden, wie dies geschieht, ist komplex und fällt nicht in den Rahmen dieses Leitfadens.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
 <p>Teleburn addresses can be used to burn assets on other blockchains, leaving behind in the smoking rubble a sort of forwarding address pointing to an inscription on Bitcoin.</p>
-<p>Teleburning an asset means something like, &quot;I'm out. Find me on Bitcoin.&quot;</p>
+<p>Teleburning an asset means something like, "I'm out. Find me on Bitcoin."</p>
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
@@ -1324,7 +1324,7 @@ inscriptions:
 </code></pre>
 <p>Returns:</p>
 <pre><code class="language-json">{
-  &quot;ethereum&quot;: &quot;0xe43A06530BdF8A4e067581f48Fae3b535559dA9e&quot;
+  "ethereum": "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e"
 }
 </code></pre>
 <p>Indicating that <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> is the Ethereum teleburn address for inscription zero, which is, indeed, the current owner, on Ethereum, of <code>rodarmor.eth</code>.</p>
@@ -1344,7 +1344,7 @@ inscriptions:
 <p>Laden Sie die Sparrow Wallet von der <a href="https://sparrowwallet.com/download/">Download-Seite</a> für Ihr jeweiliges Betriebssystem herunter.</p>
 <p>Wählen Sie <code>File -&gt; New Wallet</code> und erstellen Sie eine neue Wallet namens <code>ord</code>.</p>
 <p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
-<p>Ändern Sie den &quot;Skripttyp&quot; in &quot;Taproot (P2TR)&quot; und wählen Sie die Option &quot;Neue oder importierte Software-Wallet&quot; aus.</p>
+<p>Ändern Sie den "Skripttyp" in "Taproot (P2TR)" und wählen Sie die Option "Neue oder importierte Software-Wallet" aus.</p>
 <p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
 <p>Wählen Sie <code>Verwenden von 12 Wörtern</code> aus und klicken Sie dann auf <code>Neue generieren</code>. Lassen Sie das Passwortfeld leer.</p>
 <p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
@@ -1364,7 +1364,7 @@ inscriptions:
 <p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
 <h2 id="Überprüfung--anzeige-empfangener-inscriptions"><a class="header" href="#Überprüfung--anzeige-empfangener-inscriptions">Überprüfung / Anzeige empfangener Inscriptions</a></h2>
 <p>Sobald Sie eine Anmeldung erhalten haben, sehen Sie eine neue Transaktion auf der Registerkarte <code>Transactions</code> von Sparrow sowie ein neues UTXO auf der Registerkarte <code>UTXOs</code>.</p>
-<p>Anfänglich hat diese Transaktion möglicherweise den Status &quot;Unconfirmed&quot; und Sie müssen warten, bis sie in einen Bitcoin-Block umgewandelt wurde, bevor sie vollständig empfangen wird.</p>
+<p>Anfänglich hat diese Transaktion möglicherweise den Status "Unconfirmed" und Sie müssen warten, bis sie in einen Bitcoin-Block umgewandelt wurde, bevor sie vollständig empfangen wird.</p>
 <p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
 <p>Um den Status Ihrer Transaktion zu verfolgen, können Sie mit der rechten Maustaste darauf klicken, <code>Copy Transaction ID</code> auswählen und diese Transaktions-ID dann in <a href="https://mempool.space">mempool.space</a> einfügen.</p>
 <p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
@@ -1375,11 +1375,11 @@ inscriptions:
 <p>Dieses UTXO (Inscription) kann jetzt nicht mehr in der Sparrow-Wallet ausgegeben werden, bis Sie es entsperren.</p>
 <h2 id="importieren-in-die-ord-wallet"><a class="header" href="#importieren-in-die-ord-wallet">Importieren in die <code>ord</code> wallet</a></h2>
 <p>Einzelheiten zum Einrichten von Bitcoin Core und der <code>ord</code> Wallet finden Sie im <a href="guides/collecting/../inscriptions.html">Inscriptions Guide</a></p>
-<p>Wenn Sie <code>ord</code> einrichten, können Sie, anstatt <code>ord wallet create</code> auszuführen, um ein brandneues Wallet zu erstellen, Ihr vorhandenes Wallet mit <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> importieren und dabei die Seed-Phrase verwenden, die Sie mit Sparrow Wallet generiert haben.</p>
+<p>Wenn Sie <code>ord</code> einrichten, können Sie, anstatt <code>ord wallet create</code> auszuführen, um ein brandneues Wallet zu erstellen, Ihr vorhandenes Wallet mit <code>ord wallet restore "BIP39 SEED PHRASE"</code> importieren und dabei die Seed-Phrase verwenden, die Sie mit Sparrow Wallet generiert haben.</p>
 <p>Derzeit gibt es einen <a href="https://github.com/ordinals/ord/issues/1589">Fehler</a>, der dazu führt, dass eine importierte Wallet nicht automatisch erneut anhand der Blockchain gescannt wird. Um dies zu umgehen, müssen Sie manuell einen erneuten Scan mit der Bitcoin-Core-CLI auslösen: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Anschließend können Sie die Beschriftung Ihrer Brieftasche mithilfe von <code>ord wallet inscriptions</code> überprüfen</p>
 <p>Beachten Sie, dass Sie, wenn Sie zuvor ein Wallet mit <code>ord</code> erstellt haben, bereits über ein Wallet mit dem Standardnamen verfügen und Ihrem importierten Wallet einen anderen Namen geben müssen. Sie können den Parameter <code>--wallet</code> in allen <code>ord</code> -Befehlen verwenden, um auf eine andere Wallet zu verweisen, z. B.:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
 <p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="inscriptions-mit-sparrow-wallet-versenden"><a class="header" href="#inscriptions-mit-sparrow-wallet-versenden">Inscriptions mit Sparrow Wallet versenden</a></h2>
@@ -1572,7 +1572,7 @@ ord index update
 <p>Eingefordert von <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-belohnung-3"><a class="header" href="#ordinal-belohnung-3">Ordinal Belohnung 3</a></h1>
 <h2 id="kriterien-3"><a class="header" href="#kriterien-3">Kriterien</a></h2>
-<p>&quot;Ordinal Belohnung 3&quot; hat zwei Teile, die beide auf <em>ordinalen Namen</em> basieren. Ordinale Namen sind eine modifizierte Basis-26-Codierung von ordinal Zahlen. Um kurze Namen nicht im nicht ausgebuchten Genesis-Block-Coinbase-Reward einzusperren, werden ordinale Namen <em>kürzer</em>, je länger die ordinal Nummer wird. Der Name von Sat 0, dem ersten Sat, der gemint wurde, lautet <code>nvtdijuwxlp</code>, und der Name von Sat 2.099.999.997.689.999, dem letzten geminten sat, lautet <code>a</code>.</p>
+<p>"Ordinal Belohnung 3" hat zwei Teile, die beide auf <em>ordinalen Namen</em> basieren. Ordinale Namen sind eine modifizierte Basis-26-Codierung von ordinal Zahlen. Um kurze Namen nicht im nicht ausgebuchten Genesis-Block-Coinbase-Reward einzusperren, werden ordinale Namen <em>kürzer</em>, je länger die ordinal Nummer wird. Der Name von Sat 0, dem ersten Sat, der gemint wurde, lautet <code>nvtdijuwxlp</code>, und der Name von Sat 2.099.999.997.689.999, dem letzten geminten sat, lautet <code>a</code>.</p>
 <p>The bounty is open for submissions until block 840000—the first block after the fourth halving. Submissions included in block 840000 or later will not be considered.</p>
 <p>Beide Teile verwenden <a href="bounty/frequency.tsv">frequency.tsv</a>, eine Liste von Wörtern und der Anzahl ihrer Vorkommen im <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram-Datensatz</a>, wobei nur die Namen der Sats eingeschlossen sind, die bis zum Ende des Einreichungszeitraums abgebaut wurden und mindestens 5000 Mal im Korpus vorkommen.</p>
 <p><code>frequency.tsv</code> ist eine Datei mit tabulatorgetrennten Werten. Die erste Spalte ist das Wort, und die zweite Spalte zeigt an, wie oft es im Korpus vorkommt. Die Einträge sind von am wenigsten häufig vorkommend bis am häufigsten vorkommend sortiert.</p>

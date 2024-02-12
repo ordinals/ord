@@ -261,7 +261,7 @@
 <li>Criando uma carteira Bitcoin Core</li>
 <li>Usando <code>ord wallet receive</code> para receber sats</li>
 <li>Criando inscrições com <code>ord wallet inscribe</code></li>
-<li>&quot;Enviando inscrições com <code>ord wallet send</code></li>
+<li>"Enviando inscrições com <code>ord wallet send</code></li>
 <li>Recebendo inscrições com <code>ord wallet receive</code></li>
 <li>Batch inscribing with <code>ord wallet inscribe --batch</code></li>
 </ol>
@@ -280,7 +280,7 @@
 <pre><code>bitcoind -txindex
 </code></pre>
 <p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
-<h2 id="sincronizando-a-blockchain-do-bitcoin"><a class="header" href="#sincronizando-a-blockchain-do-bitcoin">&quot;Sincronizando a Blockchain do Bitcoin</a></h2>
+<h2 id="sincronizando-a-blockchain-do-bitcoin"><a class="header" href="#sincronizando-a-blockchain-do-bitcoin">"Sincronizando a Blockchain do Bitcoin</a></h2>
 <p>Para sincronizar a cadeia, execute:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
@@ -297,13 +297,13 @@
 <p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
 <p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
 <pre><code class="language-json">{
-  &quot;txindex&quot;: {
-    &quot;synced&quot;: true,
-    &quot;best_block_height&quot;: 776546
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
 <p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="instalando-o-ord"><a class="header" href="#instalando-o-ord">Instalando o <code>ord</code></a></h2>
 <p>O utilitário <code>ord</code> é escrito em Rust e pode ser compilado a partir da <a href="https://github.com/ordinals/ord">fonte</a>. Binários pré-construídos estão disponíveis na <a href="https://github.com/ordinals/ord/releases">página de lançamentos</a>.</p>
@@ -332,7 +332,7 @@
 <h2 id="criando-conteúdo-de-inscrição"><a class="header" href="#criando-conteúdo-de-inscrição">Criando conteúdo de inscrição</a></h2>
 <p>Sats pode ser inscrito com qualquer tipo de conteúdo, mas a carteira <code>ord</code> só suporta tipos de conteúdo que podem ser exibidos pelo explorador de blocos <code>ord</code>.</p>
 <p>Além disso, as inscrições estão incluídas nas transações, portanto, quanto maior o conteúdo, maior será a taxa que a transação de inscrição deverá pagar.</p>
-<p>O conteúdo da inscrição está incluído nas testemunhas da transação, que recebem o desconto de testemunha. Para calcular a taxa aproximada que uma transação de inscrição pagará, divida o tamanho do conteúdo por quatro e multiplique pela taxa da rede.&quot; BOOKMAR</p>
+<p>O conteúdo da inscrição está incluído nas testemunhas da transação, que recebem o desconto de testemunha. Para calcular a taxa aproximada que uma transação de inscrição pagará, divida o tamanho do conteúdo por quatro e multiplique pela taxa da rede." BOOKMAR</p>
 <p>As transações de inscrição devem ter menos de 400.000 unidades de peso ou não serão retransmitidas pelo Bitcoin Core. Um byte de conteúdo de inscrição custa uma unidade de peso. Como uma transação de inscrição não inclui apenas o conteúdo da inscrição, limite o conteúdo da inscrição a menos de 400.000 unidades de peso. 390.000 unidades de peso é uma margem segura.</p>
 <h2 id="criando-inscrições"><a class="header" href="#criando-inscrições">Criando Inscrições</a></h2>
 <p>Para criar uma inscrição com o conteúdo de <code>ARQUIVO</code>, execute:</p>
