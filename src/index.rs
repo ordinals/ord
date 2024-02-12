@@ -251,24 +251,6 @@ impl Index {
     let index_path = path.clone();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
-    let repair_callback = move |progress: &mut RepairSession| {
-      once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
-
-      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
-        let mut guard = progress_bar.lock().unwrap();
-
-        let progress_bar = guard.get_or_insert_with(|| {
-          let progress_bar = ProgressBar::new(100);
-          progress_bar.set_style(
-            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
-          );
-          progress_bar
-        });
-
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        progress_bar.set_position((progress.progress() * 100.0) as u64);
-      }
-    };
 
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
