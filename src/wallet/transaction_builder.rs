@@ -1423,10 +1423,10 @@ mod tests {
         Target::Postage,
       )
       .build_transaction(),
-      Err(Error::UtxoContainsAdditionalInscription {
-        outgoing_satpoint: satpoint(1, 0),
+      Err(Error::UtxoContainsAdditionalInscriptions {
         inscribed_satpoint: satpoint(1, 500),
-        inscription_id: inscription_id(1),
+        inscription_ids: vec![inscription_id(1)],
+        outgoing_satpoint: satpoint(1, 0),
       })
     )
   }
