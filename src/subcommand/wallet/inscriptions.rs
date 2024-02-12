@@ -11,7 +11,7 @@ pub struct Output {
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.get_unspent_outputs()?;
 
-  let inscription_locations = wallet.get_inscriptions()?;
+  let inscriptions = wallet.get_inscriptions()?;
 
   let explorer = match wallet.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",
@@ -22,7 +22,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut output = Vec::new();
 
-  for (location, inscriptions) in inscription_locations {
+  for (location, inscriptions) in inscriptions {
     if let Some(postage) = unspent_outputs.get(&location.outpoint) {
       for inscription in inscriptions {
         output.push(Output {
