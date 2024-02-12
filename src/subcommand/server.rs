@@ -232,6 +232,7 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/gallery", post(Self::gallery)
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
@@ -971,6 +972,18 @@ impl Server {
       )
     })
   }
+
+  // POST endpoint that takes a list of inscription ids
+  // return HTML of those inscriptions with preivew
+  // Click to copy
+  // active by default but can be disabled (--disable-gallery)
+  async fn gallery(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    Ok(())
+  }
+
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
     let content = StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
