@@ -216,10 +216,8 @@ impl Wallet {
     let mut inscriptions = BTreeMap::new();
     for output in self.get_unspent_outputs()?.keys() {
       for inscription in self.get_output(output)?.inscriptions {
-        let satpoint = self.get_inscription_satpoint(inscription)?;
-
         inscriptions
-          .entry(satpoint)
+          .entry(self.get_inscription_satpoint(inscription)?)
           .or_insert_with(Vec::new)
           .push(inscription);
       }
