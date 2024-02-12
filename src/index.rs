@@ -252,31 +252,34 @@ impl Index {
     let once = Once::new();
     let progress_bar = Mutex::new(None);
 
+    let repair_callback = move |progress: &mut RepairSession| {
+      once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
+
+      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
+        let mut guard = progress_bar.lock().unwrap();
+
+        let progress_bar = guard.get_or_insert_with(|| {
+          let progress_bar = ProgressBar::new(100);
+          progress_bar.set_style(
+            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+          );
+          progress_bar
+        });
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        progress_bar.set_position((progress.progress() * 100.0) as u64);
+      }
+    };
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
-      .set_repair_callback(move |progress: &mut RepairSession| {
-        once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
-
-        if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
-          let mut guard = progress_bar.lock().unwrap();
-
-          let progress_bar = guard.get_or_insert_with(|| {
-            let progress_bar = ProgressBar::new(100);
-            progress_bar.set_style(
-              ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
-            );
-            progress_bar
-          });
-
-          #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-          progress_bar.set_position((progress.progress() * 100.0) as u64);
-        }
-      })
+      .set_repair_callback(repair_callback)
       .open(&path)
     {
       Ok(database) => {
         {
-          let schema_version = database.begin_read()?
+          let schema_version = database
+            .begin_read()?
             .open_table(STATISTIC_TO_COUNT)?
             .get(&Statistic::Schema.key())?
             .map(|x| x.value())
@@ -362,11 +365,7 @@ impl Index {
             u64::from(options.index_transactions),
           )?;
 
-          Self::set_statistic(
-            &mut statistics,
-            Statistic::Schema,
-            SCHEMA_VERSION,
-          )?;
+          Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
         tx.commit()?;
