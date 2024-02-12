@@ -58,6 +58,7 @@ macro_rules! assert_regex_match {
 const RUNE: u128 = 99246114928149462;
 
 type Inscribe = ord::wallet::inscribe::Output;
+type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Etch = ord::subcommand::wallet::etch::Output;
 
 fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {

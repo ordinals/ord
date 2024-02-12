@@ -22,14 +22,16 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut output = Vec::new();
 
-  for (location, inscription) in inscriptions {
+  for (location, inscriptions) in inscriptions {
     if let Some(postage) = unspent_outputs.get(&location.outpoint) {
-      output.push(Output {
-        location,
-        inscription,
-        explorer: format!("{explorer}{inscription}"),
-        postage: postage.to_sat(),
-      })
+      for inscription in inscriptions {
+        output.push(Output {
+          location,
+          inscription,
+          explorer: format!("{explorer}{inscription}"),
+          postage: postage.to_sat(),
+        })
+      }
     }
   }
 
