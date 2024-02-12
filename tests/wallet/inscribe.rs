@@ -696,7 +696,7 @@ fn reinscribe_with_flag() {
     ),
   );
 
-  let inscriptions = CommandBuilder::new(format!("wallet inscriptions"))
+  let inscriptions = CommandBuilder::new("wallet inscriptions")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Inscriptions>();
