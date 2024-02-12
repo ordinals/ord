@@ -13,7 +13,6 @@ use {
   ord::{
     chain::Chain,
     outgoing::Outgoing,
-    rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
       block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
@@ -22,7 +21,7 @@ use {
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },
-  ordinals::SatPoint,
+  ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},

@@ -1,11 +1,11 @@
 use super::*;
 
 #[derive(PartialEq, Debug)]
-pub(crate) struct Degree {
-  pub(crate) hour: u32,
-  pub(crate) minute: u32,
-  pub(crate) second: u32,
-  pub(crate) third: u64,
+pub struct Degree {
+  pub hour: u32,
+  pub minute: u32,
+  pub second: u32,
+  pub third: u64,
 }
 
 impl Display for Degree {
