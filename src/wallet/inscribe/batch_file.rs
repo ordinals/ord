@@ -8,25 +8,32 @@ pub struct Batchfile {
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
   pub(crate) sat: Option<Sat>,
-  pub(crate) sat_point: Option<SatPoint>,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl Batchfile {
   pub(crate) fn load(path: &Path) -> Result<Batchfile> {
     let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
 
-    batchfile.validate()?;
-
-    Ok(batchfile)
+    batchfile.validate()
   }
 
-  fn validate(&self) -> Result {
-    if self.inscriptions.is_empty() {
-      bail!("batchfile must contain at least one inscription");
-    }
+  fn validate(self) -> Result<Self> {
+    ensure!(
+      !self.inscriptions.is_empty(),
+      "batchfile must contain at least one inscription"
+    );
 
-    if self.sat.is_some() && self.mode != Mode::SameSat {
-      return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
+    let both_set = self.sat.is_some() && self.satpoint.is_some();
+    let any_set = self.sat.is_some() || self.satpoint.is_some();
+
+    ensure!(
+      !both_set,
+      "batchfile cannot contain both `sat` and `satpoint`"
+    );
+
+    if any_set && self.mode != Mode::SameSat {
+      bail!("`sat` or `satpoint` can only be set in `same-sat` mode");
     }
 
     if self
@@ -35,12 +42,10 @@ impl Batchfile {
       .any(|entry| entry.destination.is_some())
       && (self.mode == Mode::SharedOutput || self.mode == Mode::SameSat)
     {
-      return Err(anyhow!(
-        "individual inscription destinations cannot be set in shared-output or same-sat mode"
-      ));
+      bail!("individual inscription destinations cannot be set in shared-output or same-sat mode");
     }
 
-    Ok(())
+    Ok(self)
   }
 
   pub(crate) fn inscriptions(

@@ -1858,8 +1858,42 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: `sat` can only be set in `same-sat` mode\n")
+    .expected_stderr("error: `sat` or `satpoint` can only be set in `same-sat` mode\n")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_satpoint() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("mode: same-sat\nsatpoint: {txid}:0:55555\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", )
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    "/sat/5000055555",
+    format!(
+      ".*<a href=/inscription/{}>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
+      output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id
+    ),
+  );
 }
 
 #[test]

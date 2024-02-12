@@ -64,10 +64,10 @@ pub(crate) struct Inscribe {
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Allow reinscription.")]
   pub(crate) reinscribe: bool,
-  #[arg(long, help = "Inscribe <SATPOINT>.")]
-  pub(crate) satpoint: Option<SatPoint>,
   #[arg(long, help = "Inscribe <SAT>.", conflicts_with = "satpoint")]
   pub(crate) sat: Option<Sat>,
+  #[arg(long, help = "Inscribe <SATPOINT>.", conflicts_with = "sat")]
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl Inscribe {
@@ -87,9 +87,8 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
-    let sat;
 
-    match (self.file, self.batch) {
+    let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
         parent_info = wallet.get_parent_info(self.parent, &utxos)?;
 
@@ -115,12 +114,16 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
-        sat = self.sat;
-
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => wallet.get_change_address()?,
         }];
+
+        if let Some(sat) = self.sat {
+          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+        } else {
+          self.satpoint
+        }
       }
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
@@ -141,15 +144,13 @@ impl Inscribe {
 
         mode = batchfile.mode;
 
-        sat = batchfile.sat;
+        if let Some(sat) = batchfile.sat {
+          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+        } else {
+          batchfile.satpoint
+        }
       }
       _ => unreachable!(),
-    }
-
-    let satpoint = if let Some(sat) = sat {
-      Some(wallet.find_sat_in_outputs(sat, &utxos)?)
-    } else {
-      self.satpoint
     };
 
     Batch {
