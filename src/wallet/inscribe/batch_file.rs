@@ -15,37 +15,37 @@ impl Batchfile {
   pub(crate) fn load(path: &Path) -> Result<Batchfile> {
     let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
 
-    batchfile.validate()
-  }
-
-  fn validate(self) -> Result<Self> {
     ensure!(
-      !self.inscriptions.is_empty(),
-      "batchfile must contain at least one inscription"
+      !batchfile.inscriptions.is_empty(),
+      "batchfile must contain at least one inscription",
     );
 
-    let both_set = self.sat.is_some() && self.satpoint.is_some();
-    let any_set = self.sat.is_some() || self.satpoint.is_some();
+    let sat_and_satpoint = batchfile.sat.is_some() && batchfile.satpoint.is_some();
 
     ensure!(
-      !both_set,
-      "batchfile cannot contain both `sat` and `satpoint`"
+      !sat_and_satpoint,
+      "batchfile cannot set both `sat` and `satpoint`",
     );
 
-    if any_set && self.mode != Mode::SameSat {
-      bail!("`sat` or `satpoint` can only be set in `same-sat` mode");
+    let sat_or_satpoint = batchfile.sat.is_some() || batchfile.satpoint.is_some();
+
+    if sat_or_satpoint {
+      ensure!(
+        batchfile.mode == Mode::SameSat,
+        "neither `sat` nor `satpoint` can be set in `same-sat` mode",
+      );
     }
 
-    if self
+    if batchfile
       .inscriptions
       .iter()
       .any(|entry| entry.destination.is_some())
-      && (self.mode == Mode::SharedOutput || self.mode == Mode::SameSat)
+      && (batchfile.mode == Mode::SharedOutput || batchfile.mode == Mode::SameSat)
     {
       bail!("individual inscription destinations cannot be set in shared-output or same-sat mode");
     }
 
-    Ok(self)
+    Ok(batchfile)
   }
 
   pub(crate) fn inscriptions(
