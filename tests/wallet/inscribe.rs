@@ -251,7 +251,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {output} already inscribed with inscription {inscription} on sat {output}:0\n",
+    "error: utxo {output} with sat {output}:0 already inscribed with the following inscriptions:\n{inscription}\n",
   ))
   .run_and_extract_stdout();
 }
@@ -695,6 +695,14 @@ fn reinscribe_with_flag() {
       inscribe.inscriptions[0].id, reinscribe.inscriptions[0].id
     ),
   );
+
+  let inscriptions = CommandBuilder::new(format!("wallet inscriptions"))
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscriptions>();
+
+  assert_eq!(inscriptions[0].inscription, inscribe.inscriptions[0].id);
+  assert_eq!(inscriptions[1].inscription, reinscribe.inscriptions[0].id);
 }
 
 #[test]

@@ -289,7 +289,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -340,7 +340,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -384,7 +384,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -464,7 +464,7 @@ mod tests {
       },
     };
 
-    inscriptions.insert(parent_info.location, parent_inscription);
+    inscriptions.insert(parent_info.location, vec![parent_inscription]);
 
     let child_inscription = InscriptionTemplate {
       parent: Some(parent_inscription),
@@ -548,7 +548,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -802,7 +802,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
@@ -906,7 +906,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -982,7 +982,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -1149,7 +1149,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
     let reveal_addresses = vec![recipient(), recipient(), recipient()];

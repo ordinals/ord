@@ -175,7 +175,7 @@ impl Batch {
 
   pub(crate) fn create_batch_inscription_transactions(
     &self,
-    wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    wallet_inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
@@ -232,7 +232,7 @@ impl Batch {
 
     let mut reinscription = false;
 
-    for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
+    for (inscribed_satpoint, inscription_ids) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
         reinscription = true;
         if self.reinscribe {
@@ -244,8 +244,12 @@ impl Batch {
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
         return Err(anyhow!(
-          "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
-          satpoint.outpoint,
+          "utxo {} with sat {inscribed_satpoint} already inscribed with the following inscriptions:\n{}",
+          satpoint.outpoint, inscription_ids
+          .iter()
+          .map(|id| id.to_string())
+          .collect::<Vec<_>>()
+          .join("\n"),
         ));
       }
     }

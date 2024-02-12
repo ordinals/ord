@@ -212,11 +212,16 @@ impl Wallet {
     Ok(serde_json::from_str(&response.text()?)?)
   }
 
-  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, Vec<InscriptionId>>> {
     let mut inscriptions = BTreeMap::new();
     for output in self.get_unspent_outputs()?.keys() {
       for inscription in self.get_output(output)?.inscriptions {
-        inscriptions.insert(self.get_inscription_satpoint(inscription)?, inscription);
+        let satpoint = self.get_inscription_satpoint(inscription)?;
+
+        inscriptions
+          .entry(satpoint)
+          .or_insert_with(Vec::new)
+          .push(inscription);
       }
     }
 
