@@ -46,10 +46,10 @@ pub enum Error {
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
-  UtxoContainsAdditionalInscription {
+  UtxoContainsAdditionalInscriptions {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
-    inscription_id: InscriptionId,
+    inscription_ids: Vec<InscriptionId>,
   },
   ValueOverflow,
 }
@@ -74,13 +74,14 @@ impl fmt::Display for Error {
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
       ),
-      Error::UtxoContainsAdditionalInscription {
+      Error::UtxoContainsAdditionalInscriptions {
         outgoing_satpoint,
         inscribed_satpoint,
-        inscription_id,
+        inscription_ids,
       } => write!(
         f,
-        "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
+        "cannot send {outgoing_satpoint} without also sending inscription {} at {inscribed_satpoint}",
+        inscription_ids.iter().map(ToString::to_string).collect::<Vec<String>>().join(", "),
       ),
       Error::ValueOverflow => write!(f, "arithmetic overflow calculating value"),
       Error::DuplicateAddress(address) => write!(f, "duplicate input address: {address}"),
@@ -192,10 +193,10 @@ impl TransactionBuilder {
         && self.outgoing.offset != inscribed_satpoint.offset
         && self.outgoing.offset < inscribed_satpoint.offset + dust_limit
       {
-        return Err(Error::UtxoContainsAdditionalInscription {
-          outgoing_satpoint: self.outgoing,
+        return Err(Error::UtxoContainsAdditionalInscriptions {
           inscribed_satpoint: *inscribed_satpoint,
-          inscription_id: *inscription_ids.first().unwrap(),
+          inscription_ids: inscription_ids.clone(),
+          outgoing_satpoint: self.outgoing,
         });
       }
     }

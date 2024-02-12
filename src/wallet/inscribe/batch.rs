@@ -248,8 +248,8 @@ impl Batch {
           satpoint.outpoint,
           inscription_ids
             .iter()
-            .map(|id| id.to_string())
-            .collect::<Vec<_>>()
+            .map(ToString::to_string)
+            .collect::<Vec<String>>()
             .join("\n"),
         );
       }
