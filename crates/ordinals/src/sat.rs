@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::num::ParseFloatError};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
@@ -107,7 +107,7 @@ impl Sat {
 
     let cycle_number = cycle_number
       .parse::<u32>()
-      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
+      .map_err(|source| ErrorKind::ParseInt { source }.error(degree))?;
 
     let (epoch_offset, rest) = rest
       .split_once('′')
@@ -115,7 +115,7 @@ impl Sat {
 
     let epoch_offset = epoch_offset
       .parse::<u32>()
-      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
+      .map_err(|source| ErrorKind::ParseInt { source }.error(degree))?;
 
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
       return Err(ErrorKind::EpochOffset.error(degree));
@@ -127,7 +127,7 @@ impl Sat {
 
     let period_offset = period_offset
       .parse::<u32>()
-      .map_err(|_err| ErrorKind::ParseInt.error(degree))?;
+      .map_err(|source| ErrorKind::ParseInt { source }.error(degree))?;
 
     if period_offset >= DIFFCHANGE_INTERVAL {
       return Err(ErrorKind::PeriodOffset.error(degree));
@@ -155,7 +155,7 @@ impl Sat {
       Some((block_offset, rest)) => (
         block_offset
           .parse::<u64>()
-          .map_err(|_err| ErrorKind::ParseInt.error(degree))?,
+          .map_err(|source| ErrorKind::ParseInt { source }.error(degree))?,
         rest,
       ),
       None => (0, rest),
@@ -180,12 +180,12 @@ impl Sat {
     let height = Height(
       height
         .parse()
-        .map_err(|_err| ErrorKind::ParseInt.error(decimal))?,
+        .map_err(|source| ErrorKind::ParseInt { source }.error(decimal))?,
     );
 
     let offset = offset
       .parse::<u64>()
-      .map_err(|_err| ErrorKind::ParseInt.error(decimal))?;
+      .map_err(|source| ErrorKind::ParseInt { source }.error(decimal))?;
 
     if offset >= height.subsidy() {
       return Err(ErrorKind::BlockOffset.error(decimal));
@@ -203,7 +203,7 @@ impl Sat {
 
     let percentile = percentile[..percentile.len() - 1]
       .parse::<f64>()
-      .map_err(|_err| ErrorKind::ParseFloat.error(percentile))?;
+      .map_err(|source| ErrorKind::ParseFloat { source }.error(percentile))?;
 
     if percentile < 0.0 {
       return Err(ErrorKind::Percentile.error(percentile_string));
@@ -230,7 +230,7 @@ pub struct Error {
 
 impl Display for Error {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-    write!(f, "invalid sat `{}`: {}", self.input, self.kind)
+    write!(f, "failed to parse sat `{}`: {}", self.input, self.kind)
   }
 }
 
@@ -249,8 +249,8 @@ pub enum ErrorKind {
   PeriodOffset,
   EpochOffset,
   EpochPeriodMismatch,
-  ParseInt,
-  ParseFloat,
+  ParseInt { source: ParseIntError },
+  ParseFloat { source: ParseFloatError },
 }
 
 impl ErrorKind {
@@ -265,24 +265,24 @@ impl ErrorKind {
 impl Display for ErrorKind {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match self {
-      Self::IntegerRange => write!(f, "integer range"),
-      Self::NameRange => write!(f, "name range"),
-      Self::NameCharacter => write!(f, "character in sat name"),
-      Self::Percentile => write!(f, "percentile"),
-      Self::BlockOffset => write!(f, "block offset"),
+      Self::IntegerRange => write!(f, "invalid integer range"),
+      Self::NameRange => write!(f, "invalid name range"),
+      Self::NameCharacter => write!(f, "invalid character in name"),
+      Self::Percentile => write!(f, "invalid percentile"),
+      Self::BlockOffset => write!(f, "invalid block offset"),
       Self::MissingPeriod => write!(f, "missing period"),
       Self::TrailingCharacters => write!(f, "trailing character"),
       Self::MissingDegree => write!(f, "missing degree symbol"),
       Self::MissingMinute => write!(f, "missing minute symbol"),
       Self::MissingSecond => write!(f, "missing second symbol"),
-      Self::PeriodOffset => write!(f, "period offset"),
-      Self::EpochOffset => write!(f, "epoch offset"),
+      Self::PeriodOffset => write!(f, "invalid period offset"),
+      Self::EpochOffset => write!(f, "invalid epoch offset"),
       Self::EpochPeriodMismatch => write!(
         f,
         "relationship between epoch offset and period offset must be multiple of 336"
       ),
-      Self::ParseInt => write!(f, "parsing integer"),
-      Self::ParseFloat => write!(f, "parsing float"),
+      Self::ParseInt { source } => write!(f, "invalid integer: {source}"),
+      Self::ParseFloat { source } => write!(f, "invalid float: {source}"),
     }
   }
 }
@@ -326,7 +326,10 @@ impl FromStr for Sat {
     } else if s.contains('.') {
       Self::from_decimal(s)
     } else {
-      let sat = Self(s.parse().map_err(|_err| ErrorKind::ParseInt.error(s))?);
+      let sat = Self(
+        s.parse()
+          .map_err(|source| ErrorKind::ParseInt { source }.error(s))?,
+      );
       if sat > Self::LAST {
         Err(ErrorKind::IntegerRange.error(s))
       } else {
@@ -748,5 +751,17 @@ mod tests {
         sat.height()
       );
     }
+  }
+
+  #[test]
+  fn error_display() {
+    assert_eq!(
+      Error {
+        input: "foo".into(),
+        kind: ErrorKind::Percentile
+      }
+      .to_string(),
+      "failed to parse sat `foo`: invalid percentile",
+    );
   }
 }

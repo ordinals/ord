@@ -21,7 +21,7 @@ use {
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },
-  ordinals::{Rarity, SatPoint},
+  ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
