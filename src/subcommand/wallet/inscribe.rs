@@ -135,16 +135,11 @@ impl Inscribe {
         (inscriptions, destinations) = batchfile.inscriptions(
           &wallet,
           parent_info.as_ref().map(|info| info.tx_out.value),
-          metadata,
           postage,
           self.compress,
         )?;
 
         mode = batchfile.mode;
-
-        if batchfile.sat.is_some() && mode != Mode::SameSat {
-          return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
-        }
 
         sat = batchfile.sat;
       }

@@ -8,28 +8,26 @@ pub struct Batchfile {
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
   pub(crate) sat: Option<Sat>,
+  pub(crate) sat_point: Option<SatPoint>,
 }
 
 impl Batchfile {
   pub(crate) fn load(path: &Path) -> Result<Batchfile> {
     let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
 
-    if batchfile.inscriptions.is_empty() {
-      bail!("batchfile must contain at least one inscription");
-    }
+    batchfile.validate()?;
 
     Ok(batchfile)
   }
 
-  pub(crate) fn inscriptions(
-    &self,
-    wallet: &Wallet,
-    parent_value: Option<u64>,
-    metadata: Option<Vec<u8>>,
-    postage: Amount,
-    compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
-    assert!(!self.inscriptions.is_empty());
+  fn validate(&self) -> Result {
+    if self.inscriptions.is_empty() {
+      bail!("batchfile must contain at least one inscription");
+    }
+
+    if self.sat.is_some() && self.mode != Mode::SameSat {
+      return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
+    }
 
     if self
       .inscriptions
@@ -42,13 +40,16 @@ impl Batchfile {
       ));
     }
 
-    if metadata.is_some() {
-      assert!(self
-        .inscriptions
-        .iter()
-        .all(|entry| entry.metadata.is_none()));
-    }
+    Ok(())
+  }
 
+  pub(crate) fn inscriptions(
+    &self,
+    wallet: &Wallet,
+    parent_value: Option<u64>,
+    postage: Amount,
+    compress: bool,
+  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
     let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
@@ -64,10 +65,7 @@ impl Batchfile {
         wallet.chain(),
         compress,
         entry.delegate,
-        match &metadata {
-          Some(metadata) => Some(metadata.clone()),
-          None => entry.metadata()?,
-        },
+        entry.metadata()?,
         entry.metaprotocol.clone(),
         self.parent,
         &entry.file,
