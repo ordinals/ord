@@ -70,22 +70,13 @@ impl Batch {
         )?
         .psbt;
 
-      let reveal_psbt = bitcoin_client
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD.encode(
-            Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone())?)?.serialize(),
-          ),
-          Some(false),
-          None,
-          None,
-        )?
-        .psbt;
+      let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone())?)?;
 
       return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         Some(commit_psbt),
         reveal_tx.txid(),
-        Some(reveal_psbt),
+        Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
       ))));
