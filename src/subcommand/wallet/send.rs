@@ -93,7 +93,7 @@ impl Send {
       let signed_tx = bitcoin_client
         .finalize_psbt(&psbt, None)?
         .hex
-        .ok_or(anyhow!("unable to sign transaction"))?;
+        .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
       (bitcoin_client.send_raw_transaction(&signed_tx)?, psbt)
     };
