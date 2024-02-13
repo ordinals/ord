@@ -255,10 +255,7 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route(
-          "/r/blockinfo/:height",
-          get(Self::block_info_from_height_json),
-        )
+        .route("/r/blockinfo/:height", get(Self::block_info))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -1058,7 +1055,7 @@ impl Server {
     })
   }
 
-  async fn block_info_from_height_json(
+  async fn block_info(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u32>,
   ) -> ServerResult<Json<BlockInfoJson>> {
