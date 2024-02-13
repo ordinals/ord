@@ -110,7 +110,7 @@ impl Batchfile {
         if i == 0 { None } else { Some(pointer) },
       )?);
 
-      pointer += if self.mode == Mode::SatPoints {
+      let postage = if self.mode == Mode::SatPoints {
         let satpoint = entry
           .satpoint
           .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
@@ -127,10 +127,12 @@ impl Batchfile {
           .to_sat()
       };
 
+      pointer += postage;
+
       if self.mode == Mode::SameSat && i != 0 {
         continue;
       } else {
-        postages.push(Amount::from_sat(pointer));
+        postages.push(Amount::from_sat(postage));
       }
     }
 

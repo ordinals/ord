@@ -149,7 +149,7 @@ impl Batch {
 
       let offset = match self.mode {
         Mode::SharedOutput => {
-          index as u64
+          u64::from(index)
             * self
               .postages
               .first()
