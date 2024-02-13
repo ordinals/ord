@@ -1160,6 +1160,7 @@ fn batch_in_same_output_with_non_default_postage() {
     .run_and_deserialize_output::<Inscribe>();
 
   let outpoint = output.inscriptions[0].location.outpoint;
+
   for (i, inscription) in output.inscriptions.iter().enumerate() {
     assert_eq!(
       inscription.location,
@@ -1525,7 +1526,7 @@ fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: individual inscription destinations cannot be set in shared-output or same-sat mode\n")
+    .stderr_regex("error: individual inscription destinations cannot be set in `shared-output` or `same-sat` mode\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
@@ -1535,7 +1536,7 @@ fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: individual inscription destinations cannot be set in shared-output or same-sat mode\n")
+    .stderr_regex("error: individual inscription destinations cannot be set in `shared-output` or `same-sat` mode\n")
     .run_and_extract_stdout();
 }
 

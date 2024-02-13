@@ -9,7 +9,7 @@ pub struct Batch {
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
   pub(crate) parent_info: Option<ParentInfo>,
-  pub(crate) postage: Amount,
+  pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
   pub(crate) satpoint: Option<SatPoint>,
@@ -26,7 +26,7 @@ impl Default for Batch {
       no_backup: false,
       no_limit: false,
       parent_info: None,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
       satpoint: None,
@@ -138,7 +138,7 @@ impl Batch {
             0
           }
         }
-        Mode::SeparateOutputs => {
+        Mode::SeparateOutputs | Mode::SatPoints => {
           if self.parent_info.is_some() {
             index + 1
           } else {
@@ -148,8 +148,15 @@ impl Batch {
       };
 
       let offset = match self.mode {
-        Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
-        Mode::SeparateOutputs | Mode::SameSat => 0,
+        Mode::SharedOutput => {
+          index as u64
+            * self
+              .postages
+              .first()
+              .map(|amount| amount.to_sat())
+              .unwrap_or_default()
+        }
+        Mode::SeparateOutputs | Mode::SameSat | Mode::SatPoints => 0,
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -190,21 +197,42 @@ impl Batch {
     }
 
     match self.mode {
-      Mode::SameSat => assert_eq!(
-        self.destinations.len(),
-        1,
-        "invariant: same-sat has only one destination"
-      ),
-      Mode::SeparateOutputs => assert_eq!(
-        self.destinations.len(),
-        self.inscriptions.len(),
-        "invariant: destination addresses and number of inscriptions doesn't match"
-      ),
-      Mode::SharedOutput => assert_eq!(
-        self.destinations.len(),
-        1,
-        "invariant: shared-output has only one destination"
-      ),
+      Mode::SameSat => {
+        assert_eq!(
+          self.postages.len(),
+          1,
+          "invariant: same-sat has only one postage"
+        );
+        assert_eq!(
+          self.destinations.len(),
+          1,
+          "invariant: same-sat has only one destination"
+        );
+      }
+      Mode::SeparateOutputs | Mode::SatPoints => {
+        assert_eq!(
+          self.destinations.len(),
+          self.inscriptions.len(),
+          "invariant: destination addresses and number of inscriptions doesn't match"
+        );
+        assert_eq!(
+          self.destinations.len(),
+          self.postages.len(),
+          "invariant: destination addresses and number of postages doesn't match"
+        );
+      }
+      Mode::SharedOutput => {
+        assert_eq!(
+          self.destinations.len(),
+          1,
+          "invariant: shared-output has only one destination"
+        );
+        assert_eq!(
+          self.postages.len(),
+          self.inscriptions.len(),
+          "invariant: postages and number of inscriptions doesn't match"
+        );
+      }
     }
 
     let satpoint = if let Some(satpoint) = self.satpoint {
@@ -282,22 +310,19 @@ impl Batch {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = match self.mode {
-      Mode::SameSat => self.postage,
-      Mode::SharedOutput | Mode::SeparateOutputs => {
-        self.postage * u64::try_from(self.inscriptions.len()).unwrap()
-      }
-    };
+    let total_postage = self.postages.iter().map(|amount| amount.to_sat()).sum();
 
     let mut reveal_inputs = vec![OutPoint::null()];
+
     let mut reveal_outputs = self
       .destinations
       .iter()
-      .map(|destination| TxOut {
+      .enumerate()
+      .map(|(i, destination)| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs => self.postage.to_sat(),
-          Mode::SharedOutput | Mode::SameSat => total_postage.to_sat(),
+          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(), // This feels hacky
+          Mode::SharedOutput | Mode::SameSat => total_postage,
         },
       })
       .collect::<Vec<TxOut>>();
@@ -339,7 +364,7 @@ impl Batch {
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
-      Target::Value(reveal_fee + total_postage),
+      Target::Value(reveal_fee + Amount::from_sat(total_postage)),
     )
     .build_transaction()?;
 

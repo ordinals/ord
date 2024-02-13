@@ -82,7 +82,7 @@ impl Inscribe {
 
     let chain = wallet.chain();
 
-    let postage;
+    let postages;
     let destinations;
     let inscriptions;
     let mode;
@@ -92,7 +92,7 @@ impl Inscribe {
       (Some(file), None) => {
         parent_info = wallet.get_parent_info(self.parent, &utxos)?;
 
-        postage = self.postage.unwrap_or(TARGET_POSTAGE);
+        postages = vec![self.postage.unwrap_or(TARGET_POSTAGE)];
 
         if let Some(delegate) = self.delegate {
           ensure! {
@@ -130,15 +130,10 @@ impl Inscribe {
 
         parent_info = wallet.get_parent_info(batchfile.parent, &utxos)?;
 
-        postage = batchfile
-          .postage
-          .map(Amount::from_sat)
-          .unwrap_or(TARGET_POSTAGE);
-
-        (inscriptions, destinations) = batchfile.inscriptions(
+        (inscriptions, postages, destinations) = batchfile.inscriptions(
           &wallet,
+          &utxos,
           parent_info.as_ref().map(|info| info.tx_out.value),
-          postage,
           self.compress,
         )?;
 
@@ -162,7 +157,7 @@ impl Inscribe {
       no_backup: self.no_backup,
       no_limit: self.no_limit,
       parent_info,
-      postage,
+      postages,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
       satpoint,
@@ -217,7 +212,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -258,7 +253,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -302,7 +297,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -353,7 +348,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -398,7 +393,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -481,7 +476,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -563,7 +558,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -621,7 +616,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -661,7 +656,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: true,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -834,7 +829,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }
@@ -934,7 +929,7 @@ inscriptions:
       reveal_fee_rate: 4.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1010,7 +1005,7 @@ inscriptions:
       reveal_fee_rate: 4.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000)],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1048,7 +1043,7 @@ inscriptions:
       reveal_fee_rate: 1.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(30_000),
+      postages: vec![Amount::from_sat(30_000); 3],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1101,7 +1096,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }
@@ -1181,7 +1176,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }

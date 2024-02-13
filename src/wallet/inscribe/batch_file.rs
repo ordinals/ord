@@ -42,7 +42,39 @@ impl Batchfile {
       .any(|entry| entry.destination.is_some())
       && (batchfile.mode == Mode::SharedOutput || batchfile.mode == Mode::SameSat)
     {
-      bail!("individual inscription destinations cannot be set in shared-output or same-sat mode");
+      bail!(
+        "individual inscription destinations cannot be set in `shared-output` or `same-sat` mode"
+      );
+    }
+
+    let any_entry_has_satpoint = batchfile
+      .inscriptions
+      .iter()
+      .any(|entry| entry.satpoint.is_some());
+
+    if any_entry_has_satpoint {
+      ensure!(
+        batchfile.mode == Mode::SatPoints,
+        "specifying `satpoint` in an inscription only works in `satpoints` mode"
+      );
+
+      ensure!(
+        batchfile.inscriptions.iter().all(|entry| entry.satpoint.is_some()),
+        "if `satpoint` is set for any inscription, then all inscriptions need to specify a satpoint"
+      );
+
+      ensure!(
+        batchfile
+          .inscriptions
+          .iter()
+          .all(|entry| entry.satpoint.unwrap().offset == 0),
+        "`satpoint` can only be specified for first sat of an output"
+      );
+
+      ensure!(
+        batchfile.postage.is_none(),
+        "`postage` cannot be set if `satpoint` is set for any inscription"
+      );
     }
 
     Ok(batchfile)
@@ -51,13 +83,16 @@ impl Batchfile {
   pub(crate) fn inscriptions(
     &self,
     wallet: &Wallet,
+    utxos: &BTreeMap<OutPoint, Amount>,
     parent_value: Option<u64>,
-    postage: Amount,
     compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<Address>)> {
-    let mut pointer = parent_value.unwrap_or_default();
+  ) -> Result<(Vec<Inscription>, Vec<Amount>, Vec<Address>)> {
+    let postage = self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE);
 
     let mut inscriptions = Vec::new();
+    let mut pointer = parent_value.unwrap_or_default();
+    let mut postages = Vec::new();
+
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {
         ensure! {
@@ -77,12 +112,29 @@ impl Batchfile {
         if i == 0 { None } else { Some(pointer) },
       )?);
 
-      pointer += postage.to_sat();
+      pointer += if self.mode == Mode::SatPoints {
+        let satpoint = entry
+          .satpoint
+          .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
+
+        utxos
+          .get(&satpoint.outpoint)
+          .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?
+          .to_sat()
+      } else {
+        postage.to_sat()
+      };
+
+      if self.mode == Mode::SameSat && i != 0 {
+        continue;
+      } else {
+        postages.push(Amount::from_sat(pointer));
+      }
     }
 
     let destinations = match self.mode {
       Mode::SharedOutput | Mode::SameSat => vec![wallet.get_change_address()?],
-      Mode::SeparateOutputs => self
+      Mode::SeparateOutputs | Mode::SatPoints => self
         .inscriptions
         .iter()
         .map(|entry| {
@@ -99,6 +151,6 @@ impl Batchfile {
         .collect::<Result<Vec<_>, _>>()?,
     };
 
-    Ok((inscriptions, destinations))
+    Ok((inscriptions, postages, destinations))
   }
 }
