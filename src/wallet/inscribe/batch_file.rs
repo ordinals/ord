@@ -87,8 +87,6 @@ impl Batchfile {
     parent_value: Option<u64>,
     compress: bool,
   ) -> Result<(Vec<Inscription>, Vec<Amount>, Vec<Address>)> {
-    let postage = self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE);
-
     let mut inscriptions = Vec::new();
     let mut pointer = parent_value.unwrap_or_default();
     let mut postages = Vec::new();
@@ -122,7 +120,11 @@ impl Batchfile {
           .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?
           .to_sat()
       } else {
-        postage.to_sat()
+        self
+          .postage
+          .map(Amount::from_sat)
+          .unwrap_or(TARGET_POSTAGE)
+          .to_sat()
       };
 
       if self.mode == Mode::SameSat && i != 0 {
