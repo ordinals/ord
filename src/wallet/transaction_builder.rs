@@ -46,10 +46,10 @@ pub enum Error {
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
-  UtxoContainsAdditionalInscription {
+  UtxoContainsAdditionalInscriptions {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
-    inscription_id: InscriptionId,
+    inscription_ids: Vec<InscriptionId>,
   },
   ValueOverflow,
 }
@@ -74,13 +74,14 @@ impl fmt::Display for Error {
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
       ),
-      Error::UtxoContainsAdditionalInscription {
+      Error::UtxoContainsAdditionalInscriptions {
         outgoing_satpoint,
         inscribed_satpoint,
-        inscription_id,
+        inscription_ids,
       } => write!(
         f,
-        "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
+        "cannot send {outgoing_satpoint} without also sending inscription {} at {inscribed_satpoint}",
+        inscription_ids.iter().map(ToString::to_string).collect::<Vec<String>>().join(", "),
       ),
       Error::ValueOverflow => write!(f, "arithmetic overflow calculating value"),
       Error::DuplicateAddress(address) => write!(f, "duplicate input address: {address}"),
@@ -96,7 +97,7 @@ pub struct TransactionBuilder {
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
-  inscriptions: BTreeMap<SatPoint, InscriptionId>,
+  inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
   locked_utxos: BTreeSet<OutPoint>,
   outgoing: SatPoint,
   outputs: Vec<(Address, Amount)>,
@@ -117,7 +118,7 @@ impl TransactionBuilder {
 
   pub fn new(
     outgoing: SatPoint,
-    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     amounts: BTreeMap<OutPoint, Amount>,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
@@ -187,15 +188,15 @@ impl TransactionBuilder {
       .dust_value()
       .to_sat();
 
-    for (inscribed_satpoint, inscription_id) in self.inscriptions.iter().rev() {
+    for (inscribed_satpoint, inscription_ids) in self.inscriptions.iter().rev() {
       if self.outgoing.outpoint == inscribed_satpoint.outpoint
         && self.outgoing.offset != inscribed_satpoint.offset
         && self.outgoing.offset < inscribed_satpoint.offset + dust_limit
       {
-        return Err(Error::UtxoContainsAdditionalInscription {
-          outgoing_satpoint: self.outgoing,
+        return Err(Error::UtxoContainsAdditionalInscriptions {
           inscribed_satpoint: *inscribed_satpoint,
-          inscription_id: *inscription_id,
+          inscription_ids: inscription_ids.clone(),
+          outgoing_satpoint: self.outgoing,
         });
       }
     }
@@ -1367,7 +1368,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::new(
         satpoint(1, 0),
-        BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), inscription_id(1))]),
+        BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
         BTreeSet::new(),
         BTreeSet::new(),
@@ -1412,7 +1413,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::new(
         satpoint(1, 0),
-        BTreeMap::from([(satpoint(1, 500), inscription_id(1))]),
+        BTreeMap::from([(satpoint(1, 500), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
         BTreeSet::new(),
         BTreeSet::new(),
@@ -1422,10 +1423,10 @@ mod tests {
         Target::Postage,
       )
       .build_transaction(),
-      Err(Error::UtxoContainsAdditionalInscription {
-        outgoing_satpoint: satpoint(1, 0),
+      Err(Error::UtxoContainsAdditionalInscriptions {
         inscribed_satpoint: satpoint(1, 500),
-        inscription_id: inscription_id(1),
+        inscription_ids: vec![inscription_id(1)],
+        outgoing_satpoint: satpoint(1, 0),
       })
     )
   }
@@ -1438,7 +1439,7 @@ mod tests {
 
     let transaction = TransactionBuilder::new(
       satpoint(1, 0),
-      BTreeMap::from([(satpoint(1, 0), inscription_id(1))]),
+      BTreeMap::from([(satpoint(1, 0), vec![inscription_id(1)])]),
       utxos.into_iter().collect(),
       BTreeSet::new(),
       BTreeSet::new(),
@@ -1526,7 +1527,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::new(
         satpoint(1, 0),
-        BTreeMap::from([(satpoint(1, 500), inscription_id(1))]),
+        BTreeMap::from([(satpoint(1, 500), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
         BTreeSet::new(),
         BTreeSet::new(),
@@ -1974,7 +1975,7 @@ mod tests {
 
     let transaction = TransactionBuilder::new(
       satpoint(1, 0),
-      BTreeMap::from([(satpoint(1, 0), inscription_id(1))]),
+      BTreeMap::from([(satpoint(1, 0), vec![inscription_id(1)])]),
       utxos.into_iter().collect(),
       BTreeSet::new(),
       BTreeSet::new(),

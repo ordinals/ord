@@ -13,7 +13,6 @@ use {
   ord::{
     chain::Chain,
     outgoing::Outgoing,
-    rarity::Rarity,
     subcommand::runes::RuneInfo,
     templates::{
       block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
@@ -22,7 +21,7 @@ use {
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },
-  ordinals::SatPoint,
+  ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -58,6 +57,7 @@ macro_rules! assert_regex_match {
 const RUNE: u128 = 99246114928149462;
 
 type Inscribe = ord::wallet::inscribe::Output;
+type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Etch = ord::subcommand::wallet::etch::Output;
 
 fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {

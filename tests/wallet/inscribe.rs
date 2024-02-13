@@ -251,7 +251,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {output} already inscribed with inscription {inscription} on sat {output}:0\n",
+    "error: utxo {output} with sat {output}:0 already inscribed with the following inscriptions:\n{inscription}\n",
   ))
   .run_and_extract_stdout();
 }
@@ -695,6 +695,14 @@ fn reinscribe_with_flag() {
       inscribe.inscriptions[0].id, reinscribe.inscriptions[0].id
     ),
   );
+
+  let inscriptions = CommandBuilder::new("wallet inscriptions")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscriptions>();
+
+  assert_eq!(inscriptions[0].inscription, inscribe.inscriptions[0].id);
+  assert_eq!(inscriptions[1].inscription, reinscribe.inscriptions[0].id);
 }
 
 #[test]
@@ -1501,7 +1509,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
 }
 
 #[test]
-fn batch_inscribe_fails_with_shared_output_and_destination_set() {
+fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
@@ -1514,6 +1522,16 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
     .write("inscription.txt", "Hello World")
     .write("tulip.png", "")
     .write("batch.yaml", "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex("error: individual inscription destinations cannot be set in shared-output or same-sat mode\n")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", "")
+    .write("batch.yaml", "mode: same-sat\nsat: 5000000000\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
@@ -1848,8 +1866,42 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: `sat` can only be set in `same-sat` mode\n")
+    .expected_stderr("error: neither `sat` nor `satpoint` can be set in `same-sat` mode\n")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_satpoint() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("mode: same-sat\nsatpoint: {txid}:0:55555\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", )
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    "/sat/5000055555",
+    format!(
+      ".*<a href=/inscription/{}>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
+      output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id
+    ),
+  );
 }
 
 #[test]

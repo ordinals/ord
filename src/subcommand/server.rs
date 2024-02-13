@@ -2807,7 +2807,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/=/0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid digit found in string",
+      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
     );
   }
 
@@ -2816,7 +2816,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/0/=",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid digit found in string",
+      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
     );
   }
 
@@ -2884,7 +2884,7 @@ mod tests {
     TestServer::new().assert_response(
       "/sat/2099999997690000",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid sat",
+      "Invalid URL: failed to parse sat `2099999997690000`: invalid integer range",
     );
   }
 

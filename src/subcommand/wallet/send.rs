@@ -120,7 +120,7 @@ impl Send {
 
   fn lock_non_cardinal_outputs(
     bitcoin_client: &Client,
-    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
+    inscriptions: &BTreeMap<SatPoint, Vec<InscriptionId>>,
     runic_outputs: &BTreeSet<OutPoint>,
     unspent_outputs: &BTreeMap<OutPoint, bitcoin::Amount>,
   ) -> Result {

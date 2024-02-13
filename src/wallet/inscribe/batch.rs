@@ -175,7 +175,7 @@ impl Batch {
 
   pub(crate) fn create_batch_inscription_transactions(
     &self,
-    wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    wallet_inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
@@ -232,28 +232,31 @@ impl Batch {
 
     let mut reinscription = false;
 
-    for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
+    for (inscribed_satpoint, inscription_ids) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
         reinscription = true;
         if self.reinscribe {
           continue;
         } else {
-          return Err(anyhow!("sat at {} already inscribed", satpoint));
+          bail!("sat at {} already inscribed", satpoint);
         }
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
-        return Err(anyhow!(
-          "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
+        bail!(
+          "utxo {} with sat {inscribed_satpoint} already inscribed with the following inscriptions:\n{}",
           satpoint.outpoint,
-        ));
+          inscription_ids
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<String>>()
+            .join("\n"),
+        );
       }
     }
 
     if self.reinscribe && !reinscription {
-      return Err(anyhow!(
-        "reinscribe flag set but this would not be a reinscription"
-      ));
+      bail!("reinscribe flag set but this would not be a reinscription");
     }
 
     let secp256k1 = Secp256k1::new();
