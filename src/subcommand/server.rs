@@ -1095,6 +1095,7 @@ impl Server {
         target: target_as_block_hash(block.header.target()),
         timestamp: info.time.try_into().unwrap(),
         transaction_count: info.n_tx,
+        #[allow(clippy::cast_sign_loss)]
         version: info.version.to_consensus() as u32,
       }))
     })
