@@ -1073,7 +1073,6 @@ impl Server {
       let info = index
         .block_header_info(hash)?
         .ok_or_not_found(|| format!("block {height}"))?;
-
       Ok(Json(BlockInfoJson {
         bits: header.bits.to_consensus(),
         chainwork: info
