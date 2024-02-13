@@ -2167,7 +2167,6 @@ dependencies = [
  "clap",
  "criterion",
  "ctrlc",
- "derive_more",
  "dirs",
  "env_logger",
  "executable-path",
@@ -2185,6 +2184,7 @@ dependencies = [
  "miniscript",
  "mp4",
  "ord-bitcoincore-rpc",
+ "ordinals",
  "pretty_assertions",
  "pulldown-cmark",
  "redb",
@@ -2232,6 +2232,17 @@ dependencies = [
  "bitcoin-private",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "ordinals"
+version = "0.0.2"
+dependencies = [
+ "bitcoin",
+ "derive_more",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

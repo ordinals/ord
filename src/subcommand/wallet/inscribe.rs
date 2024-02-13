@@ -12,7 +12,7 @@ pub(crate) struct Inscribe {
     help = "Inscribe multiple inscriptions defined in a yaml <BATCH_FILE>.",
     conflicts_with_all = &[
       "cbor_metadata", "delegate", "destination", "file", "json_metadata", "metaprotocol",
-      "parent", "postage", "reinscribe", "satpoint"
+      "parent", "postage", "reinscribe", "sat", "satpoint"
     ]
   )]
   pub(crate) batch: Option<PathBuf>,
@@ -64,10 +64,10 @@ pub(crate) struct Inscribe {
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Allow reinscription.")]
   pub(crate) reinscribe: bool,
-  #[arg(long, help = "Inscribe <SATPOINT>.")]
-  pub(crate) satpoint: Option<SatPoint>,
   #[arg(long, help = "Inscribe <SAT>.", conflicts_with = "satpoint")]
   pub(crate) sat: Option<Sat>,
+  #[arg(long, help = "Inscribe <SATPOINT>.", conflicts_with = "sat")]
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl Inscribe {
@@ -87,9 +87,8 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
-    let sat;
 
-    match (self.file, self.batch) {
+    let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
         parent_info = wallet.get_parent_info(self.parent, &utxos)?;
 
@@ -115,12 +114,16 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
-        sat = self.sat;
-
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => wallet.get_change_address()?,
         }];
+
+        if let Some(sat) = self.sat {
+          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+        } else {
+          self.satpoint
+        }
       }
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
@@ -135,26 +138,19 @@ impl Inscribe {
         (inscriptions, destinations) = batchfile.inscriptions(
           &wallet,
           parent_info.as_ref().map(|info| info.tx_out.value),
-          metadata,
           postage,
           self.compress,
         )?;
 
         mode = batchfile.mode;
 
-        if batchfile.sat.is_some() && mode != Mode::SameSat {
-          return Err(anyhow!("`sat` can only be set in `same-sat` mode"));
+        if let Some(sat) = batchfile.sat {
+          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+        } else {
+          batchfile.satpoint
         }
-
-        sat = batchfile.sat;
       }
       _ => unreachable!(),
-    }
-
-    let satpoint = if let Some(sat) = sat {
-      Some(wallet.find_sat_in_outputs(sat, &utxos)?)
-    } else {
-      self.satpoint
     };
 
     Batch {
@@ -289,7 +285,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -340,7 +336,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -384,7 +380,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -464,7 +460,7 @@ mod tests {
       },
     };
 
-    inscriptions.insert(parent_info.location, parent_inscription);
+    inscriptions.insert(parent_info.location, vec![parent_inscription]);
 
     let child_inscription = InscriptionTemplate {
       parent: Some(parent_inscription),
@@ -548,7 +544,7 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      inscription_id(1),
+      vec![inscription_id(1)],
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -802,7 +798,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
@@ -906,7 +902,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -982,7 +978,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -1149,7 +1145,7 @@ inscriptions:
     };
 
     let mut wallet_inscriptions = BTreeMap::new();
-    wallet_inscriptions.insert(parent_info.location, parent);
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
     let reveal_addresses = vec![recipient(), recipient(), recipient()];
@@ -1260,6 +1256,7 @@ inscriptions:
       ),
       ("--cbor-metadata", Some("foo")),
       ("--json-metadata", Some("foo")),
+      ("--sat", Some("0")),
       (
         "--satpoint",
         Some("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"),

@@ -90,7 +90,6 @@ impl<'index> Updater<'_> {
     let mut value_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
       self.index_block(
-        self.index,
         &mut outpoint_sender,
         &mut value_receiver,
         &mut wtx,
@@ -312,7 +311,6 @@ impl<'index> Updater<'_> {
 
   fn index_block(
     &mut self,
-    index: &Index,
     outpoint_sender: &mut Sender<OutPoint>,
     value_receiver: &mut Receiver<u64>,
     wtx: &mut WriteTransaction,
@@ -340,8 +338,8 @@ impl<'index> Updater<'_> {
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-    let index_inscriptions =
-      self.height >= index.first_inscription_height && !index.options.no_index_inscriptions;
+    let index_inscriptions = self.height >= self.index.first_inscription_height
+      && !self.index.options.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -471,7 +469,7 @@ impl<'index> Updater<'_> {
         for input in &tx.input {
           let key = input.previous_output.store();
 
-          let sat_ranges = match if index.index_spent_sats {
+          let sat_ranges = match if self.index.index_spent_sats {
             self.range_cache.get(&key).cloned()
           } else {
             self.range_cache.remove(&key)
@@ -480,7 +478,7 @@ impl<'index> Updater<'_> {
               self.outputs_cached += 1;
               sat_ranges
             }
-            None => if index.index_spent_sats {
+            None => if self.index.index_spent_sats {
               outpoint_to_sat_ranges.get(&key)?
             } else {
               outpoint_to_sat_ranges.remove(&key)?
@@ -582,7 +580,7 @@ impl<'index> Updater<'_> {
       &inscription_updater.unbound_inscriptions,
     )?;
 
-    if index.index_runes && self.height >= self.index.options.first_rune_height() {
+    if self.index.index_runes && self.height >= self.index.options.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
@@ -727,8 +725,8 @@ impl<'index> Updater<'_> {
 
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-      for (outpoint, sat_range) in self.range_cache.drain() {
-        outpoint_to_sat_ranges.insert(&outpoint, sat_range.as_slice())?;
+      for (outpoint, sat_ranges) in self.range_cache.drain() {
+        outpoint_to_sat_ranges.insert(&outpoint, sat_ranges.as_slice())?;
       }
 
       self.outputs_inserted_since_flush = 0;

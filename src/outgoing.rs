@@ -94,7 +94,7 @@ impl<'de> Deserialize<'de> for Outgoing {
   where
     D: Deserializer<'de>,
   {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+    DeserializeFromStr::with(deserializer)
   }
 }
 
