@@ -815,7 +815,9 @@ impl Api for Server {
 
     if let Some(sign) = sign {
       if sign {
-        // TOD
+        for input in psbt.inputs.iter_mut() {
+          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+        }
       }
     }
 
