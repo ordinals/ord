@@ -60,8 +60,8 @@ few restrictions is that individual data pushes may not be larger than 520
 bytes.
 
 The inscription content is contained within the input of a reveal transaction,
-and the inscription is made on the first sat of its input if there's no pointer
-tag specified. This sat can then be tracked using the familiar rules of ordinal 
+and the inscription is made on the first sat of its input if it has no pointer
+field. This sat can then be tracked using the familiar rules of ordinal 
 theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.
 
 Content
