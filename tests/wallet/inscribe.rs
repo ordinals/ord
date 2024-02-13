@@ -2148,3 +2148,109 @@ inscriptions:
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn batch_inscribe_with_satpoints_with_parent() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let parent_output =
+    CommandBuilder::new("--index-sats wallet inscribe --fee-rate 5.0 --file parent.png")
+      .write("parent.png", [1; 520])
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let txids = bitcoin_rpc_server
+    .mine_blocks(3)
+    .iter()
+    .map(|block| block.txdata[0].txid())
+    .collect::<Vec<Txid>>();
+
+  assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
+
+  let parent_id = parent_output.inscriptions[0].id;
+
+  let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!(
+        "mode: satpoints
+parent: {parent_id}
+inscriptions:
+- file: inscription.txt
+  satpoint: \"{}:0:0\"
+- file: tulip.png
+  satpoint: \"{}:0:0\"
+- file: meow.wav
+  satpoint: \"{}:0:0\"
+",
+        txids[0], txids[1], txids[2]
+      ),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  for inscription in &output.inscriptions {
+    assert_eq!(inscription.location.offset, 0);
+  }
+
+  let mut outpoints = output
+    .inscriptions
+    .iter()
+    .map(|inscription| inscription.location.outpoint)
+    .collect::<Vec<OutPoint>>();
+
+  outpoints.sort();
+
+  outpoints.dedup();
+
+  assert_eq!(outpoints.len(), output.inscriptions.len());
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output_1 = output.inscriptions[0].location.outpoint;
+  let output_2 = output.inscriptions[1].location.outpoint;
+  let output_3 = output.inscriptions[2].location.outpoint;
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      50 * COIN_VALUE,
+      output_1
+    ),
+  );
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      50 * COIN_VALUE,
+      output_2
+    ),
+  );
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[2].id),
+    format!(
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      50 * COIN_VALUE,
+      output_3
+    ),
+  );
+}
