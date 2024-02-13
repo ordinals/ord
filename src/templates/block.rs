@@ -1,9 +1,5 @@
 use super::*;
 
-fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
-  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
-}
-
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
@@ -63,40 +59,21 @@ impl BlockJson {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfoJson {
-  pub hash: BlockHash,
-  pub target: BlockHash,
-  pub height: u32,
-  pub timestamp: usize,
-  pub n_tx: usize,
+  pub chainwork: u128,
   pub confirmations: i32,
-  pub previous_block_hash: Option<BlockHash>,
-  pub next_block_hash: Option<BlockHash>,
+  pub difficulty: f64,
+  pub hash: BlockHash,
+  pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
-}
-
-impl BlockInfoJson {
-  pub(crate) fn new(
-    block: Block,
-    height: Height,
-    timestamp: usize,
-    n_tx: usize,
-    confirmations: i32,
-    previous_block_hash: Option<BlockHash>,
-    next_block_hash: Option<BlockHash>,
-    inscriptions: Vec<InscriptionId>,
-  ) -> Self {
-    Self {
-      hash: block.header.block_hash(),
-      target: target_as_block_hash(block.header.target()),
-      height: height.0,
-      timestamp,
-      n_tx,
-      confirmations,
-      previous_block_hash,
-      next_block_hash,
-      inscriptions,
-    }
-  }
+  pub median_time: Option<u64>,
+  pub next_block: Option<BlockHash>,
+  pub nonce: u32,
+  pub merkle_root: TxMerkleNode,
+  pub previous_block: Option<BlockHash>,
+  pub target: BlockHash,
+  pub timestamp: u64,
+  pub transaction_count: usize,
+  pub version: u32,
 }
 
 impl PageContent for BlockHtml {

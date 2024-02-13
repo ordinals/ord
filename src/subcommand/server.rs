@@ -9,8 +9,8 @@ use {
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, BlocksJson, BlockInfoJson, ChildrenHtml, ChildrenJson, ClockSvg,
-      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      BlockHtml, BlockInfoJson, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson,
+      ClockSvg, CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
@@ -1066,24 +1066,37 @@ impl Server {
     task::block_in_place(|| {
       let inscriptions = index.get_inscriptions_in_block(height)?;
       let block = index
-            .get_block_by_height(height)?
-            .ok_or_not_found(|| format!("block {height}"))?;
+        .get_block_by_height(height)?
+        .ok_or_not_found(|| format!("block {height}"))?;
       let info = index
-            .block_header_info(block.header.block_hash())?
-            .ok_or_not_found(|| format!("block {height}"))?;
+        .block_header_info(block.header.block_hash())?
+        .ok_or_not_found(|| format!("block {height}"))?;
 
-      Ok(Json(
-          BlockInfoJson::new(
-            block,
-            Height(height),
-            info.time,
-            info.n_tx,
-            info.confirmations,
-            info.previous_block_hash,
-            info.next_block_hash,
-            inscriptions,
-        )
-      ))
+      Ok(Json(BlockInfoJson {
+        chainwork: info
+          .chainwork
+          .iter()
+          .rev()
+          .enumerate()
+          .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
+          .sum(),
+        confirmations: info.confirmations,
+        difficulty: info.difficulty,
+        hash: block.header.block_hash(),
+        height,
+        inscriptions,
+        median_time: info
+          .median_time
+          .map(|median_time| median_time.try_into().unwrap()),
+        merkle_root: info.merkle_root,
+        next_block: info.next_block_hash,
+        nonce: info.nonce,
+        previous_block: info.previous_block_hash,
+        target: target_as_block_hash(block.header.target()),
+        timestamp: info.time.try_into().unwrap(),
+        transaction_count: info.n_tx,
+        version: info.version.to_consensus() as u32,
+      }))
     })
   }
 
