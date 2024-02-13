@@ -725,8 +725,8 @@ impl<'index> Updater<'_> {
 
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-      for (outpoint, sat_range) in self.range_cache.drain() {
-        outpoint_to_sat_ranges.insert(&outpoint, sat_range.as_slice())?;
+      for (outpoint, sat_ranges) in self.range_cache.drain() {
+        outpoint_to_sat_ranges.insert(&outpoint, sat_ranges.as_slice())?;
       }
 
       self.outputs_inserted_since_flush = 0;
