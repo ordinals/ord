@@ -59,6 +59,7 @@ impl BlockJson {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfoJson {
+  pub bits: u32,
   pub chainwork: u128,
   pub confirmations: i32,
   pub difficulty: f64,

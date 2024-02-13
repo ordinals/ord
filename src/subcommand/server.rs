@@ -1064,14 +1064,18 @@ impl Server {
   ) -> ServerResult<Json<BlockInfoJson>> {
     task::block_in_place(|| {
       let inscriptions = index.get_inscriptions_in_block(height)?;
-      let block = index
-        .get_block_by_height(height)?
+      let hash = index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| format!("block {height}"))?;
+      let header = index
+        .block_header(hash)?
         .ok_or_not_found(|| format!("block {height}"))?;
       let info = index
-        .block_header_info(block.header.block_hash())?
+        .block_header_info(hash)?
         .ok_or_not_found(|| format!("block {height}"))?;
 
       Ok(Json(BlockInfoJson {
+        bits: header.bits.to_consensus(),
         chainwork: info
           .chainwork
           .iter()
@@ -1081,7 +1085,7 @@ impl Server {
           .sum(),
         confirmations: info.confirmations,
         difficulty: info.difficulty,
-        hash: block.header.block_hash(),
+        hash: header.block_hash(),
         height,
         inscriptions,
         median_time: info
@@ -1091,7 +1095,7 @@ impl Server {
         next_block: info.next_block_hash,
         nonce: info.nonce,
         previous_block: info.previous_block_hash,
-        target: target_as_block_hash(block.header.target()),
+        target: target_as_block_hash(header.target()),
         timestamp: info.time.try_into().unwrap(),
         transaction_count: info.n_tx,
         #[allow(clippy::cast_sign_loss)]
