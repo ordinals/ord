@@ -46,6 +46,8 @@ impl Batch {
 
     let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
+    let bitcoin_client = wallet.bitcoin_client()?;
+
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
@@ -57,15 +59,37 @@ impl Batch {
       )?;
 
     if self.dry_run {
+      let commit_psbt = bitcoin_client
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD.encode(
+            Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone())?)?.serialize(),
+          ),
+          Some(false),
+          None,
+          None,
+        )?
+        .psbt;
+
+      let reveal_psbt = bitcoin_client
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD.encode(
+            Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone())?)?.serialize(),
+          ),
+          Some(false),
+          None,
+          None,
+        )?
+        .psbt;
+
       return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
+        Some(commit_psbt),
         reveal_tx.txid(),
+        Some(reveal_psbt),
         total_fees,
         self.inscriptions.clone(),
       ))));
     }
-
-    let bitcoin_client = wallet.bitcoin_client()?;
 
     let signed_commit_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
@@ -113,16 +137,28 @@ impl Batch {
 
     Ok(Some(Box::new(self.output(
       commit,
+      None,
       reveal,
+      None,
       total_fees,
       self.inscriptions.clone(),
     ))))
   }
 
+  fn remove_witnesses(mut transaction: Transaction) -> Result<Transaction> {
+    for txin in transaction.input.iter_mut() {
+      txin.witness = Witness::new();
+    }
+
+    Ok(transaction)
+  }
+
   fn output(
     &self,
     commit: Txid,
+    commit_psbt: Option<String>,
     reveal: Txid,
+    reveal_psbt: Option<String>,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
   ) -> super::Output {
@@ -166,7 +202,9 @@ impl Batch {
 
     super::Output {
       commit,
+      commit_psbt,
       reveal,
+      reveal_psbt,
       total_fees,
       parent: self.parent_info.clone().map(|info| info.id),
       inscriptions: inscriptions_output,

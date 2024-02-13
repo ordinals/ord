@@ -30,9 +30,11 @@ pub struct InscriptionInfo {
 #[derive(Serialize, Deserialize)]
 pub struct Output {
   pub commit: Txid,
+  pub commit_psbt: Option<String>,
   pub inscriptions: Vec<InscriptionInfo>,
   pub parent: Option<InscriptionId>,
   pub reveal: Txid,
+  pub reveal_psbt: Option<String>,
   pub total_fees: u64,
 }
 
