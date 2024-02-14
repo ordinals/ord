@@ -2052,10 +2052,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(500, false)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, false).unwrap().0,
       outpoint(2),
     );
   }
@@ -2080,10 +2077,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(500, true)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, true).unwrap().0,
       outpoint(2),
     );
   }
@@ -2108,10 +2102,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(500, false)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, false).unwrap().0,
       outpoint(2),
     );
   }

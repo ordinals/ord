@@ -73,11 +73,6 @@ impl Batch {
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    // reveal_tx.input.last_mut().unwrap().witness = Witness::new();
-
-    // dbg!(&commit_tx);
-    // dbg!(&reveal_tx);
-
     let result = bitcoin_client.sign_raw_transaction_with_wallet(
       &reveal_tx,
       Some(
@@ -96,8 +91,6 @@ impl Batch {
       ),
       None,
     )?;
-
-    // dbg!(&result.errors);
 
     assert!(result.complete);
 
@@ -426,10 +419,6 @@ impl Batch {
     }
 
     prevouts.push(unsigned_commit_tx.output[vout].clone());
-
-    // dbg!(&prevouts);
-    // dbg!(&reveal_tx);
-    // dbg!(&commit_input);
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 

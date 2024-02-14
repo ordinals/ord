@@ -2167,6 +2167,8 @@ fn batch_inscribe_with_satpoints_with_parent() {
       .ord_rpc_server(&ord_rpc_server)
       .run_and_deserialize_output::<Inscribe>();
 
+  bitcoin_rpc_server.mine_blocks(1);
+
   let txids = bitcoin_rpc_server
     .mine_blocks(3)
     .iter()
@@ -2239,24 +2241,24 @@ inscriptions:
   );
 
   ord_rpc_server.assert_response_regex(
-      format!("/inscription/{}", output.inscriptions[1].id),
-      format!(
-        r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-        50 * COIN_VALUE,
-        200 * COIN_VALUE,
-        location_2
-      ),
-    );
+        format!("/inscription/{}", output.inscriptions[1].id),
+        format!(
+          r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+          50 * COIN_VALUE,
+          250 * COIN_VALUE,
+          location_2
+        ),
+      );
 
   ord_rpc_server.assert_response_regex(
-      format!("/inscription/{}", output.inscriptions[2].id),
-      format!(
-        r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-        50 * COIN_VALUE,
-        250 * COIN_VALUE,
-        location_3
-      ),
-    );
+        format!("/inscription/{}", output.inscriptions[2].id),
+        format!(
+          r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+          50 * COIN_VALUE,
+          200 * COIN_VALUE,
+          location_3
+        ),
+      );
 }
 
 #[test]
@@ -2295,6 +2297,8 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
     .txid,
     vout: 0,
   };
+
+  bitcoin_rpc_server.mine_blocks(1);
 
   let outpoint_3 = OutPoint {
     txid: CommandBuilder::new(
@@ -2369,7 +2373,7 @@ inscriptions:
       format!(
         r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
         COIN_VALUE,
-        75 * COIN_VALUE ,
+        72 * COIN_VALUE ,
         location_2
       ),
     );
@@ -2379,7 +2383,7 @@ inscriptions:
        format!(
          r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
          3 * COIN_VALUE,
-         100 * COIN_VALUE,
+         73 * COIN_VALUE,
          location_3
        ),
      );
