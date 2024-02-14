@@ -881,6 +881,132 @@ inscriptions:
   }
 
   #[test]
+  fn batch_inscribe_satpoints_with_parent() {
+    let utxos = vec![
+      (outpoint(1), tx_out(1111, address())),
+      (outpoint(2), tx_out(2222, address())),
+      (outpoint(3), tx_out(3333, address())),
+      (outpoint(4), tx_out(10_000, address())),
+      (outpoint(5), tx_out(50_000, address())),
+      (outpoint(6), tx_out(60_000, address())),
+    ];
+
+    let parent = inscription_id(1);
+
+    let parent_info = ParentInfo {
+      destination: change(3),
+      id: parent,
+      location: SatPoint {
+        outpoint: outpoint(4),
+        offset: 0,
+      },
+      tx_out: TxOut {
+        script_pubkey: change(0).script_pubkey(),
+        value: 10_000,
+      },
+    };
+
+    let mut wallet_inscriptions = BTreeMap::new();
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
+
+    let commit_address = change(1);
+    let reveal_addresses = vec![recipient(), recipient(), recipient()];
+
+    let inscriptions = vec![
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(10_000),
+        ..Default::default()
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(11_111),
+        ..Default::default()
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(13_3333),
+        ..Default::default()
+      }
+      .into(),
+    ];
+
+    let reveal_satpoints = utxos
+      .iter()
+      .take(3)
+      .map(|(outpoint, txout)| {
+        (
+          SatPoint {
+            outpoint: *outpoint,
+            offset: 0,
+          },
+          txout.clone(),
+        )
+      })
+      .collect::<BTreeMap<SatPoint, TxOut>>();
+
+    let mode = Mode::SatPoints;
+
+    let fee_rate = 1.0.try_into().unwrap();
+
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      reveal_satpoints: reveal_satpoints.clone(),
+      parent_info: Some(parent_info.clone()),
+      inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: fee_rate,
+      reveal_fee_rate: fee_rate,
+      postages: vec![
+        Amount::from_sat(1111),
+        Amount::from_sat(2222),
+        Amount::from_sat(3333),
+      ],
+      mode,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
+      wallet_inscriptions,
+      Chain::Signet,
+      reveal_satpoints
+        .keys()
+        .map(|satpoint| satpoint.outpoint)
+        .collect(),
+      BTreeSet::new(),
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+    )
+    .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 50_000 - fee);
+
+    assert_eq!(
+      reveal_tx.output[0].script_pubkey,
+      parent_info.destination.script_pubkey()
+    );
+    assert_eq!(reveal_tx.output[0].value, parent_info.tx_out.value);
+    pretty_assert_eq!(
+      reveal_tx.input[0],
+      TxIn {
+        previous_output: parent_info.location.outpoint,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        ..Default::default()
+      }
+    );
+  }
+
+  #[test]
   fn batch_inscribe_with_parent_not_enough_cardinals_utxos_fails() {
     let utxos = vec![
       (outpoint(1), tx_out(10_000, address())),

@@ -92,7 +92,10 @@ impl Batch {
       None,
     )?;
 
-    assert!(result.complete);
+    ensure!(
+      result.complete,
+      format!("Failed to sign reveal transaction: {:?}", result.errors)
+    );
 
     let signed_reveal_tx = result.hex;
 
