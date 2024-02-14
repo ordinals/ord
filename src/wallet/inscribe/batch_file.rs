@@ -158,3 +158,142 @@ impl Batchfile {
     Ok((inscriptions, postages, destinations))
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn batchfile_not_sat_and_satpoint() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: same-sat
+sat: 55555
+satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+inscriptions:
+- file: inscription.txt
+- file: tulip.png
+- file: meow.wav
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "batchfile cannot set both `sat` and `satpoint`"
+    );
+  }
+
+  #[test]
+  fn batchfile_wrong_mode_for_satpoints() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: separate-outputs
+inscriptions:
+- file: inscription.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+- file: tulip.png
+  satpoint: 5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0:0
+- file: meow.wav
+  satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "specifying `satpoint` in an inscription only works in `satpoints` mode"
+    );
+  }
+
+  #[test]
+  fn batchfile_missing_satpoint() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: satpoints
+inscriptions:
+- file: inscription.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+- file: tulip.png
+- file: meow.wav
+  satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "if `satpoint` is set for any inscription, then all inscriptions need to specify a satpoint"
+    );
+  }
+
+  #[test]
+  fn batchfile_only_first_sat_of_outpoint() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: satpoints
+inscriptions:
+- file: inscription.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+- file: tulip.png
+  satpoint: 5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0:21
+- file: meow.wav
+  satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "`satpoint` can only be specified for first sat of an output"
+    );
+  }
+
+  #[test]
+  fn batchfile_no_postage_if_mode_satpoints() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: satpoints
+postage: 1111
+inscriptions:
+- file: inscription.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+- file: tulip.png
+  satpoint: 5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0:0
+- file: meow.wav
+  satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "`postage` cannot be set if `satpoint` is set for any inscription"
+    );
+  }
+}
