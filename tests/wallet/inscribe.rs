@@ -2186,16 +2186,17 @@ fn batch_inscribe_with_satpoints_with_parent() {
     .write(
       "batch.yaml",
       format!(
-        "mode: satpoints
+        r#"
+mode: satpoints
 parent: {parent_id}
 inscriptions:
 - file: inscription.txt
-  satpoint: \"{}:0:0\"
+  satpoint: {}:0:0
 - file: tulip.png
-  satpoint: \"{}:0:0\"
+  satpoint: {}:0:0
 - file: meow.wav
-  satpoint: \"{}:0:0\"
-",
+  satpoint: {}:0:0
+"#,
         txids[0], txids[1], txids[2]
       ),
     )
