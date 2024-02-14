@@ -124,6 +124,15 @@ impl Display for StaticHtml {
   }
 }
 
+fn chainwork(chainwork: &[u8]) -> u128 {
+  chainwork
+    .iter()
+    .rev()
+    .enumerate()
+    .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
+    .sum()
+}
+
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
@@ -1072,13 +1081,7 @@ impl Server {
         .ok_or_not_found(|| format!("block {height}"))?;
       Ok(Json(BlockInfoJson {
         bits: header.bits.to_consensus(),
-        chainwork: info
-          .chainwork
-          .iter()
-          .rev()
-          .enumerate()
-          .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
-          .sum(),
+        chainwork: chainwork(&info.chainwork),
         confirmations: info.confirmations,
         difficulty: info.difficulty,
         hash: header.block_hash(),
@@ -5225,6 +5228,17 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn chainwork_conversion_to_integer() {
+    assert_eq!(chainwork(&[]), 0);
+    assert_eq!(chainwork(&[1]), 1);
+    assert_eq!(chainwork(&[1, 0]), 256);
+    assert_eq!(chainwork(&[1, 1]), 257);
+    assert_eq!(chainwork(&[1, 0, 0]), 65536);
+    assert_eq!(chainwork(&[1, 0, 1]), 65537);
+    assert_eq!(chainwork(&[1, 1, 1]), 65793);
   }
 
   #[test]
