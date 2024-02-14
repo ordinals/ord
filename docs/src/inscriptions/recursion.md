@@ -25,7 +25,7 @@ The recursive endpoints are:
 - `/r/blockhash/<HEIGHT>`: block hash at given block height.
 - `/r/blockhash`: latest block hash.
 - `/r/blockheight`: latest block height.
-- `/r/blockinf/<QUERY>`: block info. `<QUERY>` may be a block height or block hash.
+- `/r/blockinfo/<QUERY>`: block info. `<QUERY>` may be a block height or block hash.
 - `/r/blocktime`: UNIX time stamp of latest block.
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
