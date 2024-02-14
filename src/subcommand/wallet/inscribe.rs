@@ -916,19 +916,16 @@ inscriptions:
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(10_000),
-        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(11_111),
-        ..Default::default()
       }
       .into(),
       InscriptionTemplate {
         parent: Some(parent),
         pointer: Some(13_3333),
-        ..Default::default()
       }
       .into(),
     ];
