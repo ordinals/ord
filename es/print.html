@@ -689,6 +689,7 @@ OP_ENDIF
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>
+<li><code>/r/blockinfo/&lt;QUERY&gt;</code>: block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</li>
 <li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: the first 100 child inscription ids.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: the set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</li>
@@ -757,6 +758,27 @@ OP_ENDIF
    ],
    "more":false,
    "page":49
+}
+</code></pre>
+<ul>
+<li><code>/r/blockinfo/0</code>:</li>
+</ul>
+<pre><code class="language-json">{
+  "bits": 486604799,
+  "chainwork": 0,
+  "confirmations": 0,
+  "difficulty": 0.0,
+  "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "height": 0,
+  "median_time": null,
+  "merkle_root": "0000000000000000000000000000000000000000000000000000000000000000",
+  "next_block": null,
+  "nonce": 0,
+  "previous_block": null,
+  "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
+  "timestamp": 0,
+  "transaction_count": 0,
+  "version": 1
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="preguntas-frecuentes-sobre-la-teoría-ordinal"><a class="header" href="#preguntas-frecuentes-sobre-la-teoría-ordinal">Preguntas frecuentes sobre la teoría Ordinal</a></h1>
