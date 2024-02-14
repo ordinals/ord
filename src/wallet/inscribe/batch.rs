@@ -444,8 +444,6 @@ impl Batch {
       .witness_mut(commit_input)
       .expect("getting mutable witness reference should work");
 
-    assert!(witness.is_empty());
-
     witness.push(
       Signature {
         sig,
