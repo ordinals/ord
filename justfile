@@ -196,3 +196,82 @@ coverage:
 
 benchmark-server:
   cargo bench --bench server
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ord := "./target/release/ord --regtest --index-sats --index env/regtest.redb --bitcoin-data-dir env"
+bitcoin-cli := "bitcoin-cli -regtest -datadir=env"
+bitcoind := "bitcoind -regtest -txindex -datadir=env"
+
+bitcoind:
+  {{bitcoind}}
+
+bitcoin-cli +args:
+  {{bitcoin-cli}} '{{args}}'
+
+clean:
+  rm -rf env
+
+setup:
+  #!/bin/bash
+  set -euxo pipefail
+  if [ ! -d "env" ]; then
+    mkdir env
+  fi
+  cargo build --release
+
+server: setup
+  RUST_LOG=info {{ord}} server --address 127.0.0.1 --http-port 8181
+
+explorer:
+  open http://127.0.0.1:8181
+
+create wallet="test":
+  #!/bin/bash
+  set -euxo pipefail
+  {{ord}} wallet --server-url http://127.0.0.1:8181 --name {{wallet}} create > env/seed.json
+  ADDRESS=$({{ord}} \
+    wallet --server-url http://127.0.0.1:8181 --name {{wallet}} \
+    receive \
+    | jq -r '.address')
+  {{bitcoin-cli}} generatetoaddress 101 $ADDRESS
+
+wallet +args="balance":
+  {{ord}} wallet --server-url http://127.0.0.1:8181 --name test {{args}}
+
+balance wallet="test":
+  {{ord}} wallet --server-url http://127.0.0.1:8181 --name {{wallet}} balance
+
+mine blocks="1" wallet="test":
+  #!/bin/bash
+  set -euxo pipefail
+  ADDRESS=$({{ord}} \
+    wallet --server-url http://127.0.0.1:8181 --name {{wallet}} \
+    receive \
+    | jq -r '.address')
+  {{bitcoin-cli}} generatetoaddress {{blocks}} $ADDRESS
+
+inscribe-batch batch="satpoints.yaml" fee-rate="1" wallet="test":
+  #!/bin/bash
+  set -euxo pipefail
+  {{ord}} wallet --server-url http://127.0.0.1:8181 --name {{wallet}} \
+  inscribe --batch {{batch}} --fee-rate {{fee-rate}}
+  ADDRESS=$({{ord}} \
+    wallet --server-url http://127.0.0.1:8181 --name {{wallet}} \
+    receive \
+    | jq -r '.address')
+  {{bitcoin-cli}} generatetoaddress 1 $ADDRESS
+  sleep 5

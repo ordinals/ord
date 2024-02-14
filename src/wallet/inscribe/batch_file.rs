@@ -109,7 +109,7 @@ impl Batchfile {
         entry.metaprotocol.clone(),
         self.parent,
         &entry.file,
-        if i == 0 { None } else { Some(pointer) },
+        Some(pointer),
       )?);
 
       let postage = if self.mode == Mode::SatPoints {

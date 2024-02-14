@@ -76,7 +76,7 @@ impl Inscribe {
 
     let utxos = wallet.get_unspent_outputs()?;
 
-    let locked_utxos = wallet.get_locked_outputs()?;
+    let mut locked_utxos = wallet.get_locked_outputs()?;
 
     let runic_utxos = wallet.get_runic_outputs()?;
 
@@ -139,6 +139,8 @@ impl Inscribe {
           parent_info.as_ref().map(|info| info.tx_out.value),
           self.compress,
         )?;
+
+        locked_utxos.extend(reveal_satpoints.iter().map(|satpoint| satpoint.outpoint));
 
         mode = batchfile.mode;
 

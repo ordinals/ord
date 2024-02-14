@@ -48,7 +48,7 @@ impl Batch {
 
     let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
+    let (commit_tx, mut reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
         wallet.chain(),
@@ -73,30 +73,34 @@ impl Batch {
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    let signed_reveal_tx = if self.parent_info.is_some() {
-      bitcoin_client
-        .sign_raw_transaction_with_wallet(
-          &reveal_tx,
-          Some(
-            &commit_tx
-              .output
-              .iter()
-              .enumerate()
-              .map(|(vout, output)| SignRawTransactionInput {
-                txid: commit_tx.txid(),
-                vout: vout.try_into().unwrap(),
-                script_pub_key: output.script_pubkey.clone(),
-                redeem_script: None,
-                amount: Some(Amount::from_sat(output.value)),
-              })
-              .collect::<Vec<SignRawTransactionInput>>(),
-          ),
-          None,
-        )?
-        .hex
-    } else {
-      consensus::encode::serialize(&reveal_tx)
-    };
+    reveal_tx.input.last_mut().unwrap().witness = Witness::new();
+
+    let result = bitcoin_client.sign_raw_transaction_with_wallet(
+      &reveal_tx,
+      Some(
+        &commit_tx
+          .output
+          .iter()
+          .enumerate()
+          .map(|(vout, output)| SignRawTransactionInput {
+            txid: commit_tx.txid(),
+            vout: vout.try_into().unwrap(),
+            script_pub_key: output.script_pubkey.clone(),
+            redeem_script: None,
+            amount: Some(Amount::from_sat(output.value)),
+          })
+          .collect::<Vec<SignRawTransactionInput>>(),
+      ),
+      None,
+    )?;
+
+    dbg!(commit_tx);
+    dbg!(reveal_tx);
+    dbg!(&result);
+
+    assert!(result.complete);
+
+    let signed_reveal_tx = result.hex;
 
     if !self.no_backup {
       Self::backup_recovery_key(wallet, recovery_key_pair)?;
@@ -403,7 +407,7 @@ impl Batch {
 
     for output in reveal_tx.output.iter() {
       if output.value < output.script_pubkey.dust_value().to_sat() {
-        bail!("commit transaction output would be dust");
+        bail!("commit transaction output would be dust"); // add ensure
       }
     }
 
@@ -428,6 +432,10 @@ impl Batch {
       prevouts.insert(0, parent_info.tx_out);
     }
 
+    // println!("\n\n{:?}", &prevouts);
+    // println!("\n\n{:?}", &reveal_tx);
+    // println!("\n\n{:?}", &commit_input);
+
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
     let sighash = sighash_cache
@@ -448,6 +456,8 @@ impl Batch {
     let witness = sighash_cache
       .witness_mut(commit_input)
       .expect("getting mutable witness reference should work");
+
+    assert!(witness.is_empty());
 
     witness.push(
       Signature {
