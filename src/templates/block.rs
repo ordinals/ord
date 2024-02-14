@@ -65,7 +65,6 @@ pub struct BlockInfoJson {
   pub difficulty: f64,
   pub hash: BlockHash,
   pub height: u32,
-  pub inscriptions: Vec<InscriptionId>,
   pub median_time: Option<u64>,
   pub merkle_root: TxMerkleNode,
   pub next_block: Option<BlockHash>,

@@ -1080,8 +1080,6 @@ impl Server {
         .block_header_info(hash)?
         .ok_or_not_found(|| format!("block {hash}"))?;
 
-      let inscriptions = index.get_inscriptions_in_block(info.height.try_into().unwrap())?;
-
       let header = index
         .block_header(hash)?
         .ok_or_not_found(|| format!("block {hash}"))?;
@@ -1093,7 +1091,6 @@ impl Server {
         difficulty: info.difficulty,
         hash: header.block_hash(),
         height: info.height.try_into().unwrap(),
-        inscriptions,
         median_time: info
           .median_time
           .map(|median_time| median_time.try_into().unwrap()),
@@ -5263,7 +5260,6 @@ next
           .parse()
           .unwrap(),
         height: 0,
-        inscriptions: Vec::new(),
         median_time: None,
         merkle_root: TxMerkleNode::all_zeros(),
         next_block: None,
@@ -5291,7 +5287,6 @@ next
           .parse()
           .unwrap(),
         height: 1,
-        inscriptions: Vec::new(),
         median_time: None,
         merkle_root: TxMerkleNode::all_zeros(),
         next_block: None,
