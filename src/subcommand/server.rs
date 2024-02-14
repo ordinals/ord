@@ -5266,7 +5266,7 @@ next
         chainwork: 0,
         confirmations: 0,
         difficulty: 0.0,
-        hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+        hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
           .parse()
           .unwrap(),
         height: 1,
