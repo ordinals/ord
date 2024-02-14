@@ -105,7 +105,7 @@ impl Send {
       fee: unsigned_transaction
         .input
         .iter()
-        .map(|txin| unspent_outputs.get(&txin.previous_output).unwrap().to_sat())
+        .map(|txin| unspent_outputs.get(&txin.previous_output).unwrap().value)
         .sum::<u64>()
         .checked_sub(
           unsigned_transaction
@@ -122,7 +122,7 @@ impl Send {
     bitcoin_client: &Client,
     inscriptions: &BTreeMap<SatPoint, Vec<InscriptionId>>,
     runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: &BTreeMap<OutPoint, bitcoin::Amount>,
+    unspent_outputs: &BTreeMap<OutPoint, TxOut>,
   ) -> Result {
     let all_inscription_outputs = inscriptions
       .keys()

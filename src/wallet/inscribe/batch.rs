@@ -41,14 +41,14 @@ impl Batch {
     &self,
     locked_utxos: &BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
-    utxos: &BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
     let wallet_inscriptions = wallet.get_inscriptions()?;
 
     let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-    let (commit_tx, mut reveal_tx, recovery_key_pair, total_fees) = self
+    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
         wallet.chain(),
@@ -73,7 +73,10 @@ impl Batch {
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    reveal_tx.input.last_mut().unwrap().witness = Witness::new();
+    // reveal_tx.input.last_mut().unwrap().witness = Witness::new();
+
+    // dbg!(&commit_tx);
+    // dbg!(&reveal_tx);
 
     let result = bitcoin_client.sign_raw_transaction_with_wallet(
       &reveal_tx,
@@ -94,9 +97,7 @@ impl Batch {
       None,
     )?;
 
-    dbg!(commit_tx);
-    dbg!(reveal_tx);
-    dbg!(&result);
+    // dbg!(&result.errors);
 
     assert!(result.complete);
 
@@ -188,7 +189,7 @@ impl Batch {
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
-    mut utxos: BTreeMap<OutPoint, Amount>,
+    mut utxos: BTreeMap<OutPoint, TxOut>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     if let Some(parent_info) = &self.parent_info {
@@ -247,8 +248,8 @@ impl Batch {
 
       utxos
         .iter()
-        .find(|(outpoint, amount)| {
-          amount.to_sat() > 0
+        .find(|(outpoint, txout)| {
+          txout.value > 0
             && !inscribed_utxos.contains(outpoint)
             && !locked_utxos.contains(outpoint)
             && !runic_utxos.contains(outpoint)
@@ -411,30 +412,28 @@ impl Batch {
       }
     }
 
-    let mut prevouts = vec![unsigned_commit_tx.output[vout].clone()];
+    let mut prevouts = Vec::new();
+
+    if let Some(parent_info) = self.parent_info.clone() {
+      prevouts.push(parent_info.tx_out);
+    }
 
     if self.mode == Mode::SatPoints {
-      for (i, satpoint) in self.reveal_satpoints.iter().enumerate() {
-        prevouts.insert(
-          i,
-          TxOut {
-            script_pubkey: self.destinations[i].script_pubkey(),
-            value: utxos
-              .get(&satpoint.outpoint)
-              .ok_or_else(|| anyhow!("satpoint not in wallet"))?
-              .to_sat(),
-          },
+      for satpoint in self.reveal_satpoints.iter() {
+        prevouts.push(
+          utxos
+            .get(&satpoint.outpoint)
+            .ok_or_else(|| anyhow!("satpoint not in wallet"))?
+            .clone(),
         );
       }
     }
 
-    if let Some(parent_info) = self.parent_info.clone() {
-      prevouts.insert(0, parent_info.tx_out);
-    }
+    prevouts.push(unsigned_commit_tx.output[vout].clone());
 
-    // println!("\n\n{:?}", &prevouts);
-    // println!("\n\n{:?}", &reveal_tx);
-    // println!("\n\n{:?}", &commit_input);
+    // dbg!(&prevouts);
+    // dbg!(&reveal_tx);
+    // dbg!(&commit_input);
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
@@ -491,10 +490,8 @@ impl Batch {
 
     utxos.insert(
       reveal_tx.input[commit_input].previous_output,
-      Amount::from_sat(
-        unsigned_commit_tx.output[reveal_tx.input[commit_input].previous_output.vout as usize]
-          .value,
-      ),
+      unsigned_commit_tx.output[reveal_tx.input[commit_input].previous_output.vout as usize]
+        .clone(),
     );
 
     let total_fees =
@@ -580,10 +577,10 @@ impl Batch {
     (reveal_tx, fee)
   }
 
-  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, TxOut>) -> u64 {
     tx.input
       .iter()
-      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().value)
       .sum::<u64>()
       .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
       .unwrap()

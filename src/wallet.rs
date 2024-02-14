@@ -91,7 +91,7 @@ impl Wallet {
     Ok(output_json)
   }
 
-  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, TxOut>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -100,9 +100,12 @@ impl Wallet {
         .into_iter()
         .map(|utxo| {
           let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-          let amount = utxo.amount;
+          let txout = TxOut {
+            script_pubkey: utxo.script_pub_key,
+            value: utxo.amount.to_sat(),
+          };
 
-          (outpoint, amount)
+          (outpoint, txout)
         }),
     );
 
@@ -111,13 +114,11 @@ impl Wallet {
     for outpoint in locked_utxos {
       utxos.insert(
         outpoint,
-        Amount::from_sat(
-          self
-            .bitcoin_client()?
-            .get_raw_transaction(&outpoint.txid, None)?
-            .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
-          .value,
-        ),
+        self
+          .bitcoin_client()?
+          .get_raw_transaction(&outpoint.txid, None)?
+          .output[TryInto::<usize>::try_into(outpoint.vout).unwrap()]
+        .clone(),
       );
     }
 
@@ -149,7 +150,7 @@ impl Wallet {
   pub(crate) fn find_sat_in_outputs(
     &self,
     sat: Sat,
-    utxos: &BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, TxOut>,
   ) -> Result<SatPoint> {
     ensure!(
       self.has_sat_index()?,
@@ -307,7 +308,7 @@ impl Wallet {
   pub(crate) fn get_parent_info(
     &self,
     parent: Option<InscriptionId>,
-    utxos: &BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, TxOut>,
   ) -> Result<Option<ParentInfo>> {
     if let Some(parent_id) = parent {
       let satpoint = self

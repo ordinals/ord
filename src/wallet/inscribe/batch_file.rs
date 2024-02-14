@@ -83,7 +83,7 @@ impl Batchfile {
   pub(crate) fn inscriptions(
     &self,
     wallet: &Wallet,
-    utxos: &BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, TxOut>,
     parent_value: Option<u64>,
     compress: bool,
   ) -> Result<(Vec<Inscription>, Vec<SatPoint>, Vec<Amount>, Vec<Address>)> {
@@ -122,7 +122,7 @@ impl Batchfile {
         utxos
           .get(&satpoint.outpoint)
           .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?
-          .to_sat()
+          .value
       } else {
         self
           .postage
