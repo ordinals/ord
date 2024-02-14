@@ -73,7 +73,7 @@ pub struct BlockInfoJson {
   pub previous_block: Option<BlockHash>,
   pub target: BlockHash,
   pub timestamp: u64,
-  pub transaction_count: usize,
+  pub transaction_count: u64,
   pub version: u32,
 }
 

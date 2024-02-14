@@ -1093,7 +1093,7 @@ impl Server {
         previous_block: info.previous_block_hash,
         target: target_as_block_hash(header.target()),
         timestamp: info.time.try_into().unwrap(),
-        transaction_count: info.n_tx,
+        transaction_count: info.n_tx.try_into().unwrap(),
         #[allow(clippy::cast_sign_loss)]
         version: info.version.to_consensus() as u32,
       }))
@@ -5225,5 +5225,62 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn block_info() {
+    let server = TestServer::new();
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/0"),
+      BlockInfoJson {
+        bits: 486604799,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+          .parse()
+          .unwrap(),
+        height: 0,
+        inscriptions: Vec::new(),
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+          .parse()
+          .unwrap(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    );
+
+    server.mine_blocks(1);
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/1"),
+      BlockInfoJson {
+        bits: 0,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+          .parse()
+          .unwrap(),
+        height: 1,
+        inscriptions: Vec::new(),
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: BlockHash::all_zeros(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    )
   }
 }
