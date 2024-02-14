@@ -1089,7 +1089,7 @@ impl Server {
         chainwork: chainwork(&info.chainwork),
         confirmations: info.confirmations,
         difficulty: info.difficulty,
-        hash: header.block_hash(),
+        hash,
         height: info.height.try_into().unwrap(),
         median_time: info
           .median_time
