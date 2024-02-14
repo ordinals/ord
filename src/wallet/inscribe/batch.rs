@@ -12,6 +12,7 @@ pub struct Batch {
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
+  pub(crate) reveal_satpoints: Vec<SatPoint>,
   pub(crate) satpoint: Option<SatPoint>,
 }
 
@@ -29,6 +30,7 @@ impl Default for Batch {
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
+      reveal_satpoints: Vec::new(),
       satpoint: None,
     }
   }
@@ -310,6 +312,12 @@ impl Batch {
 
     let mut reveal_inputs = vec![OutPoint::null()];
 
+    if self.mode == Mode::SatPoints {
+      for (i, satpoint) in self.reveal_satpoints.iter().enumerate() {
+        reveal_inputs.insert(i, satpoint.outpoint);
+      }
+    }
+
     let mut reveal_outputs = self
       .destinations
       .iter()
@@ -317,7 +325,7 @@ impl Batch {
       .map(|(i, destination)| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(), // This feels hacky
+          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(),
           Mode::SharedOutput | Mode::SameSat => total_postage,
         },
       })
@@ -340,7 +348,8 @@ impl Batch {
       );
     }
 
-    let commit_input = if self.parent_info.is_some() { 1 } else { 0 };
+    let mut commit_input = if self.parent_info.is_some() { 1 } else { 0 };
+    commit_input += self.reveal_satpoints.len();
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -360,7 +369,14 @@ impl Batch {
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
-      Target::Value(reveal_fee + Amount::from_sat(total_postage)),
+      Target::Value(
+        reveal_fee
+          + Amount::from_sat(if self.mode == Mode::SatPoints {
+            0
+          } else {
+            total_postage
+          }),
+      ),
     )
     .build_transaction()?;
 
@@ -385,16 +401,28 @@ impl Batch {
       &reveal_script,
     );
 
-    if reveal_tx.output[commit_input].value
-      < reveal_tx.output[commit_input]
-        .script_pubkey
-        .dust_value()
-        .to_sat()
-    {
-      bail!("commit transaction output would be dust");
+    for output in reveal_tx.output.iter() {
+      if output.value < output.script_pubkey.dust_value().to_sat() {
+        bail!("commit transaction output would be dust");
+      }
     }
 
     let mut prevouts = vec![unsigned_commit_tx.output[vout].clone()];
+
+    if self.mode == Mode::SatPoints {
+      for (i, satpoint) in self.reveal_satpoints.iter().enumerate() {
+        prevouts.insert(
+          i,
+          TxOut {
+            script_pubkey: self.destinations[i].script_pubkey(),
+            value: utxos
+              .get(&satpoint.outpoint)
+              .ok_or_else(|| anyhow!("satpoint not in wallet"))?
+              .to_sat(),
+          },
+        );
+      }
+    }
 
     if let Some(parent_info) = self.parent_info.clone() {
       prevouts.insert(0, parent_info.tx_out);

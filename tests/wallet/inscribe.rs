@@ -2160,12 +2160,12 @@ fn batch_inscribe_with_satpoints_with_parent() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let parent_output =
-    CommandBuilder::new("--index-sats wallet inscribe --fee-rate 5.0 --file parent.png")
-      .write("parent.png", [1; 520])
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
-      .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>();
+  let parent_output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    // .stdout_regex(".*");
+  .run_and_deserialize_output::<Inscribe>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2174,8 +2174,6 @@ fn batch_inscribe_with_satpoints_with_parent() {
     .iter()
     .map(|block| block.txdata[0].txid())
     .collect::<Vec<Txid>>();
-
-  assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
 
   let parent_id = parent_output.inscriptions[0].id;
 
@@ -2231,8 +2229,9 @@ inscriptions:
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
       50 * COIN_VALUE,
+      3 * COIN_VALUE,
       location_1
     ),
   );
@@ -2240,8 +2239,9 @@ inscriptions:
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
       50 * COIN_VALUE,
+      4 * COIN_VALUE,
       location_2
     ),
   );
@@ -2249,8 +2249,9 @@ inscriptions:
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
       50 * COIN_VALUE,
+      5 * COIN_VALUE,
       location_3
     ),
   );

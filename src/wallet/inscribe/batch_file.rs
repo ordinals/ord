@@ -86,10 +86,12 @@ impl Batchfile {
     utxos: &BTreeMap<OutPoint, Amount>,
     parent_value: Option<u64>,
     compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<Amount>, Vec<Address>)> {
+  ) -> Result<(Vec<Inscription>, Vec<SatPoint>, Vec<Amount>, Vec<Address>)> {
     let mut inscriptions = Vec::new();
-    let mut pointer = parent_value.unwrap_or_default();
+    let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
+
+    let mut pointer = parent_value.unwrap_or_default();
 
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {
@@ -114,6 +116,8 @@ impl Batchfile {
         let satpoint = entry
           .satpoint
           .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
+
+        reveal_satpoints.push(satpoint);
 
         utxos
           .get(&satpoint.outpoint)
@@ -155,7 +159,7 @@ impl Batchfile {
         .collect::<Result<Vec<_>, _>>()?,
     };
 
-    Ok((inscriptions, postages, destinations))
+    Ok((inscriptions, reveal_satpoints, postages, destinations))
   }
 }
 

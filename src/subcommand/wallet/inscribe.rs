@@ -87,6 +87,7 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let reveal_satpoints;
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
@@ -114,6 +115,8 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
+        reveal_satpoints = Vec::new();
+
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => wallet.get_change_address()?,
@@ -130,7 +133,7 @@ impl Inscribe {
 
         parent_info = wallet.get_parent_info(batchfile.parent, &utxos)?;
 
-        (inscriptions, postages, destinations) = batchfile.inscriptions(
+        (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,
           &utxos,
           parent_info.as_ref().map(|info| info.tx_out.value),
@@ -160,6 +163,7 @@ impl Inscribe {
       postages,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
+      reveal_satpoints,
       satpoint,
     }
     .inscribe(&locked_utxos, runic_utxos, &utxos, &wallet)
