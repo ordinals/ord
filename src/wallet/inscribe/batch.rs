@@ -148,14 +148,10 @@ impl Batch {
       };
 
       let offset = match self.mode {
-        Mode::SharedOutput => {
-          u64::from(index)
-            * self
-              .postages
-              .first()
-              .map(|amount| amount.to_sat())
-              .unwrap_or_default()
-        }
+        Mode::SharedOutput => self.postages[0..usize::try_from(index).unwrap()]
+          .iter()
+          .map(|amount| amount.to_sat())
+          .sum(),
         Mode::SeparateOutputs | Mode::SameSat | Mode::SatPoints => 0,
       };
 
