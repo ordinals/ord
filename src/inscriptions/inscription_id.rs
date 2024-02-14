@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
 pub struct InscriptionId {
   pub txid: Txid,
   pub index: u32,

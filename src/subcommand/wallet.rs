@@ -15,6 +15,7 @@ pub mod dump;
 pub mod etch;
 pub mod inscribe;
 pub mod inscriptions;
+pub mod label;
 pub mod outputs;
 pub mod receive;
 pub mod restore;
@@ -53,6 +54,8 @@ pub(crate) enum Subcommand {
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
   Inscriptions,
+  #[command(about = "Label wallet outputs")]
+  Label,
   #[command(about = "Generate receive address")]
   Receive,
   #[command(about = "Restore wallet")]
@@ -80,18 +83,19 @@ impl WalletCommand {
 
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
+      Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(create) => create.run(wallet),
       Subcommand::Dump => dump::run(wallet),
       Subcommand::Etch(etch) => etch.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
+      Subcommand::Label => label::run(wallet),
+      Subcommand::Outputs => outputs::run(wallet),
       Subcommand::Receive => receive::run(wallet),
       Subcommand::Restore(restore) => restore.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
-      Subcommand::Outputs => outputs::run(wallet),
-      Subcommand::Cardinals => cardinals::run(wallet),
     }
   }
 }

@@ -11,8 +11,8 @@ pub(crate) struct Sats {
 
 #[derive(Serialize, Deserialize)]
 pub struct OutputTsv {
-  pub sat: String,
-  pub output: OutPoint,
+  pub found: BTreeMap<String, SatPoint>,
+  pub lost: BTreeSet<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -30,24 +30,25 @@ impl Sats {
       "sats requires index created with `--index-sats` flag"
     );
 
-    let utxos = wallet.get_output_sat_ranges()?;
+    let haystacks = wallet.get_output_sat_ranges()?;
 
     if let Some(path) = &self.tsv {
-      let mut output = Vec::new();
-      for (outpoint, sat) in sats_from_tsv(
-        utxos,
-        &fs::read_to_string(path)
-          .with_context(|| format!("I/O error reading `{}`", path.display()))?,
-      )? {
-        output.push(OutputTsv {
-          sat: sat.into(),
-          output: outpoint,
-        });
-      }
-      Ok(Some(Box::new(output)))
+      let tsv = fs::read_to_string(path)
+        .with_context(|| format!("I/O error reading `{}`", path.display()))?;
+
+      let needles = Self::needles(&tsv)?;
+
+      let found = Self::find(&needles, &haystacks);
+
+      let lost = needles
+        .into_iter()
+        .filter_map(|(_sat, value)| (!found.contains_key(value)).then(|| value.into()))
+        .collect();
+
+      Ok(Some(Box::new(OutputTsv { found, lost })))
     } else {
       let mut output = Vec::new();
-      for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
+      for (outpoint, sat, offset, rarity) in Self::rare_sats(haystacks) {
         output.push(OutputRare {
           sat,
           output: outpoint,
@@ -58,80 +59,89 @@ impl Sats {
       Ok(Some(Box::new(output)))
     }
   }
-}
 
-fn rare_sats(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
-  utxos
-    .into_iter()
-    .flat_map(|(outpoint, sat_ranges)| {
+  fn find<'a>(
+    needles: &[(Sat, &'a str)],
+    ranges: &[(OutPoint, Vec<(u64, u64)>)],
+  ) -> BTreeMap<String, SatPoint> {
+    let mut haystacks = Vec::new();
+
+    for (outpoint, ranges) in ranges {
       let mut offset = 0;
-      sat_ranges.into_iter().filter_map(move |(start, end)| {
-        let sat = Sat(start);
-        let rarity = sat.rarity();
-        let start_offset = offset;
+      for (start, end) in ranges {
+        haystacks.push((start, end, offset, outpoint));
         offset += end - start;
-        if rarity > Rarity::Common {
-          Some((outpoint, sat, start_offset, rarity))
-        } else {
-          None
-        }
+      }
+    }
+
+    let mut i = 0;
+    let mut j = 0;
+    let mut results = BTreeMap::new();
+    while i < needles.len() && j < haystacks.len() {
+      let (needle, value) = needles[i];
+      let (&start, &end, offset, outpoint) = haystacks[j];
+
+      if needle >= start && needle < end {
+        results.insert(
+          value.into(),
+          SatPoint {
+            outpoint: *outpoint,
+            offset: offset + needle.0 - start,
+          },
+        );
+      }
+
+      if needle >= end {
+        j += 1;
+      } else {
+        i += 1;
+      }
+    }
+
+    results
+  }
+
+  fn needles(tsv: &str) -> Result<Vec<(Sat, &str)>> {
+    let mut needles = tsv
+      .lines()
+      .enumerate()
+      .filter(|(_i, line)| !line.starts_with('#'))
+      .filter_map(|(i, line)| {
+        line.split('\t').next().map(|value| {
+          Sat::from_str(value).map(|sat| (sat, value)).map_err(|err| {
+            anyhow!(
+              "failed to parse sat from string \"{value}\" on line {}: {err}",
+              i + 1,
+            )
+          })
+        })
       })
-    })
-    .collect()
-}
+      .collect::<Result<Vec<(Sat, &str)>>>()?;
 
-fn sats_from_tsv(
-  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
-  tsv: &str,
-) -> Result<Vec<(OutPoint, &str)>> {
-  let mut needles = Vec::new();
-  for (i, line) in tsv.lines().enumerate() {
-    if line.is_empty() || line.starts_with('#') {
-      continue;
-    }
+    needles.sort();
 
-    if let Some(value) = line.split('\t').next() {
-      let sat = Sat::from_str(value).map_err(|err| {
-        anyhow!(
-          "failed to parse sat from string \"{value}\" on line {}: {err}",
-          i + 1,
-        )
-      })?;
-
-      needles.push((sat, value));
-    }
-  }
-  needles.sort();
-
-  let mut haystacks = utxos
-    .into_iter()
-    .flat_map(|(outpoint, ranges)| {
-      ranges
-        .into_iter()
-        .map(move |(start, end)| (start, end, outpoint))
-    })
-    .collect::<Vec<(u64, u64, OutPoint)>>();
-  haystacks.sort();
-
-  let mut i = 0;
-  let mut j = 0;
-  let mut results = Vec::new();
-  while i < needles.len() && j < haystacks.len() {
-    let (needle, value) = needles[i];
-    let (start, end, outpoint) = haystacks[j];
-
-    if needle >= start && needle < end {
-      results.push((outpoint, value));
-    }
-
-    if needle >= end {
-      j += 1;
-    } else {
-      i += 1;
-    }
+    Ok(needles)
   }
 
-  Ok(results)
+  fn rare_sats(haystacks: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+    haystacks
+      .into_iter()
+      .flat_map(|(outpoint, sat_ranges)| {
+        let mut offset = 0;
+        sat_ranges.into_iter().filter_map(move |(start, end)| {
+          let sat = Sat(start);
+          let rarity = sat.rarity();
+          let start_offset = offset;
+          offset += end - start;
+          if rarity > Rarity::Common {
+            Some((outpoint, sat, start_offset, rarity))
+          } else {
+            None
+          }
+        })
+      })
+      .collect()
+  }
 }
 
 #[cfg(test)]

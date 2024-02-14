@@ -32,7 +32,11 @@ impl Wallet {
       client.load_wallet(&self.name)?;
     }
 
-    self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
+    let info = client.get_wallet_info()?;
+
+    if info.private_keys_enabled {
+      self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
+    }
 
     Ok(client)
   }
@@ -82,7 +86,10 @@ impl Wallet {
       bail!("wallet failed get output: {}", response.text()?);
     }
 
-    let output_json: OutputJson = serde_json::from_str(&response.text()?)?;
+    let text = response.text()?;
+
+    let output_json: OutputJson = serde_json::from_str(&text)
+      .with_context(|| anyhow!("Failed to deserialize response from ord: `{text}`"))?;
 
     if !output_json.indexed {
       bail!("output in wallet but not in ord server: {output}");
