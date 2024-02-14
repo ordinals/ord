@@ -129,7 +129,7 @@ impl Batchfile {
 
       pointer += postage;
 
-      if self.mode == Mode::SameSat && i != 0 {
+      if self.mode == Mode::SameSat && i > 0 {
         continue;
       } else {
         postages.push(Amount::from_sat(postage));
