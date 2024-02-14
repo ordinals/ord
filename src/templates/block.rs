@@ -1,9 +1,5 @@
 use super::*;
 
-fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
-  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
-}
-
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
@@ -59,6 +55,25 @@ impl BlockJson {
       inscriptions,
     }
   }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockInfoJson {
+  pub bits: u32,
+  pub chainwork: u128,
+  pub confirmations: i32,
+  pub difficulty: f64,
+  pub hash: BlockHash,
+  pub height: u32,
+  pub median_time: Option<u64>,
+  pub merkle_root: TxMerkleNode,
+  pub next_block: Option<BlockHash>,
+  pub nonce: u32,
+  pub previous_block: Option<BlockHash>,
+  pub target: BlockHash,
+  pub timestamp: u64,
+  pub transaction_count: u64,
+  pub version: u32,
 }
 
 impl PageContent for BlockHtml {

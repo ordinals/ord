@@ -32,7 +32,7 @@ use {
       locktime::absolute::LockTime,
     },
     consensus::{self, Decodable, Encodable},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     opcodes,
     script::{self, Instruction},
@@ -170,6 +170,10 @@ fn integration_test() -> bool {
 
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
+}
+
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
 fn unbound_outpoint() -> OutPoint {
