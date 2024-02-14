@@ -115,7 +115,7 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
-        reveal_satpoints = Vec::new();
+        reveal_satpoints = BTreeMap::new();
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -140,7 +140,11 @@ impl Inscribe {
           self.compress,
         )?;
 
-        locked_utxos.extend(reveal_satpoints.iter().map(|satpoint| satpoint.outpoint));
+        locked_utxos.extend(
+          reveal_satpoints
+            .iter()
+            .map(|(satpoint, _txout)| satpoint.outpoint),
+        );
 
         mode = batchfile.mode;
 

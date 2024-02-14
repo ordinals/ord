@@ -86,9 +86,14 @@ impl Batchfile {
     utxos: &BTreeMap<OutPoint, TxOut>,
     parent_value: Option<u64>,
     compress: bool,
-  ) -> Result<(Vec<Inscription>, Vec<SatPoint>, Vec<Amount>, Vec<Address>)> {
+  ) -> Result<(
+    Vec<Inscription>,
+    BTreeMap<SatPoint, TxOut>,
+    Vec<Amount>,
+    Vec<Address>,
+  )> {
     let mut inscriptions = Vec::new();
-    let mut reveal_satpoints = Vec::new();
+    let mut reveal_satpoints = BTreeMap::new();
     let mut postages = Vec::new();
 
     let mut pointer = parent_value.unwrap_or_default();
@@ -117,12 +122,13 @@ impl Batchfile {
           .satpoint
           .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
 
-        reveal_satpoints.push(satpoint);
-
-        utxos
+        let txout = utxos
           .get(&satpoint.outpoint)
-          .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?
-          .value
+          .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?;
+
+        reveal_satpoints.insert(satpoint, txout.clone());
+
+        txout.value
       } else {
         self
           .postage

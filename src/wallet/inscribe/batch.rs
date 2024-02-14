@@ -12,7 +12,7 @@ pub struct Batch {
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
-  pub(crate) reveal_satpoints: Vec<SatPoint>,
+  pub(crate) reveal_satpoints: BTreeMap<SatPoint, TxOut>,
   pub(crate) satpoint: Option<SatPoint>,
 }
 
@@ -30,7 +30,7 @@ impl Default for Batch {
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
-      reveal_satpoints: Vec::new(),
+      reveal_satpoints: BTreeMap::new(),
       satpoint: None,
     }
   }
@@ -315,13 +315,15 @@ impl Batch {
 
     let total_postage = self.postages.iter().map(|amount| amount.to_sat()).sum();
 
-    let mut reveal_inputs = vec![OutPoint::null()];
+    let mut reveal_inputs = Vec::new();
 
     if self.mode == Mode::SatPoints {
-      for (i, satpoint) in self.reveal_satpoints.iter().enumerate() {
-        reveal_inputs.insert(i, satpoint.outpoint);
+      for (satpoint, _txout) in self.reveal_satpoints.iter() {
+        reveal_inputs.push(satpoint.outpoint);
       }
     }
+
+    reveal_inputs.push(OutPoint::null()); // dummy commit input
 
     let mut reveal_outputs = self
       .destinations
@@ -353,8 +355,7 @@ impl Batch {
       );
     }
 
-    let mut commit_input = if self.parent_info.is_some() { 1 } else { 0 };
-    commit_input += self.reveal_satpoints.len();
+    let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -365,6 +366,12 @@ impl Batch {
       &reveal_script,
     );
 
+    let target = if self.mode == Mode::SatPoints {
+      Target::Value(reveal_fee)
+    } else {
+      Target::Value(reveal_fee + Amount::from_sat(total_postage))
+    };
+
     let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
       wallet_inscriptions,
@@ -374,14 +381,7 @@ impl Batch {
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
-      Target::Value(
-        reveal_fee
-          + Amount::from_sat(if self.mode == Mode::SatPoints {
-            0
-          } else {
-            total_postage
-          }),
-      ),
+      target,
     )
     .build_transaction()?;
 
@@ -407,9 +407,10 @@ impl Batch {
     );
 
     for output in reveal_tx.output.iter() {
-      if output.value < output.script_pubkey.dust_value().to_sat() {
-        bail!("commit transaction output would be dust"); // add ensure
-      }
+      ensure!(
+        output.value >= output.script_pubkey.dust_value().to_sat(),
+        "commit transaction output would be dust"
+      )
     }
 
     let mut prevouts = Vec::new();
@@ -419,13 +420,8 @@ impl Batch {
     }
 
     if self.mode == Mode::SatPoints {
-      for satpoint in self.reveal_satpoints.iter() {
-        prevouts.push(
-          utxos
-            .get(&satpoint.outpoint)
-            .ok_or_else(|| anyhow!("satpoint not in wallet"))?
-            .clone(),
-        );
+      for (_satpoint, txout) in self.reveal_satpoints.iter() {
+        prevouts.push(txout.clone());
       }
     }
 
