@@ -140,11 +140,7 @@ impl Inscribe {
           self.compress,
         )?;
 
-        locked_utxos.extend(
-          reveal_satpoints
-            .iter()
-            .map(|(satpoint, _txout)| satpoint.outpoint),
-        );
+        locked_utxos.extend(reveal_satpoints.keys().map(|satpoint| satpoint.outpoint));
 
         mode = batchfile.mode;
 

@@ -2259,7 +2259,7 @@ inscriptions:
     );
 }
 
-// #[test]
+#[test]
 fn batch_inscribe_with_satpoints_with_different_sizes() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -2271,9 +2271,9 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let outpoint_1 = OutPoint {
-    txid: CommandBuilder::new(format!(
+    txid: CommandBuilder::new(
       "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 25btc",
-    ))
+    )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
@@ -2285,9 +2285,9 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let outpoint_2 = OutPoint {
-    txid: CommandBuilder::new(format!(
+    txid: CommandBuilder::new(
       "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
-    ))
+    )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
@@ -2297,9 +2297,9 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   };
 
   let outpoint_3 = OutPoint {
-    txid: CommandBuilder::new(format!(
+    txid: CommandBuilder::new(
       "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 3btc",
-    ))
+    )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
