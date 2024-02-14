@@ -407,9 +407,10 @@ impl Wallet {
 
     client.create_wallet(&self.name, None, Some(true), None, None)?;
 
-    for descriptor in descriptors {
-      client.import_descriptors(ImportDescriptors {
-        descriptor: descriptor.desc,
+    let descriptors = descriptors
+      .into_iter()
+      .map(|descriptor| ImportDescriptors {
+        descriptor: descriptor.desc.clone(),
         timestamp: descriptor.timestamp,
         active: Some(true),
         range: descriptor.range.map(|(start, end)| {
@@ -423,8 +424,10 @@ impl Wallet {
           .map(|next| usize::try_from(next).unwrap_or(0)),
         internal: descriptor.internal,
         label: None,
-      })?;
-    }
+      })
+      .collect::<Vec<ImportDescriptors>>();
+
+    client.import_descriptors(descriptors)?;
 
     Ok(())
   }
@@ -493,7 +496,7 @@ impl Wallet {
     self
       .options
       .bitcoin_rpc_client(Some(self.name.clone()))?
-      .import_descriptors(ImportDescriptors {
+      .import_descriptors(vec![ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
@@ -501,7 +504,7 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      })?;
+      }])?;
 
     Ok(())
   }
