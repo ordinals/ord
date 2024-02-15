@@ -30,7 +30,7 @@ impl Display for RuneId {
 }
 
 impl FromStr for RuneId {
-  type Err = crate::Error;
+  type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     let (height, index) = s

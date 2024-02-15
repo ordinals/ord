@@ -225,7 +225,7 @@ mod tests {
     assert_eq!(Epoch::from(Sat(1)), 0);
     assert_eq!(Epoch::from(Epoch(1).starting_sat()), 1);
     assert_eq!(Epoch::from(Epoch(1).starting_sat() + 1), 1);
-    assert_eq!(Epoch::from(Sat(u64::max_value())), 33);
+    assert_eq!(Epoch::from(Sat(u64::MAX)), 33);
   }
 
   #[test]
@@ -237,6 +237,6 @@ mod tests {
   #[test]
   fn first_post_subsidy() {
     assert_eq!(Epoch::FIRST_POST_SUBSIDY.subsidy(), 0);
-    assert!((Epoch(Epoch::FIRST_POST_SUBSIDY.0 - 1)).subsidy() > 0);
+    assert!(Epoch(Epoch::FIRST_POST_SUBSIDY.0 - 1).subsidy() > 0);
   }
 }

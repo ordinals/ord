@@ -291,7 +291,7 @@ impl Wallet {
   pub(crate) fn get_locked_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
+      txid: Txid,
       vout: u32,
     }
 
@@ -489,7 +489,7 @@ impl Wallet {
 
     let public_key = secret_key.to_public(secp)?;
 
-    let mut key_map = std::collections::HashMap::new();
+    let mut key_map = HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;

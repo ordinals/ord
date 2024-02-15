@@ -23,7 +23,7 @@ impl Restore {
 
     if self.descriptor {
       let mut buffer = Vec::new();
-      std::io::stdin().read_to_end(&mut buffer)?;
+      io::stdin().read_to_end(&mut buffer)?;
 
       let wallet_descriptors: ListDescriptorsResult = serde_json::from_slice(&buffer)?;
 

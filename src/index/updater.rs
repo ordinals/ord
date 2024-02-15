@@ -254,7 +254,7 @@ impl<'index> Updater<'_> {
     // else runs a request, we keep this to 12.
     const PARALLEL_REQUESTS: usize = 12;
 
-    std::thread::spawn(move || {
+    thread::spawn(move || {
       let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
