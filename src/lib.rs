@@ -17,7 +17,10 @@ use {
     blocktime::Blocktime,
     config::Config,
     decimal::Decimal,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    inscriptions::{
+      media::{self, ImageRendering},
+      teleburn, Charm, Media, ParsedEnvelope,
+    },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
