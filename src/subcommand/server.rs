@@ -48,7 +48,7 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
   Number(i32),

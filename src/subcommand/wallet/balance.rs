@@ -25,18 +25,18 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runes = BTreeMap::new();
   let mut runic = 0;
 
-  for (output, amount) in unspent_outputs {
+  for (output, txout) in unspent_outputs {
     let rune_balances = wallet.get_runes_balances_for_output(&output)?;
 
     if inscription_outputs.contains(&output) {
-      ordinal += amount.to_sat();
+      ordinal += txout.value;
     } else if !rune_balances.is_empty() {
       for (spaced_rune, pile) in rune_balances {
         *runes.entry(spaced_rune.rune).or_default() += pile.amount;
       }
-      runic += amount.to_sat();
+      runic += txout.value;
     } else {
-      cardinal += amount.to_sat();
+      cardinal += txout.value;
     }
   }
 

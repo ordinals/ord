@@ -17,13 +17,13 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let cardinal_utxos = unspent_outputs
     .iter()
-    .filter_map(|(output, amount)| {
+    .filter_map(|(output, txout)| {
       if inscribed_utxos.contains(output) {
         None
       } else {
         Some(CardinalUtxo {
           output: *output,
-          amount: amount.to_sat(),
+          amount: txout.value,
         })
       }
     })
