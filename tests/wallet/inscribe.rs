@@ -2175,6 +2175,63 @@ fn batch_inscribe_with_satpoints_with_parent() {
     .map(|block| block.txdata[0].txid())
     .collect::<Vec<Txid>>();
 
+  let satpoint_1 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[0],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let satpoint_2 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[1],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let satpoint_3 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[2],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let sat_1 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_1.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
+  let sat_2 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_2.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
+  let sat_3 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_3.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
   let parent_id = parent_output.inscriptions[0].id;
 
   let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
@@ -2189,13 +2246,13 @@ mode: satpoints
 parent: {parent_id}
 inscriptions:
 - file: inscription.txt
-  satpoint: {}:0:0
+  satpoint: {}
 - file: tulip.png
-  satpoint: {}:0:0
+  satpoint: {}
 - file: meow.wav
-  satpoint: {}:0:0
+  satpoint: {}
 "#,
-        txids[0], txids[1], txids[2]
+        satpoint_1, satpoint_2, satpoint_3
       ),
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -2203,6 +2260,14 @@ inscriptions:
     .run_and_deserialize_output::<Inscribe>();
 
   bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", parent_id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
+      output.reveal
+    ),
+  );
 
   for inscription in &output.inscriptions {
     assert_eq!(inscription.location.offset, 0);
@@ -2216,47 +2281,36 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let location_1 = output.inscriptions[0].location;
-  let location_2 = output.inscriptions[1].location;
-  let location_3 = output.inscriptions[2].location;
+  let inscription_1 = output.inscriptions[0];
+  let inscription_2 = output.inscriptions[1];
+  let inscription_3 = output.inscriptions[2];
 
   ord_rpc_server.assert_response_regex(
-    format!("/inscription/{}", parent_id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
-      output.reveal
-    ),
-  );
-
-  ord_rpc_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+    format!("/inscription/{}", inscription_1.id),
+    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
       50 * COIN_VALUE,
-      150 * COIN_VALUE,
-      location_1
+      sat_1,
+      inscription_1.location,
     ),
   );
 
   ord_rpc_server.assert_response_regex(
-        format!("/inscription/{}", output.inscriptions[1].id),
-        format!(
-          r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-          50 * COIN_VALUE,
-          250 * COIN_VALUE,
-          location_2
-        ),
-      );
+      format!("/inscription/{}", inscription_2.id),
+      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+         50 * COIN_VALUE,
+         sat_2,
+         inscription_2.location
+      ),
+    );
 
   ord_rpc_server.assert_response_regex(
-        format!("/inscription/{}", output.inscriptions[2].id),
-        format!(
-          r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-          50 * COIN_VALUE,
-          200 * COIN_VALUE,
-          location_3
-        ),
-      );
+      format!("/inscription/{}", inscription_3.id),
+      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+        50 * COIN_VALUE,
+        sat_3,
+        inscription_3.location
+      ),
+    );
 }
 
 #[test]
@@ -2268,7 +2322,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(3);
 
   let outpoint_1 = OutPoint {
     txid: CommandBuilder::new(
@@ -2312,6 +2366,52 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
+  let satpoint_1 = SatPoint {
+    outpoint: outpoint_1,
+    offset: 0,
+  };
+
+  let satpoint_2 = SatPoint {
+    outpoint: outpoint_2,
+    offset: 0,
+  };
+
+  let satpoint_3 = SatPoint {
+    outpoint: outpoint_3,
+    offset: 0,
+  };
+
+  let output_1 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_1.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_1.value, 25 * COIN_VALUE);
+
+  let output_2 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_2.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_2.value, COIN_VALUE);
+
+  let output_3 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_3.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_3.value, 3 * COIN_VALUE);
+
+  let sat_1 = output_1.sat_ranges.unwrap()[0].0;
+  let sat_2 = output_2.sat_ranges.unwrap()[0].0;
+  let sat_3 = output_3.sat_ranges.unwrap()[0].0;
+
   let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 5])
@@ -2323,13 +2423,13 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
 mode: satpoints
 inscriptions:
 - file: inscription.txt
-  satpoint: {}:0
+  satpoint: {}
 - file: tulip.png
-  satpoint: {}:0
+  satpoint: {}
 - file: meow.wav
-  satpoint: {}:0
+  satpoint: {}
 "#,
-        outpoint_1, outpoint_2, outpoint_3
+        satpoint_1, satpoint_2, satpoint_3
       ),
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -2350,37 +2450,37 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let location_1 = output.inscriptions[0].location;
-  let location_2 = output.inscriptions[1].location;
-  let location_3 = output.inscriptions[2].location;
+  let inscription_1 = output.inscriptions[0];
+  let inscription_2 = output.inscriptions[1];
+  let inscription_3 = output.inscriptions[2];
 
   ord_rpc_server.assert_response_regex(
-     format!("/inscription/{}", output.inscriptions[0].id),
+     format!("/inscription/{}", inscription_1.id),
      format!(
        r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
        25 * COIN_VALUE,
-       50 * COIN_VALUE,
-       location_1
+       sat_1,
+       inscription_1.location
      ),
    );
 
   ord_rpc_server.assert_response_regex(
-      format!("/inscription/{}", output.inscriptions[1].id),
+      format!("/inscription/{}", inscription_2.id),
       format!(
         r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
         COIN_VALUE,
-        72 * COIN_VALUE ,
-        location_2
+        sat_2,
+        inscription_2.location
       ),
     );
 
   ord_rpc_server.assert_response_regex(
-       format!("/inscription/{}", output.inscriptions[2].id),
-       format!(
-         r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-         3 * COIN_VALUE,
-         73 * COIN_VALUE,
-         location_3
-       ),
-     );
+         format!("/inscription/{}", inscription_3.id),
+         format!(
+           r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+           3 * COIN_VALUE,
+           sat_3,
+           inscription_3.location
+         ),
+  );
 }

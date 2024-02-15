@@ -115,7 +115,7 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
-        reveal_satpoints = BTreeMap::new();
+        reveal_satpoints = Vec::new();
 
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
@@ -140,7 +140,11 @@ impl Inscribe {
           self.compress,
         )?;
 
-        locked_utxos.extend(reveal_satpoints.keys().map(|satpoint| satpoint.outpoint));
+        locked_utxos.extend(
+          reveal_satpoints
+            .iter()
+            .map(|(satpoint, _)| satpoint.outpoint),
+        );
 
         mode = batchfile.mode;
 
@@ -942,7 +946,7 @@ inscriptions:
           txout.clone(),
         )
       })
-      .collect::<BTreeMap<SatPoint, TxOut>>();
+      .collect::<Vec<(SatPoint, TxOut)>>();
 
     let mode = Mode::SatPoints;
 
@@ -967,8 +971,8 @@ inscriptions:
       wallet_inscriptions,
       Chain::Signet,
       reveal_satpoints
-        .keys()
-        .map(|satpoint| satpoint.outpoint)
+        .iter()
+        .map(|(satpoint, _)| satpoint.outpoint)
         .collect(),
       BTreeSet::new(),
       utxos.into_iter().collect(),

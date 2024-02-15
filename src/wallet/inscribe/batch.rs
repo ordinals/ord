@@ -12,7 +12,7 @@ pub struct Batch {
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
-  pub(crate) reveal_satpoints: BTreeMap<SatPoint, TxOut>,
+  pub(crate) reveal_satpoints: Vec<(SatPoint, TxOut)>,
   pub(crate) satpoint: Option<SatPoint>,
 }
 
@@ -30,7 +30,7 @@ impl Default for Batch {
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
-      reveal_satpoints: BTreeMap::new(),
+      reveal_satpoints: Vec::new(),
       satpoint: None,
     }
   }
@@ -514,13 +514,13 @@ impl Batch {
   fn build_reveal_transaction(
     control_block: &ControlBlock,
     fee_rate: FeeRate,
-    inputs: Vec<OutPoint>,
+    reveal_inputs: Vec<OutPoint>,
     commit_input_index: usize,
     outputs: Vec<TxOut>,
     script: &Script,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
-      input: inputs
+      input: reveal_inputs
         .iter()
         .map(|outpoint| TxIn {
           previous_output: *outpoint,

@@ -70,19 +70,21 @@ impl Batchfile {
           .all(|entry| entry.satpoint.unwrap().offset == 0),
         "`satpoint` can only be specified for first sat of an output"
       );
+    }
 
+    if batchfile.mode == Mode::SatPoints {
       ensure!(
         batchfile.postage.is_none(),
-        "`postage` cannot be set if `satpoint` is set for any inscription"
+        "`postage` cannot be set if in `satpoints` mode"
       );
 
       ensure!(
         batchfile.sat.is_none(),
-        ""
+        "`sat` cannot be set if in `satpoints` mode"
       );
       ensure!(
         batchfile.satpoint.is_none(),
-        ""
+        "`satpoint cannot be set if in `satpoints` mode"
       );
     }
 
@@ -97,12 +99,12 @@ impl Batchfile {
     compress: bool,
   ) -> Result<(
     Vec<Inscription>,
-    BTreeMap<SatPoint, TxOut>,
+    Vec<(SatPoint, TxOut)>,
     Vec<Amount>,
     Vec<Address>,
   )> {
     let mut inscriptions = Vec::new();
-    let mut reveal_satpoints = BTreeMap::new();
+    let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
 
     let mut pointer = parent_value.unwrap_or_default();
@@ -135,7 +137,7 @@ impl Batchfile {
           .get(&satpoint.outpoint)
           .ok_or_else(|| anyhow!("{} not in wallet", satpoint))?;
 
-        reveal_satpoints.insert(satpoint, txout.clone());
+        reveal_satpoints.push((satpoint, txout.clone()));
 
         txout.value
       } else {
@@ -312,7 +314,7 @@ inscriptions:
       Batchfile::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
-      "`postage` cannot be set if `satpoint` is set for any inscription"
+      "`postage` cannot be set if in `satpoints` mode"
     );
   }
 }
