@@ -2726,21 +2726,45 @@ mod tests {
 
   #[test]
   fn status() {
-    let test_server = TestServer::new();
+    let server = TestServer::new_with_regtest();
 
-    test_server.assert_response_regex(
+    server.mine_blocks(2);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        0,
+        0,
+        Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
       "/status",
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
   <dt>chain</dt>
-  <dd>mainnet</dd>
+  <dd>regtest</dd>
   <dt>height</dt>
-  <dd>0</dd>
+  <dd>3</dd>
   <dt>inscriptions</dt>
-  <dd>0</dd>
+  <dd>2</dd>
   <dt>blessed inscriptions</dt>
-  <dd>0</dd>
+  <dd>2</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
   <dt>runes</dt>
@@ -2752,7 +2776,7 @@ mod tests {
   <dt>uptime</dt>
   <dd>.*</dd>
   <dt>minimum rune for next block</dt>
-  <dd>AAAAAAAAAAAAA</dd>
+  <dd>ZZUZLIJCKPAY</dd>
   <dt>version</dt>
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
@@ -2770,6 +2794,15 @@ mod tests {
     <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
+  </dd>
+  <dt>inscription content types</dt>
+  <dd>
+    <dl>
+      <dt><em>none</em></dt>
+      <dd>1</dt>
+      <dt>text/plain;charset=utf-8</dt>
+      <dd>1</dt>
+    </dl>
   </dd>
 </dl>
 .*",
