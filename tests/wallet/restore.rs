@@ -14,7 +14,8 @@ fn restore_generates_same_descriptors() {
 
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new(["wallet", "restore", "--mnemonic", &mnemonic.to_string()])
+  CommandBuilder::new(["wallet", "restore", "--mnemonic"])
+    .stdin(mnemonic.to_string().into())
     .bitcoin_rpc_server(&rpc_server)
     .run_and_extract_stdout();
 
@@ -43,8 +44,8 @@ fn restore_generates_same_descriptors_with_passphrase() {
     "--passphrase",
     passphrase,
     "--mnemonic",
-    &mnemonic.to_string(),
   ])
+  .stdin(mnemonic.to_string().into())
   .bitcoin_rpc_server(&rpc_server)
   .run_and_extract_stdout();
 
@@ -163,8 +164,7 @@ fn restore_with_blank_mnemonic_generates_same_descriptors() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   CommandBuilder::new(["wallet", "restore", "--mnemonic"])
-    .stdout_regex("Please input your seed phrase:")
-    .stdin(mnemonic.to_string().into_bytes())
+    .stdin(mnemonic.to_string().into())
     .bitcoin_rpc_server(&rpc_server)
     .run_and_extract_stdout();
 
