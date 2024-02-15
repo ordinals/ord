@@ -887,9 +887,9 @@ inscriptions:
   #[test]
   fn batch_inscribe_satpoints_with_parent() {
     let utxos = vec![
-      (outpoint(1), tx_out(1111, address())),
-      (outpoint(2), tx_out(2222, address())),
-      (outpoint(3), tx_out(3333, address())),
+      (outpoint(1), tx_out(1_111, address())),
+      (outpoint(2), tx_out(2_222, address())),
+      (outpoint(3), tx_out(3_333, address())),
       (outpoint(4), tx_out(10_000, address())),
       (outpoint(5), tx_out(50_000, address())),
       (outpoint(6), tx_out(60_000, address())),
@@ -960,9 +960,9 @@ inscriptions:
       commit_fee_rate: fee_rate,
       reveal_fee_rate: fee_rate,
       postages: vec![
-        Amount::from_sat(1111),
-        Amount::from_sat(2222),
-        Amount::from_sat(3333),
+        Amount::from_sat(1_111),
+        Amount::from_sat(2_222),
+        Amount::from_sat(3_333),
       ],
       mode,
       ..Default::default()
