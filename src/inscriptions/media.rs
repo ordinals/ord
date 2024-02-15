@@ -178,10 +178,7 @@ mod tests {
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.txt")).unwrap(),
-      (
-        "text/plain;charset=utf-8",
-        BROTLI_MODE_TEXT
-      )
+      ("text/plain;charset=utf-8", BROTLI_MODE_TEXT)
     );
     assert_regex_match!(
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
