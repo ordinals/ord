@@ -325,7 +325,7 @@ impl Server {
 
       let router =
         if let Some((username, password)) = self.username.as_ref().zip(self.password.as_ref()) {
-          router.layer(ValidateRequestHeaderLayer::basic(&username, &password))
+          router.layer(ValidateRequestHeaderLayer::basic(username, password))
         } else {
           router
         };
