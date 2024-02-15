@@ -75,6 +75,15 @@ impl Batchfile {
         batchfile.postage.is_none(),
         "`postage` cannot be set if `satpoint` is set for any inscription"
       );
+
+      ensure!(
+        batchfile.sat.is_none(),
+        ""
+      );
+      ensure!(
+        batchfile.satpoint.is_none(),
+        ""
+      );
     }
 
     Ok(batchfile)

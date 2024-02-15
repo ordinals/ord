@@ -2208,13 +2208,11 @@ inscriptions:
     assert_eq!(inscription.location.offset, 0);
   }
 
-  let mut outpoints = output
+  let outpoints = output
     .inscriptions
     .iter()
     .map(|inscription| inscription.location.outpoint)
     .collect::<Vec<OutPoint>>();
-  outpoints.sort();
-  outpoints.dedup();
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
@@ -2344,13 +2342,11 @@ inscriptions:
     assert_eq!(inscription.location.offset, 0);
   }
 
-  let mut outpoints = output
+  let outpoints = output
     .inscriptions
     .iter()
     .map(|inscription| inscription.location.outpoint)
     .collect::<Vec<OutPoint>>();
-  outpoints.sort();
-  outpoints.dedup();
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
