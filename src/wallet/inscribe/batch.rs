@@ -312,27 +312,7 @@ impl Batch {
     let total_postage = self.postages.iter().map(|amount| amount.to_sat()).sum();
 
     let mut reveal_inputs = Vec::new();
-
-    if self.mode == Mode::SatPoints {
-      for (satpoint, _txout) in self.reveal_satpoints.iter() {
-        reveal_inputs.push(satpoint.outpoint);
-      }
-    }
-
-    reveal_inputs.push(OutPoint::null()); // dummy commit input
-
-    let mut reveal_outputs = self
-      .destinations
-      .iter()
-      .enumerate()
-      .map(|(i, destination)| TxOut {
-        script_pubkey: destination.script_pubkey(),
-        value: match self.mode {
-          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(),
-          Mode::SharedOutput | Mode::SameSat => total_postage,
-        },
-      })
-      .collect::<Vec<TxOut>>();
+    let mut reveal_outputs = Vec::new();
 
     if let Some(ParentInfo {
       location,
@@ -341,14 +321,29 @@ impl Batch {
       tx_out,
     }) = self.parent_info.clone()
     {
-      reveal_inputs.insert(0, location.outpoint);
-      reveal_outputs.insert(
-        0,
-        TxOut {
-          script_pubkey: destination.script_pubkey(),
-          value: tx_out.value,
+      reveal_inputs.push(location.outpoint);
+      reveal_outputs.push(TxOut {
+        script_pubkey: destination.script_pubkey(),
+        value: tx_out.value,
+      });
+    }
+
+    if self.mode == Mode::SatPoints {
+      for (satpoint, _txout) in self.reveal_satpoints.iter() {
+        reveal_inputs.push(satpoint.outpoint);
+      }
+    }
+
+    reveal_inputs.push(OutPoint::null());
+
+    for (i, destination) in self.destinations.iter().enumerate() {
+      reveal_outputs.push(TxOut {
+        script_pubkey: destination.script_pubkey(),
+        value: match self.mode {
+          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(),
+          Mode::SharedOutput | Mode::SameSat => total_postage,
         },
-      );
+      });
     }
 
     let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
