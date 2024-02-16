@@ -171,3 +171,24 @@ fn restore_with_blank_mnemonic_generates_same_descriptors() {
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
+
+#[test]
+fn passphrase_conflicts_with_descriptor() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+
+  CommandBuilder::new([
+    "wallet",
+    "restore",
+    "--from",
+    "descriptor",
+    "--passphrase",
+    "supersecurepassword",
+  ])
+  .stdin("".into())
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: descriptor does not take a passphrase\n")
+  .run_and_extract_stdout();
+}
