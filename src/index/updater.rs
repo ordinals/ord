@@ -312,6 +312,7 @@ impl<'index> Updater<'index> {
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
+    eprintln!("Indexing block {}",self.height);
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
     let start = Instant::now();
