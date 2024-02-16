@@ -317,6 +317,7 @@ impl<'index> Updater<'_> {
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
+    eprintln!("Indexing block {}",self.height);
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
     let start = Instant::now();
@@ -608,6 +609,11 @@ impl<'index> Updater<'_> {
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
+        eprintln!(
+          "Index runes: block {}, txid {}",
+          self.height,
+          txid,
+        );
         rune_updater.index_runes(i, tx, *txid)?;
       }
 
