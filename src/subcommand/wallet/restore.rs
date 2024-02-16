@@ -31,7 +31,7 @@ impl Restore {
         wallet.initialize_from_descriptors(wallet_descriptors.descriptors)?;
       }
       Source::Mnemonic => {
-        let mnemonic = Mnemonic::parse_normalized(&buffer)?;
+        let mnemonic = Mnemonic::from_str(&buffer)?;
         wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?;
       }
     }
