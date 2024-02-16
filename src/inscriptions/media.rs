@@ -66,7 +66,7 @@ impl Media {
     ("font/woff",                   BROTLI_MODE_GENERIC, Media::Font,                       &["woff"]),
     ("font/woff2",                  BROTLI_MODE_FONT,    Media::Font,                       &["woff2"]),
     ("image/apng",                  BROTLI_MODE_GENERIC, Media::Image,                      &["apng"]),
-    ("image/avif",                  BROTLI_MODE_GENERIC, Media::Image,                      &[]),
+    ("image/avif",                  BROTLI_MODE_GENERIC, Media::Image,                      &["avif"]),
     ("image/gif",                   BROTLI_MODE_GENERIC, Media::Image,                      &["gif"]),
     ("image/jpeg",                  BROTLI_MODE_GENERIC, Media::Image,                      &["jpg", "jpeg"]),
     ("image/png",                   BROTLI_MODE_GENERIC, Media::Image,                      &["png"]),
