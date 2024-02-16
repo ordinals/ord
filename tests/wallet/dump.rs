@@ -33,7 +33,7 @@ fn dumped_descriptors_restore() {
 
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet restore --descriptor")
+  CommandBuilder::new("wallet restore --from descriptor")
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .run_and_extract_stdout();
@@ -59,7 +59,7 @@ fn dump_and_restore_descriptors_with_minify() {
 
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet restore --descriptor")
+  CommandBuilder::new("wallet restore --from descriptor")
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .run_and_extract_stdout();

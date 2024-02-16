@@ -8,8 +8,8 @@ use {
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
-      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      BlockHtml, BlockInfoJson, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson,
+      ClockSvg, CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
       PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
       PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
@@ -48,7 +48,7 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
   Number(i32),
@@ -122,6 +122,15 @@ impl Display for StaticHtml {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     f.write_str(self.html)
   }
+}
+
+fn chainwork(chainwork: &[u8]) -> u128 {
+  chainwork
+    .iter()
+    .rev()
+    .enumerate()
+    .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
+    .sum()
 }
 
 #[derive(Debug, Parser, Clone)]
@@ -255,6 +264,7 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/blockinfo/:query", get(Self::block_info))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -1051,6 +1061,49 @@ impl Server {
           .ok_or_not_found(|| "blockhash")?
           .to_string(),
       ))
+    })
+  }
+
+  async fn block_info(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
+  ) -> ServerResult<Json<BlockInfoJson>> {
+    task::block_in_place(|| {
+      let hash = match query {
+        BlockQuery::Hash(hash) => hash,
+        BlockQuery::Height(height) => index
+          .block_hash(Some(height))?
+          .ok_or_not_found(|| format!("block {height}"))?,
+      };
+
+      let info = index
+        .block_header_info(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      let header = index
+        .block_header(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      Ok(Json(BlockInfoJson {
+        bits: header.bits.to_consensus(),
+        chainwork: chainwork(&info.chainwork),
+        confirmations: info.confirmations,
+        difficulty: info.difficulty,
+        hash,
+        height: info.height.try_into().unwrap(),
+        median_time: info
+          .median_time
+          .map(|median_time| median_time.try_into().unwrap()),
+        merkle_root: info.merkle_root,
+        next_block: info.next_block_hash,
+        nonce: info.nonce,
+        previous_block: info.previous_block_hash,
+        target: target_as_block_hash(header.target()),
+        timestamp: info.time.try_into().unwrap(),
+        transaction_count: info.n_tx.try_into().unwrap(),
+        #[allow(clippy::cast_sign_loss)]
+        version: info.version.to_consensus() as u32,
+      }))
     })
   }
 
@@ -5179,5 +5232,71 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn chainwork_conversion_to_integer() {
+    assert_eq!(chainwork(&[]), 0);
+    assert_eq!(chainwork(&[1]), 1);
+    assert_eq!(chainwork(&[1, 0]), 256);
+    assert_eq!(chainwork(&[1, 1]), 257);
+    assert_eq!(chainwork(&[1, 0, 0]), 65536);
+    assert_eq!(chainwork(&[1, 0, 1]), 65537);
+    assert_eq!(chainwork(&[1, 1, 1]), 65793);
+  }
+
+  #[test]
+  fn block_info() {
+    let server = TestServer::new();
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/0"),
+      BlockInfoJson {
+        bits: 486604799,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+          .parse()
+          .unwrap(),
+        height: 0,
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+          .parse()
+          .unwrap(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    );
+
+    server.mine_blocks(1);
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/1"),
+      BlockInfoJson {
+        bits: 0,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
+          .parse()
+          .unwrap(),
+        height: 1,
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: BlockHash::all_zeros(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    )
   }
 }

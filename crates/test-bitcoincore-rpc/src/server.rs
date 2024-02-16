@@ -791,9 +791,6 @@ impl Api for Server {
     sighash_type: Option<()>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
-    // we only call this function in `ord wallet send --dry-run` in which case
-    // we don't want to sign the PSBT, so we assert that sign is false.
-    assert_eq!(sign, Some(false));
     assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
@@ -817,9 +814,43 @@ impl Api for Server {
       );
     }
 
+    if let Some(sign) = sign {
+      if sign {
+        for input in psbt.inputs.iter_mut() {
+          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+        }
+      }
+    }
+
     Ok(WalletProcessPsbtResult {
       psbt: base64::engine::general_purpose::STANDARD.encode(psbt.serialize()),
       complete: false,
+    })
+  }
+
+  fn finalize_psbt(
+    &self,
+    psbt: String,
+    _extract: Option<bool>,
+  ) -> Result<FinalizePsbtResult, jsonrpc_core::Error> {
+    let mut transaction = Psbt::deserialize(
+      &base64::engine::general_purpose::STANDARD
+        .decode(psbt)
+        .unwrap(),
+    )
+    .unwrap()
+    .unsigned_tx;
+
+    for input in &mut transaction.input {
+      if input.witness.is_empty() {
+        input.witness = Witness::from_slice(&[&[0; 64]]);
+      }
+    }
+
+    Ok(FinalizePsbtResult {
+      psbt: None,
+      hex: Some(serialize(&transaction)),
+      complete: true,
     })
   }
 }

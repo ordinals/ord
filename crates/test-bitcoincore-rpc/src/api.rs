@@ -185,4 +185,11 @@ pub trait Api {
     sighash_type: Option<()>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "finalizepsbt")]
+  fn finalize_psbt(
+    &self,
+    psbt: String,
+    extract: Option<bool>,
+  ) -> Result<FinalizePsbtResult, jsonrpc_core::Error>;
 }
