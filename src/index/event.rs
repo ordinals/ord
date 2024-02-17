@@ -10,7 +10,7 @@ pub enum Event {
     parent_inscription_id: Option<InscriptionId>,
     sequence_number: u32,
   },
-  InscriptionMoved {
+  InscriptionTransferred {
     block_height: u32,
     inscription_id: InscriptionId,
     new_location: SatPoint,

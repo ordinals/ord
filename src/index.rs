@@ -31,8 +31,7 @@ use {
   },
 };
 
-pub use self::entry::RuneEntry;
-pub use {self::event::Event, entry::MintEntry};
+pub use {self::entry::RuneEntry, entry::MintEntry};
 
 pub(crate) mod entry;
 pub mod event;
@@ -5722,7 +5721,7 @@ mod tests {
     let transfer_event = event_receiver.blocking_recv().unwrap();
     assert_eq!(
       transfer_event,
-      Event::InscriptionMoved {
+      Event::InscriptionTransferred {
         block_height: 3,
         inscription_id,
         new_location: SatPoint {

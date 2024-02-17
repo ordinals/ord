@@ -395,7 +395,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .value();
 
         if let Some(sender) = self.event_sender {
-          sender.blocking_send(Event::InscriptionMoved {
+          sender.blocking_send(Event::InscriptionTransferred {
             block_height: self.height,
             inscription_id,
             new_location: new_satpoint,
