@@ -424,6 +424,7 @@ impl<'index> Updater<'_> {
       blessed_inscription_count,
       chain: self.index.options.chain(),
       cursed_inscription_count,
+      event_sender: self.index.event_sender.as_ref(),
       flotsam: Vec::new(),
       height: self.height,
       home_inscription_count,
@@ -446,7 +447,6 @@ impl<'index> Updater<'_> {
       unbound_inscriptions,
       value_cache,
       value_receiver,
-      event_sender: self.index.event_sender.as_ref(),
     };
 
     if self.index.index_sats {
