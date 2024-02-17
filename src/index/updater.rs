@@ -424,6 +424,7 @@ impl<'index> Updater<'_> {
       blessed_inscription_count,
       chain: self.index.options.chain(),
       cursed_inscription_count,
+      event_sender: self.index.event_sender.as_ref(),
       flotsam: Vec::new(),
       height: self.height,
       home_inscription_count,
