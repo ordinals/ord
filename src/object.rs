@@ -1,5 +1,4 @@
 use super::*;
-use bitcoin::hashes::Hash;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
