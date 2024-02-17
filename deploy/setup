@@ -5,14 +5,15 @@
 set -euxo pipefail
 
 CHAIN=$1
-DOMAIN=$2
-BRANCH=$3
-COMMIT=$4
-REVISION="ord-$BRANCH-$COMMIT"
+FIH=$2
+# DOMAIN=$2
+# BRANCH=$3
+# COMMIT=$4
+# REVISION="ord-$BRANCH-$COMMIT"
 
 touch ~/.hushlogin
 
-hostnamectl set-hostname $DOMAIN
+# hostnamectl set-hostname $DOMAIN
 
 apt-get install --yes \
   acl \
@@ -64,7 +65,7 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CSP_ORIGIN \
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\nEnvironment=FIH=%s\n" $CHAIN $CSP_ORIGIN $FIH \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
@@ -125,7 +126,7 @@ systemctl daemon-reload
 systemctl enable ord
 systemctl restart ord
 
-while ! curl --fail https://$DOMAIN/status > /dev/null; do
-  echo "Waiting for ord at https://$DOMAIN/status…"
-  sleep 1
-done
+# while ! curl --fail http://$DOMAIN/status > /dev/null; do
+#   echo "Waiting for ord at http://$DOMAIN/status…"
+#   sleep 1
+# done

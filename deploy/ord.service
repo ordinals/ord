@@ -14,13 +14,9 @@ ExecStart=/usr/local/bin/ord \
   --config-dir /var/lib/ord \
   --data-dir /var/lib/ord \
   --index-runes \
-  --index-sats \
-  server \
-  --acme-contact mailto:casey@rodarmor.com \
-  --csp-origin https://${CSP_ORIGIN} \
-  --http \
-  --https \
-  --disable-json-api
+  --no-index-inscriptions \
+  --first-inscription-height=${FIH}
+  server
 Group=ord
 LimitNOFILE=65536
 MemoryDenyWriteExecute=true
