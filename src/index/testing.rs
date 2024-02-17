@@ -37,9 +37,9 @@ impl ContextBuilder {
     index.update().unwrap();
 
     Ok(Context {
+      index,
       rpc_server,
       tempdir,
-      index,
     })
   }
 
@@ -70,19 +70,19 @@ impl ContextBuilder {
 }
 
 pub(crate) struct Context {
+  pub(crate) index: Index,
   pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
   #[allow(unused)]
   pub(crate) tempdir: TempDir,
-  pub(crate) index: Index,
 }
 
 impl Context {
   pub(crate) fn builder() -> ContextBuilder {
     ContextBuilder {
       args: Vec::new(),
-      tempdir: None,
       chain: Chain::Regtest,
       event_sender: None,
+      tempdir: None,
     }
   }
 
