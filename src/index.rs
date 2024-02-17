@@ -220,10 +220,10 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
-    Index::open_with_sender(options, None)
+    Index::open_with_event_sender(options, None)
   }
 
-  pub fn open_with_sender(
+  pub fn open_with_event_sender(
     options: &Options,
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
