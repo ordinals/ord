@@ -3,8 +3,8 @@ use {super::*, std::ffi::OsString, tempfile::TempDir};
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,
   chain: Chain,
-  tempdir: Option<TempDir>,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
+  tempdir: Option<TempDir>,
 }
 
 impl ContextBuilder {
