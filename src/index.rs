@@ -407,6 +407,7 @@ impl Index {
       client,
       database,
       durability,
+      event_sender,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
@@ -418,7 +419,6 @@ impl Index {
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
-      event_sender,
     })
   }
 
