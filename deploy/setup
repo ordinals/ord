@@ -6,14 +6,8 @@ set -euxo pipefail
 
 CHAIN=$1
 FIH=$2
-# DOMAIN=$2
-# BRANCH=$3
-# COMMIT=$4
-# REVISION="ord-$BRANCH-$COMMIT"
 
 touch ~/.hushlogin
-
-# hostnamectl set-hostname $DOMAIN
 
 apt-get install --yes \
   acl \
@@ -125,8 +119,3 @@ cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable ord
 systemctl restart ord
-
-# while ! curl --fail http://$DOMAIN/status > /dev/null; do
-#   echo "Waiting for ord at http://$DOMAIN/status…"
-#   sleep 1
-# done
