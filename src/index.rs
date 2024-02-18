@@ -514,7 +514,6 @@ impl Index {
 
       let (sequence_number, inscription_entry) = result?;
       let sequence_number = sequence_number.value();
-
       let inscription_entry = InscriptionEntry::load(inscription_entry.value());
 
       let inscription = self.get_inscription_by_id(inscription_entry.id)?.unwrap();
@@ -539,8 +538,8 @@ impl Index {
 
       fs::write(
         directory.join(format!(
-          "{sequence_number}.{}.{extension}",
-          inscription_entry.inscription_number
+          "{sequence_number}-{}.{extension}",
+          inscription_entry.id
         )),
         body,
       )?;
