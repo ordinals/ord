@@ -16,6 +16,7 @@ use {
 
 pub mod inscribe;
 pub mod transaction_builder;
+pub mod wallet_async;
 
 pub(crate) struct Wallet {
   pub(crate) name: String,

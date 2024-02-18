@@ -2,7 +2,7 @@ use {
   super::*,
   crate::wallet::{
     inscribe::{Batch, Batchfile, Mode},
-    Wallet,
+    wallet_async, Wallet,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   reqwest::Url,
@@ -74,9 +74,16 @@ impl WalletCommand {
     let wallet = Wallet {
       name: self.name.clone(),
       no_sync: self.no_sync,
-      options,
-      ord_url: self.server_url,
+      options: options.clone(),
+      ord_url: self.server_url.clone(),
     };
+
+    //let wallet_async = wallet::wallet_async::WalletAsync::build(
+    //  self.name.clone(),
+    //  self.no_sync,
+    //  options.clone(),
+    //  self.server_url,
+    //)?;
 
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
