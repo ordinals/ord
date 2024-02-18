@@ -12,10 +12,10 @@ pub struct Output {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.get_unspent_outputs()?;
+  let unspent_outputs = wallet.utxos.clone();
 
   let inscription_outputs = wallet
-    .get_inscriptions()?
+    .get_inscriptions()
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
@@ -43,8 +43,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: wallet.has_rune_index()?.then_some(runes),
-    runic: wallet.has_rune_index()?.then_some(runic),
+    runes: wallet.has_rune_index.then_some(runes),
+    runic: wallet.has_rune_index.then_some(runic),
     total: cardinal + ordinal + runic,
   })))
 }

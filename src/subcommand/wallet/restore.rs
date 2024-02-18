@@ -15,8 +15,16 @@ enum Source {
 }
 
 impl Restore {
-  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    ensure!(!wallet.exists()?, "wallet `{}` already exists", wallet.name);
+  pub(crate) fn run(self, name: String, options: &Options) -> SubcommandResult {
+    ensure!(
+      !options
+        .bitcoin_rpc_client(None)?
+        .list_wallet_dir()?
+        .iter()
+        .any(|wallet_name| wallet_name == &name),
+      "wallet `{}` already exists",
+      name
+    );
 
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
@@ -28,11 +36,15 @@ impl Restore {
           "descriptor does not take a passphrase"
         );
         let wallet_descriptors: ListDescriptorsResult = serde_json::from_str(&buffer)?;
-        wallet.initialize_from_descriptors(wallet_descriptors.descriptors)?;
+        Wallet::initialize_from_descriptors(name, options, wallet_descriptors.descriptors)?;
       }
       Source::Mnemonic => {
         let mnemonic = Mnemonic::from_str(&buffer)?;
-        wallet.initialize(mnemonic.to_seed(self.passphrase.unwrap_or_default()))?;
+        Wallet::initialize(
+          name,
+          options,
+          mnemonic.to_seed(self.passphrase.unwrap_or_default()),
+        )?;
       }
     }
 

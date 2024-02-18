@@ -44,7 +44,7 @@ impl Batch {
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
-    let wallet_inscriptions = wallet.get_inscriptions()?;
+    let wallet_inscriptions = wallet.get_inscriptions();
 
     let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
@@ -67,7 +67,7 @@ impl Batch {
       ))));
     }
 
-    let bitcoin_client = wallet.bitcoin_client()?;
+    let bitcoin_client = &wallet.bitcoin_client;
 
     let signed_commit_tx = bitcoin_client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
@@ -487,7 +487,7 @@ impl Batch {
       wallet.chain().network(),
     );
 
-    let bitcoin_client = wallet.bitcoin_client()?;
+    let bitcoin_client = &wallet.bitcoin_client;
 
     let info =
       bitcoin_client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;

@@ -861,6 +861,7 @@ fn cbor_metadata_appears_on_inscription_page() {
 #[test]
 fn error_message_when_parsing_json_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file content.png",
@@ -868,6 +869,7 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
   .write("content.png", [1; 520])
   .write("metadata.json", "{")
   .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .stderr_regex(".*failed to parse JSON metadata.*")
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -876,6 +878,7 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
 #[test]
 fn error_message_when_parsing_cbor_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor --file content.png",
@@ -883,6 +886,7 @@ fn error_message_when_parsing_cbor_metadata_is_reasonable() {
   .write("content.png", [1; 520])
   .write("metadata.cbor", [0x61])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .stderr_regex(".*failed to parse CBOR metadata.*")
   .expected_exit_code(1)
   .run_and_extract_stdout();

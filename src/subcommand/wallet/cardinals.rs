@@ -7,10 +7,10 @@ pub struct CardinalUtxo {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.get_unspent_outputs()?;
+  let unspent_outputs = wallet.utxos.clone();
 
   let inscribed_utxos = wallet
-    .get_inscriptions()?
+    .get_inscriptions()
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();

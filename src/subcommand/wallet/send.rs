@@ -49,7 +49,11 @@ impl Send {
       Outgoing::InscriptionId(id) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
         address,
-        wallet.get_inscription_satpoint(id)?,
+        wallet
+          .inscription_info
+          .get(&id)
+          .ok_or_else(|| anyhow!("inscription {id} not found"))?
+          .satpoint,
         self.postage,
         self.fee_rate,
         true,
@@ -64,8 +68,8 @@ impl Send {
       )?,
     };
 
-    let bitcoin_client = wallet.bitcoin_client()?;
-    let unspent_outputs = wallet.get_unspent_outputs()?;
+    let bitcoin_client = wallet.bitcoin_client;
+    let unspent_outputs = wallet.utxos;
 
     let (txid, psbt) = if self.dry_run {
       let psbt = bitcoin_client
@@ -149,12 +153,12 @@ impl Send {
     amount: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
-    let client = wallet.bitcoin_client()?;
-    let unspent_outputs = wallet.get_unspent_outputs()?;
-    let inscriptions = wallet.get_inscriptions()?;
+    let client = &wallet.bitcoin_client;
+    let unspent_outputs = wallet.utxos.clone();
+    let inscriptions = wallet.get_inscriptions();
     let runic_outputs = wallet.get_runic_outputs()?;
 
-    Self::lock_non_cardinal_outputs(&client, &inscriptions, &runic_outputs, &unspent_outputs)?;
+    Self::lock_non_cardinal_outputs(client, &inscriptions, &runic_outputs, &unspent_outputs)?;
 
     let unfunded_transaction = Transaction {
       version: 2,
@@ -167,7 +171,7 @@ impl Send {
     };
 
     let unsigned_transaction = consensus::encode::deserialize(&fund_raw_transaction(
-      &client,
+      client,
       fee_rate,
       &unfunded_transaction,
     )?)?;
@@ -183,9 +187,9 @@ impl Send {
     fee_rate: FeeRate,
     sending_inscription: bool,
   ) -> Result<Transaction> {
-    let unspent_outputs = wallet.get_unspent_outputs()?;
-    let locked_outputs = wallet.get_locked_outputs()?;
-    let inscriptions = wallet.get_inscriptions()?;
+    let unspent_outputs = wallet.utxos.clone();
+    let locked_outputs = wallet.locked_utxos.clone();
+    let inscriptions = wallet.get_inscriptions();
     let runic_outputs = wallet.get_runic_outputs()?;
 
     if !sending_inscription {
@@ -214,7 +218,7 @@ impl Send {
         satpoint,
         inscriptions,
         unspent_outputs.clone(),
-        locked_outputs,
+        locked_outputs.into_keys().collect(),
         runic_outputs,
         destination.clone(),
         change,
@@ -233,17 +237,17 @@ impl Send {
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
     ensure!(
-      wallet.has_rune_index()?,
+      wallet.has_rune_index,
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    let unspent_outputs = wallet.get_unspent_outputs()?;
-    let inscriptions = wallet.get_inscriptions()?;
+    let unspent_outputs = wallet.utxos.clone();
+    let inscriptions = wallet.get_inscriptions();
     let runic_outputs = wallet.get_runic_outputs()?;
-    let bitcoin_client = wallet.bitcoin_client()?;
+    let bitcoin_client = &wallet.bitcoin_client;
 
     Self::lock_non_cardinal_outputs(
-      &bitcoin_client,
+      bitcoin_client,
       &inscriptions,
       &runic_outputs,
       &unspent_outputs,
@@ -329,7 +333,7 @@ impl Send {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(&bitcoin_client, fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
     Ok(consensus::encode::deserialize(&unsigned_transaction)?)
   }

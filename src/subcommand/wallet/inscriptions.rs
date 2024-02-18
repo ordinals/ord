@@ -9,9 +9,9 @@ pub struct Output {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.get_unspent_outputs()?;
+  let unspent_outputs = wallet.utxos.clone();
 
-  let inscriptions = wallet.get_inscriptions()?;
+  let inscriptions = wallet.get_inscriptions();
 
   let explorer = match wallet.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",

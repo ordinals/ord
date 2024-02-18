@@ -2,7 +2,7 @@ use {
   super::*,
   crate::wallet::{
     inscribe::{Batch, Batchfile, Mode},
-    wallet_async, Wallet,
+    Wallet,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   reqwest::Url,
@@ -71,34 +71,32 @@ pub(crate) enum Subcommand {
 
 impl WalletCommand {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let wallet = Wallet {
-      name: self.name.clone(),
-      no_sync: self.no_sync,
-      options: options.clone(),
-      ord_url: self.server_url.clone(),
-    };
-
-    //let wallet_async = wallet::wallet_async::WalletAsync::build(
-    //  self.name.clone(),
-    //  self.no_sync,
-    //  options.clone(),
-    //  self.server_url,
-    //)?;
-
     match self.subcommand {
-      Subcommand::Balance => balance::run(wallet),
-      Subcommand::Create(create) => create.run(wallet),
-      Subcommand::Dump => dump::run(wallet),
-      Subcommand::Etch(etch) => etch.run(wallet),
-      Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
-      Subcommand::Inscriptions => inscriptions::run(wallet),
-      Subcommand::Receive => receive::run(wallet),
-      Subcommand::Restore(restore) => restore.run(wallet),
-      Subcommand::Sats(sats) => sats.run(wallet),
-      Subcommand::Send(send) => send.run(wallet),
-      Subcommand::Transactions(transactions) => transactions.run(wallet),
-      Subcommand::Outputs => outputs::run(wallet),
-      Subcommand::Cardinals => cardinals::run(wallet),
+      Subcommand::Create(create) => create.run(self.name, &options),
+      Subcommand::Restore(restore) => restore.run(self.name, &options),
+      _ => {
+        let wallet = Wallet::build(
+          self.name.clone(),
+          self.no_sync,
+          options.clone(),
+          self.server_url,
+        )?;
+
+        match self.subcommand {
+          Subcommand::Balance => balance::run(wallet),
+          Subcommand::Dump => dump::run(wallet),
+          Subcommand::Etch(etch) => etch.run(wallet),
+          Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
+          Subcommand::Inscriptions => inscriptions::run(wallet),
+          Subcommand::Receive => receive::run(wallet),
+          Subcommand::Sats(sats) => sats.run(wallet),
+          Subcommand::Send(send) => send.run(wallet),
+          Subcommand::Transactions(transactions) => transactions.run(wallet),
+          Subcommand::Outputs => outputs::run(wallet),
+          Subcommand::Cardinals => cardinals::run(wallet),
+          _ => unreachable!(),
+        }
+      }
     }
   }
 }

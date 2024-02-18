@@ -8,7 +8,7 @@ pub struct Output {
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut outputs = Vec::new();
-  for (output, txout) in wallet.get_unspent_outputs()? {
+  for (output, txout) in wallet.utxos {
     outputs.push(Output {
       output,
       amount: txout.value,
