@@ -471,7 +471,7 @@ impl Index {
       })
       .collect::<Result<Vec<(Option<Vec<u8>>, u64)>, StorageError>>()?;
 
-    content_type_counts.sort_by_key(|(_content_type, count)| *count);
+    content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
 
     Ok(StatusHtml {
       blessed_inscriptions,
