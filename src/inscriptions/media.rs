@@ -80,7 +80,7 @@ impl Media {
     ("font/ttf", BROTLI_MODE_GENERIC, Media::Font, &["ttf"]),
     ("font/woff", BROTLI_MODE_GENERIC, Media::Font, &["woff"]),
     ("font/woff2", BROTLI_MODE_FONT, Media::Font, &["woff2"]),
-    ("image/apng", BROTLI_MODE_GENERIC, Media::Image(ImageRendering::Auto), &["apng"]),
+    ("image/apng", BROTLI_MODE_GENERIC, Media::Image(ImageRendering::Pixelated), &["apng"]),
     ("image/avif", BROTLI_MODE_GENERIC, Media::Image(ImageRendering::Auto), &["avif"]),
     ("image/gif", BROTLI_MODE_GENERIC, Media::Image(ImageRendering::Pixelated), &["gif"]),
     ("image/jpeg", BROTLI_MODE_GENERIC, Media::Image(ImageRendering::Auto), &["jpg", "jpeg"]),
