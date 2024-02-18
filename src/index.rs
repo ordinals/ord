@@ -493,6 +493,54 @@ impl Index {
     })
   }
 
+  pub(crate) fn export_inscriptions(
+    &self,
+    directory: &Path,
+    filter: Option<&Regex>,
+  ) -> Result<u64> {
+    fs::create_dir_all(directory)?;
+
+    let rtx = self.database.begin_read()?;
+
+    let inscription_id_to_sequence_number = rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+
+    let mut exported = 0;
+
+    for result in inscription_id_to_sequence_number.iter()? {
+      let (inscription_id, _) = result?;
+      let inscription_id = InscriptionId::load(inscription_id.value());
+
+      let inscription = self.get_inscription_by_id(inscription_id)?.unwrap();
+
+      let Some(content_type) = inscription.content_type() else {
+        continue;
+      };
+
+      if let Some(filter) = filter {
+        if !filter.is_match(content_type) {
+          continue;
+        }
+      }
+
+      let Some(extension) = Media::extension_for_content_type(content_type) else {
+        continue;
+      };
+
+      let Some(body) = inscription.body() else {
+        continue;
+      };
+
+      fs::write(
+        directory.join(format!("{inscription_id}.{extension}")),
+        body,
+      )?;
+
+      exported += 1;
+    }
+
+    Ok(exported)
+  }
+
   pub(crate) fn info(&self) -> Result<Info> {
     let stats = self.database.begin_write()?.stats()?;
 

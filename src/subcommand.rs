@@ -3,6 +3,7 @@ use super::*;
 pub mod balances;
 pub mod decode;
 pub mod epochs;
+pub mod export;
 pub mod find;
 pub mod index;
 pub mod list;
@@ -23,6 +24,8 @@ pub(crate) enum Subcommand {
   Decode(decode::Decode),
   #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
+  #[command(about = "Export inscriptions to files")]
+  Export(export::Export),
   #[command(about = "Find a satoshi's current location")]
   Find(find::Find),
   #[command(subcommand, about = "Index commands")]
@@ -53,6 +56,7 @@ impl Subcommand {
       Self::Balances => balances::run(options),
       Self::Decode(decode) => decode.run(options),
       Self::Epochs => epochs::run(),
+      Self::Export(export) => export.run(options),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
       Self::List(list) => list.run(options),
