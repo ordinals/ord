@@ -507,6 +507,10 @@ impl Index {
     let mut exported = 0;
 
     for result in inscription_id_to_sequence_number.iter()? {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+
       let (inscription_id, _) = result?;
       let inscription_id = InscriptionId::load(inscription_id.value());
 
