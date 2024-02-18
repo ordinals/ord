@@ -502,19 +502,22 @@ impl Index {
 
     let rtx = self.database.begin_read()?;
 
-    let inscription_id_to_sequence_number = rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let mut exported = 0;
 
-    for result in inscription_id_to_sequence_number.iter()? {
+    for result in sequence_number_to_inscription_entry.iter()? {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
 
-      let (inscription_id, _) = result?;
-      let inscription_id = InscriptionId::load(inscription_id.value());
+      let (sequence_number, inscription_entry) = result?;
+      let sequence_number = sequence_number.value();
 
-      let inscription = self.get_inscription_by_id(inscription_id)?.unwrap();
+      let inscription_entry = InscriptionEntry::load(inscription_entry.value());
+
+      let inscription = self.get_inscription_by_id(inscription_entry.id)?.unwrap();
 
       let Some(content_type) = inscription.content_type() else {
         continue;
@@ -535,7 +538,10 @@ impl Index {
       };
 
       fs::write(
-        directory.join(format!("{inscription_id}.{extension}")),
+        directory.join(format!(
+          "{sequence_number}.{}.{extension}",
+          inscription_entry.inscription_number
+        )),
         body,
       )?;
 

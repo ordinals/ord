@@ -50,43 +50,43 @@ impl Display for Language {
 
 impl Media {
   #[rustfmt::skip]
-  const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str], &'static str)] = &[
-    ("application/cbor",            GENERIC, Unknown,          &["cbor"],        "cbor"),
-    ("application/json",            TEXT,    Code(Json),       &["json"],        "json"),
-    ("application/octet-stream",    GENERIC, Unknown,          &["bin"],         "bin"),
-    ("application/pdf",             GENERIC, Pdf,              &["pdf"],         "pdf"),
-    ("application/pgp-signature",   TEXT,    Text,             &["asc"],         "asc"),
-    ("application/protobuf",        GENERIC, Unknown,          &["binpb"],       "binp"),
-    ("application/x-javascript",    TEXT,    Code(JavaScript), &[],              "js"),
-    ("application/yaml",            TEXT,    Code(Yaml),       &["yaml", "yml"], "yaml"),
-    ("audio/flac",                  GENERIC, Audio,            &["flac"],        "flac"),
-    ("audio/mpeg",                  GENERIC, Audio,            &["mp3"],         "mp3"),
-    ("audio/wav",                   GENERIC, Audio,            &["wav"],         "wav"),
-    ("font/otf",                    GENERIC, Font,             &["otf"],         "otf"),
-    ("font/ttf",                    GENERIC, Font,             &["ttf"],         "ttf"),
-    ("font/woff",                   GENERIC, Font,             &["woff"],        "woff"),
-    ("font/woff2",                  FONT,    Font,             &["woff2"],       "woff2"),
-    ("image/apng",                  GENERIC, Image,            &["apng"],        "apng"),
-    ("image/avif",                  GENERIC, Image,            &["avif"],        "avif"),
-    ("image/gif",                   GENERIC, Image,            &["gif"],         "gif"),
-    ("image/jpeg",                  GENERIC, Image,            &["jpg", "jpeg"], "jpg"),
-    ("image/png",                   GENERIC, Image,            &["png"],         "png"),
-    ("image/svg+xml",               TEXT,    Iframe,           &["svg"],         "svg"),
-    ("image/webp",                  GENERIC, Image,            &["webp"],        "webp"),
-    ("model/gltf+json",             TEXT,    Model,            &["gltf"],        "gltf"),
-    ("model/gltf-binary",           GENERIC, Model,            &["glb"],         "glb"),
-    ("model/stl",                   GENERIC, Unknown,          &["stl"],         "stl"),
-    ("text/css",                    TEXT,    Code(Css),        &["css"],         "css"),
-    ("text/html",                   TEXT,    Iframe,           &[],              "html"),
-    ("text/html;charset=utf-8",     TEXT,    Iframe,           &["html"],        "html"),
-    ("text/javascript",             TEXT,    Code(JavaScript), &["js"],          "js"),
-    ("text/markdown",               TEXT,    Markdown,         &[],              "md"),
-    ("text/markdown;charset=utf-8", TEXT,    Markdown,         &["md"],          "md"),
-    ("text/plain",                  TEXT,    Text,             &[],              "txt"),
-    ("text/plain;charset=utf-8",    TEXT,    Text,             &["txt"],         "txt"),
-    ("text/x-python",               TEXT,    Code(Python),     &["py"],          "py"),
-    ("video/mp4",                   GENERIC, Video,            &["mp4"],         "mp4"),
-    ("video/webm",                  GENERIC, Video,            &["webm"],        "webm"),
+  const TABLE: &'static [(&'static str, bool, BrotliEncoderMode, Media, &'static [&'static str])] = &[
+    ("application/cbor",            true,  GENERIC, Unknown,          &["cbor"]),
+    ("application/json",            true,  TEXT,    Code(Json),       &["json"]),
+    ("application/octet-stream",    true,  GENERIC, Unknown,          &["bin"]),
+    ("application/pdf",             true,  GENERIC, Pdf,              &["pdf"]),
+    ("application/pgp-signature",   true,  TEXT,    Text,             &["asc"]),
+    ("application/protobuf",        true,  GENERIC, Unknown,          &["binpb"]),
+    ("application/x-javascript",    false, TEXT,    Code(JavaScript), &["js"]),
+    ("application/yaml",            true,  TEXT,    Code(Yaml),       &["yaml", "yml"]),
+    ("audio/flac",                  true,  GENERIC, Audio,            &["flac"]),
+    ("audio/mpeg",                  true,  GENERIC, Audio,            &["mp3"]),
+    ("audio/wav",                   true,  GENERIC, Audio,            &["wav"]),
+    ("font/otf",                    true,  GENERIC, Font,             &["otf"]),
+    ("font/ttf",                    true,  GENERIC, Font,             &["ttf"]),
+    ("font/woff",                   true,  GENERIC, Font,             &["woff"]),
+    ("font/woff2",                  true,  FONT,    Font,             &["woff2"]),
+    ("image/apng",                  true,  GENERIC, Image,            &["apng"]),
+    ("image/avif",                  true,  GENERIC, Image,            &["avif"]),
+    ("image/gif",                   true,  GENERIC, Image,            &["gif"]),
+    ("image/jpeg",                  true,  GENERIC, Image,            &["jpg", "jpeg"]),
+    ("image/png",                   true,  GENERIC, Image,            &["png"]),
+    ("image/svg+xml",               true,  TEXT,    Iframe,           &["svg"]),
+    ("image/webp",                  true,  GENERIC, Image,            &["webp"]),
+    ("model/gltf+json",             true,  TEXT,    Model,            &["gltf"]),
+    ("model/gltf-binary",           true,  GENERIC, Model,            &["glb"]),
+    ("model/stl",                   true,  GENERIC, Unknown,          &["stl"]),
+    ("text/css",                    true,  TEXT,    Code(Css),        &["css"]),
+    ("text/html",                   false, TEXT,    Iframe,           &["html"]),
+    ("text/html;charset=utf-8",     true,  TEXT,    Iframe,           &["html"]),
+    ("text/javascript",             true,  TEXT,    Code(JavaScript), &["js"]),
+    ("text/markdown",               false, TEXT,    Markdown,         &["md"]),
+    ("text/markdown;charset=utf-8", true,  TEXT,    Markdown,         &["md"]),
+    ("text/plain",                  false, TEXT,    Text,             &["txt"]),
+    ("text/plain;charset=utf-8",    true,  TEXT,    Text,             &["txt"]),
+    ("text/x-python",               true,  TEXT,    Code(Python),     &["py"]),
+    ("video/mp4",                   true,  GENERIC, Video,            &["mp4"]),
+    ("video/webm",                  true,  GENERIC, Video,            &["webm"]),
   ];
 
   pub(crate) fn content_type_for_path(
@@ -104,15 +104,16 @@ impl Media {
       Media::check_mp4_codec(path)?;
     }
 
-    for (content_type, mode, _, extensions, _) in Self::TABLE {
-      if extensions.contains(&extension.as_str()) {
+    for (content_type, preferred, mode, _, extensions) in Self::TABLE {
+      if *preferred && extensions.contains(&extension.as_str()) {
         return Ok((*content_type, *mode));
       }
     }
 
     let mut extensions = Self::TABLE
       .iter()
-      .flat_map(|(_, _, _, extensions, _)| extensions.first().cloned())
+      .filter(|(_, preferred, _, _, _)| *preferred)
+      .map(|(_, _, _, _, extensions)| extensions[0])
       .collect::<Vec<&str>>();
 
     extensions.sort();
@@ -129,8 +130,8 @@ impl Media {
         Media::TABLE
           .iter()
           .map(
-            |(content_type, _compression_mode, _media, _extensions, extension)| {
-              (*content_type, *extension)
+            |(content_type, _preferred, _compression_mode, _media, extensions)| {
+              (*content_type, extensions[0])
             },
           )
           .collect()
@@ -168,7 +169,7 @@ impl FromStr for Media {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     for entry in Self::TABLE {
       if entry.0 == s {
-        return Ok(entry.2);
+        return Ok(entry.3);
       }
     }
 
@@ -220,9 +221,11 @@ mod tests {
   #[test]
   fn no_duplicate_extensions() {
     let mut set = HashSet::new();
-    for (_, _, _, extensions) in Media::TABLE {
-      for extension in *extensions {
-        assert!(set.insert(extension), "duplicate extension `{extension}`");
+    for (_, preferred, _, _, extensions) in Media::TABLE {
+      if *preferred {
+        for extension in *extensions {
+          assert!(set.insert(extension), "duplicate extension `{extension}`");
+        }
       }
     }
   }
