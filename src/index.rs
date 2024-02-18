@@ -463,13 +463,15 @@ impl Index {
     let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
 
-    let content_type_counts = rtx
+    let mut content_type_counts = rtx
       .open_table(CONTENT_TYPE_TO_COUNT)?
       .iter()?
       .map(|result| {
         result.map(|(key, value)| (key.value().map(|slice| slice.into()), value.value()))
       })
       .collect::<Result<Vec<(Option<Vec<u8>>, u64)>, StorageError>>()?;
+
+    content_type_counts.sort_by_key(|(_content_type, count)| *count);
 
     Ok(StatusHtml {
       blessed_inscriptions,
