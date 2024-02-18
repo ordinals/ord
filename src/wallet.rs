@@ -76,7 +76,6 @@ impl Wallet {
       .build()
       .map_err(|err| anyhow!(err))?;
 
-    // TODO: check sync with block height between bitcoind and ord server
     let chain_block_count = bitcoin_client.get_block_count().unwrap() + 1;
     if !no_sync {
       for i in 0.. {
@@ -357,7 +356,7 @@ impl Wallet {
       self
         .output_info
         .get(output)
-        .ok_or(anyhow!("output not found in wallet"))? //TODO
+        .ok_or(anyhow!("output not found in wallet"))?
         .runes
         .clone(),
     )
