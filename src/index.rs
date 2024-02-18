@@ -535,8 +535,14 @@ impl Index {
         body,
       )?;
 
+      if exported % 1000 == 0 {
+        eprint!(".");
+      }
+
       exported += 1;
     }
+
+    eprintln!();
 
     Ok(exported)
   }
