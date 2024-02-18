@@ -24,7 +24,7 @@ pub(crate) enum Subcommand {
   Decode(decode::Decode),
   #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
-  #[command(about = "Export inscriptions to files")]
+  #[command(about = "Export inscriptions to disk")]
   Export(export::Export),
   #[command(about = "Find a satoshi's current location")]
   Find(find::Find),

@@ -496,7 +496,7 @@ impl Index {
   pub(crate) fn export_inscriptions(
     &self,
     directory: &Path,
-    filter: Option<&Regex>,
+    content_type_filter: Option<&Regex>,
   ) -> Result<u64> {
     fs::create_dir_all(directory)?;
 
@@ -516,8 +516,8 @@ impl Index {
         continue;
       };
 
-      if let Some(filter) = filter {
-        if !filter.is_match(content_type) {
+      if let Some(content_type_filter) = content_type_filter {
+        if !content_type_filter.is_match(content_type) {
           continue;
         }
       }

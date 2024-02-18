@@ -125,7 +125,7 @@ impl Media {
 
   pub(crate) fn extension_for_content_type(content_type: &str) -> Option<&'static str> {
     lazy_static! {
-      static ref CONTENT_TYPE_TO_EXTENSION: BTreeMap<&'static str, &'static str> = {
+      static ref EXTENSION_FOR_CONTENT_TYPE: BTreeMap<&'static str, &'static str> = {
         Media::TABLE
           .iter()
           .map(
@@ -137,7 +137,7 @@ impl Media {
       };
     }
 
-    CONTENT_TYPE_TO_EXTENSION.get(content_type).cloned()
+    EXTENSION_FOR_CONTENT_TYPE.get(content_type).cloned()
   }
 
   pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {

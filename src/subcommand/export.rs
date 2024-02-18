@@ -4,9 +4,9 @@ use super::*;
 pub(crate) struct Export {
   #[arg(
     long,
-    help = "Only export inscriptions whose content type matches <FILTER>."
+    help = "Only export inscriptions matching <CONTENT_TYPE_FILTER>."
   )]
-  filter: Option<Regex>,
+  content_type_filter: Option<Regex>,
   #[arg(long, help = "Save inscriptions to <DIRECTORY>.")]
   directory: PathBuf,
 }
@@ -22,7 +22,7 @@ impl Export {
 
     index.update()?;
 
-    let exported = index.export_inscriptions(&self.directory, self.filter.as_ref())?;
+    let exported = index.export_inscriptions(&self.directory, self.content_type_filter.as_ref())?;
 
     Ok(Some(Box::new(Output { exported })))
   }
