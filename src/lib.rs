@@ -109,7 +109,7 @@ mod fee_rate;
 pub mod index;
 mod inscriptions;
 mod object;
-mod options;
+pub mod options;
 pub mod outgoing;
 mod representation;
 pub mod runes;
