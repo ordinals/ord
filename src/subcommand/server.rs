@@ -181,18 +181,6 @@ pub struct Server {
   pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
-  #[arg(
-    long,
-    requires = "username",
-    help = "Require basic HTTP authentication with <PASSWORD>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
-  )]
-  pub(crate) password: Option<String>,
-  #[arg(
-    long,
-    requires = "password",
-    help = "Require basic HTTP authentication with <USERNAME>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
-  )]
-  pub(crate) username: Option<String>,
 }
 
 impl Server {
@@ -323,12 +311,11 @@ impl Server {
         .layer(CompressionLayer::new())
         .with_state(server_config);
 
-      let router =
-        if let Some((username, password)) = self.username.as_ref().zip(self.password.as_ref()) {
-          router.layer(ValidateRequestHeaderLayer::basic(username, password))
-        } else {
-          router
-        };
+      let router = if let Some((username, password)) = options.credentials() {
+        router.layer(ValidateRequestHeaderLayer::basic(username, password))
+      } else {
+        router
+      };
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
