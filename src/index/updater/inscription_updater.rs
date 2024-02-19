@@ -41,6 +41,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) blessed_inscription_count: u64,
   pub(super) chain: Chain,
   pub(super) cursed_inscription_count: u64,
+  pub(super) event_sender: Option<&'a Sender<Event>>,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
@@ -387,14 +388,23 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .satpoint_to_sequence_number
           .remove_all(&old_satpoint.store())?;
 
-        (
-          false,
-          self
-            .id_to_sequence_number
-            .get(&inscription_id.store())?
-            .unwrap()
-            .value(),
-        )
+        let sequence_number = self
+          .id_to_sequence_number
+          .get(&inscription_id.store())?
+          .unwrap()
+          .value();
+
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::InscriptionTransferred {
+            block_height: self.height,
+            inscription_id,
+            new_location: new_satpoint,
+            old_location: old_satpoint,
+            sequence_number,
+          })?;
+        }
+
+        (false, sequence_number)
       }
       Origin::New {
         cursed,
@@ -473,7 +483,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let parent = match parent {
+        let parent_sequence_number = match parent {
           Some(parent_id) => {
             let parent_sequence_number = self
               .id_to_sequence_number
@@ -489,6 +499,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None => None,
         };
 
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::InscriptionCreated {
+            block_height: self.height,
+            charms,
+            inscription_id,
+            location: (!unbound).then_some(new_satpoint),
+            parent_inscription_id: parent,
+            sequence_number,
+          })?;
+        }
+
         self.sequence_number_to_entry.insert(
           sequence_number,
           &InscriptionEntry {
@@ -497,7 +518,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             height: self.height,
             id: inscription_id,
             inscription_number,
-            parent,
+            parent: parent_sequence_number,
             sat,
             sequence_number,
             timestamp: self.timestamp,
