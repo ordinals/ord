@@ -202,7 +202,7 @@ impl Server {
         if integration_test() {
           thread::sleep(Duration::from_millis(100));
         } else {
-          thread::sleep(Duration::from_millis(5000));
+          thread::sleep(Duration::from_millis(100));
         }
       });
 
