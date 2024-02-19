@@ -863,6 +863,8 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file content.png",
   )
@@ -879,6 +881,8 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
 fn error_message_when_parsing_cbor_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor --file content.png",

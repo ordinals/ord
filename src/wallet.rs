@@ -36,10 +36,8 @@ impl OrdClient {
 }
 
 pub(crate) struct Wallet {
-  _name: String,
-  rpc_url: Url,
-  options: Options,
-  _no_sync: bool,
+  pub(crate) rpc_url: Url,
+  pub(crate) options: Options,
   pub(crate) bitcoin_client: bitcoincore_rpc::Client,
   pub(crate) ord_client: reqwest::blocking::Client,
   pub(crate) has_sat_index: bool,
@@ -134,8 +132,6 @@ impl Wallet {
         let status = Self::get_server_status(&ord_client).await?;
 
         Ok(Wallet {
-          _name: name,
-          _no_sync: no_sync,
           options,
           rpc_url,
           bitcoin_client,
