@@ -1,6 +1,7 @@
 /*.redb
 /.idea/
 /.vagrant
+/.vscode
 /docs/build
 /fuzz/artifacts
 /fuzz/corpus
