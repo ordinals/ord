@@ -18,6 +18,7 @@ pub(crate) struct PreviewFontHtml {
 
 #[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewImageHtml {
+  pub(crate) image_rendering: ImageRendering,
   pub(crate) inscription_id: InscriptionId,
 }
 
