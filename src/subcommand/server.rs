@@ -5309,10 +5309,10 @@ next
 
   #[test]
   fn authentication_requires_username_and_password_are() {
-    assert!(Arguments::try_parse_from(["ord", "server", "--username", "foo"]).is_err());
-    assert!(Arguments::try_parse_from(["ord", "server", "--password", "bar"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "--username", "server", "foo"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "--password", "server", "bar"]).is_err());
     assert!(
-      Arguments::try_parse_from(["ord", "server", "--username", "foo", "--password", "bar"])
+      Arguments::try_parse_from(["ord", "--username", "foo", "--password", "bar", "server"])
         .is_ok()
     );
   }
