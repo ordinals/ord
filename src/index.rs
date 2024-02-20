@@ -493,6 +493,69 @@ impl Index {
     })
   }
 
+  pub(crate) fn export_inscriptions(
+    &self,
+    directory: &Path,
+    content_type_filter: Option<&Regex>,
+  ) -> Result<u64> {
+    fs::create_dir_all(directory)?;
+
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let mut exported = 0;
+
+    for result in sequence_number_to_inscription_entry.iter()? {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+
+      let (sequence_number, inscription_entry) = result?;
+      let sequence_number = sequence_number.value();
+      let inscription_entry = InscriptionEntry::load(inscription_entry.value());
+
+      let inscription = self.get_inscription_by_id(inscription_entry.id)?.unwrap();
+
+      let Some(content_type) = inscription.content_type() else {
+        continue;
+      };
+
+      if let Some(content_type_filter) = content_type_filter {
+        if !content_type_filter.is_match(content_type) {
+          continue;
+        }
+      }
+
+      let Some(extension) = Media::extension_for_content_type(content_type) else {
+        continue;
+      };
+
+      let Some(body) = inscription.body() else {
+        continue;
+      };
+
+      fs::write(
+        directory.join(format!(
+          "{sequence_number}-{}.{extension}",
+          inscription_entry.id
+        )),
+        body,
+      )?;
+
+      if exported % 1000 == 0 {
+        eprint!(".");
+      }
+
+      exported += 1;
+    }
+
+    eprintln!();
+
+    Ok(exported)
+  }
+
   pub(crate) fn info(&self) -> Result<Info> {
     let stats = self.database.begin_write()?.stats()?;
 

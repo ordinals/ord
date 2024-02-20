@@ -1,7 +1,8 @@
 use {
+  self::{Language::*, Media::*},
   super::*,
   brotli::enc::backward_references::BrotliEncoderMode::{
-    self, BROTLI_MODE_FONT, BROTLI_MODE_GENERIC, BROTLI_MODE_TEXT,
+    self, BROTLI_MODE_FONT as FONT, BROTLI_MODE_GENERIC as GENERIC, BROTLI_MODE_TEXT as TEXT,
   },
   mp4::{MediaType, Mp4Reader, TrackType},
   std::{fs::File, io::BufReader},
@@ -49,43 +50,43 @@ impl Display for Language {
 
 impl Media {
   #[rustfmt::skip]
-  const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str])] = &[
-    ("application/cbor",            BROTLI_MODE_GENERIC, Media::Unknown,                    &["cbor"]),
-    ("application/json",            BROTLI_MODE_TEXT,    Media::Code(Language::Json),       &["json"]),
-    ("application/octet-stream",    BROTLI_MODE_GENERIC, Media::Unknown,                    &["bin"]),
-    ("application/pdf",             BROTLI_MODE_GENERIC, Media::Pdf,                        &["pdf"]),
-    ("application/pgp-signature",   BROTLI_MODE_TEXT,    Media::Text,                       &["asc"]),
-    ("application/protobuf",        BROTLI_MODE_GENERIC, Media::Unknown,                    &["binpb"]),
-    ("application/x-javascript",    BROTLI_MODE_TEXT,    Media::Code(Language::JavaScript), &[]),
-    ("application/yaml",            BROTLI_MODE_TEXT,    Media::Code(Language::Yaml),       &["yaml", "yml"]),
-    ("audio/flac",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["flac"]),
-    ("audio/mpeg",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["mp3"]),
-    ("audio/wav",                   BROTLI_MODE_GENERIC, Media::Audio,                      &["wav"]),
-    ("font/otf",                    BROTLI_MODE_GENERIC, Media::Font,                       &["otf"]),
-    ("font/ttf",                    BROTLI_MODE_GENERIC, Media::Font,                       &["ttf"]),
-    ("font/woff",                   BROTLI_MODE_GENERIC, Media::Font,                       &["woff"]),
-    ("font/woff2",                  BROTLI_MODE_FONT,    Media::Font,                       &["woff2"]),
-    ("image/apng",                  BROTLI_MODE_GENERIC, Media::Image,                      &["apng"]),
-    ("image/avif",                  BROTLI_MODE_GENERIC, Media::Image,                      &["avif"]),
-    ("image/gif",                   BROTLI_MODE_GENERIC, Media::Image,                      &["gif"]),
-    ("image/jpeg",                  BROTLI_MODE_GENERIC, Media::Image,                      &["jpg", "jpeg"]),
-    ("image/png",                   BROTLI_MODE_GENERIC, Media::Image,                      &["png"]),
-    ("image/svg+xml",               BROTLI_MODE_TEXT,    Media::Iframe,                     &["svg"]),
-    ("image/webp",                  BROTLI_MODE_GENERIC, Media::Image,                      &["webp"]),
-    ("model/gltf+json",             BROTLI_MODE_TEXT,    Media::Model,                      &["gltf"]),
-    ("model/gltf-binary",           BROTLI_MODE_GENERIC, Media::Model,                      &["glb"]),
-    ("model/stl",                   BROTLI_MODE_GENERIC, Media::Unknown,                    &["stl"]),
-    ("text/css",                    BROTLI_MODE_TEXT,    Media::Code(Language::Css),        &["css"]),
-    ("text/html",                   BROTLI_MODE_TEXT,    Media::Iframe,                     &[]),
-    ("text/html;charset=utf-8",     BROTLI_MODE_TEXT,    Media::Iframe,                     &["html"]),
-    ("text/javascript",             BROTLI_MODE_TEXT,    Media::Code(Language::JavaScript), &["js"]),
-    ("text/markdown",               BROTLI_MODE_TEXT,    Media::Markdown,                   &[]),
-    ("text/markdown;charset=utf-8", BROTLI_MODE_TEXT,    Media::Markdown,                   &["md"]),
-    ("text/plain",                  BROTLI_MODE_TEXT,    Media::Text,                       &[]),
-    ("text/plain;charset=utf-8",    BROTLI_MODE_TEXT,    Media::Text,                       &["txt"]),
-    ("text/x-python",               BROTLI_MODE_TEXT,    Media::Code(Language::Python),     &["py"]),
-    ("video/mp4",                   BROTLI_MODE_GENERIC, Media::Video,                      &["mp4"]),
-    ("video/webm",                  BROTLI_MODE_GENERIC, Media::Video,                      &["webm"]),
+  const TABLE: &'static [(&'static str, bool, BrotliEncoderMode, Media, &'static [&'static str])] = &[
+    ("application/cbor",            true,  GENERIC, Unknown,          &["cbor"]),
+    ("application/json",            true,  TEXT,    Code(Json),       &["json"]),
+    ("application/octet-stream",    true,  GENERIC, Unknown,          &["bin"]),
+    ("application/pdf",             true,  GENERIC, Pdf,              &["pdf"]),
+    ("application/pgp-signature",   true,  TEXT,    Text,             &["asc"]),
+    ("application/protobuf",        true,  GENERIC, Unknown,          &["binpb"]),
+    ("application/x-javascript",    false, TEXT,    Code(JavaScript), &["js"]),
+    ("application/yaml",            true,  TEXT,    Code(Yaml),       &["yaml", "yml"]),
+    ("audio/flac",                  true,  GENERIC, Audio,            &["flac"]),
+    ("audio/mpeg",                  true,  GENERIC, Audio,            &["mp3"]),
+    ("audio/wav",                   true,  GENERIC, Audio,            &["wav"]),
+    ("font/otf",                    true,  GENERIC, Font,             &["otf"]),
+    ("font/ttf",                    true,  GENERIC, Font,             &["ttf"]),
+    ("font/woff",                   true,  GENERIC, Font,             &["woff"]),
+    ("font/woff2",                  true,  FONT,    Font,             &["woff2"]),
+    ("image/apng",                  true,  GENERIC, Image,            &["apng"]),
+    ("image/avif",                  true,  GENERIC, Image,            &["avif"]),
+    ("image/gif",                   true,  GENERIC, Image,            &["gif"]),
+    ("image/jpeg",                  true,  GENERIC, Image,            &["jpg", "jpeg"]),
+    ("image/png",                   true,  GENERIC, Image,            &["png"]),
+    ("image/svg+xml",               true,  TEXT,    Iframe,           &["svg"]),
+    ("image/webp",                  true,  GENERIC, Image,            &["webp"]),
+    ("model/gltf+json",             true,  TEXT,    Model,            &["gltf"]),
+    ("model/gltf-binary",           true,  GENERIC, Model,            &["glb"]),
+    ("model/stl",                   true,  GENERIC, Unknown,          &["stl"]),
+    ("text/css",                    true,  TEXT,    Code(Css),        &["css"]),
+    ("text/html",                   false, TEXT,    Iframe,           &["html"]),
+    ("text/html;charset=utf-8",     true,  TEXT,    Iframe,           &["html"]),
+    ("text/javascript",             true,  TEXT,    Code(JavaScript), &["js"]),
+    ("text/markdown",               false, TEXT,    Markdown,         &["md"]),
+    ("text/markdown;charset=utf-8", true,  TEXT,    Markdown,         &["md"]),
+    ("text/plain",                  false, TEXT,    Text,             &["txt"]),
+    ("text/plain;charset=utf-8",    true,  TEXT,    Text,             &["txt"]),
+    ("text/x-python",               true,  TEXT,    Code(Python),     &["py"]),
+    ("video/mp4",                   true,  GENERIC, Video,            &["mp4"]),
+    ("video/webm",                  true,  GENERIC, Video,            &["webm"]),
   ];
 
   pub(crate) fn content_type_for_path(
@@ -103,15 +104,16 @@ impl Media {
       Media::check_mp4_codec(path)?;
     }
 
-    for (content_type, mode, _, extensions) in Self::TABLE {
-      if extensions.contains(&extension.as_str()) {
+    for (content_type, preferred, mode, _, extensions) in Self::TABLE {
+      if *preferred && extensions.contains(&extension.as_str()) {
         return Ok((*content_type, *mode));
       }
     }
 
     let mut extensions = Self::TABLE
       .iter()
-      .flat_map(|(_, _, _, extensions)| extensions.first().cloned())
+      .filter(|(_, preferred, _, _, _)| *preferred)
+      .map(|(_, _, _, _, extensions)| extensions[0])
       .collect::<Vec<&str>>();
 
     extensions.sort();
@@ -120,6 +122,23 @@ impl Media {
       "unsupported file extension `.{extension}`, supported extensions: {}",
       extensions.join(" "),
     ))
+  }
+
+  pub(crate) fn extension_for_content_type(content_type: &str) -> Option<&'static str> {
+    lazy_static! {
+      static ref EXTENSION_FOR_CONTENT_TYPE: BTreeMap<&'static str, &'static str> = {
+        Media::TABLE
+          .iter()
+          .map(
+            |(content_type, _preferred, _compression_mode, _media, extensions)| {
+              (*content_type, extensions[0])
+            },
+          )
+          .collect()
+      };
+    }
+
+    EXTENSION_FOR_CONTENT_TYPE.get(content_type).cloned()
   }
 
   pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {
@@ -150,7 +169,7 @@ impl FromStr for Media {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     for entry in Self::TABLE {
       if entry.0 == s {
-        return Ok(entry.2);
+        return Ok(entry.3);
       }
     }
 
@@ -202,9 +221,11 @@ mod tests {
   #[test]
   fn no_duplicate_extensions() {
     let mut set = HashSet::new();
-    for (_, _, _, extensions) in Media::TABLE {
-      for extension in *extensions {
-        assert!(set.insert(extension), "duplicate extension `{extension}`");
+    for (_, preferred, _, _, extensions) in Media::TABLE {
+      if *preferred {
+        for extension in *extensions {
+          assert!(set.insert(extension), "duplicate extension `{extension}`");
+        }
       }
     }
   }
