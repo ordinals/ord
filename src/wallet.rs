@@ -39,10 +39,21 @@ impl Wallet {
 
   pub(crate) fn ord_client(&self) -> Result<reqwest::blocking::Client> {
     let mut headers = header::HeaderMap::new();
+
     headers.insert(
       header::ACCEPT,
       header::HeaderValue::from_static("application/json"),
     );
+
+    if let Some((username, password)) = self.options.credentials() {
+      use base64::Engine;
+      let credentials =
+        base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
+      headers.insert(
+        header::AUTHORIZATION,
+        header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
+      );
+    }
 
     let client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers)
@@ -57,7 +68,11 @@ impl Wallet {
           .get(self.ord_url.join("/blockcount").unwrap())
           .send()?;
 
-        assert_eq!(response.status(), StatusCode::OK);
+        ensure!(
+          response.status() == StatusCode::OK,
+          "request to server failed with status: {}",
+          response.status()
+        );
 
         if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
           break;

@@ -3433,6 +3433,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61c5bb1d698276a2443e5ecfabc1008bf15a36c12e6a7176e7bf089ea9131140"
 dependencies = [
  "async-compression",
+ "base64 0.21.6",
  "bitflags 2.4.1",
  "bytes",
  "futures-core",
@@ -3440,6 +3441,7 @@ dependencies = [
  "http 0.2.11",
  "http-body",
  "http-range-header",
+ "mime",
  "pin-project-lite",
  "tokio",
  "tokio-util 0.7.10",
