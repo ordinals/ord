@@ -115,12 +115,11 @@ rpcport={bitcoind_port}
       "{}
 bitcoin-cli -datadir='{directory}' getblockchaininfo
 {}
-{} --regtest --bitcoin-data-dir '{directory}' --data-dir '{directory}' --rpc-url '{}' wallet --server-url {} balance",
+{} --regtest --bitcoin-data-dir '{directory}' --data-dir '{directory}' --rpc-url '{}' wallet --server-url http://127.0.0.1:{ord_port} balance",
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
       ord.display(),
       rpc_url,
-      format!("http://127.0.0.1:{ord_port}"),
     );
 
     loop {
