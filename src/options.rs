@@ -249,14 +249,32 @@ impl Options {
     }
 
     let client = Client::new(&rpc_url, auth)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at `{rpc_url}`"))?;
 
-    let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
-      "main" => Chain::Mainnet,
-      "test" => Chain::Testnet,
-      "regtest" => Chain::Regtest,
-      "signet" => Chain::Signet,
-      other => bail!("Bitcoin RPC server on unknown chain: {other}"),
+    let mut checks = 0;
+    let rpc_chain = loop {
+      match client.get_blockchain_info() {
+        Ok(blockchain_info) => {
+          break match blockchain_info.chain.as_str() {
+            "main" => Chain::Mainnet,
+            "test" => Chain::Testnet,
+            "regtest" => Chain::Regtest,
+            "signet" => Chain::Signet,
+            other => bail!("Bitcoin RPC server on unknown chain: {other}"),
+          }
+        }
+        Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+          if err.code == -28 => {}
+        Err(err) => bail!("Failed to connect to Bitcoin Core RPC at `{rpc_url}`:  {err}"),
+      }
+
+      ensure! {
+        checks < 100,
+        "Failed to connect to Bitcoin Core RPC at `{rpc_url}`",
+      }
+
+      checks += 1;
+      thread::sleep(Duration::from_millis(100));
     };
 
     let ord_chain = self.chain();
