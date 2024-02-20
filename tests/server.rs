@@ -596,7 +596,7 @@ fn authentication() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    "server --address 127.0.0.1 --http-port {port} --username foo --password bar"
+    " --username foo --password bar server --address 127.0.0.1 --http-port {port}"
   ))
   .bitcoin_rpc_server(&rpc_server);
 
@@ -617,6 +617,14 @@ fn authentication() {
 
     thread::sleep(Duration::from_millis(50));
   }
+
+  let response = reqwest::blocking::Client::new()
+    .get(format!("http://localhost:{port}"))
+    .basic_auth("foo", Some("bar"))
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), 200);
 
   child.kill().unwrap();
 }
