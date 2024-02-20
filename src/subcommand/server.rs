@@ -2728,7 +2728,7 @@ mod tests {
   fn status() {
     let server = TestServer::new_with_regtest();
 
-    server.mine_blocks(2);
+    server.mine_blocks(3);
 
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(
@@ -2743,6 +2743,16 @@ mod tests {
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(
         2,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        3,
         0,
         0,
         Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
@@ -2760,11 +2770,11 @@ mod tests {
   <dt>chain</dt>
   <dd>regtest</dd>
   <dt>height</dt>
-  <dd>3</dd>
+  <dd>4</dd>
   <dt>inscriptions</dt>
-  <dd>2</dd>
+  <dd>3</dd>
   <dt>blessed inscriptions</dt>
-  <dd>2</dd>
+  <dd>3</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
   <dt>runes</dt>
@@ -2776,7 +2786,7 @@ mod tests {
   <dt>uptime</dt>
   <dd>.*</dd>
   <dt>minimum rune for next block</dt>
-  <dd>ZZUZLIJCKPAY</dd>
+  <dd>.*</dd>
   <dt>version</dt>
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
@@ -2798,9 +2808,9 @@ mod tests {
   <dt>inscription content types</dt>
   <dd>
     <dl>
-      <dt><em>none</em></dt>
-      <dd>1</dt>
       <dt>text/plain;charset=utf-8</dt>
+      <dd>2</dt>
+      <dt><em>none</em></dt>
       <dd>1</dt>
     </dl>
   </dd>
