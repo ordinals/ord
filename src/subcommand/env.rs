@@ -109,19 +109,16 @@ rpcport={bitcoind_port}
 
     thread::sleep(Duration::from_millis(250));
 
-    // todo: timeout when creating bitcoin core client
+    let directory = self.directory.to_str().unwrap().to_string();
 
     eprintln!(
       "{}
-bitcoin-cli -datadir='{}' getblockchaininfo
+bitcoin-cli -datadir='{directory}' getblockchaininfo
 {}
-{} --regtest --bitcoin-data-dir '{}' --data-dir '{}' --rpc-url '{}' wallet --server-url {} balance",
+{} --regtest --bitcoin-data-dir '{directory}' --data-dir '{directory}' --rpc-url '{}' wallet --server-url {} balance",
       "Example `bitcoin-cli` command:".blue().bold(),
-      self.directory.display(),
       "Example `ord` command:".blue().bold(),
       ord.display(),
-      self.directory.display(),
-      self.directory.display(),
       rpc_url,
       format!("http://127.0.0.1:{ord_port}"),
     );
