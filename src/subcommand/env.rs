@@ -70,8 +70,6 @@ rpcport={bitcoind_port}
       }
     }
 
-    fs::write(env.join("ord.port"), format!("{ord_port}\n"))?;
-
     let ord = std::env::current_exe()?;
 
     let rpc_url = format!("http://localhost:{bitcoind_port}");
