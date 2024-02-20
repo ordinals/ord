@@ -1,4 +1,4 @@
-use {super::*, std::net::TcpListener};
+use {super::*, colored::Colorize, std::net::TcpListener};
 
 struct KillOnDrop(process::Child);
 
@@ -9,6 +9,7 @@ impl Drop for KillOnDrop {
       .status()
       .unwrap()
       .success());
+    self.0.wait().unwrap();
   }
 }
 
@@ -106,20 +107,23 @@ rpcport={bitcoind_port}
       ensure!(status.success(), "failed to create wallet: {status}");
     }
 
+    thread::sleep(Duration::from_millis(250));
+
+    // todo: timeout when creating bitcoin core client
+
     eprintln!(
-      "==> env started in {}
-
-example `bitcoin-cli` command:
+      "{}
 bitcoin-cli -datadir='{}' getblockchaininfo
-
-example `ord` command:
-ord --regtest --bitcoin-data-dir '{}' --data-dir '{}' wallet --server-url '{}' balance
-",
+{}
+{} --regtest --bitcoin-data-dir '{}' --data-dir '{}' --rpc-url '{}' wallet --server-url {} balance",
+      "Example `bitcoin-cli` command:".blue().bold(),
       self.directory.display(),
-      self.directory.display(),
+      "Example `ord` command:".blue().bold(),
+      ord.display(),
       self.directory.display(),
       self.directory.display(),
       rpc_url,
+      format!("http://127.0.0.1:{ord_port}"),
     );
 
     loop {
