@@ -426,6 +426,7 @@ impl<'index> Updater<'_> {
       chain: self.index.options.chain(),
       content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
+      event_sender: self.index.event_sender.as_ref(),
       flotsam: Vec::new(),
       height: self.height,
       home_inscription_count,
