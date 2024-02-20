@@ -5314,7 +5314,7 @@ next
   }
 
   #[test]
-  fn authentication_requires_username_and_password_are() {
+  fn authentication_requires_username_and_password() {
     assert!(Arguments::try_parse_from(["ord", "--username", "server", "foo"]).is_err());
     assert!(Arguments::try_parse_from(["ord", "--password", "server", "bar"]).is_err());
     assert!(
