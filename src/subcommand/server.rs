@@ -153,6 +153,13 @@ pub struct Server {
   pub(crate) csp_origin: Option<String>,
   #[arg(
     long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
+  #[arg(
+    long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
   pub(crate) http_port: Option<u16>,
@@ -172,15 +179,14 @@ pub struct Server {
   pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
-  #[arg(long, help = "Disable JSON API.")]
-  pub(crate) disable_json_api: bool,
-  #[arg(
-    long,
-    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
-  )]
-  pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
+  #[arg(
+    long,
+    default_value = "5s",
+    help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
+  )]
+  pub(crate) polling_interval: humantime::Duration,
 }
 
 impl Server {
@@ -199,11 +205,11 @@ impl Server {
           }
         }
 
-        if integration_test() {
-          thread::sleep(Duration::from_millis(100));
+        thread::sleep(if integration_test() {
+          Duration::from_millis(100)
         } else {
-          thread::sleep(Duration::from_millis(100));
-        }
+          self.polling_interval.into()
+        });
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
