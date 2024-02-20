@@ -233,8 +233,9 @@ impl Options {
     }
 
     let client = Client::new(&rpc_url, auth)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at `{rpc_url}`"))?;
 
+    let mut checks = 0;
     let rpc_chain = loop {
       match client.get_blockchain_info() {
         Ok(blockchain_info) => {
@@ -250,6 +251,14 @@ impl Options {
           if err.code == -28 => {}
         Err(err) => bail!("Failed to connect to Bitcoin Core RPC at `{rpc_url}`:  {err}"),
       }
+
+      ensure! {
+        checks < 100,
+        "Failed to connect to Bitcoin Core RPC at `{rpc_url}`",
+      }
+
+      checks += 1;
+      thread::sleep(Duration::from_millis(100));
     };
 
     let ord_chain = self.chain();
