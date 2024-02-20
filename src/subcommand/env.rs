@@ -63,11 +63,6 @@ rpcport={bitcoind_port}
         .spawn()?,
     );
 
-    eprintln!(
-      "example `bitcoin-cli` command: bitcoin-cli -datadir='{}' getblockchaininfo",
-      self.directory.display()
-    );
-
     loop {
       if env.join("regtest/.cookie").try_exists()? {
         break;
@@ -78,6 +73,8 @@ rpcport={bitcoind_port}
 
     let ord = std::env::current_exe()?;
 
+    let rpc_url = format!("http://localhost:{bitcoind_port}");
+
     let _ord = KillOnDrop(
       Command::new(&ord)
         .arg("--regtest")
@@ -86,7 +83,7 @@ rpcport={bitcoind_port}
         .arg("--data-dir")
         .arg(&env)
         .arg("--rpc-url")
-        .arg(format!("http://localhost:{bitcoind_port}"))
+        .arg(&rpc_url)
         .arg("server")
         .arg("--http-port")
         .arg(ord_port.to_string())
@@ -101,13 +98,29 @@ rpcport={bitcoind_port}
         .arg("--data-dir")
         .arg(&env)
         .arg("--rpc-url")
-        .arg(format!("http://localhost:{bitcoind_port}"))
+        .arg(&rpc_url)
         .arg("wallet")
         .arg("create")
         .status()?;
 
       ensure!(status.success(), "failed to create wallet: {status}");
     }
+
+    eprintln!(
+      "==> env started in {}
+
+example `bitcoin-cli` command:
+bitcoin-cli -datadir='{}' getblockchaininfo
+
+example `ord` command:
+ord --regtest --bitcoin-data-dir '{}' --data-dir '{}' wallet --server-url '{}' balance
+",
+      self.directory.display(),
+      self.directory.display(),
+      self.directory.display(),
+      self.directory.display(),
+      rpc_url,
+    );
 
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
