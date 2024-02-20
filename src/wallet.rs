@@ -7,8 +7,7 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
-  futures::TryFutureExt,
-  http::StatusCode,
+  futures::{join, TryFutureExt},
   inscribe::ParentInfo,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
@@ -51,76 +50,104 @@ pub(crate) struct Wallet {
 
 impl Wallet {
   pub(crate) fn build(name: String, no_sync: bool, options: Options, rpc_url: Url) -> Result<Self> {
-    let bitcoin_client = {
-      let client = Self::check_version(options.bitcoin_rpc_client(Some(name.clone()))?)?;
-
-      if !client.list_wallets()?.contains(&name) {
-        client.load_wallet(&name)?;
-      }
-
-      Self::check_descriptors(&name, client.list_descriptors(None)?.descriptors)?;
-
-      client
-    };
-
     let mut headers = header::HeaderMap::new();
     headers.insert(
       header::ACCEPT,
       header::HeaderValue::from_static("application/json"),
     );
 
-    let ord_client_blocking = reqwest::blocking::ClientBuilder::new()
+    let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())
-      .build()
-      .map_err(|err| anyhow!(err))?;
-
-    let chain_block_count = bitcoin_client.get_block_count().unwrap() + 1;
-    if !no_sync {
-      for i in 0.. {
-        let response = ord_client_blocking
-          .get(rpc_url.join("/blockcount").unwrap())
-          .send()?;
-        assert_eq!(response.status(), StatusCode::OK);
-        if response.text()?.parse::<u64>().unwrap() >= chain_block_count {
-          break;
-        } else if i == 20 {
-          bail!("wallet failed to synchronize with ord server");
-        }
-        thread::sleep(Duration::from_millis(50));
-      }
-    }
-
-    let ord_client = OrdClient {
-      server_url: rpc_url.clone(),
-      client: reqwest::ClientBuilder::new()
-        .default_headers(headers)
-        .build()
-        .map_err(|err| anyhow!(err))?,
-    };
+      .build()?;
 
     tokio::runtime::Builder::new_multi_thread()
       .enable_all()
       .build()?
       .block_on(async move {
-        let mut utxos = Self::get_utxos(&bitcoin_client).await?;
-        let locked_utxos = Self::get_locked_utxos(&bitcoin_client).await?;
+        let bitcoin_client = {
+          let client = Self::check_version(options.bitcoin_rpc_client(Some(name.clone()))?)?;
+
+          if !client.list_wallets()?.contains(&name) {
+            client.load_wallet(&name)?;
+          }
+
+          Self::check_descriptors(&name, client.list_descriptors(None)?.descriptors)?;
+
+          client
+        };
+
+        let async_ord_client = OrdClient {
+          server_url: rpc_url.clone(),
+          client: reqwest::ClientBuilder::new()
+            .default_headers(headers.clone())
+            .build()?,
+        };
+
+        let chain_block_count = bitcoin_client.get_block_count().unwrap() + 1;
+
+        if !no_sync {
+          for i in 0.. {
+            let response = async_ord_client.get("/blockcount").await?;
+            if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
+              break;
+            } else if i == 20 {
+              bail!("wallet failed to synchronize with ord server");
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+          }
+        }
+
+        let utxos = Self::get_utxos(&bitcoin_client);
+        let locked_utxos = Self::get_locked_utxos(&bitcoin_client);
+
+        let (utxos, locked_utxos) = join!(utxos, locked_utxos);
+
+        let mut utxos = utxos?;
+        let locked_utxos = locked_utxos?;
+
         utxos.extend(locked_utxos.clone());
 
         let mut output_info = BTreeMap::new();
-        for output in utxos.keys() {
-          output_info.insert(*output, Self::get_output(&ord_client, output).await?);
+
+        let requests = utxos
+          .clone()
+          .into_keys()
+          .map(|output| (output, Self::get_output(&async_ord_client, output)))
+          .collect::<Vec<(OutPoint, _)>>();
+
+        let futures = requests.into_iter().map(|(output, req)| async move {
+          let result = req.await;
+          (output, result)
+        });
+
+        let results = futures::future::join_all(futures).await;
+
+        for (output, result) in results {
+          let info = result?;
+          output_info.insert(output, info);
         }
 
-        let inscriptions_ids = output_info
+        let inscription_ids = output_info
           .iter()
           .flat_map(|(_output, info)| info.inscriptions.clone())
           .collect::<Vec<InscriptionId>>();
 
+        let requests = inscription_ids
+          .into_iter()
+          .map(|id| (id, Self::get_inscription_info(&async_ord_client, id)))
+          .collect::<Vec<(InscriptionId, _)>>();
+
+        let futures = requests.into_iter().map(|(output, req)| async move {
+          let result = req.await;
+          (output, result)
+        });
+
+        let results = futures::future::join_all(futures).await;
+
         let mut inscriptions = BTreeMap::new();
         let mut inscription_info = BTreeMap::new();
-        for id in inscriptions_ids {
-          let info = Self::get_inscription_info(&ord_client, id).await?;
-
+        for (id, result) in results {
+          let info = result?;
           inscriptions
             .entry(info.satpoint)
             .or_insert_with(Vec::new)
@@ -129,13 +156,13 @@ impl Wallet {
           inscription_info.insert(id, info);
         }
 
-        let status = Self::get_server_status(&ord_client).await?;
+        let status = Self::get_server_status(&async_ord_client).await?;
 
         Ok(Wallet {
           options,
           rpc_url,
           bitcoin_client,
-          ord_client: ord_client_blocking,
+          ord_client,
           has_sat_index: status.sat_index,
           has_rune_index: status.rune_index,
           utxos,
@@ -147,7 +174,7 @@ impl Wallet {
       })
   }
 
-  async fn get_output(ord_client: &OrdClient, output: &OutPoint) -> Result<OutputJson> {
+  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<OutputJson> {
     let response = ord_client.get(&format!("/output/{output}")).await?;
 
     if !response.status().is_success() {

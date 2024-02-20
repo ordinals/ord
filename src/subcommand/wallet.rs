@@ -76,6 +76,7 @@ impl WalletCommand {
       Subcommand::Restore(restore) => return restore.run(self.name, &options),
       _ => {}
     };
+
     let wallet = Wallet::build(
       self.name.clone(),
       self.no_sync,
