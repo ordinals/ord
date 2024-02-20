@@ -58,7 +58,7 @@ use {
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},

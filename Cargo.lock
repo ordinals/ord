@@ -2165,6 +2165,7 @@ dependencies = [
  "chrono",
  "ciborium",
  "clap",
+ "colored",
  "criterion",
  "ctrlc",
  "dirs",
