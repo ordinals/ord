@@ -89,6 +89,8 @@ rpcport={bitcoind_port}
         .spawn()?,
     );
 
+    thread::sleep(Duration::from_millis(250));
+
     if !env.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
         .arg("--regtest")
@@ -104,8 +106,6 @@ rpcport={bitcoind_port}
 
       ensure!(status.success(), "failed to create wallet: {status}");
     }
-
-    thread::sleep(Duration::from_millis(250));
 
     let directory = self.directory.to_str().unwrap().to_string();
 
