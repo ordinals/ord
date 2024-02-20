@@ -18,8 +18,6 @@ pub(crate) struct Env {
   directory: PathBuf,
 }
 
-// bitcoin-cli -datadir=env getblockchaininfo
-
 impl Env {
   pub(crate) fn run(self) -> SubcommandResult {
     let (bitcoind_port, ord_port) = (
@@ -35,7 +33,7 @@ impl Env {
         .port(),
     );
 
-    let env = std::env::current_dir()?.join(self.directory);
+    let env = std::env::current_dir()?.join(&self.directory);
 
     fs::create_dir_all(&env)?;
 
@@ -63,6 +61,11 @@ rpcport={bitcoind_port}
         .arg(format!("-conf={config}"))
         .stdout(Stdio::null())
         .spawn()?,
+    );
+
+    eprintln!(
+      "example `bitcoin-cli` command: bitcoin-cli -datadir='{}' getblockchaininfo",
+      self.directory.display()
     );
 
     loop {
