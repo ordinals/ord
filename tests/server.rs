@@ -635,3 +635,47 @@ fn run_no_sync() {
 
   child.kill().unwrap();
 }
+
+#[test]
+fn authentication() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let builder = CommandBuilder::new(format!(
+    " --username foo --password bar server --address 127.0.0.1 --http-port {port}"
+  ))
+  .bitcoin_rpc_server(&rpc_server);
+
+  let mut command = builder.command();
+
+  let mut child = command.spawn().unwrap();
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}")) {
+      if response.status() == 401 {
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond");
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  let response = reqwest::blocking::Client::new()
+    .get(format!("http://localhost:{port}"))
+    .basic_auth("foo", Some("bar"))
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), 200);
+
+  child.kill().unwrap();
+}

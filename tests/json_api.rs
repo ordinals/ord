@@ -166,7 +166,7 @@ fn get_inscription() {
       parent: None,
       previous: None,
       rune: None,
-      sat: Some(ord::Sat(50 * COIN_VALUE)),
+      sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
     }
@@ -491,8 +491,9 @@ fn get_status() {
     status_json,
     StatusJson {
       blessed_inscriptions: 1,
-      cursed_inscriptions: 0,
       chain: Chain::Regtest,
+      content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
+      cursed_inscriptions: 0,
       height: Some(3),
       inscriptions: 1,
       lost_sats: 0,

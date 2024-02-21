@@ -8,6 +8,7 @@ pub struct BatchEntry {
   pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl BatchEntry {

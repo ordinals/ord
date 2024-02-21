@@ -1,9 +1,9 @@
 use super::*;
 
 #[derive(PartialEq, Debug)]
-pub(crate) struct DecimalSat {
-  height: Height,
-  offset: u64,
+pub struct DecimalSat {
+  pub height: Height,
+  pub offset: u64,
 }
 
 impl From<Sat> for DecimalSat {

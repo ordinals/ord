@@ -75,7 +75,7 @@ impl From<Sat> for Rarity {
 }
 
 impl FromStr for Rarity {
-  type Err = Error;
+  type Err = String;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
@@ -85,7 +85,7 @@ impl FromStr for Rarity {
       "epic" => Ok(Self::Epic),
       "legendary" => Ok(Self::Legendary),
       "mythic" => Ok(Self::Mythic),
-      _ => Err(anyhow!("invalid rarity: {s}")),
+      _ => Err(format!("invalid rarity `{s}`")),
     }
   }
 }
@@ -104,7 +104,7 @@ impl<'de> Deserialize<'de> for Rarity {
   where
     D: Deserializer<'de>,
   {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+    DeserializeFromStr::with(deserializer)
   }
 }
 
@@ -173,13 +173,6 @@ mod tests {
   }
 
   #[test]
-  fn from_str_err() {
-    "abc".parse::<Rarity>().unwrap_err();
-
-    "".parse::<Rarity>().unwrap_err();
-  }
-
-  #[test]
   fn conversions_with_u8() {
     for &expected in &[
       Rarity::Common,
@@ -195,5 +188,10 @@ mod tests {
     }
 
     assert_eq!(Rarity::try_from(6), Err(6));
+  }
+
+  #[test]
+  fn error() {
+    assert_eq!("foo".parse::<Rarity>().unwrap_err(), "invalid rarity `foo`");
   }
 }

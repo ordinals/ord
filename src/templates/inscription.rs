@@ -35,7 +35,7 @@ pub struct InscriptionRecursiveJson {
   pub value: Option<u64>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct InscriptionJson {
   pub address: Option<String>,
   pub charms: Vec<String>,

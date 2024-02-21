@@ -21,7 +21,7 @@ pub mod batch_entry;
 pub mod batch_file;
 pub mod mode;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
 pub struct InscriptionInfo {
   pub id: InscriptionId,
   pub location: SatPoint,

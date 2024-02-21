@@ -75,7 +75,7 @@ fn sats_from_tsv_parse_error() {
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
     .expected_stderr(
-      "error: failed to parse sat from string \"===\" on line 1: invalid digit found in string\n",
+      "error: failed to parse sat from string \"===\" on line 1: failed to parse sat `===`: invalid integer: invalid digit found in string\n",
     )
     .run_and_extract_stdout();
 }

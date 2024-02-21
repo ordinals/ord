@@ -26,7 +26,7 @@ pub struct OutputRare {
 impl Sats {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.has_sat_index()?,
+      wallet.has_sat_index(),
       "sats requires index created with `--index-sats` flag"
     );
 
@@ -278,7 +278,7 @@ mod tests {
       sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
         .unwrap_err()
         .to_string(),
-      "failed to parse sat from string \"===\" on line 2: invalid digit found in string",
+      "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
     )
   }
 

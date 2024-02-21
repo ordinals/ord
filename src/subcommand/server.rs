@@ -2,15 +2,14 @@ use {
   self::{
     accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
-    deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson, ClockSvg,
-      CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+      BlockHtml, BlockInfoJson, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson,
+      ClockSvg, CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionRecursiveJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
       OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
       PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
@@ -42,6 +41,7 @@ use {
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
+    validate_request::ValidateRequestHeaderLayer,
   },
 };
 
@@ -49,7 +49,7 @@ mod accept_encoding;
 mod accept_json;
 mod error;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum InscriptionQuery {
   Id(InscriptionId),
   Number(i32),
@@ -125,6 +125,15 @@ impl Display for StaticHtml {
   }
 }
 
+fn chainwork(chainwork: &[u8]) -> u128 {
+  chainwork
+    .iter()
+    .rev()
+    .enumerate()
+    .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
+    .sum()
+}
+
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
@@ -142,6 +151,13 @@ pub struct Server {
     help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
   )]
   pub(crate) csp_origin: Option<String>,
+  #[arg(
+    long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
   #[arg(
     long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
@@ -163,15 +179,14 @@ pub struct Server {
   pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
-  #[arg(long, help = "Disable JSON API.")]
-  pub(crate) disable_json_api: bool,
-  #[arg(
-    long,
-    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
-  )]
-  pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
+  #[arg(
+    long,
+    default_value = "5s",
+    help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
+  )]
+  pub(crate) polling_interval: humantime::Duration,
 }
 
 impl Server {
@@ -190,11 +205,11 @@ impl Server {
           }
         }
 
-        if integration_test() {
-          thread::sleep(Duration::from_millis(100));
+        thread::sleep(if integration_test() {
+          Duration::from_millis(100)
         } else {
-          thread::sleep(Duration::from_millis(5000));
-        }
+          self.polling_interval.into()
+        });
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
@@ -256,6 +271,7 @@ impl Server {
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
+        .route("/r/blockinfo/:query", get(Self::block_info))
         .route(
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
@@ -304,6 +320,12 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config);
+
+      let router = if let Some((username, password)) = options.credentials() {
+        router.layer(ValidateRequestHeaderLayer::basic(username, password))
+      } else {
+        router
+      };
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -1115,6 +1137,49 @@ impl Server {
           .ok_or_not_found(|| "blockhash")?
           .to_string(),
       ))
+    })
+  }
+
+  async fn block_info(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
+  ) -> ServerResult<Json<BlockInfoJson>> {
+    task::block_in_place(|| {
+      let hash = match query {
+        BlockQuery::Hash(hash) => hash,
+        BlockQuery::Height(height) => index
+          .block_hash(Some(height))?
+          .ok_or_not_found(|| format!("block {height}"))?,
+      };
+
+      let info = index
+        .block_header_info(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      let header = index
+        .block_header(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      Ok(Json(BlockInfoJson {
+        bits: header.bits.to_consensus(),
+        chainwork: chainwork(&info.chainwork),
+        confirmations: info.confirmations,
+        difficulty: info.difficulty,
+        hash,
+        height: info.height.try_into().unwrap(),
+        median_time: info
+          .median_time
+          .map(|median_time| median_time.try_into().unwrap()),
+        merkle_root: info.merkle_root,
+        next_block: info.next_block_hash,
+        nonce: info.nonce,
+        previous_block: info.previous_block_hash,
+        target: target_as_block_hash(header.target()),
+        timestamp: info.time.try_into().unwrap(),
+        transaction_count: info.n_tx.try_into().unwrap(),
+        #[allow(clippy::cast_sign_loss)]
+        version: info.version.to_consensus() as u32,
+      }))
     })
   }
 
@@ -2737,21 +2802,55 @@ mod tests {
 
   #[test]
   fn status() {
-    let test_server = TestServer::new();
+    let server = TestServer::new_with_regtest();
 
-    test_server.assert_response_regex(
+    server.mine_blocks(3);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        3,
+        0,
+        0,
+        Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
       "/status",
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
   <dt>chain</dt>
-  <dd>mainnet</dd>
+  <dd>regtest</dd>
   <dt>height</dt>
-  <dd>0</dd>
+  <dd>4</dd>
   <dt>inscriptions</dt>
-  <dd>0</dd>
+  <dd>3</dd>
   <dt>blessed inscriptions</dt>
-  <dd>0</dd>
+  <dd>3</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
   <dt>runes</dt>
@@ -2763,7 +2862,7 @@ mod tests {
   <dt>uptime</dt>
   <dd>.*</dd>
   <dt>minimum rune for next block</dt>
-  <dd>AAAAAAAAAAAAA</dd>
+  <dd>.*</dd>
   <dt>version</dt>
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
@@ -2781,6 +2880,15 @@ mod tests {
     <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
+  </dd>
+  <dt>inscription content types</dt>
+  <dd>
+    <dl>
+      <dt>text/plain;charset=utf-8</dt>
+      <dd>2</dt>
+      <dt><em>none</em></dt>
+      <dd>1</dt>
+    </dl>
   </dd>
 </dl>
 .*",
@@ -2871,7 +2979,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/=/0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid digit found in string",
+      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
     );
   }
 
@@ -2880,7 +2988,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/0/=",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid digit found in string",
+      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
     );
   }
 
@@ -2948,7 +3056,7 @@ mod tests {
     TestServer::new().assert_response(
       "/sat/2099999997690000",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid sat",
+      "Invalid URL: failed to parse sat `2099999997690000`: invalid integer range",
     );
   }
 
@@ -5243,5 +5351,81 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn chainwork_conversion_to_integer() {
+    assert_eq!(chainwork(&[]), 0);
+    assert_eq!(chainwork(&[1]), 1);
+    assert_eq!(chainwork(&[1, 0]), 256);
+    assert_eq!(chainwork(&[1, 1]), 257);
+    assert_eq!(chainwork(&[1, 0, 0]), 65536);
+    assert_eq!(chainwork(&[1, 0, 1]), 65537);
+    assert_eq!(chainwork(&[1, 1, 1]), 65793);
+  }
+
+  #[test]
+  fn block_info() {
+    let server = TestServer::new();
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/0"),
+      BlockInfoJson {
+        bits: 486604799,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+          .parse()
+          .unwrap(),
+        height: 0,
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: "00000000ffff0000000000000000000000000000000000000000000000000000"
+          .parse()
+          .unwrap(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    );
+
+    server.mine_blocks(1);
+
+    pretty_assert_eq!(
+      server.get_json::<BlockInfoJson>("/r/blockinfo/1"),
+      BlockInfoJson {
+        bits: 0,
+        chainwork: 0,
+        confirmations: 0,
+        difficulty: 0.0,
+        hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
+          .parse()
+          .unwrap(),
+        height: 1,
+        median_time: None,
+        merkle_root: TxMerkleNode::all_zeros(),
+        next_block: None,
+        nonce: 0,
+        previous_block: None,
+        target: BlockHash::all_zeros(),
+        timestamp: 0,
+        transaction_count: 0,
+        version: 1,
+      },
+    )
+  }
+
+  #[test]
+  fn authentication_requires_username_and_password() {
+    assert!(Arguments::try_parse_from(["ord", "--username", "server", "foo"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "--password", "server", "bar"]).is_err());
+    assert!(
+      Arguments::try_parse_from(["ord", "--username", "foo", "--password", "bar", "server"])
+        .is_ok()
+    );
   }
 }

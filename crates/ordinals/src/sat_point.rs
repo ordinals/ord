@@ -1,5 +1,14 @@
-use super::*;
+use {super::*, bitcoin::transaction::ParseOutPointError};
 
+/// A satpoint identifies the location of a sat in an output.
+///
+/// The string representation of a satpoint consists of that of an outpoint,
+/// which identifies and output, followed by `:OFFSET`. For example, the string
+/// representation of the first sat of the genesis block coinbase output is
+/// `000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f:0:0`,
+/// that of the second sat of the genesis block coinbase output is
+/// `000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f:0:1`, and
+/// so on and so on.
 #[derive(Debug, PartialEq, Copy, Clone, Eq, PartialOrd, Ord, Default)]
 pub struct SatPoint {
   pub outpoint: OutPoint,
@@ -44,7 +53,7 @@ impl<'de> Deserialize<'de> for SatPoint {
   where
     D: Deserializer<'de>,
   {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+    DeserializeFromStr::with(deserializer)
   }
 }
 
@@ -52,20 +61,60 @@ impl FromStr for SatPoint {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let (outpoint, offset) = s
-      .rsplit_once(':')
-      .ok_or_else(|| anyhow!("invalid satpoint: {s}"))?;
+    let (outpoint, offset) = s.rsplit_once(':').ok_or_else(|| Error::Colon(s.into()))?;
 
     Ok(SatPoint {
-      outpoint: outpoint.parse()?,
-      offset: offset.parse()?,
+      outpoint: outpoint
+        .parse::<OutPoint>()
+        .map_err(|err| Error::Outpoint {
+          outpoint: outpoint.into(),
+          err,
+        })?,
+      offset: offset.parse::<u64>().map_err(|err| Error::Offset {
+        offset: offset.into(),
+        err,
+      })?,
     })
   }
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+  #[error("satpoint `{0}` missing colon")]
+  Colon(String),
+  #[error("satpoint offset `{offset}` invalid: {err}")]
+  Offset { offset: String, err: ParseIntError },
+  #[error("satpoint outpoint `{outpoint}` invalid: {err}")]
+  Outpoint {
+    outpoint: String,
+    err: ParseOutPointError,
+  },
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn error() {
+    assert_eq!(
+      "foo".parse::<SatPoint>().unwrap_err().to_string(),
+      "satpoint `foo` missing colon"
+    );
+
+    assert_eq!(
+      "foo:bar".parse::<SatPoint>().unwrap_err().to_string(),
+      "satpoint outpoint `foo` invalid: OutPoint not in <txid>:<vout> format"
+    );
+
+    assert_eq!(
+      "1111111111111111111111111111111111111111111111111111111111111111:1:bar"
+        .parse::<SatPoint>()
+        .unwrap_err()
+        .to_string(),
+      "satpoint offset `bar` invalid: invalid digit found in string"
+    );
+  }
 
   #[test]
   fn from_str_ok() {

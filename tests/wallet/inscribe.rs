@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::{create, inscriptions, receive},
+  ord::subcommand::wallet::{create, inscriptions, receive, send},
   std::ops::Deref,
 };
 
@@ -251,7 +251,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {output} already inscribed with inscription {inscription} on sat {output}:0\n",
+    "error: utxo {output} with sat {output}:0 already inscribed with the following inscriptions:\n{inscription}\n",
   ))
   .run_and_extract_stdout();
 }
@@ -695,6 +695,14 @@ fn reinscribe_with_flag() {
       inscribe.inscriptions[0].id, reinscribe.inscriptions[0].id
     ),
   );
+
+  let inscriptions = CommandBuilder::new("wallet inscriptions")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscriptions>();
+
+  assert_eq!(inscriptions[0].inscription, inscribe.inscriptions[0].id);
+  assert_eq!(inscriptions[1].inscription, reinscribe.inscriptions[0].id);
 }
 
 #[test]
@@ -853,6 +861,9 @@ fn cbor_metadata_appears_on_inscription_page() {
 #[test]
 fn error_message_when_parsing_json_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file content.png",
@@ -860,6 +871,7 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
   .write("content.png", [1; 520])
   .write("metadata.json", "{")
   .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .stderr_regex(".*failed to parse JSON metadata.*")
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -868,6 +880,9 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
 #[test]
 fn error_message_when_parsing_cbor_metadata_is_reasonable() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor --file content.png",
@@ -875,6 +890,7 @@ fn error_message_when_parsing_cbor_metadata_is_reasonable() {
   .write("content.png", [1; 520])
   .write("metadata.cbor", [0x61])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .stderr_regex(".*failed to parse CBOR metadata.*")
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -1152,6 +1168,7 @@ fn batch_in_same_output_with_non_default_postage() {
     .run_and_deserialize_output::<Inscribe>();
 
   let outpoint = output.inscriptions[0].location.outpoint;
+
   for (i, inscription) in output.inscriptions.iter().enumerate() {
     assert_eq!(
       inscription.location,
@@ -1501,7 +1518,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
 }
 
 #[test]
-fn batch_inscribe_fails_with_shared_output_and_destination_set() {
+fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
@@ -1517,7 +1534,17 @@ fn batch_inscribe_fails_with_shared_output_and_destination_set() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: individual inscription destinations cannot be set in shared-output or same-sat mode\n")
+    .stderr_regex("error: individual inscription destinations cannot be set in `shared-output` or `same-sat` mode\n")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", "")
+    .write("batch.yaml", "mode: same-sat\nsat: 5000000000\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex("error: individual inscription destinations cannot be set in `shared-output` or `same-sat` mode\n")
     .run_and_extract_stdout();
 }
 
@@ -1848,8 +1875,42 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: `sat` can only be set in `same-sat` mode\n")
+    .expected_stderr("error: neither `sat` nor `satpoint` can be set in `same-sat` mode\n")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_satpoint() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("mode: same-sat\nsatpoint: {txid}:0:55555\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", )
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    "/sat/5000055555",
+    format!(
+      ".*<a href=/inscription/{}>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
+      output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id
+    ),
+  );
 }
 
 #[test]
@@ -2094,4 +2155,340 @@ inscriptions:
     .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
     .expected_exit_code(1)
     .run_and_extract_stdout();
+}
+
+#[test]
+fn batch_inscribe_with_satpoints_with_parent() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let parent_output =
+    CommandBuilder::new("--index-sats wallet inscribe --fee-rate 5.0 --file parent.png")
+      .write("parent.png", [1; 520])
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let txids = bitcoin_rpc_server
+    .mine_blocks(3)
+    .iter()
+    .map(|block| block.txdata[0].txid())
+    .collect::<Vec<Txid>>();
+
+  let satpoint_1 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[0],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let satpoint_2 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[1],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let satpoint_3 = SatPoint {
+    outpoint: OutPoint {
+      txid: txids[2],
+      vout: 0,
+    },
+    offset: 0,
+  };
+
+  let sat_1 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_1.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
+  let sat_2 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_2.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
+  let sat_3 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_3.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap()
+  .sat_ranges
+  .unwrap()[0]
+    .0;
+
+  let parent_id = parent_output.inscriptions[0].id;
+
+  let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!(
+        r#"
+mode: satpoints
+parent: {parent_id}
+inscriptions:
+- file: inscription.txt
+  satpoint: {}
+- file: tulip.png
+  satpoint: {}
+- file: meow.wav
+  satpoint: {}
+"#,
+        satpoint_1, satpoint_2, satpoint_3
+      ),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", parent_id),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
+      output.reveal
+    ),
+  );
+
+  for inscription in &output.inscriptions {
+    assert_eq!(inscription.location.offset, 0);
+  }
+
+  let outpoints = output
+    .inscriptions
+    .iter()
+    .map(|inscription| inscription.location.outpoint)
+    .collect::<Vec<OutPoint>>();
+
+  assert_eq!(outpoints.len(), output.inscriptions.len());
+
+  let inscription_1 = output.inscriptions[0];
+  let inscription_2 = output.inscriptions[1];
+  let inscription_3 = output.inscriptions[2];
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", inscription_1.id),
+    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      50 * COIN_VALUE,
+      sat_1,
+      inscription_1.location,
+    ),
+  );
+
+  ord_rpc_server.assert_response_regex(
+      format!("/inscription/{}", inscription_2.id),
+      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+         50 * COIN_VALUE,
+         sat_2,
+         inscription_2.location
+      ),
+    );
+
+  ord_rpc_server.assert_response_regex(
+      format!("/inscription/{}", inscription_3.id),
+      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+        50 * COIN_VALUE,
+        sat_3,
+        inscription_3.location
+      ),
+    );
+}
+
+#[test]
+fn batch_inscribe_with_satpoints_with_different_sizes() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(3);
+
+  let outpoint_1 = OutPoint {
+    txid: CommandBuilder::new(
+      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 25btc",
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .stdout_regex(r".*")
+    .run_and_deserialize_output::<send::Output>()
+    .txid,
+    vout: 0,
+  };
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let outpoint_2 = OutPoint {
+    txid: CommandBuilder::new(
+      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .stdout_regex(r".*")
+    .run_and_deserialize_output::<send::Output>()
+    .txid,
+    vout: 0,
+  };
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let outpoint_3 = OutPoint {
+    txid: CommandBuilder::new(
+      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 3btc",
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .stdout_regex(r".*")
+    .run_and_deserialize_output::<send::Output>()
+    .txid,
+    vout: 0,
+  };
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let satpoint_1 = SatPoint {
+    outpoint: outpoint_1,
+    offset: 0,
+  };
+
+  let satpoint_2 = SatPoint {
+    outpoint: outpoint_2,
+    offset: 0,
+  };
+
+  let satpoint_3 = SatPoint {
+    outpoint: outpoint_3,
+    offset: 0,
+  };
+
+  let output_1 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_1.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_1.value, 25 * COIN_VALUE);
+
+  let output_2 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_2.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_2.value, COIN_VALUE);
+
+  let output_3 = serde_json::from_str::<OutputJson>(
+    &ord_rpc_server
+      .json_request(format!("/output/{}", satpoint_3.outpoint))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+  assert_eq!(output_3.value, 3 * COIN_VALUE);
+
+  let sat_1 = output_1.sat_ranges.unwrap()[0].0;
+  let sat_2 = output_2.sat_ranges.unwrap()[0].0;
+  let sat_3 = output_3.sat_ranges.unwrap()[0].0;
+
+  let output = CommandBuilder::new("--index-sats wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 5])
+    .write("meow.wav", [0; 2])
+    .write(
+      "batch.yaml",
+      format!(
+        r#"
+mode: satpoints
+inscriptions:
+- file: inscription.txt
+  satpoint: {}
+- file: tulip.png
+  satpoint: {}
+- file: meow.wav
+  satpoint: {}
+"#,
+        satpoint_1, satpoint_2, satpoint_3
+      ),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  for inscription in &output.inscriptions {
+    assert_eq!(inscription.location.offset, 0);
+  }
+
+  let outpoints = output
+    .inscriptions
+    .iter()
+    .map(|inscription| inscription.location.outpoint)
+    .collect::<Vec<OutPoint>>();
+
+  assert_eq!(outpoints.len(), output.inscriptions.len());
+
+  let inscription_1 = output.inscriptions[0];
+  let inscription_2 = output.inscriptions[1];
+  let inscription_3 = output.inscriptions[2];
+
+  ord_rpc_server.assert_response_regex(
+     format!("/inscription/{}", inscription_1.id),
+     format!(
+       r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+       25 * COIN_VALUE,
+       sat_1,
+       inscription_1.location
+     ),
+   );
+
+  ord_rpc_server.assert_response_regex(
+      format!("/inscription/{}", inscription_2.id),
+      format!(
+        r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+        COIN_VALUE,
+        sat_2,
+        inscription_2.location
+      ),
+    );
+
+  ord_rpc_server.assert_response_regex(
+         format!("/inscription/{}", inscription_3.id),
+         format!(
+           r".*<dt>output value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+           3 * COIN_VALUE,
+           sat_3,
+           inscription_3.location
+         ),
+  );
 }

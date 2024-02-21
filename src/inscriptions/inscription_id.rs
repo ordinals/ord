@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, PartialOrd, Ord)]
 pub struct InscriptionId {
   pub txid: Txid,
   pub index: u32,
@@ -39,7 +39,7 @@ impl<'de> Deserialize<'de> for InscriptionId {
   where
     D: Deserializer<'de>,
   {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+    DeserializeFromStr::with(deserializer)
   }
 }
 
