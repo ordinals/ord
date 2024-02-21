@@ -109,11 +109,8 @@ impl Wallet {
           }
         }
 
-        let (mut utxos, locked_utxos) = futures::try_join!(
-          Self::get_utxos(&bitcoin_client),
-          Self::get_locked_utxos(&bitcoin_client)
-        )?;
-
+        let mut utxos = Self::get_utxos(&bitcoin_client)?;
+        let locked_utxos = Self::get_locked_utxos(&bitcoin_client)?;
         utxos.extend(locked_utxos.clone());
 
         let requests = utxos
@@ -196,9 +193,7 @@ impl Wallet {
     Ok(output_json)
   }
 
-  fn get_utxos(
-    bitcoin_client: &bitcoincore_rpc::Client,
-  ) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_utxos(bitcoin_client: &bitcoincore_rpc::Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     Ok(
       bitcoin_client
         .list_unspent(None, None, None, None, None)?
@@ -216,7 +211,7 @@ impl Wallet {
     )
   }
 
-  async fn get_locked_utxos(
+  fn get_locked_utxos(
     bitcoin_client: &bitcoincore_rpc::Client,
   ) -> Result<BTreeMap<OutPoint, TxOut>> {
     #[derive(Deserialize)]
