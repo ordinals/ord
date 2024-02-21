@@ -196,7 +196,7 @@ impl Wallet {
     Ok(output_json)
   }
 
-  async fn get_utxos(
+  fn get_utxos(
     bitcoin_client: &bitcoincore_rpc::Client,
   ) -> Result<BTreeMap<OutPoint, TxOut>> {
     Ok(
