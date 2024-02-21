@@ -7,7 +7,7 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
-  futures::TryFutureExt,
+  futures::{future, join, TryFutureExt},
   inscribe::ParentInfo,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
@@ -124,7 +124,7 @@ impl Wallet {
           (output, result)
         });
 
-        let results = futures::future::join_all(futures).await;
+        let results = future::join_all(futures).await;
 
         let mut output_info = BTreeMap::new();
         for (output, result) in results {
@@ -145,7 +145,10 @@ impl Wallet {
           (output, result)
         });
 
-        let results = futures::future::join_all(futures).await;
+        let (results, status) = join!(
+          future::join_all(futures),
+          Self::get_server_status(&async_ord_client)
+        );
 
         let mut inscriptions = BTreeMap::new();
         let mut inscription_info = BTreeMap::new();
@@ -159,7 +162,7 @@ impl Wallet {
           inscription_info.insert(id, info);
         }
 
-        let status = Self::get_server_status(&async_ord_client).await?;
+        let status = status?;
 
         Ok(Wallet {
           options,
