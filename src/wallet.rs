@@ -19,13 +19,13 @@ pub mod transaction_builder;
 
 #[derive(Clone)]
 struct OrdClient {
-  server_url: Url,
+  url: Url,
   client: reqwest::Client,
 }
 
 impl OrdClient {
   pub async fn get(&self, path: &str) -> Result<reqwest::Response> {
-    let url = self.server_url.join(path)?;
+    let url = self.url.join(path)?;
     self
       .client
       .get(url)
@@ -89,7 +89,7 @@ impl Wallet {
         };
 
         let async_ord_client = OrdClient {
-          server_url: rpc_url.clone(),
+          url: rpc_url.clone(),
           client: reqwest::ClientBuilder::new()
             .default_headers(headers.clone())
             .build()?,
