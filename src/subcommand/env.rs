@@ -98,6 +98,8 @@ rpcport={bitcoind_port}
 
     thread::sleep(Duration::from_millis(250));
 
+    let server_url = format!("http://127.0.0.1:{ord_port}");
+
     if !absolute.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
         .arg("--regtest")
@@ -122,10 +124,15 @@ rpcport={bitcoind_port}
         .arg("--rpc-url")
         .arg(&rpc_url)
         .arg("wallet")
+        .arg("--server-url")
+        .arg(&server_url)
         .arg("receive")
         .output()?;
 
-      ensure!(output.status.success(), "failed to create wallet: {status}");
+      ensure!(
+        output.status.success(),
+        "failed to generate receive address: {status}"
+      );
 
       let receive =
         serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
@@ -141,8 +148,6 @@ rpcport={bitcoind_port}
 
       ensure!(status.success(), "failed to create wallet: {status}");
     }
-
-    let server_url = format!("http://127.0.0.1:{ord_port}");
 
     serde_json::to_writer(
       File::create(self.directory.join("info.json"))?,
