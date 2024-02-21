@@ -165,8 +165,6 @@ impl Wallet {
           inscription_info.insert(id, info);
         }
 
-        // let status = status?;
-
         Ok(Wallet {
           options,
           rpc_url,
