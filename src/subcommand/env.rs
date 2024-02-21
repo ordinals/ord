@@ -149,7 +149,7 @@ rpcport={bitcoind_port}
       ensure!(status.success(), "failed to create wallet: {status}");
     }
 
-    serde_json::to_writer(
+    serde_json::to_writer_pretty(
       File::create(self.directory.join("info.json"))?,
       &Info {
         bitcoind_port,
