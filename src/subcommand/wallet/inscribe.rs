@@ -74,9 +74,9 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let utxos = wallet.utxos.clone();
+    let utxos = wallet.utxos();
 
-    let mut locked_utxos = wallet.locked_utxos.clone();
+    let mut locked_utxos = wallet.locked_utxos().clone();
 
     let runic_utxos = wallet.get_runic_outputs()?;
 
@@ -135,7 +135,7 @@ impl Inscribe {
 
         (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,
-          &utxos,
+          utxos,
           parent_info.as_ref().map(|info| info.tx_out.value),
           self.compress,
         )?;
@@ -175,7 +175,7 @@ impl Inscribe {
     .inscribe(
       &locked_utxos.into_keys().collect(),
       runic_utxos,
-      &utxos,
+      utxos,
       &wallet,
     )
   }

@@ -23,13 +23,13 @@ pub struct Output {
 impl Etch {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.has_rune_index,
+      wallet.has_rune_index(),
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
     let SpacedRune { rune, spacers } = self.rune;
 
-    let bitcoin_client = &wallet.bitcoin_client;
+    let bitcoin_client = wallet.bitcoin_client();
 
     let count = bitcoin_client.get_block_count()?;
 
@@ -99,7 +99,7 @@ impl Etch {
     };
 
     let inscriptions = wallet
-      .get_inscriptions()
+      .inscriptions()
       .keys()
       .map(|satpoint| satpoint.outpoint)
       .collect::<Vec<OutPoint>>();

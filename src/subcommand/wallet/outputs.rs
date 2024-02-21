@@ -8,9 +8,9 @@ pub struct Output {
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut outputs = Vec::new();
-  for (output, txout) in wallet.utxos {
+  for (output, txout) in wallet.utxos() {
     outputs.push(Output {
-      output,
+      output: *output,
       amount: txout.value,
     });
   }

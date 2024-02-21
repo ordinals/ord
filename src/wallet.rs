@@ -7,7 +7,7 @@ use {
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
-  futures::{join, TryFutureExt},
+  futures::TryFutureExt,
   inscribe::ParentInfo,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
@@ -17,6 +17,7 @@ use {
 pub mod inscribe;
 pub mod transaction_builder;
 
+#[derive(Clone)]
 struct OrdClient {
   server_url: Url,
   client: reqwest::Client,
@@ -35,17 +36,17 @@ impl OrdClient {
 }
 
 pub(crate) struct Wallet {
-  pub(crate) rpc_url: Url,
-  pub(crate) options: Options,
-  pub(crate) bitcoin_client: bitcoincore_rpc::Client,
-  pub(crate) ord_client: reqwest::blocking::Client,
-  pub(crate) has_sat_index: bool,
-  pub(crate) has_rune_index: bool,
-  pub(crate) utxos: BTreeMap<OutPoint, TxOut>,
-  pub(crate) locked_utxos: BTreeMap<OutPoint, TxOut>,
-  pub(crate) output_info: BTreeMap<OutPoint, OutputJson>,
-  pub(crate) inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-  pub(crate) inscription_info: BTreeMap<InscriptionId, InscriptionJson>,
+  rpc_url: Url,
+  options: Options,
+  bitcoin_client: bitcoincore_rpc::Client,
+  ord_client: reqwest::blocking::Client,
+  has_sat_index: bool,
+  has_rune_index: bool,
+  utxos: BTreeMap<OutPoint, TxOut>,
+  locked_utxos: BTreeMap<OutPoint, TxOut>,
+  output_info: BTreeMap<OutPoint, OutputJson>,
+  inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
+  inscription_info: BTreeMap<InscriptionId, InscriptionJson>,
 }
 
 impl Wallet {
@@ -97,17 +98,12 @@ impl Wallet {
           }
         }
 
-        let utxos = Self::get_utxos(&bitcoin_client);
-        let locked_utxos = Self::get_locked_utxos(&bitcoin_client);
-
-        let (utxos, locked_utxos) = join!(utxos, locked_utxos);
-
-        let mut utxos = utxos?;
-        let locked_utxos = locked_utxos?;
+        let (mut utxos, locked_utxos) = futures::try_join!(
+          Self::get_utxos(&bitcoin_client),
+          Self::get_locked_utxos(&bitcoin_client)
+        )?;
 
         utxos.extend(locked_utxos.clone());
-
-        let mut output_info = BTreeMap::new();
 
         let requests = utxos
           .clone()
@@ -122,17 +118,16 @@ impl Wallet {
 
         let results = futures::future::join_all(futures).await;
 
+        let mut output_info = BTreeMap::new();
         for (output, result) in results {
           let info = result?;
           output_info.insert(output, info);
         }
 
-        let inscription_ids = output_info
+        let requests = output_info
           .iter()
           .flat_map(|(_output, info)| info.inscriptions.clone())
-          .collect::<Vec<InscriptionId>>();
-
-        let requests = inscription_ids
+          .collect::<Vec<InscriptionId>>()
           .into_iter()
           .map(|id| (id, Self::get_inscription_info(&async_ord_client, id)))
           .collect::<Vec<(InscriptionId, _)>>();
@@ -308,8 +303,24 @@ impl Wallet {
     )))
   }
 
-  pub(crate) fn get_inscriptions(&self) -> BTreeMap<SatPoint, Vec<InscriptionId>> {
-    self.inscriptions.clone()
+  pub(crate) fn bitcoin_client(&self) -> &bitcoincore_rpc::Client {
+    &self.bitcoin_client
+  }
+
+  pub(crate) fn utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
+    &self.utxos
+  }
+
+  pub(crate) fn locked_utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
+    &self.locked_utxos
+  }
+
+  pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
+    &self.inscriptions
+  }
+
+  pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, InscriptionJson> {
+    self.inscription_info.clone()
   }
 
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
@@ -432,6 +443,14 @@ impl Wallet {
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
     )
+  }
+
+  pub(crate) fn has_sat_index(&self) -> bool {
+    self.has_sat_index
+  }
+
+  pub(crate) fn has_rune_index(&self) -> bool {
+    self.has_rune_index
   }
 
   pub(crate) fn chain(&self) -> Chain {

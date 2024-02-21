@@ -12,10 +12,10 @@ pub struct Output {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.utxos.clone();
+  let unspent_outputs = wallet.utxos();
 
   let inscription_outputs = wallet
-    .get_inscriptions()
+    .inscriptions()
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
@@ -26,9 +26,9 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_for_output(&output)?;
+    let rune_balances = wallet.get_runes_balances_for_output(output)?;
 
-    if inscription_outputs.contains(&output) {
+    if inscription_outputs.contains(output) {
       ordinal += txout.value;
     } else if !rune_balances.is_empty() {
       for (spaced_rune, pile) in rune_balances {
@@ -43,8 +43,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: wallet.has_rune_index.then_some(runes),
-    runic: wallet.has_rune_index.then_some(runic),
+    runes: wallet.has_rune_index().then_some(runes),
+    runic: wallet.has_rune_index().then_some(runic),
     total: cardinal + ordinal + runic,
   })))
 }

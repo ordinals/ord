@@ -44,13 +44,11 @@ impl Batch {
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
-    let wallet_inscriptions = wallet.get_inscriptions();
-
     let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
-        wallet_inscriptions,
+        wallet.inscriptions().clone(),
         wallet.chain(),
         locked_utxos.clone(),
         runic_utxos,
