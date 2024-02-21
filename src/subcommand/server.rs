@@ -260,6 +260,7 @@ impl Server {
           "/inscriptions/block/:height/:page",
           get(Self::inscriptions_in_block_paginated),
         )
+        .route("/:inscription_query", get(Self::inscription))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
