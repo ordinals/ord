@@ -49,7 +49,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
@@ -58,7 +58,7 @@ use {
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},

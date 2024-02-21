@@ -52,10 +52,21 @@ pub(crate) struct Wallet {
 impl Wallet {
   pub(crate) fn build(name: String, no_sync: bool, options: Options, rpc_url: Url) -> Result<Self> {
     let mut headers = header::HeaderMap::new();
+
     headers.insert(
       header::ACCEPT,
       header::HeaderValue::from_static("application/json"),
     );
+
+    if let Some((username, password)) = options.credentials() {
+      use base64::Engine;
+      let credentials =
+        base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
+      headers.insert(
+        header::AUTHORIZATION,
+        header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
+      );
+    }
 
     let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())

@@ -41,6 +41,7 @@ use {
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
+    validate_request::ValidateRequestHeaderLayer,
   },
 };
 
@@ -152,6 +153,13 @@ pub struct Server {
   pub(crate) csp_origin: Option<String>,
   #[arg(
     long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(long, help = "Disable JSON API.")]
+  pub(crate) disable_json_api: bool,
+  #[arg(
+    long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
   )]
   pub(crate) http_port: Option<u16>,
@@ -171,15 +179,14 @@ pub struct Server {
   pub(crate) https: bool,
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
-  #[arg(long, help = "Disable JSON API.")]
-  pub(crate) disable_json_api: bool,
-  #[arg(
-    long,
-    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
-  )]
-  pub(crate) decompress: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
+  #[arg(
+    long,
+    default_value = "5s",
+    help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
+  )]
+  pub(crate) polling_interval: humantime::Duration,
 }
 
 impl Server {
@@ -198,11 +205,11 @@ impl Server {
           }
         }
 
-        if integration_test() {
-          thread::sleep(Duration::from_millis(100));
+        thread::sleep(if integration_test() {
+          Duration::from_millis(100)
         } else {
-          thread::sleep(Duration::from_millis(5000));
-        }
+          self.polling_interval.into()
+        });
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
@@ -309,6 +316,12 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config);
+
+      let router = if let Some((username, password)) = options.credentials() {
+        router.layer(ValidateRequestHeaderLayer::basic(username, password))
+      } else {
+        router
+      };
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -2726,21 +2739,55 @@ mod tests {
 
   #[test]
   fn status() {
-    let test_server = TestServer::new();
+    let server = TestServer::new_with_regtest();
 
-    test_server.assert_response_regex(
+    server.mine_blocks(3);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        3,
+        0,
+        0,
+        Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
+      )],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
       "/status",
       StatusCode::OK,
       ".*<h1>Status</h1>
 <dl>
   <dt>chain</dt>
-  <dd>mainnet</dd>
+  <dd>regtest</dd>
   <dt>height</dt>
-  <dd>0</dd>
+  <dd>4</dd>
   <dt>inscriptions</dt>
-  <dd>0</dd>
+  <dd>3</dd>
   <dt>blessed inscriptions</dt>
-  <dd>0</dd>
+  <dd>3</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
   <dt>runes</dt>
@@ -2752,7 +2799,7 @@ mod tests {
   <dt>uptime</dt>
   <dd>.*</dd>
   <dt>minimum rune for next block</dt>
-  <dd>AAAAAAAAAAAAA</dd>
+  <dd>.*</dd>
   <dt>version</dt>
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
@@ -2770,6 +2817,15 @@ mod tests {
     <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
+  </dd>
+  <dt>inscription content types</dt>
+  <dd>
+    <dl>
+      <dt>text/plain;charset=utf-8</dt>
+      <dd>2</dt>
+      <dt><em>none</em></dt>
+      <dd>1</dt>
+    </dl>
   </dd>
 </dl>
 .*",
@@ -5298,5 +5354,15 @@ next
         version: 1,
       },
     )
+  }
+
+  #[test]
+  fn authentication_requires_username_and_password() {
+    assert!(Arguments::try_parse_from(["ord", "--username", "server", "foo"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "--password", "server", "bar"]).is_err());
+    assert!(
+      Arguments::try_parse_from(["ord", "--username", "foo", "--password", "bar", "server"])
+        .is_ok()
+    );
   }
 }
