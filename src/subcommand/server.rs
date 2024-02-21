@@ -10,12 +10,12 @@ use {
     templates::{
       BlockHtml, BlockInfoJson, BlockJson, BlocksHtml, BlocksJson, ChildrenHtml, ChildrenJson,
       ClockSvg, CollectionsHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
-      InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
-      PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml,
-      RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson, TransactionHtml,
-      TransactionJson,
+      InscriptionRecursiveJson, InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson,
+      OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml,
+      RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, SatInscriptionJson, SatInscriptionsJson,
+      SatJson, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -272,6 +272,10 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/blockinfo/:query", get(Self::block_info))
+        .route(
+          "/r/inscription/:inscription_id",
+          get(Self::inscription_recursive),
+        )
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -870,6 +874,65 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {inscription_id} metadata"))?;
 
       Ok(Json(hex::encode(metadata)))
+    })
+  }
+
+  async fn inscription_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let entry = index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      let satpoint = index
+        .get_inscription_satpoint_by_id(inscription_id)
+        .ok()
+        .flatten()
+        .unwrap();
+
+      let output = if satpoint.outpoint == unbound_outpoint() {
+        None
+      } else {
+        Some(
+          index
+            .get_transaction(satpoint.outpoint.txid)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+            .output
+            .into_iter()
+            .nth(satpoint.outpoint.vout.try_into().unwrap())
+            .ok_or_not_found(|| {
+              format!("inscription {inscription_id} current transaction output")
+            })?,
+        )
+      };
+
+      Ok(
+        Json(InscriptionRecursiveJson {
+          charms: Charm::ALL
+            .iter()
+            .filter(|charm| charm.is_set(entry.charms))
+            .map(|charm| charm.title().into())
+            .collect(),
+          content_type: inscription.content_type().map(|s| s.to_string()),
+          content_length: inscription.content_length(),
+          fee: entry.fee,
+          height: entry.height,
+          number: entry.inscription_number,
+          output: satpoint.outpoint,
+          value: output.as_ref().map(|o| o.value),
+          sat: entry.sat,
+          satpoint,
+          timestamp: timestamp(entry.timestamp).timestamp(),
+        })
+        .into_response(),
+      )
     })
   }
 
