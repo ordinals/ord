@@ -282,6 +282,57 @@ fn inscription_metadata() {
 }
 
 #[test]
+fn recursive_inscription_endpoint() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+    .write("foo.txt", "FOO")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let inscription = output.inscriptions.first().unwrap();
+  let response = ord_rpc_server.request(format!("/r/inscription/{}", inscription.id));
+
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(
+    response.headers().get("content-type").unwrap(),
+    "application/json"
+  );
+
+  let inscription_recursive_json: InscriptionRecursiveJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    inscription_recursive_json,
+    InscriptionRecursiveJson {
+      charms: vec!["coin".into(), "uncommon".into()],
+      content_type: Some("text/plain;charset=utf-8".to_string()),
+      content_length: Some(3),
+      fee: 138,
+      height: 2,
+      number: 0,
+      output: inscription.location.outpoint,
+      sat: Some(Sat(50 * COIN_VALUE)),
+      satpoint: SatPoint {
+        outpoint: inscription.location.outpoint,
+        offset: 0,
+      },
+      timestamp: 2,
+      value: Some(10000),
+    }
+  )
+}
+
+#[test]
 fn inscriptions_page() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
