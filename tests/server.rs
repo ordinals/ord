@@ -321,7 +321,7 @@ fn recursive_inscription_endpoint() {
       height: 2,
       number: 0,
       output: inscription.location.outpoint,
-      sat: Some(ord::Sat(50 * COIN_VALUE)),
+      sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint {
         outpoint: inscription.location.outpoint,
         offset: 0,
