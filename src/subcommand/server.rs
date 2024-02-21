@@ -1382,13 +1382,16 @@ impl Server {
             .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
         ),
-        Media::Image => Ok(
+        Media::Image(image_rendering) => Ok(
           (
             [(
               header::CONTENT_SECURITY_POLICY,
               "default-src 'self' 'unsafe-inline'",
             )],
-            PreviewImageHtml { inscription_id },
+            PreviewImageHtml {
+              image_rendering,
+              inscription_id,
+            },
           )
             .into_response(),
         ),
