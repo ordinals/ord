@@ -39,18 +39,16 @@ impl Settings {
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
-    let rpc_user = Self::setting(
+    let rpc_user = Self::setting_opt(
       self.options.bitcoin_rpc_user.as_deref(),
       Some("BITCOIN_RPC_USER"),
       self.config.bitcoin_rpc_user.as_deref(),
-      None,
     )?;
 
-    let rpc_pass = Self::setting(
+    let rpc_pass = Self::setting_opt(
       self.options.bitcoin_rpc_pass.as_deref(),
       Some("BITCOIN_RPC_PASS"),
       self.config.bitcoin_rpc_pass.as_deref(),
-      None,
     )?;
 
     match (rpc_user, rpc_pass) {
@@ -193,7 +191,7 @@ impl Settings {
     }
   }
 
-  fn setting_typed<T: FromStr<Err = Error>>(
+  fn setting<T: FromStr<Err = Error>>(
     arg_value: Option<T>,
     env_key: Option<&str>,
     config_value: Option<T>,
@@ -223,11 +221,10 @@ impl Settings {
     Ok(default_value)
   }
 
-  fn setting(
+  fn setting_opt(
     arg_value: Option<&str>,
     env_key: Option<&str>,
     config_value: Option<&str>,
-    default_value: Option<&str>,
   ) -> Result<Option<String>> {
     if let Some(arg_value) = arg_value {
       return Ok(Some(arg_value.into()));
@@ -241,7 +238,7 @@ impl Settings {
       }
     }
 
-    Ok(config_value.or(default_value).map(str::to_string))
+    Ok(config_value.map(str::to_string))
   }
 }
 
