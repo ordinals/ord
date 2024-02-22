@@ -34,8 +34,9 @@ impl ContextBuilder {
 
     let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
     let settings = Settings {
-      options,
+      chain: self.chain,
       config: Default::default(),
+      options,
     };
     let index = Index::open_with_event_sender(&settings, self.event_sender)?;
     index.update().unwrap();

@@ -1,21 +1,5 @@
 use {super::*, bitcoincore_rpc::Auth};
 
-// todo:
-// enable JSON API
-// --username and --password
-// --bitcoin-data-dir /var/lib/bitcoind \
-// --chain ${CHAIN} \
-// --config-dir /var/lib/ord \
-// --data-dir /var/lib/ord \
-// --index-runes \
-// --index-sats \
-// server \
-// --acme-contact mailto:casey@rodarmor.com \
-// --csp-origin https://${CSP_ORIGIN} \
-// --http \
-// --https \
-// --disable-json-api
-
 #[derive(Default, Debug, Clone)]
 pub struct Settings {
   // todo: make these private

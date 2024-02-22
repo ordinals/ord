@@ -109,7 +109,6 @@ impl Display for Chain {
   }
 }
 
-// todo: test this
 impl FromStr for Chain {
   type Err = Error;
 
@@ -121,5 +120,18 @@ impl FromStr for Chain {
       "testnet" => Ok(Self::Testnet),
       _ => bail!("invalid chain: {s}"),
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn from_str() {
+    assert_eq!("mainnet".parse::<Chain>().unwrap(), Chain::Mainnet);
+    assert_eq!("regtest".parse::<Chain>().unwrap(), Chain::Regtest);
+    assert_eq!("signet".parse::<Chain>().unwrap(), Chain::Signet);
+    assert_eq!("testnet".parse::<Chain>().unwrap(), Chain::Testnet);
   }
 }
