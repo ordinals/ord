@@ -40,6 +40,10 @@ impl Charm {
     charms & self.flag() != 0
   }
 
+  pub(crate) fn unset(self, charms: u16) -> u16 {
+    charms & !self.flag()
+  }
+
   pub(crate) fn icon(self) -> &'static str {
     match self {
       Self::Coin => "🪙",

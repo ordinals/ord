@@ -1479,7 +1479,7 @@ impl Server {
       } else {
         InscriptionHtml {
           chain: server_config.chain,
-          charms: info.charms,
+          charms: Charm::Vindicated.unset(info.charms),
           children: info.children,
           genesis_fee: info.entry.fee,
           genesis_height: info.entry.height,
@@ -4695,10 +4695,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>charms</dt>
-  <dd>
-    <span title=vindicated>❤️‍🔥</span>
-  </dd>
+  <dt>output value</dt>
   .*
 </dl>
 .*
