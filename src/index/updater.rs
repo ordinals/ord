@@ -164,7 +164,7 @@ impl<'index> Updater<'_> {
 
     let height_limit = index.height_limit;
 
-    let client = index.options.bitcoin_rpc_client(None)?;
+    let client = index.settings.bitcoin_rpc_client(None)?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -241,7 +241,7 @@ impl<'index> Updater<'_> {
   }
 
   fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.options)?;
+    let fetcher = Fetcher::new(&index.settings)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
@@ -339,7 +339,7 @@ impl<'index> Updater<'_> {
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     let index_inscriptions = self.height >= self.index.first_inscription_height
-      && !self.index.options.no_index_inscriptions;
+      && !self.index.settings.options.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -423,7 +423,7 @@ impl<'index> Updater<'_> {
 
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
-      chain: self.index.options.chain(),
+      chain: self.index.settings.chain(),
       content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
       event_sender: self.index.event_sender.as_ref(),
@@ -583,7 +583,7 @@ impl<'index> Updater<'_> {
       &inscription_updater.unbound_inscriptions,
     )?;
 
-    if self.index.index_runes && self.height >= self.index.options.first_rune_height() {
+    if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
@@ -599,7 +599,7 @@ impl<'index> Updater<'_> {
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
-        minimum: Rune::minimum_at_height(self.index.options.chain(), Height(self.height)),
+        minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,

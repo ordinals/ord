@@ -23,8 +23,8 @@ pub struct RuneInfo {
   pub timestamp: DateTime<Utc>,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
+  let index = Index::open(&settings)?;
 
   ensure!(
     index.has_rune_index(),

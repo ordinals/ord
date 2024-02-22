@@ -39,21 +39,26 @@ impl OrdClient {
 }
 
 pub(crate) struct Wallet {
-  rpc_url: Url,
-  options: Options,
   bitcoin_client: bitcoincore_rpc::Client,
-  ord_client: reqwest::blocking::Client,
-  has_sat_index: bool,
   has_rune_index: bool,
-  utxos: BTreeMap<OutPoint, TxOut>,
-  locked_utxos: BTreeMap<OutPoint, TxOut>,
-  output_info: BTreeMap<OutPoint, OutputJson>,
-  inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
+  has_sat_index: bool,
   inscription_info: BTreeMap<InscriptionId, InscriptionJson>,
+  inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
+  locked_utxos: BTreeMap<OutPoint, TxOut>,
+  ord_client: reqwest::blocking::Client,
+  output_info: BTreeMap<OutPoint, OutputJson>,
+  rpc_url: Url,
+  settings: Settings,
+  utxos: BTreeMap<OutPoint, TxOut>,
 }
 
 impl Wallet {
-  pub(crate) fn build(name: String, no_sync: bool, options: Options, rpc_url: Url) -> Result<Self> {
+  pub(crate) fn build(
+    name: String,
+    no_sync: bool,
+    settings: Settings,
+    rpc_url: Url,
+  ) -> Result<Self> {
     let mut headers = header::HeaderMap::new();
 
     headers.insert(
@@ -61,7 +66,7 @@ impl Wallet {
       header::HeaderValue::from_static("application/json"),
     );
 
-    if let Some((username, password)) = options.credentials() {
+    if let Some((username, password)) = settings.credentials() {
       use base64::Engine;
       let credentials =
         base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
@@ -80,7 +85,7 @@ impl Wallet {
       .build()?
       .block_on(async move {
         let bitcoin_client = {
-          let client = Self::check_version(options.bitcoin_rpc_client(Some(name.clone()))?)?;
+          let client = Self::check_version(settings.bitcoin_rpc_client(Some(name.clone()))?)?;
 
           if !client.list_wallets()?.contains(&name) {
             client.load_wallet(&name)?;
@@ -166,17 +171,17 @@ impl Wallet {
         }
 
         Ok(Wallet {
-          options,
-          rpc_url,
           bitcoin_client,
-          ord_client,
-          has_sat_index: status.sat_index,
           has_rune_index: status.rune_index,
-          utxos,
-          locked_utxos,
-          output_info,
-          inscriptions,
+          has_sat_index: status.sat_index,
           inscription_info,
+          inscriptions,
+          locked_utxos,
+          ord_client,
+          output_info,
+          rpc_url,
+          settings,
+          utxos,
         })
       })
   }
@@ -464,7 +469,7 @@ impl Wallet {
   }
 
   pub(crate) fn chain(&self) -> Chain {
-    self.options.chain()
+    self.settings.chain()
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
@@ -487,10 +492,10 @@ impl Wallet {
 
   pub(crate) fn initialize_from_descriptors(
     name: String,
-    options: &Options,
+    settings: &Settings,
     descriptors: Vec<Descriptor>,
   ) -> Result {
-    let client = Self::check_version(options.bitcoin_rpc_client(Some(name.clone()))?)?;
+    let client = Self::check_version(settings.bitcoin_rpc_client(Some(name.clone()))?)?;
 
     let descriptors = Self::check_descriptors(&name, descriptors)?;
 
@@ -521,8 +526,8 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn initialize(name: String, options: &Options, seed: [u8; 64]) -> Result {
-    Self::check_version(options.bitcoin_rpc_client(None)?)?.create_wallet(
+  pub(crate) fn initialize(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+    Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
       Some(true),
@@ -530,7 +535,7 @@ impl Wallet {
       None,
     )?;
 
-    let network = options.chain().network();
+    let network = settings.chain().network();
 
     let secp = Secp256k1::new();
 
@@ -550,7 +555,7 @@ impl Wallet {
     for change in [false, true] {
       Self::derive_and_import_descriptor(
         name.clone(),
-        options,
+        settings,
         &secp,
         (fingerprint, derivation_path.clone()),
         derived_private_key,
@@ -563,7 +568,7 @@ impl Wallet {
 
   fn derive_and_import_descriptor(
     name: String,
-    options: &Options,
+    settings: &Settings,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
     derived_private_key: ExtendedPrivKey,
@@ -585,7 +590,7 @@ impl Wallet {
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
-    options
+    settings
       .bitcoin_rpc_client(Some(name.clone()))?
       .import_descriptors(vec![ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),

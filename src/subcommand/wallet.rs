@@ -70,17 +70,17 @@ pub(crate) enum Subcommand {
 }
 
 impl WalletCommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self.subcommand {
-      Subcommand::Create(create) => return create.run(self.name, &options),
-      Subcommand::Restore(restore) => return restore.run(self.name, &options),
+      Subcommand::Create(create) => return create.run(self.name, &settings),
+      Subcommand::Restore(restore) => return restore.run(self.name, &settings),
       _ => {}
     };
 
     let wallet = Wallet::build(
       self.name.clone(),
       self.no_sync,
-      options.clone(),
+      settings.clone(),
       self.server_url,
     )?;
 

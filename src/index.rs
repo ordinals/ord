@@ -213,27 +213,28 @@ pub struct Index {
   index_sats: bool,
   index_spent_sats: bool,
   index_transactions: bool,
-  options: Options,
+  settings: Settings,
   path: PathBuf,
   started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
 }
 
 impl Index {
-  pub fn open(options: &Options) -> Result<Self> {
-    Index::open_with_event_sender(options, None)
+  pub fn open(settings: &Settings) -> Result<Self> {
+    Index::open_with_event_sender(settings, None)
   }
 
   pub fn open_with_event_sender(
-    options: &Options,
+    settings: &Settings,
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
-    let client = options.bitcoin_rpc_client(None)?;
+    let client = settings.bitcoin_rpc_client(None)?;
 
-    let path = options
+    let path = settings
+      .options
       .index
       .clone()
-      .unwrap_or(options.data_dir().clone().join("index.redb"));
+      .unwrap_or_else(|| settings.data_dir().clone().join("index.redb"));
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
@@ -242,7 +243,7 @@ impl Index {
       );
     }
 
-    let db_cache_size = match options.db_cache_size {
+    let db_cache_size = match settings.options.db_cache_size {
       Some(db_cache_size) => db_cache_size,
       None => {
         let mut sys = System::new();
@@ -349,32 +350,32 @@ impl Index {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if options.index_sats {
+          if settings.options.index_sats {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexRunes,
-            u64::from(options.index_runes()),
+            u64::from(settings.index_runes()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(options.index_sats || options.index_spent_sats),
+            u64::from(settings.options.index_sats || settings.options.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSpentSats,
-            u64::from(options.index_spent_sats),
+            u64::from(settings.options.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexTransactions,
-            u64::from(options.index_transactions),
+            u64::from(settings.options.index_transactions),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
@@ -402,7 +403,7 @@ impl Index {
     }
 
     let genesis_block_coinbase_transaction =
-      options.chain().genesis_block().coinbase().unwrap().clone();
+      settings.chain().genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
@@ -410,14 +411,14 @@ impl Index {
       database,
       durability,
       event_sender,
-      first_inscription_height: options.first_inscription_height(),
+      first_inscription_height: settings.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: options.height_limit,
+      height_limit: settings.options.height_limit,
       index_runes,
       index_sats,
       index_spent_sats,
       index_transactions,
-      options: options.clone(),
+      settings: settings.clone(),
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
@@ -486,14 +487,14 @@ impl Index {
 
     Ok(StatusHtml {
       blessed_inscriptions,
-      chain: self.options.chain(),
+      chain: self.settings.chain(),
       content_type_counts,
       cursed_inscriptions,
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
-        self.options.chain(),
+        self.settings.chain(),
         Height(next_height),
       ),
       rune_index: statistic(Statistic::IndexRunes)? != 0,
@@ -670,7 +671,7 @@ impl Index {
             .nth(satpoint.outpoint.vout.try_into().unwrap())
             .unwrap();
           self
-            .options
+            .settings
             .chain()
             .address_from_script(&output.script_pubkey)
             .map(|address| address.to_string())
@@ -1482,7 +1483,7 @@ impl Index {
   pub(crate) fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
     Ok(
       outpoint != OutPoint::null()
-        && outpoint != self.options.chain().genesis_coinbase_outpoint()
+        && outpoint != self.settings.chain().genesis_coinbase_outpoint()
         && self
           .client
           .get_tx_out(&outpoint.txid, outpoint.vout, Some(false))?
@@ -1495,7 +1496,7 @@ impl Index {
       return Ok(true);
     }
 
-    if outpoint == self.options.chain().genesis_coinbase_outpoint() {
+    if outpoint == self.settings.chain().genesis_coinbase_outpoint() {
       return Ok(true);
     }
 

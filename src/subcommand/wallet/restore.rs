@@ -15,9 +15,9 @@ enum Source {
 }
 
 impl Restore {
-  pub(crate) fn run(self, name: String, options: &Options) -> SubcommandResult {
+  pub(crate) fn run(self, name: String, settings: &Settings) -> SubcommandResult {
     ensure!(
-      !options
+      !settings
         .bitcoin_rpc_client(None)?
         .list_wallet_dir()?
         .iter()
@@ -36,13 +36,13 @@ impl Restore {
           "descriptor does not take a passphrase"
         );
         let wallet_descriptors: ListDescriptorsResult = serde_json::from_str(&buffer)?;
-        Wallet::initialize_from_descriptors(name, options, wallet_descriptors.descriptors)?;
+        Wallet::initialize_from_descriptors(name, settings, wallet_descriptors.descriptors)?;
       }
       Source::Mnemonic => {
         let mnemonic = Mnemonic::from_str(&buffer)?;
         Wallet::initialize(
           name,
-          options,
+          settings,
           mnemonic.to_seed(self.passphrase.unwrap_or_default()),
         )?;
       }

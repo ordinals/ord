@@ -190,7 +190,7 @@ pub struct Server {
 }
 
 impl Server {
-  pub fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
 
@@ -214,11 +214,11 @@ impl Server {
 
       INDEXER.lock().unwrap().replace(index_thread);
 
-      let config = Arc::new(options.load_config()?);
+      let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
 
       let server_config = Arc::new(ServerConfig {
-        chain: options.chain(),
+        chain: settings.chain(),
         csp_origin: self.csp_origin.clone(),
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
@@ -304,7 +304,7 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
-        .layer(Extension(config))
+        .layer(Extension(settings.clone()))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -321,7 +321,7 @@ impl Server {
         .layer(CompressionLayer::new())
         .with_state(server_config);
 
-      let router = if let Some((username, password)) = options.credentials() {
+      let router = if let Some((username, password)) = settings.credentials() {
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
       } else {
         router
@@ -339,7 +339,7 @@ impl Server {
               router,
               handle,
               https_port,
-              SpawnConfig::Https(self.acceptor(&options)?),
+              SpawnConfig::Https(self.acceptor(&settings)?),
             )?
             .await??
         }
@@ -360,7 +360,7 @@ impl Server {
               router,
               handle,
               https_port,
-              SpawnConfig::Https(self.acceptor(&options)?),
+              SpawnConfig::Https(self.acceptor(&settings)?),
             )?
           );
           http_result.and(https_result)??;
@@ -435,9 +435,9 @@ impl Server {
     }))
   }
 
-  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> PathBuf {
+  fn acme_cache(acme_cache: Option<&PathBuf>, settings: &Settings) -> PathBuf {
     acme_cache
-      .unwrap_or(&options.data_dir().join("acme-cache"))
+      .unwrap_or(&settings.data_dir().join("acme-cache"))
       .to_path_buf()
   }
 
@@ -467,12 +467,12 @@ impl Server {
     }
   }
 
-  fn acceptor(&self, options: &Options) -> Result<AxumAcceptor> {
+  fn acceptor(&self, settings: &Settings) -> Result<AxumAcceptor> {
     let config = AcmeConfig::new(self.acme_domains()?)
       .contact(&self.acme_contact)
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
-        options,
+        settings,
       ))))
       .directory(if cfg!(test) {
         LETS_ENCRYPT_STAGING_DIRECTORY
@@ -1232,13 +1232,13 @@ impl Server {
 
   async fn content(
     Extension(index): Extension<Arc<Index>>,
-    Extension(config): Extension<Arc<Config>>,
+    Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      if config.is_hidden(inscription_id) {
+      if settings.config.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
 
@@ -1332,13 +1332,13 @@ impl Server {
 
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
-    Extension(config): Extension<Arc<Config>>,
+    Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      if config.is_hidden(inscription_id) {
+      if settings.config.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
 
@@ -1877,7 +1877,7 @@ mod tests {
         None => "".to_string(),
       };
 
-      let (options, server) = parse_server_args(&format!(
+      let (settings, server) = parse_server_args(&format!(
         "ord --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
@@ -1887,13 +1887,13 @@ mod tests {
         server_args.join(" "),
       ));
 
-      let index = Arc::new(Index::open(&options).unwrap());
+      let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
 
       {
         let index = index.clone();
         let ord_server_handle = ord_server_handle.clone();
-        thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {
@@ -1956,6 +1956,7 @@ mod tests {
       self.url.join(url).unwrap()
     }
 
+    #[track_caller]
     fn assert_response(&self, path: impl AsRef<str>, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status, "{}", response.text().unwrap());
@@ -2026,10 +2027,10 @@ mod tests {
     }
   }
 
-  fn parse_server_args(args: &str) -> (Options, Server) {
+  fn parse_server_args(args: &str) -> (Settings, Server) {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
-        Subcommand::Server(server) => (arguments.options, server),
+        Subcommand::Server(server) => (arguments.options.settings().unwrap(), server),
         subcommand => panic!("unexpected subcommand: {subcommand:?}"),
       },
       Err(err) => panic!("error parsing arguments: {err}"),
@@ -2158,9 +2159,13 @@ mod tests {
   #[test]
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
-    let acme_cache = Server::acme_cache(None, &arguments.options)
-      .display()
-      .to_string();
+
+    let settings = Settings {
+      options: arguments.options,
+      config: Default::default(),
+    };
+
+    let acme_cache = Server::acme_cache(None, &settings).display().to_string();
     assert!(
       acme_cache.contains(if cfg!(windows) {
         r"foo\acme-cache"
@@ -2176,7 +2181,11 @@ mod tests {
     let arguments =
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
-    let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
+    let settings = Settings {
+      options: arguments.options,
+      config: Default::default(),
+    };
+    let acme_cache = Server::acme_cache(Some(&"bar".into()), &settings)
       .display()
       .to_string();
     assert_eq!(acme_cache, "bar")

@@ -108,3 +108,18 @@ impl Display for Chain {
     )
   }
 }
+
+// todo: test this
+impl FromStr for Chain {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "mainnet" => Ok(Self::Mainnet),
+      "regtest" => Ok(Self::Regtest),
+      "signet" => Ok(Self::Signet),
+      "testnet" => Ok(Self::Testnet),
+      _ => bail!("invalid chain: {s}"),
+    }
+  }
+}

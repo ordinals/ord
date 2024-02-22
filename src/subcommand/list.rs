@@ -23,8 +23,8 @@ pub struct Range {
 }
 
 impl List {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
+    let index = Index::open(&settings)?;
 
     if !index.has_sat_index() {
       bail!("list requires index created with `--index-sats` flag");

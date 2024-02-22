@@ -74,9 +74,9 @@ pub(crate) struct Decode {
 }
 
 impl Decode {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let transaction = if let Some(txid) = self.txid {
-      options
+      settings
         .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {

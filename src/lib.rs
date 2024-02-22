@@ -23,6 +23,7 @@ use {
     },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
+    settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -94,13 +95,12 @@ mod test;
 use self::test::*;
 
 macro_rules! tprintln {
-    ($($arg:tt)*) => {
-
-      if cfg!(test) {
-        eprint!("==> ");
-        eprintln!($($arg)*);
-      }
-    };
+  ($($arg:tt)*) => {
+    if cfg!(test) {
+      eprint!("==> ");
+      eprintln!($($arg)*);
+    }
+  };
 }
 
 pub mod arguments;
@@ -117,6 +117,7 @@ pub mod outgoing;
 mod representation;
 pub mod runes;
 mod server_config;
+mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
@@ -186,10 +187,10 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
-pub fn parse_ord_server_args(args: &str) -> (Options, crate::subcommand::server::Server) {
+pub fn parse_ord_server_args(args: &str) -> (Settings, crate::subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
-      Subcommand::Server(server) => (arguments.options, server),
+      Subcommand::Server(server) => (Settings::new(arguments.options).unwrap(), server),
       subcommand => panic!("unexpected subcommand: {subcommand:?}"),
     },
     Err(err) => panic!("error parsing arguments: {err}"),

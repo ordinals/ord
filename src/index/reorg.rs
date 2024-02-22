@@ -86,7 +86,7 @@ impl Reorg {
     if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
       && u32::try_from(
         index
-          .options
+          .settings
           .bitcoin_rpc_client(None)?
           .get_blockchain_info()?
           .headers,
