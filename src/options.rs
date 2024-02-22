@@ -37,6 +37,12 @@ pub struct Options {
   pub(crate) db_cache_size: Option<usize>,
   #[arg(
     long,
+    default_value = "5000",
+    help = "Set index commit cache size to <COMMIT_CACHE_SIZE>."
+  )]
+  pub(crate) commit_cache_size: Option<usize>,
+  #[arg(
+    long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
   pub(crate) first_inscription_height: Option<u32>,
@@ -806,6 +812,13 @@ mod tests {
       Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "update"])
         .unwrap();
     assert_eq!(arguments.options.db_cache_size, Some(16000000000));
+  }
+
+  #[test]
+  fn setting_commit_cache_size() {
+    let arguments =
+      Arguments::try_parse_from(["ord", "--commit-cache-size", "500", "index", "update"]).unwrap();
+    assert_eq!(arguments.options.commit_cache_size, Some(500));
   }
 
   #[test]
