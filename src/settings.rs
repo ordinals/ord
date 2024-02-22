@@ -2,10 +2,9 @@ use {super::*, bitcoincore_rpc::Auth};
 
 #[derive(Default, Debug, Clone)]
 pub struct Settings {
-  // todo: make these private
-  pub(crate) options: Options,
-  pub(crate) config: Config,
   pub(crate) chain: Chain,
+  pub(crate) config: Config,
+  pub(crate) options: Options,
 }
 
 impl Settings {
