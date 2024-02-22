@@ -85,9 +85,13 @@ impl Options {
       .map(|dir| dir.join("ord"))
       .expect("failed to retrieve data dir")
   }
+
+  #[cfg(test)]
+  pub(crate) fn settings(self) -> Result<Settings> {
+    Settings::new(self)
+  }
 }
 
-// todo: move these into settings
 #[cfg(test)]
 mod tests {
   use {super::*, std::path::Path, tempfile::TempDir};
@@ -442,8 +446,9 @@ mod tests {
       Arguments::try_parse_from(["ord", "index", "update"])
         .unwrap()
         .options
-        .load_config()
-        .unwrap(),
+        .settings()
+        .unwrap()
+        .config,
       Default::default()
     );
   }
@@ -472,8 +477,9 @@ mod tests {
       Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
         .unwrap()
         .options
-        .load_config()
-        .unwrap(),
+        .settings()
+        .unwrap()
+        .config,
       Config {
         hidden: iter::once(id).collect(),
         ..Default::default()
@@ -495,8 +501,9 @@ mod tests {
       Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
         .unwrap()
         .options
-        .load_config()
-        .unwrap(),
+        .settings()
+        .unwrap()
+        .config,
       Config {
         bitcoin_rpc_user: Some("foo".into()),
         bitcoin_rpc_pass: Some("bar".into()),
@@ -529,8 +536,9 @@ mod tests {
       ])
       .unwrap()
       .options
-      .load_config()
-      .unwrap(),
+      .settings()
+      .unwrap()
+      .config,
       Config {
         hidden: iter::once(id).collect(),
         ..Default::default()

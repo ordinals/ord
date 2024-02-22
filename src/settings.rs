@@ -208,11 +208,9 @@ impl Settings {
       let key = format!("ORD_{env_key}");
       match env::var(key) {
         Ok(env_value) => {
-          return Ok(
-            env_value
-              .parse()
-              .with_context(|| anyhow!("failed to parse {env_key}"))?,
-          )
+          return env_value
+            .parse()
+            .with_context(|| anyhow!("failed to parse {env_key}"))
         }
         Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
         Err(env::VarError::NotPresent) => {}

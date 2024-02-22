@@ -2162,7 +2162,7 @@ mod tests {
 
     let settings = Settings {
       options: arguments.options,
-      config: Default::default(),
+      ..Default::default()
     };
 
     let acme_cache = Server::acme_cache(None, &settings).display().to_string();
@@ -2183,7 +2183,7 @@ mod tests {
         .unwrap();
     let settings = Settings {
       options: arguments.options,
-      config: Default::default(),
+      ..Default::default()
     };
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &settings)
       .display()
