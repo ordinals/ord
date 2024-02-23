@@ -308,12 +308,12 @@ fn recursive_inscription_endpoint() {
     "application/json"
   );
 
-  let inscription_recursive_json: InscriptionRecursiveJson =
+  let inscription_recursive_json: json::InscriptionRecursive =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     inscription_recursive_json,
-    InscriptionRecursiveJson {
+    json::InscriptionRecursive {
       charms: vec!["coin".into(), "uncommon".into()],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),

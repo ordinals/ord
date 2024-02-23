@@ -9,11 +9,11 @@ use {
     server_config::ServerConfig,
     templates::{
       BlockHtml, BlocksHtml, BlocksJson, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-      InputHtml, InscriptionHtml, InscriptionRecursiveJson, InscriptionsBlockHtml,
-      InscriptionsHtml, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
-      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
-      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml,
-      RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, TransactionHtml, TransactionJson,
+      InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+      PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml,
+      RunesJson, SatHtml, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -912,7 +912,7 @@ impl Server {
       };
 
       Ok(
-        Json(InscriptionRecursiveJson {
+        Json(json::InscriptionRecursive {
           charms: Charm::ALL
             .iter()
             .filter(|charm| charm.is_set(entry.charms))

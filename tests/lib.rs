@@ -16,8 +16,8 @@ use {
     outgoing::Outgoing,
     subcommand::runes::RuneInfo,
     templates::{
-      blocks::BlocksJson, inscription::InscriptionRecursiveJson, rune::RuneJson, runes::RunesJson,
-      status::StatusJson, transaction::TransactionJson,
+      blocks::BlocksJson, rune::RuneJson, runes::RunesJson, status::StatusJson,
+      transaction::TransactionJson,
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },

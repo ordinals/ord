@@ -155,3 +155,18 @@ pub struct Inscriptions {
   pub more: bool,
   pub page_index: u32,
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionRecursive {
+  pub charms: Vec<String>,
+  pub content_type: Option<String>,
+  pub content_length: Option<usize>,
+  pub fee: u64,
+  pub height: u32,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+  pub value: Option<u64>,
+}
