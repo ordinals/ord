@@ -103,6 +103,7 @@ macro_rules! tprintln {
     };
 }
 
+pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
@@ -111,7 +112,6 @@ mod decimal;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
-pub mod json;
 mod object;
 pub mod options;
 pub mod outgoing;

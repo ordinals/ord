@@ -9,14 +9,14 @@ fn get_sat_without_sat_index() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut sat_json: json::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   // this is a hack to ignore the timestamp, since it changes for every request
   sat_json.timestamp = 0;
 
   pretty_assert_eq!(
     sat_json,
-    json::Sat {
+    api::Sat {
       number: 2099999997689999,
       decimal: "6929999.0".into(),
       degree: "5°209999′1007″0‴".into(),
@@ -50,11 +50,11 @@ fn get_sat_with_inscription_and_sat_index() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: json::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     sat_json,
-    json::Sat {
+    api::Sat {
       number: 50 * COIN_VALUE,
       decimal: "1.0".into(),
       degree: "0°1′1″0‴".into(),
@@ -106,11 +106,11 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: json::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     sat_json,
-    json::Sat {
+    api::Sat {
       number: 3 * 50 * COIN_VALUE + 1,
       decimal: "3.1".into(),
       degree: "0°3′3″1‴".into(),
@@ -144,14 +144,14 @@ fn get_inscription() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut inscription_json: json::Inscription =
+  let mut inscription_json: api::Inscription =
     serde_json::from_str(&response.text().unwrap()).unwrap();
   assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
   inscription_json.address = None;
 
   pretty_assert_eq!(
     inscription_json,
-    json::Inscription {
+    api::Inscription {
       address: None,
       charms: vec!["coin".into(), "uncommon".into()],
       children: Vec::new(),
@@ -210,7 +210,7 @@ fn get_inscriptions() {
 
   let response = ord_rpc_server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: json::Inscriptions =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
@@ -219,7 +219,7 @@ fn get_inscriptions() {
 
   let response = ord_rpc_server.json_request("/inscriptions/1");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: json::Inscriptions =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 50);
@@ -272,7 +272,7 @@ fn get_inscriptions_in_block() {
   let response = ord_rpc_server.json_request(format!("/inscriptions/block/{}", 11));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let inscriptions_json: json::Inscriptions =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
@@ -318,7 +318,7 @@ fn get_output() {
   assert_eq!(response.status(), StatusCode::OK);
 
   assert!(
-    !serde_json::from_str::<json::Output>(&response.text().unwrap())
+    !serde_json::from_str::<api::Output>(&response.text().unwrap())
       .unwrap()
       .indexed
   );
@@ -328,11 +328,11 @@ fn get_output() {
   let response = server.json_request(format!("/output/{}:0", txid));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let output_json: json::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     output_json,
-    json::Output {
+    api::Output {
       address: None,
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
@@ -376,11 +376,11 @@ fn get_block() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let block_json: json::Block = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let block_json: api::Block = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(
     block_json,
-    json::Block {
+    api::Block {
       hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
         .parse::<BlockHash>()
         .unwrap(),

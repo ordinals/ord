@@ -537,7 +537,7 @@ impl Server {
       });
       let blocktime = index.block_time(sat.height())?;
       Ok(if accept_json {
-        Json(json::Sat {
+        Json(api::Sat {
           number: sat.0,
           decimal: sat.decimal().to_string(),
           degree: sat.degree().to_string(),
@@ -616,7 +616,7 @@ impl Server {
       let spent = index.is_output_spent(outpoint)?;
 
       Ok(if accept_json {
-        Json(json::Output::new(
+        Json(api::Output::new(
           server_config.chain,
           inscriptions,
           outpoint,
@@ -801,7 +801,7 @@ impl Server {
 
       Ok(if accept_json {
         let inscriptions = index.get_inscriptions_in_block(height)?;
-        Json(json::Block::new(
+        Json(api::Block::new(
           block,
           Height(height),
           Self::index_height(&index)?,
@@ -912,7 +912,7 @@ impl Server {
       };
 
       Ok(
-        Json(json::InscriptionRecursive {
+        Json(api::InscriptionRecursive {
           charms: Charm::ALL
             .iter()
             .filter(|charm| charm.is_set(entry.charms))
@@ -1141,7 +1141,7 @@ impl Server {
   async fn block_info(
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<Json<json::BlockInfo>> {
+  ) -> ServerResult<Json<api::BlockInfo>> {
     task::block_in_place(|| {
       let hash = match query {
         BlockQuery::Hash(hash) => hash,
@@ -1158,7 +1158,7 @@ impl Server {
         .block_header(hash)?
         .ok_or_not_found(|| format!("block {hash}"))?;
 
-      Ok(Json(json::BlockInfo {
+      Ok(Json(api::BlockInfo {
         bits: header.bits.to_consensus(),
         chainwork: chainwork(&info.chainwork),
         confirmations: info.confirmations,
@@ -1441,7 +1441,7 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
       Ok(if accept_json {
-        Json(json::Inscription {
+        Json(api::Inscription {
           inscription_id: info.entry.id,
           charms: Charm::ALL
             .iter()
@@ -1596,7 +1596,7 @@ impl Server {
       let (ids, more) =
         index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
 
-      Ok(Json(json::Children { ids, more, page }).into_response())
+      Ok(Json(api::Children { ids, more, page }).into_response())
     })
   }
 
@@ -1628,7 +1628,7 @@ impl Server {
       let next = more.then_some(page_index + 1);
 
       Ok(if accept_json {
-        Json(json::Inscriptions {
+        Json(api::Inscriptions {
           inscriptions,
           page_index,
           more,
@@ -1687,7 +1687,7 @@ impl Server {
       }
 
       Ok(if accept_json {
-        Json(json::Inscriptions {
+        Json(api::Inscriptions {
           inscriptions,
           page_index,
           more,
@@ -1710,14 +1710,14 @@ impl Server {
   async fn sat_inscriptions(
     Extension(index): Extension<Arc<Index>>,
     Path(sat): Path<u64>,
-  ) -> ServerResult<Json<json::SatInscriptions>> {
+  ) -> ServerResult<Json<api::SatInscriptions>> {
     Self::sat_inscriptions_paginated(Extension(index), Path((sat, 0))).await
   }
 
   async fn sat_inscriptions_paginated(
     Extension(index): Extension<Arc<Index>>,
     Path((sat, page)): Path<(u64, u64)>,
-  ) -> ServerResult<Json<json::SatInscriptions>> {
+  ) -> ServerResult<Json<api::SatInscriptions>> {
     task::block_in_place(|| {
       if !index.has_sat_index() {
         return Err(ServerError::NotFound(
@@ -1727,14 +1727,14 @@ impl Server {
 
       let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
 
-      Ok(Json(json::SatInscriptions { ids, more, page }))
+      Ok(Json(api::SatInscriptions { ids, more, page }))
     })
   }
 
   async fn sat_inscription_at_index(
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
-  ) -> ServerResult<Json<json::SatInscription>> {
+  ) -> ServerResult<Json<api::SatInscription>> {
     task::block_in_place(|| {
       if !index.has_sat_index() {
         return Err(ServerError::NotFound(
@@ -1744,7 +1744,7 @@ impl Server {
 
       let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
 
-      Ok(Json(json::SatInscription { id }))
+      Ok(Json(api::SatInscription { id }))
     })
   }
 
@@ -2762,8 +2762,8 @@ mod tests {
     );
 
     assert_eq!(
-      server.get_json::<json::Output>(format!("/output/{output}")),
-      json::Output {
+      server.get_json::<api::Output>(format!("/output/{output}")),
+      api::Output {
         value: 5000000000,
         script_pubkey: String::new(),
         address: None,
@@ -4407,14 +4407,14 @@ next
 
     assert_eq!(
       server
-        .get_json::<json::Inscription>(format!("/inscription/{inscription_id}"))
+        .get_json::<api::Inscription>(format!("/inscription/{inscription_id}"))
         .parent,
       Some(parent_inscription_id),
     );
 
     assert_eq!(
       server
-        .get_json::<json::Inscription>(format!("/inscription/{parent_inscription_id}"))
+        .get_json::<api::Inscription>(format!("/inscription/{parent_inscription_id}"))
         .children,
       [inscription_id],
     );
@@ -5085,8 +5085,8 @@ next
     let server = TestServer::new_with_regtest_with_index_sats();
 
     assert_eq!(
-      server.get_json::<json::SatInscriptions>("/r/sat/5000000000"),
-      json::SatInscriptions {
+      server.get_json::<api::SatInscriptions>("/r/sat/5000000000"),
+      api::SatInscriptions {
         ids: vec![],
         page: 0,
         more: false
@@ -5094,8 +5094,8 @@ next
     );
 
     assert_eq!(
-      server.get_json::<json::SatInscription>("/r/sat/5000000000/at/0"),
-      json::SatInscription { id: None }
+      server.get_json::<api::SatInscription>("/r/sat/5000000000/at/0"),
+      api::SatInscription { id: None }
     );
 
     server.mine_blocks(1);
@@ -5121,10 +5121,10 @@ next
       ids.push(InscriptionId { txid, index: 0 });
     }
 
-    let paginated_response = server.get_json::<json::SatInscriptions>("/r/sat/5000000000");
+    let paginated_response = server.get_json::<api::SatInscriptions>("/r/sat/5000000000");
 
     let equivalent_paginated_response =
-      server.get_json::<json::SatInscriptions>("/r/sat/5000000000/0");
+      server.get_json::<api::SatInscriptions>("/r/sat/5000000000/0");
 
     assert_eq!(paginated_response.ids.len(), 100);
     assert!(paginated_response.more);
@@ -5137,7 +5137,7 @@ next
     assert_eq!(paginated_response.more, equivalent_paginated_response.more);
     assert_eq!(paginated_response.page, equivalent_paginated_response.page);
 
-    let paginated_response = server.get_json::<json::SatInscriptions>("/r/sat/5000000000/1");
+    let paginated_response = server.get_json::<api::SatInscriptions>("/r/sat/5000000000/1");
 
     assert_eq!(paginated_response.ids.len(), 11);
     assert!(!paginated_response.more);
@@ -5145,34 +5145,34 @@ next
 
     assert_eq!(
       server
-        .get_json::<json::SatInscription>("/r/sat/5000000000/at/0")
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/0")
         .id,
       Some(ids[0])
     );
 
     assert_eq!(
       server
-        .get_json::<json::SatInscription>("/r/sat/5000000000/at/-111")
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/-111")
         .id,
       Some(ids[0])
     );
 
     assert_eq!(
       server
-        .get_json::<json::SatInscription>("/r/sat/5000000000/at/110")
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/110")
         .id,
       Some(ids[110])
     );
 
     assert_eq!(
       server
-        .get_json::<json::SatInscription>("/r/sat/5000000000/at/-1")
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/-1")
         .id,
       Some(ids[110])
     );
 
     assert!(server
-      .get_json::<json::SatInscription>("/r/sat/5000000000/at/111")
+      .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
       .id
       .is_none());
   }
@@ -5201,7 +5201,7 @@ next
     server.mine_blocks(1);
 
     let children_json =
-      server.get_json::<json::Children>(format!("/r/children/{parent_inscription_id}"));
+      server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}"));
     assert_eq!(children_json.ids.len(), 0);
 
     let mut builder = script::Builder::new();
@@ -5231,7 +5231,7 @@ next
     let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
 
     let children_json =
-      server.get_json::<json::Children>(format!("/r/children/{parent_inscription_id}"));
+      server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}"));
 
     assert_eq!(children_json.ids.len(), 100);
     assert_eq!(children_json.ids[0], first_child_inscription_id);
@@ -5240,7 +5240,7 @@ next
     assert_eq!(children_json.page, 0);
 
     let children_json =
-      server.get_json::<json::Children>(format!("/r/children/{parent_inscription_id}/1"));
+      server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}/1"));
 
     assert_eq!(children_json.ids.len(), 11);
     assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);
@@ -5370,8 +5370,8 @@ next
     let server = TestServer::new();
 
     pretty_assert_eq!(
-      server.get_json::<json::BlockInfo>("/r/blockinfo/0"),
-      json::BlockInfo {
+      server.get_json::<api::BlockInfo>("/r/blockinfo/0"),
+      api::BlockInfo {
         bits: 486604799,
         chainwork: 0,
         confirmations: 0,
@@ -5397,8 +5397,8 @@ next
     server.mine_blocks(1);
 
     pretty_assert_eq!(
-      server.get_json::<json::BlockInfo>("/r/blockinfo/1"),
-      json::BlockInfo {
+      server.get_json::<api::BlockInfo>("/r/blockinfo/1"),
+      api::BlockInfo {
         bits: 0,
         chainwork: 0,
         confirmations: 0,

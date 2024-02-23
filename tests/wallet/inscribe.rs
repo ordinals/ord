@@ -2207,7 +2207,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
     offset: 0,
   };
 
-  let sat_1 = serde_json::from_str::<json::Output>(
+  let sat_1 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_1.outpoint))
       .text()
@@ -2218,7 +2218,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   .unwrap()[0]
     .0;
 
-  let sat_2 = serde_json::from_str::<json::Output>(
+  let sat_2 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_2.outpoint))
       .text()
@@ -2229,7 +2229,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   .unwrap()[0]
     .0;
 
-  let sat_3 = serde_json::from_str::<json::Output>(
+  let sat_3 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_3.outpoint))
       .text()
@@ -2389,7 +2389,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
     offset: 0,
   };
 
-  let output_1 = serde_json::from_str::<json::Output>(
+  let output_1 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_1.outpoint))
       .text()
@@ -2398,7 +2398,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   .unwrap();
   assert_eq!(output_1.value, 25 * COIN_VALUE);
 
-  let output_2 = serde_json::from_str::<json::Output>(
+  let output_2 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_2.outpoint))
       .text()
@@ -2407,7 +2407,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   .unwrap();
   assert_eq!(output_2.value, COIN_VALUE);
 
-  let output_3 = serde_json::from_str::<json::Output>(
+  let output_3 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_3.outpoint))
       .text()
