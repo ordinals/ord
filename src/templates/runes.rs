@@ -1,7 +1,5 @@
 use super::*;
 
-pub type RunesJson = RunesHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesHtml {
   pub entries: Vec<(RuneId, RuneEntry)>,

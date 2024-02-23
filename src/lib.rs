@@ -71,7 +71,6 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 

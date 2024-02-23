@@ -257,7 +257,7 @@ impl Wallet {
     Ok(serde_json::from_str(&response.text().await?)?)
   }
 
-  async fn get_server_status(ord_client: &OrdClient) -> Result<StatusJson> {
+  async fn get_server_status(ord_client: &OrdClient) -> Result<api::Status> {
     let response = ord_client.get("/status").await?;
 
     if !response.status().is_success() {
@@ -440,7 +440,7 @@ impl Wallet {
       return Ok(None);
     }
 
-    let rune_json: RuneJson = serde_json::from_str(&response.text()?)?;
+    let rune_json: api::Rune = serde_json::from_str(&response.text()?)?;
 
     Ok(Some((rune_json.id, rune_json.entry, rune_json.parent)))
   }

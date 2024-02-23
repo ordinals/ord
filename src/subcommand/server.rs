@@ -8,12 +8,11 @@ use {
   crate::{
     server_config::ServerConfig,
     templates::{
-      BlockHtml, BlocksHtml, BlocksJson, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-      InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-      PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml,
-      RunesJson, SatHtml, TransactionHtml, TransactionJson,
+      BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
+      InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
+      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
     },
   },
   axum::{
@@ -681,7 +680,7 @@ impl Server {
         .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
 
       Ok(if accept_json {
-        Json(RuneJson { entry, id, parent }).into_response()
+        Json(api::Rune { entry, id, parent }).into_response()
       } else {
         RuneHtml { entry, id, parent }
           .page(server_config)
@@ -697,7 +696,7 @@ impl Server {
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
       Ok(if accept_json {
-        Json(RunesJson {
+        Json(api::Runes {
           entries: index.runes()?,
         })
         .into_response()
@@ -758,7 +757,7 @@ impl Server {
       }
 
       Ok(if accept_json {
-        Json(BlocksJson::new(blocks, featured_blocks)).into_response()
+        Json(api::Blocks::new(blocks, featured_blocks)).into_response()
       } else {
         BlocksHtml::new(blocks, featured_blocks)
           .page(server_config)
@@ -838,7 +837,7 @@ impl Server {
       let inscription_count = index.inscription_count(txid)?;
 
       Ok(if accept_json {
-        Json(TransactionJson {
+        Json(api::Transaction {
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
           inscription_count,

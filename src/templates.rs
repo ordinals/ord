@@ -2,7 +2,6 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::BlockHtml,
-  blocks::{BlocksHtml, BlocksJson},
   children::ChildrenHtml,
   clock::ClockSvg,
   collections::CollectionsHtml,
@@ -20,13 +19,14 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
-  rune::{RuneHtml, RuneJson},
   rune_balances::RuneBalancesHtml,
-  runes::{RunesHtml, RunesJson},
   sat::SatHtml,
   server_config::ServerConfig,
-  status::{StatusHtml, StatusJson},
-  transaction::{TransactionHtml, TransactionJson},
+};
+
+pub use {
+  blocks::BlocksHtml, rune::RuneHtml, runes::RunesHtml, status::StatusHtml,
+  transaction::TransactionHtml,
 };
 
 pub mod block;

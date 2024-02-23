@@ -11,15 +11,8 @@ use {
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
-    api,
-    chain::Chain,
-    outgoing::Outgoing,
-    subcommand::runes::RuneInfo,
-    templates::{
-      blocks::BlocksJson, rune::RuneJson, runes::RunesJson, status::StatusJson,
-      transaction::TransactionJson,
-    },
-    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, Edict, InscriptionId, Rune,
+    RuneEntry, RuneId, Runestone,
   },
   ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,

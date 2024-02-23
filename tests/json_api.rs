@@ -413,11 +413,11 @@ fn get_blocks() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let blocks_json: BlocksJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let blocks_json: api::Blocks = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     blocks_json,
-    BlocksJson {
+    api::Blocks {
       last: 101,
       blocks: blocks.clone(),
       featured_blocks: blocks
@@ -444,8 +444,8 @@ fn get_transaction() {
   assert_eq!(response.status(), StatusCode::OK);
 
   assert_eq!(
-    serde_json::from_str::<TransactionJson>(&response.text().unwrap()).unwrap(),
-    TransactionJson {
+    serde_json::from_str::<api::Transaction>(&response.text().unwrap()).unwrap(),
+    api::Transaction {
       chain: Chain::Mainnet,
       etching: None,
       inscription_count: 0,
@@ -476,7 +476,7 @@ fn get_status() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut status_json: StatusJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut status_json: api::Status = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   let dummy_started = "2012-12-12 12:12:12+00:00"
     .parse::<DateTime<Utc>>()
@@ -489,7 +489,7 @@ fn get_status() {
 
   pretty_assert_eq!(
     status_json,
-    StatusJson {
+    api::Status {
       blessed_inscriptions: 1,
       chain: Chain::Regtest,
       content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
@@ -531,11 +531,11 @@ fn get_runes() {
   let response = ord_rpc_server.json_request(format!("/rune/{}", a.rune));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let rune_json: RuneJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let rune_json: api::Rune = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     rune_json,
-    RuneJson {
+    api::Rune {
       entry: RuneEntry {
         burned: 0,
         mint: None,
@@ -561,11 +561,11 @@ fn get_runes() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let runes_json: RunesJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let runes_json: api::Runes = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     runes_json,
-    RunesJson {
+    api::Runes {
       entries: vec![
         (
           RuneId {

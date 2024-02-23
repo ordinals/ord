@@ -3,6 +3,11 @@ use super::{
   Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
 };
 
+pub use crate::templates::{
+  BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
+  TransactionHtml as Transaction,
+};
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
   pub hash: BlockHash,
