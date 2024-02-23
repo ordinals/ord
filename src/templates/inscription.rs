@@ -35,27 +35,6 @@ pub struct InscriptionRecursiveJson {
   pub value: Option<u64>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct InscriptionJson {
-  pub address: Option<String>,
-  pub charms: Vec<String>,
-  pub children: Vec<InscriptionId>,
-  pub content_length: Option<usize>,
-  pub content_type: Option<String>,
-  pub genesis_fee: u64,
-  pub genesis_height: u32,
-  pub inscription_id: InscriptionId,
-  pub inscription_number: i32,
-  pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
-  pub parent: Option<InscriptionId>,
-  pub previous: Option<InscriptionId>,
-  pub rune: Option<SpacedRune>,
-  pub sat: Option<Sat>,
-  pub satpoint: SatPoint,
-  pub timestamp: i64,
-}
-
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.inscription_number)

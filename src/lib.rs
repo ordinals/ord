@@ -71,7 +71,7 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
+  templates::{RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -111,6 +111,7 @@ mod decimal;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+pub mod json;
 mod object;
 pub mod options;
 pub mod outgoing;

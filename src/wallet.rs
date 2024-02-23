@@ -47,9 +47,9 @@ pub(crate) struct Wallet {
   has_rune_index: bool,
   utxos: BTreeMap<OutPoint, TxOut>,
   locked_utxos: BTreeMap<OutPoint, TxOut>,
-  output_info: BTreeMap<OutPoint, OutputJson>,
+  output_info: BTreeMap<OutPoint, json::Output>,
   inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-  inscription_info: BTreeMap<InscriptionId, InscriptionJson>,
+  inscription_info: BTreeMap<InscriptionId, json::Inscription>,
 }
 
 impl Wallet {
@@ -181,14 +181,14 @@ impl Wallet {
       })
   }
 
-  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<OutputJson> {
+  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<json::Output> {
     let response = ord_client.get(&format!("/output/{output}")).await?;
 
     if !response.status().is_success() {
       bail!("wallet failed get output: {}", response.text().await?);
     }
 
-    let output_json: OutputJson = serde_json::from_str(&response.text().await?)?;
+    let output_json: json::Output = serde_json::from_str(&response.text().await?)?;
 
     if !output_json.indexed {
       bail!("output in wallet but not in ord server: {output}");
@@ -245,7 +245,7 @@ impl Wallet {
   async fn get_inscription_info(
     ord_client: &OrdClient,
     inscription_id: InscriptionId,
-  ) -> Result<InscriptionJson> {
+  ) -> Result<json::Inscription> {
     let response = ord_client
       .get(&format!("/inscription/{inscription_id}"))
       .await?;
@@ -329,7 +329,7 @@ impl Wallet {
     &self.inscriptions
   }
 
-  pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, InscriptionJson> {
+  pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, json::Inscription> {
     self.inscription_info.clone()
   }
 

@@ -12,13 +12,12 @@ use {
   executable_path::executable_path,
   ord::{
     chain::Chain,
+    json,
     outgoing::Outgoing,
     subcommand::runes::RuneInfo,
     templates::{
-      block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
-      inscription::InscriptionRecursiveJson, inscriptions::InscriptionsJson, output::OutputJson,
-      rune::RuneJson, runes::RunesJson, sat::SatJson, status::StatusJson,
-      transaction::TransactionJson,
+      blocks::BlocksJson, inscription::InscriptionRecursiveJson, inscriptions::InscriptionsJson,
+      rune::RuneJson, runes::RunesJson, status::StatusJson, transaction::TransactionJson,
     },
     Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
   },
