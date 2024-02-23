@@ -643,7 +643,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
-      ".*<dt>parent</dt>.*<a class=monospace href=/inscription/{}>.*",
+      ".*<dt>parent</dt>.*<a href=/inscription/{}>.*",
       child_output.parent.unwrap()
     ),
   );
