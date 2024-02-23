@@ -1,25 +1,25 @@
 use super::*;
 
 #[derive(Copy, Clone, Debug, Display, FromStr, Ord, Eq, Serialize, PartialEq, PartialOrd)]
-pub(crate) struct Height(pub(crate) u32);
+pub struct Height(pub u32);
 
 impl Height {
-  pub(crate) fn n(self) -> u32 {
+  pub fn n(self) -> u32 {
     self.0
   }
 
-  pub(crate) fn subsidy(self) -> u64 {
+  pub fn subsidy(self) -> u64 {
     Epoch::from(self).subsidy()
   }
 
-  pub(crate) fn starting_sat(self) -> Sat {
+  pub fn starting_sat(self) -> Sat {
     let epoch = Epoch::from(self);
     let epoch_starting_sat = epoch.starting_sat();
     let epoch_starting_height = epoch.starting_height();
     epoch_starting_sat + u64::from(self.n() - epoch_starting_height.n()) * epoch.subsidy()
   }
 
-  pub(crate) fn period_offset(self) -> u32 {
+  pub fn period_offset(self) -> u32 {
     self.0 % DIFFCHANGE_INTERVAL
   }
 }

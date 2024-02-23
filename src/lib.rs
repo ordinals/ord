@@ -17,11 +17,10 @@ use {
     blocktime::Blocktime,
     config::Config,
     decimal::Decimal,
-    decimal_sat::DecimalSat,
-    degree::Degree,
-    epoch::Epoch,
-    height::Height,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    inscriptions::{
+      media::{self, ImageRendering, Media},
+      teleburn, Charm, ParsedEnvelope,
+    },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
@@ -32,13 +31,11 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::{
-      constants::{
-        COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,
-      },
+      constants::{DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
       locktime::absolute::LockTime,
     },
     consensus::{self, Decodable, Encodable},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     opcodes,
     script::{self, Instruction},
@@ -49,14 +46,13 @@ use {
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
-  derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
-  ordinals::{DeserializeFromStr, SatPoint},
+  ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
@@ -64,9 +60,8 @@ use {
     io::{self, Cursor, Read},
     mem,
     net::ToSocketAddrs,
-    ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -87,9 +82,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  rarity::Rarity,
   runes::{Edict, Rune, RuneId, Runestone},
-  sat::Sat,
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -115,20 +108,14 @@ mod blocktime;
 pub mod chain;
 mod config;
 mod decimal;
-mod decimal_sat;
-mod degree;
-mod epoch;
 mod fee_rate;
-mod height;
 pub mod index;
 mod inscriptions;
 mod object;
-mod options;
+pub mod options;
 pub mod outgoing;
-pub mod rarity;
 mod representation;
 pub mod runes;
-pub mod sat;
 mod server_config;
 pub mod subcommand;
 mod tally;
@@ -136,8 +123,6 @@ pub mod templates;
 pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
-
-const CYCLE_EPOCHS: u32 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
@@ -188,6 +173,10 @@ fn integration_test() -> bool {
 
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
+}
+
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
 fn unbound_outpoint() -> OutPoint {

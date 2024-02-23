@@ -1,7 +1,7 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::{BlockHtml, BlockJson},
+  block::{BlockHtml, BlockInfoJson, BlockJson},
   blocks::{BlocksHtml, BlocksJson},
   children::{ChildrenHtml, ChildrenJson},
   clock::ClockSvg,
@@ -9,7 +9,7 @@ pub(crate) use {
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::{InscriptionHtml, InscriptionJson},
+  inscription::{InscriptionHtml, InscriptionJson, InscriptionRecursiveJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,

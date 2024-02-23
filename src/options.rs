@@ -62,6 +62,12 @@ pub struct Options {
     help = "Do not index inscriptions."
   )]
   pub(crate) no_index_inscriptions: bool,
+  #[arg(
+    long,
+    requires = "username",
+    help = "Require basic HTTP authentication with <PASSWORD>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
+  )]
+  pub(crate) password: Option<String>,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
   #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
@@ -70,6 +76,12 @@ pub struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[arg(
+    long,
+    requires = "password",
+    help = "Require basic HTTP authentication with <USERNAME>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
+  )]
+  pub(crate) username: Option<String>,
 }
 
 impl Options {
@@ -139,6 +151,10 @@ impl Options {
     let path = self.chain().join_with_data_dir(&path);
 
     Ok(path.join(".cookie"))
+  }
+
+  pub(crate) fn credentials(&self) -> Option<(&str, &str)> {
+    self.username.as_deref().zip(self.password.as_deref())
   }
 
   fn default_data_dir() -> PathBuf {
@@ -233,14 +249,32 @@ impl Options {
     }
 
     let client = Client::new(&rpc_url, auth)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at `{rpc_url}`"))?;
 
-    let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
-      "main" => Chain::Mainnet,
-      "test" => Chain::Testnet,
-      "regtest" => Chain::Regtest,
-      "signet" => Chain::Signet,
-      other => bail!("Bitcoin RPC server on unknown chain: {other}"),
+    let mut checks = 0;
+    let rpc_chain = loop {
+      match client.get_blockchain_info() {
+        Ok(blockchain_info) => {
+          break match blockchain_info.chain.as_str() {
+            "main" => Chain::Mainnet,
+            "test" => Chain::Testnet,
+            "regtest" => Chain::Regtest,
+            "signet" => Chain::Signet,
+            other => bail!("Bitcoin RPC server on unknown chain: {other}"),
+          }
+        }
+        Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+          if err.code == -28 => {}
+        Err(err) => bail!("Failed to connect to Bitcoin Core RPC at `{rpc_url}`:  {err}"),
+      }
+
+      ensure! {
+        checks < 100,
+        "Failed to connect to Bitcoin Core RPC at `{rpc_url}`",
+      }
+
+      checks += 1;
+      thread::sleep(Duration::from_millis(100));
     };
 
     let ord_chain = self.chain();

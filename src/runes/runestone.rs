@@ -77,7 +77,7 @@ impl Runestone {
 
     let limit = Tag::Limit
       .take(&mut fields)
-      .map(|limit| limit.clamp(0, MAX_LIMIT));
+      .map(|limit| limit.min(MAX_LIMIT));
 
     let rune = Tag::Rune.take(&mut fields).map(Rune);
 

@@ -157,7 +157,7 @@ Any single-sat transfer can be accomplished in a single transaction, but the
 resulting transaction may contain outputs below the dust limit, and thus be
 non-standard and difficult to get included in a block. Consider a scenario
 where Alice owns an output containing the range of sats [0,10], the current
-dust limit is 5 sats, and Alice wishes to send send sat 4 and 6 to Bob, but
+dust limit is 5 sats, and Alice wishes to send sat 4 and 6 to Bob, but
 retain ordinal 5. Alice could construct a transaction with three outputs of
 size 5, 1, and 5, containing sats [0,4], 5, and [6,10], respectively. The
 second output is under the dust limit, and so such a transaction would be

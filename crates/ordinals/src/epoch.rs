@@ -1,10 +1,10 @@
 use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Serialize, PartialOrd)]
-pub(crate) struct Epoch(pub(crate) u32);
+pub struct Epoch(pub u32);
 
 impl Epoch {
-  pub(crate) const STARTING_SATS: [Sat; 34] = [
+  pub const STARTING_SATS: [Sat; 34] = [
     Sat(0),
     Sat(1050000000000000),
     Sat(1575000000000000),
@@ -40,9 +40,9 @@ impl Epoch {
     Sat(2099999997480000),
     Sat(Sat::SUPPLY),
   ];
-  pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
+  pub const FIRST_POST_SUBSIDY: Epoch = Self(33);
 
-  pub(crate) fn subsidy(self) -> u64 {
+  pub fn subsidy(self) -> u64 {
     if self < Self::FIRST_POST_SUBSIDY {
       (50 * COIN_VALUE) >> self.0
     } else {
@@ -50,13 +50,13 @@ impl Epoch {
     }
   }
 
-  pub(crate) fn starting_sat(self) -> Sat {
+  pub fn starting_sat(self) -> Sat {
     *Self::STARTING_SATS
       .get(usize::try_from(self.0).unwrap())
       .unwrap_or_else(|| Self::STARTING_SATS.last().unwrap())
   }
 
-  pub(crate) fn starting_height(self) -> Height {
+  pub fn starting_height(self) -> Height {
     Height(self.0 * SUBSIDY_HALVING_INTERVAL)
   }
 }

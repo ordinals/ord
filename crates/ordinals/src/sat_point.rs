@@ -1,4 +1,4 @@
-use {super::*, bitcoin::transaction::ParseOutPointError, std::num::ParseIntError};
+use {super::*, bitcoin::transaction::ParseOutPointError};
 
 /// A satpoint identifies the location of a sat in an output.
 ///
