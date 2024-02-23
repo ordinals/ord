@@ -10,11 +10,10 @@ use {
     templates::{
       BlockHtml, BlocksHtml, BlocksJson, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
       InputHtml, InscriptionHtml, InscriptionRecursiveJson, InscriptionsBlockHtml,
-      InscriptionsHtml, InscriptionsJson, OutputHtml, PageContent, PageHtml, PreviewAudioHtml,
-      PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
-      PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-      RuneBalancesHtml, RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, TransactionHtml,
-      TransactionJson,
+      InscriptionsHtml, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewCodeHtml,
+      PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+      PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml,
+      RuneHtml, RuneJson, RunesHtml, RunesJson, SatHtml, TransactionHtml, TransactionJson,
     },
   },
   axum::{
@@ -1629,7 +1628,7 @@ impl Server {
       let next = more.then_some(page_index + 1);
 
       Ok(if accept_json {
-        Json(InscriptionsJson {
+        Json(json::Inscriptions {
           inscriptions,
           page_index,
           more,
@@ -1688,7 +1687,7 @@ impl Server {
       }
 
       Ok(if accept_json {
-        Json(InscriptionsJson {
+        Json(json::Inscriptions {
           inscriptions,
           page_index,
           more,

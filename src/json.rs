@@ -148,3 +148,10 @@ pub struct SatInscriptions {
 pub struct SatInscription {
   pub id: Option<InscriptionId>,
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Inscriptions {
+  pub inscriptions: Vec<InscriptionId>,
+  pub more: bool,
+  pub page_index: u32,
+}

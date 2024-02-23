@@ -10,7 +10,7 @@ pub(crate) use {
   iframe::Iframe,
   input::InputHtml,
   inscription::{InscriptionHtml, InscriptionRecursiveJson},
-  inscriptions::{InscriptionsHtml, InscriptionsJson},
+  inscriptions::InscriptionsHtml,
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
   output::OutputHtml,

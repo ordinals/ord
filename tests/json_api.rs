@@ -210,7 +210,7 @@ fn get_inscriptions() {
 
   let response = ord_rpc_server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: json::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
@@ -219,7 +219,7 @@ fn get_inscriptions() {
 
   let response = ord_rpc_server.json_request("/inscriptions/1");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: json::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(inscriptions_json.inscriptions.len(), 50);
@@ -272,7 +272,7 @@ fn get_inscriptions_in_block() {
   let response = ord_rpc_server.json_request(format!("/inscriptions/block/{}", 11));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: json::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
