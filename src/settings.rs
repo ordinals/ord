@@ -2,11 +2,6 @@ use {super::*, bitcoincore_rpc::Auth};
 
 // todo:
 // - inscriptions can be hidden with config
-// - move optoins tests into settings
-//
-// - setting tests:
-// -   chain: flags, then arg, then env var, then config, then mainnet
-// -   bitcoin rpc username and pass
 
 #[derive(Default, Debug, Clone, Serialize)]
 pub struct Settings {
@@ -68,11 +63,13 @@ impl Settings {
     )?;
 
     let rpc_pass = Self::setting_opt(
-      &Default::default(),
+      &env,
       options.bitcoin_rpc_pass.as_deref(),
       Some("BITCOIN_RPC_PASS"),
       config.bitcoin_rpc_pass.as_deref(),
     )?;
+
+    dbg!(&rpc_user, &rpc_pass);
 
     let auth = match (rpc_user, rpc_pass) {
       (Some(rpc_user), Some(rpc_pass)) => Some(Auth::UserPass(rpc_user, rpc_pass)),
@@ -885,5 +882,136 @@ mod tests {
       .settings()
       .unwrap()
       .index_runes());
+  }
+
+  #[test]
+  fn chain_setting() {
+    assert_eq!(
+      Settings::new(
+        Options {
+          regtest: true,
+          ..Default::default()
+        },
+        vec![("CHAIN".into(), "signet".into())]
+          .into_iter()
+          .collect(),
+        Config {
+          chain: Some(Chain::Testnet),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .chain(),
+      Chain::Regtest,
+    );
+
+    assert_eq!(
+      Settings::new(
+        Default::default(),
+        vec![("CHAIN".into(), "signet".into())]
+          .into_iter()
+          .collect(),
+        Config {
+          chain: Some(Chain::Testnet),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .chain(),
+      Chain::Signet,
+    );
+
+    assert_eq!(
+      Settings::new(
+        Default::default(),
+        Default::default(),
+        Config {
+          chain: Some(Chain::Testnet),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .chain(),
+      Chain::Testnet,
+    );
+
+    assert_eq!(
+      Settings::new(Default::default(), Default::default(), Default::default())
+        .unwrap()
+        .chain(),
+      Chain::Mainnet,
+    );
+  }
+
+  #[test]
+  fn bitcoin_rpc_and_pass_setting() {
+    assert_eq!(
+      Settings::new(
+        Options {
+          bitcoin_rpc_user: Some("option_user".into()),
+          bitcoin_rpc_pass: Some("option_pass".into()),
+          ..Default::default()
+        },
+        vec![
+          ("BITCOIN_RPC_USER".into(), "env_user".into()),
+          ("BITCOIN_RPC_PASS".into(), "env_pass".into()),
+        ]
+        .into_iter()
+        .collect(),
+        Config {
+          bitcoin_rpc_user: Some("config_user".into()),
+          bitcoin_rpc_pass: Some("config_pass".into()),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .auth()
+      .unwrap(),
+      Auth::UserPass("option_user".into(), "option_pass".into()),
+    );
+
+    assert_eq!(
+      Settings::new(
+        Default::default(),
+        vec![
+          ("BITCOIN_RPC_USER".into(), "env_user".into()),
+          ("BITCOIN_RPC_PASS".into(), "env_pass".into()),
+        ]
+        .into_iter()
+        .collect(),
+        Config {
+          bitcoin_rpc_user: Some("config_user".into()),
+          bitcoin_rpc_pass: Some("config_pass".into()),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .auth()
+      .unwrap(),
+      Auth::UserPass("env_user".into(), "env_pass".into()),
+    );
+
+    assert_eq!(
+      Settings::new(
+        Default::default(),
+        Default::default(),
+        Config {
+          bitcoin_rpc_user: Some("config_user".into()),
+          bitcoin_rpc_pass: Some("config_pass".into()),
+          ..Default::default()
+        }
+      )
+      .unwrap()
+      .auth()
+      .unwrap(),
+      Auth::UserPass("config_user".into(), "config_pass".into()),
+    );
+
+    assert_eq!(
+      Settings::new(Default::default(), Default::default(), Default::default())
+        .unwrap()
+        .auth,
+      None,
+    );
   }
 }
