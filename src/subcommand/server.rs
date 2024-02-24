@@ -45,50 +45,7 @@ use {
 mod accept_encoding;
 mod accept_json;
 mod error;
-
-#[derive(Copy, Clone, Debug)]
-pub(crate) enum InscriptionQuery {
-  Id(InscriptionId),
-  Number(i32),
-}
-
-impl FromStr for InscriptionQuery {
-  type Err = Error;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.contains('i') {
-      Self::Id(s.parse()?)
-    } else {
-      Self::Number(s.parse()?)
-    })
-  }
-}
-
-impl Display for InscriptionQuery {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    match self {
-      Self::Id(id) => write!(f, "{id}"),
-      Self::Number(number) => write!(f, "{number}"),
-    }
-  }
-}
-
-enum BlockQuery {
-  Height(u32),
-  Hash(BlockHash),
-}
-
-impl FromStr for BlockQuery {
-  type Err = Error;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.len() == 64 {
-      BlockQuery::Hash(s.parse()?)
-    } else {
-      BlockQuery::Height(s.parse()?)
-    })
-  }
-}
+pub(crate) mod query;
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -665,7 +622,7 @@ impl Server {
   async fn rune(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(spaced_rune)): Path<DeserializeFromStr<SpacedRune>>,
+    Path(DeserializeFromStr(rune_query)): Path<DeserializeFromStr<query::Rune>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
@@ -675,9 +632,16 @@ impl Server {
         ));
       }
 
+      let rune = match rune_query {
+        query::Rune::SpacedRune(spaced_rune) => spaced_rune.rune,
+        query::Rune::RuneId(rune_id) => index
+          .get_rune_by_id(rune_id)?
+          .ok_or_not_found(|| format!("rune {rune_id}"))?,
+      };
+
       let (id, entry, parent) = index
-        .rune(spaced_rune.rune)?
-        .ok_or_not_found(|| format!("rune {spaced_rune}"))?;
+        .rune(rune)?
+        .ok_or_not_found(|| format!("rune {rune}"))?;
 
       Ok(if accept_json {
         Json(api::Rune { entry, id, parent }).into_response()
@@ -773,19 +737,19 @@ impl Server {
   async fn block(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
       let (block, height) = match query {
-        BlockQuery::Height(height) => {
+        query::Block::Height(height) => {
           let block = index
             .get_block_by_height(height)?
             .ok_or_not_found(|| format!("block {height}"))?;
 
           (block, height)
         }
-        BlockQuery::Hash(hash) => {
+        query::Block::Hash(hash) => {
           let info = index
             .block_header_info(hash)?
             .ok_or_not_found(|| format!("block {hash}"))?;
@@ -972,7 +936,7 @@ impl Server {
         static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
         static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
         static ref RUNE: Regex = Regex::new(r"^[A-Z•.]+$").unwrap();
-        static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
+        static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+:[0-9]+$").unwrap();
       }
 
       let query = query.trim();
@@ -1139,12 +1103,12 @@ impl Server {
 
   async fn block_info(
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
   ) -> ServerResult<Json<api::BlockInfo>> {
     task::block_in_place(|| {
       let hash = match query {
-        BlockQuery::Hash(hash) => hash,
-        BlockQuery::Height(height) => index
+        query::Block::Hash(hash) => hash,
+        query::Block::Height(height) => index
           .block_hash(Some(height))?
           .ok_or_not_found(|| format!("block {height}"))?,
       };
@@ -1432,7 +1396,7 @@ impl Server {
   async fn inscription(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<InscriptionQuery>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Inscription>>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
@@ -2324,15 +2288,52 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_redirect("/search/2/1", "/rune/AAAAAAAAAAAAA");
-    server.assert_redirect("/search?query=2/1", "/rune/AAAAAAAAAAAAA");
-
-    server.assert_response_regex("/rune/100/200", StatusCode::NOT_FOUND, ".*");
+    server.assert_redirect("/search/2:1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=2:1", "/rune/AAAAAAAAAAAAA");
 
     server.assert_response_regex(
-      "/search/100000000000000000000/200000000000000000",
+      "/search/100000000000000000000:200000000000000000",
       StatusCode::BAD_REQUEST,
       ".*",
+    );
+  }
+
+  #[test]
+  fn runes_can_be_queried_by_rune_id() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    server.assert_response_regex("/rune/2:1", StatusCode::NOT_FOUND, ".*");
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/rune/2:1",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAA</title>.*",
     );
   }
 
@@ -2476,7 +2477,7 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>id</dt>
-  <dd>2/1</dd>
+  <dd>2:1</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/2>2</a></dd>
   <dt>etching transaction index</dt>
@@ -5278,10 +5279,10 @@ next
   #[test]
   fn inscription_query_display() {
     assert_eq!(
-      InscriptionQuery::Id(inscription_id(1)).to_string(),
+      query::Inscription::Id(inscription_id(1)).to_string(),
       "1111111111111111111111111111111111111111111111111111111111111111i1"
     );
-    assert_eq!(InscriptionQuery::Number(1).to_string(), "1")
+    assert_eq!(query::Inscription::Number(1).to_string(), "1")
   }
 
   #[test]
