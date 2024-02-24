@@ -1738,8 +1738,13 @@ mod tests {
 
   #[derive(Default)]
   struct Builder {
-    config: Config,
     bitcoin_rpc_server: Option<test_bitcoincore_rpc::Handle>,
+    chain: Option<Chain>,
+    config: Config,
+    https: bool,
+    index_runes: bool,
+    index_sats: bool,
+    redirect_http_to_https: bool,
   }
 
   impl Builder {
@@ -1750,14 +1755,23 @@ mod tests {
       }
     }
 
+    fn chain(self, chain: Chain) -> Self {
+      Self {
+        chain: Some(chain),
+        ..self
+      }
+    }
+
     fn config(self, config: Config) -> Self {
       Self { config, ..self }
     }
 
     fn build(self) -> TestServer {
-      let bitcoin_rpc_server = self
-        .bitcoin_rpc_server
-        .unwrap_or_else(|| test_bitcoincore_rpc::builder().build());
+      let bitcoin_rpc_server = self.bitcoin_rpc_server.unwrap_or_else(|| {
+        test_bitcoincore_rpc::builder()
+          .network(self.chain.unwrap_or_default().network())
+          .build()
+      });
 
       let tempdir = TempDir::new().unwrap();
 
@@ -1771,34 +1785,35 @@ mod tests {
         .unwrap()
         .port();
 
-      let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
+      let options = Options {
+        index_sats: self.index_sats,
+        index_runes: self.index_runes,
+        rpc_url: Some(bitcoin_rpc_server.url()),
+        cookie_file: Some(cookiefile),
+        data_dir: tempdir.path().into(),
+        chain_argument: Some(
+          self
+            .chain
+            .unwrap_or_else(|| bitcoin_rpc_server.network().parse().unwrap()),
+        ),
+        ..Default::default()
+      };
 
-      let mut arguments: Vec<String> = vec![
-        "ord".into(),
-        "--rpc-url".into(),
-        bitcoin_rpc_server.url(),
-        "--cookie-file".into(),
-        cookiefile.to_str().unwrap().into(),
-        "--data-dir".into(),
-        tempdir.path().to_str().unwrap().into(),
-      ];
-
-      arguments.extend(vec!["--chain".into(), bitcoin_rpc_server.network()]);
-
-      arguments.extend(vec![
-        "server".into(),
-        "--http-port".into(),
-        port.to_string(),
-        "--address".into(),
-        "127.0.0.1".into(),
-      ]);
-
-      let (options, server) = match Arguments::try_parse_from(arguments) {
-        Ok(arguments) => match arguments.subcommand {
-          Subcommand::Server(server) => (arguments.options, server),
-          subcommand => panic!("unexpected subcommand: {subcommand:?}"),
-        },
-        Err(err) => panic!("error parsing arguments: {err}"),
+      let server = Server {
+        acme_cache: None,
+        acme_contact: Vec::new(),
+        acme_domain: Vec::new(),
+        address: Some("127.0.0.1".into()),
+        csp_origin: None,
+        decompress: false,
+        disable_json_api: false,
+        http: false,
+        http_port: Some(port),
+        https: self.https,
+        https_port: None,
+        no_sync: false,
+        polling_interval: Duration::from_millis(100).into(),
+        redirect_http_to_https: self.redirect_http_to_https,
       };
 
       let settings = Settings::new(options, Default::default(), self.config).unwrap();
@@ -1839,7 +1854,35 @@ mod tests {
         index,
         ord_server_handle,
         tempdir,
-        url,
+        url: Url::parse(&format!("http://127.0.0.1:{port}")).unwrap(),
+      }
+    }
+
+    fn https(self) -> Self {
+      Self {
+        https: true,
+        ..self
+      }
+    }
+
+    fn index_runes(self) -> Self {
+      Self {
+        index_runes: true,
+        ..self
+      }
+    }
+
+    fn index_sats(self) -> Self {
+      Self {
+        index_sats: true,
+        ..self
+      }
+    }
+
+    fn redirect_http_to_https(self) -> Self {
+      Self {
+        redirect_http_to_https: true,
+        ..self
       }
     }
   }
@@ -1848,9 +1891,9 @@ mod tests {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
     index: Arc<Index>,
     ord_server_handle: Handle,
-    url: Url,
     #[allow(unused)]
     tempdir: TempDir,
+    url: Url,
   }
 
   impl TestServer {
@@ -1859,126 +1902,7 @@ mod tests {
     }
 
     fn new() -> Self {
-      Self::new_with_args(&[], &[])
-    }
-
-    fn new_with_sat_index() -> Self {
-      Self::new_with_args(&["--index-sats"], &[])
-    }
-
-    fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
-      Self::new_server(test_bitcoincore_rpc::spawn(), ord_args, server_args)
-    }
-
-    fn new_with_regtest() -> Self {
-      Self::new_server(
-        test_bitcoincore_rpc::builder()
-          .network(bitcoin::network::constants::Network::Regtest)
-          .build(),
-        &["--chain", "regtest"],
-        &[],
-      )
-    }
-
-    fn new_with_regtest_with_json_api() -> Self {
-      Self::new_server(
-        test_bitcoincore_rpc::builder()
-          .network(bitcoin::network::constants::Network::Regtest)
-          .build(),
-        &["--chain", "regtest"],
-        &[],
-      )
-    }
-
-    fn new_with_regtest_with_index_sats() -> Self {
-      Self::new_server(
-        test_bitcoincore_rpc::builder()
-          .network(bitcoin::Network::Regtest)
-          .build(),
-        &["--chain", "regtest", "--index-sats"],
-        &[],
-      )
-    }
-
-    fn new_with_regtest_with_index_runes() -> Self {
-      Self::new_server(
-        test_bitcoincore_rpc::builder()
-          .network(bitcoin::Network::Regtest)
-          .build(),
-        &["--chain", "regtest", "--index-runes"],
-        &[],
-      )
-    }
-
-    fn new_server(
-      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
-      ord_args: &[&str],
-      server_args: &[&str],
-    ) -> Self {
-      let tempdir = TempDir::new().unwrap();
-
-      let cookiefile = tempdir.path().join("cookie");
-
-      fs::write(&cookiefile, "username:password").unwrap();
-
-      let port = TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port();
-
-      let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
-
-      let (options, server) = parse_server_options(&format!(
-        "ord --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
-        bitcoin_rpc_server.url(),
-        cookiefile.to_str().unwrap(),
-        tempdir.path().to_str().unwrap(),
-        ord_args.join(" "),
-        port,
-        server_args.join(" "),
-      ));
-
-      let settings = Settings::new(options, Default::default(), Default::default()).unwrap();
-
-      let index = Arc::new(Index::open(&settings).unwrap());
-      let ord_server_handle = Handle::new();
-
-      {
-        let index = index.clone();
-        let ord_server_handle = ord_server_handle.clone();
-        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
-      }
-
-      while index.statistic(crate::index::Statistic::Commits) == 0 {
-        thread::sleep(Duration::from_millis(50));
-      }
-
-      let client = reqwest::blocking::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .build()
-        .unwrap();
-
-      for i in 0.. {
-        match client.get(format!("http://127.0.0.1:{port}/status")).send() {
-          Ok(_) => break,
-          Err(err) => {
-            if i == 400 {
-              panic!("ord server failed to start: {err}");
-            }
-          }
-        }
-
-        thread::sleep(Duration::from_millis(50));
-      }
-
-      Self {
-        bitcoin_rpc_server,
-        index,
-        ord_server_handle,
-        tempdir,
-        url,
-      }
+      Builder::default().build()
     }
 
     fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
@@ -2078,16 +2002,6 @@ mod tests {
   impl Drop for TestServer {
     fn drop(&mut self) {
       self.ord_server_handle.shutdown();
-    }
-  }
-
-  fn parse_server_options(args: &str) -> (Options, Server) {
-    match Arguments::try_parse_from(args.split_whitespace()) {
-      Ok(arguments) => match arguments.subcommand {
-        Subcommand::Server(server) => (arguments.options, server),
-        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
-      },
-      Err(err) => panic!("error parsing arguments: {err}"),
     }
   }
 
@@ -2366,7 +2280,10 @@ mod tests {
 
   #[test]
   fn search_by_rune_id_returns_rune() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2408,7 +2325,10 @@ mod tests {
 
   #[test]
   fn runes_can_be_queried_by_rune_id() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2447,7 +2367,10 @@ mod tests {
 
   #[test]
   fn runes_are_displayed_on_runes_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2516,7 +2439,10 @@ mod tests {
 
   #[test]
   fn runes_are_displayed_on_rune_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2624,7 +2550,10 @@ mod tests {
 
   #[test]
   fn runes_are_spaced() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2721,7 +2650,10 @@ mod tests {
 
   #[test]
   fn transactions_link_to_etching() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2789,7 +2721,10 @@ mod tests {
 
   #[test]
   fn runes_are_displayed_on_output_page() {
-    let server = TestServer::new_with_regtest_with_index_runes();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
 
     server.mine_blocks(1);
 
@@ -2897,21 +2832,28 @@ mod tests {
 
   #[test]
   fn http_to_https_redirect_with_path() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
-      "/sat/0",
-      &format!("https://{}/sat/0", System::host_name().unwrap()),
-    );
+    TestServer::builder()
+      .redirect_http_to_https()
+      .https()
+      .build()
+      .assert_redirect(
+        "/sat/0",
+        &format!("https://{}/sat/0", System::host_name().unwrap()),
+      );
   }
 
   #[test]
   fn http_to_https_redirect_with_empty() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"])
+    TestServer::builder()
+      .redirect_http_to_https()
+      .https()
+      .build()
       .assert_redirect("/", &format!("https://{}/", System::host_name().unwrap()));
   }
 
   #[test]
   fn status() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(3);
 
@@ -3181,11 +3123,14 @@ mod tests {
   #[test]
   fn output_with_sat_index() {
     let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
-    TestServer::new_with_sat_index().assert_response_regex(
-      format!("/output/{txid}:0"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
+    TestServer::builder()
+      .index_sats()
+      .build()
+      .assert_response_regex(
+        format!("/output/{txid}:0"),
+        StatusCode::OK,
+        format!(
+          ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
@@ -3196,8 +3141,8 @@ mod tests {
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*"
-      ),
-    );
+        ),
+      );
   }
 
   #[test]
@@ -3221,7 +3166,7 @@ mod tests {
   #[test]
   fn null_output_is_initially_empty() {
     let txid = "0000000000000000000000000000000000000000000000000000000000000000";
-    TestServer::new_with_sat_index().assert_response_regex(
+    TestServer::builder().index_sats().build().assert_response_regex(
       format!("/output/{txid}:4294967295"),
       StatusCode::OK,
       format!(
@@ -3241,7 +3186,7 @@ mod tests {
 
   #[test]
   fn null_output_receives_lost_sats() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::builder().index_sats().build();
 
     server.mine_blocks_with_subsidy(1, 0);
 
@@ -3268,7 +3213,10 @@ mod tests {
 
   #[test]
   fn unbound_output_receives_unbound_inscriptions() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     server.mine_blocks(1);
 
@@ -3337,7 +3285,7 @@ mod tests {
 
   #[test]
   fn home() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
@@ -3403,11 +3351,14 @@ mod tests {
 
   #[test]
   fn nav_displays_chain() {
-    TestServer::new_with_regtest().assert_response_regex(
-      "/",
-      StatusCode::OK,
-      ".*<a href=/ title=home>Ordinals<sup>regtest</sup></a>.*",
-    );
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_response_regex(
+        "/",
+        StatusCode::OK,
+        ".*<a href=/ title=home>Ordinals<sup>regtest</sup></a>.*",
+      );
   }
 
   #[test]
@@ -3562,7 +3513,7 @@ mod tests {
 
   #[test]
   fn rare_with_sat_index() {
-    TestServer::new_with_sat_index().assert_response(
+    TestServer::builder().index_sats().build().assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
@@ -3583,22 +3534,28 @@ mod tests {
 
   #[test]
   fn show_rare_txt_in_header_with_sat_index() {
-    TestServer::new_with_sat_index().assert_response_regex(
-      "/",
-      StatusCode::OK,
-      ".*
+    TestServer::builder()
+      .index_sats()
+      .build()
+      .assert_response_regex(
+        "/",
+        StatusCode::OK,
+        ".*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>.*",
-    );
+      );
   }
 
   #[test]
   fn rare_sat_location() {
-    TestServer::new_with_sat_index().assert_response_regex(
-      "/sat/0",
-      StatusCode::OK,
-      ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
-    );
+    TestServer::builder()
+      .index_sats()
+      .build()
+      .assert_response_regex(
+        "/sat/0",
+        StatusCode::OK,
+        ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
+      );
   }
 
   #[test]
@@ -3667,7 +3624,7 @@ mod tests {
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::builder().index_sats().build();
 
     assert_eq!(
       server
@@ -3699,7 +3656,7 @@ mod tests {
 
   #[test]
   fn coinbase_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::builder().index_sats().build();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -3723,7 +3680,7 @@ mod tests {
 
   #[test]
   fn split_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::builder().index_sats().build();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -3747,7 +3704,7 @@ mod tests {
 
   #[test]
   fn fee_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::builder().index_sats().build();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -3830,7 +3787,7 @@ mod tests {
 
   #[test]
   fn code_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3883,7 +3840,7 @@ mod tests {
 
   #[test]
   fn text_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3910,7 +3867,7 @@ mod tests {
 
   #[test]
   fn audio_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3930,7 +3887,7 @@ mod tests {
 
   #[test]
   fn font_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3950,7 +3907,7 @@ mod tests {
 
   #[test]
   fn pdf_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3975,7 +3932,7 @@ mod tests {
 
   #[test]
   fn markdown_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3995,7 +3952,7 @@ mod tests {
 
   #[test]
   fn image_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4016,7 +3973,7 @@ mod tests {
 
   #[test]
   fn iframe_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4041,7 +3998,7 @@ mod tests {
 
   #[test]
   fn unknown_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4061,7 +4018,7 @@ mod tests {
 
   #[test]
   fn video_preview() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4081,7 +4038,10 @@ mod tests {
 
   #[test]
   fn inscription_page_title() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4100,7 +4060,10 @@ mod tests {
 
   #[test]
   fn inscription_page_has_sat_when_sats_are_tracked() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4119,7 +4082,7 @@ mod tests {
 
   #[test]
   fn inscription_page_does_not_have_sat_when_sats_are_not_tracked() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4150,7 +4113,10 @@ mod tests {
 
   #[test]
   fn feed() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
     server.mine_blocks(1);
 
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4169,7 +4135,10 @@ mod tests {
 
   #[test]
   fn inscription_with_unknown_type_and_no_body_has_unknown_preview() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4195,7 +4164,10 @@ mod tests {
 
   #[test]
   fn inscription_with_known_type_and_no_body_has_unknown_preview() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4221,7 +4193,7 @@ mod tests {
 
   #[test]
   fn content_responses_have_cache_control_headers() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4242,7 +4214,7 @@ mod tests {
 
   #[test]
   fn error_content_responses_have_max_age_zero_cache_control_headers() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     let response =
       server.get("/content/6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0");
 
@@ -4255,16 +4227,19 @@ mod tests {
 
   #[test]
   fn inscriptions_page_with_no_prev_or_next() {
-    TestServer::new_with_regtest_with_index_sats().assert_response_regex(
-      "/inscriptions",
-      StatusCode::OK,
-      ".*prev\nnext.*",
-    );
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build()
+      .assert_response_regex("/inscriptions", StatusCode::OK, ".*prev\nnext.*");
   }
 
   #[test]
   fn inscriptions_page_with_no_next() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     for i in 0..101 {
       server.mine_blocks(1);
@@ -4285,7 +4260,10 @@ mod tests {
 
   #[test]
   fn inscriptions_page_with_no_prev() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     for i in 0..101 {
       server.mine_blocks(1);
@@ -4306,7 +4284,10 @@ mod tests {
 
   #[test]
   fn collections_page_prev_and_next() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     let mut parent_ids = Vec::new();
 
@@ -4429,7 +4410,7 @@ next
 
   #[test]
   fn inscription_links_to_parent() {
-    let server = TestServer::new_with_regtest_with_json_api();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4496,7 +4477,7 @@ next
 
   #[test]
   fn inscription_with_and_without_children_page() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4549,7 +4530,7 @@ next
 
   #[test]
   fn inscriptions_page_shows_max_four_children() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4651,7 +4632,7 @@ next
 
   #[test]
   fn inscription_number_endpoint() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -4703,7 +4684,7 @@ next
 
   #[test]
   fn charm_cursed() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(2);
 
@@ -4742,7 +4723,7 @@ next
 
   #[test]
   fn charm_vindicated() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(110);
 
@@ -4778,7 +4759,10 @@ next
 
   #[test]
   fn charm_coin() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     server.mine_blocks(2);
 
@@ -4811,7 +4795,10 @@ next
 
   #[test]
   fn charm_uncommon() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     server.mine_blocks(2);
 
@@ -4844,7 +4831,10 @@ next
 
   #[test]
   fn charm_nineball() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     server.mine_blocks(9);
 
@@ -4877,7 +4867,7 @@ next
 
   #[test]
   fn charm_reinscription() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
@@ -4920,7 +4910,7 @@ next
 
   #[test]
   fn charm_reinscription_in_same_tx_input() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
@@ -4998,7 +4988,7 @@ next
 
   #[test]
   fn charm_reinscription_in_same_tx_with_pointer() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(3);
 
@@ -5057,7 +5047,7 @@ next
 
   #[test]
   fn charm_unbound() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
@@ -5093,7 +5083,7 @@ next
 
   #[test]
   fn charm_lost() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
@@ -5153,7 +5143,10 @@ next
 
   #[test]
   fn sat_recursive_endpoints() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     assert_eq!(
       server.get_json::<api::SatInscriptions>("/r/sat/5000000000"),
@@ -5250,7 +5243,7 @@ next
 
   #[test]
   fn children_recursive_endpoint() {
-    let server = TestServer::new_with_regtest_with_json_api();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -5322,7 +5315,10 @@ next
 
   #[test]
   fn inscriptions_in_block_page() {
-    let server = TestServer::new_with_regtest_with_index_sats();
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
 
     for _ in 0..101 {
       server.mine_blocks(1);
@@ -5361,16 +5357,19 @@ next
 
   #[test]
   fn inscription_not_found() {
-    TestServer::new_with_regtest_with_json_api().assert_response(
-      "/inscription/0",
-      StatusCode::NOT_FOUND,
-      "inscription 0 not found",
-    );
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_response(
+        "/inscription/0",
+        StatusCode::NOT_FOUND,
+        "inscription 0 not found",
+      );
   }
 
   #[test]
   fn delegate() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
 
