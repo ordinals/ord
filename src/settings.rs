@@ -19,7 +19,7 @@ impl Settings {
       },
     };
 
-    let chain = Self::setting_typed(
+    let chain = Self::setting(
       options
         .signet
         .then_some(Chain::Signet)
