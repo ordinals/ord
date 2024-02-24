@@ -1736,6 +1736,114 @@ mod tests {
 
   const RUNE: u128 = 99246114928149462;
 
+  #[derive(Default)]
+  struct Builder {
+    config: Config,
+    bitcoin_rpc_server: Option<test_bitcoincore_rpc::Handle>,
+  }
+
+  impl Builder {
+    fn bitcoin_rpc_server(self, bitcoin_rpc_server: test_bitcoincore_rpc::Handle) -> Self {
+      Self {
+        bitcoin_rpc_server: Some(bitcoin_rpc_server),
+        ..self
+      }
+    }
+
+    fn config(self, config: Config) -> Self {
+      Self { config, ..self }
+    }
+
+    fn build(self) -> TestServer {
+      let bitcoin_rpc_server = self
+        .bitcoin_rpc_server
+        .unwrap_or_else(|| test_bitcoincore_rpc::builder().build());
+
+      let tempdir = TempDir::new().unwrap();
+
+      let cookiefile = tempdir.path().join("cookie");
+
+      fs::write(&cookiefile, "username:password").unwrap();
+
+      let port = TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
+
+      let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
+
+      let mut arguments: Vec<String> = vec![
+        "ord".into(),
+        "--rpc-url".into(),
+        bitcoin_rpc_server.url(),
+        "--cookie-file".into(),
+        cookiefile.to_str().unwrap().into(),
+        "--data-dir".into(),
+        tempdir.path().to_str().unwrap().into(),
+      ];
+
+      arguments.extend(vec!["--chain".into(), bitcoin_rpc_server.network()]);
+
+      arguments.extend(vec![
+        "server".into(),
+        "--http-port".into(),
+        port.to_string(),
+        "--address".into(),
+        "127.0.0.1".into(),
+      ]);
+
+      let (options, server) = match Arguments::try_parse_from(arguments) {
+        Ok(arguments) => match arguments.subcommand {
+          Subcommand::Server(server) => (arguments.options, server),
+          subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+        },
+        Err(err) => panic!("error parsing arguments: {err}"),
+      };
+
+      let settings = Settings::new(options, Default::default(), self.config).unwrap();
+
+      let index = Arc::new(Index::open(&settings).unwrap());
+      let ord_server_handle = Handle::new();
+
+      {
+        let index = index.clone();
+        let ord_server_handle = ord_server_handle.clone();
+        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+      }
+
+      while index.statistic(crate::index::Statistic::Commits) == 0 {
+        thread::sleep(Duration::from_millis(50));
+      }
+
+      let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+      for i in 0.. {
+        match client.get(format!("http://127.0.0.1:{port}/status")).send() {
+          Ok(_) => break,
+          Err(err) => {
+            if i == 400 {
+              panic!("ord server failed to start: {err}");
+            }
+          }
+        }
+
+        thread::sleep(Duration::from_millis(50));
+      }
+
+      TestServer {
+        bitcoin_rpc_server,
+        index,
+        ord_server_handle,
+        tempdir,
+        url,
+      }
+    }
+  }
+
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
     index: Arc<Index>,
@@ -1746,6 +1854,10 @@ mod tests {
   }
 
   impl TestServer {
+    fn builder() -> Builder {
+      Default::default()
+    }
+
     fn new() -> Self {
       Self::new_with_args(&[], &[])
     }
@@ -1817,7 +1929,7 @@ mod tests {
 
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
-      let (settings, server) = parse_server_args(&format!(
+      let (options, server) = parse_server_options(&format!(
         "ord --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
@@ -1826,6 +1938,8 @@ mod tests {
         port,
         server_args.join(" "),
       ));
+
+      let settings = Settings::new(options, Default::default(), Default::default()).unwrap();
 
       let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
@@ -1964,6 +2078,16 @@ mod tests {
   impl Drop for TestServer {
     fn drop(&mut self) {
       self.ord_server_handle.shutdown();
+    }
+  }
+
+  fn parse_server_options(args: &str) -> (Options, Server) {
+    match Arguments::try_parse_from(args.split_whitespace()) {
+      Ok(arguments) => match arguments.subcommand {
+        Subcommand::Server(server) => (arguments.options, server),
+        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+      },
+      Err(err) => panic!("error parsing arguments: {err}"),
     }
   }
 
@@ -5374,6 +5498,40 @@ next
     assert!(
       Arguments::try_parse_from(["ord", "--username", "foo", "--password", "bar", "server"])
         .is_ok()
+    );
+  }
+
+  #[test]
+  fn inscriptions_can_be_hidden_with_config() {
+    let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+      .network(Chain::Regtest.network())
+      .build();
+
+    bitcoin_rpc_server.mine_blocks(1);
+
+    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    bitcoin_rpc_server.mine_blocks(1);
+
+    let inscription = InscriptionId { txid, index: 0 };
+
+    let server = TestServer::builder()
+      .bitcoin_rpc_server(bitcoin_rpc_server)
+      .config(Config {
+        hidden: Some(vec![inscription].into_iter().collect()),
+        ..Default::default()
+      })
+      .build();
+
+    server.assert_response_regex(format!("/inscription/{inscription}"), StatusCode::OK, ".*");
+
+    server.assert_response_regex(
+      format!("/content/{inscription}"),
+      StatusCode::OK,
+      PreviewUnknownHtml.to_string(),
     );
   }
 }

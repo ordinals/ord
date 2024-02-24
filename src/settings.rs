@@ -1,8 +1,5 @@
 use {super::*, bitcoincore_rpc::Auth};
 
-// todo:
-// - inscriptions can be hidden with config
-
 #[derive(Default, Debug, Clone, Serialize)]
 pub struct Settings {
   #[serde(serialize_with = "serialize_auth")]
@@ -68,8 +65,6 @@ impl Settings {
       Some("BITCOIN_RPC_PASS"),
       config.bitcoin_rpc_pass.as_deref(),
     )?;
-
-    dbg!(&rpc_user, &rpc_pass);
 
     let auth = match (rpc_user, rpc_pass) {
       (Some(rpc_user), Some(rpc_pass)) => Some(Auth::UserPass(rpc_user, rpc_pass)),
