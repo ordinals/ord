@@ -167,7 +167,7 @@ impl CommandBuilder {
     command
   }
 
-  // #[track_caller]
+  #[track_caller]
   fn run(self) -> (TempDir, String) {
     let mut command = self.command();
     let child = command.spawn().unwrap();
