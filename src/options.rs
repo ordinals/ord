@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoincore_rpc::Auth};
 
 #[derive(Clone, Default, Debug, Parser)]
 #[command(group(
@@ -441,19 +441,6 @@ mod tests {
   }
 
   #[test]
-  fn default_config_is_returned_if_config_option_is_not_passed() {
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "index", "update"])
-        .unwrap()
-        .options
-        .settings()
-        .unwrap()
-        .config,
-      Default::default()
-    );
-  }
-
-  #[test]
   fn uses_wallet_rpc() {
     let (options, _) = parse_wallet_args("ord wallet --name foo balance");
 
@@ -479,11 +466,8 @@ mod tests {
         .options
         .settings()
         .unwrap()
-        .config,
-      Config {
-        hidden: iter::once(id).collect(),
-        ..Default::default()
-      }
+        .hidden,
+      iter::once(id).collect(),
     );
   }
 
@@ -503,12 +487,9 @@ mod tests {
         .options
         .settings()
         .unwrap()
-        .config,
-      Config {
-        bitcoin_rpc_user: Some("foo".into()),
-        bitcoin_rpc_pass: Some("bar".into()),
-        ..Default::default()
-      }
+        .auth()
+        .unwrap(),
+      Auth::UserPass("foo".into(), "bar".into()),
     );
   }
 
@@ -538,11 +519,8 @@ mod tests {
       .options
       .settings()
       .unwrap()
-      .config,
-      Config {
-        hidden: iter::once(id).collect(),
-        ..Default::default()
-      }
+      .hidden,
+      iter::once(id).collect(),
     );
   }
 

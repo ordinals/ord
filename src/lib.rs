@@ -72,7 +72,6 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -103,6 +102,7 @@ macro_rules! tprintln {
   };
 }
 
+pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;

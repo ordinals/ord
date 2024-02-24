@@ -11,7 +11,7 @@ use {
   },
   super::*,
   crate::{
-    subcommand::{find::FindRangeOutput, server::InscriptionQuery},
+    subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
   bitcoin::block::Header,
@@ -1679,17 +1679,17 @@ impl Index {
   }
 
   pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, InscriptionQuery::Number(inscription_number)).unwrap();
+    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
   }
 
   pub(crate) fn inscription_info(
     index: &Index,
-    query: InscriptionQuery,
+    query: query::Inscription,
   ) -> Result<Option<InscriptionInfo>> {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      InscriptionQuery::Id(id) => {
+      query::Inscription::Id(id) => {
         let inscription_id_to_sequence_number =
           rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
 
@@ -1701,7 +1701,7 @@ impl Index {
 
         sequence_number
       }
-      InscriptionQuery::Number(inscription_number) => {
+      query::Inscription::Number(inscription_number) => {
         let inscription_number_to_sequence_number =
           rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
 

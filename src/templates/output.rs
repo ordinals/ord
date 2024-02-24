@@ -11,47 +11,6 @@ pub(crate) struct OutputHtml {
   pub(crate) spent: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct OutputJson {
-  pub address: Option<String>,
-  pub indexed: bool,
-  pub inscriptions: Vec<InscriptionId>,
-  pub runes: Vec<(SpacedRune, Pile)>,
-  pub sat_ranges: Option<Vec<(u64, u64)>>,
-  pub script_pubkey: String,
-  pub spent: bool,
-  pub transaction: String,
-  pub value: u64,
-}
-
-impl OutputJson {
-  pub fn new(
-    chain: Chain,
-    inscriptions: Vec<InscriptionId>,
-    outpoint: OutPoint,
-    output: TxOut,
-    indexed: bool,
-    runes: Vec<(SpacedRune, Pile)>,
-    sat_ranges: Option<Vec<(u64, u64)>>,
-    spent: bool,
-  ) -> Self {
-    Self {
-      address: chain
-        .address_from_script(&output.script_pubkey)
-        .ok()
-        .map(|address| address.to_string()),
-      indexed,
-      inscriptions,
-      runes,
-      sat_ranges,
-      script_pubkey: output.script_pubkey.to_asm_string(),
-      spent,
-      transaction: outpoint.txid.to_string(),
-      value: output.value,
-    }
-  }
-}
-
 impl PageContent for OutputHtml {
   fn title(&self) -> String {
     format!("Output {}", self.outpoint)

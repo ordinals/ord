@@ -2,8 +2,9 @@ use {super::*, bitcoincore_rpc::Auth};
 
 #[derive(Default, Debug, Clone)]
 pub struct Settings {
+  pub(crate) auth: Option<Auth>,
   pub(crate) chain: Chain,
-  pub(crate) config: Config,
+  pub(crate) hidden: HashSet<InscriptionId>,
   pub(crate) options: Options,
 }
 
@@ -19,7 +20,30 @@ impl Settings {
       },
     };
 
+    let mut env: BTreeMap<String, String> = BTreeMap::new();
+
+    for (var, value) in env::vars_os() {
+      let Some(var) = var.to_str() else {
+        continue;
+      };
+
+      let Some(key) = var.strip_prefix("ORD_") else {
+        continue;
+      };
+
+      env.insert(
+        key.into(),
+        value.into_string().map_err(|value| {
+          anyhow!(
+            "environment variable `{var}` not valid unicode: {}",
+            value.to_string_lossy()
+          )
+        })?,
+      );
+    }
+
     let chain = Self::setting(
+      &env,
       options
         .signet
         .then_some(Chain::Signet)
@@ -31,31 +55,40 @@ impl Settings {
       Chain::Mainnet,
     )?;
 
+    let rpc_user = Self::setting_opt(
+      &env,
+      options.bitcoin_rpc_user.as_deref(),
+      Some("BITCOIN_RPC_USER"),
+      config.bitcoin_rpc_user.as_deref(),
+    )?;
+
+    let rpc_pass = Self::setting_opt(
+      &Default::default(),
+      options.bitcoin_rpc_pass.as_deref(),
+      Some("BITCOIN_RPC_PASS"),
+      config.bitcoin_rpc_pass.as_deref(),
+    )?;
+
+    let auth = match (rpc_user, rpc_pass) {
+      (Some(rpc_user), Some(rpc_pass)) => Some(Auth::UserPass(rpc_user, rpc_pass)),
+      (None, Some(_rpc_pass)) => bail!("no bitcoind rpc user specified"),
+      (Some(_rpc_user), None) => bail!("no bitcoind rpc password specified"),
+      _ => None,
+    };
+
     Ok(Self {
-      config,
-      options,
+      auth,
       chain,
+      hidden: config.hidden,
+      options,
     })
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
-    let rpc_user = Self::setting_opt(
-      self.options.bitcoin_rpc_user.as_deref(),
-      Some("BITCOIN_RPC_USER"),
-      self.config.bitcoin_rpc_user.as_deref(),
-    )?;
-
-    let rpc_pass = Self::setting_opt(
-      self.options.bitcoin_rpc_pass.as_deref(),
-      Some("BITCOIN_RPC_PASS"),
-      self.config.bitcoin_rpc_pass.as_deref(),
-    )?;
-
-    match (rpc_user, rpc_pass) {
-      (Some(rpc_user), Some(rpc_pass)) => Ok(Auth::UserPass(rpc_user, rpc_pass)),
-      (None, Some(_rpc_pass)) => Err(anyhow!("no bitcoind rpc user specified")),
-      (Some(_rpc_user), None) => Err(anyhow!("no bitcoind rpc password specified")),
-      _ => Ok(Auth::CookieFile(self.cookie_file()?)),
+    if let Some(auth) = &self.auth {
+      Ok(auth.clone())
+    } else {
+      Ok(Auth::CookieFile(self.cookie_file()?))
     }
   }
 
@@ -178,6 +211,10 @@ impl Settings {
     self.options.index_runes && self.chain() != Chain::Mainnet
   }
 
+  pub(crate) fn is_hidden(&self, inscription_id: InscriptionId) -> bool {
+    self.hidden.contains(&inscription_id)
+  }
+
   pub(crate) fn rpc_url(&self, wallet_name: Option<String>) -> String {
     let base_url = self
       .options
@@ -192,6 +229,7 @@ impl Settings {
   }
 
   fn setting<T: FromStr<Err = Error>>(
+    env: &BTreeMap<String, String>,
     arg_value: Option<T>,
     env_key: Option<&str>,
     config_value: Option<T>,
@@ -202,15 +240,10 @@ impl Settings {
     }
 
     if let Some(env_key) = env_key {
-      let key = format!("ORD_{env_key}");
-      match env::var(key) {
-        Ok(env_value) => {
-          return env_value
-            .parse()
-            .with_context(|| anyhow!("failed to parse {env_key}"))
-        }
-        Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
-        Err(env::VarError::NotPresent) => {}
+      if let Some(env_value) = env.get(env_key) {
+        return env_value
+          .parse()
+          .with_context(|| anyhow!("failed to parse {env_key}"));
       }
     }
 
@@ -222,6 +255,7 @@ impl Settings {
   }
 
   fn setting_opt(
+    env: &BTreeMap<String, String>,
     arg_value: Option<&str>,
     env_key: Option<&str>,
     config_value: Option<&str>,
@@ -231,10 +265,8 @@ impl Settings {
     }
 
     if let Some(env_key) = env_key {
-      match env::var(format!("ORD_{env_key}")) {
-        Ok(env_value) => return Ok(Some(env_value)),
-        Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
-        Err(env::VarError::NotPresent) => {}
+      if let Some(env_value) = env.get(env_key) {
+        return Ok(Some(env_value.into()));
       }
     }
 
@@ -257,47 +289,41 @@ mod tests {
 
   #[test]
   fn auth_missing_rpc_pass_is_an_error() {
-    let settings = Settings {
-      options: Options {
+    assert_eq!(
+      Settings::new(Options {
         bitcoin_rpc_user: Some("foo".into()),
         ..Default::default()
-      },
-      ..Default::default()
-    };
-
-    assert_eq!(
-      settings.auth().unwrap_err().to_string(),
+      },)
+      .unwrap_err()
+      .to_string(),
       "no bitcoind rpc password specified"
     );
   }
 
   #[test]
   fn auth_missing_rpc_user_is_an_error() {
-    let settings = Settings {
-      options: Options {
-        bitcoin_rpc_pass: Some("bar".into()),
-        ..Default::default()
-      },
-      ..Default::default()
-    };
     assert_eq!(
-      settings.auth().unwrap_err().to_string(),
+      Settings::new(Options {
+        bitcoin_rpc_pass: Some("foo".into()),
+        ..Default::default()
+      },)
+      .unwrap_err()
+      .to_string(),
       "no bitcoind rpc user specified"
     );
   }
 
   #[test]
   fn auth_with_user_and_pass() {
-    let settings = Settings {
-      options: Options {
+    assert_eq!(
+      Settings::new(Options {
         bitcoin_rpc_user: Some("foo".into()),
         bitcoin_rpc_pass: Some("bar".into()),
         ..Default::default()
-      },
-      ..Default::default()
-    };
-    assert_eq!(
-      settings.auth().unwrap(),
+      })
+      .unwrap()
+      .auth()
+      .unwrap(),
       Auth::UserPass("foo".into(), "bar".into())
     );
   }
@@ -357,26 +383,69 @@ mod tests {
 
   #[test]
   fn setting() {
-    assert_eq!(Settings::setting(None, None, None, None).unwrap(), None);
-
     assert_eq!(
-      Settings::setting(None, None, None, Some("foo")).unwrap(),
-      Some("foo".into())
+      Settings::setting(&Default::default(), None, None, None, Chain::Mainnet).unwrap(),
+      Chain::Mainnet,
     );
 
     assert_eq!(
-      Settings::setting(None, None, Some("bar"), Some("foo")).unwrap(),
-      Some("bar".into())
+      Settings::setting(
+        &Default::default(),
+        None,
+        None,
+        Some(Chain::Testnet),
+        Chain::Mainnet
+      )
+      .unwrap(),
+      Chain::Testnet,
     );
 
     assert_eq!(
-      Settings::setting(Some("qux"), None, Some("bar"), Some("foo")).unwrap(),
-      Some("qux".into())
+      Settings::setting(
+        &vec![("CHAIN".to_string(), "signet".to_string())]
+          .into_iter()
+          .collect(),
+        None,
+        Some("CHAIN"),
+        Some(Chain::Testnet),
+        Chain::Mainnet
+      )
+      .unwrap(),
+      Chain::Signet,
     );
 
     assert_eq!(
-      Settings::setting(Some("qux"), None, None, Some("foo")).unwrap(),
-      Some("qux".into()),
+      Settings::setting(
+        &vec![("CHAIN".to_string(), "signet".to_string())]
+          .into_iter()
+          .collect(),
+        Some(Chain::Regtest),
+        Some("CHAIN"),
+        Some(Chain::Testnet),
+        Chain::Mainnet
+      )
+      .unwrap(),
+      Chain::Regtest,
+    );
+  }
+
+  #[test]
+  fn setting_opt() {
+    // todo: test env var override
+
+    assert_eq!(
+      Settings::setting_opt(&Default::default(), None, None, None).unwrap(),
+      None
+    );
+
+    assert_eq!(
+      Settings::setting_opt(&Default::default(), None, None, Some("foo")).unwrap(),
+      Some("foo".into()),
+    );
+
+    assert_eq!(
+      Settings::setting_opt(&Default::default(), Some("bar"), None, Some("foo")).unwrap(),
+      Some("bar".into()),
     );
   }
 }
