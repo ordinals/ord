@@ -1,7 +1,5 @@
 use super::*;
 
-pub type StatusJson = StatusHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StatusHtml {
   pub blessed_inscriptions: u64,
