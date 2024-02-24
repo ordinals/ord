@@ -339,7 +339,7 @@ impl<'index> Updater<'_> {
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     let index_inscriptions = self.height >= self.index.first_inscription_height
-      && !self.index.settings.options.no_index_inscriptions;
+      && !self.index.settings.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away

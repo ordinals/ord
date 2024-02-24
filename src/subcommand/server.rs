@@ -1755,7 +1755,7 @@ mod tests {
     }
 
     fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
-      Self::new_server(test_bitcoincore_rpc::spawn(), None, ord_args, server_args)
+      Self::new_server(test_bitcoincore_rpc::spawn(), ord_args, server_args)
     }
 
     fn new_with_regtest() -> Self {
@@ -1763,7 +1763,6 @@ mod tests {
         test_bitcoincore_rpc::builder()
           .network(bitcoin::network::constants::Network::Regtest)
           .build(),
-        None,
         &["--chain", "regtest"],
         &[],
       )
@@ -1774,7 +1773,6 @@ mod tests {
         test_bitcoincore_rpc::builder()
           .network(bitcoin::network::constants::Network::Regtest)
           .build(),
-        None,
         &["--chain", "regtest"],
         &[],
       )
@@ -1785,7 +1783,6 @@ mod tests {
         test_bitcoincore_rpc::builder()
           .network(bitcoin::Network::Regtest)
           .build(),
-        None,
         &["--chain", "regtest", "--index-sats"],
         &[],
       )
@@ -1796,22 +1793,13 @@ mod tests {
         test_bitcoincore_rpc::builder()
           .network(bitcoin::Network::Regtest)
           .build(),
-        None,
         &["--chain", "regtest", "--index-runes"],
         &[],
       )
     }
 
-    fn new_with_bitcoin_rpc_server_and_config(
-      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
-      config: String,
-    ) -> Self {
-      Self::new_server(bitcoin_rpc_server, Some(config), &[], &[])
-    }
-
     fn new_server(
       bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
-      config: Option<String>,
       ord_args: &[&str],
       server_args: &[&str],
     ) -> Self {
@@ -1829,17 +1817,8 @@ mod tests {
 
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
-      let config_args = match config {
-        Some(config) => {
-          let config_path = tempdir.path().join("ord.yaml");
-          fs::write(&config_path, config).unwrap();
-          format!("--config {}", config_path.display())
-        }
-        None => "".to_string(),
-      };
-
       let (settings, server) = parse_server_args(&format!(
-        "ord --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
+        "ord --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
@@ -2121,10 +2100,7 @@ mod tests {
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
 
-    let settings = Settings {
-      options: arguments.options,
-      ..Default::default()
-    };
+    let settings = arguments.options.settings().unwrap();
 
     let acme_cache = Server::acme_cache(None, &settings).display().to_string();
     assert!(
@@ -2142,10 +2118,9 @@ mod tests {
     let arguments =
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
-    let settings = Settings {
-      options: arguments.options,
-      ..Default::default()
-    };
+
+    let settings = arguments.options.settings().unwrap();
+
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &settings)
       .display()
       .to_string();
@@ -4325,40 +4300,6 @@ next
     assert_eq!(
       response.headers().get(header::CONTENT_ENCODING).unwrap(),
       "br"
-    );
-  }
-
-  #[test]
-  fn inscriptions_can_be_hidden_with_config() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-    bitcoin_rpc_server.mine_blocks(1);
-    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(
-        1,
-        0,
-        0,
-        inscription("text/plain;charset=utf-8", "hello").to_witness(),
-      )],
-      ..Default::default()
-    });
-    let inscription = InscriptionId { txid, index: 0 };
-    bitcoin_rpc_server.mine_blocks(1);
-
-    let server = TestServer::new_with_bitcoin_rpc_server_and_config(
-      bitcoin_rpc_server,
-      format!("\"hidden\":\n - {inscription}"),
-    );
-
-    server.assert_response(
-      format!("/preview/{inscription}"),
-      StatusCode::OK,
-      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
-    );
-
-    server.assert_response(
-      format!("/content/{inscription}"),
-      StatusCode::OK,
-      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
 

@@ -30,12 +30,13 @@ impl ToArgs for Vec<String> {
 
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
+  bitcoin_rpc_server_cookie_file: Option<PathBuf>,
+  bitcoin_rpc_server_url: Option<String>,
+  env: BTreeMap<String, String>,
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
   ord_rpc_server_url: Option<Url>,
-  bitcoin_rpc_server_cookie_file: Option<PathBuf>,
-  bitcoin_rpc_server_url: Option<String>,
   stdin: Vec<u8>,
   tempdir: Arc<TempDir>,
 }
@@ -44,6 +45,7 @@ impl CommandBuilder {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
+      env: BTreeMap::new(),
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
@@ -53,6 +55,11 @@ impl CommandBuilder {
       stdin: Vec::new(),
       tempdir: Arc::new(TempDir::new().unwrap()),
     }
+  }
+
+  pub(crate) fn env(mut self, key: &str, value: &str) -> Self {
+    self.env.insert(key.into(), value.into());
+    self
   }
 
   pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {
@@ -143,6 +150,10 @@ impl CommandBuilder {
       }
     }
 
+    for (key, value) in &self.env {
+      command.env(key, value);
+    }
+
     command
       .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::piped())
@@ -156,7 +167,7 @@ impl CommandBuilder {
     command
   }
 
-  #[track_caller]
+  // #[track_caller]
   fn run(self) -> (TempDir, String) {
     let mut command = self.command();
     let child = command.spawn().unwrap();

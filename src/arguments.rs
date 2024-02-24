@@ -21,6 +21,40 @@ pub(crate) struct Arguments {
 
 impl Arguments {
   pub(crate) fn run(self) -> SubcommandResult {
-    self.subcommand.run(Settings::new(self.options)?)
+    let mut env: BTreeMap<String, String> = BTreeMap::new();
+
+    for (var, value) in env::vars_os() {
+      let Some(var) = var.to_str() else {
+        continue;
+      };
+
+      let Some(key) = var.strip_prefix("ORD_") else {
+        continue;
+      };
+
+      env.insert(
+        key.into(),
+        value.into_string().map_err(|value| {
+          anyhow!(
+            "environment variable `{var}` not valid unicode: {}",
+            value.to_string_lossy()
+          )
+        })?,
+      );
+    }
+
+    let config: Config = match &self.options.config {
+      Some(path) => serde_yaml::from_reader(File::open(path)?)?,
+      None => match &self.options.config_dir {
+        Some(dir) if dir.join("ord.yaml").exists() => {
+          serde_yaml::from_reader(File::open(dir.join("ord.yaml"))?)?
+        }
+        Some(_) | None => Default::default(),
+      },
+    };
+
+    self
+      .subcommand
+      .run(Settings::new(self.options, env, config)?)
   }
 }

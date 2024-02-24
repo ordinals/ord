@@ -47,6 +47,29 @@ macro_rules! assert_regex_match {
   };
 }
 
+mod command_builder;
+mod expected;
+mod test_server;
+
+mod balances;
+mod decode;
+mod epochs;
+mod etch;
+mod find;
+mod index;
+mod info;
+mod json_api;
+mod list;
+mod parse;
+mod runes;
+mod server;
+mod settings;
+mod subsidy;
+mod supply;
+mod traits;
+mod version;
+mod wallet;
+
 const RUNE: u128 = 99246114928149462;
 
 type Inscribe = ord::wallet::inscribe::Output;
@@ -131,25 +154,3 @@ fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> 
     .run_and_deserialize_output::<ord::subcommand::runes::Output>()
     .runes
 }
-
-mod command_builder;
-mod expected;
-mod test_server;
-
-mod balances;
-mod decode;
-mod epochs;
-mod etch;
-mod find;
-mod index;
-mod info;
-mod json_api;
-mod list;
-mod parse;
-mod runes;
-mod server;
-mod subsidy;
-mod supply;
-mod traits;
-mod version;
-mod wallet;

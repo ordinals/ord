@@ -1,4 +1,4 @@
-use {super::*, bitcoincore_rpc::Auth};
+use super::*;
 
 #[derive(Clone, Default, Debug, Parser)]
 #[command(group(
@@ -88,13 +88,13 @@ impl Options {
 
   #[cfg(test)]
   pub(crate) fn settings(self) -> Result<Settings> {
-    Settings::new(self)
+    Settings::new(self, Default::default(), Default::default())
   }
 }
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::path::Path, tempfile::TempDir};
+  use {super::*, std::path::Path};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -447,80 +447,6 @@ mod tests {
     assert_eq!(
       options.settings().unwrap().rpc_url(Some("foo".into())),
       "127.0.0.1:8332/wallet/foo"
-    );
-  }
-
-  #[test]
-  fn config_is_loaded_from_config_option_path() {
-    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
-      .parse::<InscriptionId>()
-      .unwrap();
-
-    let tempdir = TempDir::new().unwrap();
-    let path = tempdir.path().join("ord.yaml");
-    fs::write(&path, format!("hidden:\n- \"{id}\"")).unwrap();
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
-        .unwrap()
-        .options
-        .settings()
-        .unwrap()
-        .hidden,
-      iter::once(id).collect(),
-    );
-  }
-
-  #[test]
-  fn config_with_rpc_user_pass() {
-    let tempdir = TempDir::new().unwrap();
-    let path = tempdir.path().join("ord.yaml");
-    fs::write(
-      &path,
-      "hidden:\nbitcoin_rpc_user: foo\nbitcoin_rpc_pass: bar",
-    )
-    .unwrap();
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
-        .unwrap()
-        .options
-        .settings()
-        .unwrap()
-        .auth()
-        .unwrap(),
-      Auth::UserPass("foo".into(), "bar".into()),
-    );
-  }
-
-  #[test]
-  fn config_is_loaded_from_config_dir_option_path() {
-    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
-      .parse::<InscriptionId>()
-      .unwrap();
-
-    let tempdir = TempDir::new().unwrap();
-
-    fs::write(
-      tempdir.path().join("ord.yaml"),
-      format!("hidden:\n- \"{id}\""),
-    )
-    .unwrap();
-
-    assert_eq!(
-      Arguments::try_parse_from([
-        "ord",
-        "--config-dir",
-        tempdir.path().to_str().unwrap(),
-        "index",
-        "update"
-      ])
-      .unwrap()
-      .options
-      .settings()
-      .unwrap()
-      .hidden,
-      iter::once(id).collect(),
     );
   }
 

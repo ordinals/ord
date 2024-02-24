@@ -231,7 +231,6 @@ impl Index {
     let client = settings.bitcoin_rpc_client(None)?;
 
     let path = settings
-      .options
       .index
       .clone()
       .unwrap_or_else(|| settings.data_dir().clone().join("index.redb"));
@@ -243,7 +242,7 @@ impl Index {
       );
     }
 
-    let db_cache_size = match settings.options.db_cache_size {
+    let db_cache_size = match settings.db_cache_size {
       Some(db_cache_size) => db_cache_size,
       None => {
         let mut sys = System::new();
@@ -350,7 +349,7 @@ impl Index {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if settings.options.index_sats {
+          if settings.index_sats {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
@@ -363,19 +362,19 @@ impl Index {
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(settings.options.index_sats || settings.options.index_spent_sats),
+            u64::from(settings.index_sats || settings.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSpentSats,
-            u64::from(settings.options.index_spent_sats),
+            u64::from(settings.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexTransactions,
-            u64::from(settings.options.index_transactions),
+            u64::from(settings.index_transactions),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
@@ -413,7 +412,7 @@ impl Index {
       event_sender,
       first_inscription_height: settings.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: settings.options.height_limit,
+      height_limit: settings.height_limit,
       index_runes,
       index_sats,
       index_spent_sats,

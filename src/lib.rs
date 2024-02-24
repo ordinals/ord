@@ -190,7 +190,10 @@ fn unbound_outpoint() -> OutPoint {
 pub fn parse_ord_server_args(args: &str) -> (Settings, crate::subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
-      Subcommand::Server(server) => (Settings::new(arguments.options).unwrap(), server),
+      Subcommand::Server(server) => (
+        Settings::new(arguments.options, Default::default(), Default::default()).unwrap(),
+        server,
+      ),
       subcommand => panic!("unexpected subcommand: {subcommand:?}"),
     },
     Err(err) => panic!("error parsing arguments: {err}"),

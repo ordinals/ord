@@ -1,47 +1,44 @@
 use {super::*, bitcoincore_rpc::Auth};
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize)]
 pub struct Settings {
+  #[serde(serialize_with = "serialize_auth")]
   pub(crate) auth: Option<Auth>,
+  pub(crate) bitcoin_data_dir: Option<PathBuf>,
   pub(crate) chain: Chain,
+  pub(crate) cookie_file: Option<PathBuf>,
+  pub(crate) credentials: Option<(String, String)>,
+  pub(crate) data_dir: PathBuf,
+  pub(crate) db_cache_size: Option<usize>,
+  pub(crate) first_inscription_height: Option<u32>,
+  pub(crate) height_limit: Option<u32>,
   pub(crate) hidden: HashSet<InscriptionId>,
-  pub(crate) options: Options,
+  pub(crate) index: Option<PathBuf>,
+  pub(crate) index_runes: bool,
+  pub(crate) index_sats: bool,
+  pub(crate) index_spent_sats: bool,
+  pub(crate) index_transactions: bool,
+  pub(crate) no_index_inscriptions: bool,
+  pub(crate) rpc_url: Option<String>,
+}
+
+fn serialize_auth<S>(auth: &Option<Auth>, serializer: S) -> Result<S::Ok, S::Error>
+where
+  S: Serializer,
+{
+  match auth {
+    Some(Auth::UserPass(user, pass)) => serializer.serialize_str(&format!("{user}:{pass}")),
+    None => serializer.serialize_none(),
+    _ => unreachable!(),
+  }
 }
 
 impl Settings {
-  pub(crate) fn new(options: Options) -> Result<Self> {
-    let config: Config = match &options.config {
-      Some(path) => serde_yaml::from_reader(File::open(path)?)?,
-      None => match &options.config_dir {
-        Some(dir) if dir.join("ord.yaml").exists() => {
-          serde_yaml::from_reader(File::open(dir.join("ord.yaml"))?)?
-        }
-        Some(_) | None => Default::default(),
-      },
-    };
-
-    let mut env: BTreeMap<String, String> = BTreeMap::new();
-
-    for (var, value) in env::vars_os() {
-      let Some(var) = var.to_str() else {
-        continue;
-      };
-
-      let Some(key) = var.strip_prefix("ORD_") else {
-        continue;
-      };
-
-      env.insert(
-        key.into(),
-        value.into_string().map_err(|value| {
-          anyhow!(
-            "environment variable `{var}` not valid unicode: {}",
-            value.to_string_lossy()
-          )
-        })?,
-      );
-    }
-
+  pub(crate) fn new(
+    options: Options,
+    env: BTreeMap<String, String>,
+    config: Config,
+  ) -> Result<Self> {
     let chain = Self::setting(
       &env,
       options
@@ -78,9 +75,22 @@ impl Settings {
 
     Ok(Self {
       auth,
+      bitcoin_data_dir: options.bitcoin_data_dir,
       chain,
-      hidden: config.hidden,
-      options,
+      cookie_file: options.cookie_file,
+      credentials: options.username.zip(options.password),
+      data_dir: options.data_dir,
+      db_cache_size: options.db_cache_size,
+      first_inscription_height: options.first_inscription_height,
+      height_limit: options.height_limit,
+      hidden: config.hidden.unwrap_or_default(),
+      index: options.index,
+      index_runes: options.index_runes,
+      index_sats: options.index_sats,
+      index_spent_sats: options.index_spent_sats,
+      index_transactions: options.index_transactions,
+      no_index_inscriptions: options.no_index_inscriptions,
+      rpc_url: options.rpc_url,
     })
   }
 
@@ -155,11 +165,11 @@ impl Settings {
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
-    if let Some(cookie_file) = &self.options.cookie_file {
+    if let Some(cookie_file) = &self.cookie_file {
       return Ok(cookie_file.clone());
     }
 
-    let path = if let Some(bitcoin_data_dir) = &self.options.bitcoin_data_dir {
+    let path = if let Some(bitcoin_data_dir) = &self.bitcoin_data_dir {
       bitcoin_data_dir.clone()
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
@@ -178,14 +188,13 @@ impl Settings {
 
   pub(crate) fn credentials(&self) -> Option<(&str, &str)> {
     self
-      .options
-      .username
-      .as_deref()
-      .zip(self.options.password.as_deref())
+      .credentials
+      .as_ref()
+      .map(|(username, password)| (username.as_ref(), password.as_ref()))
   }
 
   pub(crate) fn data_dir(&self) -> PathBuf {
-    self.chain().join_with_data_dir(&self.options.data_dir)
+    self.chain().join_with_data_dir(&self.data_dir)
   }
 
   pub(crate) fn first_inscription_height(&self) -> u32 {
@@ -193,7 +202,6 @@ impl Settings {
       0
     } else {
       self
-        .options
         .first_inscription_height
         .unwrap_or_else(|| self.chain().first_inscription_height())
     }
@@ -208,7 +216,7 @@ impl Settings {
   }
 
   pub(crate) fn index_runes(&self) -> bool {
-    self.options.index_runes && self.chain() != Chain::Mainnet
+    self.index_runes && self.chain() != Chain::Mainnet
   }
 
   pub(crate) fn is_hidden(&self, inscription_id: InscriptionId) -> bool {
@@ -217,7 +225,6 @@ impl Settings {
 
   pub(crate) fn rpc_url(&self, wallet_name: Option<String>) -> String {
     let base_url = self
-      .options
       .rpc_url
       .clone()
       .unwrap_or(format!("127.0.0.1:{}", self.chain().default_rpc_port()));
@@ -279,21 +286,25 @@ mod tests {
   use super::*;
 
   fn settings(args: &[&str]) -> Settings {
-    let options = Options::try_parse_from(args).unwrap();
-
-    Settings {
-      options,
-      ..Default::default()
-    }
+    Settings::new(
+      Options::try_parse_from(args).unwrap(),
+      Default::default(),
+      Default::default(),
+    )
+    .unwrap()
   }
 
   #[test]
   fn auth_missing_rpc_pass_is_an_error() {
     assert_eq!(
-      Settings::new(Options {
-        bitcoin_rpc_user: Some("foo".into()),
-        ..Default::default()
-      },)
+      Settings::new(
+        Options {
+          bitcoin_rpc_user: Some("foo".into()),
+          ..Default::default()
+        },
+        Default::default(),
+        Default::default(),
+      )
       .unwrap_err()
       .to_string(),
       "no bitcoind rpc password specified"
@@ -303,10 +314,14 @@ mod tests {
   #[test]
   fn auth_missing_rpc_user_is_an_error() {
     assert_eq!(
-      Settings::new(Options {
-        bitcoin_rpc_pass: Some("foo".into()),
-        ..Default::default()
-      },)
+      Settings::new(
+        Options {
+          bitcoin_rpc_pass: Some("foo".into()),
+          ..Default::default()
+        },
+        Default::default(),
+        Default::default(),
+      )
       .unwrap_err()
       .to_string(),
       "no bitcoind rpc user specified"
@@ -316,11 +331,15 @@ mod tests {
   #[test]
   fn auth_with_user_and_pass() {
     assert_eq!(
-      Settings::new(Options {
-        bitcoin_rpc_user: Some("foo".into()),
-        bitcoin_rpc_pass: Some("bar".into()),
-        ..Default::default()
-      })
+      Settings::new(
+        Options {
+          bitcoin_rpc_user: Some("foo".into()),
+          bitcoin_rpc_pass: Some("bar".into()),
+          ..Default::default()
+        },
+        Default::default(),
+        Default::default(),
+      )
       .unwrap()
       .auth()
       .unwrap(),
@@ -330,13 +349,12 @@ mod tests {
 
   #[test]
   fn auth_with_cookie_file() {
-    let settings = Settings {
-      options: Options {
-        cookie_file: Some("/var/lib/Bitcoin/.cookie".into()),
-        ..Default::default()
-      },
+    let settings = Options {
+      cookie_file: Some("/var/lib/Bitcoin/.cookie".into()),
       ..Default::default()
-    };
+    }
+    .settings()
+    .unwrap();
     assert_eq!(
       settings.auth().unwrap(),
       Auth::CookieFile("/var/lib/Bitcoin/.cookie".into())
@@ -346,13 +364,12 @@ mod tests {
   #[test]
   fn cookie_file_does_not_exist_error() {
     assert_eq!(
-      Settings {
-        options: Options {
-          cookie_file: Some("/foo/bar/baz/qux/.cookie".into()),
-          ..Default::default()
-        },
+      Options {
+        cookie_file: Some("/foo/bar/baz/qux/.cookie".into()),
         ..Default::default()
       }
+      .settings()
+      .unwrap()
       .bitcoin_rpc_client(None)
       .map(|_| "")
       .unwrap_err()
@@ -431,21 +448,40 @@ mod tests {
 
   #[test]
   fn setting_opt() {
-    // todo: test env var override
-
     assert_eq!(
       Settings::setting_opt(&Default::default(), None, None, None).unwrap(),
       None
     );
 
     assert_eq!(
-      Settings::setting_opt(&Default::default(), None, None, Some("foo")).unwrap(),
-      Some("foo".into()),
+      Settings::setting_opt(&Default::default(), None, None, Some("config")).unwrap(),
+      Some("config".into()),
     );
 
     assert_eq!(
-      Settings::setting_opt(&Default::default(), Some("bar"), None, Some("foo")).unwrap(),
-      Some("bar".into()),
+      Settings::setting_opt(
+        &vec![("env_key".into(), "env_value".into())]
+          .into_iter()
+          .collect(),
+        None,
+        Some("env_key"),
+        Some("config")
+      )
+      .unwrap(),
+      Some("env_value".into()),
+    );
+
+    assert_eq!(
+      Settings::setting_opt(
+        &vec![("env_key".into(), "env_value".into())]
+          .into_iter()
+          .collect(),
+        Some("option"),
+        Some("env_key"),
+        Some("config")
+      )
+      .unwrap(),
+      Some("option".into()),
     );
   }
 }
