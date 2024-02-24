@@ -47,9 +47,9 @@ pub(crate) struct Wallet {
   has_rune_index: bool,
   utxos: BTreeMap<OutPoint, TxOut>,
   locked_utxos: BTreeMap<OutPoint, TxOut>,
-  output_info: BTreeMap<OutPoint, OutputJson>,
+  output_info: BTreeMap<OutPoint, api::Output>,
   inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-  inscription_info: BTreeMap<InscriptionId, InscriptionJson>,
+  inscription_info: BTreeMap<InscriptionId, api::Inscription>,
 }
 
 impl Wallet {
@@ -181,14 +181,14 @@ impl Wallet {
       })
   }
 
-  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<OutputJson> {
+  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<api::Output> {
     let response = ord_client.get(&format!("/output/{output}")).await?;
 
     if !response.status().is_success() {
       bail!("wallet failed get output: {}", response.text().await?);
     }
 
-    let output_json: OutputJson = serde_json::from_str(&response.text().await?)?;
+    let output_json: api::Output = serde_json::from_str(&response.text().await?)?;
 
     if !output_json.indexed {
       bail!("output in wallet but not in ord server: {output}");
@@ -245,7 +245,7 @@ impl Wallet {
   async fn get_inscription_info(
     ord_client: &OrdClient,
     inscription_id: InscriptionId,
-  ) -> Result<InscriptionJson> {
+  ) -> Result<api::Inscription> {
     let response = ord_client
       .get(&format!("/inscription/{inscription_id}"))
       .await?;
@@ -257,7 +257,7 @@ impl Wallet {
     Ok(serde_json::from_str(&response.text().await?)?)
   }
 
-  async fn get_server_status(ord_client: &OrdClient) -> Result<StatusJson> {
+  async fn get_server_status(ord_client: &OrdClient) -> Result<api::Status> {
     let response = ord_client.get("/status").await?;
 
     if !response.status().is_success() {
@@ -329,7 +329,7 @@ impl Wallet {
     &self.inscriptions
   }
 
-  pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, InscriptionJson> {
+  pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, api::Inscription> {
     self.inscription_info.clone()
   }
 
@@ -440,7 +440,7 @@ impl Wallet {
       return Ok(None);
     }
 
-    let rune_json: RuneJson = serde_json::from_str(&response.text()?)?;
+    let rune_json: api::Rune = serde_json::from_str(&response.text()?)?;
 
     Ok(Some((rune_json.id, rune_json.entry, rune_json.parent)))
   }
