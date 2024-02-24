@@ -1,7 +1,5 @@
 use super::*;
 
-pub type TransactionJson = TransactionHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TransactionHtml {
   pub chain: Chain,
