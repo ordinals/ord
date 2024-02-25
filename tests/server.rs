@@ -405,64 +405,6 @@ fn expected_sat_time_is_rounded() {
 }
 
 #[test]
-#[ignore]
-fn server_runs_with_rpc_user_and_pass_as_env_vars() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  let tempdir = TempDir::new().unwrap();
-  let port = TcpListener::bind("127.0.0.1:0")
-    .unwrap()
-    .local_addr()
-    .unwrap()
-    .port();
-
-  let mut child = Command::new(executable_path("ord"))
-    .args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
-      rpc_server.url(),
-      tempdir.path().display(),
-      tempdir.path().display()).to_args()
-      )
-      .env("ORD_BITCOIN_RPC_PASS", "bar")
-      .env("ORD_BITCOIN_RPC_USER", "foo")
-      .env("ORD_INTEGRATION_TEST", "1")
-      .current_dir(&tempdir)
-      .spawn().unwrap();
-
-  for i in 0.. {
-    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
-      Ok(_) => break,
-      Err(err) => {
-        if i == 400 {
-          panic!("ord server failed to start: {err}");
-        }
-      }
-    }
-
-    thread::sleep(Duration::from_millis(50));
-  }
-
-  rpc_server.mine_blocks(1);
-
-  for i in 0.. {
-    let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    if response.text().unwrap() == "2" {
-      break;
-    }
-
-    if i == 400 {
-      panic!("ord server failed to sync");
-    }
-
-    thread::sleep(Duration::from_millis(50));
-  }
-
-  child.kill().unwrap();
-}
-
-#[test]
 fn missing_credentials() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
