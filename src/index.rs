@@ -597,7 +597,6 @@ impl Index {
       let wtx = self.begin_write()?;
 
       let mut updater = Updater {
-        range_cache: HashMap::new(),
         height: wtx
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
@@ -605,11 +604,12 @@ impl Index {
           .transpose()?
           .map(|(height, _header)| height.value() + 1)
           .unwrap_or(0),
-        index: &self,
-        sat_ranges_since_flush: 0,
+        index: self,
         outputs_cached: 0,
         outputs_inserted_since_flush: 0,
         outputs_traversed: 0,
+        range_cache: HashMap::new(),
+        sat_ranges_since_flush: 0,
       };
 
       match updater.update_index(wtx) {
