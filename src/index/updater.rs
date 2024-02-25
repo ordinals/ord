@@ -111,7 +111,7 @@ impl<'index> Updater<'_> {
 
       uncommitted += 1;
 
-      if uncommitted >= self.index.options.commit_cache_size.unwrap_or_default() {
+      if uncommitted >= self.index.options.commit_interval {
         self.commit(wtx, value_cache)?;
         value_cache = HashMap::new();
         uncommitted = 0;

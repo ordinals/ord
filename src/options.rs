@@ -38,9 +38,9 @@ pub struct Options {
   #[arg(
     long,
     default_value = "5000",
-    help = "Set index commit cache size to <COMMIT_CACHE_SIZE>."
+    help = "Set index commit interval to <COMMIT_INTERVAL>."
   )]
-  pub(crate) commit_cache_size: Option<usize>,
+  pub(crate) commit_interval: usize,
   #[arg(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
@@ -817,8 +817,8 @@ mod tests {
   #[test]
   fn setting_commit_cache_size() {
     let arguments =
-      Arguments::try_parse_from(["ord", "--commit-cache-size", "500", "index", "update"]).unwrap();
-    assert_eq!(arguments.options.commit_cache_size, Some(500));
+      Arguments::try_parse_from(["ord", "--commit-interval", "500", "index", "update"]).unwrap();
+    assert_eq!(arguments.options.commit_interval, 500);
   }
 
   #[test]
