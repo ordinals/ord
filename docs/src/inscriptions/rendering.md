@@ -25,7 +25,7 @@ When downscaling image inscriptions, `image-rendering: auto`, should be used.
 This is desirable even when downscaling pixel art.
 
 When upscaling image inscriptions other than AVIF, `image-rendering: pixelated`
-should be used. This is desriable when upscaling pixel art, since it preserves
+should be used. This is desirable when upscaling pixel art, since it preserves
 the sharp edges of pixels. It is undesirable when upscaling non-pixel art, but
 should still be used for visual compatibility with the `ord` explorer.
 

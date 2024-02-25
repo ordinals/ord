@@ -9,13 +9,6 @@ pub(crate) struct ChildrenHtml {
   pub(crate) next_page: Option<usize>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ChildrenJson {
-  pub ids: Vec<InscriptionId>,
-  pub more: bool,
-  pub page: usize,
-}
-
 impl PageContent for ChildrenHtml {
   fn title(&self) -> String {
     format!("Inscription {} Children", self.parent_number)
