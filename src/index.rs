@@ -593,10 +593,26 @@ impl Index {
   }
 
   pub fn update(&self) -> Result {
-    let mut updater = Updater::new(self)?;
-
     loop {
-      match updater.update_index() {
+      let wtx = self.begin_write()?;
+
+      let mut updater = Updater {
+        range_cache: HashMap::new(),
+        height: wtx
+          .open_table(HEIGHT_TO_BLOCK_HEADER)?
+          .range(0..)?
+          .next_back()
+          .transpose()?
+          .map(|(height, _header)| height.value() + 1)
+          .unwrap_or(0),
+        index: &self,
+        sat_ranges_since_flush: 0,
+        outputs_cached: 0,
+        outputs_inserted_since_flush: 0,
+        outputs_traversed: 0,
+      };
+
+      match updater.update_index(wtx) {
         Ok(ok) => return Ok(ok),
         Err(err) => {
           log::info!("{}", err.to_string());
@@ -604,8 +620,6 @@ impl Index {
           match err.downcast_ref() {
             Some(&ReorgError::Recoverable { height, depth }) => {
               Reorg::handle_reorg(self, height, depth)?;
-
-              updater = Updater::new(self)?;
             }
             Some(&ReorgError::Unrecoverable) => {
               self

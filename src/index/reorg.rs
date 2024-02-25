@@ -72,7 +72,7 @@ impl Reorg {
 
     log::info!(
       "successfully rolled back database to height {}",
-      index.block_count()?
+      index.begin_read()?.block_count()?
     );
 
     Ok(())

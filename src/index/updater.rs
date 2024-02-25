@@ -31,42 +31,17 @@ impl From<Block> for BlockData {
 }
 
 pub(crate) struct Updater<'index> {
-  range_cache: HashMap<OutPointValue, Vec<u8>>,
-  height: u32,
-  index: &'index Index,
-  sat_ranges_since_flush: u64,
-  outputs_cached: u64,
-  outputs_inserted_since_flush: u64,
-  outputs_traversed: u64,
+  pub(super) range_cache: HashMap<OutPointValue, Vec<u8>>,
+  pub(super) height: u32,
+  pub(super) index: &'index Index,
+  pub(super) sat_ranges_since_flush: u64,
+  pub(super) outputs_cached: u64,
+  pub(super) outputs_inserted_since_flush: u64,
+  pub(super) outputs_traversed: u64,
 }
 
 impl<'index> Updater<'_> {
-  pub(crate) fn new(index: &'index Index) -> Result<Updater<'index>> {
-    Ok(Updater {
-      range_cache: HashMap::new(),
-      height: index.block_count()?,
-      index,
-      sat_ranges_since_flush: 0,
-      outputs_cached: 0,
-      outputs_inserted_since_flush: 0,
-      outputs_traversed: 0,
-    })
-  }
-
-  pub(crate) fn update_index(&mut self) -> Result {
-    let mut wtx = self.index.begin_write()?;
-
-    // assert_eq!(
-    //   self.height,
-    //   wtx
-    //     .open_table(HEIGHT_TO_BLOCK_HEADER)?
-    //     .range(0..)?
-    //     .next_back()
-    //     .and_then(|result| result.ok())
-    //     .map(|(height, _header)| height.value() + 1)
-    //     .unwrap_or(0),
-    // );
-
+  pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
 
     wtx
