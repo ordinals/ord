@@ -40,6 +40,10 @@ impl Charm {
     charms & self.flag() != 0
   }
 
+  pub(crate) fn unset(self, charms: u16) -> u16 {
+    charms & !self.flag()
+  }
+
   pub(crate) fn icon(self) -> &'static str {
     match self {
       Self::Coin => "🪙",
@@ -79,5 +83,33 @@ impl Charm {
       .filter(|charm| charm.is_set(charms))
       .cloned()
       .collect()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn flag() {
+    assert_eq!(Charm::Coin.flag(), 0b1);
+    assert_eq!(Charm::Cursed.flag(), 0b10);
+  }
+
+  #[test]
+  fn set() {
+    let mut flags = 0;
+    assert!(!Charm::Coin.is_set(flags));
+    Charm::Coin.set(&mut flags);
+    assert!(Charm::Coin.is_set(flags));
+  }
+
+  #[test]
+  fn unset() {
+    let mut flags = 0;
+    Charm::Coin.set(&mut flags);
+    assert!(Charm::Coin.is_set(flags));
+    let flags = Charm::Coin.unset(flags);
+    assert!(!Charm::Coin.is_set(flags));
   }
 }

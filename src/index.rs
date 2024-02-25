@@ -11,7 +11,7 @@ use {
   },
   super::*,
   crate::{
-    subcommand::{find::FindRangeOutput, server::InscriptionQuery},
+    subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
   bitcoin::block::Header,
@@ -43,7 +43,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 17;
+const SCHEMA_VERSION: u64 = 18;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -61,6 +61,7 @@ macro_rules! define_multimap_table {
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
@@ -327,6 +328,7 @@ impl Index {
         tx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -472,9 +474,20 @@ impl Index {
     let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
 
+    let mut content_type_counts = rtx
+      .open_table(CONTENT_TYPE_TO_COUNT)?
+      .iter()?
+      .map(|result| {
+        result.map(|(key, value)| (key.value().map(|slice| slice.into()), value.value()))
+      })
+      .collect::<Result<Vec<(Option<Vec<u8>>, u64)>, StorageError>>()?;
+
+    content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
+
     Ok(StatusHtml {
       blessed_inscriptions,
       chain: self.options.chain(),
+      content_type_counts,
       cursed_inscriptions,
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
@@ -1665,17 +1678,17 @@ impl Index {
   }
 
   pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, InscriptionQuery::Number(inscription_number)).unwrap();
+    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
   }
 
   pub(crate) fn inscription_info(
     index: &Index,
-    query: InscriptionQuery,
+    query: query::Inscription,
   ) -> Result<Option<InscriptionInfo>> {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      InscriptionQuery::Id(id) => {
+      query::Inscription::Id(id) => {
         let inscription_id_to_sequence_number =
           rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
 
@@ -1687,7 +1700,7 @@ impl Index {
 
         sequence_number
       }
-      InscriptionQuery::Number(inscription_number) => {
+      query::Inscription::Number(inscription_number) => {
         let inscription_number_to_sequence_number =
           rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
 

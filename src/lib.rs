@@ -17,7 +17,10 @@ use {
     blocktime::Blocktime,
     config::Config,
     decimal::Decimal,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    inscriptions::{
+      media::{self, ImageRendering, Media},
+      teleburn, Charm, ParsedEnvelope,
+    },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
@@ -49,7 +52,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
@@ -58,7 +61,7 @@ use {
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -68,7 +71,6 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -100,6 +102,7 @@ macro_rules! tprintln {
     };
 }
 
+pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;

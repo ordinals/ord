@@ -3,6 +3,7 @@
 /.vagrant
 /.vscode
 /docs/build
+/env
 /fuzz/artifacts
 /fuzz/corpus
 /fuzz/coverage

@@ -1,7 +1,5 @@
 use super::*;
 
-pub type RuneJson = RuneHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneHtml {
   pub entry: RuneEntry,
@@ -57,7 +55,7 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
+  <dd>10:9</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/10>10</a></dd>
   <dt>etching transaction index</dt>
@@ -122,7 +120,7 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
+  <dd>10:9</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/10>10</a></dd>
   <dt>etching transaction index</dt>
@@ -178,7 +176,7 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
+  <dd>10:9</dd>
   <dt>etching block height</dt>
   <dd><a href=/block/10>10</a></dd>
   <dt>etching transaction index</dt>
