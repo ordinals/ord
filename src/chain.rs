@@ -118,7 +118,7 @@ impl FromStr for Chain {
       "regtest" => Ok(Self::Regtest),
       "signet" => Ok(Self::Signet),
       "testnet" => Ok(Self::Testnet),
-      _ => bail!("invalid chain: {s}"),
+      _ => bail!("invalid chain: `{s}`"),
     }
   }
 }
@@ -133,5 +133,9 @@ mod tests {
     assert_eq!("regtest".parse::<Chain>().unwrap(), Chain::Regtest);
     assert_eq!("signet".parse::<Chain>().unwrap(), Chain::Signet);
     assert_eq!("testnet".parse::<Chain>().unwrap(), Chain::Testnet);
+    assert_eq!(
+      "foo".parse::<Chain>().unwrap_err().to_string(),
+      "invalid chain: `foo`"
+    );
   }
 }
