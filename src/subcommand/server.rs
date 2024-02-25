@@ -159,7 +159,7 @@ impl Server {
           }
         }
 
-        thread::sleep(if integration_test() {
+        thread::sleep(if settings.integration_test {
           Duration::from_millis(100)
         } else {
           self.polling_interval.into()
@@ -284,12 +284,13 @@ impl Server {
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
           self
-            .spawn(router, handle, http_port, SpawnConfig::Http)?
+            .spawn(&settings, router, handle, http_port, SpawnConfig::Http)?
             .await??
         }
         (None, Some(https_port)) => {
           self
             .spawn(
+              &settings,
               router,
               handle,
               https_port,
@@ -309,8 +310,15 @@ impl Server {
           };
 
           let (http_result, https_result) = tokio::join!(
-            self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
             self.spawn(
+              &settings,
+              router.clone(),
+              handle.clone(),
+              http_port,
+              http_spawn_config
+            )?,
+            self.spawn(
+              &settings,
               router,
               handle,
               https_port,
@@ -328,6 +336,7 @@ impl Server {
 
   fn spawn(
     &self,
+    settings: &Settings,
     router: Router,
     handle: Handle,
     port: u16,
@@ -336,7 +345,7 @@ impl Server {
     let address = match &self.address {
       Some(address) => address.as_str(),
       None => {
-        if cfg!(test) || integration_test() {
+        if cfg!(test) || settings.integration_test {
           "127.0.0.1"
         } else {
           "0.0.0.0"
@@ -349,7 +358,7 @@ impl Server {
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
-    if !integration_test() && !cfg!(test) {
+    if !settings.integration_test && !cfg!(test) {
       eprintln!(
         "Listening on {}://{addr}",
         match config {

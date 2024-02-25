@@ -262,11 +262,12 @@ impl Index {
     let index_path = path.clone();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
+    let integration_test = settings.integration_test;
 
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
 
-      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
+      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test) {
         let mut guard = progress_bar.lock().unwrap();
 
         let progress_bar = guard.get_or_insert_with(|| {

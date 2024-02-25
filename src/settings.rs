@@ -18,7 +18,7 @@ pub struct Settings {
   pub(crate) index_sats: bool,
   pub(crate) index_spent_sats: bool,
   pub(crate) index_transactions: bool,
-  // pub(crate) integration_test: bool,
+  pub(crate) integration_test: bool,
   pub(crate) no_index_inscriptions: bool,
   pub(crate) rpc_url: Option<String>,
 }
@@ -67,6 +67,10 @@ impl Settings {
       config.bitcoin_rpc_pass.as_deref(),
     );
 
+    let integration_test = Self::setting_opt(&env, None, Some("INTEGRATION_TEST"), None)
+      .map(|value| value.len() > 0)
+      .unwrap_or_default();
+
     let auth = match (rpc_user, rpc_pass) {
       (Some(rpc_user), Some(rpc_pass)) => Some(Auth::UserPass(rpc_user, rpc_pass)),
       (None, Some(_rpc_pass)) => bail!("no bitcoind rpc user specified"),
@@ -90,6 +94,7 @@ impl Settings {
       index_sats: options.index_sats,
       index_spent_sats: options.index_spent_sats,
       index_transactions: options.index_transactions,
+      integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
       rpc_url: options.rpc_url,
     })
@@ -199,7 +204,7 @@ impl Settings {
   }
 
   pub(crate) fn first_inscription_height(&self) -> u32 {
-    if integration_test() {
+    if self.integration_test {
       0
     } else {
       self
@@ -209,7 +214,7 @@ impl Settings {
   }
 
   pub(crate) fn first_rune_height(&self) -> u32 {
-    if integration_test() {
+    if self.integration_test {
       0
     } else {
       self.chain().first_rune_height()
@@ -239,7 +244,7 @@ impl Settings {
   fn setting<T: FromStr<Err = Error>>(
     env: &BTreeMap<String, String>,
     arg_value: Option<T>,
-    env_key: Option<&str>,
+    env_key: Option<&'static str>,
     config_value: Option<T>,
     default_value: T,
   ) -> Result<T> {
@@ -265,7 +270,7 @@ impl Settings {
   fn setting_opt(
     env: &BTreeMap<String, String>,
     arg_value: Option<&str>,
-    env_key: Option<&str>,
+    env_key: Option<&'static str>,
     config_value: Option<&str>,
   ) -> Option<String> {
     if let Some(arg_value) = arg_value {

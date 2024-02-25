@@ -166,12 +166,6 @@ fn fund_raw_transaction(
   )
 }
 
-fn integration_test() -> bool {
-  env::var_os("ORD_INTEGRATION_TEST")
-    .map(|value| value.len() > 0)
-    .unwrap_or(false)
-}
-
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
@@ -191,7 +185,14 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, crate::subcommand::server
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
       Subcommand::Server(server) => (
-        Settings::new(arguments.options, Default::default(), Default::default()).unwrap(),
+        Settings::new(
+          arguments.options,
+          vec![("INTEGRATION_TEST".into(), "1".into())]
+            .into_iter()
+            .collect(),
+          Default::default(),
+        )
+        .unwrap(),
         server,
       ),
       subcommand => panic!("unexpected subcommand: {subcommand:?}"),

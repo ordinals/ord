@@ -57,7 +57,7 @@ impl<'index> Updater<'index> {
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
-      || integration_test()
+      || self.index.settings.integration_test
     {
       None
     } else {
