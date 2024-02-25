@@ -253,7 +253,7 @@ impl<'index> Updater<'_> {
   }
 
   fn spawn_fetcher(settings: &Settings) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&settings)?;
+    let fetcher = Fetcher::new(settings)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
