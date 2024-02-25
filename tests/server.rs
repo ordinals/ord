@@ -1,7 +1,4 @@
-use {
-  super::*, crate::command_builder::ToArgs, ciborium::value::Integer,
-  ord::subcommand::wallet::send::Output,
-};
+use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {

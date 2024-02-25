@@ -18,6 +18,7 @@ pub struct Settings {
   pub(crate) index_sats: bool,
   pub(crate) index_spent_sats: bool,
   pub(crate) index_transactions: bool,
+  // pub(crate) integration_test: bool,
   pub(crate) no_index_inscriptions: bool,
   pub(crate) rpc_url: Option<String>,
 }
@@ -57,14 +58,14 @@ impl Settings {
       options.bitcoin_rpc_user.as_deref(),
       Some("BITCOIN_RPC_USER"),
       config.bitcoin_rpc_user.as_deref(),
-    )?;
+    );
 
     let rpc_pass = Self::setting_opt(
       &env,
       options.bitcoin_rpc_pass.as_deref(),
       Some("BITCOIN_RPC_PASS"),
       config.bitcoin_rpc_pass.as_deref(),
-    )?;
+    );
 
     let auth = match (rpc_user, rpc_pass) {
       (Some(rpc_user), Some(rpc_pass)) => Some(Auth::UserPass(rpc_user, rpc_pass)),
@@ -266,18 +267,18 @@ impl Settings {
     arg_value: Option<&str>,
     env_key: Option<&str>,
     config_value: Option<&str>,
-  ) -> Result<Option<String>> {
+  ) -> Option<String> {
     if let Some(arg_value) = arg_value {
-      return Ok(Some(arg_value.into()));
+      return Some(arg_value.into());
     }
 
     if let Some(env_key) = env_key {
       if let Some(env_value) = env.get(env_key) {
-        return Ok(Some(env_value.into()));
+        return Some(env_value.into());
       }
     }
 
-    Ok(config_value.map(str::to_string))
+    config_value.map(str::to_string)
   }
 }
 
@@ -449,12 +450,12 @@ mod tests {
   #[test]
   fn setting_opt() {
     assert_eq!(
-      Settings::setting_opt(&Default::default(), None, None, None).unwrap(),
+      Settings::setting_opt(&Default::default(), None, None, None),
       None
     );
 
     assert_eq!(
-      Settings::setting_opt(&Default::default(), None, None, Some("config")).unwrap(),
+      Settings::setting_opt(&Default::default(), None, None, Some("config")),
       Some("config".into()),
     );
 
@@ -466,8 +467,7 @@ mod tests {
         None,
         Some("env_key"),
         Some("config")
-      )
-      .unwrap(),
+      ),
       Some("env_value".into()),
     );
 
@@ -479,8 +479,7 @@ mod tests {
         Some("option"),
         Some("env_key"),
         Some("config")
-      )
-      .unwrap(),
+      ),
       Some("option".into()),
     );
   }
