@@ -42,9 +42,6 @@ use {
   },
 };
 
-// todo:
-// subcommand::server::tests::collections_page_prev_and_next
-
 mod accept_encoding;
 mod accept_json;
 mod error;
