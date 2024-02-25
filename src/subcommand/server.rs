@@ -2314,7 +2314,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {

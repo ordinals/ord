@@ -38,11 +38,11 @@ impl Display for Language {
       f,
       "{}",
       match self {
-        Self::Css => "css",
-        Self::JavaScript => "javascript",
-        Self::Json => "json",
-        Self::Python => "python",
-        Self::Yaml => "yaml",
+        Css => "css",
+        JavaScript => "javascript",
+        Json => "json",
+        Python => "python",
+        Yaml => "yaml",
       }
     )
   }
@@ -60,8 +60,8 @@ impl Display for ImageRendering {
       f,
       "{}",
       match self {
-        Self::Auto => "auto",
-        Self::Pixelated => "pixelated",
+        Auto => "auto",
+        Pixelated => "pixelated",
       }
     )
   }
@@ -187,19 +187,22 @@ mod tests {
   fn for_extension() {
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
-      ("image/jpeg", BROTLI_MODE_GENERIC)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpeg")).unwrap(),
-      ("image/jpeg", BROTLI_MODE_GENERIC)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.JPG")).unwrap(),
-      ("image/jpeg", BROTLI_MODE_GENERIC)
+      ("image/jpeg", BrotliEncoderMode::BROTLI_MODE_GENERIC)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.txt")).unwrap(),
-      ("text/plain;charset=utf-8", BROTLI_MODE_TEXT)
+      (
+        "text/plain;charset=utf-8",
+        BrotliEncoderMode::BROTLI_MODE_TEXT
+      )
     );
     assert_regex_match!(
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
