@@ -349,7 +349,7 @@ impl Server {
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
-    if !integration_test() {
+    if !integration_test() && !cfg!(test) {
       eprintln!(
         "Listening on {}://{addr}",
         match config {

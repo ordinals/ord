@@ -7,8 +7,6 @@ use {
 };
 
 pub(crate) struct TestServer {
-  #[allow(unused)]
-  index: Arc<Index>,
   bitcoin_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
@@ -80,7 +78,6 @@ impl TestServer {
     }
 
     Self {
-      index,
       bitcoin_rpc_url: bitcoin_rpc_server.url(),
       ord_server_handle,
       port,
