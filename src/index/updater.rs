@@ -55,6 +55,18 @@ impl<'index> Updater<'_> {
 
   pub(crate) fn update_index(&mut self) -> Result {
     let mut wtx = self.index.begin_write()?;
+
+    // assert_eq!(
+    //   self.height,
+    //   wtx
+    //     .open_table(HEIGHT_TO_BLOCK_HEADER)?
+    //     .range(0..)?
+    //     .next_back()
+    //     .and_then(|result| result.ok())
+    //     .map(|(height, _header)| height.value() + 1)
+    //     .unwrap_or(0),
+    // );
+
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
 
     wtx
@@ -120,7 +132,7 @@ impl<'index> Updater<'_> {
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
-          .and_then(|result| result.ok())
+          .transpose()?
           .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0);
         if height != self.height {
@@ -415,7 +427,7 @@ impl<'index> Updater<'_> {
     let next_sequence_number = sequence_number_to_inscription_entry
       .iter()?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
 

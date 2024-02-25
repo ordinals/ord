@@ -558,7 +558,7 @@ impl Index {
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
-          .and_then(|result| result.ok())
+          .transpose()?
           .map(|(height, _header)| height.value() + 1)
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
@@ -628,7 +628,7 @@ impl Index {
       .open_table(HEIGHT_TO_BLOCK_HEADER)?
       .range(0..)?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
@@ -1532,7 +1532,7 @@ impl Index {
     let current = height_to_block_header
       .range(0..)?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(height, _header)| height)
       .map(|x| x.value())
       .unwrap_or(0);
