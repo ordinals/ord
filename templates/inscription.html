@@ -52,6 +52,12 @@
 %% }
   </dd>
 %% }
+%% if let Some(metadata) = self.inscription.metadata() {
+  <dt>metadata</dt>
+  <dd>
+    {{ Trusted(MetadataHtml(&metadata)) }}
+  </dd>
+%% }
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
