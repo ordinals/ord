@@ -36,12 +36,6 @@
     </div>
   </dd>
 %% }
-%% if let Some(metadata) = self.inscription.metadata() {
-  <dt>metadata</dt>
-  <dd>
-    {{ Trusted(MetadataHtml(&metadata)) }}
-  </dd>
-%% }
 %% if self.charms != 0 {
   <dt>charms</dt>
   <dd>
