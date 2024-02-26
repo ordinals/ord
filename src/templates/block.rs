@@ -1,9 +1,5 @@
 use super::*;
 
-fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
-  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
-}
-
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
@@ -31,32 +27,6 @@ impl BlockHtml {
       best_height,
       inscription_count,
       featured_inscriptions,
-    }
-  }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct BlockJson {
-  pub hash: BlockHash,
-  pub target: BlockHash,
-  pub best_height: u32,
-  pub height: u32,
-  pub inscriptions: Vec<InscriptionId>,
-}
-
-impl BlockJson {
-  pub(crate) fn new(
-    block: Block,
-    height: Height,
-    best_height: Height,
-    inscriptions: Vec<InscriptionId>,
-  ) -> Self {
-    Self {
-      hash: block.header.block_hash(),
-      target: target_as_block_hash(block.header.target()),
-      height: height.0,
-      best_height: best_height.0,
-      inscriptions,
     }
   }
 }

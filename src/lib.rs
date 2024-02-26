@@ -17,7 +17,10 @@ use {
     blocktime::Blocktime,
     config::Config,
     decimal::Decimal,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    inscriptions::{
+      media::{self, ImageRendering, Media},
+      teleburn, Charm, ParsedEnvelope,
+    },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
     subcommand::{Subcommand, SubcommandResult},
@@ -32,7 +35,7 @@ use {
       locktime::absolute::LockTime,
     },
     consensus::{self, Decodable, Encodable},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     opcodes,
     script::{self, Instruction},
@@ -49,7 +52,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
@@ -58,7 +61,7 @@ use {
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -68,7 +71,6 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -100,6 +102,7 @@ macro_rules! tprintln {
     };
 }
 
+pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
@@ -109,7 +112,7 @@ mod fee_rate;
 pub mod index;
 mod inscriptions;
 mod object;
-mod options;
+pub mod options;
 pub mod outgoing;
 mod representation;
 pub mod runes;
@@ -170,6 +173,10 @@ fn integration_test() -> bool {
 
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
+}
+
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
 fn unbound_outpoint() -> OutPoint {

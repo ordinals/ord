@@ -74,25 +74,26 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let utxos = wallet.get_unspent_outputs()?;
+    let utxos = wallet.utxos();
 
-    let locked_utxos = wallet.get_locked_outputs()?;
+    let mut locked_utxos = wallet.locked_utxos().clone();
 
     let runic_utxos = wallet.get_runic_outputs()?;
 
     let chain = wallet.chain();
 
-    let postage;
+    let postages;
     let destinations;
     let inscriptions;
     let mode;
     let parent_info;
+    let reveal_satpoints;
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = wallet.get_parent_info(self.parent, &utxos)?;
+        parent_info = wallet.get_parent_info(self.parent)?;
 
-        postage = self.postage.unwrap_or(TARGET_POSTAGE);
+        postages = vec![self.postage.unwrap_or(TARGET_POSTAGE)];
 
         if let Some(delegate) = self.delegate {
           ensure! {
@@ -114,13 +115,15 @@ impl Inscribe {
 
         mode = Mode::SeparateOutputs;
 
+        reveal_satpoints = Vec::new();
+
         destinations = vec![match self.destination.clone() {
           Some(destination) => destination.require_network(chain.network())?,
           None => wallet.get_change_address()?,
         }];
 
         if let Some(sat) = self.sat {
-          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+          Some(wallet.find_sat_in_outputs(sat)?)
         } else {
           self.satpoint
         }
@@ -128,24 +131,25 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = wallet.get_parent_info(batchfile.parent, &utxos)?;
+        parent_info = wallet.get_parent_info(batchfile.parent)?;
 
-        postage = batchfile
-          .postage
-          .map(Amount::from_sat)
-          .unwrap_or(TARGET_POSTAGE);
-
-        (inscriptions, destinations) = batchfile.inscriptions(
+        (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,
+          utxos,
           parent_info.as_ref().map(|info| info.tx_out.value),
-          postage,
           self.compress,
         )?;
+
+        locked_utxos.extend(
+          reveal_satpoints
+            .iter()
+            .map(|(satpoint, txout)| (satpoint.outpoint, txout.clone())),
+        );
 
         mode = batchfile.mode;
 
         if let Some(sat) = batchfile.sat {
-          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+          Some(wallet.find_sat_in_outputs(sat)?)
         } else {
           batchfile.satpoint
         }
@@ -162,12 +166,18 @@ impl Inscribe {
       no_backup: self.no_backup,
       no_limit: self.no_limit,
       parent_info,
-      postage,
+      postages,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
+      reveal_satpoints,
       satpoint,
     }
-    .inscribe(&locked_utxos, runic_utxos, &utxos, &wallet)
+    .inscribe(
+      &locked_utxos.into_keys().collect(),
+      runic_utxos,
+      utxos,
+      &wallet,
+    )
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -202,7 +212,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_pays_fee() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
+    let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -217,7 +227,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -243,7 +253,7 @@ mod tests {
 
   #[test]
   fn inscribe_transactions_opt_in_to_rbf() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
+    let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -258,7 +268,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -278,7 +288,7 @@ mod tests {
 
   #[test]
   fn inscribe_with_no_satpoint_and_no_cardinal_utxos() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1000))];
+    let utxos = vec![(outpoint(1), tx_out(1000, address()))];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
       SatPoint {
@@ -302,7 +312,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -327,8 +337,8 @@ mod tests {
   #[test]
   fn inscribe_with_no_satpoint_and_enough_cardinal_utxos() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(20_000)),
-      (outpoint(2), Amount::from_sat(20_000)),
+      (outpoint(1), tx_out(20_000, address())),
+      (outpoint(2), tx_out(20_000, address())),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -353,7 +363,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -371,8 +381,8 @@ mod tests {
   #[test]
   fn inscribe_with_custom_fee_rate() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(20_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(20_000, address())),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -398,7 +408,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -441,8 +451,8 @@ mod tests {
   #[test]
   fn inscribe_with_parent() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(20_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(20_000, address())),
     ];
 
     let mut inscriptions = BTreeMap::new();
@@ -481,7 +491,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -535,8 +545,8 @@ mod tests {
   #[test]
   fn inscribe_with_commit_fee_rate() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(20_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(20_000, address())),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -563,7 +573,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -605,7 +615,7 @@ mod tests {
 
   #[test]
   fn inscribe_over_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
 
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
@@ -621,7 +631,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -645,7 +655,7 @@ mod tests {
 
   #[test]
   fn inscribe_with_no_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
 
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
@@ -661,7 +671,7 @@ mod tests {
       reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
       no_limit: true,
       reinscribe: false,
-      postage: TARGET_POSTAGE,
+      postages: vec![TARGET_POSTAGE],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -778,8 +788,8 @@ inscriptions:
   #[test]
   fn batch_inscribe_with_parent() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(50_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(50_000, address())),
     ];
 
     let parent = inscription_id(1);
@@ -834,7 +844,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }
@@ -880,10 +890,133 @@ inscriptions:
   }
 
   #[test]
+  fn batch_inscribe_satpoints_with_parent() {
+    let utxos = vec![
+      (outpoint(1), tx_out(1_111, address())),
+      (outpoint(2), tx_out(2_222, address())),
+      (outpoint(3), tx_out(3_333, address())),
+      (outpoint(4), tx_out(10_000, address())),
+      (outpoint(5), tx_out(50_000, address())),
+      (outpoint(6), tx_out(60_000, address())),
+    ];
+
+    let parent = inscription_id(1);
+
+    let parent_info = ParentInfo {
+      destination: change(3),
+      id: parent,
+      location: SatPoint {
+        outpoint: outpoint(4),
+        offset: 0,
+      },
+      tx_out: TxOut {
+        script_pubkey: change(0).script_pubkey(),
+        value: 10_000,
+      },
+    };
+
+    let mut wallet_inscriptions = BTreeMap::new();
+    wallet_inscriptions.insert(parent_info.location, vec![parent]);
+
+    let commit_address = change(1);
+    let reveal_addresses = vec![recipient(), recipient(), recipient()];
+
+    let inscriptions = vec![
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(10_000),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(11_111),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+        pointer: Some(13_3333),
+      }
+      .into(),
+    ];
+
+    let reveal_satpoints = utxos
+      .iter()
+      .take(3)
+      .map(|(outpoint, txout)| {
+        (
+          SatPoint {
+            outpoint: *outpoint,
+            offset: 0,
+          },
+          txout.clone(),
+        )
+      })
+      .collect::<Vec<(SatPoint, TxOut)>>();
+
+    let mode = Mode::SatPoints;
+
+    let fee_rate = 1.0.try_into().unwrap();
+
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      reveal_satpoints: reveal_satpoints.clone(),
+      parent_info: Some(parent_info.clone()),
+      inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: fee_rate,
+      reveal_fee_rate: fee_rate,
+      postages: vec![
+        Amount::from_sat(1_111),
+        Amount::from_sat(2_222),
+        Amount::from_sat(3_333),
+      ],
+      mode,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
+      wallet_inscriptions,
+      Chain::Signet,
+      reveal_satpoints
+        .iter()
+        .map(|(satpoint, _)| satpoint.outpoint)
+        .collect(),
+      BTreeSet::new(),
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+    )
+    .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 50_000 - fee);
+
+    assert_eq!(
+      reveal_tx.output[0].script_pubkey,
+      parent_info.destination.script_pubkey()
+    );
+    assert_eq!(reveal_tx.output[0].value, parent_info.tx_out.value);
+    pretty_assert_eq!(
+      reveal_tx.input[0],
+      TxIn {
+        previous_output: parent_info.location.outpoint,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        ..Default::default()
+      }
+    );
+  }
+
+  #[test]
   fn batch_inscribe_with_parent_not_enough_cardinals_utxos_fails() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(20_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(20_000, address())),
     ];
 
     let parent = inscription_id(1);
@@ -934,7 +1067,7 @@ inscriptions:
       reveal_fee_rate: 4.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -958,8 +1091,8 @@ inscriptions:
   #[should_panic(expected = "invariant: shared-output has only one destination")]
   fn batch_inscribe_with_inconsistent_reveal_addresses_panics() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(80_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(80_000, address())),
     ];
 
     let parent = inscription_id(1);
@@ -1010,7 +1143,7 @@ inscriptions:
       reveal_fee_rate: 4.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000)],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1026,7 +1159,7 @@ inscriptions:
 
   #[test]
   fn batch_inscribe_over_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
 
     let wallet_inscriptions = BTreeMap::new();
 
@@ -1048,7 +1181,7 @@ inscriptions:
       reveal_fee_rate: 1.0.try_into().unwrap(),
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(30_000),
+      postages: vec![Amount::from_sat(30_000); 3],
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1073,8 +1206,8 @@ inscriptions:
   #[test]
   fn batch_inscribe_into_separate_outputs() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(80_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(80_000, address())),
     ];
 
     let wallet_inscriptions = BTreeMap::new();
@@ -1101,7 +1234,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }
@@ -1125,8 +1258,8 @@ inscriptions:
   #[test]
   fn batch_inscribe_into_separate_outputs_with_parent() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(50_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(50_000, address())),
     ];
 
     let parent = inscription_id(1);
@@ -1181,7 +1314,7 @@ inscriptions:
       reveal_fee_rate: fee_rate,
       no_limit: false,
       reinscribe: false,
-      postage: Amount::from_sat(10_000),
+      postages: vec![Amount::from_sat(10_000); 3],
       mode,
       ..Default::default()
     }

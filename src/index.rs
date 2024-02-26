@@ -4,13 +4,14 @@ use {
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
+    event::Event,
     reorg::*,
     runes::{Rune, RuneId},
     updater::Updater,
   },
   super::*,
   crate::{
-    subcommand::{find::FindRangeOutput, server::InscriptionQuery},
+    subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
   bitcoin::block::Header,
@@ -33,6 +34,7 @@ use {
 pub use {self::entry::RuneEntry, entry::MintEntry};
 
 pub(crate) mod entry;
+pub mod event;
 mod fetcher;
 mod reorg;
 mod rtx;
@@ -41,7 +43,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 17;
+const SCHEMA_VERSION: u64 = 18;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -59,6 +61,7 @@ macro_rules! define_multimap_table {
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
@@ -201,6 +204,7 @@ pub struct Index {
   client: Client,
   database: Database,
   durability: redb::Durability,
+  event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   first_inscription_height: u32,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
@@ -217,6 +221,13 @@ pub struct Index {
 
 impl Index {
   pub fn open(options: &Options) -> Result<Self> {
+    Index::open_with_event_sender(options, None)
+  }
+
+  pub fn open_with_event_sender(
+    options: &Options,
+    event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
+  ) -> Result<Self> {
     let client = options.bitcoin_rpc_client(None)?;
 
     let path = options
@@ -317,6 +328,7 @@ impl Index {
         tx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -397,6 +409,7 @@ impl Index {
       client,
       database,
       durability,
+      event_sender,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
@@ -461,9 +474,20 @@ impl Index {
     let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
 
+    let mut content_type_counts = rtx
+      .open_table(CONTENT_TYPE_TO_COUNT)?
+      .iter()?
+      .map(|result| {
+        result.map(|(key, value)| (key.value().map(|slice| slice.into()), value.value()))
+      })
+      .collect::<Result<Vec<(Option<Vec<u8>>, u64)>, StorageError>>()?;
+
+    content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
+
     Ok(StatusHtml {
       blessed_inscriptions,
       chain: self.options.chain(),
+      content_type_counts,
       cursed_inscriptions,
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
@@ -568,7 +592,7 @@ impl Index {
     Ok(info)
   }
 
-  pub(crate) fn update(&self) -> Result {
+  pub fn update(&self) -> Result {
     let mut updater = Updater::new(self)?;
 
     loop {
@@ -1654,17 +1678,17 @@ impl Index {
   }
 
   pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, InscriptionQuery::Number(inscription_number)).unwrap();
+    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
   }
 
   pub(crate) fn inscription_info(
     index: &Index,
-    query: InscriptionQuery,
+    query: query::Inscription,
   ) -> Result<Option<InscriptionInfo>> {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      InscriptionQuery::Id(id) => {
+      query::Inscription::Id(id) => {
         let inscription_id_to_sequence_number =
           rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
 
@@ -1676,7 +1700,7 @@ impl Index {
 
         sequence_number
       }
-      InscriptionQuery::Number(inscription_number) => {
+      query::Inscription::Number(inscription_number) => {
         let inscription_number_to_sequence_number =
           rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
 
@@ -5654,5 +5678,81 @@ mod tests {
       assert_eq!(context.index.inscription_number(a), 1);
       assert_eq!(context.index.inscription_number(b), 0);
     }
+  }
+
+  #[test]
+  fn event_sender_channel() {
+    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
+    let context = Context::builder().event_sender(event_sender).build();
+
+    context.mine_blocks(1);
+
+    let inscription = Inscription::default();
+    let create_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      fee: 0,
+      outputs: 1,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let inscription_id = InscriptionId {
+      txid: create_txid,
+      index: 0,
+    };
+    let create_event = event_receiver.blocking_recv().unwrap();
+    let expected_charms = if context.index.index_sats { 513 } else { 0 };
+    assert_eq!(
+      create_event,
+      Event::InscriptionCreated {
+        inscription_id,
+        location: Some(SatPoint {
+          outpoint: OutPoint {
+            txid: create_txid,
+            vout: 0
+          },
+          offset: 0
+        }),
+        sequence_number: 0,
+        block_height: 2,
+        charms: expected_charms,
+        parent_inscription_id: None
+      }
+    );
+
+    // Transfer inscription
+    let transfer_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      fee: 0,
+      outputs: 1,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let transfer_event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      transfer_event,
+      Event::InscriptionTransferred {
+        block_height: 3,
+        inscription_id,
+        new_location: SatPoint {
+          outpoint: OutPoint {
+            txid: transfer_txid,
+            vout: 0
+          },
+          offset: 0
+        },
+        old_location: SatPoint {
+          outpoint: OutPoint {
+            txid: create_txid,
+            vout: 0
+          },
+          offset: 0
+        },
+        sequence_number: 0,
+      }
+    );
   }
 }

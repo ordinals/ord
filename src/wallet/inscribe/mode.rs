@@ -4,6 +4,8 @@ use super::*;
 pub enum Mode {
   #[serde(rename = "same-sat")]
   SameSat,
+  #[serde(rename = "satpoints")]
+  SatPoints,
   #[default]
   #[serde(rename = "separate-outputs")]
   SeparateOutputs,

@@ -2,6 +2,7 @@ use super::*;
 
 pub mod balances;
 pub mod decode;
+pub mod env;
 pub mod epochs;
 pub mod find;
 pub mod index;
@@ -21,6 +22,8 @@ pub(crate) enum Subcommand {
   Balances,
   #[command(about = "Decode a transaction")]
   Decode(decode::Decode),
+  #[command(about = "Start a regtest ord and bitcoind instance")]
+  Env(env::Env),
   #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
   #[command(about = "Find a satoshi's current location")]
@@ -52,6 +55,7 @@ impl Subcommand {
     match self {
       Self::Balances => balances::run(options),
       Self::Decode(decode) => decode.run(options),
+      Self::Env(env) => env.run(),
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
