@@ -68,7 +68,7 @@ impl Settings {
     );
 
     let integration_test = Self::setting_opt(&env, None, Some("INTEGRATION_TEST"), None)
-      .map(|value| value.len() > 0)
+      .map(|value| !value.is_empty())
       .unwrap_or_default();
 
     let auth = match (rpc_user, rpc_pass) {
