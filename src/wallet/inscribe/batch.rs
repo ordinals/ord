@@ -296,9 +296,9 @@ impl Batch {
         reinscription = true;
         if self.reinscribe {
           continue;
-        } else {
-          bail!("sat at {} already inscribed", satpoint);
         }
+
+        bail!("sat at {} already inscribed", satpoint);
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {

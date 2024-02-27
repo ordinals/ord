@@ -64,7 +64,6 @@ impl Wallet {
     );
 
     if let Some((username, password)) = options.credentials() {
-      use base64::Engine;
       let credentials =
         base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
       headers.insert(
