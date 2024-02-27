@@ -57,9 +57,24 @@ impl Batch {
       )?;
 
     if self.dry_run {
+      let commit_psbt = wallet
+        .bitcoin_client()
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize()),
+          Some(false),
+          None,
+          None,
+        )?
+        .psbt;
+
+      let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
+
       return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
+        Some(commit_psbt),
         reveal_tx.txid(),
+        Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
       ))));
@@ -118,16 +133,28 @@ impl Batch {
 
     Ok(Some(Box::new(self.output(
       commit,
+      None,
       reveal,
+      None,
       total_fees,
       self.inscriptions.clone(),
     ))))
   }
 
+  fn remove_witnesses(mut transaction: Transaction) -> Transaction {
+    for txin in transaction.input.iter_mut() {
+      txin.witness = Witness::new();
+    }
+
+    transaction
+  }
+
   fn output(
     &self,
     commit: Txid,
+    commit_psbt: Option<String>,
     reveal: Txid,
+    reveal_psbt: Option<String>,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
   ) -> Output {
@@ -174,7 +201,9 @@ impl Batch {
 
     Output {
       commit,
+      commit_psbt,
       reveal,
+      reveal_psbt,
       total_fees,
       parent: self.parent_info.clone().map(|info| info.id),
       inscriptions: inscriptions_output,
@@ -266,9 +295,9 @@ impl Batch {
         reinscription = true;
         if self.reinscribe {
           continue;
-        } else {
-          bail!("sat at {} already inscribed", satpoint);
         }
+
+        bail!("sat at {} already inscribed", satpoint);
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
