@@ -174,7 +174,7 @@ bitcoind -txindex
 ord server
 ```
 
-To create a wallet named `ord` (default name) for use with `ord wallet`, run:
+To create a wallet named `ord`, the default, for use with `ord wallet`, run:
 
 ```
 ord wallet create
