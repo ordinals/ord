@@ -163,8 +163,8 @@ Creating a Wallet
 
 `ord` uses `bitcoind` to manage private keys, sign transactions, and
 broadcast transactions to the Bitcoin network. Additionally the `ord wallet`
-requires the [`ord server`](explorer.md) to run in the background as well.
-Make sure these programs are running:
+requires [`ord server`](explorer.md) running in the background. Make sure these
+programs are running:
 
 ```
 bitcoind -txindex
