@@ -48,7 +48,7 @@ mod tests {
 
   #[test]
   fn u128_max_round_trips_successfully() {
-    let n = u128::max_value();
+    let n = u128::MAX;
     let encoded = encode(n);
     let (decoded, length) = decode(&encoded);
     assert_eq!(decoded, n);

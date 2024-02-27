@@ -229,7 +229,7 @@ pub struct Error {
 }
 
 impl Display for Error {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "failed to parse sat `{}`: {}", self.input, self.kind)
   }
 }
@@ -263,7 +263,7 @@ impl ErrorKind {
 }
 
 impl Display for ErrorKind {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Self::IntegerRange => write!(f, "invalid integer range"),
       Self::NameRange => write!(f, "invalid name range"),

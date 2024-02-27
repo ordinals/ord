@@ -106,7 +106,7 @@ mod tests {
       u64::from(SUBSIDY_HALVING_INTERVAL) * 5000000000 + 2500000000
     );
     assert_eq!(
-      Height(u32::max_value()).starting_sat(),
+      Height(u32::MAX).starting_sat(),
       *Epoch::STARTING_SATS.last().unwrap()
     );
   }

@@ -158,7 +158,7 @@ impl Batch {
     reveal_psbt: Option<String>,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
-  ) -> super::Output {
+  ) -> Output {
     let mut inscriptions_output = Vec::new();
     for index in 0..inscriptions.len() {
       let index = u32::try_from(index).unwrap();
@@ -200,7 +200,7 @@ impl Batch {
       });
     }
 
-    super::Output {
+    Output {
       commit,
       commit_psbt,
       reveal,

@@ -139,7 +139,7 @@ pub struct TransactionTemplate<'a> {
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonOutPoint {
-  txid: bitcoin::Txid,
+  txid: Txid,
   vout: u32,
 }
 

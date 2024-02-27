@@ -6,8 +6,8 @@ pub(crate) enum ReorgError {
   Unrecoverable,
 }
 
-impl fmt::Display for ReorgError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for ReorgError {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       ReorgError::Recoverable { height, depth } => {
         write!(f, "{depth} block deep reorg detected at height {height}")
