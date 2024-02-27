@@ -15,7 +15,7 @@ pub struct Options {
   pub(crate) bitcoin_rpc_pass: Option<String>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
   pub(crate) bitcoin_rpc_user: Option<String>,
-  #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: maiinnet]")]
+  #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
   #[arg(long, help = "Load configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
