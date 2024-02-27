@@ -1,5 +1,5 @@
-Ordinal Inscription Guide
-=========================
+Wallet
+======
 
 Individual sats can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
@@ -158,16 +158,39 @@ ord --version
 
 Which prints out `ord`'s version number.
 
-Creating a Bitcoin Core Wallet
-------------------------------
+Creating a Wallet
+-----------------
 
-`ord` uses Bitcoin Core to manage private keys, sign transactions, and
-broadcast transactions to the Bitcoin network.
+`ord` uses `bitcoind` to manage private keys, sign transactions, and
+broadcast transactions to the Bitcoin network. Additionally the `ord wallet`
+requires [`ord server`](explorer.md) running in the background. Make sure these
+programs are running:
 
-To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
+```
+bitcoind -txindex
+```
+
+```
+ord server
+```
+
+To create a wallet named `ord`, the default, for use with `ord wallet`, run:
 
 ```
 ord wallet create
+```
+
+If you want to specify a different name or use an `ord server` running on a
+non-default URL you can set these options:
+
+```
+ord wallet --name foo --server-url http://127.0.0.1:8080 create
+```
+
+To see all available wallet options you can run:
+
+```
+ord wallet help
 ```
 
 Receiving Sats
@@ -301,7 +324,7 @@ ord wallet receive
 The sender can transfer the inscription to your address using:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> ADDRESS INSCRIPTION_ID
 ```
 
 See the pending transaction with:

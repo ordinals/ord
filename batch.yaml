@@ -1,9 +1,10 @@
 # example batch file
 
 # inscription modes:
+# - `same-sat`: inscribe on the same sat
+# - `satpoints`: inscribe on the first sat of specified satpoint's output
 # - `separate-outputs`: inscribe on separate postage-sized outputs
 # - `shared-output`: inscribe on a single output separated by postage
-# - `same-sat`: inscribe on the same sat
 mode: separate-outputs
 
 # parent inscription:
