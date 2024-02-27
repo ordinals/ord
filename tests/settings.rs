@@ -26,6 +26,26 @@ fn config_is_loaded_from_config_option() {
 }
 
 #[test]
+fn config_not_found_error_message() {
+  CommandBuilder::new("settings")
+    .stdout_regex(
+      r#".*
+  "chain": "mainnet",
+.*"#,
+    )
+    .run_and_extract_stdout();
+
+  let tempdir = TempDir::new().unwrap();
+
+  let config = tempdir.path().join("ord.yaml");
+
+  CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
+    .stderr_regex("error: failed to open config file `.*/ord.yaml`\nbecause:.*")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
 fn config_is_loaded_from_config_dir() {
   CommandBuilder::new("settings")
     .stdout_regex(
