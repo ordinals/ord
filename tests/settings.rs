@@ -40,7 +40,7 @@ fn config_not_found_error_message() {
   let config = tempdir.path().join("ord.yaml");
 
   CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
-    .stderr_regex("error: failed to open config file `.*/ord.yaml`\nbecause:.*")
+    .stderr_regex("error: failed to open config file `.*ord.yaml`\nbecause:.*")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
