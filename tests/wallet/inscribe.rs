@@ -416,19 +416,26 @@ fn inscribe_with_dry_run_flag() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet inscribe --dry-run --file degenerate.png --fee-rate 1")
-    .write("degenerate.png", [1; 520])
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+  let inscribe =
+    CommandBuilder::new("wallet inscribe --dry-run --file degenerate.png --fee-rate 1")
+      .write("degenerate.png", [1; 520])
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  assert!(inscribe.commit_psbt.is_some());
+  assert!(inscribe.reveal_psbt.is_some());
 
   assert!(bitcoin_rpc_server.mempool().is_empty());
 
-  CommandBuilder::new("wallet inscribe --file degenerate.png --fee-rate 1")
+  let inscribe = CommandBuilder::new("wallet inscribe --file degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Inscribe>();
+
+  assert!(inscribe.commit_psbt.is_none());
+  assert!(inscribe.reveal_psbt.is_none());
 
   assert_eq!(bitcoin_rpc_server.mempool().len(), 2);
 }

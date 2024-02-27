@@ -1,8 +1,10 @@
 use {
   super::*,
+  base64::{self, Engine},
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    psbt::Psbt,
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
@@ -62,7 +64,6 @@ impl Wallet {
     );
 
     if let Some((username, password)) = options.credentials() {
-      use base64::Engine;
       let credentials =
         base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
       headers.insert(
