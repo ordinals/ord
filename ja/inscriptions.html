@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。</p>
 <p>`OP_PUSH 1'は、次のプッシュにコンテンツタイプが含まれていることを示します。'OP_PUSH 0'は、後続のデータプッシュがコンテンツ自体を含むことを示す。の大規模な銘文は複数回のデータプッシュを使用しなければならない。taprootの少数の制限の一つは、単一のデータプッシュが520バイトを超えないことであります。</p>
-<p>銘文の内容はreveal取引の入力に含まれ、銘文はその最初の出力の最初の聡（Satoshi）に刻まれている。私たちはよく知っている序数理論のルールを使ってこの聡satを追跡することができます。移転、購入、販売、紛失、回復を許可します。</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="内容"><a class="header" href="#内容">内容</a></h2>
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>

@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Сначала вводится строка <code>ord</code>, чтобы отделить надписи от других видов использования конвертов.</p>
 <p><code>OP_PUSH 1</code> указывает, что следующий push содержит тип содержимого, а <code>OP_PUSH 0</code> - что последующие push-файлы содержат само содержимое. Для больших надписей необходимо использовать несколько push данных, так как одно из немногих ограничений taproot заключается в том, что размер отдельных push данных не может превышать 520 байт.</p>
-<p>Содержание надписи содержится во входе reveal транзакции, и надпись делается на первом sat ее входа. Затем этот sat может быть отслежен по известным правилам ordinal theory, что позволяет передавать, покупать, продавать, терять в комиссиях и восстанавливать его.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="Содержимое"><a class="header" href="#Содержимое">Содержимое</a></h2>
 <p>Модель данных надписей представляет собой HTTP-ответ, что позволяет обслуживать содержимое надписей на веб-сервере и просматривать его в браузере.</p>
 <h2 id="Поля"><a class="header" href="#Поля">Поля</a></h2>

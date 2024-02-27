@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Zuerst wird die Zeichenfolge <code>ord</code> gedrückt, um inscriptions von anderen Verwendungszwecken von Umschlägen zu unterscheiden.</p>
 <p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
-<p>Der Inhalt der inscription ist in der Eingabe einer Enthüllungstransaktion enthalten und die inscription erfolgt am ersten sat ihrer Eingang (input). Dieser Sat kann dann mithilfe der bekannten Regeln der Ordinaltheorie verfolgt werden, sodass er übertragen, gekauft, verkauft, durch Gebühren verloren und wiederhergestellt werden kann.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="inhalt"><a class="header" href="#inhalt">Inhalt</a></h2>
 <p>Das Datenmodell von inscriptions ist das einer HTTP-Antwort, sodass inscription inhalte von einem Webserver bereitgestellt und in einem Webbrowser angezeigt werden können.</p>
 <h2 id="felder"><a class="header" href="#felder">Felder</a></h2>

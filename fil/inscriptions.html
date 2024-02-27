@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Una ang string na <code>ord</code> ay pushed, upang i-dismbiguate ang mga inskripsiyon mula sa iba pang gamit ng envelopes.</p>
 <p>Ang <code>OP_PUSH 1</code> ay nagpapahiwatig na ang susunod na push ay naglalaman ng content type, at <code>OP_PUSH 0</code> naman ay nagpapahiwatig na ang mga kasunod na data ay naglalaman ng content mismo. Dapat gumamit ng maraming push data para sa isang malalaking inskripsiyon, dahil ito sa limitasyon ng taproot, na kung saan hindi maaring lumagpas sa 520 bytes ang bawat isang data push.</p>
-<p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon sa Bitcoin, at ang inskripsyon ay nagawa sa unang sat ng input nito. Ang sat na ito ay maaaring masubaybayan gamit ang pamilyar na mga panuntunan ng ordinal theory, na nagreresulta sa ito na ilipat, bilhin, ibenta, mawala sa mga fees, at ma-recover.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="content"><a class="header" href="#content">Content</a></h2>
 <p>Ang data model ng mga inskripsiyon ay isang HTTP response, na nagbibigay-daan sa nilalaman ng inskripsiyon na maipakita gamit ang web server at nang web browser.</p>
 <h2 id="fields"><a class="header" href="#fields">Fields</a></h2>

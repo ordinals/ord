@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>首先字符串<code>ord</code>被推送，以消除铭文与信封其他用途的歧义。</p>
 <p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
-<p>铭文内容包含在reveal交易的输入中，并且铭文是铭刻在其第一个输出的第一个聪（Satoshi）上。我们可以使用熟悉的序数理论规则来跟踪这个聪 sat，允许它被转移、购买、出售、丢失和恢复。</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="内容"><a class="header" href="#内容">内容</a></h2>
 <p>铭文的数据模型是 HTTP 响应的数据模型，允许铭文由网络服务器提供服务并在网络浏览器中查看的内容。</p>
 <h2 id="字段"><a class="header" href="#字段">字段</a></h2>

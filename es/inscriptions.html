@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Primero, se hace un push con el string <code>ord</code> para diferenciar que sobre va a utilizar la inscripción.</p>
 <p><code>OP_PUSH 1</code> indica que el próximo push es el tipo de contenido y <code>OP_PUSH 0</code> indica que los siguientes datos en el push contienen el contenido que se va a anexar. Múltiples push de datos deben ser utilizados para inscripciones de gran tamaño ya que una de las pocas restricciones de Taproot es que un push de datos no puede ser mayor a 520 bytes.</p>
-<p>El modelo de datos de las inscripciones es el de una respuesta HTTP, permitiendo que el contenido de la inscripción sea obtenido a través de un servidor web y visualizado en un navegador web.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="contenido"><a class="header" href="#contenido">Contenido</a></h2>
 <p>El modelo de datos de las inscripciones es el de una respuesta HTTP, permitiendo que el contenido de la inscripción sea obtenido a través de un servidor web y visualizado en un navegador web.</p>
 <h2 id="campos"><a class="header" href="#campos">Campos</a></h2>

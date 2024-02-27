@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Per prima cosa viene inserita la stringa <code>ord</code>, per distinguere le iscrizioni da altri usi delle buste.</p>
 <p><code>OP_PUSH 1</code> indica che il prossimo push contiene il tipo di contenuto, mentre <code>OP_PUSH 0</code> indica che i successivi push di dati contengono il contenuto stesso. Per iscrizioni di grandi dimensioni è necessario utilizzare più push di dati, poiché una delle poche restrizioni di taproot è che i singoli push di dati non possono essere più grandi di 520 byte.</p>
-<p>Il contenuto dell'iscrizione è contenuto nell'input di una transazione di rivelazione e l'iscrizione viene effettuata sul primo satoshi del suo input. Questo satoshi può quindi essere rintracciato utilizzando le note regole della teoria ordinale, consentendo di trasferirlo, comprarlo, venderlo, perderlo nelle fees e recuperarlo.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="il-contenuto"><a class="header" href="#il-contenuto">Il Contenuto</a></h2>
 <p>Il modello di dati delle iscrizioni è quello di una risposta HTTP, che rende disponibile il contenuto dell'iscrizione da un server web e lo rende visualizzabile in un browser web.</p>
 <h2 id="i-campi"><a class="header" href="#i-campi">I Campi</a></h2>
