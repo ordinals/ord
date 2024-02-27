@@ -1050,7 +1050,7 @@ impl Index {
     };
 
     self
-      .get_children_by_sequence_number_paginated(sequence_number, usize::max_value(), 0)
+      .get_children_by_sequence_number_paginated(sequence_number, usize::MAX, 0)
       .map(|(children, _more)| children)
   }
 
@@ -1909,7 +1909,7 @@ impl Index {
       Some(sat) => {
         if self.index_sats {
           // unbound inscriptions should not be assigned to a sat
-          assert!(satpoint.outpoint != unbound_outpoint());
+          assert_ne!(satpoint.outpoint, unbound_outpoint());
 
           assert!(rtx
             .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
@@ -1937,7 +1937,7 @@ impl Index {
       }
       None => {
         if self.index_sats {
-          assert!(satpoint.outpoint == unbound_outpoint())
+          assert_eq!(satpoint.outpoint, unbound_outpoint())
         }
       }
     }

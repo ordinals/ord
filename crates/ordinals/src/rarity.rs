@@ -33,7 +33,7 @@ impl TryFrom<u8> for Rarity {
 }
 
 impl Display for Rarity {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(
       f,
       "{}",

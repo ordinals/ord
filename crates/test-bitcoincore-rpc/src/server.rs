@@ -180,7 +180,7 @@ impl Api for Server {
         .utxos
         .get(&OutPoint { txid, vout })
         .map(|&value| GetTxOutResult {
-          bestblock: bitcoin::BlockHash::all_zeros(),
+          bestblock: BlockHash::all_zeros(),
           confirmations: 0,
           value,
           script_pub_key: GetRawTransactionResultVoutScriptPubKey {
@@ -651,7 +651,7 @@ impl Api for Server {
     &self,
     _label: Option<String>,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+  ) -> Result<Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);

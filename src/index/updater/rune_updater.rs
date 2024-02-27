@@ -124,7 +124,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                     mint.limit.unwrap_or(runes::MAX_LIMIT)
                   }
                 } else {
-                  u128::max_value()
+                  u128::MAX
                 },
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
@@ -307,7 +307,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 mint.limit.unwrap_or(runes::MAX_LIMIT)
               }
             } else {
-              u128::max_value()
+              u128::MAX
             } - balance,
             symbol,
             timestamp: self.timestamp,
