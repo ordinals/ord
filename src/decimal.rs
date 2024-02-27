@@ -25,7 +25,7 @@ impl Decimal {
 }
 
 impl Display for Decimal {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     let magnitude = 10u128.pow(self.scale.into());
 
     let integer = self.value / magnitude;
