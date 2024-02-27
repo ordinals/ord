@@ -43,15 +43,7 @@ impl Arguments {
       );
     }
 
-    let config: Config = match &self.options.config {
-      Some(path) => serde_yaml::from_reader(File::open(path)?)?,
-      None => match &self.options.config_dir {
-        Some(dir) if dir.join("ord.yaml").exists() => {
-          serde_yaml::from_reader(File::open(dir.join("ord.yaml"))?)?
-        }
-        Some(_) | None => Default::default(),
-      },
-    };
+    let config = self.options.config()?;
 
     self
       .subcommand

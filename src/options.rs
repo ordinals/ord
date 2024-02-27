@@ -86,6 +86,30 @@ impl Options {
       .expect("failed to retrieve data dir")
   }
 
+  pub(crate) fn config(&self) -> Result<Config> {
+    let path = match &self.config {
+      Some(path) => path.clone(),
+      None => match &self.config_dir {
+        Some(dir) => {
+          let path = dir.join("ord.yaml");
+          if !path.exists() {
+            return Ok(Default::default());
+          }
+          path
+        }
+        None => return Ok(Default::default()),
+      },
+    };
+
+    serde_yaml::from_reader(
+      File::open(&path).context(anyhow!("failed to open config file `{}`", path.display()))?,
+    )
+    .context(anyhow!(
+      "failed to deserialize config file `{}`",
+      path.display()
+    ))
+  }
+
   #[cfg(test)]
   pub(crate) fn settings(self) -> Result<Settings> {
     Settings::new(self, Default::default(), Default::default())
