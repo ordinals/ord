@@ -1,7 +1,5 @@
 use super::*;
 
-pub type BlocksJson = BlocksHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlocksHtml {
   pub last: u32,
