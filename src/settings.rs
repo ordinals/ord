@@ -300,6 +300,16 @@ mod tests {
     .unwrap()
   }
 
+  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::WalletCommand) {
+    match Arguments::try_parse_from(args.split_whitespace()) {
+      Ok(arguments) => match arguments.subcommand {
+        Subcommand::Wallet(wallet) => (arguments.options, wallet),
+        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+      },
+      Err(err) => panic!("error parsing arguments: {err}"),
+    }
+  }
+
   #[test]
   fn auth_missing_rpc_pass_is_an_error() {
     assert_eq!(
@@ -812,16 +822,6 @@ mod tests {
         .chain(),
       Chain::Testnet
     );
-  }
-
-  fn parse_wallet_args(args: &str) -> (Options, subcommand::wallet::WalletCommand) {
-    match Arguments::try_parse_from(args.split_whitespace()) {
-      Ok(arguments) => match arguments.subcommand {
-        Subcommand::Wallet(wallet) => (arguments.options, wallet),
-        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
-      },
-      Err(err) => panic!("error parsing arguments: {err}"),
-    }
   }
 
   #[test]
