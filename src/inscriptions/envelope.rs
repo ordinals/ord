@@ -283,11 +283,11 @@ mod tests {
   #[test]
   fn ignore_key_path_spends() {
     assert_eq!(
-      parse(&[Witness::from_slice(&[bitcoin::script::Builder::new()
-        .push_opcode(bitcoin::opcodes::OP_FALSE)
-        .push_opcode(bitcoin::opcodes::all::OP_IF)
+      parse(&[Witness::from_slice(&[script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
         .push_slice(PROTOCOL_ID)
-        .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::all::OP_ENDIF)
         .into_script()
         .into_bytes()])]),
       Vec::new()
@@ -298,11 +298,11 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       parse(&[Witness::from_slice(&[
-        bitcoin::script::Builder::new()
-          .push_opcode(bitcoin::opcodes::OP_FALSE)
-          .push_opcode(bitcoin::opcodes::all::OP_IF)
+        script::Builder::new()
+          .push_opcode(opcodes::OP_FALSE)
+          .push_opcode(opcodes::all::OP_IF)
           .push_slice(PROTOCOL_ID)
-          .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+          .push_opcode(opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
         vec![0x50]
@@ -315,11 +315,11 @@ mod tests {
   fn parse_from_tapscript() {
     assert_eq!(
       parse(&[Witness::from_slice(&[
-        bitcoin::script::Builder::new()
-          .push_opcode(bitcoin::opcodes::OP_FALSE)
-          .push_opcode(bitcoin::opcodes::all::OP_IF)
+        script::Builder::new()
+          .push_opcode(opcodes::OP_FALSE)
+          .push_opcode(opcodes::all::OP_IF)
           .push_slice(PROTOCOL_ID)
-          .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+          .push_opcode(opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
         Vec::new()
@@ -332,11 +332,11 @@ mod tests {
 
   #[test]
   fn ignore_unparsable_scripts() {
-    let mut script_bytes = bitcoin::script::Builder::new()
-      .push_opcode(bitcoin::opcodes::OP_FALSE)
-      .push_opcode(bitcoin::opcodes::all::OP_IF)
+    let mut script_bytes = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID)
-      .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::all::OP_ENDIF)
       .into_script()
       .into_bytes();
     script_bytes.push(0x01);

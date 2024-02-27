@@ -79,10 +79,7 @@ impl Fetcher {
 
           log::info!("failed to fetch raw transactions, retrying: {}", error);
 
-          tokio::time::sleep(tokio::time::Duration::from_millis(
-            100 * u64::pow(2, retries),
-          ))
-          .await;
+          tokio::time::sleep(Duration::from_millis(100 * u64::pow(2, retries))).await;
           retries += 1;
           continue;
         }
@@ -113,7 +110,7 @@ impl Fetcher {
               .map_err(|e| anyhow!("Result for batched JSON-RPC response not valid hex: {e}"))
           })
           .and_then(|hex| {
-            bitcoin::consensus::deserialize(&hex).map_err(|e| {
+            consensus::deserialize(&hex).map_err(|e| {
               anyhow!("Result for batched JSON-RPC response not valid bitcoin tx: {e}")
             })
           })

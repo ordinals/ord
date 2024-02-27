@@ -9,7 +9,7 @@ pub enum Outgoing {
 }
 
 impl Display for Outgoing {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match self {
       Self::Amount(amount) => write!(f, "{}", amount.to_string().to_lowercase()),
       Self::InscriptionId(inscription_id) => inscription_id.fmt(f),

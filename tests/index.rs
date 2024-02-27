@@ -73,7 +73,7 @@ fn export_inscription_number_to_id_tsv() {
     .temp_dir(Arc::new(temp_dir))
     .run_and_extract_file("foo.tsv");
 
-  let entries: std::collections::BTreeMap<i64, ord::Object> = tsv
+  let entries: BTreeMap<i64, ord::Object> = tsv
     .lines()
     .filter(|line| !line.is_empty() && !line.starts_with('#'))
     .map(|line| {

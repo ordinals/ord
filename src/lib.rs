@@ -127,7 +127,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
-static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -181,7 +181,7 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
-pub fn parse_ord_server_args(args: &str) -> (Settings, crate::subcommand::server::Server) {
+pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
       Subcommand::Server(server) => (

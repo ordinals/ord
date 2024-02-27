@@ -61,8 +61,8 @@ pub enum Target {
   ExactPostage(Amount),
 }
 
-impl fmt::Display for Error {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match self {
       Error::Dust {
         output_value,
