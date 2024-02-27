@@ -36,7 +36,7 @@ impl Arguments {
         key.into(),
         value.into_string().map_err(|value| {
           anyhow!(
-            "environment variable `{var}` not valid unicode: {}",
+            "environment variable `{var}` not valid unicode: `{}`",
             value.to_string_lossy()
           )
         })?,
