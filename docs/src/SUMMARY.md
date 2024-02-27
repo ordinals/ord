@@ -16,7 +16,7 @@ Summary
 - [Donate](donate.md)
 - [Guides](guides.md)
   - [Explorer](guides/explorer.md)
-  - [Inscriptions](guides/inscriptions.md)
+  - [Wallet](guides/wallet.md)
   - [Batch Inscribing](guides/batch-inscribing.md)
   - [Sat Hunting](guides/sat-hunting.md)
   - [Teleburning](guides/teleburning.md)
