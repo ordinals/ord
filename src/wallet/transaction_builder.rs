@@ -62,7 +62,7 @@ pub enum Target {
 }
 
 impl Display for Error {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Error::Dust {
         output_value,
