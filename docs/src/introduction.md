@@ -29,7 +29,7 @@ For more details on ordinal theory, see the [overview](overview.md).
 For more details on inscriptions, see [inscriptions](inscriptions.md).
 
 When you're ready to get your hands dirty, a good place to start is with
-[inscriptions](guides/inscriptions.md), a curious species of digital artifact
+[inscriptions](guides/wallet.md), a curious species of digital artifact
 enabled by ordinal theory.
 
 Links

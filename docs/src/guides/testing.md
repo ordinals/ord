@@ -4,7 +4,7 @@ Testing
 Ord can be tested using the following flags to specify the test network. For more
 information on running Bitcoin Core for testing, see [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html).
 
-Most `ord` commands in [inscriptions](inscriptions.md) and [explorer](explorer.md)
+Most `ord` commands in [wallet](wallet.md) and [explorer](explorer.md)
 can be run with the following network flags:
 
 | Network | Flag |
