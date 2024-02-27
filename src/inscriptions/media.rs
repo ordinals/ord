@@ -38,11 +38,11 @@ impl Display for Language {
       f,
       "{}",
       match self {
-        Self::Css => "css",
-        Self::JavaScript => "javascript",
-        Self::Json => "json",
-        Self::Python => "python",
-        Self::Yaml => "yaml",
+        Css => "css",
+        JavaScript => "javascript",
+        Json => "json",
+        Python => "python",
+        Yaml => "yaml",
       }
     )
   }
@@ -60,8 +60,8 @@ impl Display for ImageRendering {
       f,
       "{}",
       match self {
-        Self::Auto => "auto",
-        Self::Pixelated => "pixelated",
+        Auto => "auto",
+        Pixelated => "pixelated",
       }
     )
   }
