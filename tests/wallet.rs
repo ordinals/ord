@@ -1,5 +1,6 @@
 use super::*;
 
+mod authentication;
 mod balance;
 mod cardinals;
 mod create;

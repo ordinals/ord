@@ -1,12 +1,11 @@
 use super::*;
 
-pub type StatusJson = StatusHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StatusHtml {
   pub blessed_inscriptions: u64,
-  pub cursed_inscriptions: u64,
   pub chain: Chain,
+  pub content_type_counts: Vec<(Option<Vec<u8>>, u64)>,
+  pub cursed_inscriptions: u64,
   pub height: Option<u32>,
   pub inscriptions: u64,
   pub lost_sats: u64,

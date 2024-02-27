@@ -20,27 +20,6 @@ pub(crate) struct InscriptionHtml {
   pub(crate) charms: u16,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InscriptionJson {
-  pub address: Option<String>,
-  pub charms: Vec<String>,
-  pub children: Vec<InscriptionId>,
-  pub content_length: Option<usize>,
-  pub content_type: Option<String>,
-  pub genesis_fee: u64,
-  pub genesis_height: u32,
-  pub inscription_id: InscriptionId,
-  pub inscription_number: i32,
-  pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
-  pub parent: Option<InscriptionId>,
-  pub previous: Option<InscriptionId>,
-  pub rune: Option<SpacedRune>,
-  pub sat: Option<Sat>,
-  pub satpoint: SatPoint,
-  pub timestamp: i64,
-}
-
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.inscription_number)
@@ -249,7 +228,11 @@ mod tests {
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>parent</dt>
-          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+            </div>
+          </dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>

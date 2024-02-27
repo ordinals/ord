@@ -74,9 +74,9 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let utxos = wallet.get_unspent_outputs()?;
+    let utxos = wallet.utxos();
 
-    let mut locked_utxos = wallet.get_locked_outputs()?;
+    let mut locked_utxos = wallet.locked_utxos().clone();
 
     let runic_utxos = wallet.get_runic_outputs()?;
 
@@ -91,7 +91,7 @@ impl Inscribe {
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = wallet.get_parent_info(self.parent, &utxos)?;
+        parent_info = wallet.get_parent_info(self.parent)?;
 
         postages = vec![self.postage.unwrap_or(TARGET_POSTAGE)];
 
@@ -123,7 +123,7 @@ impl Inscribe {
         }];
 
         if let Some(sat) = self.sat {
-          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+          Some(wallet.find_sat_in_outputs(sat)?)
         } else {
           self.satpoint
         }
@@ -131,11 +131,11 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = wallet.get_parent_info(batchfile.parent, &utxos)?;
+        parent_info = wallet.get_parent_info(batchfile.parent)?;
 
         (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,
-          &utxos,
+          utxos,
           parent_info.as_ref().map(|info| info.tx_out.value),
           self.compress,
         )?;
@@ -143,13 +143,13 @@ impl Inscribe {
         locked_utxos.extend(
           reveal_satpoints
             .iter()
-            .map(|(satpoint, _)| satpoint.outpoint),
+            .map(|(satpoint, txout)| (satpoint.outpoint, txout.clone())),
         );
 
         mode = batchfile.mode;
 
         if let Some(sat) = batchfile.sat {
-          Some(wallet.find_sat_in_outputs(sat, &utxos)?)
+          Some(wallet.find_sat_in_outputs(sat)?)
         } else {
           batchfile.satpoint
         }
@@ -172,7 +172,12 @@ impl Inscribe {
       reveal_satpoints,
       satpoint,
     }
-    .inscribe(&locked_utxos, runic_utxos, &utxos, &wallet)
+    .inscribe(
+      &locked_utxos.into_keys().collect(),
+      runic_utxos,
+      utxos,
+      &wallet,
+    )
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
