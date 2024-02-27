@@ -794,8 +794,6 @@ impl Api for Server {
     assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
-    let state = self.state();
-
     let mut psbt = Psbt::deserialize(
       &base64::engine::general_purpose::STANDARD
         .decode(psbt)
@@ -805,7 +803,8 @@ impl Api for Server {
 
     for (i, txin) in psbt.unsigned_tx.input.iter().enumerate() {
       psbt.inputs[i].witness_utxo = Some(
-        state
+        self
+          .state()
           .transactions
           .get(&txin.previous_output.txid)
           .unwrap()
