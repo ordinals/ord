@@ -60,16 +60,15 @@ impl Batch {
       let commit_psbt = wallet
         .bitcoin_client()
         .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD.encode(
-            Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone())?)?.serialize(),
-          ),
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize()),
           Some(false),
           None,
           None,
         )?
         .psbt;
 
-      let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone())?)?;
+      let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
 
       return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
@@ -142,12 +141,12 @@ impl Batch {
     ))))
   }
 
-  fn remove_witnesses(mut transaction: Transaction) -> Result<Transaction> {
+  fn remove_witnesses(mut transaction: Transaction) -> Transaction {
     for txin in transaction.input.iter_mut() {
       txin.witness = Witness::new();
     }
 
-    Ok(transaction)
+    transaction
   }
 
   fn output(
