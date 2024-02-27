@@ -2,8 +2,9 @@ Ordinal Explorer
 ================
 
 The `ord` binary includes a block explorer. We host an instance of the block
-explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
-[signet.ordinals.com](https://signet.ordinals.com). As of version 0.16.0 the
+explorer on mainnet at [ordinals.com](https://ordinals.com), on signet at
+[signet.ordinals.com](https://signet.ordinals.com) and on testnet at
+[testnet.ordinals.com](https://testnet.ordinals.com). As of version 0.16.0 the
 wallet needs `ord server` to run in the background. This is analogue to how
 `bitcoind` and `bitcoin-cli` work.
 
