@@ -228,7 +228,11 @@ mod tests {
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>parent</dt>
-          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+            </div>
+          </dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
