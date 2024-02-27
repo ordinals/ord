@@ -18,6 +18,8 @@ with default values.
 All settings can be configured with command line options, but not all settings
 can yet be configured with environmnet variables or a configuration file.
 
+`ord`'s configuration can be viewd as JSON with `ord settings`.
+
 | setting | CLI | environment variable | default value |
 | --- | --- | --- | --- |
 | bitcoin RPC password | `--bitcoin-rpc-pass <PASSWORD>` | `ORD_BITCOIN_RPC_PASS` | none |
