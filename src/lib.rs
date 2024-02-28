@@ -23,6 +23,7 @@ use {
     },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
+    settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -93,13 +94,12 @@ mod test;
 use self::test::*;
 
 macro_rules! tprintln {
-    ($($arg:tt)*) => {
-
-      if cfg!(test) {
-        eprint!("==> ");
-        eprintln!($($arg)*);
-      }
-    };
+  ($($arg:tt)*) => {
+    if cfg!(test) {
+      eprint!("==> ");
+      eprintln!($($arg)*);
+    }
+  };
 }
 
 pub mod api;
@@ -117,6 +117,7 @@ pub mod outgoing;
 mod representation;
 pub mod runes;
 mod server_config;
+mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
@@ -165,12 +166,6 @@ fn fund_raw_transaction(
   )
 }
 
-fn integration_test() -> bool {
-  env::var_os("ORD_INTEGRATION_TEST")
-    .map(|value| value.len() > 0)
-    .unwrap_or(false)
-}
-
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
@@ -186,10 +181,20 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
-pub fn parse_ord_server_args(args: &str) -> (Options, subcommand::server::Server) {
+pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
-      Subcommand::Server(server) => (arguments.options, server),
+      Subcommand::Server(server) => (
+        Settings::new(
+          arguments.options,
+          vec![("INTEGRATION_TEST".into(), "1".into())]
+            .into_iter()
+            .collect(),
+          Default::default(),
+        )
+        .unwrap(),
+        server,
+      ),
       subcommand => panic!("unexpected subcommand: {subcommand:?}"),
     },
     Err(err) => panic!("error parsing arguments: {err}"),

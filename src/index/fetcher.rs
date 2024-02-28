@@ -25,18 +25,18 @@ struct JsonError {
 }
 
 impl Fetcher {
-  pub(crate) fn new(options: &Options) -> Result<Self> {
+  pub(crate) fn new(settings: &Settings) -> Result<Self> {
     let client = Client::new();
 
-    let url = if options.rpc_url(None).starts_with("http://") {
-      options.rpc_url(None)
+    let url = if settings.rpc_url(None).starts_with("http://") {
+      settings.rpc_url(None)
     } else {
-      "http://".to_string() + &options.rpc_url(None)
+      "http://".to_string() + &settings.rpc_url(None)
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
-    let (user, password) = options.auth()?.get_user_pass()?;
+    let (user, password) = settings.auth()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
     let auth = format!(
       "Basic {}",
