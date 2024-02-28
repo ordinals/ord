@@ -190,6 +190,7 @@ impl Server {
         .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
+        .route("/carbonado/:key/:hash", get(Self::carbonado))
         .route("/children/:inscription_id", get(Self::children))
         .route(
           "/children/:inscription_id/:page",
@@ -1189,6 +1190,26 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  async fn carbonado(
+    (Path(key), Path(hash)): (Path<String>, Path<String>),
+  ) -> ServerResult<Response> {
+    let endpoint: String =
+      std::env::var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
+    let res = reqwest::get(format!("{endpoint}/{key}/{hash}"))
+      .await
+      .map_err(|err| ServerError::Internal(err.into()))?;
+    let bytes = res
+      .bytes()
+      .await
+      .map_err(|err| ServerError::Internal(err.into()))?
+      .to_vec();
+    let response = Response::builder()
+      .body(body::boxed(body::Full::from(bytes)))
+      .map_err(|err| ServerError::Internal(err.into()))?;
+
+    Ok(response)
   }
 
   async fn content(
