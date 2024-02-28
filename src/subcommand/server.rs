@@ -1748,12 +1748,9 @@ mod tests {
   #[derive(Default)]
   struct Builder {
     bitcoin_rpc_server: Option<test_bitcoincore_rpc::Handle>,
-    chain: Option<Chain>,
-    config: Config,
-    https: bool,
-    index_runes: bool,
-    index_sats: bool,
-    redirect_http_to_https: bool,
+    config: String,
+    ord_args: BTreeMap<String, Option<String>>,
+    server_args: BTreeMap<String, Option<String>>,
   }
 
   impl Builder {
@@ -1764,21 +1761,43 @@ mod tests {
       }
     }
 
-    fn chain(self, chain: Chain) -> Self {
-      Self {
-        chain: Some(chain),
-        ..self
-      }
+    fn ord_option(mut self, option: &str, value: &str) -> Self {
+      self.ord_args.insert(option.into(), Some(value.into()));
+      self
     }
 
-    fn config(self, config: Config) -> Self {
-      Self { config, ..self }
+    fn ord_flag(mut self, flag: &str) -> Self {
+      self.ord_args.insert(flag.into(), None);
+      self
+    }
+
+    fn server_flag(mut self, flag: &str) -> Self {
+      self.server_args.insert(flag.into(), None);
+      self
+    }
+
+    fn chain(self, chain: Chain) -> Self {
+      self.ord_option("--chain", &chain.to_string())
+    }
+
+    fn config(self, config: &str) -> Self {
+      Self {
+        config: config.into(),
+        ..self
+      }
     }
 
     fn build(self) -> TestServer {
       let bitcoin_rpc_server = self.bitcoin_rpc_server.unwrap_or_else(|| {
         test_bitcoincore_rpc::builder()
-          .network(self.chain.unwrap_or_default().network())
+          .network(
+            self
+              .ord_args
+              .get("--chain")
+              .map(|chain| chain.as_ref().unwrap().parse::<Chain>().unwrap())
+              .unwrap_or_default()
+              .network(),
+          )
           .build()
       });
 
@@ -1794,38 +1813,58 @@ mod tests {
         .unwrap()
         .port();
 
-      let options = Options {
-        index_sats: self.index_sats,
-        index_runes: self.index_runes,
-        rpc_url: Some(bitcoin_rpc_server.url()),
-        cookie_file: Some(cookiefile),
-        data_dir: tempdir.path().into(),
-        chain_argument: Some(
-          self
-            .chain
-            .unwrap_or_else(|| bitcoin_rpc_server.network().parse().unwrap()),
-        ),
-        ..Default::default()
+      let mut args = vec!["ord".to_string()];
+
+      args.push("--rpc-url".into());
+      args.push(bitcoin_rpc_server.url());
+
+      args.push("--cookie-file".into());
+      args.push(cookiefile.to_str().unwrap().into());
+
+      args.push("--data-dir".into());
+      args.push(tempdir.path().to_str().unwrap().into());
+
+      if !self.ord_args.contains_key("--chain") {
+        args.push("--chain".into());
+        args.push(bitcoin_rpc_server.network());
+      }
+
+      for (arg, value) in self.ord_args {
+        args.push(arg);
+
+        if let Some(value) = value {
+          args.push(value);
+        }
+      }
+
+      args.push("server".into());
+
+      args.push("--address".into());
+      args.push("127.0.0.1".into());
+
+      args.push("--http-port".into());
+      args.push(port.to_string());
+
+      args.push("--polling-interval".into());
+      args.push("100ms".into());
+
+      for (arg, value) in self.server_args {
+        args.push(arg);
+
+        if let Some(value) = value {
+          args.push(value);
+        }
+      }
+
+      let arguments = Arguments::try_parse_from(args).unwrap();
+
+      let Subcommand::Server(server) = arguments.subcommand else {
+        panic!("unexpected subcommand: {:?}", arguments.subcommand);
       };
 
-      let server = Server {
-        acme_cache: None,
-        acme_contact: Vec::new(),
-        acme_domain: Vec::new(),
-        address: Some("127.0.0.1".into()),
-        csp_origin: None,
-        decompress: false,
-        disable_json_api: false,
-        http: false,
-        http_port: Some(port),
-        https: self.https,
-        https_port: None,
-        no_sync: false,
-        polling_interval: Duration::from_millis(100).into(),
-        redirect_http_to_https: self.redirect_http_to_https,
-      };
+      let config = serde_yaml::from_str(&self.config).unwrap();
 
-      let settings = Settings::new(options, Default::default(), self.config).unwrap();
+      let settings = Settings::new(arguments.options, Default::default(), config).unwrap();
 
       let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
@@ -1868,31 +1907,19 @@ mod tests {
     }
 
     fn https(self) -> Self {
-      Self {
-        https: true,
-        ..self
-      }
+      self.server_flag("--https")
     }
 
     fn index_runes(self) -> Self {
-      Self {
-        index_runes: true,
-        ..self
-      }
+      self.ord_flag("--index-runes")
     }
 
     fn index_sats(self) -> Self {
-      Self {
-        index_sats: true,
-        ..self
-      }
+      self.ord_flag("--index-sats")
     }
 
     fn redirect_http_to_https(self) -> Self {
-      Self {
-        redirect_http_to_https: true,
-        ..self
-      }
+      self.server_flag("--redirect-http-to-https")
     }
   }
 
@@ -5527,10 +5554,7 @@ next
 
     let server = TestServer::builder()
       .bitcoin_rpc_server(bitcoin_rpc_server)
-      .config(Config {
-        hidden: Some(vec![inscription].into_iter().collect()),
-        ..Default::default()
-      })
+      .config(&format!("hidden: [{inscription}]"))
       .build();
 
     server.assert_response_regex(format!("/inscription/{inscription}"), StatusCode::OK, ".*");
