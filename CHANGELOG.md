@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[0.16.0-rc1](https://github.com/ordinals/ord/releases/tag/0.16.0-rc1) - 2023-02-27
+----------------------------------------------------------------------------------
+
+## Skill Issue
+
+- Update ordinals crate (#3184)
+- Refactor test server to use arguments (#3183)
+
 [0.16.0-rc0](https://github.com/ordinals/ord/releases/tag/0.16.0-rc0) - 2023-02-27
 ----------------------------------------------------------------------------------
 
