@@ -1564,6 +1564,19 @@ ord index update
 </code></pre>
 <p>Indicating that <code>0xe43A06530BdF8A4e067581f48Fae3b535559dA9e</code> is the Ethereum teleburn address for inscription zero, which is, indeed, the current owner, on Ethereum, of <code>rodarmor.eth</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="التجارب"><a class="header" href="#التجارب">التجارب</a></h1>
+<h2 id="test-environment"><a class="header" href="#test-environment">Test Environment</a></h2>
+<p><code>ord env &lt;DIRECTORY&gt;</code> creates a test environment in <code>&lt;DIRECTORY&gt;</code>, spins up <code>bitcoind</code> and <code>ord server</code> instances, prints example commands for interacting with the test <code>bitcoind</code> and <code>ord server</code> instances, waits for <code>CTRL-C</code>, and then shuts down <code>bitcoind</code> and <code>ord server</code>.</p>
+<p><code>ord env</code> tries to use port 9000 for <code>bitcoind</code>'s RPC interface, and port <code>9001</code> for <code>ord</code>'s RPC interface, but will fall back to random unused ports.</p>
+<p>Inside of the env directory, <code>ord env</code> will write <code>bitcoind</code>'s configuration to <code>bitcoin.conf</code>, and the env configuration to <code>env.json</code>.</p>
+<p><code>env.json</code> contains the commands needed to invoke <code>bitcoin-cli</code> and <code>ord wallet</code>, as well as the ports <code>bitcoind</code> and <code>ord server</code> are listening on.</p>
+<p>These can be extracted into shell commands using <code>jq</code>:</p>
+<pre><code class="language-shell">bitcoin=`jq -r '.bitcoin_cli_command | join(" ")' env/env.json`
+$bitcoin listunspent
+
+ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
+$ord outputs
+</code></pre>
+<h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>يمكن اختبار Ord باستخدام الأعلام التالية لتحديد شبكة الاختبار. لمزيد من المعلومات حول تشغيل Bitcoin Core لأغراض الاختبار، انظر <a href="https://developer.bitcoin.org/examples/testing.html">Bitcoin's developer documentation</a>.</p>
 <p>Most <code>ord</code> commands in <a href="guides/wallet.html">wallet</a> and <a href="guides/explorer.html">explorer</a> can be run with the following network flags:</p>
 <div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
