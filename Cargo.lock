@@ -2185,7 +2185,7 @@ dependencies = [
  "miniscript",
  "mp4",
  "ord-bitcoincore-rpc",
- "ordinals 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ordinals",
  "pretty_assertions",
  "pulldown-cmark",
  "redb",
@@ -2243,18 +2243,6 @@ dependencies = [
  "derive_more",
  "serde",
  "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "ordinals"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "996a950124891e23d7dea97f968be6c69d7f310120b8430d351bfb6ac2f08dbe"
-dependencies = [
- "bitcoin",
- "derive_more",
- "serde",
  "thiserror",
 ]
 
