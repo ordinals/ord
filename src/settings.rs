@@ -10,6 +10,7 @@ pub struct Settings {
   pub(crate) credentials: Option<(String, String)>,
   pub(crate) data_dir: PathBuf,
   pub(crate) db_cache_size: Option<usize>,
+  pub(crate) commit_interval: usize,
   pub(crate) first_inscription_height: Option<u32>,
   pub(crate) height_limit: Option<u32>,
   pub(crate) hidden: HashSet<InscriptionId>,
@@ -86,6 +87,7 @@ impl Settings {
       credentials: options.username.zip(options.password),
       data_dir: options.data_dir,
       db_cache_size: options.db_cache_size,
+      commit_interval: options.commit_interval,
       first_inscription_height: options.first_inscription_height,
       height_limit: options.height_limit,
       hidden: config.hidden.unwrap_or_default(),
@@ -849,6 +851,13 @@ mod tests {
       Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "update"])
         .unwrap();
     assert_eq!(arguments.options.db_cache_size, Some(16000000000));
+  }
+
+  #[test]
+  fn setting_commit_interval() {
+    let arguments =
+      Arguments::try_parse_from(["ord", "--commit-interval", "500", "index", "update"]).unwrap();
+    assert_eq!(arguments.options.commit_interval, 500);
   }
 
   #[test]
