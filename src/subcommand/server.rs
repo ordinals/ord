@@ -32,7 +32,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, io::Read, str, sync::Arc},
+  std::{cmp::Ordering, env::var, io::Read, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -1201,11 +1201,9 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounty/")
   }
 
-  async fn carbonado(
-    (Path(key), Path(hash)): (Path<String>, Path<String>),
-  ) -> ServerResult<Response> {
+  async fn carbonado(Path((key, hash)): Path<(String, String)>) -> ServerResult<Response> {
     let endpoint: String =
-      std::env::var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
+      var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
     let res = reqwest::get(format!("{endpoint}/{key}/{hash}"))
       .await
       .map_err(|err| ServerError::Internal(err.into()))?;
@@ -1266,11 +1264,11 @@ impl Server {
         );
         headers.append(
           header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
+          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/carbonado/ *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
         );
       }
       Some(origin) => {
-        let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+        let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/carbonado/ {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
         headers.insert(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
