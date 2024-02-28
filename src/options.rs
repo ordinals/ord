@@ -33,7 +33,7 @@ pub struct Options {
   #[arg(
     long,
     default_value = "5000",
-    help = "Commit index every <COMMIT_INTERVAL> blocks."
+    help = "Commit to index every <COMMIT_INTERVAL> blocks."
   )]
   pub(crate) commit_interval: usize,
   #[arg(
