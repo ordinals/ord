@@ -6,7 +6,7 @@ Test Environment
 
 `ord env <DIRECTORY>` creates a test environment in `<DIRECTORY>`, spins up
 `bitcoind` and `ord server` instances, prints example commands for interacting
-with the test `bitcoind` and `ord server instances`, waits for `CTRL-C`, and
+with the test `bitcoind` and `ord server` instances, waits for `CTRL-C`, and
 then shuts down `bitcoind` and `ord server`.
 
 `ord env` tries to use port 9000 for `bitcoind`'s RPC interface, and port
