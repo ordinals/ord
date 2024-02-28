@@ -1,10 +1,40 @@
 Testing
 =======
 
+Test Environment
+----------------
+
+`ord env <DIRECTORY>` creates a test environment in `<DIRECTORY>`, spins up
+`bitcoind` and `ord server` instances, prints example commands for interacting
+with the test `bitcoind` and `ord server` instances, waits for `CTRL-C`, and
+then shuts down `bitcoind` and `ord server`.
+
+`ord env` tries to use port 9000 for `bitcoind`'s RPC interface, and port
+`9001` for `ord`'s RPC interface, but will fall back to random unused ports.
+
+Inside of the env directory, `ord env` will write `bitcoind`'s configuration to
+`bitcoin.conf`, and the env configuration to `env.json`.
+
+`env.json` contains the commands needed to invoke `bitcoin-cli` and `ord
+wallet`, as well as the ports `bitcoind` and `ord server` are listening on.
+
+These can be extracted into shell commands using `jq`:
+
+```shell
+bitcoin=`jq -r '.bitcoin_cli_command | join(" ")' env/env.json`
+$bitcoin listunspent
+
+ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
+$ord outputs
+```
+
+Test Networks
+-------------
+
 Ord can be tested using the following flags to specify the test network. For more
 information on running Bitcoin Core for testing, see [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html).
 
-Most `ord` commands in [inscriptions](inscriptions.md) and [explorer](explorer.md)
+Most `ord` commands in [wallet](wallet.md) and [explorer](explorer.md)
 can be run with the following network flags:
 
 | Network | Flag |

@@ -108,3 +108,34 @@ impl Display for Chain {
     )
   }
 }
+
+impl FromStr for Chain {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "mainnet" => Ok(Self::Mainnet),
+      "regtest" => Ok(Self::Regtest),
+      "signet" => Ok(Self::Signet),
+      "testnet" => Ok(Self::Testnet),
+      _ => bail!("invalid chain `{s}`"),
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn from_str() {
+    assert_eq!("mainnet".parse::<Chain>().unwrap(), Chain::Mainnet);
+    assert_eq!("regtest".parse::<Chain>().unwrap(), Chain::Regtest);
+    assert_eq!("signet".parse::<Chain>().unwrap(), Chain::Signet);
+    assert_eq!("testnet".parse::<Chain>().unwrap(), Chain::Testnet);
+    assert_eq!(
+      "foo".parse::<Chain>().unwrap_err().to_string(),
+      "invalid chain `foo`"
+    );
+  }
+}

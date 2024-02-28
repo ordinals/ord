@@ -2150,7 +2150,7 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "ord"
-version = "0.15.0"
+version = "0.16.0-rc1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2237,7 +2237,7 @@ dependencies = [
 
 [[package]]
 name = "ordinals"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bitcoin",
  "derive_more",

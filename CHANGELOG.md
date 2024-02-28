@@ -1,6 +1,96 @@
 Changelog
 =========
 
+[0.16.0-rc1](https://github.com/ordinals/ord/releases/tag/0.16.0-rc1) - 2023-02-27
+----------------------------------------------------------------------------------
+
+## Skill Issue
+
+- Update ordinals crate (#3184)
+- Refactor test server to use arguments (#3183)
+
+[0.16.0-rc0](https://github.com/ordinals/ord/releases/tag/0.16.0-rc0) - 2023-02-27
+----------------------------------------------------------------------------------
+
+## Added
+
+- Print PSBT for dry run inscribe (#3116)
+- Add parent preview to inscription page (#3163)
+- Add `/r/inscription` endpoint for getting inscription details (#2628)
+- Add optional HTTP authentication for server (#3131)
+- Display inscription content type counts on /status (#3127)
+- Add `ord env` to spin up a test bitcoin daemon and ord server (#3146)
+- Emit inscription update events to channel (#3137)
+- Allow inscribing AVIF images (#3123)
+- Add `satpoints` batch inscribe mode (#3115)
+- Import multiple descriptors at a time (#3091)
+- Add /r/blockinfo endpoint (#3075)
+- Return signed PSBT from `ord wallet send` (#3093)
+- Allow specifying satpoint in `same-sat` batch inscribe (#3100)
+- Use a flag to indicate a mint (#3068)
+- Add dry run to send, print Outgoing and PSBT (#3063)
+- Add /runes/balances (#2978)
+- Dump and restore wallet from descriptors (#3048)
+- Enable JSON API by default (#3047)
+- Make wallet communicate with index via RPC (#2929)
+- Inscribe with delegate (#3021)
+- Add blocks and transaction JSON endpoints (#3004)
+- Add option to retain sat index for spent outputs (#2999)
+- Add minimal Dockerfile (#2786)
+- Add `indexed` to output JSON (#2971)
+- Use `image-rendering: auto` for AVIF inscriptions (#3148)
+- Use `image-rendering: auto` when downscaling images (#3144)
+
+## Changed
+
+- Represent rune IDs as `BLOCK:TX` (#3165)
+- Display parent above metadata on /inscription (#3160)
+- Improve configuration (#3156)
+- Make wallet async (#3142)
+- Only allow mnemonic from stdin (#3023)
+- Show reinscriptions in `ord wallet inscriptions` (#3101)
+- Forbid destinations in same-sat mode (#3038)
+
+## Documentation
+
+- Document `ord env` (#3180)
+- Update docs to reflect wallet changes (#3179)
+- Update inscription sat documentation (#3114)
+- Exclude unnecessary docs (#3043)
+- Add documentation for reinscriptions (#2963)
+- Use --name instead of --wallet in README (#3010)
+
+## Misc
+
+- Install openssl in docker image (#3181)
+- Remove unnecessary lifetime from Formatter (#3178)
+- Fix lints (#3124)
+- Move JSON structs into api module (#3167)
+- Make `ord env` more user friendly (#3153)
+- Make Options public (#3138)
+- Fix spelling mistake in bip.mediawiki (#3118)
+- fix naming (#3112)
+- Move sat and friends into ordinals crate (#3079)
+- Remove index parameter from index_block (#3088)
+- Make clippy stop complaining about insane repair callback (#3104)
+- Use min instead of clamp (#3081)
+- [ordinals] Bump version: 0.0.1 → 0.0.2 (#3078)
+- Move SatPoint into library (#3077)
+- Make invariant message more concise (#3029)
+- Better wallet error messages (#3041)
+- Remove uneccessary allocations in Inscription Script Creation (#3039)
+- Test fee-spent inscription numbering (#3032)
+- Break deploy recipes into multiple lines (#3026)
+- Use untyped table API to get table info (#2747)
+- Hide BVM Network inscriptions (#3012)
+- Don't use browser sniffing when serving favicon (#3003)
+- Cache less aggressively (#3002)
+- Remove dead link from README (#3000)
+- Add crate to audit content security policy (#2993)
+- Optimize get_inscription_ids_by_sat_paginated (#2996)
+- Suppress empty command output (#2995)
+- Add recipe to deploy to all servers in fleet (#2992)
+
 [0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2023-01-08
 --------------------------------------------------------------------------
 

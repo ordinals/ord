@@ -1,5 +1,7 @@
 # Example Config
 
+chain: mainnet
+
 # use username `bar` and password `foo` for bitcoind RPC calls
 bitcoin_rpc_user: bar
 bitcoin_rpc_pass: foo

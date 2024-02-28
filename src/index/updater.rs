@@ -31,30 +31,17 @@ impl From<Block> for BlockData {
 }
 
 pub(crate) struct Updater<'index> {
-  range_cache: HashMap<OutPointValue, Vec<u8>>,
-  height: u32,
-  index: &'index Index,
-  sat_ranges_since_flush: u64,
-  outputs_cached: u64,
-  outputs_inserted_since_flush: u64,
-  outputs_traversed: u64,
+  pub(super) height: u32,
+  pub(super) index: &'index Index,
+  pub(super) outputs_cached: u64,
+  pub(super) outputs_inserted_since_flush: u64,
+  pub(super) outputs_traversed: u64,
+  pub(super) range_cache: HashMap<OutPointValue, Vec<u8>>,
+  pub(super) sat_ranges_since_flush: u64,
 }
 
-impl<'index> Updater<'_> {
-  pub(crate) fn new(index: &'index Index) -> Result<Updater<'index>> {
-    Ok(Updater {
-      range_cache: HashMap::new(),
-      height: index.block_count()?,
-      index,
-      sat_ranges_since_flush: 0,
-      outputs_cached: 0,
-      outputs_inserted_since_flush: 0,
-      outputs_traversed: 0,
-    })
-  }
-
-  pub(crate) fn update_index(&mut self) -> Result {
-    let mut wtx = self.index.begin_write()?;
+impl<'index> Updater<'index> {
+  pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
 
     wtx
@@ -70,7 +57,7 @@ impl<'index> Updater<'_> {
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
-      || integration_test()
+      || self.index.settings.integration_test
     {
       None
     } else {
@@ -84,7 +71,7 @@ impl<'index> Updater<'_> {
 
     let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
 
-    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(self.index)?;
+    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(&self.index.settings)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
@@ -120,7 +107,7 @@ impl<'index> Updater<'_> {
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
-          .and_then(|result| result.ok())
+          .transpose()?
           .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0);
         if height != self.height {
@@ -164,7 +151,7 @@ impl<'index> Updater<'_> {
 
     let height_limit = index.height_limit;
 
-    let client = index.options.bitcoin_rpc_client(None)?;
+    let client = index.settings.bitcoin_rpc_client(None)?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -240,8 +227,8 @@ impl<'index> Updater<'_> {
     }
   }
 
-  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.options)?;
+  fn spawn_fetcher(settings: &Settings) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
+    let fetcher = Fetcher::new(settings)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
@@ -257,7 +244,7 @@ impl<'index> Updater<'_> {
     // else runs a request, we keep this to 12.
     const PARALLEL_REQUESTS: usize = 12;
 
-    std::thread::spawn(move || {
+    thread::spawn(move || {
       let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
@@ -339,7 +326,7 @@ impl<'index> Updater<'_> {
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     let index_inscriptions = self.height >= self.index.first_inscription_height
-      && !self.index.options.no_index_inscriptions;
+      && !self.index.settings.no_index_inscriptions;
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -415,7 +402,7 @@ impl<'index> Updater<'_> {
     let next_sequence_number = sequence_number_to_inscription_entry
       .iter()?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
 
@@ -423,7 +410,7 @@ impl<'index> Updater<'_> {
 
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
-      chain: self.index.options.chain(),
+      chain: self.index.settings.chain(),
       content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
       event_sender: self.index.event_sender.as_ref(),
@@ -583,7 +570,7 @@ impl<'index> Updater<'_> {
       &inscription_updater.unbound_inscriptions,
     )?;
 
-    if self.index.index_runes && self.height >= self.index.options.first_rune_height() {
+    if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
@@ -599,7 +586,7 @@ impl<'index> Updater<'_> {
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
-        minimum: Rune::minimum_at_height(self.index.options.chain(), Height(self.height)),
+        minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,

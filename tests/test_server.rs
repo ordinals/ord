@@ -7,8 +7,6 @@ use {
 };
 
 pub(crate) struct TestServer {
-  #[allow(unused)]
-  index: Arc<Index>,
   bitcoin_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
@@ -47,7 +45,7 @@ impl TestServer {
       .unwrap()
       .port();
 
-    let (options, server) = parse_ord_server_args(&format!(
+    let (settings, server) = parse_ord_server_args(&format!(
       "ord --rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
       bitcoin_rpc_server.url(),
       cookiefile.to_str().unwrap(),
@@ -57,13 +55,13 @@ impl TestServer {
       ord_server_args.join(" "),
     ));
 
-    let index = Arc::new(Index::open(&options).unwrap());
+    let index = Arc::new(Index::open(&settings).unwrap());
     let ord_server_handle = Handle::new();
 
     {
       let index = index.clone();
       let ord_server_handle = ord_server_handle.clone();
-      thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+      thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
     }
 
     for i in 0.. {
@@ -80,7 +78,6 @@ impl TestServer {
     }
 
     Self {
-      index,
       bitcoin_rpc_url: bitcoin_rpc_server.url(),
       ord_server_handle,
       port,
