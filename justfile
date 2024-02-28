@@ -196,3 +196,6 @@ coverage:
 
 benchmark-server:
   cargo bench --bench server
+
+update-contributors:
+  cargo run --release --package update-contributors
