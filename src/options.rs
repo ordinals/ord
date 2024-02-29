@@ -32,6 +32,12 @@ pub struct Options {
   pub(crate) db_cache_size: Option<usize>,
   #[arg(
     long,
+    default_value = "5000",
+    help = "Commit to index every <COMMIT_INTERVAL> blocks."
+  )]
+  pub(crate) commit_interval: usize,
+  #[arg(
+    long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
   pub(crate) first_inscription_height: Option<u32>,

@@ -98,7 +98,7 @@ impl<'index> Updater<'index> {
 
       uncommitted += 1;
 
-      if uncommitted == 5000 {
+      if uncommitted == self.index.settings.commit_interval {
         self.commit(wtx, value_cache)?;
         value_cache = HashMap::new();
         uncommitted = 0;
