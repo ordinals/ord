@@ -131,26 +131,6 @@ impl TestServer {
       .unwrap()
   }
 
-  // pub(crate) fn sync_server(&self) {
-  //   let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
-  //   let chain_block_count = client.get_block_count().unwrap() + 1;
-
-  //   for i in 0.. {
-  //     let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
-
-  //     assert_eq!(response.status(), StatusCode::OK);
-
-  //     let ord_height = response.text().unwrap().parse::<u64>().unwrap();
-
-  //     if ord_height >= chain_block_count {
-  //       break;
-  //     } else if i == 20 {
-  //       panic!("index failed to synchronize with chain");
-  //     }
-  //     thread::sleep(Duration::from_millis(50));
-  //   }
-  // }
-
   pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
