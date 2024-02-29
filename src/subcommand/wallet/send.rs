@@ -66,6 +66,14 @@ impl Send {
         self.fee_rate,
         false,
       )?,
+      Outgoing::Sat(sat) => Self::create_unsigned_send_sat_transaction(
+        &wallet,
+        address,
+        sat,
+        self.postage,
+        self.fee_rate,
+        true,
+      )?,
     };
 
     let unspent_outputs = wallet.utxos();
@@ -228,6 +236,25 @@ impl Send {
         postage,
       )
       .build_transaction()?,
+    )
+  }
+
+  fn create_unsigned_send_sat_transaction(
+    wallet: &Wallet,
+    destination: Address,
+    sat: Sat,
+    postage: Option<Amount>,
+    fee_rate: FeeRate,
+    sending_inscription: bool,
+  ) -> Result<Transaction> {
+    let satpoint = wallet.find_sat_in_outputs(sat)?;
+    Self::create_unsigned_send_satpoint_transaction(
+      wallet,
+      destination,
+      satpoint,
+      postage,
+      fee_rate,
+      sending_inscription,
     )
   }
 
