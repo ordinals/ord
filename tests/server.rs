@@ -17,18 +17,22 @@ fn run() {
 
   let mut child = command.spawn().unwrap();
 
-  for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
-      if response.status() == 200 {
-        break;
+  let mut attempts = 0;
+  let max_attempts = 100;
+  let mut backoff = 25;
+
+  while attempts < max_attempts {
+    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+      Ok(_) => break,
+      Err(err) if attempts == max_attempts - 1 => {
+        panic!("run server with error: {err}")
+      }
+      Err(_) => {
+        thread::sleep(Duration::from_millis(backoff));
+        backoff = (backoff as f64 * 1.5) as u64;
       }
     }
-
-    if attempt == 100 {
-      panic!("Server did not respond to status check",);
-    }
-
-    thread::sleep(Duration::from_millis(50));
+    attempts += 1;
   }
 
   child.kill().unwrap();

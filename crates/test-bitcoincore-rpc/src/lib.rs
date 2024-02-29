@@ -97,17 +97,21 @@ impl Builder {
 
     thread::spawn(|| rpc_server.wait());
 
-    for i in 0.. {
+    let mut attempts = 0;
+    let max_attempts = 600;
+    let mut backoff = 25;
+    while attempts < max_attempts {
       match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
         Ok(_) => break,
-        Err(err) => {
-          if i == 400 {
-            panic!("mock bitcoind server failed to start: {err}");
-          }
+        Err(err) if attempts == max_attempts - 1 => {
+          panic!("mock bitcoind server failed to start: {err}")
+        }
+        Err(_) => {
+          thread::sleep(Duration::from_millis(backoff));
+          backoff = (backoff as f64 * 1.5) as u64;
         }
       }
-
-      thread::sleep(Duration::from_millis(25));
+      attempts += 1;
     }
 
     let tempdir = TempDir::new().unwrap();

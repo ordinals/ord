@@ -64,17 +64,21 @@ impl TestServer {
       thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
     }
 
-    for i in 0.. {
+    let mut attempts = 0;
+    let max_attempts = 500;
+    let mut backoff = 50;
+    while attempts < max_attempts {
       match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
         Ok(_) => break,
-        Err(err) => {
-          if i == 400 {
-            panic!("ord server failed to start: {err}");
-          }
+        Err(err) if attempts == max_attempts - 1 => {
+          panic!("mock ord server failed to start: {err}")
+        }
+        Err(_) => {
+          thread::sleep(Duration::from_millis(backoff));
+          backoff = (backoff as f64 * 1.5) as u64;
         }
       }
-
-      thread::sleep(Duration::from_millis(50));
+      attempts += 1;
     }
 
     Self {
@@ -127,24 +131,54 @@ impl TestServer {
       .unwrap()
   }
 
+  // pub(crate) fn sync_server(&self) {
+  //   let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
+  //   let chain_block_count = client.get_block_count().unwrap() + 1;
+
+  //   for i in 0.. {
+  //     let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
+
+  //     assert_eq!(response.status(), StatusCode::OK);
+
+  //     let ord_height = response.text().unwrap().parse::<u64>().unwrap();
+
+  //     if ord_height >= chain_block_count {
+  //       break;
+  //     } else if i == 20 {
+  //       panic!("index failed to synchronize with chain");
+  //     }
+  //     thread::sleep(Duration::from_millis(50));
+  //   }
+  // }
+
   pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
+    let max_attempts = 100;
+    let mut backoff = 50;
 
-    for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
+    for _ in 0..max_attempts {
+      let response = match reqwest::blocking::get(self.url().join("/blockcount").unwrap()) {
+        Ok(res) => res,
+        Err(_) => {
+          thread::sleep(Duration::from_millis(backoff));
+          continue;
+        }
+      };
 
-      assert_eq!(response.status(), StatusCode::OK);
-
-      let ord_height = response.text().unwrap().parse::<u64>().unwrap();
-
-      if ord_height >= chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("index failed to synchronize with chain");
+      if response.status() == StatusCode::OK {
+        let ord_height = response.text().unwrap().parse::<u64>().unwrap();
+        if ord_height >= chain_block_count {
+          return;
+        }
       }
-      thread::sleep(Duration::from_millis(50));
+      thread::sleep(Duration::from_millis(backoff));
+      backoff = (backoff as f64 * 1.5) as u64;
     }
+    panic!(
+      "Index failed to synchronize with chain after {} attempts",
+      max_attempts
+    );
   }
 }
 
