@@ -6,6 +6,8 @@ pub(crate) struct Restore {
   from: Source,
   #[arg(long, help = "Use <PASSPHRASE> when deriving wallet")]
   pub(crate) passphrase: Option<String>,
+  #[arg(long, help = "Derive wallet with <ACCOUNT>", default_value = "0")]
+  pub(crate) account: u32,
 }
 
 #[derive(clap::ValueEnum, Debug, Clone)]
@@ -44,6 +46,7 @@ impl Restore {
           name,
           settings,
           mnemonic.to_seed(self.passphrase.unwrap_or_default()),
+          self.account,
         )?;
       }
     }
