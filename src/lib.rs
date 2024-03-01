@@ -128,6 +128,7 @@ mod index;
 mod inscriptions;
 mod object;
 mod options;
+mod ordzaar;
 mod outgoing;
 pub mod rarity;
 mod representation;

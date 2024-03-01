@@ -39,6 +39,10 @@ pub struct InscriptionJson {
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+
+  // ---- Ordzaar ----
+  pub inscription_sequence: u32
+  // ---- Ordzaar ----
 }
 
 impl PageContent for InscriptionHtml {
