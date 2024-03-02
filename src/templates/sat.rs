@@ -43,6 +43,7 @@ mod tests {
           <dt>block rarities</dt>
           <dd><span class=vintage>vintage</span></dd>
           <dd><span class=palindrome>palindrome</span></dd>
+          <dd><span class=paliblock_palindrome>paliblock_palindrome</span></dd>
           <dd><span class=alpha>alpha</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>

@@ -9,9 +9,10 @@ use opentelemetry::trace::Tracer;
 use ord_kafka_macros::trace;
 use ordinals::{
   block_rarity::{
-    is_perfect_palindrome, is_uniform_palindrome, BLOCK286_BLOCK_HEIGHT, BLOCK78_BLOCK_HEIGHT,
-    BLOCK9_450_SAT_RANGE, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE, JPEG_BLOCK_HEIGHTS,
-    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
+    is_palindrome, is_perfect_palindrome, is_uniform_palindrome, BLOCK286_BLOCK_HEIGHT,
+    BLOCK666_BLOCK_HEIGHT, BLOCK78_BLOCK_HEIGHT, BLOCK9_450_SAT_RANGE, BLOCK9_BLOCK_HEIGHT,
+    FIRST_TRANSACTION_SAT_RANGE, HITMAN_RANGE_MAP, JPEG_BLOCK_HEIGHTS, LEGACY_RANGE_MAP,
+    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, TAPROOT_BLOCK_HEIGHT, VINTAGE_BLOCK_HEIGHT,
   },
   BlockRarity,
 };
@@ -179,6 +180,11 @@ fn get_block_rarities(start: u64, end: u64) -> Result<Vec<BlockRarityInfo>> {
     BlockRarity::UniformPalinception,
     BlockRarity::Block286,
     BlockRarity::JPEG,
+    BlockRarity::Legacy,
+    BlockRarity::Hitman,
+    BlockRarity::Block666,
+    BlockRarity::Taproot,
+    BlockRarity::PaliblockPalindrome,
   ] {
     let rarities = get_block_rarity_chunks(block_rarity, start, end);
     for (rarity, chunks) in rarities {
@@ -259,6 +265,7 @@ fn get_block_rarity_chunks(
       let mut normal_chunks = vec![];
       let mut perfect_chunks = vec![];
       let mut uniform_chunks = vec![];
+      let mut paliblock_chunks = vec![];
       // "end" sat is exclusive, but get_palindromes_from_sat_range wants both start and end
       // to be inclusive, a.k.a [start, end] range.
       for palindrome in get_palindromes_from_sat_range(start, end - 1) {
@@ -269,10 +276,14 @@ fn get_block_rarity_chunks(
         if is_uniform_palindrome(&palindrome.to_string()) {
           uniform_chunks.push((palindrome, palindrome + 1));
         }
+        if is_palindrome(&block_height.to_string()) {
+          paliblock_chunks.push((palindrome, palindrome + 1));
+        }
       }
       res.push((BlockRarity::Palindrome, normal_chunks));
       res.push((BlockRarity::PerfectPalinception, perfect_chunks));
       res.push((BlockRarity::UniformPalinception, uniform_chunks));
+      res.push((BlockRarity::PaliblockPalindrome, paliblock_chunks));
     }
     BlockRarity::Alpha => {
       let mut chunks = vec![];
@@ -290,6 +301,42 @@ fn get_block_rarity_chunks(
     }
     BlockRarity::JPEG => {
       if JPEG_BLOCK_HEIGHTS.contains(&block_height) {
+        res.push((block_rarity.clone(), vec![(start, end)]))
+      }
+    }
+    BlockRarity::Legacy => {
+      let mut chunks = vec![];
+      if LEGACY_RANGE_MAP.contains_key(&block_height) {
+        let legacy_sat_ranges = LEGACY_RANGE_MAP.get(&block_height).unwrap();
+        for range in legacy_sat_ranges {
+          if (start >= range.1) || (end <= range.0) {
+            continue;
+          }
+          chunks.push((max(range.0, start), min(range.1, end)));
+        }
+      }
+      res.push((block_rarity.clone(), chunks));
+    }
+    BlockRarity::Hitman => {
+      let mut chunks = vec![];
+      if HITMAN_RANGE_MAP.contains_key(&block_height) {
+        let hitman_sat_ranges = HITMAN_RANGE_MAP.get(&block_height).unwrap();
+        for range in hitman_sat_ranges {
+          if (start >= range.1) || (end <= range.0) {
+            continue;
+          }
+          chunks.push((max(range.0, start), min(range.1, end)));
+        }
+      }
+      res.push((block_rarity.clone(), chunks));
+    }
+    BlockRarity::Block666 => {
+      if block_height == BLOCK666_BLOCK_HEIGHT {
+        res.push((block_rarity.clone(), vec![(start, end)]))
+      }
+    }
+    BlockRarity::Taproot => {
+      if block_height == TAPROOT_BLOCK_HEIGHT {
         res.push((block_rarity.clone(), vec![(start, end)]))
       }
     }
@@ -449,6 +496,10 @@ mod tests {
           ]
         },
         BlockRarityInfo {
+          block_rarity: BlockRarity::PaliblockPalindrome,
+          chunks: vec![(45999999954, 45999999955), (46000000064, 46000000065)]
+        },
+        BlockRarityInfo {
           block_rarity: BlockRarity::Alpha,
           chunks: vec![(46_000_000_000, 46_000_000_001)]
         },
@@ -486,6 +537,10 @@ mod tests {
         },
         BlockRarityInfo {
           block_rarity: BlockRarity::Palindrome,
+          chunks: vec![(45099999054, 45099999055), (45100000154, 45100000155)]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::PaliblockPalindrome,
           chunks: vec![(45099999054, 45099999055), (45100000154, 45100000155)]
         },
         BlockRarityInfo {
@@ -568,6 +623,10 @@ mod tests {
           block_rarity: BlockRarity::UniformPalinception,
           chunks: vec![(400041111140004, 400041111140005)],
         },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::PaliblockPalindrome,
+          chunks: vec![(400041111140004, 400041111140005)],
+        },
       ]
     );
 
@@ -636,6 +695,64 @@ mod tests {
         block_rarity: BlockRarity::JPEG,
         chunks: vec![(162064056592929, 162064057592929),]
       },]
+    );
+  }
+
+  #[test]
+  fn test_legacy_range() {
+    let block_rarities = get_block_rarities(1425808476860827, 1425808478101389).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::Legacy,
+        chunks: vec![
+          (1425808476860827, 1425808476946804),
+          (1425808477861389, 1425808478101389),
+        ]
+      },]
+    );
+  }
+
+  #[test]
+  fn test_hitman_range() {
+    let block_rarities = get_block_rarities(500438693191798, 500438695191798).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::Hitman,
+        chunks: vec![(500438693191798, 500438695191798),]
+      },]
+    );
+  }
+
+  #[test]
+  fn test_taproot_range() {
+    let block_rarities = get_block_rarities(1887270184000002, 1887270184000602).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::Taproot,
+        chunks: vec![(1887270184000002, 1887270184000602),]
+      },]
+    );
+  }
+
+  #[test]
+  fn test_block666_range() {
+    let block_rarities =
+      get_block_rarities(666 * 50 * COIN_VALUE + 1000, 666 * 50 * COIN_VALUE + 2000).unwrap();
+    assert_eq!(
+      block_rarities,
+      vec![
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Vintage,
+          chunks: vec![(666 * 50 * COIN_VALUE + 1000, 666 * 50 * COIN_VALUE + 2000),]
+        },
+        BlockRarityInfo {
+          block_rarity: BlockRarity::Block666,
+          chunks: vec![(666 * 50 * COIN_VALUE + 1000, 666 * 50 * COIN_VALUE + 2000),]
+        },
+      ]
     );
   }
 

@@ -1,3 +1,4 @@
+#![allow(clippy::blocks_in_conditions)]
 use {
   self::{
     entry::{
