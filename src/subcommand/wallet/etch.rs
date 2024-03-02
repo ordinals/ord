@@ -72,6 +72,7 @@ impl Etch {
       }],
       default_output: None,
       burn: false,
+      claim: None,
     };
 
     let script_pubkey = runestone.encipher();

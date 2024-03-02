@@ -1,13 +1,14 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone, CLAIM_BIT},
+  crate::runes::{varint, Edict, Runestone},
 };
 
-fn claim(id: u128) -> Option<u128> {
-  (id & CLAIM_BIT != 0).then_some(id ^ CLAIM_BIT)
+struct Claim {
+  id: u128,
+  limit: u128,
 }
 
-struct Allocation {
+struct Etched {
   balance: u128,
   divisibility: u8,
   id: u128,
@@ -43,26 +44,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
-    // A mapping of rune ID to un-allocated balance of that rune
-    let mut unallocated: HashMap<u128, u128> = HashMap::new();
-
-    // Increment unallocated runes with the runes in this transaction's inputs
-    for input in &tx.input {
-      if let Some(guard) = self
-        .outpoint_to_balances
-        .remove(&input.previous_output.store())?
-      {
-        let buffer = guard.value();
-        let mut i = 0;
-        while i < buffer.len() {
-          let (id, len) = varint::decode(&buffer[i..]);
-          i += len;
-          let (balance, len) = varint::decode(&buffer[i..]);
-          i += len;
-          *unallocated.entry(id).or_default() += balance;
-        }
-      }
-    }
+    let mut unallocated = self.unallocated(tx)?;
 
     let burn = runestone
       .as_ref()
@@ -75,108 +57,28 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|default| usize::try_from(default).ok())
     });
 
-    // A vector of allocated transaction output rune balances
     let mut allocated: Vec<HashMap<u128, u128>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(runestone) = runestone {
-      // Determine if this runestone contains a valid issuance
-      let mut allocation = match runestone.etching {
-        Some(etching) => {
-          if etching
-            .rune
-            .map(|rune| rune < self.minimum || rune.is_reserved())
-            .unwrap_or_default()
-            || etching
-              .rune
-              .and_then(|rune| self.rune_to_id.get(rune.0).transpose())
-              .transpose()?
-              .is_some()
-          {
-            None
-          } else {
-            let rune = if let Some(rune) = etching.rune {
-              rune
-            } else {
-              let reserved_runes = self
-                .statistic_to_count
-                .get(&Statistic::ReservedRunes.into())?
-                .map(|entry| entry.value())
-                .unwrap_or_default();
+      if let Some(claim) = runestone
+        .claim
+        .and_then(|id| self.claim(id).transpose())
+        .transpose()?
+      {
+        *unallocated.entry(claim.id).or_default() += claim.limit;
 
-              self
-                .statistic_to_count
-                .insert(&Statistic::ReservedRunes.into(), reserved_runes + 1)?;
+        let update = self
+          .updates
+          .entry(RuneId::try_from(claim.id).unwrap())
+          .or_default();
 
-              Rune::reserved(reserved_runes.into())
-            };
+        update.mints += 1;
+        update.supply += claim.limit;
+      }
 
-            // Construct an allocation, representing the new runes that may be
-            // allocated. Beware: Because it would require constructing a block
-            // with 2**16 + 1 transactions, there is no test that checks that
-            // an eching in a transaction with an out-of-bounds index is
-            // ignored.
-            match u16::try_from(index) {
-              Ok(index) => Some(Allocation {
-                balance: if let Some(mint) = etching.mint {
-                  if mint.term == Some(0) {
-                    0
-                  } else {
-                    mint.limit.unwrap_or(runes::MAX_LIMIT)
-                  }
-                } else {
-                  u128::MAX
-                },
-                divisibility: etching.divisibility,
-                id: u128::from(self.height) << 16 | u128::from(index),
-                rune,
-                spacers: etching.spacers,
-                symbol: etching.symbol,
-                mint: etching.mint.map(|mint| MintEntry {
-                  deadline: mint.deadline,
-                  end: mint.term.map(|term| term + self.height),
-                  limit: mint.limit.map(|limit| limit.min(runes::MAX_LIMIT)),
-                }),
-              }),
-              Err(_) => None,
-            }
-          }
-        }
-        None => None,
-      };
+      let mut etched = self.etched(index, &runestone)?;
 
       if !burn {
-        let mut mintable: HashMap<u128, u128> = HashMap::new();
-
-        let mut claims = runestone
-          .edicts
-          .iter()
-          .filter_map(|edict| claim(edict.id))
-          .collect::<Vec<u128>>();
-        claims.sort();
-        claims.dedup();
-        for id in claims {
-          if let Ok(key) = RuneId::try_from(id) {
-            if let Some(entry) = self.id_to_entry.get(&key.store())? {
-              let entry = RuneEntry::load(entry.value());
-              if let Some(mint) = entry.mint {
-                if let Some(end) = mint.end {
-                  if self.height >= end {
-                    continue;
-                  }
-                }
-                if let Some(deadline) = mint.deadline {
-                  if self.timestamp >= deadline {
-                    continue;
-                  }
-                }
-                mintable.insert(id, mint.limit.unwrap_or(runes::MAX_LIMIT));
-              }
-            }
-          }
-        }
-
-        let limits = mintable.clone();
-
         for Edict { id, amount, output } in runestone.edicts {
           let Ok(output) = usize::try_from(output) else {
             continue;
@@ -192,13 +94,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // if no issuance was present, or if the issuance was invalid.
             // Additionally, replace ID 0 with the newly assigned ID, and
             // get the unallocated balance of the issuance.
-            match allocation.as_mut() {
-              Some(Allocation { balance, id, .. }) => (balance, *id),
-              None => continue,
-            }
-          } else if let Some(claim) = claim(id) {
-            match mintable.get_mut(&claim) {
-              Some(balance) => (balance, claim),
+            match etched.as_mut() {
+              Some(Etched { balance, id, .. }) => (balance, *id),
               None => continue,
             }
           } else {
@@ -256,75 +153,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             allocate(balance, amount, output);
           }
         }
-
-        // increment entries with minted runes
-        for (id, amount) in mintable {
-          let minted = limits[&id] - amount;
-          if minted > 0 {
-            let update = self
-              .updates
-              .entry(RuneId::try_from(id).unwrap())
-              .or_default();
-            update.mints += 1;
-            update.supply += minted;
-          }
-        }
       }
 
-      if let Some(Allocation {
-        balance,
-        divisibility,
-        id,
-        mint,
-        rune,
-        spacers,
-        symbol,
-      }) = allocation
-      {
-        let id = RuneId::try_from(id).unwrap();
-        self.rune_to_id.insert(rune.0, id.store())?;
-        self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
-        let number = self.runes;
-        self.runes += 1;
-        self
-          .statistic_to_count
-          .insert(&Statistic::Runes.into(), self.runes)?;
-        self.id_to_entry.insert(
-          id.store(),
-          RuneEntry {
-            burned: 0,
-            divisibility,
-            etching: txid,
-            mints: 0,
-            number,
-            mint: mint.and_then(|mint| (!burn).then_some(mint)),
-            rune,
-            spacers,
-            supply: if let Some(mint) = mint {
-              if mint.end == Some(self.height) {
-                0
-              } else {
-                mint.limit.unwrap_or(runes::MAX_LIMIT)
-              }
-            } else {
-              u128::MAX
-            } - balance,
-            symbol,
-            timestamp: self.timestamp,
-          }
-          .store(),
-        )?;
-
-        let inscription_id = InscriptionId { txid, index: 0 };
-
-        if let Some(sequence_number) = self
-          .inscription_id_to_sequence_number
-          .get(&inscription_id.store())?
-        {
-          self
-            .sequence_number_to_rune_id
-            .insert(sequence_number.value(), id.store())?;
-        }
+      if let Some(etched) = etched {
+        self.create_rune_entry(txid, burn, etched)?;
       }
     }
 
@@ -410,15 +242,186 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     Ok(())
   }
-}
 
-#[cfg(test)]
-mod tests {
-  use super::*;
+  fn create_rune_entry(&mut self, txid: Txid, burn: bool, etched: Etched) -> Result {
+    let Etched {
+      balance,
+      divisibility,
+      id,
+      mint,
+      rune,
+      spacers,
+      symbol,
+    } = etched;
 
-  #[test]
-  fn claim_from_id() {
-    assert_eq!(claim(1), None);
-    assert_eq!(claim(1 | CLAIM_BIT), Some(1));
+    let id = RuneId::try_from(id).unwrap();
+    self.rune_to_id.insert(rune.0, id.store())?;
+    self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+    let number = self.runes;
+    self.runes += 1;
+    self
+      .statistic_to_count
+      .insert(&Statistic::Runes.into(), self.runes)?;
+    self.id_to_entry.insert(
+      id.store(),
+      RuneEntry {
+        burned: 0,
+        divisibility,
+        etching: txid,
+        mints: 0,
+        number,
+        mint: mint.and_then(|mint| (!burn).then_some(mint)),
+        rune,
+        spacers,
+        supply: if let Some(mint) = mint {
+          if mint.end == Some(self.height) {
+            0
+          } else {
+            mint.limit.unwrap_or(runes::MAX_LIMIT)
+          }
+        } else {
+          u128::MAX
+        } - balance,
+        symbol,
+        timestamp: self.timestamp,
+      }
+      .store(),
+    )?;
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    if let Some(sequence_number) = self
+      .inscription_id_to_sequence_number
+      .get(&inscription_id.store())?
+    {
+      self
+        .sequence_number_to_rune_id
+        .insert(sequence_number.value(), id.store())?;
+    }
+
+    Ok(())
+  }
+
+  fn etched(&mut self, index: usize, runestone: &Runestone) -> Result<Option<Etched>> {
+    let Some(etching) = runestone.etching else {
+      return Ok(None);
+    };
+
+    if etching
+      .rune
+      .map(|rune| rune < self.minimum || rune.is_reserved())
+      .unwrap_or_default()
+      || etching
+        .rune
+        .and_then(|rune| self.rune_to_id.get(rune.0).transpose())
+        .transpose()?
+        .is_some()
+    {
+      return Ok(None);
+    }
+
+    let rune = if let Some(rune) = etching.rune {
+      rune
+    } else {
+      let reserved_runes = self
+        .statistic_to_count
+        .get(&Statistic::ReservedRunes.into())?
+        .map(|entry| entry.value())
+        .unwrap_or_default();
+
+      self
+        .statistic_to_count
+        .insert(&Statistic::ReservedRunes.into(), reserved_runes + 1)?;
+
+      Rune::reserved(reserved_runes.into())
+    };
+
+    // Nota bene: Because it would require constructing a block
+    // with 2**16 + 1 transactions, there is no test that checks that
+    // an eching in a transaction with an out-of-bounds index is
+    // ignored.
+    let Ok(index) = u16::try_from(index) else {
+      return Ok(None);
+    };
+
+    Ok(Some(Etched {
+      balance: if let Some(mint) = etching.mint {
+        if mint.term == Some(0) {
+          0
+        } else {
+          mint.limit.unwrap_or(runes::MAX_LIMIT)
+        }
+      } else {
+        u128::MAX
+      },
+      divisibility: etching.divisibility,
+      id: u128::from(self.height) << 16 | u128::from(index),
+      rune,
+      spacers: etching.spacers,
+      symbol: etching.symbol,
+      mint: etching.mint.map(|mint| MintEntry {
+        deadline: mint.deadline,
+        end: mint.term.map(|term| term + self.height),
+        limit: mint.limit.map(|limit| limit.min(runes::MAX_LIMIT)),
+      }),
+    }))
+  }
+
+  fn claim(&self, id: u128) -> Result<Option<Claim>> {
+    let Ok(key) = RuneId::try_from(id) else {
+      return Ok(None);
+    };
+
+    let Some(entry) = self.id_to_entry.get(&key.store())? else {
+      return Ok(None);
+    };
+
+    let entry = RuneEntry::load(entry.value());
+
+    let Some(mint) = entry.mint else {
+      return Ok(None);
+    };
+
+    if let Some(end) = mint.end {
+      if self.height >= end {
+        return Ok(None);
+      }
+    }
+
+    if let Some(deadline) = mint.deadline {
+      if self.timestamp >= deadline {
+        return Ok(None);
+      }
+    }
+
+    Ok(Some(Claim {
+      id,
+      limit: mint.limit.unwrap_or(runes::MAX_LIMIT),
+    }))
+  }
+
+  fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<u128, u128>> {
+    // map of rune ID to un-allocated balance of that rune
+    let mut unallocated: HashMap<u128, u128> = HashMap::new();
+
+    // increment unallocated runes with the runes in tx inputs
+    for input in &tx.input {
+      if let Some(guard) = self
+        .outpoint_to_balances
+        .remove(&input.previous_output.store())?
+      {
+        let buffer = guard.value();
+        let mut i = 0;
+        while i < buffer.len() {
+          let (id, len) = varint::decode(&buffer[i..]);
+          i += len;
+          let (balance, len) = varint::decode(&buffer[i..]);
+          i += len;
+          *unallocated.entry(id).or_default() += balance;
+        }
+      }
+    }
+
+    Ok(unallocated)
   }
 }
