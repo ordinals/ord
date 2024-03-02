@@ -62,7 +62,7 @@ plain-text responses.
 ### Self Referencing
 
 An inscription may fetch data about itself using the endpoints above by 
-using it's own inscription ID. Since all inscriptions are rendered in an 
+using its own inscription ID. Since all inscriptions are rendered in an 
 iframe with a URL of `/content/<INSCRIPTION_ID>`, it can retrieve its own 
 inscription ID from `window.location.pathname` using the following line (or similar)
 
