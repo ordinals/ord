@@ -32,7 +32,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, env::var, io::Read, str, sync::Arc},
+  std::{cmp::Ordering, io::Read, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -190,7 +190,6 @@ impl Server {
         .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
-        .route("/carbonado/:key/:hash", get(Self::carbonado))
         .route("/children/:inscription_id", get(Self::children))
         .route(
           "/children/:inscription_id/:page",
@@ -256,7 +255,12 @@ impl Server {
         .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
-        .route("/tx/:txid", get(Self::transaction))
+        .route("/tx/:txid", get(Self::transaction));
+
+      #[cfg(feature = "carbonado")]
+      let router = router.route("/carbonado/:key/:hash", get(Self::carbonado));
+
+      let router = router
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
@@ -1201,10 +1205,11 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounty/")
   }
 
+  #[cfg(feature = "carbonado")]
   async fn carbonado(Path((key, hash)): Path<(String, String)>) -> ServerResult<Response> {
     let endpoint: String =
-      var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
-    let res = reqwest::get(format!("{endpoint}/{key}/{hash}"))
+      std::env::var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
+    let res = reqwest::get(format!("{endpoint}/retrieve/{key}/{hash}"))
       .await
       .map_err(|err| ServerError::Internal(err.into()))?;
     let bytes = res
@@ -1212,6 +1217,27 @@ impl Server {
       .await
       .map_err(|err| ServerError::Internal(err.into()))?
       .to_vec();
+    println!("Key: {key}, Hash: {hash}");
+    let key = carbonado::structs::Secp256k1PubKey::try_from(key.as_str())
+      .map_err(|_err| ServerError::BadRequest(format!("Key {key} is in the wrong format")))?;
+
+    let key_res = reqwest::get(format!("{endpoint}/key/{key}"))
+      .await
+      .map_err(|err| ServerError::Internal(err.into()))?;
+    let ss: String = key_res
+      .text()
+      .await
+      .map_err(|err| ServerError::Internal(err.into()))?;
+
+    let res_hash = carbonado::utils::pub_keyed_hash(&ss, &bytes)
+      .map_err(|err| ServerError::Internal(err.into()))?;
+
+    println!("Carbonado Key: {key}, Res Hash: {res_hash}");
+    if res_hash != hash {
+      return Err(ServerError::BadRequest(format!(
+        "Response hash {res_hash} does not match request hash {hash}"
+      )));
+    }
     let response = Response::builder()
       .body(body::boxed(body::Full::from(bytes)))
       .map_err(|err| ServerError::Internal(err.into()))?;

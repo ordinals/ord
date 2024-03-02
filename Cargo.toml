@@ -28,6 +28,8 @@ bip39 = "2.0.0"
 bitcoin = { version = "0.30.1", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
 brotli = "3.4.0"
+blake3 = "1.5.0"
+carbonado = { version = "0.4.1", optional = true }
 chrono = { version = "0.4.19", features = ["serde"] }
 ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
@@ -65,8 +67,14 @@ sysinfo = "0.30.3"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
-tokio-util = {version = "0.7.3", features = ["compat"] }
-tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header"] }
+tokio-util = { version = "0.7.3", features = ["compat"] }
+tower-http = { version = "0.4.0", features = [
+    "auth",
+    "compression-br",
+    "compression-gzip",
+    "cors",
+    "set-header",
+] }
 
 [dev-dependencies]
 criterion = "0.5.1"
@@ -87,6 +95,9 @@ path = "src/bin/main.rs"
 [lib]
 name = "ord"
 path = "src/lib.rs"
+
+[features]
+carbonado = ["dep:carbonado"]
 
 [[test]]
 name = "integration"
