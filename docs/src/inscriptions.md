@@ -70,6 +70,9 @@ Content
 The data model of inscriptions is that of a HTTP response, allowing inscription
 content to be served by a web server and viewed in a web browser.
 
+Inscriptions are served from the URL `/content/<INSCRIPTION_ID>`, where 
+`<INSCRIPTION_ID>` is the ID of the inscription to fetch.
+
 Fields
 ------
 
@@ -148,7 +151,12 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
-`Content-Security-Policy` headers.
+`Content-Security-Policy` headers. 
+
+The iframe has a URL of `/content/<INSCRIPTION_ID>`, where `<INSCRIPTION_ID>` is 
+the ID of the rendered inscription. If an inscription has a delegate, 
+`<INSCRIPTION_ID>` is the ID of the inscription being rendered, *not* the ID of 
+the delegate.
 
 Reinscriptions
 --------------
