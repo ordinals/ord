@@ -28,15 +28,13 @@
 %% }
   <dt>id</dt>
   <dd class=monospace>{{ self.inscription_id }}</dd>
-%% if let Some(metadata) = self.inscription.metadata() {
-  <dt>metadata</dt>
-  <dd>
-    {{ Trusted(MetadataHtml(&metadata)) }}
-  </dd>
-%% }
 %% if let Some(parent) = &self.parent {
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
+  <dd>
+    <div class=thumbnails>
+      {{Iframe::thumbnail(*parent)}}
+    </div>
+  </dd>
 %% }
 %% if self.charms != 0 {
   <dt>charms</dt>
@@ -46,6 +44,12 @@
     <span title={{charm.title()}}>{{charm.icon()}}</span>
 %%   }
 %% }
+  </dd>
+%% }
+%% if let Some(metadata) = self.inscription.metadata() {
+  <dt>metadata</dt>
+  <dd>
+    {{ Trusted(MetadataHtml(&metadata)) }}
   </dd>
 %% }
 %% if let Some(output) = &self.output {

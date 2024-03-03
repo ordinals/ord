@@ -21,8 +21,8 @@ pub struct FindRangeOutput {
 }
 
 impl Find {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
+    let index = Index::open(&settings)?;
 
     if !index.has_sat_index() {
       bail!("find requires index created with `--index-sats` flag");

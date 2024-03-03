@@ -11,7 +11,7 @@ use {
   },
   super::*,
   crate::{
-    subcommand::{find::FindRangeOutput, server::InscriptionQuery},
+    subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
   bitcoin::block::Header,
@@ -213,27 +213,27 @@ pub struct Index {
   index_sats: bool,
   index_spent_sats: bool,
   index_transactions: bool,
-  options: Options,
+  settings: Settings,
   path: PathBuf,
   started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
 }
 
 impl Index {
-  pub fn open(options: &Options) -> Result<Self> {
-    Index::open_with_event_sender(options, None)
+  pub fn open(settings: &Settings) -> Result<Self> {
+    Index::open_with_event_sender(settings, None)
   }
 
   pub fn open_with_event_sender(
-    options: &Options,
+    settings: &Settings,
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
-    let client = options.bitcoin_rpc_client(None)?;
+    let client = settings.bitcoin_rpc_client(None)?;
 
-    let path = options
+    let path = settings
       .index
       .clone()
-      .unwrap_or(options.data_dir().clone().join("index.redb"));
+      .unwrap_or_else(|| settings.data_dir().clone().join("index.redb"));
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
@@ -242,7 +242,7 @@ impl Index {
       );
     }
 
-    let db_cache_size = match options.db_cache_size {
+    let db_cache_size = match settings.db_cache_size {
       Some(db_cache_size) => db_cache_size,
       None => {
         let mut sys = System::new();
@@ -262,11 +262,12 @@ impl Index {
     let index_path = path.clone();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
+    let integration_test = settings.integration_test;
 
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
 
-      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test()) {
+      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test) {
         let mut guard = progress_bar.lock().unwrap();
 
         let progress_bar = guard.get_or_insert_with(|| {
@@ -349,32 +350,32 @@ impl Index {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if options.index_sats {
+          if settings.index_sats {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexRunes,
-            u64::from(options.index_runes()),
+            u64::from(settings.index_runes()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(options.index_sats || options.index_spent_sats),
+            u64::from(settings.index_sats || settings.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSpentSats,
-            u64::from(options.index_spent_sats),
+            u64::from(settings.index_spent_sats),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexTransactions,
-            u64::from(options.index_transactions),
+            u64::from(settings.index_transactions),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
@@ -402,7 +403,7 @@ impl Index {
     }
 
     let genesis_block_coinbase_transaction =
-      options.chain().genesis_block().coinbase().unwrap().clone();
+      settings.chain().genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
@@ -410,14 +411,14 @@ impl Index {
       database,
       durability,
       event_sender,
-      first_inscription_height: options.first_inscription_height(),
+      first_inscription_height: settings.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: options.height_limit,
+      height_limit: settings.height_limit,
       index_runes,
       index_sats,
       index_spent_sats,
       index_transactions,
-      options: options.clone(),
+      settings: settings.clone(),
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
@@ -486,14 +487,14 @@ impl Index {
 
     Ok(StatusHtml {
       blessed_inscriptions,
-      chain: self.options.chain(),
+      chain: self.settings.chain(),
       content_type_counts,
       cursed_inscriptions,
       height,
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
-        self.options.chain(),
+        self.settings.chain(),
         Height(next_height),
       ),
       rune_index: statistic(Statistic::IndexRunes)? != 0,
@@ -558,7 +559,7 @@ impl Index {
           .open_table(HEIGHT_TO_BLOCK_HEADER)?
           .range(0..)?
           .next_back()
-          .and_then(|result| result.ok())
+          .transpose()?
           .map(|(height, _header)| height.value() + 1)
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
@@ -593,10 +594,26 @@ impl Index {
   }
 
   pub fn update(&self) -> Result {
-    let mut updater = Updater::new(self)?;
-
     loop {
-      match updater.update_index() {
+      let wtx = self.begin_write()?;
+
+      let mut updater = Updater {
+        height: wtx
+          .open_table(HEIGHT_TO_BLOCK_HEADER)?
+          .range(0..)?
+          .next_back()
+          .transpose()?
+          .map(|(height, _header)| height.value() + 1)
+          .unwrap_or(0),
+        index: self,
+        outputs_cached: 0,
+        outputs_inserted_since_flush: 0,
+        outputs_traversed: 0,
+        range_cache: HashMap::new(),
+        sat_ranges_since_flush: 0,
+      };
+
+      match updater.update_index(wtx) {
         Ok(ok) => return Ok(ok),
         Err(err) => {
           log::info!("{}", err.to_string());
@@ -604,8 +621,6 @@ impl Index {
           match err.downcast_ref() {
             Some(&ReorgError::Recoverable { height, depth }) => {
               Reorg::handle_reorg(self, height, depth)?;
-
-              updater = Updater::new(self)?;
             }
             Some(&ReorgError::Unrecoverable) => {
               self
@@ -628,7 +643,7 @@ impl Index {
       .open_table(HEIGHT_TO_BLOCK_HEADER)?
       .range(0..)?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
@@ -670,7 +685,7 @@ impl Index {
             .nth(satpoint.outpoint.vout.try_into().unwrap())
             .unwrap();
           self
-            .options
+            .settings
             .chain()
             .address_from_script(&output.script_pubkey)
             .map(|address| address.to_string())
@@ -1050,7 +1065,7 @@ impl Index {
     };
 
     self
-      .get_children_by_sequence_number_paginated(sequence_number, usize::max_value(), 0)
+      .get_children_by_sequence_number_paginated(sequence_number, usize::MAX, 0)
       .map(|(children, _more)| children)
   }
 
@@ -1482,7 +1497,7 @@ impl Index {
   pub(crate) fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
     Ok(
       outpoint != OutPoint::null()
-        && outpoint != self.options.chain().genesis_coinbase_outpoint()
+        && outpoint != self.settings.chain().genesis_coinbase_outpoint()
         && self
           .client
           .get_tx_out(&outpoint.txid, outpoint.vout, Some(false))?
@@ -1495,7 +1510,7 @@ impl Index {
       return Ok(true);
     }
 
-    if outpoint == self.options.chain().genesis_coinbase_outpoint() {
+    if outpoint == self.settings.chain().genesis_coinbase_outpoint() {
       return Ok(true);
     }
 
@@ -1532,7 +1547,7 @@ impl Index {
     let current = height_to_block_header
       .range(0..)?
       .next_back()
-      .and_then(|result| result.ok())
+      .transpose()?
       .map(|(height, _header)| height)
       .map(|x| x.value())
       .unwrap_or(0);
@@ -1678,17 +1693,17 @@ impl Index {
   }
 
   pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, InscriptionQuery::Number(inscription_number)).unwrap();
+    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
   }
 
   pub(crate) fn inscription_info(
     index: &Index,
-    query: InscriptionQuery,
+    query: query::Inscription,
   ) -> Result<Option<InscriptionInfo>> {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      InscriptionQuery::Id(id) => {
+      query::Inscription::Id(id) => {
         let inscription_id_to_sequence_number =
           rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
 
@@ -1700,7 +1715,7 @@ impl Index {
 
         sequence_number
       }
-      InscriptionQuery::Number(inscription_number) => {
+      query::Inscription::Number(inscription_number) => {
         let inscription_number_to_sequence_number =
           rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
 
@@ -1909,7 +1924,7 @@ impl Index {
       Some(sat) => {
         if self.index_sats {
           // unbound inscriptions should not be assigned to a sat
-          assert!(satpoint.outpoint != unbound_outpoint());
+          assert_ne!(satpoint.outpoint, unbound_outpoint());
 
           assert!(rtx
             .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
@@ -1937,7 +1952,7 @@ impl Index {
       }
       None => {
         if self.index_sats {
-          assert!(satpoint.outpoint == unbound_outpoint())
+          assert_eq!(satpoint.outpoint, unbound_outpoint())
         }
       }
     }

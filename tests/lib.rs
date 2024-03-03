@@ -11,16 +11,8 @@ use {
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
-    chain::Chain,
-    outgoing::Outgoing,
-    subcommand::runes::RuneInfo,
-    templates::{
-      block::BlockJson, blocks::BlocksJson, inscription::InscriptionJson,
-      inscription::InscriptionRecursiveJson, inscriptions::InscriptionsJson, output::OutputJson,
-      rune::RuneJson, runes::RunesJson, sat::SatJson, status::StatusJson,
-      transaction::TransactionJson,
-    },
-    Edict, InscriptionId, Rune, RuneEntry, RuneId, Runestone,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, Edict, InscriptionId, Rune,
+    RuneEntry, RuneId, Runestone,
   },
   ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,
@@ -54,6 +46,29 @@ macro_rules! assert_regex_match {
     }
   };
 }
+
+mod command_builder;
+mod expected;
+mod test_server;
+
+mod balances;
+mod decode;
+mod epochs;
+mod etch;
+mod find;
+mod index;
+mod info;
+mod json_api;
+mod list;
+mod parse;
+mod runes;
+mod server;
+mod settings;
+mod subsidy;
+mod supply;
+mod traits;
+mod version;
+mod wallet;
 
 const RUNE: u128 = 99246114928149462;
 
@@ -139,25 +154,3 @@ fn runes(rpc_server: &test_bitcoincore_rpc::Handle) -> BTreeMap<Rune, RuneInfo> 
     .run_and_deserialize_output::<ord::subcommand::runes::Output>()
     .runes
 }
-
-mod command_builder;
-mod expected;
-mod test_server;
-
-mod balances;
-mod decode;
-mod epochs;
-mod etch;
-mod find;
-mod index;
-mod info;
-mod json_api;
-mod list;
-mod parse;
-mod runes;
-mod server;
-mod subsidy;
-mod supply;
-mod traits;
-mod version;
-mod wallet;

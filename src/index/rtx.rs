@@ -10,7 +10,7 @@ impl Rtx<'_> {
         .open_table(HEIGHT_TO_BLOCK_HEADER)?
         .range(0..)?
         .next_back()
-        .and_then(|result| result.ok())
+        .transpose()?
         .map(|(height, _header)| Height(height.value())),
     )
   }
@@ -22,7 +22,7 @@ impl Rtx<'_> {
         .open_table(HEIGHT_TO_BLOCK_HEADER)?
         .range(0..)?
         .next_back()
-        .and_then(|result| result.ok())
+        .transpose()?
         .map(|(height, _header)| height.value() + 1)
         .unwrap_or(0),
     )

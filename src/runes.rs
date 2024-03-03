@@ -50,7 +50,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -140,7 +140,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -167,12 +167,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -194,7 +194,7 @@ mod tests {
           Runestone {
             edicts: vec![Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             }],
             etching: Some(Etching {
@@ -224,7 +224,7 @@ mod tests {
           Runestone {
             edicts: vec![Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             }],
             etching: Some(Etching {
@@ -251,12 +251,12 @@ mod tests {
           RuneEntry {
             etching: txid,
             rune: Rune(block_two_minimum),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
         )],
-        [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+        [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
       );
     }
   }
@@ -274,7 +274,7 @@ mod tests {
           Runestone {
             edicts: vec![Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             }],
             etching: Some(Etching {
@@ -304,7 +304,7 @@ mod tests {
           Runestone {
             edicts: vec![Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             }],
             etching: Some(Etching {
@@ -331,12 +331,12 @@ mod tests {
           RuneEntry {
             etching: txid,
             rune: Rune(RESERVED - 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
         )],
-        [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+        [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
       );
     }
   }
@@ -354,7 +354,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -381,7 +381,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RESERVED),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -391,7 +391,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id0, u128::max_value())],
+        vec![(id0, u128::MAX)],
       )],
     );
 
@@ -403,7 +403,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -431,7 +431,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RESERVED),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -441,7 +441,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RESERVED + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 4,
             number: 1,
             ..Default::default()
@@ -454,14 +454,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -479,7 +479,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -508,12 +508,12 @@ mod tests {
           rune: Rune(RUNE),
           etching: txid,
           divisibility: 1,
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -530,12 +530,12 @@ mod tests {
           edicts: vec![
             Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
             Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -563,12 +563,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -585,12 +585,12 @@ mod tests {
           edicts: vec![
             Edict {
               id: 0,
-              amount: u128::max_value() / 2,
+              amount: u128::MAX / 2,
               output: 0,
             },
             Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -618,13 +618,13 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           symbol: None,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -799,7 +799,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -826,7 +826,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -836,7 +836,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -846,7 +846,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: id.into(),
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           ..Default::default()
@@ -864,7 +864,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -874,7 +874,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -891,7 +891,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -939,7 +939,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1001,7 +1001,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching::default()),
@@ -1046,7 +1046,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1073,7 +1073,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1083,7 +1083,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1105,10 +1105,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: u128::max_value(),
+          burned: u128::MAX,
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1129,7 +1129,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1156,7 +1156,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1166,7 +1166,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1184,7 +1184,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1194,7 +1194,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -1211,7 +1211,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1238,7 +1238,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1248,7 +1248,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1267,9 +1267,9 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
-          burned: u128::max_value(),
+          burned: u128::MAX,
           ..Default::default()
         },
       )],
@@ -1289,7 +1289,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1316,7 +1316,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1326,7 +1326,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1351,7 +1351,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1361,7 +1361,7 @@ mod tests {
           txid: txid1,
           vout: 1,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -1378,7 +1378,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1405,7 +1405,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1415,7 +1415,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1440,7 +1440,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1450,7 +1450,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -1467,7 +1467,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1494,7 +1494,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1504,7 +1504,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1529,8 +1529,8 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
-          burned: u128::max_value(),
+          supply: u128::MAX,
+          burned: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1552,7 +1552,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1579,7 +1579,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1589,7 +1589,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -1607,7 +1607,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1617,7 +1617,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -1634,7 +1634,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1661,12 +1661,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1675,7 +1675,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1697,12 +1697,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -1718,7 +1718,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1745,7 +1745,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1755,7 +1755,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id0, u128::max_value())],
+        vec![(id0, u128::MAX)],
       )],
     );
 
@@ -1765,7 +1765,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1793,7 +1793,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -1803,7 +1803,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -1816,14 +1816,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -1842,7 +1842,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -1852,7 +1852,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -1864,7 +1864,7 @@ mod tests {
           txid: txid2,
           vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+        vec![(id0, u128::MAX), (id1, u128::MAX)],
       )],
     );
   }
@@ -1881,7 +1881,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1908,7 +1908,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -1918,7 +1918,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id0, u128::max_value())],
+        vec![(id0, u128::MAX)],
       )],
     );
 
@@ -1928,7 +1928,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -1956,7 +1956,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -1966,7 +1966,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -1979,14 +1979,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -2005,7 +2005,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2015,7 +2015,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2027,7 +2027,7 @@ mod tests {
           txid: txid2,
           vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+        vec![(id0, u128::MAX), (id1, u128::MAX)],
       )],
     );
 
@@ -2039,12 +2039,12 @@ mod tests {
           edicts: vec![
             Edict {
               id: id0.into(),
-              amount: u128::max_value() / 2,
+              amount: u128::MAX / 2,
               output: 1,
             },
             Edict {
               id: id1.into(),
-              amount: u128::max_value() / 2,
+              amount: u128::MAX / 2,
               output: 1,
             },
           ],
@@ -2064,7 +2064,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2074,7 +2074,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2087,17 +2087,14 @@ mod tests {
             txid: txid3,
             vout: 0,
           },
-          vec![
-            (id0, u128::max_value() / 2 + 1),
-            (id1, u128::max_value() / 2 + 1),
-          ],
+          vec![(id0, u128::MAX / 2 + 1), (id1, u128::MAX / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid3,
             vout: 1,
           },
-          vec![(id0, u128::max_value() / 2), (id1, u128::max_value() / 2)],
+          vec![(id0, u128::MAX / 2), (id1, u128::MAX / 2)],
         ),
       ],
     );
@@ -2115,7 +2112,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2142,7 +2139,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2152,7 +2149,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id0, u128::max_value())],
+        vec![(id0, u128::MAX)],
       )],
     );
 
@@ -2162,7 +2159,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2190,7 +2187,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2200,7 +2197,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2213,14 +2210,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -2232,12 +2229,12 @@ mod tests {
           edicts: vec![
             Edict {
               id: id0.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
             Edict {
               id: id1.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -2257,7 +2254,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2267,7 +2264,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2279,7 +2276,7 @@ mod tests {
           txid: txid2,
           vout: 0,
         },
-        vec![(id0, u128::max_value()), (id1, u128::max_value())],
+        vec![(id0, u128::MAX), (id1, u128::MAX)],
       )],
     );
   }
@@ -2297,7 +2294,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2324,7 +2321,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2334,7 +2331,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -2357,12 +2354,12 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 1 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -2378,7 +2375,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2403,7 +2400,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2431,7 +2428,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             ..Default::default()
           },
@@ -2441,7 +2438,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2454,14 +2451,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -2479,7 +2476,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2506,7 +2503,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2516,7 +2513,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -2532,7 +2529,7 @@ mod tests {
             },
             Edict {
               id: id.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -2551,7 +2548,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2561,7 +2558,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -2578,7 +2575,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2605,7 +2602,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2615,7 +2612,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id0, u128::max_value())],
+        vec![(id0, u128::MAX)],
       )],
     );
 
@@ -2625,7 +2622,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2653,7 +2650,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2663,7 +2660,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2676,14 +2673,14 @@ mod tests {
             txid: txid0,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
       ],
     );
@@ -2695,12 +2692,12 @@ mod tests {
           edicts: vec![
             Edict {
               id: id0.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
             Edict {
               id: id1.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -2720,7 +2717,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
           },
@@ -2730,7 +2727,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
-            supply: u128::max_value(),
+            supply: u128::MAX,
             timestamp: 3,
             number: 1,
             ..Default::default()
@@ -2743,14 +2740,14 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id1, u128::max_value())],
+          vec![(id1, u128::MAX)],
         ),
         (
           OutPoint {
             txid: txid2,
             vout: 0,
           },
-          vec![(id0, u128::max_value())],
+          vec![(id0, u128::MAX)],
         ),
       ],
     );
@@ -2768,7 +2765,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value() / 2,
+            amount: u128::MAX / 2,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2795,7 +2792,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value() / 2,
+          supply: u128::MAX / 2,
           timestamp: 2,
           ..Default::default()
         },
@@ -2805,7 +2802,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value() / 2)],
+        vec![(id, u128::MAX / 2)],
       )],
     );
 
@@ -2815,7 +2812,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: id.into(),
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           ..Default::default()
@@ -2833,7 +2830,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value() / 2,
+          supply: u128::MAX / 2,
           timestamp: 2,
           ..Default::default()
         },
@@ -2843,7 +2840,7 @@ mod tests {
           txid: txid1,
           vout: 0,
         },
-        vec![(id, u128::max_value() / 2)],
+        vec![(id, u128::MAX / 2)],
       )],
     );
   }
@@ -2860,7 +2857,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 1,
           }],
           etching: Some(Etching {
@@ -2885,10 +2882,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: u128::max_value(),
+          burned: u128::MAX,
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -2910,7 +2907,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -2937,12 +2934,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -2960,7 +2957,7 @@ mod tests {
           edicts: vec![
             Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
             Edict {
@@ -2993,12 +2990,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -3042,28 +3039,16 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
       [
-        (
-          OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 3 },
-          vec![(id, u128::max_value() / 4)],
-        ),
+        (OutPoint { txid, vout: 0 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 1 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 2 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 3 }, vec![(id, u128::MAX / 4)]),
       ],
     );
   }
@@ -3115,7 +3100,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3123,19 +3108,19 @@ mod tests {
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, 1000 + (u128::max_value() - 1000) / 4 + 1)],
+          vec![(id, 1000 + (u128::MAX - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 1 },
-          vec![(id, (u128::max_value() - 1000) / 4 + 1)],
+          vec![(id, (u128::MAX - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 2 },
-          vec![(id, (u128::max_value() - 1000) / 4 + 1)],
+          vec![(id, (u128::MAX - 1000) / 4 + 1)],
         ),
         (
           OutPoint { txid, vout: 3 },
-          vec![(id, (u128::max_value() - 1000) / 4)],
+          vec![(id, (u128::MAX - 1000) / 4)],
         ),
       ],
     );
@@ -3188,28 +3173,16 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
       [
-        (
-          OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 1 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 2 },
-          vec![(id, u128::max_value() / 4 + 1)],
-        ),
-        (
-          OutPoint { txid, vout: 3 },
-          vec![(id, u128::max_value() / 4)],
-        ),
+        (OutPoint { txid, vout: 0 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 1 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 2 }, vec![(id, u128::MAX / 4 + 1)]),
+        (OutPoint { txid, vout: 3 }, vec![(id, u128::MAX / 4)]),
       ],
     );
   }
@@ -3282,7 +3255,7 @@ mod tests {
           edicts: vec![
             Edict {
               id: 0,
-              amount: u128::max_value() - 3000,
+              amount: u128::MAX - 3000,
               output: 0,
             },
             Edict {
@@ -3315,16 +3288,13 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
       [
-        (
-          OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() - 2000)],
-        ),
+        (OutPoint { txid, vout: 0 }, vec![(id, u128::MAX - 2000)]),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 2 }, vec![(id, 1000)]),
       ],
@@ -3350,7 +3320,7 @@ mod tests {
             },
             Edict {
               id: 0,
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -3378,7 +3348,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3386,7 +3356,7 @@ mod tests {
       [
         (
           OutPoint { txid, vout: 0 },
-          vec![(id, u128::max_value() - 4000 + 1000)],
+          vec![(id, u128::MAX - 4000 + 1000)],
         ),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 2 }, vec![(id, 1000)]),
@@ -3407,7 +3377,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3434,7 +3404,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3444,7 +3414,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3473,7 +3443,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3484,14 +3454,14 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() / 2 + 1)],
+          vec![(id, u128::MAX / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 1,
           },
-          vec![(id, u128::max_value() / 2)],
+          vec![(id, u128::MAX / 2)],
         ),
       ],
     );
@@ -3509,7 +3479,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3536,7 +3506,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3546,7 +3516,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3582,7 +3552,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3593,14 +3563,14 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, 1000 + (u128::max_value() - 1000) / 2 + 1)],
+          vec![(id, 1000 + (u128::MAX - 1000) / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 1,
           },
-          vec![(id, (u128::max_value() - 1000) / 2)],
+          vec![(id, (u128::MAX - 1000) / 2)],
         ),
       ],
     );
@@ -3618,7 +3588,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3645,7 +3615,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3655,7 +3625,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3691,7 +3661,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3702,14 +3672,14 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() / 2 + 1)],
+          vec![(id, u128::MAX / 2 + 1)],
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 1,
           },
-          vec![(id, u128::max_value() / 2)],
+          vec![(id, u128::MAX / 2)],
         ),
       ],
     );
@@ -3727,7 +3697,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3754,7 +3724,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3764,7 +3734,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3793,7 +3763,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3804,7 +3774,7 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() - 1000)],
+          vec![(id, u128::MAX - 1000)],
         ),
         (
           OutPoint {
@@ -3829,7 +3799,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3856,7 +3826,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3866,7 +3836,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3878,7 +3848,7 @@ mod tests {
           edicts: vec![
             Edict {
               id: id.into(),
-              amount: u128::max_value() - 2000,
+              amount: u128::MAX - 2000,
               output: 0,
             },
             Edict {
@@ -3902,7 +3872,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3913,7 +3883,7 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() - 2000 + 1000)],
+          vec![(id, u128::MAX - 2000 + 1000)],
         ),
         (
           OutPoint {
@@ -3938,7 +3908,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -3965,7 +3935,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -3975,7 +3945,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -3992,7 +3962,7 @@ mod tests {
             },
             Edict {
               id: id.into(),
-              amount: u128::max_value(),
+              amount: u128::MAX,
               output: 0,
             },
           ],
@@ -4011,7 +3981,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -4022,7 +3992,7 @@ mod tests {
             txid: txid1,
             vout: 0,
           },
-          vec![(id, u128::max_value() - 4000 + 1000)],
+          vec![(id, u128::MAX - 4000 + 1000)],
         ),
         (
           OutPoint {
@@ -4061,7 +4031,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -4089,13 +4059,13 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           symbol: Some('$'),
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -4138,12 +4108,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -4159,7 +4129,7 @@ mod tests {
         Runestone {
           edicts: vec![Edict {
             id: 0,
-            amount: u128::max_value(),
+            amount: u128::MAX,
             output: 0,
           }],
           etching: Some(Etching {
@@ -4186,7 +4156,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -4196,7 +4166,7 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
 
@@ -4225,7 +4195,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
-          supply: u128::max_value(),
+          supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
         },
@@ -4235,7 +4205,7 @@ mod tests {
           txid: txid1,
           vout: 1,
         },
-        vec![(id, u128::max_value())],
+        vec![(id, u128::MAX)],
       )],
     );
   }
@@ -4243,7 +4213,7 @@ mod tests {
   #[test]
   fn max_limit() {
     MAX_LIMIT
-      .checked_mul(u128::from(u16::max_value()) * 144 * 365 * 1_000_000_000)
+      .checked_mul(u128::from(u16::MAX) * 144 * 365 * 1_000_000_000)
       .unwrap();
   }
 

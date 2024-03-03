@@ -416,19 +416,26 @@ fn inscribe_with_dry_run_flag() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet inscribe --dry-run --file degenerate.png --fee-rate 1")
-    .write("degenerate.png", [1; 520])
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+  let inscribe =
+    CommandBuilder::new("wallet inscribe --dry-run --file degenerate.png --fee-rate 1")
+      .write("degenerate.png", [1; 520])
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  assert!(inscribe.commit_psbt.is_some());
+  assert!(inscribe.reveal_psbt.is_some());
 
   assert!(bitcoin_rpc_server.mempool().is_empty());
 
-  CommandBuilder::new("wallet inscribe --file degenerate.png --fee-rate 1")
+  let inscribe = CommandBuilder::new("wallet inscribe --file degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Inscribe>();
+
+  assert!(inscribe.commit_psbt.is_none());
+  assert!(inscribe.reveal_psbt.is_none());
 
   assert_eq!(bitcoin_rpc_server.mempool().len(), 2);
 }
@@ -643,7 +650,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
-      ".*<dt>parent</dt>.*<a class=monospace href=/inscription/{}>.*",
+      ".*<dt>parent</dt>.*<a href=/inscription/{}>.*",
       child_output.parent.unwrap()
     ),
   );
@@ -2207,7 +2214,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
     offset: 0,
   };
 
-  let sat_1 = serde_json::from_str::<OutputJson>(
+  let sat_1 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_1.outpoint))
       .text()
@@ -2218,7 +2225,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   .unwrap()[0]
     .0;
 
-  let sat_2 = serde_json::from_str::<OutputJson>(
+  let sat_2 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_2.outpoint))
       .text()
@@ -2229,7 +2236,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   .unwrap()[0]
     .0;
 
-  let sat_3 = serde_json::from_str::<OutputJson>(
+  let sat_3 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_3.outpoint))
       .text()
@@ -2389,7 +2396,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
     offset: 0,
   };
 
-  let output_1 = serde_json::from_str::<OutputJson>(
+  let output_1 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_1.outpoint))
       .text()
@@ -2398,7 +2405,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   .unwrap();
   assert_eq!(output_1.value, 25 * COIN_VALUE);
 
-  let output_2 = serde_json::from_str::<OutputJson>(
+  let output_2 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_2.outpoint))
       .text()
@@ -2407,7 +2414,7 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   .unwrap();
   assert_eq!(output_2.value, COIN_VALUE);
 
-  let output_3 = serde_json::from_str::<OutputJson>(
+  let output_3 = serde_json::from_str::<api::Output>(
     &ord_rpc_server
       .json_request(format!("/output/{}", satpoint_3.outpoint))
       .text()

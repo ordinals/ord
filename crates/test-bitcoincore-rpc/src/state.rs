@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Debug)]
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
   pub(crate) change_addresses: Vec<Address>,

@@ -1,7 +1,4 @@
-use {
-  super::*, crate::command_builder::ToArgs, ciborium::value::Integer,
-  ord::subcommand::wallet::send::Output,
-};
+use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
@@ -308,12 +305,12 @@ fn recursive_inscription_endpoint() {
     "application/json"
   );
 
-  let inscription_recursive_json: InscriptionRecursiveJson =
+  let inscription_recursive_json: api::InscriptionRecursive =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     inscription_recursive_json,
-    InscriptionRecursiveJson {
+    api::InscriptionRecursive {
       charms: vec!["coin".into(), "uncommon".into()],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
@@ -402,64 +399,6 @@ fn expected_sat_time_is_rounded() {
     "/sat/2099999997689999",
     r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
   );
-}
-
-#[test]
-#[ignore]
-fn server_runs_with_rpc_user_and_pass_as_env_vars() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  let tempdir = TempDir::new().unwrap();
-  let port = TcpListener::bind("127.0.0.1:0")
-    .unwrap()
-    .local_addr()
-    .unwrap()
-    .port();
-
-  let mut child = Command::new(executable_path("ord"))
-    .args(format!(
-      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
-      rpc_server.url(),
-      tempdir.path().display(),
-      tempdir.path().display()).to_args()
-      )
-      .env("ORD_BITCOIN_RPC_PASS", "bar")
-      .env("ORD_BITCOIN_RPC_USER", "foo")
-      .env("ORD_INTEGRATION_TEST", "1")
-      .current_dir(&tempdir)
-      .spawn().unwrap();
-
-  for i in 0.. {
-    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
-      Ok(_) => break,
-      Err(err) => {
-        if i == 400 {
-          panic!("ord server failed to start: {err}");
-        }
-      }
-    }
-
-    thread::sleep(Duration::from_millis(50));
-  }
-
-  rpc_server.mine_blocks(1);
-
-  for i in 0.. {
-    let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    if response.text().unwrap() == "2" {
-      break;
-    }
-
-    if i == 400 {
-      panic!("ord server failed to sync");
-    }
-
-    thread::sleep(Duration::from_millis(50));
-  }
-
-  child.kill().unwrap();
 }
 
 #[test]
