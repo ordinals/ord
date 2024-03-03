@@ -38,18 +38,22 @@ case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
     ufw allow 8333
+    ufw allow 8332
     ;;
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     ufw allow 18444
+    ufw allow 18443
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
     ufw allow 38333
+    ufw allow 38332
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     ufw allow 18333
+    ufw allow 18332
     ;;
   *)
     echo "Unknown chain: $CHAIN"
