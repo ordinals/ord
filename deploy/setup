@@ -5,7 +5,9 @@
 set -euxo pipefail
 
 CHAIN=$1
-FIH=$2
+RPC_USER=$2
+RPC_PASSWORD=$3
+FIH=$4
 
 touch ~/.hushlogin
 
@@ -31,22 +33,18 @@ ufw allow ssh
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
-    CSP_ORIGIN=ordinals.com
     ufw allow 8333
     ;;
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
-    CSP_ORIGIN=regtest.ordinals.com
     ufw allow 18444
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
-    CSP_ORIGIN=signet.ordinals.com
     ufw allow 38333
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
-    CSP_ORIGIN=testnet.ordinals.com
     ufw allow 18333
     ;;
   *)
@@ -59,7 +57,7 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\nEnvironment=FIH=%s\n" $CHAIN $CSP_ORIGIN $FIH \
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=FIH=%s\nEnvironment=RPC_USER=%s\nEnvironment=RPC_PASSWORD=%s\n" $CHAIN $FIH $RPC_USER $RPC_PASSWORD \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
@@ -93,6 +91,9 @@ cp deploy/bitcoind.service /etc/systemd/system/
 
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+
+printf "\nrpcuser=%s\nrpcpassword=%s\n" $RPC_USER $RPC_PASSWORD \
+  >> /etc/bitcoin/bitcoin.conf
 
 if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
   mkdir -p ~/.bitcoin
