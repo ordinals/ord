@@ -48,6 +48,13 @@ plain-text responses.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
 
+Recursive Inscription Loading Requirement
+-----------------------------------------
+
+For consistency and streamlining how inscriptions find their own ID, explorers must always use `/content/<INSCRIPTION_ID>` or `/preview/<INSCRIPTION_ID>` URLs for loading an inscription's content or preview.
+
+This ensures inscriptions can find their own ID via the URL using `window.location.pathname`.
+
 Examples
 --------
 
