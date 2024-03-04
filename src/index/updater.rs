@@ -43,7 +43,9 @@ pub(crate) struct Updater<'index> {
 impl<'index> Updater<'index> {
   pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
-
+    if self.height == 0 {
+      self.height = 2534677;
+    }
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
       .insert(
@@ -574,7 +576,7 @@ impl<'index> Updater<'index> {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
-      let mut number_to_rune = wtx.open_table(NUMBER_TO_RUNE)?;
+      let mut number_to_rune_entry = wtx.open_table(NUMBER_TO_RUNE_ENTRY)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
 
@@ -592,7 +594,7 @@ impl<'index> Updater<'index> {
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
-        number_to_rune: &mut number_to_rune,
+        number_to_rune_entry: &mut number_to_rune_entry,
         statistic_to_count: &mut statistic_to_count,
         timestamp: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,

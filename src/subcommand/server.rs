@@ -707,7 +707,7 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      let (runes, more) = index.runes_paginated(100, page_index)?;
+      let (entries, more) = index.runes_paginated(100, page_index)?;
 
       let prev = page_index.checked_sub(1);
 
@@ -715,7 +715,7 @@ impl Server {
 
       Ok(if accept_json {
         Json(RunesPaginatedHtml {
-          runes,
+          entries,
           more,
           prev,
           next,
@@ -723,7 +723,7 @@ impl Server {
         .into_response()
       } else {
         RunesPaginatedHtml {
-          runes,
+          entries,
           more,
           prev,
           next,

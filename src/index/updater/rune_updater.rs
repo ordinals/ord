@@ -33,7 +33,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
-  pub(super) number_to_rune: &'a mut Table<'db, 'tx, u64, u128>,
+  pub(super) number_to_rune_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   pub(super) timestamp: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
@@ -286,36 +286,35 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         self.rune_to_id.insert(rune.0, id.store())?;
         self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
         let number = self.runes;
-        self.number_to_rune.insert(number, rune.0)?;
         self.runes += 1;
         self
           .statistic_to_count
           .insert(&Statistic::Runes.into(), self.runes)?;
-        self.id_to_entry.insert(
-          id.store(),
-          RuneEntry {
-            burned: 0,
-            divisibility,
-            etching: txid,
-            mints: 0,
-            number,
-            mint: mint.and_then(|mint| (!burn).then_some(mint)),
-            rune,
-            spacers,
-            supply: if let Some(mint) = mint {
-              if mint.end == Some(self.height) {
-                0
-              } else {
-                mint.limit.unwrap_or(runes::MAX_LIMIT)
-              }
+        let rune_entry = RuneEntry {
+          burned: 0,
+          divisibility,
+          etching: txid,
+          mints: 0,
+          number,
+          mint: mint.and_then(|mint| (!burn).then_some(mint)),
+          rune,
+          spacers,
+          supply: if let Some(mint) = mint {
+            if mint.end == Some(self.height) {
+              0
             } else {
-              u128::MAX
-            } - balance,
-            symbol,
-            timestamp: self.timestamp,
-          }
-          .store(),
-        )?;
+              mint.limit.unwrap_or(runes::MAX_LIMIT)
+            }
+          } else {
+            u128::MAX
+          } - balance,
+          symbol,
+          timestamp: self.timestamp,
+        };
+        self.id_to_entry.insert(id.store(), rune_entry.store())?;
+        self
+          .number_to_rune_entry
+          .insert(number, rune_entry.store())?;
 
         let inscription_id = InscriptionId { txid, index: 0 };
 

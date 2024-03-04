@@ -7,7 +7,7 @@ pub struct RunesHtml {
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesPaginatedHtml {
-  pub runes: Vec<Rune>,
+  pub entries: Vec<RuneEntry>,
   pub more: bool,
   pub prev: Option<u64>,
   pub next: Option<u64>,
@@ -58,7 +58,7 @@ mod tests {
   fn with_prev_and_next() {
     assert_eq!(
       RunesPaginatedHtml {
-        runes: vec![Rune(0), Rune(2)],
+        entries: vec![],
         prev: Some(1),
         next: Some(2),
         more: true,
