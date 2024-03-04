@@ -5,7 +5,7 @@ pub struct RunesHtml {
   pub entries: Vec<(RuneId, RuneEntry)>,
 }
 
-#[derive(Boilerplate, Serialize, Deserialize)]
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesPaginatedHtml {
   pub runes: Vec<Rune>,
   pub more: bool,
@@ -62,7 +62,8 @@ mod tests {
         prev: Some(1),
         next: Some(2),
         more: true,
-      }.to_string(),
+      }
+      .to_string(),
       "<h1>Runes</h1>
 <ul>
   <li><a href=/rune/A>A</a></li>

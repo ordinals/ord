@@ -1,3 +1,4 @@
+use ord::templates::runes::RunesPaginatedHtml;
 use {super::*, bitcoin::BlockHash};
 
 #[test]
@@ -699,4 +700,39 @@ fn get_runes_balances() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(runes_balance_json, rune_balances);
+}
+#[test]
+fn get_runes_paginated() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(3);
+
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+
+  etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
+  etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let runes_paginated: RunesPaginatedHtml = RunesPaginatedHtml {
+    runes: vec![rune0, rune1],
+    prev: None,
+    next: None,
+    more: false,
+  };
+
+  let response = ord_rpc_server.json_request("/runes/0");
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_json: RunesPaginatedHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(runes_paginated, runes_json);
 }
