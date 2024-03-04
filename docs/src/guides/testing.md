@@ -113,3 +113,16 @@ Finally you will have to mine some blocks and start the server:
 bitcoin-cli generatetoaddress 6 <receive address>
 ord -r server
 ```
+
+To reference inscriptions on mainnet you may now specify a <CONTENT_PROXY_URL>
+with `--content-proxy`, like so:
+
+```
+ord -r server --content-proxy https://ordinals.com
+```
+
+Essentially this will forward the content from an inscription id it cannot find
+in the local regtest to the specified proxy, allowing you to test recursive
+inscriptions with already inscribed content.
+
+
