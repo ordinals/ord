@@ -20,6 +20,7 @@ pub(crate) use {
   range::RangeHtml,
   rare::RareTxt,
   rune_balances::RuneBalancesHtml,
+  runes::RunesPaginatedHtml,
   sat::SatHtml,
   server_config::ServerConfig,
 };

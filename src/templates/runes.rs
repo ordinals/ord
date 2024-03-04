@@ -5,6 +5,20 @@ pub struct RunesHtml {
   pub entries: Vec<(RuneId, RuneEntry)>,
 }
 
+#[derive(Boilerplate, Serialize, Deserialize)]
+pub struct RunesPaginatedHtml {
+  pub entries: Vec<Rune>,
+  pub more: bool,
+  pub prev: Option<u64>,
+  pub next: Option<u64>,
+}
+
+impl PageContent for RunesPaginatedHtml {
+  fn title(&self) -> String {
+    "Runes".to_string()
+  }
+}
+
 impl PageContent for RunesHtml {
   fn title(&self) -> String {
     "Runes".to_string()

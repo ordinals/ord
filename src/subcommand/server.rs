@@ -12,7 +12,8 @@ use {
       InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, RunesPaginatedHtml, SatHtml,
+      TransactionHtml,
     },
   },
   axum::{
@@ -248,7 +249,8 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
-        .route("/runes", get(Self::runes))
+        .route("/runes/all", get(Self::runes))
+        .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
@@ -676,6 +678,40 @@ impl Server {
       } else {
         RunesHtml {
           entries: index.runes()?,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
+  }
+
+  async fn runes_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<u64>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let (entries, more) = index.runes_paginated(100, page_index)?;
+
+      let prev = page_index.checked_sub(1);
+
+      let next = more.then_some(page_index + 1);
+
+      Ok(if accept_json {
+        Json(RunesPaginatedHtml {
+          entries,
+          more,
+          prev,
+          next,
+        })
+        .into_response()
+      } else {
+        RunesPaginatedHtml {
+          entries,
+          more,
+          prev,
+          next,
         }
         .page(server_config)
         .into_response()

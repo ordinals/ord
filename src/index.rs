@@ -72,6 +72,7 @@ define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
+define_table! { NUMBER_TO_RUNE, u64, u128 }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
 define_table! { SEQUENCE_NUMBER_TO_RUNE_ID, u32, RuneIdValue }
@@ -339,6 +340,7 @@ impl Index {
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
+        tx.open_table(NUMBER_TO_RUNE)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
@@ -889,6 +891,36 @@ impl Index {
     }
 
     Ok(entries)
+  }
+
+  pub(crate) fn runes_paginated(
+    &self,
+    page_size: u64,
+    page_index: u64,
+  ) -> Result<(Vec<Rune>, bool)> {
+    let rtx = self.database.begin_read()?;
+    let number_to_rune = rtx.open_table(NUMBER_TO_RUNE)?;
+
+    let last = number_to_rune
+      .iter()?
+      .next_back()
+      .map(|result| result.map(|(number, _rune)| number.value()))
+      .transpose()?
+      .unwrap_or_default();
+
+    let start = last.saturating_sub(page_size.saturating_mul(page_index));
+
+    let end = start.saturating_sub(page_size);
+
+    let runes = number_to_rune
+      .range(end..=start)?
+      .rev()
+      .map(|result| result.map(|(_number, rune_id)| Rune(rune_id.value())))
+      .collect::<Result<Vec<Rune>, StorageError>>()?;
+
+    let more = u64::try_from(runes.len()).unwrap_or_default() > page_size;
+
+    Ok((runes, more))
   }
 
   pub(crate) fn get_rune_balances_for_outpoint(
