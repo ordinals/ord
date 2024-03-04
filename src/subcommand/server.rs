@@ -1206,18 +1206,11 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounty/")
   }
 
-  fn content_proxy(
-    inscription_id: InscriptionId,
-    proxy: &Url,
-  ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
+  fn proxy_content(proxy: &Url, inscription_id: InscriptionId) -> ServerResult<Response> {
     let response = reqwest::blocking::Client::new()
       .get(format!("{}content/{}", proxy, inscription_id))
       .send()
-      .unwrap();
-
-    if response.status() != StatusCode::OK {
-      return Ok(None);
-    }
+      .map_err(|err| anyhow!(err))?;
 
     let mut headers = response.headers().clone();
 
@@ -1229,7 +1222,14 @@ impl Server {
       .map_err(|err| ServerError::Internal(Error::from(err)))?,
     );
 
-    Ok(Some((headers, response.bytes().unwrap().to_vec())))
+    Ok(
+      (
+        response.status(),
+        headers,
+        response.bytes().map_err(|err| anyhow!(err))?,
+      )
+        .into_response(),
+    )
   }
 
   async fn content(
@@ -1246,11 +1246,7 @@ impl Server {
 
       let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
         return if let Some(proxy) = server_config.content_proxy.as_ref() {
-          Ok(
-            Self::content_proxy(inscription_id, proxy)?
-              .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-              .into_response(),
-          )
+          Self::proxy_content(proxy, inscription_id)
         } else {
           Err(ServerError::NotFound(format!(
             "{} not found",
