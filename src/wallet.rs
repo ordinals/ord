@@ -32,7 +32,11 @@ impl Wallet {
       client.load_wallet(&self.name)?;
     }
 
-    self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
+    let info = client.get_wallet_info()?;
+
+    if info.private_keys_enabled {
+      self.check_descriptors(client.list_descriptors(None)?.descriptors)?;
+    }
 
     Ok(client)
   }

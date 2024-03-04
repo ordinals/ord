@@ -52,7 +52,7 @@ use {
     cmp,
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Formatter},
     fs::{self, File},
     io::{self, Cursor, Read},
     mem,
