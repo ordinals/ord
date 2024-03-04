@@ -136,7 +136,7 @@ pub struct Server {
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
   #[arg(long, help = "Proxy `/content/` to this host.")]
-  pub(crate) proxy_content: Option<Url>,
+  pub(crate) content_proxy: Option<Url>,
   #[arg(
     long,
     default_value = "5s",
@@ -175,12 +175,12 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
+        content_proxy: self.content_proxy.clone(),
         csp_origin: self.csp_origin.clone(),
+        decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
-        decompress: self.decompress,
-        proxy_content: self.proxy_content.clone(),
       });
 
       let router = Router::new()
@@ -1205,7 +1205,7 @@ impl Server {
 
   fn content_proxy(
     inscription_id: InscriptionId,
-    proxy: Url,
+    proxy: &Url,
   ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
     let response = reqwest::blocking::Client::new()
       .get(format!("{}content/{}", proxy, inscription_id))
@@ -1241,22 +1241,19 @@ impl Server {
         return Ok(PreviewUnknownHtml.into_response());
       }
 
-      let mut inscription = match index.get_inscription_by_id(inscription_id)? {
-        None => {
-          if let Some(proxy) = server_config.proxy_content.clone() {
-            return Ok(
-              Self::content_proxy(inscription_id, proxy)?
-                .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-                .into_response(),
-            );
-          } else {
-            return Err(ServerError::NotFound(format!(
-              "{} not found",
-              inscription_id
-            )));
-          }
-        }
-        Some(inscription) => inscription,
+      let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
+        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+          Ok(
+            Self::content_proxy(inscription_id, proxy)?
+              .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+              .into_response(),
+          )
+        } else {
+          Err(ServerError::NotFound(format!(
+            "{} not found",
+            inscription_id
+          )))
+        };
       };
 
       if let Some(delegate) = inscription.delegate() {
@@ -5532,7 +5529,7 @@ next
 
     let server_with_proxy = TestServer::builder()
       .chain(Chain::Regtest)
-      .server_option("--proxy-content", server.url.as_ref())
+      .server_option("--content-proxy", server.url.as_ref())
       .build();
 
     server_with_proxy.mine_blocks(1);
