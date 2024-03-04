@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  ord:
+    build: .
+    volumes:
+      - .:/usr/src/ord
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: info
+    working_dir: /usr/src/ord
