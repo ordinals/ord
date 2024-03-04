@@ -121,7 +121,7 @@ with `--content-proxy`, like so:
 ord -r server --content-proxy https://ordinals.com
 ```
 
-Essentially this will forward the content from an inscription id it cannot find
+Essentially this will forward the `/content/` from an inscription id it cannot find
 in the local regtest to the specified proxy, allowing you to test recursive
 inscriptions with already inscribed content.
 
