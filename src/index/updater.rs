@@ -43,9 +43,6 @@ pub(crate) struct Updater<'index> {
 impl<'index> Updater<'index> {
   pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
-    if self.height == 0 {
-      self.height = 2534677;
-    }
 
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
