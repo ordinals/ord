@@ -4,10 +4,11 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
+  pub burn: bool,
+  pub claim: Option<u128>,
+  pub default_output: Option<u32>,
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
-  pub default_output: Option<u32>,
-  pub burn: bool,
 }
 
 struct Message {
@@ -60,6 +61,8 @@ impl Runestone {
     let integers = Runestone::integers(&payload);
 
     let Message { mut fields, edicts } = Message::from_integers(&integers);
+
+    let claim = Tag::Claim.take(&mut fields);
 
     let deadline = Tag::Deadline
       .take(&mut fields)
@@ -120,6 +123,7 @@ impl Runestone {
 
     Ok(Some(Self {
       burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
+      claim,
       default_output,
       edicts,
       etching,
@@ -168,6 +172,10 @@ impl Runestone {
           Tag::Term.encode(term.into(), &mut payload);
         }
       }
+    }
+
+    if let Some(claim) = self.claim {
+      Tag::Claim.encode(claim, &mut payload);
     }
 
     if let Some(default_output) = self.default_output {
@@ -967,9 +975,7 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        etching: None,
-        default_output: None,
-        burn: false,
+        ..Default::default()
       },
     );
   }
@@ -1328,16 +1334,6 @@ mod tests {
 
     case(
       vec![Edict {
-        amount: 0,
-        id: CLAIM_BIT,
-        output: 0,
-      }],
-      None,
-      12,
-    );
-
-    case(
-      vec![Edict {
         amount: u128::MAX,
         id: RuneId {
           height: 1_000_000,
@@ -1557,7 +1553,8 @@ mod tests {
           },
         ],
         default_output: Some(11),
-        burn: false,
+        burn: true,
+        claim: Some(12),
       },
       &[
         Tag::Flags.into(),
@@ -1576,8 +1573,12 @@ mod tests {
         3,
         Tag::Term.into(),
         5,
+        Tag::Claim.into(),
+        12,
         Tag::DefaultOutput.into(),
         11,
+        Tag::Burn.into(),
+        0,
         Tag::Body.into(),
         6,
         5,

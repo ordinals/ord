@@ -9,6 +9,7 @@ pub(super) enum Tag {
   Term = 8,
   Deadline = 10,
   DefaultOutput = 12,
+  Claim = 14,
   #[allow(unused)]
   Burn = 126,
 
