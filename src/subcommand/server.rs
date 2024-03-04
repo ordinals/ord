@@ -135,7 +135,7 @@ pub struct Server {
   pub(crate) redirect_http_to_https: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
   pub(crate) no_sync: bool,
-  #[arg(long, help = "Proxy `/content/` to this host.")]
+  #[arg(long, help = "Proxy `/content/` to <CONTENT_PROXY>.")]
   pub(crate) content_proxy: Option<Url>,
   #[arg(
     long,
