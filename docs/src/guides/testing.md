@@ -57,20 +57,19 @@ bitcoind -regtest -txindex
 Run ord server in regtest with:
 
 ```
-ord -r server
+ord --regtest server
 ```
-
 
 Create a wallet in regtest with:
 
 ```
-ord -r wallet create
+ord --regtest wallet create
 ```
 
 Get a regtest receive address with:
 
 ```
-ord -r wallet receive
+ord --regtest wallet receive
 ```
 
 Mine 101 blocks (to unlock the coinbase) with:
@@ -82,7 +81,7 @@ bitcoin-cli -regtest generatetoaddress 101 <receive address>
 Inscribe in regtest with:
 
 ```
-ord -r wallet inscribe --fee-rate 1 --file <file>
+ord --regtest wallet inscribe --fee-rate 1 --file <file>
 ```
 
 Mine the inscription with:
@@ -94,7 +93,7 @@ bitcoin-cli -regtest generatetoaddress 1 <receive address>
 By default, browsers don't support compression over HTTP. To test compressed
 content over HTTP, use the `--decompress` flag:
 ```
-ord -r server --decompress
+ord --regtest server --decompress
 ```
 
 Testing Recursion
@@ -104,7 +103,7 @@ When testing out [recursion](../inscriptions/recursion.md), inscribe the
 dependencies first (example with [p5.js](https://p5js.org)):
 
 ```
-ord -r wallet inscribe --fee-rate 1 --file p5.js
+ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 ```
 
 This will return the inscription ID of the dependency which you can then
@@ -117,7 +116,7 @@ your dependencies before making the final inscription on mainnet.
 Then you can inscribe your recursive inscription with:
 
 ```
-ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 ```
 
 Finally you will have to mine some blocks and start the server:
@@ -139,5 +138,5 @@ in your test inscription, which will then return the content of the mainnet
 inscriptions.
 
 ```
-ord -r server --content-proxy https://ordinals.com
+ord --regtest server --content-proxy https://ordinals.com
 ```
