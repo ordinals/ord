@@ -723,7 +723,7 @@ fn get_runes_paginated() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let runes_paginated: RunesPaginatedHtml = RunesPaginatedHtml {
-    runes: vec![rune0, rune1],
+    runes: vec![rune1, rune0],
     prev: None,
     next: None,
     more: false,
