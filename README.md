@@ -119,6 +119,20 @@ A Docker image can be built with:
 docker build -t ordinals/ord .
 ```
 
+#### Docker Compose
+A docker image can be built with docker-compose using the following command
+
+```
+docker-compose build
+```
+
+After building the image you can step into the container with the following command
+```
+docker-compose run --rm ord bash
+```
+
+Once in the container, you can run just commands such as `just ci`
+
 ### Homebrew
 
 `ord` is available in [Homebrew](https://brew.sh/):
