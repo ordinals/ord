@@ -92,6 +92,7 @@ bitcoin-cli -regtest generatetoaddress 1 <receive address>
 
 By default, browsers don't support compression over HTTP. To test compressed
 content over HTTP, use the `--decompress` flag:
+
 ```
 ord --regtest server --decompress
 ```
