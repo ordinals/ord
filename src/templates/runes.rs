@@ -7,7 +7,7 @@ pub struct RunesHtml {
 
 #[derive(Boilerplate, Serialize, Deserialize)]
 pub struct RunesPaginatedHtml {
-  pub entries: Vec<Rune>,
+  pub runes: Vec<Rune>,
   pub more: bool,
   pub prev: Option<u64>,
   pub next: Option<u64>,
@@ -50,6 +50,28 @@ mod tests {
 <ul>
   <li><a href=/rune/A•A>A•A</a></li>
 </ul>
+"
+    );
+  }
+
+  #[test]
+  fn with_prev_and_next() {
+    assert_eq!(
+      RunesPaginatedHtml {
+        runes: vec![Rune(0), Rune(2)],
+        prev: Some(1),
+        next: Some(2),
+        more: true,
+      }.to_string(),
+      "<h1>Runes</h1>
+<ul>
+  <li><a href=/rune/A>A</a></li>
+  <li><a href=/rune/C>C</a></li>
+</ul>
+<div class=center>
+<a class=prev href=/runes/1>prev</a>
+<a class=next href=/runes/2>next</a>
+</div>
 "
     );
   }
