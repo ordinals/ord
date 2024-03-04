@@ -48,13 +48,13 @@ Regtest doesn't require downloading the blockchain or indexing ord.
 Example
 -------
 
-Run bitcoind in regtest with:
+Run `bitcoind` in regtest with:
 
 ```
 bitcoind -regtest -txindex
 ```
 
-Run ord server in regtest with:
+Run `ord server` in regtest with:
 
 ```
 ord --regtest server
