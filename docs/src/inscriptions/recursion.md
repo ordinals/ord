@@ -59,17 +59,6 @@ plain-text responses.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
 
-### Self Referencing
-
-An inscription may fetch data about itself using the endpoints above by 
-using its own inscription ID. Since all inscriptions are rendered with 
-a URL of `/content/<INSCRIPTION_ID>`, it can retrieve its own inscription 
-ID from `window.location.pathname` using the following line (or similar)
-
-```js
-const inscriptionId = window.location.pathname.match(/\/content\/([\da-f]{64}i\d+)/i)[1]
-```
-
 Examples
 --------
 
