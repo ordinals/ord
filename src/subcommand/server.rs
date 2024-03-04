@@ -249,7 +249,8 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
-        .route("/runes/all", get(Self::runes))
+        .route("/runes/all", get(Self::runes_all))
+        .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
@@ -664,7 +665,7 @@ impl Server {
     })
   }
 
-  async fn runes(
+  async fn runes_all(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
@@ -683,6 +684,20 @@ impl Server {
         .into_response()
       })
     })
+  }
+
+  async fn runes(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::runes_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
   }
 
   async fn runes_paginated(
@@ -2696,7 +2711,7 @@ mod tests {
     );
 
     server.assert_response_regex(
-      "/runes",
+      "/runes/all",
       StatusCode::OK,
       ".*<li><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></li>.*",
     );
@@ -2730,7 +2745,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/runes",
+      "/runes/all",
       StatusCode::OK,
       ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
     );

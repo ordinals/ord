@@ -511,7 +511,7 @@ fn get_status() {
 }
 
 #[test]
-fn get_runes() {
+fn get_all_runes() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -558,7 +558,7 @@ fn get_runes() {
     }
   );
 
-  let response = ord_rpc_server.json_request("/runes");
+  let response = ord_rpc_server.json_request("/runes/all");
 
   assert_eq!(response.status(), StatusCode::OK);
 
