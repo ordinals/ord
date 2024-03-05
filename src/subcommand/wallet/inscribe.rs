@@ -87,6 +87,7 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
+    let reinscribe;
     let reveal_satpoints;
 
     let satpoint = match (self.file, self.batch) {
@@ -114,6 +115,8 @@ impl Inscribe {
         )?];
 
         mode = Mode::SeparateOutputs;
+
+        reinscribe = self.reinscribe;
 
         reveal_satpoints = Vec::new();
 
@@ -148,6 +151,8 @@ impl Inscribe {
 
         mode = batchfile.mode;
 
+        reinscribe = batchfile.reinscribe;
+
         if let Some(sat) = batchfile.sat {
           Some(wallet.find_sat_in_outputs(sat)?)
         } else {
@@ -167,7 +172,7 @@ impl Inscribe {
       no_limit: self.no_limit,
       parent_info,
       postages,
-      reinscribe: self.reinscribe,
+      reinscribe,
       reveal_fee_rate: self.fee_rate,
       reveal_satpoints,
       satpoint,
