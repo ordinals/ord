@@ -1,30 +1,27 @@
 use super::*;
 
-// todo:
-// - flags:
-//   - sat-name
-//   - inscription-id
-//   - sat-number
-//   - inscription-number
-//   - rarity
-//   - all-ranges
-//   - first-range
-//   - first-sat
-// - output labels with all ranges
-// - require flag to only list first range
-// - require flag to
-//
-// - consider taking lables from sparrow as input and outputting modified lables
-
 #[derive(Serialize)]
 struct Label {
-  r#type: String,
-  r#ref: String,
+  first_sat: SatLabel,
+  inscriptions: BTreeMap<u64, BTreeSet<InscriptionId>>,
+}
+
+#[derive(Serialize)]
+struct SatLabel {
+  name: String,
+  number: u64,
+  rarity: Rarity,
+}
+
+#[derive(Serialize)]
+struct Line {
   label: String,
+  r#ref: String,
+  r#type: String,
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let mut labels: Vec<Label> = Vec::new();
+  let mut lines: Vec<Line> = Vec::new();
 
   let sat_ranges = wallet.get_output_sat_ranges()?;
 
@@ -40,28 +37,33 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   for (output, ranges) in sat_ranges {
     let sat = Sat(ranges[0].0);
+    let mut inscriptions = BTreeMap::<u64, BTreeSet<InscriptionId>>::new();
 
-    let mut label = format!("{sat} {} {}", sat.name(), sat.rarity());
-
-    if let Some(inscriptions) = inscriptions_by_output.get(&output) {
-      for (offset, inscriptions) in inscriptions {
-        label.push_str(&format!(" :{offset}"));
-
-        for inscription in inscriptions {
-          label.push_str(&format!(" {inscription}"));
-        }
+    if let Some(output_inscriptions) = inscriptions_by_output.get(&output) {
+      for (&offset, offset_inscriptions) in output_inscriptions {
+        inscriptions
+          .entry(offset)
+          .or_default()
+          .extend(offset_inscriptions);
       }
     }
 
-    labels.push(Label {
-      r#type: "output".into(),
+    lines.push(Line {
+      label: serde_json::to_string(&Label {
+        first_sat: SatLabel {
+          name: sat.name(),
+          number: sat.n(),
+          rarity: sat.rarity(),
+        },
+        inscriptions,
+      })?,
       r#ref: output.to_string(),
-      label,
+      r#type: "output".into(),
     });
   }
 
-  for label in labels {
-    serde_json::to_writer(io::stdout(), &label)?;
+  for line in lines {
+    serde_json::to_writer(io::stdout(), &line)?;
     println!();
   }
 
