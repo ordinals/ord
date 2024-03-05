@@ -7,7 +7,6 @@ pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
 pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
 
-pub(crate) const CLAIM_BIT: u128 = 1 << 48;
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub(crate) const MAX_LIMIT: u128 = 1 << 64;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
@@ -900,6 +899,7 @@ mod tests {
           }),
           default_output: None,
           burn: true,
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -953,8 +953,8 @@ mod tests {
             symbol: Some('$'),
             spacers: 1,
           }),
-          default_output: None,
           burn: true,
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -1006,7 +1006,7 @@ mod tests {
           }],
           etching: Some(Etching::default()),
           burn: true,
-          default_output: None,
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -4223,6 +4223,7 @@ mod tests {
 
     context.mine_blocks(1);
 
+    // etch the rune
     let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
@@ -4267,15 +4268,17 @@ mod tests {
       [],
     );
 
+    // claim the rune
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4290,14 +4293,14 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
           }),
+          mints: 1,
+          rune: Rune(RUNE),
           supply: 1000,
           timestamp: 2,
-          mints: 1,
           ..Default::default()
         },
       )],
@@ -4310,12 +4313,69 @@ mod tests {
       )],
     );
 
+    // claim the rune
     let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
+            amount: 1000,
+            output: 0,
+          }],
+          claim: Some(u128::from(id)),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          mints: 2,
+          rune: Rune(RUNE),
+          supply: 2000,
+          timestamp: 2,
+          ..Default::default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid2,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+      ],
+    );
+
+    // claim the rune in a burn runestone
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(4, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          burn: true,
+          claim: Some(u128::from(id)),
+          edicts: vec![Edict {
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
@@ -4332,15 +4392,16 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 1000,
           etching: txid0,
-          rune: Rune(RUNE),
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
           }),
-          supply: 2000,
+          mints: 3,
+          rune: Rune(RUNE),
+          supply: 3000,
           timestamp: 2,
-          mints: 2,
           ..Default::default()
         },
       )],
@@ -4419,10 +4480,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4463,10 +4525,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4565,10 +4628,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1,
             output: 3,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4653,10 +4717,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4697,10 +4762,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 1000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4792,10 +4858,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 0,
             output: 3,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -4951,10 +5018,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: MAX_LIMIT + 1,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -5102,10 +5170,11 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id) | CLAIM_BIT,
+            id: u128::from(id),
             amount: 2000,
             output: 0,
           }],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),
@@ -5210,21 +5279,22 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: u128::from(id) | CLAIM_BIT,
+              id: u128::from(id),
               amount: 500,
               output: 0,
             },
             Edict {
-              id: u128::from(id) | CLAIM_BIT,
+              id: u128::from(id),
               amount: 500,
               output: 0,
             },
             Edict {
-              id: u128::from(id) | CLAIM_BIT,
+              id: u128::from(id),
               amount: 500,
               output: 0,
             },
           ],
+          claim: Some(u128::from(id)),
           ..Default::default()
         }
         .encipher(),

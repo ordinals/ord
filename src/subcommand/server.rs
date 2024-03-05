@@ -137,6 +137,11 @@ pub struct Server {
   pub(crate) no_sync: bool,
   #[arg(
     long,
+    help = "Proxy `/content/INSCRIPTION_ID` requests to `<CONTENT_PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+  )]
+  pub(crate) content_proxy: Option<Url>,
+  #[arg(
+    long,
     default_value = "5s",
     help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
   )]
@@ -173,11 +178,12 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
+        content_proxy: self.content_proxy.clone(),
         csp_origin: self.csp_origin.clone(),
+        decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
-        decompress: self.decompress,
       });
 
       let router = Router::new()
@@ -1235,6 +1241,32 @@ impl Server {
     Ok(response)
   }
 
+  fn proxy_content(proxy: &Url, inscription_id: InscriptionId) -> ServerResult<Response> {
+    let response = reqwest::blocking::Client::new()
+      .get(format!("{}content/{}", proxy, inscription_id))
+      .send()
+      .map_err(|err| anyhow!(err))?;
+
+    let mut headers = response.headers().clone();
+
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_str(&format!(
+        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
+      ))
+      .map_err(|err| ServerError::Internal(Error::from(err)))?,
+    );
+
+    Ok(
+      (
+        response.status(),
+        headers,
+        response.bytes().map_err(|err| anyhow!(err))?,
+      )
+        .into_response(),
+    )
+  }
+
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Extension(settings): Extension<Arc<Settings>>,
@@ -1247,9 +1279,16 @@ impl Server {
         return Ok(PreviewUnknownHtml.into_response());
       }
 
-      let mut inscription = index
-        .get_inscription_by_id(inscription_id)?
-        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
+        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+          Self::proxy_content(proxy, inscription_id)
+        } else {
+          Err(ServerError::NotFound(format!(
+            "{} not found",
+            inscription_id
+          )))
+        };
+      };
 
       if let Some(delegate) = inscription.delegate() {
         inscription = index
@@ -1803,6 +1842,11 @@ mod tests {
 
     fn ord_flag(mut self, flag: &str) -> Self {
       self.ord_args.insert(flag.into(), None);
+      self
+    }
+
+    fn server_option(mut self, option: &str, value: &str) -> Self {
+      self.server_args.insert(option.into(), Some(value.into()));
       self
     }
 
@@ -5492,6 +5536,40 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn proxy() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..Default::default()
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    let server_with_proxy = TestServer::builder()
+      .chain(Chain::Regtest)
+      .server_option("--content-proxy", server.url.as_ref())
+      .build();
+
+    server_with_proxy.mine_blocks(1);
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+    server_with_proxy.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
   }
 
   #[test]

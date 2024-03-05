@@ -48,45 +48,53 @@ Regtest doesn't require downloading the blockchain or indexing ord.
 Example
 -------
 
-Run bitcoind in regtest with:
+Run `bitcoind` in regtest with:
+
 ```
 bitcoind -regtest -txindex
 ```
 
-Create a wallet in regtest with:
+Run `ord server` in regtest with:
+
 ```
-ord -r wallet create
+ord --regtest server
+```
+
+Create a wallet in regtest with:
+
+```
+ord --regtest wallet create
 ```
 
 Get a regtest receive address with:
+
 ```
-ord -r wallet receive
+ord --regtest wallet receive
 ```
 
 Mine 101 blocks (to unlock the coinbase) with:
+
 ```
 bitcoin-cli -regtest generatetoaddress 101 <receive address>
 ```
 
 Inscribe in regtest with:
+
 ```
-ord -r wallet inscribe --fee-rate 1 --file <file>
+ord --regtest wallet inscribe --fee-rate 1 --file <file>
 ```
 
 Mine the inscription with:
+
 ```
 bitcoin-cli -regtest generatetoaddress 1 <receive address>
 ```
 
-View the inscription in the regtest explorer:
-```
-ord -r server
-```
-
 By default, browsers don't support compression over HTTP. To test compressed
 content over HTTP, use the `--decompress` flag:
+
 ```
-ord -r server --decompress
+ord --regtest server --decompress
 ```
 
 Testing Recursion
@@ -94,22 +102,42 @@ Testing Recursion
 
 When testing out [recursion](../inscriptions/recursion.md), inscribe the
 dependencies first (example with [p5.js](https://p5js.org)):
-```
-ord -r wallet inscribe --fee-rate 1 --file p5.js
-```
-This should return a `inscription_id` which you can then reference in your
-recursive inscription.
 
-ATTENTION: These ids will be different when inscribing on
-mainnet or signet, so be sure to change those in your recursive inscription for
-each chain.
+```
+ord --regtest wallet inscribe --fee-rate 1 --file p5.js
+```
+
+This will return the inscription ID of the dependency which you can then
+reference in your inscription.
+
+However, inscription IDs differ between mainnet and test chains, so you must
+change the inscription IDs in your inscription to the mainnet inscription IDs of
+your dependencies before making the final inscription on mainnet.
 
 Then you can inscribe your recursive inscription with:
+
 ```
-ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 ```
+
 Finally you will have to mine some blocks and start the server:
+
 ```
 bitcoin-cli generatetoaddress 6 <receive address>
-ord -r server
+```
+
+### Mainnet Dependencies
+
+To avoid having to change dependency inscription IDs to mainnet inscription IDs,
+you may utilize a content proxy when testing. `ord server` accepts a
+`--content-proxy` option, which takes the URL of a another `ord server`
+instance. When making a request to `/content/<INSCRIPTION_ID>` when a content
+proxy is set and the inscription is not found, `ord server` will forward the
+request to the content proxy. This allows you to run a test `ord server`
+instance with a mainnet content proxy. You can then use mainnet inscription IDs
+in your test inscription, which will then return the content of the mainnet
+inscriptions.
+
+```
+ord --regtest server --content-proxy https://ordinals.com
 ```
