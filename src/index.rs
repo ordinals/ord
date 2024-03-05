@@ -2005,7 +2005,10 @@ impl Index {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, crate::index::testing::Context};
+  use {
+    super::*,
+    crate::{index::testing::Context, runes::Mint},
+  };
 
   #[test]
   fn height_limit() {
@@ -5696,7 +5699,7 @@ mod tests {
   }
 
   #[test]
-  fn event_sender_channel() {
+  fn inscription_event_sender_channel() {
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
     let context = Context::builder().event_sender(event_sender).build();
 
@@ -5768,6 +5771,253 @@ mod tests {
         },
         sequence_number: 0,
       }
+    );
+  }
+
+  #[test]
+  fn rune_event_sender_channel() {
+    const RUNE: u128 = 99246114928149462;
+
+    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
+    let context = Context::builder()
+      .arg("--index-runes")
+      .event_sender(event_sender)
+      .build();
+
+    context.mine_blocks(1);
+
+    // rune etch should emit RuneEtched
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          etching: Some(Etching {
+            rune: Some(Rune(RUNE)),
+            mint: Some(Mint {
+              limit: Some(1000),
+              ..Default::default()
+            }),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    let event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      event,
+      Event::RuneEtched {
+        block_height: 2,
+        txid: txid0,
+        rune_id: id,
+      }
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          timestamp: 2,
+          mints: 0,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        },
+      )],
+      [],
+    );
+
+    // rune claim should emit RuneClaimed and RuneTransferred
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id),
+            amount: 1000,
+            output: 0,
+          }],
+          claim: Some(u128::from(id)),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      event,
+      Event::RuneClaimed {
+        block_height: 3,
+        txid: txid1,
+        rune_id: id,
+        amount: 1000,
+      }
+    );
+    let event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      event,
+      Event::RuneTransferred {
+        block_height: 3,
+        txid: txid1,
+        rune_id: id,
+        amount: 1000,
+        outpoint: OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+      }
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          supply: 1000,
+          timestamp: 2,
+          mints: 1,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    // rune transfer should emit RuneTransferred
+    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: id.into(),
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      event,
+      Event::RuneTransferred {
+        block_height: 4,
+        txid: txid2,
+        rune_id: id,
+        amount: 1000,
+        outpoint: OutPoint {
+          txid: txid2,
+          vout: 0,
+        },
+      }
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          supply: 1000,
+          timestamp: 2,
+          mints: 1,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid2,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    // rune burn should emit RuneBurned
+    let txid3 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(4, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: id.into(),
+            amount: 1000,
+            output: 1,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let event = event_receiver.blocking_recv().unwrap();
+    assert_eq!(
+      event,
+      Event::RuneBurned {
+        block_height: 5,
+        txid: txid3,
+        amount: 1000,
+        rune_id: id,
+      }
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          supply: 1000,
+          timestamp: 2,
+          mints: 1,
+          burned: 1000,
+          ..Default::default()
+        },
+      )],
+      [],
     );
   }
 }

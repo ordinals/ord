@@ -26,6 +26,7 @@ pub(crate) struct RuneUpdate {
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
+  pub(super) event_sender: Option<&'a Sender<Event>>,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
@@ -71,6 +72,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           .updates
           .entry(RuneId::try_from(claim.id).unwrap())
           .or_default();
+
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneClaimed {
+            block_height: self.height,
+            txid,
+            rune_id: RuneId::try_from(claim.id).unwrap(),
+            amount: claim.limit,
+          })?;
+        }
 
         update.mints += 1;
         update.supply += claim.limit;
@@ -219,6 +229,19 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       for (id, balance) in balances {
         varint::encode_to_vec(id, &mut buffer);
         varint::encode_to_vec(balance, &mut buffer);
+
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneTransferred {
+            block_height: self.height,
+            txid,
+            amount: balance,
+            rune_id: RuneId::try_from(id).unwrap(),
+            outpoint: OutPoint {
+              txid,
+              vout: vout.try_into().unwrap(),
+            },
+          })?;
+        }
       }
 
       self.outpoint_to_balances.insert(
@@ -238,6 +261,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .entry(RuneId::try_from(id).unwrap())
         .or_default()
         .burned += amount;
+
+      if let Some(sender) = self.event_sender {
+        sender.blocking_send(Event::RuneBurned {
+          block_height: self.height,
+          txid,
+          rune_id: RuneId::try_from(id).unwrap(),
+          amount,
+        })?;
+      }
     }
 
     Ok(())
@@ -287,6 +319,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
       .store(),
     )?;
+
+    if let Some(sender) = self.event_sender {
+      sender.blocking_send(Event::RuneEtched {
+        block_height: self.height,
+        txid,
+        rune_id: id,
+      })?;
+    }
 
     let inscription_id = InscriptionId { txid, index: 0 };
 

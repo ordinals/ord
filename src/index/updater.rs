@@ -583,6 +583,7 @@ impl<'index> Updater<'index> {
         .unwrap_or(0);
 
       let mut rune_updater = RuneUpdater {
+        event_sender: self.index.event_sender.as_ref(),
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
