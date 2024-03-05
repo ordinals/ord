@@ -1775,6 +1775,20 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
   let inscription_id = output.inscriptions[0].id;
   let satpoint = output.inscriptions[0].location;
 
+  CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("mode: same-sat\nsatpoint: {}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", satpoint)
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_exit_code(1)
+    .stderr_regex(".*error: sat at .*:0:0 already inscribed.*")
+    .run_and_extract_stdout();
+
   let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
@@ -1836,41 +1850,6 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
     format!("/output/{}", output.inscriptions[0].location.outpoint),
     format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", inscription_id, output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
   );
-}
-
-#[test]
-fn batch_same_sat_with_satpoint_and_reinscription_fails() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
-
-  bitcoin_rpc_server.mine_blocks(1);
-
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
-    .write("parent.png", [1; 520])
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
-
-  bitcoin_rpc_server.mine_blocks(1);
-
-  let satpoint = output.inscriptions[0].location;
-
-  CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
-    .write("inscription.txt", "Hello World")
-    .write("tulip.png", [0; 555])
-    .write("meow.wav", [0; 2048])
-    .write(
-      "batch.yaml",
-      format!("mode: same-sat\nsatpoint: {}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", satpoint)
-    )
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
-    .expected_exit_code(1)
-    .stderr_regex(".*error: sat at .*:0:0 already inscribed.*")
-    .run_and_extract_stdout();
 }
 
 #[test]
