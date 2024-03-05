@@ -89,12 +89,12 @@ impl Batchfile {
       );
 
       let mut seen = HashSet::new();
-      let no_duplicates = batchfile
-        .inscriptions
-        .iter()
-        .all(|entry| seen.insert(entry.satpoint.unwrap_or_default()));
-
-      ensure!(no_duplicates, "there cannot be duplicate satpoints");
+      for entry in batchfile.inscriptions.iter() {
+        let satpoint = entry.satpoint.unwrap_or_default();
+        if !seen.insert(satpoint) {
+          bail!("duplicate satpoint {}", satpoint);
+        }
+      }
     }
 
     Ok(batchfile)
@@ -352,7 +352,7 @@ inscriptions:
       Batchfile::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
-      "there cannot be duplicate satpoints"
+      "duplicate satpoint bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0"
     );
   }
 }
