@@ -1209,7 +1209,7 @@ impl Server {
   async fn carbonado(Path((key, hash)): Path<(String, String)>) -> ServerResult<Response> {
     let endpoint: String =
       std::env::var("CARBONADO_ENDPOINT").map_err(|err| ServerError::Internal(err.into()))?;
-    let res = reqwest::get(format!("{endpoint}/retrieve/{key}/{hash}"))
+    let res = reqwest::get(format!("{endpoint}/hashed/{key}/{hash}"))
       .await
       .map_err(|err| ServerError::Internal(err.into()))?;
     let bytes = res
@@ -1217,23 +1217,13 @@ impl Server {
       .await
       .map_err(|err| ServerError::Internal(err.into()))?
       .to_vec();
-    println!("Key: {key}, Hash: {hash}");
-    let key = carbonado::structs::Secp256k1PubKey::try_from(key.as_str())
+
+    let _key = carbonado::structs::Secp256k1PubKey::try_from(key.as_str())
       .map_err(|_err| ServerError::BadRequest(format!("Key {key} is in the wrong format")))?;
 
-    let key_res = reqwest::get(format!("{endpoint}/key/{key}"))
-      .await
-      .map_err(|err| ServerError::Internal(err.into()))?;
-    let ss: String = key_res
-      .text()
-      .await
-      .map_err(|err| ServerError::Internal(err.into()))?;
+    let res_hash = carbonado::blake3::hash(&bytes);
 
-    let res_hash = carbonado::utils::pub_keyed_hash(&ss, &bytes)
-      .map_err(|err| ServerError::Internal(err.into()))?;
-
-    println!("Carbonado Key: {key}, Res Hash: {res_hash}");
-    if res_hash != hash {
+    if res_hash.to_hex().to_string() != hash {
       return Err(ServerError::BadRequest(format!(
         "Response hash {res_hash} does not match request hash {hash}"
       )));

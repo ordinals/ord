@@ -780,9 +780,9 @@ checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 
 [[package]]
 name = "carbonado"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b6dec3eae07040c0b6d726f19414df8fb82a746b14cd7c78f814f59d4e605c2"
+checksum = "f510a35ad5a179e11ae32d8d5ecd96fc15b8371141539fefab907e2ca7f6fbda"
 dependencies = [
  "bao",
  "bech32 0.11.0",
