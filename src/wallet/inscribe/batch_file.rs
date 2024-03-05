@@ -7,6 +7,7 @@ pub struct Batchfile {
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) postage: Option<u64>,
+  pub(crate) reinscribe: Option<bool>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: Option<SatPoint>,
 }
