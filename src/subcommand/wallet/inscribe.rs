@@ -151,7 +151,7 @@ impl Inscribe {
 
         mode = batchfile.mode;
 
-        reinscribe = batchfile.reinscribe.unwrap_or(false);
+        reinscribe = batchfile.reinscribe;
 
         if let Some(sat) = batchfile.sat {
           Some(wallet.find_sat_in_outputs(sat)?)
