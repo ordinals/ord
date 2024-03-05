@@ -1587,42 +1587,45 @@ $ord outputs
 </div>
 <p>Regtestはブロックチェーンをダウンロードしたり、ordインデックスを作成したりする必要はありません</p>
 <h2 id="例を挙げます-4"><a class="header" href="#例を挙げます-4">例を挙げます</a></h2>
-<p>regtestの中でbitcoindを運行し、使います：</p>
+<p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
+<p>Run <code>ord server</code> in regtest with:</p>
+<pre><code>ord --regtest server
+</code></pre>
 <p>regtestの中でウォレットを作り上げます。</p>
-<pre><code>ord -r wallet create
+<pre><code>ord --regtest wallet create
 </code></pre>
 <p>regtest受け取りアドレスを作成します</p>
-<pre><code>ord -r wallet receive
+<pre><code>ord --regtest wallet receive
 </code></pre>
 <p>101個のブロックを掘る（ロック解除coinbase）に使います：</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>regtest上で刻みます。</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>銘文を発掘します。</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
-<p>regtestブラウザで銘文を見ます。</p>
-<pre><code>ord -r server
-</code></pre>
 <p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
-<pre><code>ord -r server --decompress
+<pre><code>ord --regtest server --decompress
 </code></pre>
 <h2 id="再帰のテスト"><a class="header" href="#再帰のテスト">再帰のテスト</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
-<p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。。</p>
-<p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。</p>
+<p>This will return the inscription ID of the dependency which you can then reference in your inscription.</p>
+<p>However, inscription IDs differ between mainnet and test chains, so you must change the inscription IDs in your inscription to the mainnet inscription IDs of your dependencies before making the final inscription on mainnet.</p>
 <p>次のコマンドを使用して、再帰的な碑文を刻むことができます。：</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>最終的には、サーバーを開始するためにいくつかのブロックを掘ることができます：</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
-ord -r server
+</code></pre>
+<h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --content-proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinals賞金計画の提示"><a class="header" href="#ordinals賞金計画の提示">Ordinals賞金計画の提示</a></h1>
 <ul>

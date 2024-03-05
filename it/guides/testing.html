@@ -273,42 +273,45 @@ $ord outputs
 </div>
 <p>Regtest non richiede il download della blockchain o l'indicizzazione di ord.</p>
 <h2 id="esempio"><a class="header" href="#esempio">Esempio</a></h2>
-<p>Eseguire bitcoind in regtest con:</p>
+<p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
+<p>Run <code>ord server</code> in regtest with:</p>
+<pre><code>ord --regtest server
+</code></pre>
 <p>Creare un portafoglio in regtest con:</p>
-<pre><code>ord -r wallet create
+<pre><code>ord --regtest wallet create
 </code></pre>
 <p>Ottenere un indirizzo di ricezione in regtest con:</p>
-<pre><code>ord -r wallet receive
+<pre><code>ord --regtest wallet receive
 </code></pre>
 <p>Estrarre 101 blocchi (per sbloccare il coinbase) con:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscrivere in regtest con:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Estrarre l'iscrizione con:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
-<p>Visualizzare l'iscrizione nell'explorer di regtest:</p>
-<pre><code>ord -r server
-</code></pre>
 <p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
-<pre><code>ord -r server --decompress
+<pre><code>ord --regtest server --decompress
 </code></pre>
 <h2 id="testare-la-recursion"><a class="header" href="#testare-la-recursion">Testare la Recursion</a></h2>
 <p>Per testare la <a href="../inscriptions/recursion.html">recursion</a>, inscrivere prima le dipendenze (esempio con <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
-<p>Questo dovrebbe restituire un <code>inscription_id</code> a cui si può fare riferimento nell'iscrizione ricorsiva.</p>
-<p>ATTENZIONE: Questi id saranno diversi quando si inscrive su mainnet o signet, quindi assicuratevi di cambiarli nella vostra iscrizione ricorsiva per ogni catena.</p>
+<p>This will return the inscription ID of the dependency which you can then reference in your inscription.</p>
+<p>However, inscription IDs differ between mainnet and test chains, so you must change the inscription IDs in your inscription to the mainnet inscription IDs of your dependencies before making the final inscription on mainnet.</p>
 <p>Quindi è possibile inscrivere l'iscrizione ricorsiva con:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Infine, dovrete estrarre alcuni blocchi e avviare il server:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
-ord -r server
+</code></pre>
+<h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --content-proxy https://ordinals.com
 </code></pre>
 
                     </main>

@@ -1587,42 +1587,45 @@ $ord outputs
 </div>
 <p>Regtest는 블록체인을 다운로드하거나 ord를 인덱싱할 필요가 없다.</p>
 <h2 id="예제-4"><a class="header" href="#예제-4">예제</a></h2>
-<p>다음을 사용해 regtest에 bitcoind를 실행한다:</p>
+<p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
+<p>Run <code>ord server</code> in regtest with:</p>
+<pre><code>ord --regtest server
+</code></pre>
 <p>다음을 사용해 regtest에 지갑을 만든다:</p>
-<pre><code>ord -r wallet create
+<pre><code>ord --regtest wallet create
 </code></pre>
 <p>다음을 사용해 regtest 수신 주소를 얻는다:</p>
-<pre><code>ord -r wallet receive
+<pre><code>ord --regtest wallet receive
 </code></pre>
 <p>다음을 사용해 101 블록을 채굴한다(코인베이스 잠금 해제를 위해):</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>다음을 사용해 regtest에 인스립션을 새긴다:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>다음을 사용해 인스크립션을 채굴한다:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
-<p>다음을 사용해 regtest 탐색기에서 인스크립션을 확인한다:</p>
-<pre><code>ord -r server
-</code></pre>
 <p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
-<pre><code>ord -r server --decompress
+<pre><code>ord --regtest server --decompress
 </code></pre>
 <h2 id="리커젼-테스트"><a class="header" href="#리커젼-테스트">리커젼 테스트</a></h2>
 <p><a href="guides/../inscriptions/recursion.html">리커젼</a>을 테스트할 때는 종속성을 먼저 새긴다 (예: <a href="https://p5js.org">p5.js</a>를 사용):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
-<p>그러면 리커젼 인스크립션에서 참조할 수 있는 <code>inscription_id</code>가 반환될 것이다.</p>
-<p>주의: 메인넷이나 시그넷에 새김 할 때 이 ID는 달라지므로 리커젼 인스크립션 안에 ID를 각 체인 맞추어 변경하도록 하자.</p>
+<p>This will return the inscription ID of the dependency which you can then reference in your inscription.</p>
+<p>However, inscription IDs differ between mainnet and test chains, so you must change the inscription IDs in your inscription to the mainnet inscription IDs of your dependencies before making the final inscription on mainnet.</p>
 <p>그런 다음을 사용해 리커젼 인스크립션을 새길 수 있다:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>마지막으로 블록을 어느 정도 채굴해야 하고 서버를 시작해야 한다:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
-ord -r server
+</code></pre>
+<h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --content-proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-현상금-사냥-힌트"><a class="header" href="#오디널-현상금-사냥-힌트">오디널 현상금 사냥 힌트</a></h1>
 <ul>

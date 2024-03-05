@@ -1587,42 +1587,45 @@ $ord outputs
 </div>
 <p>Für den Regtest ist kein Herunterladen der Blockchain oder Indexierungs das ord erforderlich.</p>
 <h2 id="beispiel-4"><a class="header" href="#beispiel-4">Beispiel</a></h2>
-<p>Führen Sie Bitcoind im Regtest aus mit:</p>
+<p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
+<p>Run <code>ord server</code> in regtest with:</p>
+<pre><code>ord --regtest server
+</code></pre>
 <p>Erstellen Sie im Regtest ein Wallet mit:</p>
-<pre><code>ord -r wallet create
+<pre><code>ord --regtest wallet create
 </code></pre>
 <p>Erhalten Sie eine Regtest-Empfangsadresse mit:</p>
-<pre><code>ord -r wallet receive
+<pre><code>ord --regtest wallet receive
 </code></pre>
 <p>Minen Sie 101 Blöcke (um die coinbase freizuschalten) mit:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe im Regtest mit:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>Mine die inscription mit:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
-<p>Sehen Sie sich die inscription im Regtest-Explorer an:</p>
-<pre><code>ord -r server
-</code></pre>
 <p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
-<pre><code>ord -r server --decompress
+<pre><code>ord --regtest server --decompress
 </code></pre>
 <h2 id="testen-der-rekursion"><a class="header" href="#testen-der-rekursion">Testen der Rekursion</a></h2>
 <p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
-<p>Dies sollte eine <code>inscription_id</code> zurückgeben, auf die Sie dann in Ihrer rekursiven inscription verweisen können.</p>
-<p>ACHTUNG: Diese IDs werden unterschiedlich sein, wenn Sie auf Mainnet oder Signet inskribieren. Stellen Sie sicher, dass Sie sie für jede Kette in Ihrer rekursiven inscription ändern.</p>
+<p>This will return the inscription ID of the dependency which you can then reference in your inscription.</p>
+<p>However, inscription IDs differ between mainnet and test chains, so you must change the inscription IDs in your inscription to the mainnet inscription IDs of your dependencies before making the final inscription on mainnet.</p>
 <p>Dann können Sie Ihre rekursive inscribe einschreiben mit:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>Schließlich müssen Sie einige Blöcke minen und den Server starten:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
-ord -r server
+</code></pre>
+<h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --content-proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="hinweise-zur-ordinal-bounty-jagen"><a class="header" href="#hinweise-zur-ordinal-bounty-jagen">Hinweise zur Ordinal Bounty jagen</a></h1>
 <ul>

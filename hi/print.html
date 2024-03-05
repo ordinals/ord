@@ -1587,42 +1587,45 @@ $ord outputs
 </div>
 <p>Regtest के लिए ब्लॉकचेन या इंडेक्सिंग ऑर्ड डाउनलोड करने की आवश्यकता नहीं है।</p>
 <h2 id="उदाहरण-4"><a class="header" href="#उदाहरण-4">उदाहरण</a></h2>
-<p>Regtest में bitcoind के साथ संचालित करें:</p>
+<p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
+<p>Run <code>ord server</code> in regtest with:</p>
+<pre><code>ord --regtest server
+</code></pre>
 <p>regtest में इसके साथ एक वॉलेट बनाएं:</p>
-<pre><code>ord -r wallet create
+<pre><code>ord --regtest wallet create
 </code></pre>
 <p>इसके साथ regtest रिसीव पता प्राप्‍त करें:</p>
-<pre><code>ord -r wallet receive
+<pre><code>ord --regtest wallet receive
 </code></pre>
 <p>इसके साथ 101 ब्‍लॉक (कॉइनबेस को अनलॉक करने के लिए) खनन करें:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>regtest में इसके साथ उत्‍कीर्ण करें:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file &lt;file&gt;
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file &lt;file&gt;
 </code></pre>
 <p>इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) में इसके साथ खनन करें:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
-<p>regtest एक्‍सप्‍लोर में इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) देखें:</p>
-<pre><code>ord -r server
-</code></pre>
 <p>By default, browsers don't support compression over HTTP. To test compressed content over HTTP, use the <code>--decompress</code> flag:</p>
-<pre><code>ord -r server --decompress
+<pre><code>ord --regtest server --decompress
 </code></pre>
 <h2 id="टेसटिंग-रिकरसन-परीकषण-परतयावरतन"><a class="header" href="#टेसटिंग-रिकरसन-परीकषण-परतयावरतन">टेस्टिंग रिकर्सन (परीक्षण प्रत्‍यावर्तन)</a></h2>
 <p><a href="guides/../inscriptions/recursion.html">रिकर्सन</a> का परीक्षण करते समय, पहले संभावी परिसम्‍पत्ति को उत्‍कीर्ण करें (example with <a href="https://p5js.org">p5.js</a>):</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file p5.js
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file p5.js
 </code></pre>
-<p>इसे एक <code>inscription_id</code> लौटाना चाहिए जिसका संदर्भ का उल्‍लेख आप अपने पुनरावर्ती इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) में कर सकते हैं।</p>
-<p>ध्यान दें: ये आईडी अलग-अलग होंगी, जब आप मेननेट या सिग्नेट पर उत्‍कीर्ण करते हैं, इसलिए प्रत्येक श्रृंखला के लिए अपने पुनरावर्ती इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) में इन्हें बदलना सुनिश्चित करें।</p>
+<p>This will return the inscription ID of the dependency which you can then reference in your inscription.</p>
+<p>However, inscription IDs differ between mainnet and test chains, so you must change the inscription IDs in your inscription to the mainnet inscription IDs of your dependencies before making the final inscription on mainnet.</p>
 <p>उसके बाद आप अपना पुनरावर्ती इंस्‍क्रीप्‍शन (डिजिटल अभिलेख) इसके साथ उत्‍कीर्ण कर सकते हैं:</p>
-<pre><code>ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html
+<pre><code>ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 </code></pre>
 <p>अंत में आपको कुछ ब्लॉक खनन करने होंगे और उसके बाद ही सर्वर शुरू करना होगा:</p>
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
-ord -r server
+</code></pre>
+<h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --content-proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ऑरडिनल-करमसूचक-संखयाएं-बाउंटी-हंटिंग-सलाहें"><a class="header" href="#ऑरडिनल-करमसूचक-संखयाएं-बाउंटी-हंटिंग-सलाहें">ऑर्डिनल (क्रमसूचक संख्‍याएं) बाउंटी हंटिंग सलाहें</a></h1>
 <ul>
