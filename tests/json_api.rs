@@ -163,7 +163,7 @@ fn get_inscription() {
       inscription_number: 0,
       next: None,
       output_value: Some(10000),
-      parent: None,
+      parents: Vec::new(),
       previous: None,
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
