@@ -215,7 +215,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
             hidden: inscription.payload.hidden(),
-            parent: inscription.payload.parent(),
+            parent: inscription.payload.parents().first().map(|p| p.clone()),
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.get(&offset).is_some(),
             unbound: current_input_value == 0
