@@ -55,8 +55,8 @@ pub(crate) struct Inscribe {
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
-  #[clap(long, help = "Make inscription a child of <PARENT>.")]
-  pub(crate) parent: Option<InscriptionId>,
+  #[clap(long, help = "Make inscription a child of one or more <PARENT>.")]
+  pub(crate) parent: Option<Vec<InscriptionId>>,
   #[arg(
     long,
     help = "Amount of postage to include in the inscription. Default `10000sat`."
@@ -92,7 +92,7 @@ impl Inscribe {
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = wallet.get_parent_info(self.parent)?;
+        parent_info = wallet.get_parents_info(self.parent)?;
 
         postages = vec![self.postage.unwrap_or(TARGET_POSTAGE)];
 
@@ -134,7 +134,7 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = wallet.get_parent_info(batchfile.parent)?;
+        parent_info = wallet.get_parents_info(batchfile.parent)?;
 
         (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,

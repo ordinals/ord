@@ -657,6 +657,73 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
 }
 
 #[test]
+fn inscribe_with_multiple_parents() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let parent_1 = CommandBuilder::new("wallet inscribe --fee-rate 1.3 --file parent.png")
+    .write("parent.png", [1; 520])
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>()
+    .inscriptions[0]
+    .id;
+
+  let parent_2 = CommandBuilder::new("wallet inscribe --fee-rate 1.3 --file parent.png")
+    .write("parent.png", [1; 520])
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>()
+    .inscriptions[0]
+    .id;
+
+  let parent_3 = CommandBuilder::new("wallet inscribe --fee-rate 1.3 --file parent.png")
+    .write("parent.png", [1; 520])
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>()
+    .inscriptions[0]
+    .id;
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let child_output = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 2.1 --parent {parent_1} --parent {parent_2} --parent {parent_3} --file child.png"
+  ))
+  .write("child.png", [1; 520])
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(parent_id, child_output.parent.unwrap());
+
+  let commit_tx = &bitcoin_rpc_server.mempool()[0];
+  let reveal_tx = &bitcoin_rpc_server.mempool()[1];
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", child_output.parent.unwrap()),
+    format!(
+      ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
+      child_output.inscriptions[0].id
+    ),
+  );
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", child_output.inscriptions[0].id),
+    format!(
+      ".*<dt>parent</dt>.*<a href=/inscription/{}>.*",
+      child_output.parent.unwrap()
+    ),
+  );
+}
+
+#[test]
 fn reinscribe_with_flag() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server =
