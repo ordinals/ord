@@ -18,7 +18,9 @@ clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
 deploy branch remote chain domain:
-  ssh root@{{domain}} 'mkdir -p deploy \
+  ssh root@{{domain}} '\
+    export DEBIAN_FRONTEND=noninteractive \
+    && mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync'
@@ -196,3 +198,6 @@ coverage:
 
 benchmark-server:
   cargo bench --bench server
+
+update-contributors:
+  cargo run --release --package update-contributors
