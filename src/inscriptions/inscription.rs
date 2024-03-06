@@ -247,10 +247,6 @@ impl Inscription {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
-  pub(crate) fn parent(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(&self.parents.first().cloned())
-  }
-
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
     self
       .parents
@@ -436,8 +432,8 @@ mod tests {
       parents: vec![],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -446,8 +442,8 @@ mod tests {
       parents: vec![vec![]],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -456,8 +452,8 @@ mod tests {
       parents: vec![vec![1; 37]],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -466,12 +462,12 @@ mod tests {
 
     parent[35] = 0;
 
-    assert!(Inscription {
+    assert!(!Inscription {
       parents: vec![parent],
       ..Default::default()
     }
-    .parent()
-    .is_some());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -484,8 +480,8 @@ mod tests {
       parents: vec![parent],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -519,7 +515,8 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .txid,
       "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
@@ -535,7 +532,8 @@ mod tests {
         parents: vec![vec![1; 32]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .index,
       0
@@ -553,7 +551,8 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .index,
       1
@@ -571,7 +570,8 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .index,
       0x0201,
@@ -589,7 +589,8 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .index,
       0x030201,
@@ -607,7 +608,8 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parent()
+      .parents()
+      .first()
       .unwrap()
       .index,
       0x04030201,
