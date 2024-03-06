@@ -73,7 +73,7 @@ pub struct Inscription {
   pub inscription_number: i32,
   pub next: Option<InscriptionId>,
   pub output_value: Option<u64>,
-  pub parent: Option<InscriptionId>,
+  pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,

@@ -168,7 +168,7 @@ pub(crate) struct TransactionInfo {
 pub(crate) struct InscriptionInfo {
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) entry: InscriptionEntry,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) satpoint: SatPoint,
   pub(crate) inscription: Inscription,
@@ -1815,8 +1815,9 @@ impl Index {
       None
     };
 
-    let parent = match entry.parents.first() {
-      Some(parent) => Some(
+    let mut parents = Vec::new();
+    for parent in entry.parents.iter() {
+      parents.push(
         InscriptionEntry::load(
           sequence_number_to_inscription_entry
             .get(parent)?
@@ -1824,9 +1825,8 @@ impl Index {
             .value(),
         )
         .id,
-      ),
-      None => None,
-    };
+      );
+    }
 
     let mut charms = entry.charms;
 
@@ -1837,7 +1837,7 @@ impl Index {
     Ok(Some(InscriptionInfo {
       children,
       entry,
-      parent,
+      parents,
       output,
       satpoint,
       inscription,
