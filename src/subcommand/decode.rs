@@ -45,7 +45,7 @@ impl TryFrom<Inscription> for CompactInscription {
         .transpose()?,
       content_type: inscription.content_type().map(str::to_string),
       metaprotocol: inscription.metaprotocol().map(str::to_string),
-      parent: inscription.parent(),
+      parent: inscription.parents().first().map(|p| p.clone()),
       pointer: inscription.pointer(),
       body: inscription.body.map(hex::encode),
       duplicate_field: inscription.duplicate_field,

@@ -220,10 +220,12 @@ impl Batch {
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     if let Some(parent_info) = &self.parent_info {
-      assert!(self
-        .inscriptions
-        .iter()
-        .all(|inscription| inscription.parent().unwrap() == parent_info.id))
+      assert!(self.inscriptions.iter().all(|inscription| inscription
+        .parents()
+        .first()
+        .unwrap()
+        .clone()
+        == parent_info.id))
     }
 
     match self.mode {
