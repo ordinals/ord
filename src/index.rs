@@ -1081,14 +1081,17 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)
       .unwrap();
 
-    let parent_sequence_number = InscriptionEntry::load(
+    let parents_sequences = InscriptionEntry::load(
       sequence_number_to_inscription_entry
         .get(sequence_number)
         .unwrap()
         .unwrap()
         .value(),
     )
-    .parent
+    .parents;
+
+    let parent_sequence_number = parents_sequences
+    .first()
     .unwrap();
 
     let entry = InscriptionEntry::load(
@@ -1814,7 +1817,7 @@ impl Index {
       None
     };
 
-    let parent = match entry.parent {
+    let parent = match entry.parents.first() {
       Some(parent) => Some(
         InscriptionEntry::load(
           sequence_number_to_inscription_entry
@@ -4389,8 +4392,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4436,8 +4439,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4651,8 +4654,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
