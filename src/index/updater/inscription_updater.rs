@@ -531,7 +531,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             height: self.height,
             id: inscription_id,
             inscription_number,
-            parent: parent_sequence_number,
+            parents: parent_sequence_number.map_or(vec![], |p| vec![p]),
             sat,
             sequence_number,
             timestamp: self.timestamp,

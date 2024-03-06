@@ -199,7 +199,7 @@ pub(crate) struct InscriptionEntry {
   pub(crate) height: u32,
   pub(crate) id: InscriptionId,
   pub(crate) inscription_number: i32,
-  pub(crate) parent: Option<u32>,
+  pub(crate) parents: Vec<u32>,
   pub(crate) sat: Option<Sat>,
   pub(crate) sequence_number: u32,
   pub(crate) timestamp: u32,
@@ -211,7 +211,7 @@ pub(crate) type InscriptionEntryValue = (
   u32,                // height
   InscriptionIdValue, // inscription id
   i32,                // inscription number
-  Option<u32>,        // parent
+  Vec<u32>,           // parent
   Option<u64>,        // sat
   u32,                // sequence number
   u32,                // timestamp
@@ -228,7 +228,7 @@ impl Entry for InscriptionEntry {
       height,
       id,
       inscription_number,
-      parent,
+      parents,
       sat,
       sequence_number,
       timestamp,
@@ -240,7 +240,7 @@ impl Entry for InscriptionEntry {
       height,
       id: InscriptionId::load(id),
       inscription_number,
-      parent,
+      parents,
       sat: sat.map(Sat),
       sequence_number,
       timestamp,
@@ -254,7 +254,7 @@ impl Entry for InscriptionEntry {
       self.height,
       self.id.store(),
       self.inscription_number,
-      self.parent,
+      self.parents,
       self.sat.map(Sat::n),
       self.sequence_number,
       self.timestamp,
