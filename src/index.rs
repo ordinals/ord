@@ -1090,9 +1090,7 @@ impl Index {
     )
     .parents;
 
-    let parent_sequence_number = parents_sequences
-    .first()
-    .unwrap();
+    let parent_sequence_number = parents_sequences.first().unwrap();
 
     let entry = InscriptionEntry::load(
       sequence_number_to_inscription_entry
@@ -4422,7 +4420,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4469,7 +4467,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4523,7 +4521,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4577,7 +4575,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4631,13 +4629,11 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(
-              parent_inscription_id
-                .value()
-                .into_iter()
-                .chain(iter::once(0))
-                .collect(),
-            ),
+            parents: vec![parent_inscription_id
+              .value()
+              .into_iter()
+              .chain(iter::once(0))
+              .collect()],
             ..Default::default()
           }
           .to_witness(),
@@ -4810,7 +4806,7 @@ mod tests {
       let child_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
-        parent: Some(parent_inscription_id.value()),
+        parents: vec![parent_inscription_id.value()],
         pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };

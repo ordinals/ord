@@ -478,7 +478,7 @@ mod tests {
     inscriptions.insert(parent_info.location, vec![parent_inscription]);
 
     let child_inscription = InscriptionTemplate {
-      parent: Some(parent_inscription),
+      parents: vec![parent_inscription],
       ..Default::default()
     }
     .into();
@@ -820,17 +820,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -928,17 +928,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(10_000),
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(11_111),
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(13_3333),
       }
       .into(),
@@ -1044,17 +1044,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -1120,17 +1120,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -1290,17 +1290,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
