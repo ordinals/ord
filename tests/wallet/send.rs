@@ -125,12 +125,10 @@ fn send_inscription_by_sat() {
   let sat = sat_list[0].sat;
   let address = "bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv";
 
-  let output = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 {address} {sat}",
-  ))
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<send::Output>();
+  let output = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {sat}",))
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<send::Output>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
