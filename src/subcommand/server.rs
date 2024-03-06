@@ -1462,7 +1462,7 @@ impl Server {
           children: info.children,
           inscription_number: info.entry.inscription_number,
           genesis_height: info.entry.height,
-          parent: info.parent,
+          parents: info.parents,
           genesis_fee: info.entry.fee,
           output_value: info.output.as_ref().map(|o| o.value),
           address: info
@@ -1497,7 +1497,7 @@ impl Server {
           inscription_number: info.entry.inscription_number,
           next: info.next,
           output: info.output,
-          parent: info.parent,
+          parents: info.parents,
           previous: info.previous,
           rune: info.rune,
           sat: info.entry.sat,
@@ -4542,8 +4542,8 @@ next
     assert_eq!(
       server
         .get_json::<api::Inscription>(format!("/inscription/{inscription_id}"))
-        .parent,
-      Some(parent_inscription_id),
+        .parents,
+      vec![parent_inscription_id],
     );
 
     assert_eq!(
