@@ -28,8 +28,10 @@
 %% }
   <dt>id</dt>
   <dd class=monospace>{{ self.inscription_id }}</dd>
-%% if let Some(parent) = &self.parent {
-  <dt>parent</dt>
+%% if !&self.parents.is_empty() {
+  <dt>parents</dt>
+%% }
+%% for parent in &self.parents {
   <dd>
     <div class=thumbnails>
       {{Iframe::thumbnail(*parent)}}
