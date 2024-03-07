@@ -994,7 +994,7 @@ mod tests {
   fn from_options() {
     pretty_assert_eq!(
       Settings::from_options(
-        Options::try_parse_from(&[
+        Options::try_parse_from([
           "ord",
           "--bitcoin-data-dir=/bitcoin/data/dir",
           "--bitcoin-password=bitcoin password",
@@ -1052,7 +1052,7 @@ mod tests {
       .map(|(key, value)| (key.into(), value.into()))
       .collect::<BTreeMap<String, String>>();
 
-    let options = Options::try_parse_from(&["ord", "--index=option"]).unwrap();
+    let options = Options::try_parse_from(["ord", "--index=option"]).unwrap();
 
     let config = Settings {
       index: Some("config".into()),
