@@ -8,7 +8,7 @@ fn default() {
       r#"\{
   "bitcoin_data_dir": ".*(Bitcoin|bitcoin)",
   "bitcoin_password": null,
-  "bitcoin_url": "127.0.0.1:8332",
+  "bitcoin_rpc_url": "127.0.0.1:8332",
   "bitcoin_username": null,
   "chain": "mainnet",
   "commit_interval": 5000,

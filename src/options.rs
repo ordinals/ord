@@ -14,6 +14,8 @@ pub struct Options {
     help = "Authenticate to Bitcoin Core RPC with <BITCOIN_PASSWORD>."
   )]
   pub(crate) bitcoin_password: Option<String>,
+  #[arg(long, help = "Connect to Bitcoin Core RPC at <BITCOIN_RPC_URL>.")]
+  pub(crate) bitcoin_rpc_url: Option<String>,
   #[arg(long, help = "Authenticate to Bitcoin Core RPC as <BITCOIN_USERNAME>.")]
   pub(crate) bitcoin_username: Option<String>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
@@ -79,8 +81,6 @@ pub struct Options {
   pub(crate) server_username: Option<String>,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
-  #[arg(long, help = "Connect to Bitcoin Core RPC at <BITCOIN_URL>.")]
-  pub(crate) bitcoin_url: Option<String>,
   #[arg(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]

@@ -4,7 +4,7 @@
 
 bitcoin_data_dir: /var/lib/bitcoin
 bitcoin_password: bar
-bitcoin_url: https://localhost:8000
+bitcoin_rpc_url: https://localhost:8000
 bitcoin_username: foo
 chain: mainnet
 commit_interval: 10000

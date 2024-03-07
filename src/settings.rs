@@ -5,7 +5,7 @@ use {super::*, bitcoincore_rpc::Auth};
 pub struct Settings {
   bitcoin_data_dir: Option<PathBuf>,
   bitcoin_password: Option<String>,
-  bitcoin_url: Option<String>,
+  bitcoin_rpc_url: Option<String>,
   bitcoin_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
@@ -109,7 +109,7 @@ impl Settings {
     Self {
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
       bitcoin_password: self.bitcoin_password.or(source.bitcoin_password),
-      bitcoin_url: self.bitcoin_url.or(source.bitcoin_url),
+      bitcoin_rpc_url: self.bitcoin_rpc_url.or(source.bitcoin_rpc_url),
       bitcoin_username: self.bitcoin_username.or(source.bitcoin_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
@@ -145,7 +145,7 @@ impl Settings {
     Self {
       bitcoin_data_dir: options.bitcoin_data_dir,
       bitcoin_password: options.bitcoin_password,
-      bitcoin_url: options.bitcoin_url,
+      bitcoin_rpc_url: options.bitcoin_rpc_url,
       bitcoin_username: options.bitcoin_username,
       chain: options
         .signet
@@ -225,7 +225,7 @@ impl Settings {
     Ok(Self {
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
       bitcoin_password: get_string("BITCOIN_PASSWORD"),
-      bitcoin_url: get_string("BITCOIN_URL"),
+      bitcoin_rpc_url: get_string("BITCOIN_RPC_URL"),
       bitcoin_username: get_string("BITCOIN_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
@@ -285,9 +285,9 @@ impl Settings {
     Ok(Self {
       bitcoin_data_dir: Some(bitcoin_data_dir),
       bitcoin_password: self.bitcoin_password,
-      bitcoin_url: Some(
+      bitcoin_rpc_url: Some(
         self
-          .bitcoin_url
+          .bitcoin_rpc_url
           .clone()
           .unwrap_or_else(|| format!("127.0.0.1:{}", chain.default_rpc_port())),
       ),
@@ -338,11 +338,14 @@ impl Settings {
   }
 
   pub(crate) fn bitcoin_rpc_client(&self, wallet: Option<String>) -> Result<Client> {
-    let rpc_url = self.bitcoin_url(wallet);
+    let rpc_url = self.bitcoin_rpc_url(wallet);
 
     let bitcoin_credentials = self.bitcoin_credentials()?;
 
-    log::info!("Connecting to Bitcoin Core at {}", self.bitcoin_url(None));
+    log::info!(
+      "Connecting to Bitcoin Core at {}",
+      self.bitcoin_rpc_url(None)
+    );
 
     if let Auth::CookieFile(cookie_file) = &bitcoin_credentials {
       log::info!(
@@ -492,8 +495,8 @@ impl Settings {
       .unwrap_or_default()
   }
 
-  pub(crate) fn bitcoin_url(&self, wallet_name: Option<String>) -> String {
-    let base_url = self.bitcoin_url.as_ref().unwrap();
+  pub(crate) fn bitcoin_rpc_url(&self, wallet_name: Option<String>) -> String {
+    let base_url = self.bitcoin_rpc_url.as_ref().unwrap();
     match wallet_name {
       Some(wallet_name) => format!("{base_url}/wallet/{wallet_name}"),
       None => format!("{base_url}/"),
@@ -617,7 +620,7 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      parse(&["--bitcoin-url=127.0.0.1:1234", "--chain=signet"]).bitcoin_url(None),
+      parse(&["--bitcoin-url=127.0.0.1:1234", "--chain=signet"]).bitcoin_rpc_url(None),
       "127.0.0.1:1234/"
     );
   }
@@ -636,7 +639,7 @@ mod tests {
   fn use_default_network() {
     let settings = parse(&[]);
 
-    assert_eq!(settings.bitcoin_url(None), "127.0.0.1:8332/");
+    assert_eq!(settings.bitcoin_rpc_url(None), "127.0.0.1:8332/");
 
     assert!(settings.cookie_file().unwrap().ends_with(".cookie"));
   }
@@ -645,7 +648,7 @@ mod tests {
   fn uses_network_defaults() {
     let settings = parse(&["--chain=signet"]);
 
-    assert_eq!(settings.bitcoin_url(None), "127.0.0.1:38332/");
+    assert_eq!(settings.bitcoin_rpc_url(None), "127.0.0.1:38332/");
 
     assert!(settings
       .cookie_file()
@@ -815,7 +818,7 @@ mod tests {
     let (settings, _) = wallet("ord wallet --name foo balance");
 
     assert_eq!(
-      settings.bitcoin_url(Some("foo".into())),
+      settings.bitcoin_rpc_url(Some("foo".into())),
       "127.0.0.1:8332/wallet/foo"
     );
   }
@@ -927,7 +930,7 @@ mod tests {
     let env = vec![
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
       ("BITCOIN_PASSWORD", "bitcoin password"),
-      ("BITCOIN_URL", "url"),
+      ("BITCOIN_RPC_URL", "url"),
       ("BITCOIN_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
@@ -956,7 +959,7 @@ mod tests {
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_password: Some("bitcoin password".into()),
-        bitcoin_url: Some("url".into()),
+        bitcoin_rpc_url: Some("url".into()),
         bitcoin_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
@@ -1022,7 +1025,7 @@ mod tests {
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_password: Some("bitcoin password".into()),
-        bitcoin_url: Some("url".into()),
+        bitcoin_rpc_url: Some("url".into()),
         bitcoin_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),

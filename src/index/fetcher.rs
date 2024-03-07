@@ -28,10 +28,10 @@ impl Fetcher {
   pub(crate) fn new(settings: &Settings) -> Result<Self> {
     let client = Client::new();
 
-    let url = if settings.bitcoin_url(None).starts_with("http://") {
-      settings.bitcoin_url(None)
+    let url = if settings.bitcoin_rpc_url(None).starts_with("http://") {
+      settings.bitcoin_rpc_url(None)
     } else {
-      "http://".to_string() + &settings.bitcoin_url(None)
+      "http://".to_string() + &settings.bitcoin_rpc_url(None)
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
