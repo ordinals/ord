@@ -207,7 +207,7 @@ Restoring and Dumping Wallet
 
 The `ord` wallet uses descriptors, so you can export the output descriptors and
 import them into another descriptor-based wallet. To export the wallet
-descriptors, which includes your private keys:
+descriptors, which include your private keys:
 
 ```
 $ ord wallet dump
