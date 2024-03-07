@@ -180,6 +180,16 @@ To create a wallet named `ord`, the default, for use with `ord wallet`, run:
 ord wallet create
 ```
 
+This should print out your seed phrase (mnemonic), make sure to store it
+somewhere safe.
+
+```
+{
+  "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
+  "passphrase": ""
+}
+```
+
 If you want to specify a different name or use an `ord server` running on a
 non-default URL you can set these options:
 
@@ -192,6 +202,70 @@ To see all available wallet options you can run:
 ```
 ord wallet help
 ```
+
+Restoring and Dumping Wallet
+----------------------------
+
+The `ord wallet` is a descriptor based wallet, which means you can dump the
+output descriptors and import them into other descriptor wallets. To do so, do:
+
+```
+ord wallet dump
+```
+
+Which should give you the private key descriptors and some metadata about your
+wallet:
+
+```
+==========================================
+= THIS STRING CONTAINS YOUR PRIVATE KEYS =
+=        DO NOT SHARE WITH ANYONE        =
+==========================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+```
+
+Your `ord wallet` can be restored either through the mnemonic or the descriptor
+by doing:
+
+```
+ord wallet restore --from mnemonic
+```
+
+Which will then wait for you to input your 12 word space-separated mnemonic.
+Just press enter and it should restore.
+
+```
+ord wallet restore --from descriptor
+```
+
+This expects the JSON from the `ord wallet dump` command, which has to be
+terminated with CTRL-D on Linux/Mac and CTRL-Z on Windows.
 
 Receiving Sats
 --------------
