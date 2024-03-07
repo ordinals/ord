@@ -467,7 +467,7 @@ impl Settings {
   }
 
   pub(crate) fn index_runes(&self) -> bool {
-    self.index_runes && self.chain() != Chain::Mainnet
+    self.index_runes
   }
 
   pub(crate) fn index_cache_size(&self) -> usize {
@@ -842,11 +842,9 @@ mod tests {
   }
 
   #[test]
-  fn index_runes_only_returns_true_if_index_runes_flag_is_passed_and_not_on_mainnnet() {
-    assert!(parse(&["--chain=signet", "--index-runes",]).index_runes());
-
-    assert!(!parse(&["--index-runes"]).index_runes());
-
+  fn index_runes() {
+    assert!(parse(&["--chain=signet", "--index-runes"]).index_runes());
+    assert!(parse(&["--index-runes"]).index_runes());
     assert!(!parse(&[]).index_runes());
   }
 
