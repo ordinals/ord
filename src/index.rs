@@ -43,7 +43,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 18;
+const SCHEMA_VERSION: u64 = 19;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -167,7 +167,7 @@ pub(crate) struct TransactionInfo {
 pub(crate) struct InscriptionInfo {
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) entry: InscriptionEntry,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) satpoint: SatPoint,
   pub(crate) inscription: Inscription,
@@ -1070,10 +1070,10 @@ impl Index {
   }
 
   #[cfg(test)]
-  pub(crate) fn get_parent_by_inscription_id(
+  pub(crate) fn get_parents_by_inscription_id(
     &self,
     inscription_id: InscriptionId,
-  ) -> InscriptionId {
+  ) -> Vec<InscriptionId> {
     let rtx = self.database.begin_read().unwrap();
 
     let sequence_number = rtx
@@ -1088,25 +1088,28 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)
       .unwrap();
 
-    let parent_sequence_number = InscriptionEntry::load(
+    let parents_sequences = InscriptionEntry::load(
       sequence_number_to_inscription_entry
         .get(sequence_number)
         .unwrap()
         .unwrap()
         .value(),
     )
-    .parent
-    .unwrap();
+    .parents;
 
-    let entry = InscriptionEntry::load(
-      sequence_number_to_inscription_entry
-        .get(parent_sequence_number)
-        .unwrap()
-        .unwrap()
-        .value(),
-    );
-
-    entry.id
+    parents_sequences
+      .into_iter()
+      .map(|parent_sequence_number| {
+        InscriptionEntry::load(
+          sequence_number_to_inscription_entry
+            .get(parent_sequence_number)
+            .unwrap()
+            .unwrap()
+            .value(),
+        )
+        .id
+      })
+      .collect()
   }
 
   pub(crate) fn get_children_by_sequence_number_paginated(
@@ -1821,8 +1824,9 @@ impl Index {
       None
     };
 
-    let parent = match entry.parent {
-      Some(parent) => Some(
+    let mut parents = Vec::new();
+    for parent in entry.parents.iter() {
+      parents.push(
         InscriptionEntry::load(
           sequence_number_to_inscription_entry
             .get(parent)?
@@ -1830,9 +1834,8 @@ impl Index {
             .value(),
         )
         .id,
-      ),
-      None => None,
-    };
+      );
+    }
 
     let mut charms = entry.charms;
 
@@ -1843,7 +1846,7 @@ impl Index {
     Ok(Some(InscriptionInfo {
       children,
       entry,
-      parent,
+      parents,
       output,
       satpoint,
       inscription,
@@ -4396,8 +4399,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4426,7 +4429,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4443,8 +4446,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4473,7 +4476,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4486,8 +4489,8 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -4499,6 +4502,123 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn inscription_with_two_parent_tags_and_parents_has_parent_entries() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let parent_txid_a = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_b = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "world").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id_a = InscriptionId {
+        txid: parent_txid_a,
+        index: 0,
+      };
+      let parent_inscription_id_b = InscriptionId {
+        txid: parent_txid_b,
+        index: 0,
+      };
+
+      let multi_parent_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![
+          parent_inscription_id_a.value(),
+          parent_inscription_id_b.value(),
+        ],
+        ..Default::default()
+      };
+      let multi_parent_witness = multi_parent_inscription.to_witness();
+
+      let revelation_input = (3, 1, 0, multi_parent_witness);
+
+      let parent_b_input = (3, 2, 0, Witness::new());
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[revelation_input, parent_b_input],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id_a, parent_inscription_id_b]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_a)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_repeated_parent_tags_and_parents_has_singular_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          1,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value(), parent_inscription_id.value()],
+            ..Default::default()
+          }
+              .to_witness(),
+        )],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
+      );
+
+      assert_eq!(
+        context
+            .index
+            .get_children_by_inscription_id(parent_inscription_id)
+            .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
 
   #[test]
   fn parents_can_be_in_preceding_input() {
@@ -4527,7 +4647,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4541,8 +4661,8 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -4581,7 +4701,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4596,8 +4716,8 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -4635,13 +4755,11 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(
-              parent_inscription_id
-                .value()
-                .into_iter()
-                .chain(iter::once(0))
-                .collect(),
-            ),
+            parents: vec![parent_inscription_id
+              .value()
+              .into_iter()
+              .chain(iter::once(0))
+              .collect()],
             ..Default::default()
           }
           .to_witness(),
@@ -4658,8 +4776,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4814,7 +4932,7 @@ mod tests {
       let child_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
-        parent: Some(parent_inscription_id.value()),
+        parents: vec![parent_inscription_id.value()],
         pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
@@ -4851,8 +4969,8 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_parent_by_inscription_id(child_inscription_id),
-        parent_inscription_id
+          .get_parents_by_inscription_id(child_inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -5732,7 +5850,7 @@ mod tests {
         sequence_number: 0,
         block_height: 2,
         charms: expected_charms,
-        parent_inscription_id: None
+        parent_inscription_ids: vec![]
       }
     );
 

@@ -1462,7 +1462,7 @@ impl Server {
           children: info.children,
           inscription_number: info.entry.inscription_number,
           genesis_height: info.entry.height,
-          parent: info.parent,
+          parents: info.parents,
           genesis_fee: info.entry.fee,
           output_value: info.output.as_ref().map(|o| o.value),
           address: info
@@ -1497,7 +1497,7 @@ impl Server {
           inscription_number: info.entry.inscription_number,
           next: info.next,
           output: info.output,
-          parent: info.parent,
+          parents: info.parents,
           previous: info.previous,
           rune: info.rune,
           sat: info.entry.sat,
@@ -4396,7 +4396,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_id.value()),
+              parents: vec![parent_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4514,7 +4514,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4531,7 +4531,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 1</title>.*<dt>parent</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
     );
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
@@ -4542,8 +4542,8 @@ next
     assert_eq!(
       server
         .get_json::<api::Inscription>(format!("/inscription/{inscription_id}"))
-        .parent,
-      Some(parent_inscription_id),
+        .parents,
+      vec![parent_inscription_id],
     );
 
     assert_eq!(
@@ -4586,7 +4586,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4633,7 +4633,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4645,7 +4645,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4657,7 +4657,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4669,7 +4669,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4681,7 +4681,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -5352,7 +5352,7 @@ next
       builder = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        parent: Some(parent_inscription_id.value()),
+        parents: vec![parent_inscription_id.value()],
         unrecognized_even_field: false,
         ..Default::default()
       }
