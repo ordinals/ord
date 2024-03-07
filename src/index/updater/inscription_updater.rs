@@ -26,7 +26,7 @@ enum Origin {
     cursed: bool,
     fee: u64,
     hidden: bool,
-    parent: Option<InscriptionId>,
+    parents: Vec<InscriptionId>,
     pointer: Option<u64>,
     reinscription: bool,
     unbound: bool,
@@ -215,7 +215,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
             hidden: inscription.payload.hidden(),
-            parent: inscription.payload.parents().first().map(|p| p.clone()),
+            parents: inscription.payload.parents(),
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.get(&offset).is_some(),
             unbound: current_input_value == 0
@@ -253,15 +253,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin: Origin::New { parent, .. },
+        origin:
+          Origin::New {
+            // these are the parents the inscription claims it has
+            parents,
+            ..
+          },
         ..
       } = flotsam
       {
-        if let Some(purported_parent) = parent {
-          if !potential_parents.contains(purported_parent) {
-            *parent = None;
-          }
-        }
+        parents.retain(|purported_parent| potential_parents.contains(purported_parent));
       }
     }
 
@@ -423,7 +424,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         cursed,
         fee,
         hidden,
-        parent,
+        parents,
         pointer: _,
         reinscription,
         unbound,
@@ -496,21 +497,19 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let parent_sequence_number = match parent {
-          Some(parent_id) => {
-            let parent_sequence_number = self
-              .id_to_sequence_number
-              .get(&parent_id.store())?
-              .unwrap()
-              .value();
-            self
-              .sequence_number_to_children
-              .insert(parent_sequence_number, sequence_number)?;
+        let mut parent_sequence_numbers = Vec::with_capacity(parents.len());
+        for parent_id in &parents {
+          let parent_sequence_number = self
+            .id_to_sequence_number
+            .get(&parent_id.store())?
+            .unwrap()
+            .value();
+          self
+            .sequence_number_to_children
+            .insert(parent_sequence_number, sequence_number)?;
 
-            Some(parent_sequence_number)
-          }
-          None => None,
-        };
+          parent_sequence_numbers.push(parent_sequence_number);
+        }
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
@@ -518,7 +517,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             charms,
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
-            parent_inscription_id: parent,
+            parent_inscription_ids: parents,
             sequence_number,
           })?;
         }
@@ -531,7 +530,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             height: self.height,
             id: inscription_id,
             inscription_number,
-            parents: parent_sequence_number.map_or(vec![], |p| vec![p]),
+            parents: parent_sequence_numbers,
             sat,
             sequence_number,
             timestamp: self.timestamp,
