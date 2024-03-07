@@ -1,5 +1,7 @@
 # example config
 
+# see `ord --help` for setting documentation
+
 bitcoin_data_dir: /var/lib/bitcoin
 bitcoin_password: bar
 bitcoin_url: https://localhost:8000
