@@ -205,17 +205,12 @@ ord wallet help
 Restoring and Dumping Wallet
 ----------------------------
 
-The `ord wallet` is a descriptor-based wallet, which means you can dump the
-output descriptors and import them into other descriptor wallets. To do so, do:
+The `ord` wallet uses descriptors, so you can export the output descriptors and
+import them into another descriptor-based wallet. To export the wallet
+descriptors, which includes your private keys:
 
 ```
-ord wallet dump
-```
-
-Which should give you the private key descriptors and some metadata about your
-wallet:
-
-```
+$ ord wallet dump
 ==========================================
 = THIS STRING CONTAINS YOUR PRIVATE KEYS =
 =        DO NOT SHARE WITH ANYONE        =
@@ -249,22 +244,28 @@ wallet:
 }
 ```
 
-Your `ord wallet` can be restored either through the mnemonic or the descriptor
-by doing:
+An `ord` wallet can be restored with a mnemonic:
 
 ```
 ord wallet restore --from mnemonic
 ```
 
-Which will then wait for you to input your 12 word space-separated mnemonic.
-Just press enter and it should restore.
+Type your mnemonic and press return.
+
+To restore from a descriptor in `descriptor.json`:
+
+```
+cat descriptor.json | ord wallet restore --from descriptor
+```
+
+To restore from a descriptor in the clipboard:
 
 ```
 ord wallet restore --from descriptor
 ```
 
-This expects the JSON from the `ord wallet dump` command, which has to be
-terminated with CTRL-D on Linux/Mac and CTRL-Z on Windows.
+Then paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z
+on Windows.
 
 Receiving Sats
 --------------
