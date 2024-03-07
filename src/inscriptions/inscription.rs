@@ -130,7 +130,7 @@ impl Inscription {
     Tag::ContentType.encode(&mut builder, &self.content_type);
     Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
     Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
-    Tag::Parent.encode(&mut builder, &self.parents.first().cloned());
+    Tag::Parent.encode_array(&mut builder, &self.parents);
     Tag::Delegate.encode(&mut builder, &self.delegate);
     Tag::Pointer.encode(&mut builder, &self.pointer);
     Tag::Metadata.encode(&mut builder, &self.metadata);
