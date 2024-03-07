@@ -205,7 +205,7 @@ ord wallet help
 Restoring and Dumping Wallet
 ----------------------------
 
-The `ord wallet` is a descriptor based wallet, which means you can dump the
+The `ord wallet` is a descriptor-based wallet, which means you can dump the
 output descriptors and import them into other descriptor wallets. To do so, do:
 
 ```
