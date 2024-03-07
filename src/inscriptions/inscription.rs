@@ -248,15 +248,23 @@ impl Inscription {
   }
 
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
-    self
-      .parents
-      .iter()
-      .map(|p| {
-        // the option detour is a bit awkward
-        Self::inscription_id_field(&Some(p.clone()))
-      })
-      .flatten()
-      .collect()
+    let mut parents: Vec<InscriptionId> = self
+        .parents
+        .iter()
+        .map(|p| {
+          // the option detour is a bit awkward
+          Self::inscription_id_field(&Some(p.clone()))
+        })
+        .flatten()
+        .collect();
+
+    // remove duplicates
+    let mut uniques: HashSet<InscriptionId> = HashSet::with_capacity(self.parents.len());
+    parents.retain(|p| {
+      uniques.insert(p.clone())
+    });
+
+    parents
   }
 
   pub(crate) fn pointer(&self) -> Option<u64> {
