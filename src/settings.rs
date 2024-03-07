@@ -4,9 +4,9 @@ use {super::*, bitcoincore_rpc::Auth};
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
   bitcoin_data_dir: Option<PathBuf>,
-  bitcoin_password: Option<String>,
+  bitcoin_rpc_password: Option<String>,
   bitcoin_rpc_url: Option<String>,
-  bitcoin_username: Option<String>,
+  bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
   cookie_file: Option<PathBuf>,
@@ -90,7 +90,10 @@ impl Settings {
       .or(config)
       .or_defaults()?;
 
-    match (&settings.bitcoin_username, &settings.bitcoin_password) {
+    match (
+      &settings.bitcoin_rpc_username,
+      &settings.bitcoin_rpc_password,
+    ) {
       (None, Some(_rpc_pass)) => bail!("no bitcoin RPC username specified"),
       (Some(_rpc_user), None) => bail!("no bitcoin RPC password specified"),
       _ => {}
@@ -108,9 +111,9 @@ impl Settings {
   pub(crate) fn or(self, source: Settings) -> Self {
     Self {
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
-      bitcoin_password: self.bitcoin_password.or(source.bitcoin_password),
+      bitcoin_rpc_password: self.bitcoin_rpc_password.or(source.bitcoin_rpc_password),
       bitcoin_rpc_url: self.bitcoin_rpc_url.or(source.bitcoin_rpc_url),
-      bitcoin_username: self.bitcoin_username.or(source.bitcoin_username),
+      bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
       cookie_file: self.cookie_file.or(source.cookie_file),
@@ -144,9 +147,9 @@ impl Settings {
   pub(crate) fn from_options(options: Options) -> Self {
     Self {
       bitcoin_data_dir: options.bitcoin_data_dir,
-      bitcoin_password: options.bitcoin_password,
+      bitcoin_rpc_password: options.bitcoin_rpc_password,
       bitcoin_rpc_url: options.bitcoin_rpc_url,
-      bitcoin_username: options.bitcoin_username,
+      bitcoin_rpc_username: options.bitcoin_rpc_username,
       chain: options
         .signet
         .then_some(Chain::Signet)
@@ -224,9 +227,9 @@ impl Settings {
 
     Ok(Self {
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
-      bitcoin_password: get_string("BITCOIN_PASSWORD"),
+      bitcoin_rpc_password: get_string("BITCOIN_RPC_PASSWORD"),
       bitcoin_rpc_url: get_string("BITCOIN_RPC_URL"),
-      bitcoin_username: get_string("BITCOIN_USERNAME"),
+      bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
       cookie_file: get_path("COOKIE_FILE"),
@@ -284,14 +287,14 @@ impl Settings {
 
     Ok(Self {
       bitcoin_data_dir: Some(bitcoin_data_dir),
-      bitcoin_password: self.bitcoin_password,
+      bitcoin_rpc_password: self.bitcoin_rpc_password,
       bitcoin_rpc_url: Some(
         self
           .bitcoin_rpc_url
           .clone()
           .unwrap_or_else(|| format!("127.0.0.1:{}", chain.default_rpc_port())),
       ),
-      bitcoin_username: self.bitcoin_username,
+      bitcoin_rpc_username: self.bitcoin_rpc_username,
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
       cookie_file: Some(cookie_file),
@@ -327,9 +330,9 @@ impl Settings {
 
   pub(crate) fn bitcoin_credentials(&self) -> Result<Auth> {
     if let Some((user, pass)) = &self
-      .bitcoin_username
+      .bitcoin_rpc_username
       .as_ref()
-      .zip(self.bitcoin_password.as_ref())
+      .zip(self.bitcoin_rpc_password.as_ref())
     {
       Ok(Auth::UserPass((*user).clone(), (*pass).clone()))
     } else {
@@ -537,7 +540,7 @@ mod tests {
     assert_eq!(
       Settings::merge(
         Options {
-          bitcoin_username: Some("foo".into()),
+          bitcoin_rpc_username: Some("foo".into()),
           ..Default::default()
         },
         Default::default(),
@@ -554,7 +557,7 @@ mod tests {
     assert_eq!(
       Settings::merge(
         Options {
-          bitcoin_password: Some("foo".into()),
+          bitcoin_rpc_password: Some("foo".into()),
           ..Default::default()
         },
         Default::default(),
@@ -569,7 +572,7 @@ mod tests {
   #[test]
   fn auth_with_user_and_pass() {
     assert_eq!(
-      parse(&["--bitcoin-username=foo", "--bitcoin-password=bar"])
+      parse(&["--bitcoin-rpc-username=foo", "--bitcoin-rpc-password=bar"])
         .bitcoin_credentials()
         .unwrap(),
       Auth::UserPass("foo".into(), "bar".into())
@@ -852,19 +855,19 @@ mod tests {
     assert_eq!(
       Settings::merge(
         Options {
-          bitcoin_username: Some("option_user".into()),
-          bitcoin_password: Some("option_pass".into()),
+          bitcoin_rpc_username: Some("option_user".into()),
+          bitcoin_rpc_password: Some("option_pass".into()),
           ..Default::default()
         },
         vec![
-          ("BITCOIN_USER".into(), "env_user".into()),
-          ("BITCOIN_PASS".into(), "env_pass".into()),
+          ("BITCOIN_RPC_USERNAME".into(), "env_user".into()),
+          ("BITCOIN_RPC_PASSWORD".into(), "env_pass".into()),
         ]
         .into_iter()
         .collect(),
         Settings {
-          bitcoin_username: Some("config_user".into()),
-          bitcoin_password: Some("config_pass".into()),
+          bitcoin_rpc_username: Some("config_user".into()),
+          bitcoin_rpc_password: Some("config_pass".into()),
           ..Default::default()
         }
       )
@@ -878,14 +881,14 @@ mod tests {
       Settings::merge(
         Default::default(),
         vec![
-          ("BITCOIN_USERNAME".into(), "env_user".into()),
-          ("BITCOIN_PASSWORD".into(), "env_pass".into()),
+          ("BITCOIN_RPC_USERNAME".into(), "env_user".into()),
+          ("BITCOIN_RPC_PASSWORD".into(), "env_pass".into()),
         ]
         .into_iter()
         .collect(),
         Settings {
-          bitcoin_username: Some("config_user".into()),
-          bitcoin_password: Some("config_pass".into()),
+          bitcoin_rpc_username: Some("config_user".into()),
+          bitcoin_rpc_password: Some("config_pass".into()),
           ..Default::default()
         }
       )
@@ -900,8 +903,8 @@ mod tests {
         Default::default(),
         Default::default(),
         Settings {
-          bitcoin_username: Some("config_user".into()),
-          bitcoin_password: Some("config_pass".into()),
+          bitcoin_rpc_username: Some("config_user".into()),
+          bitcoin_rpc_password: Some("config_pass".into()),
           ..Default::default()
         }
       )
@@ -929,9 +932,9 @@ mod tests {
   fn from_env() {
     let env = vec![
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
-      ("BITCOIN_PASSWORD", "bitcoin password"),
+      ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
       ("BITCOIN_RPC_URL", "url"),
-      ("BITCOIN_USERNAME", "bitcoin username"),
+      ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
       ("COOKIE_FILE", "cookie file"),
@@ -958,9 +961,9 @@ mod tests {
       Settings::from_env(env).unwrap(),
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
-        bitcoin_password: Some("bitcoin password".into()),
+        bitcoin_rpc_password: Some("bitcoin password".into()),
         bitcoin_rpc_url: Some("url".into()),
-        bitcoin_username: Some("bitcoin username".into()),
+        bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
         cookie_file: Some("cookie file".into()),
@@ -1000,21 +1003,21 @@ mod tests {
         Options::try_parse_from([
           "ord",
           "--bitcoin-data-dir=/bitcoin/data/dir",
-          "--bitcoin-password=bitcoin password",
+          "--bitcoin-rpc-password=bitcoin password",
           "--bitcoin-rpc-url=url",
-          "--bitcoin-username=bitcoin username",
+          "--bitcoin-rpc-username=bitcoin username",
           "--chain=signet",
           "--commit-interval=1",
           "--cookie-file=cookie file",
           "--data-dir=/data/dir",
           "--first-inscription-height=2",
           "--height-limit=3",
-          "--index=index",
           "--index-cache-size=4",
           "--index-runes",
           "--index-sats",
           "--index-spent-sats",
           "--index-transactions",
+          "--index=index",
           "--integration-test",
           "--no-index-inscriptions",
           "--server-password=server password",
@@ -1024,9 +1027,9 @@ mod tests {
       ),
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
-        bitcoin_password: Some("bitcoin password".into()),
+        bitcoin_rpc_password: Some("bitcoin password".into()),
         bitcoin_rpc_url: Some("url".into()),
-        bitcoin_username: Some("bitcoin username".into()),
+        bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
         cookie_file: Some("cookie file".into()),

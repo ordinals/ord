@@ -11,13 +11,16 @@ pub struct Options {
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(
     long,
-    help = "Authenticate to Bitcoin Core RPC with <BITCOIN_PASSWORD>."
+    help = "Authenticate to Bitcoin Core RPC with <BITCOIN_RPC_PASSWORD>."
   )]
-  pub(crate) bitcoin_password: Option<String>,
+  pub(crate) bitcoin_rpc_password: Option<String>,
   #[arg(long, help = "Connect to Bitcoin Core RPC at <BITCOIN_RPC_URL>.")]
   pub(crate) bitcoin_rpc_url: Option<String>,
-  #[arg(long, help = "Authenticate to Bitcoin Core RPC as <BITCOIN_USERNAME>.")]
-  pub(crate) bitcoin_username: Option<String>,
+  #[arg(
+    long,
+    help = "Authenticate to Bitcoin Core RPC as <BITCOIN_RPC_USERNAME>."
+  )]
+  pub(crate) bitcoin_rpc_username: Option<String>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
   #[arg(

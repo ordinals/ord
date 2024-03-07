@@ -3,9 +3,9 @@
 # see `ord --help` for setting documentation
 
 bitcoin_data_dir: /var/lib/bitcoin
-bitcoin_password: bar
+bitcoin_rpc_password: bar
 bitcoin_rpc_url: https://localhost:8000
-bitcoin_username: foo
+bitcoin_rpc_username: foo
 chain: mainnet
 commit_interval: 10000
 cookie_file: /var/lib/bitcoin/.cookie
