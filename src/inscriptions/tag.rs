@@ -16,18 +16,18 @@ pub(crate) enum Tag {
   Nop,
 }
 
-enum TagParsingStrategy {
+enum TagCodecStrategy {
   First,
   Chunked,
   Array,
 }
 
 impl Tag {
-  fn parsing_strategy(self) -> TagParsingStrategy {
+  fn parsing_strategy(self) -> TagCodecStrategy {
     match self {
-      Tag::Metadata => TagParsingStrategy::Chunked,
-      Tag::Parent => TagParsingStrategy::Array,
-      _ => TagParsingStrategy::First,
+      Tag::Metadata => TagCodecStrategy::Chunked,
+      Tag::Parent => TagCodecStrategy::Array,
+      _ => TagCodecStrategy::First,
     }
   }
 
@@ -52,12 +52,12 @@ impl Tag {
       mem::swap(&mut tmp, builder);
 
       match self.parsing_strategy() {
-        TagParsingStrategy::First | TagParsingStrategy::Array => {
+        TagCodecStrategy::First | TagCodecStrategy::Array => {
           tmp = tmp
             .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
             .push_slice::<&script::PushBytes>(value.as_slice().try_into().unwrap());
         }
-        TagParsingStrategy::Chunked => {
+        TagCodecStrategy::Chunked => {
           for chunk in value.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
             tmp = tmp
               .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
@@ -87,7 +87,7 @@ impl Tag {
 
   pub(crate) fn remove_field(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
     match self.parsing_strategy() {
-      TagParsingStrategy::First => {
+      TagCodecStrategy::First => {
         let values = fields.get_mut(self.bytes())?;
 
         if values.is_empty() {
@@ -102,7 +102,7 @@ impl Tag {
           Some(value)
         }
       }
-      TagParsingStrategy::Chunked => {
+      TagCodecStrategy::Chunked => {
         let value = fields.remove(self.bytes())?;
 
         if value.is_empty() {
@@ -111,7 +111,7 @@ impl Tag {
           Some(value.into_iter().flatten().cloned().collect())
         }
       }
-      TagParsingStrategy::Array => {
+      TagCodecStrategy::Array => {
         panic!("Array-type fields must not be removed as a simple byte array.")
       }
     }
