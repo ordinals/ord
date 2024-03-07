@@ -2,7 +2,8 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      OutPointValue, RuneEntryValue, RuneIdValue, RuneInfoValue, SatPointValue, SatRange,
+      TxidValue,
     },
     event::Event,
     reorg::*,
@@ -31,9 +32,10 @@ use {
   },
 };
 
+use crate::index::entry::RuneInfo;
 pub use {self::entry::RuneEntry, entry::MintEntry};
 
-pub(crate) mod entry;
+pub mod entry;
 pub mod event;
 mod fetcher;
 mod reorg;
@@ -72,7 +74,7 @@ define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
-define_table! { NUMBER_TO_RUNE_ENTRY, u64, RuneEntryValue }
+define_table! { NUMBER_TO_RUNE_INFO, u64, RuneInfoValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
 define_table! { SEQUENCE_NUMBER_TO_RUNE_ID, u32, RuneIdValue }
@@ -330,7 +332,7 @@ impl Index {
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
-        tx.open_table(NUMBER_TO_RUNE_ENTRY)?;
+        tx.open_table(NUMBER_TO_RUNE_INFO)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
@@ -887,14 +889,14 @@ impl Index {
     &self,
     page_size: u64,
     page_index: u64,
-  ) -> Result<(Vec<RuneEntry>, bool)> {
+  ) -> Result<(Vec<RuneInfo>, bool)> {
     let rtx = self.database.begin_read()?;
-    let number_to_rune_entry = rtx.open_table(NUMBER_TO_RUNE_ENTRY)?;
+    let number_to_rune_info = rtx.open_table(NUMBER_TO_RUNE_INFO)?;
 
-    let last = number_to_rune_entry
+    let last = number_to_rune_info
       .iter()?
       .next_back()
-      .map(|result| result.map(|(number, _rune)| number.value()))
+      .map(|result| result.map(|(number, _info)| number.value()))
       .transpose()?
       .unwrap_or_default();
 
@@ -902,15 +904,15 @@ impl Index {
 
     let end = start.saturating_sub(page_size);
 
-    let entries = number_to_rune_entry
+    let runes_info = number_to_rune_info
       .range(end..=start)?
       .rev()
-      .map(|result| result.map(|(_number, entry)| RuneEntry::load(entry.value())))
-      .collect::<Result<Vec<RuneEntry>, StorageError>>()?;
+      .map(|result| result.map(|(_number, info)| RuneInfo::load(info.value())))
+      .collect::<Result<Vec<RuneInfo>, StorageError>>()?;
 
-    let more = u64::try_from(entries.len()).unwrap_or_default() > page_size;
+    let more = u64::try_from(runes_info.len()).unwrap_or_default() > page_size;
 
-    Ok((entries, more))
+    Ok((runes_info, more))
   }
 
   pub(crate) fn get_rune_balances_for_outpoint(

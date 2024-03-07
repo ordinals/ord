@@ -1,3 +1,4 @@
+use ord::index::entry::RuneInfo;
 use ord::templates::runes::RunesPaginatedHtml;
 use {super::*, bitcoin::BlockHash};
 
@@ -723,32 +724,44 @@ fn get_runes_paginated() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let runes_paginated: RunesPaginatedHtml = RunesPaginatedHtml {
-    entries: vec![
-      RuneEntry {
-        rune: rune1,
-        burned: 0,
-        mint: None,
-        divisibility: 0,
-        etching: tx1.transaction,
-        mints: 0,
-        number: 1,
-        spacers: 0,
-        supply: 1000,
-        symbol: Some('¢'),
-        timestamp: 7,
+    runes: vec![
+      RuneInfo {
+        id: RuneId {
+          height: 7,
+          index: 1,
+        },
+        entry: RuneEntry {
+          rune: rune1,
+          burned: 0,
+          mint: None,
+          divisibility: 0,
+          etching: tx1.transaction,
+          mints: 0,
+          number: 1,
+          spacers: 0,
+          supply: 1000,
+          symbol: Some('¢'),
+          timestamp: 7,
+        },
       },
-      RuneEntry {
-        rune: rune0,
-        burned: 0,
-        mint: None,
-        divisibility: 0,
-        etching: tx0.transaction,
-        mints: 0,
-        number: 0,
-        spacers: 0,
-        supply: 1000,
-        symbol: Some('¢'),
-        timestamp: 5,
+      RuneInfo {
+        id: RuneId {
+          height: 5,
+          index: 1,
+        },
+        entry: RuneEntry {
+          rune: rune0,
+          burned: 0,
+          mint: None,
+          divisibility: 0,
+          etching: tx0.transaction,
+          mints: 0,
+          number: 0,
+          spacers: 0,
+          supply: 1000,
+          symbol: Some('¢'),
+          timestamp: 5,
+        },
       },
     ],
     prev: None,

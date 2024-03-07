@@ -1,7 +1,7 @@
 <h1>Runes</h1>
 <ul>
-%% for entry in &self.entries {
-  <li><a href=/rune/{{ entry.spaced_rune() }}>{{ entry.spaced_rune() }}</a></li>
+%% for info in &self.runes {
+  <li><a href=/rune/{{ info.entry.spaced_rune() }}>{{ info.entry.spaced_rune() }}</a></li>
 %% }
 </ul>
 <div class=center>

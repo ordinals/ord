@@ -1,4 +1,5 @@
 use super::*;
+use crate::index::entry::RuneInfo;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesHtml {
@@ -7,7 +8,7 @@ pub struct RunesHtml {
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesPaginatedHtml {
-  pub entries: Vec<RuneEntry>,
+  pub runes: Vec<RuneInfo>,
   pub more: bool,
   pub prev: Option<u64>,
   pub next: Option<u64>,
@@ -58,14 +59,26 @@ mod tests {
   fn with_prev_and_next() {
     assert_eq!(
       RunesPaginatedHtml {
-        entries: vec![
-          RuneEntry {
-            rune: Rune(0),
-            ..Default::default()
+        runes: vec![
+          RuneInfo {
+            id: RuneId {
+              height: 0,
+              index: 0
+            },
+            entry: RuneEntry {
+              rune: Rune(0),
+              ..Default::default()
+            }
           },
-          RuneEntry {
-            rune: Rune(2),
-            ..Default::default()
+          RuneInfo {
+            id: RuneId {
+              height: 0,
+              index: 0
+            },
+            entry: RuneEntry {
+              rune: Rune(2),
+              ..Default::default()
+            }
           }
         ],
         prev: Some(1),

@@ -1,3 +1,4 @@
+use crate::index::entry::RuneInfo;
 use {
   super::*,
   crate::runes::{varint, Edict, Runestone},
@@ -34,7 +35,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
-  pub(super) number_to_rune_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
+  pub(super) number_to_rune_info: &'a mut Table<'db, 'tx, u64, RuneInfoValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   pub(super) timestamp: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
@@ -284,7 +285,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       symbol,
       timestamp: self.timestamp,
     };
-    self.number_to_rune_entry.insert(number, entry.store())?;
+    self
+      .number_to_rune_info
+      .insert(number, RuneInfo { id, entry }.store())?;
     self.id_to_entry.insert(id.store(), entry.store())?;
 
     let inscription_id = InscriptionId { txid, index: 0 };

@@ -574,7 +574,7 @@ impl<'index> Updater<'index> {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
-      let mut number_to_rune_entry = wtx.open_table(NUMBER_TO_RUNE_ENTRY)?;
+      let mut number_to_rune_info = wtx.open_table(NUMBER_TO_RUNE_INFO)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
 
@@ -592,7 +592,7 @@ impl<'index> Updater<'index> {
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
-        number_to_rune_entry: &mut number_to_rune_entry,
+        number_to_rune_info: &mut number_to_rune_info,
         statistic_to_count: &mut statistic_to_count,
         timestamp: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,

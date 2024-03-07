@@ -192,6 +192,31 @@ impl Entry for RuneId {
   }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub struct RuneInfo {
+  pub id: RuneId,
+  pub entry: RuneEntry,
+}
+pub(super) type RuneInfoValue = (
+  RuneIdValue,    // rune_id
+  RuneEntryValue, // rune_entry
+);
+
+impl Entry for RuneInfo {
+  type Value = RuneInfoValue;
+
+  fn load((id, entry): Self::Value) -> Self {
+    Self {
+      id: RuneId::load(id),
+      entry: RuneEntry::load(entry),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.id.store(), self.entry.store())
+  }
+}
+
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
   pub(crate) charms: u16,
