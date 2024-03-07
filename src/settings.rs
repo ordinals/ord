@@ -607,7 +607,7 @@ mod tests {
     let settings = parse(&[
       "--cookie-file",
       rpc_server.cookie_file().to_str().unwrap(),
-      "--bitcoin-url",
+      "--bitcoin-rpc-url",
       &rpc_server.url(),
     ]);
 
@@ -620,7 +620,7 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      parse(&["--bitcoin-url=127.0.0.1:1234", "--chain=signet"]).bitcoin_rpc_url(None),
+      parse(&["--bitcoin-rpc-url=127.0.0.1:1234", "--chain=signet"]).bitcoin_rpc_url(None),
       "127.0.0.1:1234/"
     );
   }
@@ -1001,7 +1001,7 @@ mod tests {
           "ord",
           "--bitcoin-data-dir=/bitcoin/data/dir",
           "--bitcoin-password=bitcoin password",
-          "--bitcoin-url=url",
+          "--bitcoin-rpc-url=url",
           "--bitcoin-username=bitcoin username",
           "--chain=signet",
           "--commit-interval=1",

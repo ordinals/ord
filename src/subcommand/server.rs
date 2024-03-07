@@ -1861,7 +1861,7 @@ mod tests {
 
       let mut args = vec!["ord".to_string()];
 
-      args.push("--bitcoin-url".into());
+      args.push("--bitcoin-rpc-url".into());
       args.push(bitcoin_rpc_server.url());
 
       args.push("--cookie-file".into());

@@ -87,7 +87,7 @@ rpcport={bitcoind_port}
         .arg(&absolute)
         .arg("--data-dir")
         .arg(&absolute)
-        .arg("--bitcoin-url")
+        .arg("--bitcoin-rpc-url")
         .arg(&rpc_url)
         .arg("server")
         .arg("--polling-interval=100ms")
@@ -107,7 +107,7 @@ rpcport={bitcoind_port}
         .arg(&absolute)
         .arg("--data-dir")
         .arg(&absolute)
-        .arg("--bitcoin-url")
+        .arg("--bitcoin-rpc-url")
         .arg(&rpc_url)
         .arg("wallet")
         .arg("create")
@@ -121,7 +121,7 @@ rpcport={bitcoind_port}
         .arg(&absolute)
         .arg("--data-dir")
         .arg(&absolute)
-        .arg("--bitcoin-url")
+        .arg("--bitcoin-rpc-url")
         .arg(&rpc_url)
         .arg("wallet")
         .arg("--server-url")
@@ -162,7 +162,7 @@ rpcport={bitcoind_port}
           relative.clone(),
           "--data-dir".into(),
           relative.clone(),
-          "--bitcoin-url".into(),
+          "--bitcoin-rpc-url".into(),
           rpc_url.clone(),
           "wallet".into(),
           "--server-url".into(),
@@ -175,7 +175,7 @@ rpcport={bitcoind_port}
       "{}
 bitcoin-cli -datadir='{relative}' getblockchaininfo
 {}
-{} --regtest --bitcoin-data-dir '{relative}' --data-dir '{relative}' --bitcoin-url '{}' wallet --server-url  {} balance",
+{} --regtest --bitcoin-data-dir '{relative}' --data-dir '{relative}' --bitcoin-rpc-url '{}' wallet --server-url  {} balance",
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
       ord.display(),

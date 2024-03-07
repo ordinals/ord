@@ -135,7 +135,7 @@ impl CommandBuilder {
 
     if let Some(rpc_server_url) = &self.bitcoin_rpc_server_url {
       command.args([
-        "--bitcoin-url",
+        "--bitcoin-rpc-url",
         rpc_server_url,
         "--cookie-file",
         self
