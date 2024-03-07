@@ -6,14 +6,14 @@ fn authentication() {
 
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
-    &["--username", "foo", "--password", "bar"],
+    &["--server-username", "foo", "--server-password", "bar"],
     &[],
   );
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   assert_eq!(
-    CommandBuilder::new("--username foo --password bar wallet balance")
+    CommandBuilder::new("--server-username foo --server-password bar wallet balance")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
       .run_and_deserialize_output::<Output>()
@@ -24,7 +24,7 @@ fn authentication() {
   bitcoin_rpc_server.mine_blocks(1);
 
   assert_eq!(
-    CommandBuilder::new("--username foo --password bar wallet balance")
+    CommandBuilder::new("--server-username foo --server-password bar wallet balance")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
       .run_and_deserialize_output::<Output>(),
