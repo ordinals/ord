@@ -264,7 +264,7 @@ To restore from a descriptor in the clipboard:
 ord wallet restore --from descriptor
 ```
 
-Then paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z
+Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z
 on Windows.
 
 Receiving Sats
