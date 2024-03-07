@@ -718,7 +718,7 @@ fn get_runes_paginated() {
   let rune1 = Rune(RUNE + 1);
 
   let tx0 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
-  let tx1 =etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+  let tx1 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
 
   bitcoin_rpc_server.mine_blocks(1);
 
