@@ -13,6 +13,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 touch ~/.hushlogin
 
+apt-get update
 apt-get install --yes \
   acl \
   clang \
