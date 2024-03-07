@@ -11,6 +11,7 @@ FIH=$4
 
 touch ~/.hushlogin
 
+apt-get update
 apt-get install --yes \
   acl \
   clang \
