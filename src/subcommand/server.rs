@@ -153,6 +153,7 @@ impl Server {
   pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
+      let integration_test = settings.integration_test();
 
       let index_thread = thread::spawn(move || loop {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
@@ -165,7 +166,7 @@ impl Server {
           }
         }
 
-        thread::sleep(if settings.integration_test {
+        thread::sleep(if integration_test {
           Duration::from_millis(100)
         } else {
           self.polling_interval.into()
@@ -354,7 +355,7 @@ impl Server {
     let address = match &self.address {
       Some(address) => address.as_str(),
       None => {
-        if cfg!(test) || settings.integration_test {
+        if cfg!(test) || settings.integration_test() {
           "127.0.0.1"
         } else {
           "0.0.0.0"
@@ -367,7 +368,7 @@ impl Server {
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
-    if !settings.integration_test && !cfg!(test) {
+    if !settings.integration_test() && !cfg!(test) {
       eprintln!(
         "Listening on {}://{addr}",
         match config {
@@ -408,9 +409,10 @@ impl Server {
   }
 
   fn acme_cache(acme_cache: Option<&PathBuf>, settings: &Settings) -> PathBuf {
-    acme_cache
-      .unwrap_or(&settings.data_dir().join("acme-cache"))
-      .to_path_buf()
+    match acme_cache {
+      Some(acme_cache) => acme_cache.clone(),
+      None => settings.data_dir().join("acme-cache"),
+    }
   }
 
   fn acme_domains(&self) -> Result<Vec<String>> {
@@ -1910,7 +1912,7 @@ mod tests {
 
       let mut args = vec!["ord".to_string()];
 
-      args.push("--rpc-url".into());
+      args.push("--bitcoin-rpc-url".into());
       args.push(bitcoin_rpc_server.url());
 
       args.push("--cookie-file".into());
@@ -1957,9 +1959,10 @@ mod tests {
         panic!("unexpected subcommand: {:?}", arguments.subcommand);
       };
 
-      let config = serde_yaml::from_str(&self.config).unwrap();
-
-      let settings = Settings::new(arguments.options, Default::default(), config).unwrap();
+      let settings = Settings::from_options(arguments.options)
+        .or(serde_yaml::from_str::<Settings>(&self.config).unwrap())
+        .or_defaults()
+        .unwrap();
 
       let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
@@ -2139,7 +2142,12 @@ mod tests {
   fn parse_server_args(args: &str) -> (Settings, Server) {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
-        Subcommand::Server(server) => (arguments.options.settings().unwrap(), server),
+        Subcommand::Server(server) => (
+          Settings::from_options(arguments.options)
+            .or_defaults()
+            .unwrap(),
+          server,
+        ),
         subcommand => panic!("unexpected subcommand: {subcommand:?}"),
       },
       Err(err) => panic!("error parsing arguments: {err}"),
@@ -2269,7 +2277,9 @@ mod tests {
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
 
-    let settings = arguments.options.settings().unwrap();
+    let settings = Settings::from_options(arguments.options)
+      .or_defaults()
+      .unwrap();
 
     let acme_cache = Server::acme_cache(None, &settings).display().to_string();
     assert!(
@@ -2288,7 +2298,9 @@ mod tests {
       Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
 
-    let settings = arguments.options.settings().unwrap();
+    let settings = Settings::from_options(arguments.options)
+      .or_defaults()
+      .unwrap();
 
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &settings)
       .display()
@@ -5656,12 +5668,17 @@ next
 
   #[test]
   fn authentication_requires_username_and_password() {
-    assert!(Arguments::try_parse_from(["ord", "--username", "server", "foo"]).is_err());
-    assert!(Arguments::try_parse_from(["ord", "--password", "server", "bar"]).is_err());
-    assert!(
-      Arguments::try_parse_from(["ord", "--username", "foo", "--password", "bar", "server"])
-        .is_ok()
-    );
+    assert!(Arguments::try_parse_from(["ord", "--server-username", "server", "foo"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "--server-password", "server", "bar"]).is_err());
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "--server-username",
+      "foo",
+      "--server-password",
+      "bar",
+      "server"
+    ])
+    .is_ok());
   }
 
   #[test]

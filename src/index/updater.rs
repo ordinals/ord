@@ -57,7 +57,7 @@ impl<'index> Updater<'index> {
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
-      || self.index.settings.integration_test
+      || self.index.settings.integration_test()
     {
       None
     } else {
@@ -98,7 +98,7 @@ impl<'index> Updater<'index> {
 
       uncommitted += 1;
 
-      if uncommitted == self.index.settings.commit_interval {
+      if uncommitted == self.index.settings.commit_interval() {
         self.commit(wtx, value_cache)?;
         value_cache = HashMap::new();
         uncommitted = 0;
@@ -326,7 +326,7 @@ impl<'index> Updater<'index> {
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     let index_inscriptions = self.height >= self.index.first_inscription_height
-      && !self.index.settings.no_index_inscriptions;
+      && self.index.settings.index_inscriptions();
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away

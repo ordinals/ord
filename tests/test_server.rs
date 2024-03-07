@@ -31,8 +31,6 @@ impl TestServer {
     ord_args: &[&str],
     ord_server_args: &[&str],
   ) -> Self {
-    std::env::set_var("ORD_INTEGRATION_TEST", "1");
-
     let tempdir = TempDir::new().unwrap();
 
     let cookiefile = tempdir.path().join("cookie");
@@ -46,7 +44,7 @@ impl TestServer {
       .port();
 
     let (settings, server) = parse_ord_server_args(&format!(
-      "ord --rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
       bitcoin_rpc_server.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),

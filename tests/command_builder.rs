@@ -32,10 +32,11 @@ pub(crate) struct CommandBuilder {
   args: Vec<String>,
   bitcoin_rpc_server_cookie_file: Option<PathBuf>,
   bitcoin_rpc_server_url: Option<String>,
-  env: BTreeMap<String, String>,
+  env: BTreeMap<String, OsString>,
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
+  integration_test: bool,
   ord_rpc_server_url: Option<Url>,
   stdin: Vec<u8>,
   tempdir: Arc<TempDir>,
@@ -45,21 +46,29 @@ impl CommandBuilder {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
+      bitcoin_rpc_server_cookie_file: None,
+      bitcoin_rpc_server_url: None,
       env: BTreeMap::new(),
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
+      integration_test: true,
       ord_rpc_server_url: None,
-      bitcoin_rpc_server_cookie_file: None,
-      bitcoin_rpc_server_url: None,
       stdin: Vec::new(),
       tempdir: Arc::new(TempDir::new().unwrap()),
     }
   }
 
-  pub(crate) fn env(mut self, key: &str, value: &str) -> Self {
-    self.env.insert(key.into(), value.into());
+  pub(crate) fn env(mut self, key: &str, value: impl AsRef<OsStr>) -> Self {
+    self.env.insert(key.into(), value.as_ref().into());
     self
+  }
+
+  pub(crate) fn integration_test(self, integration_test: bool) -> Self {
+    Self {
+      integration_test,
+      ..self
+    }
   }
 
   pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {
@@ -126,7 +135,7 @@ impl CommandBuilder {
 
     if let Some(rpc_server_url) = &self.bitcoin_rpc_server_url {
       command.args([
-        "--rpc-url",
+        "--bitcoin-rpc-url",
         rpc_server_url,
         "--cookie-file",
         self
@@ -154,8 +163,11 @@ impl CommandBuilder {
       command.env(key, value);
     }
 
+    if self.integration_test {
+      command.env("ORD_INTEGRATION_TEST", "1");
+    }
+
     command
-      .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::piped())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
