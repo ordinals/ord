@@ -246,23 +246,21 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.transaction_buffer.clear();
     }
 
-    let potential_parents = floating_inscriptions
+    let eligible_parents = floating_inscriptions
       .iter()
       .map(|flotsam| flotsam.inscription_id)
       .collect::<HashSet<InscriptionId>>();
 
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin:
-          Origin::New {
-            // these are the parents the inscription claims it has
-            parents,
-            ..
-          },
+        origin: Origin::New {
+          parents: claimed_parents,
+          ..
+        },
         ..
       } = flotsam
       {
-        parents.retain(|purported_parent| potential_parents.contains(purported_parent));
+        claimed_parents.retain(|p| eligible_parents.contains(p));
       }
     }
 
