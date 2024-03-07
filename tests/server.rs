@@ -405,13 +405,13 @@ fn expected_sat_time_is_rounded() {
 fn missing_credentials() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("--bitcoin-username foo server")
+  CommandBuilder::new("--bitcoin-rpc-username foo server")
     .bitcoin_rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC password specified\n")
     .run_and_extract_stdout();
 
-  CommandBuilder::new("--bitcoin-password bar server")
+  CommandBuilder::new("--bitcoin-rpc-password bar server")
     .bitcoin_rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC username specified\n")
