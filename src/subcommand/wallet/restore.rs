@@ -27,10 +27,10 @@ impl Restore {
     );
 
     let mut buffer = String::new();
-    io::stdin().read_to_string(&mut buffer)?;
 
     match self.from {
       Source::Descriptor => {
+        io::stdin().read_to_string(&mut buffer)?;
         ensure!(
           self.passphrase.is_none(),
           "descriptor does not take a passphrase"
@@ -39,6 +39,7 @@ impl Restore {
         Wallet::initialize_from_descriptors(name, settings, wallet_descriptors.descriptors)?;
       }
       Source::Mnemonic => {
+        io::stdin().read_line(&mut buffer)?;
         let mnemonic = Mnemonic::from_str(&buffer)?;
         Wallet::initialize(
           name,
