@@ -3,30 +3,30 @@ use {super::*, bitcoincore_rpc::Auth};
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
-  pub(crate) bitcoin_data_dir: Option<PathBuf>,
-  pub(crate) bitcoin_rpc_password: Option<String>,
-  pub(crate) bitcoin_rpc_url: Option<String>,
-  pub(crate) bitcoin_rpc_username: Option<String>,
-  pub(crate) chain: Option<Chain>,
-  pub(crate) commit_interval: Option<usize>,
-  pub(crate) config: Option<PathBuf>,
-  pub(crate) config_dir: Option<PathBuf>,
-  pub(crate) cookie_file: Option<PathBuf>,
-  pub(crate) data_dir: Option<PathBuf>,
-  pub(crate) first_inscription_height: Option<u32>,
-  pub(crate) height_limit: Option<u32>,
-  pub(crate) hidden: Option<HashSet<InscriptionId>>,
-  pub(crate) index: Option<PathBuf>,
-  pub(crate) index_cache_size: Option<usize>,
-  pub(crate) index_runes: bool,
-  pub(crate) index_sats: bool,
-  pub(crate) index_spent_sats: bool,
-  pub(crate) index_transactions: bool,
-  pub(crate) integration_test: bool,
-  pub(crate) no_index_inscriptions: bool,
-  pub(crate) server_password: Option<String>,
-  pub(crate) server_url: Option<String>,
-  pub(crate) server_username: Option<String>,
+  bitcoin_data_dir: Option<PathBuf>,
+  bitcoin_rpc_password: Option<String>,
+  bitcoin_rpc_url: Option<String>,
+  bitcoin_rpc_username: Option<String>,
+  chain: Option<Chain>,
+  commit_interval: Option<usize>,
+  config: Option<PathBuf>,
+  config_dir: Option<PathBuf>,
+  cookie_file: Option<PathBuf>,
+  data_dir: Option<PathBuf>,
+  first_inscription_height: Option<u32>,
+  height_limit: Option<u32>,
+  hidden: Option<HashSet<InscriptionId>>,
+  index: Option<PathBuf>,
+  index_cache_size: Option<usize>,
+  index_runes: bool,
+  index_sats: bool,
+  index_spent_sats: bool,
+  index_transactions: bool,
+  integration_test: bool,
+  no_index_inscriptions: bool,
+  server_password: Option<String>,
+  server_url: Option<String>,
+  server_username: Option<String>,
 }
 
 impl Settings {
@@ -548,6 +548,10 @@ impl Settings {
       Some(wallet_name) => format!("{base_url}/wallet/{wallet_name}"),
       None => format!("{base_url}/"),
     }
+  }
+
+  pub(crate) fn server_url(&self) -> Option<&str> {
+    self.server_url.as_deref()
   }
 }
 

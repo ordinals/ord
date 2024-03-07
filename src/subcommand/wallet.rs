@@ -82,8 +82,9 @@ impl WalletCommand {
       settings.clone(),
       self
         .server_url
-        .or(settings.server_url)
-        .unwrap_or_else(|| "http://127.0.0.1:80".into())
+        .as_deref()
+        .or(settings.server_url())
+        .unwrap_or("http://127.0.0.1:80")
         .parse::<Url>()
         .context("invalid server URL")?,
     )?;
