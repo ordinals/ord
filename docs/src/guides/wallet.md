@@ -180,8 +180,7 @@ To create a wallet named `ord`, the default, for use with `ord wallet`, run:
 ord wallet create
 ```
 
-This should print out your seed phrase (mnemonic), make sure to store it
-somewhere safe.
+This will print out your seed phrase mnemonic, store it somewhere safe.
 
 ```
 {
