@@ -4557,6 +4557,13 @@ mod tests {
           .unwrap(),
         vec![inscription_id]
       );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_b)
+          .unwrap(),
+        vec![inscription_id]
+      );
     }
   }
 
@@ -4588,7 +4595,7 @@ mod tests {
             parents: vec![parent_inscription_id.value(), parent_inscription_id.value()],
             ..Default::default()
           }
-              .to_witness(),
+          .to_witness(),
         )],
         ..Default::default()
       });
@@ -4604,14 +4611,100 @@ mod tests {
 
       assert_eq!(
         context
-            .index
-            .get_children_by_inscription_id(parent_inscription_id)
-            .unwrap(),
+          .index
+          .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
         vec![inscription_id]
       );
     }
   }
 
+  #[test]
+  fn inscription_with_three_parent_tags_and_two_parents_has_two_parent_entries() {
+    for context in Context::configurations() {
+      context.mine_blocks(3);
+
+      let parent_txid_a = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_b = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "world").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_c = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 0, 0, inscription("text/plain", "wazzup").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id_a = InscriptionId {
+        txid: parent_txid_a,
+        index: 0,
+      };
+      let parent_inscription_id_b = InscriptionId {
+        txid: parent_txid_b,
+        index: 0,
+      };
+      let parent_inscription_id_c = InscriptionId {
+        txid: parent_txid_c,
+        index: 0,
+      };
+
+      let multi_parent_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![
+          parent_inscription_id_a.value(),
+          parent_inscription_id_b.value(),
+          parent_inscription_id_c.value(),
+        ],
+        ..Default::default()
+      };
+      let multi_parent_witness = multi_parent_inscription.to_witness();
+
+      let revealing_parent_a_input = (4, 1, 0, multi_parent_witness);
+
+      let parent_c_input = (4, 3, 0, Witness::new());
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[revealing_parent_a_input, parent_c_input],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id_a, parent_inscription_id_c]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_a)
+          .unwrap(),
+        vec![inscription_id]
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_b)
+          .unwrap(),
+        vec![]
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_c)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
 
   #[test]
   fn parents_can_be_in_preceding_input() {
