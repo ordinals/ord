@@ -183,7 +183,7 @@ fn get_block_rarities(start: u64, end: u64) -> Result<Vec<BlockRarityInfo>> {
     BlockRarity::Legacy,
     BlockRarity::Hitman,
     BlockRarity::Block666,
-    BlockRarity::Taproot,
+    // BlockRarity::Taproot,
     BlockRarity::PaliblockPalindrome,
   ] {
     let rarities = get_block_rarity_chunks(block_rarity, start, end);
@@ -725,17 +725,17 @@ mod tests {
     );
   }
 
-  #[test]
-  fn test_taproot_range() {
-    let block_rarities = get_block_rarities(1887270184000002, 1887270184000602).unwrap();
-    assert_eq!(
-      block_rarities,
-      vec![BlockRarityInfo {
-        block_rarity: BlockRarity::Taproot,
-        chunks: vec![(1887270184000002, 1887270184000602),]
-      },]
-    );
-  }
+  // #[test]
+  // fn test_taproot_range() {
+  //   let block_rarities = get_block_rarities(1887270184000002, 1887270184000602).unwrap();
+  //   assert_eq!(
+  //     block_rarities,
+  //     vec![BlockRarityInfo {
+  //       block_rarity: BlockRarity::Taproot,
+  //       chunks: vec![(1887270184000002, 1887270184000602),]
+  //     },]
+  //   );
+  // }
 
   #[test]
   fn test_block666_range() {
