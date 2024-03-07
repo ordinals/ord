@@ -12,7 +12,7 @@ fn default() {
   "bitcoin_username": null,
   "chain": "mainnet",
   "commit_interval": 5000,
-  "cookie_file": ".*(Bitcoin|bitcoin).\.cookie",
+  "cookie_file": ".*\.cookie",
   "data_dir": ".*",
   "first_inscription_height": 767430,
   "height_limit": null,
