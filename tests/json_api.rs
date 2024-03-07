@@ -717,13 +717,40 @@ fn get_runes_paginated() {
   let rune0 = Rune(RUNE);
   let rune1 = Rune(RUNE + 1);
 
-  etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
-  etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+  let tx0 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
+  let tx1 =etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
 
   bitcoin_rpc_server.mine_blocks(1);
 
   let runes_paginated: RunesPaginatedHtml = RunesPaginatedHtml {
-    runes: vec![rune1, rune0],
+    entries: vec![
+      RuneEntry {
+        rune: rune1,
+        burned: 0,
+        mint: None,
+        divisibility: 0,
+        etching: tx1.transaction,
+        mints: 0,
+        number: 1,
+        spacers: 0,
+        supply: 1000,
+        symbol: Some('¢'),
+        timestamp: 7,
+      },
+      RuneEntry {
+        rune: rune0,
+        burned: 0,
+        mint: None,
+        divisibility: 0,
+        etching: tx0.transaction,
+        mints: 0,
+        number: 0,
+        spacers: 0,
+        supply: 1000,
+        symbol: Some('¢'),
+        timestamp: 5,
+      },
+    ],
     prev: None,
     next: None,
     more: false,

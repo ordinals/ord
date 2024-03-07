@@ -9,14 +9,15 @@ pub(super) enum Tag {
   Term = 8,
   Deadline = 10,
   DefaultOutput = 12,
+  Claim = 14,
   #[allow(unused)]
-  Burn = 254,
+  Burn = 126,
 
   Divisibility = 1,
   Spacers = 3,
   Symbol = 5,
   #[allow(unused)]
-  Nop = 255,
+  Nop = 127,
 }
 
 impl Tag {
@@ -80,5 +81,16 @@ mod tests {
     Tag::Rune.encode(5, &mut payload);
 
     assert_eq!(payload, [2, 3, 4, 5]);
+  }
+
+  #[test]
+  fn burn_and_nop_are_one_byte() {
+    let mut payload = Vec::new();
+    Tag::Burn.encode(0, &mut payload);
+    assert_eq!(payload.len(), 2);
+
+    let mut payload = Vec::new();
+    Tag::Nop.encode(0, &mut payload);
+    assert_eq!(payload.len(), 2);
   }
 }

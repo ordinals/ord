@@ -58,7 +58,16 @@ mod tests {
   fn with_prev_and_next() {
     assert_eq!(
       RunesPaginatedHtml {
-        entries: vec![],
+        entries: vec![
+          RuneEntry {
+            rune: Rune(0),
+            ..Default::default()
+          },
+          RuneEntry {
+            rune: Rune(2),
+            ..Default::default()
+          }
+        ],
         prev: Some(1),
         next: Some(2),
         more: true,
