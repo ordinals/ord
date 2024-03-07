@@ -42,7 +42,7 @@ impl Inscription {
     delegate: Option<InscriptionId>,
     metadata: Option<Vec<u8>>,
     metaprotocol: Option<String>,
-    parent: Option<InscriptionId>,
+    parents: Vec<InscriptionId>,
     path: impl AsRef<Path>,
     pointer: Option<u64>,
   ) -> Result<Self, Error> {
@@ -102,7 +102,7 @@ impl Inscription {
       delegate: delegate.map(|delegate| delegate.value()),
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parents: parent.map_or(vec![], |parent| vec![parent.value()]),
+      parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
@@ -249,20 +249,18 @@ impl Inscription {
 
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
     let mut parents: Vec<InscriptionId> = self
-        .parents
-        .iter()
-        .map(|p| {
-          // the option detour is a bit awkward
-          Self::inscription_id_field(&Some(p.clone()))
-        })
-        .flatten()
-        .collect();
+      .parents
+      .iter()
+      .map(|p| {
+        // the option detour is a bit awkward
+        Self::inscription_id_field(&Some(p.clone()))
+      })
+      .flatten()
+      .collect();
 
     // remove duplicates
     let mut uniques: HashSet<InscriptionId> = HashSet::with_capacity(self.parents.len());
-    parents.retain(|p| {
-      uniques.insert(p.clone())
-    });
+    parents.retain(|p| uniques.insert(p.clone()));
 
     parents
   }

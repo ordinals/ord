@@ -8,7 +8,7 @@ pub struct Batch {
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
-  pub(crate) parent_info: Option<ParentInfo>,
+  pub(crate) parent_infos: Vec<ParentInfo>,
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
@@ -26,7 +26,7 @@ impl Default for Batch {
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
-      parent_info: None,
+      parent_infos: Vec::new(),
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
@@ -164,14 +164,14 @@ impl Batch {
 
       let vout = match self.mode {
         Mode::SharedOutput | Mode::SameSat => {
-          if self.parent_info.is_some() {
+          if self.parent_infos.is_some() {
             1
           } else {
             0
           }
         }
         Mode::SeparateOutputs | Mode::SatPoints => {
-          if self.parent_info.is_some() {
+          if self.parent_infos.is_some() {
             index + 1
           } else {
             index
@@ -205,7 +205,7 @@ impl Batch {
       reveal,
       reveal_psbt,
       total_fees,
-      parent: self.parent_info.clone().map(|info| info.id),
+      parents: self.parent_infos.iter().map(|info| info.id).collect(),
       inscriptions: inscriptions_output,
     }
   }
@@ -219,7 +219,7 @@ impl Batch {
     mut utxos: BTreeMap<OutPoint, TxOut>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
-    if let Some(parent_info) = &self.parent_info {
+    if let Some(parent_info) = &self.parent_infos {
       assert!(self.inscriptions.iter().all(|inscription| inscription
         .parents()
         .first()
@@ -352,7 +352,7 @@ impl Batch {
       id: _,
       destination,
       tx_out,
-    }) = self.parent_info.clone()
+    }) = self.parent_infos.clone()
     {
       reveal_inputs.push(location.outpoint);
       reveal_outputs.push(TxOut {
@@ -379,7 +379,7 @@ impl Batch {
       });
     }
 
-    let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
+    let commit_input = usize::from(self.parent_infos.is_some()) + self.reveal_satpoints.len();
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -439,7 +439,7 @@ impl Batch {
 
     let mut prevouts = Vec::new();
 
-    if let Some(parent_info) = self.parent_info.clone() {
+    if let Some(parent_info) = self.parent_infos.clone() {
       prevouts.push(parent_info.tx_out);
     }
 

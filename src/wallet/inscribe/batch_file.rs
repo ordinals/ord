@@ -5,7 +5,7 @@ use super::*;
 pub struct Batchfile {
   pub(crate) inscriptions: Vec<BatchEntry>,
   pub(crate) mode: Mode,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Option<Vec<InscriptionId>>,
   pub(crate) postage: Option<u64>,
   #[serde(default)]
   pub(crate) reinscribe: bool,
@@ -134,7 +134,7 @@ impl Batchfile {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent,
+        self.parents.unwrap_or_default(),
         &entry.file,
         Some(pointer),
       )?);

@@ -56,7 +56,7 @@ pub(crate) struct Inscribe {
   )]
   pub(crate) no_limit: bool,
   #[clap(long, help = "Make inscription a child of one or more <PARENT>.")]
-  pub(crate) parent: Option<Vec<InscriptionId>>,
+  pub(crate) parents: Option<Vec<InscriptionId>>,
   #[arg(
     long,
     help = "Amount of postage to include in the inscription. Default `10000sat`."
@@ -86,13 +86,13 @@ impl Inscribe {
     let destinations;
     let inscriptions;
     let mode;
-    let parent_info;
+    let parent_infos;
     let reinscribe;
     let reveal_satpoints;
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
-        parent_info = wallet.get_parents_info(self.parent)?;
+        parent_infos = wallet.get_parents_info(self.parents)?;
 
         postages = vec![self.postage.unwrap_or(TARGET_POSTAGE)];
 
@@ -109,7 +109,7 @@ impl Inscribe {
           self.delegate,
           metadata,
           self.metaprotocol,
-          self.parent,
+          self.parents.unwrap_or_default(),
           file,
           None,
         )?];
@@ -134,12 +134,12 @@ impl Inscribe {
       (None, Some(batch)) => {
         let batchfile = Batchfile::load(&batch)?;
 
-        parent_info = wallet.get_parents_info(batchfile.parent)?;
+        parent_infos = wallet.get_parents_info(batchfile.parent)?;
 
         (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
           &wallet,
           utxos,
-          parent_info.as_ref().map(|info| info.tx_out.value),
+          parent_infos.as_ref().map(|info| info.tx_out.value),
           self.compress,
         )?;
 
@@ -170,7 +170,7 @@ impl Inscribe {
       mode,
       no_backup: self.no_backup,
       no_limit: self.no_limit,
-      parent_info,
+      parent_infos,
       postages,
       reinscribe,
       reveal_fee_rate: self.fee_rate,
@@ -225,7 +225,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint: Some(satpoint(1, 0)),
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -266,7 +266,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _, _) = Batch {
       satpoint: Some(satpoint(1, 0)),
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -310,7 +310,7 @@ mod tests {
 
     let error = Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -361,7 +361,7 @@ mod tests {
 
     assert!(Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -406,7 +406,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
@@ -489,7 +489,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions: vec![child_inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
@@ -571,7 +571,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(commit_fee_rate).unwrap(),
@@ -629,7 +629,7 @@ mod tests {
 
     let error = Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -669,7 +669,7 @@ mod tests {
 
     let (_commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      parent_info: None,
+      parent_infos: None,
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -842,7 +842,7 @@ inscriptions:
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -964,7 +964,7 @@ inscriptions:
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       reveal_satpoints: reveal_satpoints.clone(),
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -1065,7 +1065,7 @@ inscriptions:
 
     let error = Batch {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 4.0.try_into().unwrap(),
@@ -1141,7 +1141,7 @@ inscriptions:
 
     let _ = Batch {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 4.0.try_into().unwrap(),
@@ -1179,7 +1179,7 @@ inscriptions:
 
     let error = Batch {
       satpoint: None,
-      parent_info: None,
+      parent_infos: None,
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 1.0.try_into().unwrap(),
@@ -1232,7 +1232,7 @@ inscriptions:
 
     let (_commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint: None,
-      parent_info: None,
+      parent_infos: None,
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -1312,7 +1312,7 @@ inscriptions:
 
     let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_infos: Some(parent_info.clone()),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
