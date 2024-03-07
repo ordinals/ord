@@ -216,22 +216,22 @@ Alternatively, `ord` can be supplied with a username and password on the
 command line:
 
 ```
-ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
+ord --bitcoin-username foo --bitcoin-password bar server
 ```
 
 Using environment variables:
 
 ```
-export ORD_BITCOIN_RPC_USER=foo
-export ORD_BITCOIN_RPC_PASS=bar
+export ORD_BITCOIN_USERNAME=foo
+export ORD_BITCOIN_PASSWORD=bar
 ord server
 ```
 
 Or in the config file:
 
 ```yaml
-bitcoin_rpc_user: foo
-bitcoin_rpc_pass: bar
+bitcoin_username: foo
+bitcoin_password: bar
 ```
 
 Logging

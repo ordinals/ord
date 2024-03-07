@@ -67,7 +67,7 @@ wallet is named `foo`:
 2. Display any rare ordinals wallet `foo`'s UTXOs:
 
    ```sh
-   ord --wallet foo --index-sats wallet sats
+   ord --index-sats wallet --wallet foo sats
    ```
 
 ### Searching for Rare Ordinals in a Non-Bitcoin Core Wallet

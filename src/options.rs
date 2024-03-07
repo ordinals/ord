@@ -7,35 +7,30 @@ use super::*;
     .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
 pub struct Options {
-  #[arg(long, help = "Minify JSON output.")]
-  pub(crate) minify: bool,
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
-  #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
-  pub(crate) bitcoin_rpc_pass: Option<String>,
-  #[arg(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
-  pub(crate) bitcoin_rpc_user: Option<String>,
+  #[arg(
+    long,
+    help = "Authenticate to Bitcoin Core RPC with <BITCOIN_PASSWORD>."
+  )]
+  pub(crate) bitcoin_password: Option<String>,
+  #[arg(long, help = "Authenticate to Bitcoin Core RPC as <BITCOIN_USERNAME>.")]
+  pub(crate) bitcoin_username: Option<String>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
+  #[arg(
+    long,
+    help = "Commit to index every <COMMIT_INTERVAL> blocks. [default: 5000]"
+  )]
+  pub(crate) commit_interval: Option<usize>,
   #[arg(long, help = "Load configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
   #[arg(long, help = "Load configuration from <CONFIG_DIR>.")]
   pub(crate) config_dir: Option<PathBuf>,
   #[arg(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[arg(long, help = "Store index in <DATA_DIR>.", default_value_os_t = Options::default_data_dir())]
-  pub(crate) data_dir: PathBuf,
-  #[arg(
-    long,
-    help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
-  )]
-  pub(crate) db_cache_size: Option<usize>,
-  #[arg(
-    long,
-    default_value = "5000",
-    help = "Commit to index every <COMMIT_INTERVAL> blocks."
-  )]
-  pub(crate) commit_interval: usize,
+  #[arg(long, help = "Store index in <DATA_DIR>.")]
+  pub(crate) data_dir: Option<PathBuf>,
   #[arg(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
@@ -47,6 +42,11 @@ pub struct Options {
   pub(crate) index: Option<PathBuf>,
   #[arg(
     long,
+    help = "Set index cache size to <INDEX_CACHE_SIZE> bytes. [default: 1/4 available RAM]"
+  )]
+  pub(crate) index_cache_size: Option<usize>,
+  #[arg(
+    long,
     help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
   )]
   pub(crate) index_runes: bool,
@@ -56,6 +56,10 @@ pub struct Options {
   pub(crate) index_spent_sats: bool,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
+  #[arg(long, help = "Run in integration test mode.")]
+  pub(crate) integration_test: bool,
+  #[arg(long, help = "Minify JSON output.")]
+  pub(crate) minify: bool,
   #[arg(
     long,
     short,
@@ -65,59 +69,20 @@ pub struct Options {
   pub(crate) no_index_inscriptions: bool,
   #[arg(
     long,
-    requires = "username",
-    help = "Require basic HTTP authentication with <PASSWORD>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
+    help = "Require basic HTTP authentication with <SERVER_PASSWORD>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
   )]
-  pub(crate) password: Option<String>,
+  pub(crate) server_password: Option<String>,
+  #[arg(
+    long,
+    help = "Require basic HTTP authentication with <SERVER_USERNAME>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
+  )]
+  pub(crate) server_username: Option<String>,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
-  #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
-  pub(crate) rpc_url: Option<String>,
+  #[arg(long, help = "Connect to Bitcoin Core RPC at <BITCOIN_URL>.")]
+  pub(crate) bitcoin_url: Option<String>,
   #[arg(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
-  #[arg(
-    long,
-    requires = "password",
-    help = "Require basic HTTP authentication with <USERNAME>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
-  )]
-  pub(crate) username: Option<String>,
-}
-
-impl Options {
-  fn default_data_dir() -> PathBuf {
-    dirs::data_dir()
-      .map(|dir| dir.join("ord"))
-      .expect("failed to retrieve data dir")
-  }
-
-  pub(crate) fn config(&self) -> Result<Config> {
-    let path = match &self.config {
-      Some(path) => path.clone(),
-      None => match &self.config_dir {
-        Some(dir) => {
-          let path = dir.join("ord.yaml");
-          if !path.exists() {
-            return Ok(Default::default());
-          }
-          path
-        }
-        None => return Ok(Default::default()),
-      },
-    };
-
-    serde_yaml::from_reader(
-      File::open(&path).context(anyhow!("failed to open config file `{}`", path.display()))?,
-    )
-    .context(anyhow!(
-      "failed to deserialize config file `{}`",
-      path.display()
-    ))
-  }
-
-  #[cfg(test)]
-  pub(crate) fn settings(self) -> Result<Settings> {
-    Settings::new(self, Default::default(), Default::default())
-  }
 }

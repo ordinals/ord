@@ -15,9 +15,9 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
     inscriptions::{
+      inscription_id,
       media::{self, ImageRendering, Media},
       teleburn, Charm, ParsedEnvelope,
     },
@@ -107,7 +107,6 @@ pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod config;
 mod decimal;
 mod fee_rate;
 pub mod index;
@@ -186,7 +185,7 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
       Subcommand::Server(server) => (
-        Settings::new(
+        Settings::merge(
           arguments.options,
           vec![("INTEGRATION_TEST".into(), "1".into())]
             .into_iter()

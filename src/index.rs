@@ -230,10 +230,7 @@ impl Index {
   ) -> Result<Self> {
     let client = settings.bitcoin_rpc_client(None)?;
 
-    let path = settings
-      .index
-      .clone()
-      .unwrap_or_else(|| settings.data_dir().clone().join("index.redb"));
+    let path = settings.index().to_owned();
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
@@ -242,16 +239,9 @@ impl Index {
       );
     }
 
-    let db_cache_size = match settings.db_cache_size {
-      Some(db_cache_size) => db_cache_size,
-      None => {
-        let mut sys = System::new();
-        sys.refresh_memory();
-        usize::try_from(sys.total_memory() / 4)?
-      }
-    };
+    let index_cache_size = settings.index_cache_size();
 
-    log::info!("Setting DB cache size to {} bytes", db_cache_size);
+    log::info!("Setting index cache size to {} bytes", index_cache_size);
 
     let durability = if cfg!(test) {
       redb::Durability::None
@@ -262,7 +252,7 @@ impl Index {
     let index_path = path.clone();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
-    let integration_test = settings.integration_test;
+    let integration_test = settings.integration_test();
 
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| println!("Index file `{}` needs recovery. This can take a long time, especially for the --index-sats index.", index_path.display()));
@@ -284,7 +274,7 @@ impl Index {
     };
 
     let database = match Database::builder()
-      .set_cache_size(db_cache_size)
+      .set_cache_size(index_cache_size)
       .set_repair_callback(repair_callback)
       .open(&path)
     {
@@ -319,7 +309,7 @@ impl Index {
         if error.kind() == io::ErrorKind::NotFound =>
       {
         let database = Database::builder()
-          .set_cache_size(db_cache_size)
+          .set_cache_size(index_cache_size)
           .create(&path)?;
 
         let mut tx = database.begin_write()?;
@@ -350,7 +340,7 @@ impl Index {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if settings.index_sats {
+          if settings.index_sats() {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
@@ -363,19 +353,19 @@ impl Index {
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(settings.index_sats || settings.index_spent_sats),
+            u64::from(settings.index_sats() || settings.index_spent_sats()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSpentSats,
-            u64::from(settings.index_spent_sats),
+            u64::from(settings.index_spent_sats()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexTransactions,
-            u64::from(settings.index_transactions),
+            u64::from(settings.index_transactions()),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
@@ -413,7 +403,7 @@ impl Index {
       event_sender,
       first_inscription_height: settings.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: settings.height_limit,
+      height_limit: settings.height_limit(),
       index_runes,
       index_sats,
       index_spent_sats,
