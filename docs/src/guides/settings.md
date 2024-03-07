@@ -4,7 +4,7 @@ Settings
 `ord` can be configured with the command line, environment variables, a
 configuration file, and default values.
 
-The command line take precedence over environment variables, which take
+The command line takes precedence over environment variables, which take
 precedence over the configuration file, which takes precedence over defaults.
 
 The path to the configuration file can be given with `--config <CONFIG_PATH>`.
