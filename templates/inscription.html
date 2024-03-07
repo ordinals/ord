@@ -30,11 +30,14 @@
   <dd class=monospace>{{ self.inscription_id }}</dd>
 %% if !&self.parents.is_empty() {
   <dt>parents</dt>
-%% }
-%% for parent in &self.parents {
   <dd>
     <div class=thumbnails>
+%% for parent in &self.parents {
       {{Iframe::thumbnail(*parent)}}
+%% }
+    </div>
+    <div class=center>
+      <a href=/parents/{{self.inscription_id}}>all</a>
     </div>
   </dd>
 %% }

@@ -13,6 +13,7 @@ pub(crate) use {
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
   output::OutputHtml,
+  parents::ParentsHtml,
   preview::{
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
@@ -42,6 +43,7 @@ pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;
 pub mod output;
+mod parents;
 mod preview;
 mod range;
 mod rare;

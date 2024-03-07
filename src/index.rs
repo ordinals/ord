@@ -1140,6 +1140,20 @@ impl Index {
     Ok((children, more))
   }
 
+  pub(crate) fn get_parents_by_sequence_number_paginated(
+    &self,
+    sequence_number: u32,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    // TODO
+    Ok((Vec::new(), false))
+  }
+
   pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
     let rtx = self.database.begin_read()?;
 

@@ -10,9 +10,10 @@ use {
     templates::{
       BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
       InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+      ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml,
+      TransactionHtml,
     },
   },
   axum::{
@@ -224,6 +225,7 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
+        .route("/parents/:inscription_id", get(Self::parents))
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
@@ -1717,6 +1719,53 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn parents(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::parents_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn parents_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((child, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    //TODO
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(child)?
+        .ok_or_not_found(|| format!("inscription {child}"))?;
+
+      let child_number = entry.inscription_number;
+
+      let (parents, more_parents) =
+        index.get_parents_by_sequence_number_paginated(entry.sequence_number, 100, page)?;
+
+      let prev_page = page.checked_sub(1);
+
+      let next_page = more_parents.then_some(page + 1);
+
+      Ok(
+        ParentsHtml {
+          child,
+          child_number,
+          parents,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response(),
+      )
     })
   }
 
