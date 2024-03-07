@@ -32,7 +32,7 @@ pub(crate) struct WalletCommand {
     long,
     help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
   )]
-  pub(crate) server_url: Option<String>,
+  pub(crate) server_url: Option<Url>,
   #[command(subcommand)]
   pub(crate) subcommand: Subcommand,
 }
@@ -82,7 +82,8 @@ impl WalletCommand {
       settings.clone(),
       self
         .server_url
-        .as_deref()
+        .as_ref()
+        .map(Url::as_str)
         .or(settings.server_url())
         .unwrap_or("http://127.0.0.1:80")
         .parse::<Url>()
