@@ -1099,12 +1099,64 @@ OP_ENDIF
 <p>To create a wallet named <code>ord</code>, the default, for use with <code>ord wallet</code>, run:</p>
 <pre><code>ord wallet create
 </code></pre>
+<p>This will print out your seed phrase mnemonic, store it somewhere safe.</p>
+<pre><code>{
+  "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
+  "passphrase": ""
+}
+</code></pre>
 <p>If you want to specify a different name or use an <code>ord server</code> running on a non-default URL you can set these options:</p>
 <pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
 </code></pre>
 <p>To see all available wallet options you can run:</p>
 <pre><code>ord wallet help
 </code></pre>
+<h2 id="restoring-and-dumping-wallet"><a class="header" href="#restoring-and-dumping-wallet">Restoring and Dumping Wallet</a></h2>
+<p>The <code>ord</code> wallet uses descriptors, so you can export the output descriptors and import them into another descriptor-based wallet. To export the wallet descriptors, which include your private keys:</p>
+<pre><code>$ ord wallet dump
+==========================================
+= THIS STRING CONTAINS YOUR PRIVATE KEYS =
+=        DO NOT SHARE WITH ANYONE        =
+==========================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+</code></pre>
+<p>An <code>ord</code> wallet can be restored from a mnemonic:</p>
+<pre><code>ord wallet restore --from mnemonic
+</code></pre>
+<p>Type your mnemonic and press return.</p>
+<p>To restore from a descriptor in <code>descriptor.json</code>:</p>
+<pre><code>cat descriptor.json | ord wallet restore --from descriptor
+</code></pre>
+<p>To restore from a descriptor in the clipboard:</p>
+<pre><code>ord wallet restore --from descriptor
+</code></pre>
+<p>Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z on Windows.</p>
 <h2 id="tumanggap-ng-sats"><a class="header" href="#tumanggap-ng-sats">Tumanggap ng sats</a></h2>
 <p>Ang mga inscription ay ginagawa sa mga indibidwal na sats, gamit ang mga normal na transaksyon sa Bitcoin na nagbabayad ng gamit ang sats, kaya ang iyong wallet ay mangangailangan ng mga sats.</p>
 <p>Kumuha ng bagong address mula sa iyong ord wallet sa pamamagitan ng:</p>
