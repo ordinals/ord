@@ -1,6 +1,6 @@
 use {super::*, bitcoincore_rpc::Auth};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
   bitcoin_data_dir: Option<PathBuf>,
@@ -845,65 +845,6 @@ mod tests {
   }
 
   #[test]
-  fn merge() {
-    assert_eq!(
-      Settings::merge(
-        Options {
-          regtest: true,
-          ..Default::default()
-        },
-        vec![("CHAIN".into(), "signet".into())]
-          .into_iter()
-          .collect(),
-        Settings {
-          chain: Some(Chain::Testnet),
-          ..Default::default()
-        }
-      )
-      .unwrap()
-      .chain(),
-      Chain::Regtest,
-    );
-
-    assert_eq!(
-      Settings::merge(
-        Default::default(),
-        vec![("CHAIN".into(), "signet".into())]
-          .into_iter()
-          .collect(),
-        Settings {
-          chain: Some(Chain::Testnet),
-          ..Default::default()
-        }
-      )
-      .unwrap()
-      .chain(),
-      Chain::Signet,
-    );
-
-    assert_eq!(
-      Settings::merge(
-        Default::default(),
-        Default::default(),
-        Settings {
-          chain: Some(Chain::Testnet),
-          ..Default::default()
-        }
-      )
-      .unwrap()
-      .chain(),
-      Chain::Testnet,
-    );
-
-    assert_eq!(
-      Settings::merge(Default::default(), Default::default(), Default::default(),)
-        .unwrap()
-        .chain(),
-      Chain::Mainnet,
-    );
-  }
-
-  #[test]
   fn bitcoin_rpc_and_pass_setting() {
     assert_eq!(
       Settings::merge(
@@ -979,5 +920,162 @@ mod tests {
   #[test]
   fn example_config_file_is_valid() {
     let _: Settings = serde_yaml::from_reader(File::open("ord.yaml").unwrap()).unwrap();
+  }
+
+  #[test]
+  fn from_env() {
+    let env = vec![
+      ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
+      ("BITCOIN_PASSWORD", "bitcoin password"),
+      ("BITCOIN_URL", "url"),
+      ("BITCOIN_USERNAME", "bitcoin username"),
+      ("CHAIN", "signet"),
+      ("COMMIT_INTERVAL", "1"),
+      ("COOKIE_FILE", "cookie file"),
+      ("DATA_DIR", "/data/dir"),
+      ("FIRST_INSCRIPTION_HEIGHT", "2"),
+      ("HEIGHT_LIMIT", "3"),
+      ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
+      ("INDEX", "index"),
+      ("INDEX_CACHE_SIZE", "4"),
+      ("INDEX_RUNES", "1"),
+      ("INDEX_SATS", "1"),
+      ("INDEX_SPENT_SATS", "1"),
+      ("INDEX_TRANSACTIONS", "1"),
+      ("INTEGRATION_TEST", "1"),
+      ("NO_INDEX_INSCRIPTIONS", "1"),
+      ("SERVER_PASSWORD", "server password"),
+      ("SERVER_USERNAME", "server username"),
+    ]
+    .into_iter()
+    .map(|(key, value)| (key.into(), value.into()))
+    .collect::<BTreeMap<String, String>>();
+
+    pretty_assert_eq!(
+      Settings::from_env(env).unwrap(),
+      Settings {
+        bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
+        bitcoin_password: Some("bitcoin password".into()),
+        bitcoin_url: Some("url".into()),
+        bitcoin_username: Some("bitcoin username".into()),
+        chain: Some(Chain::Signet),
+        commit_interval: Some(1),
+        cookie_file: Some("cookie file".into()),
+        data_dir: Some("/data/dir".into()),
+        first_inscription_height: Some(2),
+        height_limit: Some(3),
+        hidden: Some(
+          vec![
+            "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
+              .parse()
+              .unwrap(),
+            "703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"
+              .parse()
+              .unwrap()
+          ]
+          .into_iter()
+          .collect()
+        ),
+        index: Some("index".into()),
+        index_cache_size: Some(4),
+        index_runes: true,
+        index_sats: true,
+        index_spent_sats: true,
+        index_transactions: true,
+        integration_test: true,
+        no_index_inscriptions: true,
+        server_password: Some("server password".into()),
+        server_username: Some("server username".into()),
+      }
+    );
+  }
+
+  #[test]
+  fn from_options() {
+    pretty_assert_eq!(
+      Settings::from_options(
+        Options::try_parse_from(&[
+          "ord",
+          "--bitcoin-data-dir=/bitcoin/data/dir",
+          "--bitcoin-password=bitcoin password",
+          "--bitcoin-url=url",
+          "--bitcoin-username=bitcoin username",
+          "--chain=signet",
+          "--commit-interval=1",
+          "--cookie-file=cookie file",
+          "--data-dir=/data/dir",
+          "--first-inscription-height=2",
+          "--height-limit=3",
+          "--index=index",
+          "--index-cache-size=4",
+          "--index-runes",
+          "--index-sats",
+          "--index-spent-sats",
+          "--index-transactions",
+          "--integration-test",
+          "--no-index-inscriptions",
+          "--server-password=server password",
+          "--server-username=server username",
+        ])
+        .unwrap()
+      ),
+      Settings {
+        bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
+        bitcoin_password: Some("bitcoin password".into()),
+        bitcoin_url: Some("url".into()),
+        bitcoin_username: Some("bitcoin username".into()),
+        chain: Some(Chain::Signet),
+        commit_interval: Some(1),
+        cookie_file: Some("cookie file".into()),
+        data_dir: Some("/data/dir".into()),
+        first_inscription_height: Some(2),
+        height_limit: Some(3),
+        hidden: None,
+        index: Some("index".into()),
+        index_cache_size: Some(4),
+        index_runes: true,
+        index_sats: true,
+        index_spent_sats: true,
+        index_transactions: true,
+        integration_test: true,
+        no_index_inscriptions: true,
+        server_password: Some("server password".into()),
+        server_username: Some("server username".into()),
+      }
+    );
+  }
+
+  #[test]
+  fn merge() {
+    let env = vec![("INDEX", "env")]
+      .into_iter()
+      .map(|(key, value)| (key.into(), value.into()))
+      .collect::<BTreeMap<String, String>>();
+
+    let options = Options::try_parse_from(&["ord", "--index=option"]).unwrap();
+
+    let config = Settings {
+      index: Some("config".into()),
+      ..Default::default()
+    };
+
+    pretty_assert_eq!(
+      Settings::merge(Default::default(), Default::default(), config.clone())
+        .unwrap()
+        .index,
+      Some("config".into()),
+    );
+
+    pretty_assert_eq!(
+      Settings::merge(Default::default(), env.clone(), config.clone())
+        .unwrap()
+        .index,
+      Some("env".into()),
+    );
+
+    pretty_assert_eq!(
+      Settings::merge(options, env, config.clone()).unwrap().index,
+      Some("option".into()),
+    );
   }
 }
