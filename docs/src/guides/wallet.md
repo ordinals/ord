@@ -244,7 +244,7 @@ $ ord wallet dump
 }
 ```
 
-An `ord` wallet can be restored with a mnemonic:
+An `ord` wallet can be restored from a mnemonic:
 
 ```
 ord wallet restore --from mnemonic
