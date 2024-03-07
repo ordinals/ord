@@ -1966,7 +1966,7 @@ wallet is named <code>foo</code>:</p>
 </li>
 <li>
 <p>Display any rare ordinals wallet <code>foo</code>'s UTXOs:</p>
-<pre><code class="language-sh">ord --wallet foo --index-sats wallet sats
+<pre><code class="language-sh">ord --index-sats wallet --name foo sats
 </code></pre>
 </li>
 </ol>
@@ -2114,26 +2114,36 @@ button to display the descriptor.</p>
 and <code>sendrawtransaction</code>, how to do so is complex and outside the scope of this
 guide.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="settings"><a class="header" href="#settings">Settings</a></h1>
-<p><code>ord</code> can be configured with command line options, environment variables, a
+<p><code>ord</code> can be configured with the command line, environment variables, a
 configuration file, and default values.</p>
-<p>When multiple sources configure the same thing, precedence is in order of
-command line options, then environment variables, then the configuration file,
-and finally default values.</p>
-<p>The path to the configuration can be given with <code>--config &lt;CONFIG_PATH&gt;</code>. <code>ord</code>
-will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist. The path to a configuration
+<p>The command line takes precedence over environment variables, which take
+precedence over the configuration file, which takes precedence over defaults.</p>
+<p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>.
+<code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist. The path to a configuration
 directory can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code>, in which case the
 config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code>. It is not an error if
-<code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> does not exist, and <code>ord</code> will use a configuration
-with default values.</p>
-<p>All settings can be configured with command line options, but not all settings
-can yet be configured with environmnet variables or a configuration file.</p>
-<p><code>ord</code>'s configuration can be viewd as JSON with <code>ord settings</code>.</p>
-<div class="table-wrapper"><table><thead><tr><th>setting</th><th>CLI</th><th>environment variable</th><th>default value</th></tr></thead><tbody>
-<tr><td>bitcoin RPC password</td><td><code>--bitcoin-rpc-pass &lt;PASSWORD&gt;</code></td><td><code>ORD_BITCOIN_RPC_PASS</code></td><td>none</td></tr>
-<tr><td>bitcoin RPC username</td><td><code>--bitcoin-rpc-user &lt;USERNAME&gt;</code></td><td><code>ORD_BITCOIN_RPC_USER</code></td><td>none</td></tr>
-<tr><td>chain</td><td><code>--chain &lt;CHAIN&gt;</code></td><td><code>ORD_CHAIN</code></td><td>mainnet</td></tr>
-</tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
+<code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> does not exist.</p>
+<p>For a setting named <code>--setting-name</code> on the command line, the environment
+variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be
+named <code>setting_name</code>. For example, the data directory can be configured with
+<code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or
+<code>data_dir</code> in the config file.</p>
+<p>See <code>ord --help</code> for documentation of all the settings.</p>
+<p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code>
+command.</p>
+<h2 id="hiding-inscription-content"><a class="header" href="#hiding-inscription-content">Hiding Inscription Content</a></h2>
+<p>Inscription content can be selectively prevented from being served by <code>ord server</code>.</p>
+<p>Unlike other settings, this can only be configured with the configuration file
+or environment variables.</p>
+<p>To hide inscriptions with an environment variable:</p>
+<pre><code>export ORD_HIDDEN='6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0'
+</code></pre>
+<p>Or with the configuration file:</p>
+<pre><code class="language-yaml">hidden:
+- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="teleburning"><a class="header" href="#teleburning">Teleburning</a></h1>
 <p>Teleburn addresses can be used to burn assets on other blockchains, leaving
 behind in the smoking rubble a sort of forwarding address pointing to an
 inscription on Bitcoin.</p>
