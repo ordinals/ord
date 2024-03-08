@@ -247,6 +247,7 @@ impl Inscription {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
+  /// Returns a deduplicated list of parent inscription IDs the inscription claims to have.
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
     let mut unique_parents: HashSet<Vec<u8>> = HashSet::with_capacity(self.parents.len());
     self
