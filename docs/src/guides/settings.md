@@ -20,8 +20,8 @@ can yet be configured with environmnet variables or a configuration file.
 
 `ord`'s configuration can be viewd as JSON with `ord settings`.
 
-| setting | CLI | environment variable | default value |
-| --- | --- | --- | --- |
-| bitcoin RPC password | `--bitcoin-rpc-pass <PASSWORD>` | `ORD_BITCOIN_RPC_PASS` | none |
-| bitcoin RPC username | `--bitcoin-rpc-user <USERNAME>` | `ORD_BITCOIN_RPC_USER` | none |
-| chain | `--chain <CHAIN>` | `ORD_CHAIN` | mainnet |
+| setting              | CLI                             | environment variable   | default value |
+|----------------------|---------------------------------|------------------------|---------------|
+| bitcoin RPC password | `--bitcoin-rpc-pass <PASSWORD>` | `ORD_BITCOIN_RPC_PASS` | none          |
+| bitcoin RPC username | `--bitcoin-rpc-user <USERNAME>` | `ORD_BITCOIN_RPC_USER` | none          |
+| chain                | `--chain <CHAIN>`               | `ORD_CHAIN`            | mainnet       |

@@ -37,10 +37,10 @@ information on running Bitcoin Core for testing, see [Bitcoin's developer docume
 Most `ord` commands in [wallet](wallet.md) and [explorer](explorer.md)
 can be run with the following network flags:
 
-| Network | Flag |
-|---------|------|
+| Network | Flag                |
+|---------|---------------------|
 | Testnet | `--testnet` or `-t` |
-| Signet  | `--signet` or `-s` |
+| Signet  | `--signet` or `-s`  |
 | Regtest | `--regtest` or `-r` |
 
 Regtest doesn't require downloading the blockchain or indexing ord.
