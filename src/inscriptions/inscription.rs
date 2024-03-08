@@ -249,16 +249,18 @@ impl Inscription {
 
   /// Returns a deduplicated list of parent inscription IDs the inscription claims to have.
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
-    let mut unique_parents: HashSet<Vec<u8>> = HashSet::with_capacity(self.parents.len());
+    let mut unique_parents: HashSet<InscriptionId> = HashSet::with_capacity(self.parents.len());
     self
       .parents
       .iter()
       .map(|p| {
-        if !unique_parents.insert(p.clone()) {
+        let Some(parent_id) = Self::inscription_id_field(&Some(p.clone())) else {
+          return None;
+        };
+        if !unique_parents.insert(parent_id) {
           return None;
         }
-        // the option detour is a bit awkward
-        Self::inscription_id_field(&Some(p.clone()))
+        Some(parent_id)
       })
       .flatten()
       .collect()

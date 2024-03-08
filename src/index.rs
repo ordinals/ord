@@ -4634,6 +4634,64 @@ mod tests {
   }
 
   #[test]
+  fn inscription_with_distinct_parent_tag_encodings_for_same_parent_has_singular_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let trailing_zero_inscription_id: Vec<u8> = parent_inscription_id
+        .value()
+        .into_iter()
+        .chain(vec![0, 0, 0, 0])
+        .collect();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          1,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value(), trailing_zero_inscription_id],
+            ..Default::default()
+          }
+          .to_witness(),
+        )],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
   fn inscription_with_three_parent_tags_and_two_parents_has_two_parent_entries() {
     for context in Context::configurations() {
       context.mine_blocks(3);
