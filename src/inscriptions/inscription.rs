@@ -253,7 +253,7 @@ impl Inscription {
     self
       .parents
       .iter()
-      .map(|p| {
+      .filter_map(|p| {
         let Some(parent_id) = Self::inscription_id_field(&Some(p.clone())) else {
           return None;
         };
@@ -262,7 +262,6 @@ impl Inscription {
         }
         Some(parent_id)
       })
-      .flatten()
       .collect()
   }
 
