@@ -33,22 +33,22 @@ ufw allow ssh
 
 case $CHAIN in
   main)
-    COOKIE_FILE_DIR=/var/lib/bitcoind
+    # COOKIE_FILE_DIR=/var/lib/bitcoind
     ufw allow 8333
     ufw allow 8332
     ;;
   regtest)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
+    # COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     ufw allow 18444
     ufw allow 18443
     ;;
   signet)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    # COOKIE_FILE_DIR=/var/lib/bitcoind/signet
     ufw allow 38333
     ufw allow 38332
     ;;
   test)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
+    # COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     ufw allow 18333
     ufw allow 18332
     ;;
@@ -109,15 +109,15 @@ systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
 
-while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
-  echo "Waiting for bitcoind…"
-  sleep 1
-done
+# while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
+#   echo "Waiting for bitcoind…"
+#   sleep 1
+# done
 
 setfacl -m ord:x /var/lib/bitcoind
-setfacl -m ord:x $COOKIE_FILE_DIR
-setfacl -dm ord:r $COOKIE_FILE_DIR
-setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
+# setfacl -m ord:x $COOKIE_FILE_DIR
+# setfacl -dm ord:r $COOKIE_FILE_DIR
+# setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
 
 journalctl --unit ord --vacuum-time 1s
 
