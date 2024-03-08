@@ -29,6 +29,13 @@ See `ord --help` for documentation of all the settings.
 `ord`'s current configuration can be viewed as JSON with the `ord settings`
 command.
 
+Example Configuration
+---------------------
+
+```yaml
+{{#include ../../../ord.yaml}}
+```
+
 Hiding Inscription Content
 --------------------------
 
