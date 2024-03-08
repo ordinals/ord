@@ -1598,6 +1598,38 @@ ord index update
 <p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
 <p>See <code>ord --help</code> for documentation of all the settings.</p>
 <p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
+<h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
+<pre><code class="language-yaml"># example config
+
+# see `ord --help` for setting documentation
+
+bitcoin_data_dir: /var/lib/bitcoin
+bitcoin_rpc_password: bar
+bitcoin_rpc_url: https://localhost:8000
+bitcoin_rpc_username: foo
+chain: mainnet
+commit_interval: 10000
+config: /var/lib/ord/ord.yaml
+config_dir: /var/lib/ord
+cookie_file: /var/lib/bitcoin/.cookie
+data_dir: /var/lib/ord
+first_inscription_height: 100
+height_limit: 1000
+hidden:
+- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
+index: /var/lib/ord/index.redb
+index_cache_size: 1000000000
+index_runes: true
+index_sats: true
+index_spent_sats: true
+index_transactions: true
+integration_test: true
+no_index_inscriptions: true
+server_password: bar
+server_url: http://localhost:8888
+server_username: foo
+</code></pre>
 <h2 id="hiding-inscription-content"><a class="header" href="#hiding-inscription-content">Hiding Inscription Content</a></h2>
 <p>Inscription content can be selectively prevented from being served by <code>ord server</code>.</p>
 <p>Unlike other settings, this can only be configured with the configuration file or environment variables.</p>
@@ -1631,7 +1663,7 @@ ord index update
 <h2 id="test-environment"><a class="header" href="#test-environment">Test Environment</a></h2>
 <p><code>ord env &lt;DIRECTORY&gt;</code> creates a test environment in <code>&lt;DIRECTORY&gt;</code>, spins up <code>bitcoind</code> and <code>ord server</code> instances, prints example commands for interacting with the test <code>bitcoind</code> and <code>ord server</code> instances, waits for <code>CTRL-C</code>, and then shuts down <code>bitcoind</code> and <code>ord server</code>.</p>
 <p><code>ord env</code> tries to use port 9000 for <code>bitcoind</code>'s RPC interface, and port <code>9001</code> for <code>ord</code>'s RPC interface, but will fall back to random unused ports.</p>
-<p>Inside of the env directory, <code>ord env</code> will write <code>bitcoind</code>'s configuration to <code>bitcoin.conf</code>, and the env configuration to <code>env.json</code>.</p>
+<p>Inside of the env directory, <code>ord env</code> will write <code>bitcoind</code>'s configuration to <code>bitcoin.conf</code>, <code>ord</code>'s configuration to <code>ord.yaml</code>, and the env configuration to <code>env.json</code>.</p>
 <p><code>env.json</code> contains the commands needed to invoke <code>bitcoin-cli</code> and <code>ord wallet</code>, as well as the ports <code>bitcoind</code> and <code>ord server</code> are listening on.</p>
 <p>These can be extracted into shell commands using <code>jq</code>:</p>
 <pre><code class="language-shell">bitcoin=`jq -r '.bitcoin_cli_command | join(" ")' env/env.json`
@@ -1639,6 +1671,12 @@ $bitcoin listunspent
 
 ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
 $ord outputs
+</code></pre>
+<p>If <code>ord</code> is in the <code>$PATH</code> and the env directory is <code>env</code>, the <code>bitcoin-cli</code> command will be:</p>
+<pre><code>bitcoin-cli -datadir=env`
+</code></pre>
+<p>And the <code>ord</code> will be:</p>
+<pre><code>ord --data-dir env
 </code></pre>
 <h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>Ord kann mithilfe der folgenden Flags getestet werden, um das Testnetzwerk anzugeben. Weitere Informationen zum Ausführen von Bitcoin Core zu Testzwecken finden Sie in der <a href="https://developer.bitcoin.org/examples/testing.html">Entwicklerdokumentation von Bitcoin</a>.</p>

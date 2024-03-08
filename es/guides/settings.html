@@ -258,6 +258,38 @@
 <p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
 <p>See <code>ord --help</code> for documentation of all the settings.</p>
 <p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
+<h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
+<pre><code class="language-yaml"># example config
+
+# see `ord --help` for setting documentation
+
+bitcoin_data_dir: /var/lib/bitcoin
+bitcoin_rpc_password: bar
+bitcoin_rpc_url: https://localhost:8000
+bitcoin_rpc_username: foo
+chain: mainnet
+commit_interval: 10000
+config: /var/lib/ord/ord.yaml
+config_dir: /var/lib/ord
+cookie_file: /var/lib/bitcoin/.cookie
+data_dir: /var/lib/ord
+first_inscription_height: 100
+height_limit: 1000
+hidden:
+- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
+index: /var/lib/ord/index.redb
+index_cache_size: 1000000000
+index_runes: true
+index_sats: true
+index_spent_sats: true
+index_transactions: true
+integration_test: true
+no_index_inscriptions: true
+server_password: bar
+server_url: http://localhost:8888
+server_username: foo
+</code></pre>
 <h2 id="hiding-inscription-content"><a class="header" href="#hiding-inscription-content">Hiding Inscription Content</a></h2>
 <p>Inscription content can be selectively prevented from being served by <code>ord server</code>.</p>
 <p>Unlike other settings, this can only be configured with the configuration file or environment variables.</p>

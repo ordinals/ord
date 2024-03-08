@@ -253,7 +253,7 @@
 <h2 id="test-environment"><a class="header" href="#test-environment">Test Environment</a></h2>
 <p><code>ord env &lt;DIRECTORY&gt;</code> creates a test environment in <code>&lt;DIRECTORY&gt;</code>, spins up <code>bitcoind</code> and <code>ord server</code> instances, prints example commands for interacting with the test <code>bitcoind</code> and <code>ord server</code> instances, waits for <code>CTRL-C</code>, and then shuts down <code>bitcoind</code> and <code>ord server</code>.</p>
 <p><code>ord env</code> tries to use port 9000 for <code>bitcoind</code>'s RPC interface, and port <code>9001</code> for <code>ord</code>'s RPC interface, but will fall back to random unused ports.</p>
-<p>Inside of the env directory, <code>ord env</code> will write <code>bitcoind</code>'s configuration to <code>bitcoin.conf</code>, and the env configuration to <code>env.json</code>.</p>
+<p>Inside of the env directory, <code>ord env</code> will write <code>bitcoind</code>'s configuration to <code>bitcoin.conf</code>, <code>ord</code>'s configuration to <code>ord.yaml</code>, and the env configuration to <code>env.json</code>.</p>
 <p><code>env.json</code> contains the commands needed to invoke <code>bitcoin-cli</code> and <code>ord wallet</code>, as well as the ports <code>bitcoind</code> and <code>ord server</code> are listening on.</p>
 <p>These can be extracted into shell commands using <code>jq</code>:</p>
 <pre><code class="language-shell">bitcoin=`jq -r '.bitcoin_cli_command | join(" ")' env/env.json`
@@ -261,6 +261,12 @@ $bitcoin listunspent
 
 ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
 $ord outputs
+</code></pre>
+<p>If <code>ord</code> is in the <code>$PATH</code> and the env directory is <code>env</code>, the <code>bitcoin-cli</code> command will be:</p>
+<pre><code>bitcoin-cli -datadir=env`
+</code></pre>
+<p>And the <code>ord</code> will be:</p>
+<pre><code>ord --data-dir env
 </code></pre>
 <h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>Ord può essere testato utilizzando i seguenti flag per specificare la rete di test. Per ulteriori informazioni sull'esecuzione di Bitcoin Core per i test, consultare la <a href="https://developer.bitcoin.org/examples/testing.html">documentazione per sviluppatori di Bitcoin</a>.</p>
