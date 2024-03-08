@@ -1081,7 +1081,9 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)
       .unwrap();
 
-    let parents_sequences = InscriptionEntry::load(
+    // we need to introduce a temporary variable to appease the borrow checker
+    // a historically tried and true strategy
+    let parent_sequences = InscriptionEntry::load(
       sequence_number_to_inscription_entry
         .get(sequence_number)
         .unwrap()
@@ -1090,7 +1092,7 @@ impl Index {
     )
     .parents;
 
-    parents_sequences
+    parent_sequences
       .into_iter()
       .map(|parent_sequence_number| {
         InscriptionEntry::load(
