@@ -7,6 +7,7 @@ pub(crate) use {
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
+  tempfile::TempDir,
   test_bitcoincore_rpc::TransactionTemplate,
   unindent::Unindent,
 };

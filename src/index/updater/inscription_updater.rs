@@ -70,7 +70,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
-  pub(super) fn index_envelopes(
+  pub(super) fn index_inscriptions(
     &mut self,
     tx: &Transaction,
     txid: Txid,
