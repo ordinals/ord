@@ -83,7 +83,7 @@ rpcport={bitcoind_port}
     let config = absolute.join("ord.yaml");
 
     fs::write(
-      &config,
+      config,
       serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
     )?;
 
