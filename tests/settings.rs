@@ -12,6 +12,8 @@ fn default() {
   "bitcoin_rpc_username": null,
   "chain": "mainnet",
   "commit_interval": 5000,
+  "config": null,
+  "config_dir": null,
   "cookie_file": ".*\.cookie",
   "data_dir": ".*",
   "first_inscription_height": 767430,
@@ -26,6 +28,7 @@ fn default() {
   "integration_test": false,
   "no_index_inscriptions": false,
   "server_password": null,
+  "server_url": null,
   "server_username": null
 \}
 "#,
@@ -92,6 +95,18 @@ fn config_is_loaded_from_config_dir() {
 .*"#,
   )
   .run_and_extract_stdout();
+}
+
+#[test]
+fn config_is_loaded_from_data_dir() {
+  CommandBuilder::new("settings")
+    .write("ord.yaml", "chain: regtest")
+    .stdout_regex(
+      r#".*
+  "chain": "regtest",
+.*"#,
+    )
+    .run_and_extract_stdout();
 }
 
 #[test]

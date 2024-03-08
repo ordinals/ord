@@ -13,7 +13,8 @@ then shuts down `bitcoind` and `ord server`.
 `9001` for `ord`'s RPC interface, but will fall back to random unused ports.
 
 Inside of the env directory, `ord env` will write `bitcoind`'s configuration to
-`bitcoin.conf`, and the env configuration to `env.json`.
+`bitcoin.conf`, `ord`'s configuration to `ord.yaml`, and the env configuration
+to `env.json`.
 
 `env.json` contains the commands needed to invoke `bitcoin-cli` and `ord
 wallet`, as well as the ports `bitcoind` and `ord server` are listening on.
@@ -26,6 +27,19 @@ $bitcoin listunspent
 
 ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
 $ord outputs
+```
+
+If `ord` is in the `$PATH` and the env directory is `env`, the `bitcoin-cli`
+command will be:
+
+```
+bitcoin-cli -datadir=env`
+```
+
+And the `ord` will be:
+
+```
+ord --data-dir env
 ```
 
 Test Networks
