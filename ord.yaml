@@ -8,6 +8,8 @@ bitcoin_rpc_url: https://localhost:8000
 bitcoin_rpc_username: foo
 chain: mainnet
 commit_interval: 10000
+config: /var/lib/ord/ord.yaml
+config_dir: /var/lib/ord
 cookie_file: /var/lib/bitcoin/.cookie
 data_dir: /var/lib/ord
 first_inscription_height: 100
@@ -24,4 +26,5 @@ index_transactions: true
 integration_test: true
 no_index_inscriptions: true
 server_password: bar
+server_url: http://localhost:8888
 server_username: foo
