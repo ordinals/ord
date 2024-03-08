@@ -9,6 +9,8 @@ pub struct Settings {
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
+  config: Option<PathBuf>,
+  config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
   data_dir: Option<PathBuf>,
   first_inscription_height: Option<u32>,
@@ -23,39 +25,13 @@ pub struct Settings {
   integration_test: bool,
   no_index_inscriptions: bool,
   server_password: Option<String>,
+  server_url: Option<String>,
   server_username: Option<String>,
 }
 
 impl Settings {
   pub(crate) fn load(options: Options) -> Result<Settings> {
-    let config_path = match &options.config {
-      Some(path) => Some(path.into()),
-      None => match &options.config_dir {
-        Some(dir) => {
-          let path = dir.join("ord.yaml");
-          if path.exists() {
-            Some(path)
-          } else {
-            None
-          }
-        }
-        None => None,
-      },
-    };
-
-    let config = match config_path {
-      Some(config_path) => serde_yaml::from_reader(File::open(&config_path).context(anyhow!(
-        "failed to open config file `{}`",
-        config_path.display()
-      ))?)
-      .context(anyhow!(
-        "failed to deserialize config file `{}`",
-        config_path.display()
-      ))?,
-      None => Settings::default(),
-    };
-
-    let mut env: BTreeMap<String, String> = BTreeMap::new();
+    let mut env = BTreeMap::<String, String>::new();
 
     for (var, value) in env::vars_os() {
       let Some(var) = var.to_str() else {
@@ -77,18 +53,39 @@ impl Settings {
       );
     }
 
-    Self::merge(options, env, config)
+    Self::merge(options, env)
   }
 
-  pub(crate) fn merge(
-    options: Options,
-    env: BTreeMap<String, String>,
-    config: Settings,
-  ) -> Result<Self> {
-    let settings = Settings::from_options(options)
-      .or(Settings::from_env(env)?)
-      .or(config)
-      .or_defaults()?;
+  pub(crate) fn merge(options: Options, env: BTreeMap<String, String>) -> Result<Self> {
+    let settings = Settings::from_options(options).or(Settings::from_env(env)?);
+
+    let config_path = if let Some(path) = &settings.config {
+      Some(path.into())
+    } else {
+      let path = if let Some(dir) = settings.config_dir.clone().or(settings.data_dir.clone()) {
+        dir
+      } else {
+        Self::default_data_dir()?
+      }
+      .join("ord.yaml");
+
+      path.exists().then_some(path)
+    };
+
+    let config = if let Some(config_path) = config_path {
+      serde_yaml::from_reader(File::open(&config_path).context(anyhow!(
+        "failed to open config file `{}`",
+        config_path.display()
+      ))?)
+      .context(anyhow!(
+        "failed to deserialize config file `{}`",
+        config_path.display()
+      ))?
+    } else {
+      Settings::default()
+    };
+
+    let settings = settings.or(config).or_defaults()?;
 
     match (
       &settings.bitcoin_rpc_username,
@@ -116,6 +113,8 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
+      config: self.config.or(source.config),
+      config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
       data_dir: self.data_dir.or(source.data_dir),
       first_inscription_height: self
@@ -140,6 +139,7 @@ impl Settings {
       integration_test: self.integration_test || source.integration_test,
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
       server_password: self.server_password.or(source.server_password),
+      server_url: self.server_url.or(source.server_url),
       server_username: self.server_username.or(source.server_username),
     }
   }
@@ -157,6 +157,8 @@ impl Settings {
         .or(options.testnet.then_some(Chain::Testnet))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
+      config: options.config,
+      config_dir: options.config_dir,
       cookie_file: options.cookie_file,
       data_dir: options.data_dir,
       first_inscription_height: options.first_inscription_height,
@@ -171,6 +173,7 @@ impl Settings {
       integration_test: options.integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
       server_password: options.server_password,
+      server_url: None,
       server_username: options.server_username,
     }
   }
@@ -232,6 +235,8 @@ impl Settings {
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
+      config: get_path("CONFIG"),
+      config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
       data_dir: get_path("DATA_DIR"),
       first_inscription_height: get_u32("FIRST_INSCRIPTION_HEIGHT")?,
@@ -246,8 +251,38 @@ impl Settings {
       integration_test: get_bool("INTEGRATION_TEST"),
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
       server_password: get_string("SERVER_PASSWORD"),
+      server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
     })
+  }
+
+  pub(crate) fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
+    Self {
+      bitcoin_data_dir: Some(dir.into()),
+      bitcoin_rpc_password: None,
+      bitcoin_rpc_url: Some(rpc_url.into()),
+      bitcoin_rpc_username: None,
+      chain: Some(Chain::Regtest),
+      commit_interval: None,
+      config: None,
+      config_dir: None,
+      cookie_file: None,
+      data_dir: Some(dir.into()),
+      first_inscription_height: None,
+      height_limit: None,
+      hidden: None,
+      index: None,
+      index_cache_size: None,
+      index_runes: true,
+      index_sats: true,
+      index_spent_sats: false,
+      index_transactions: false,
+      integration_test: false,
+      no_index_inscriptions: false,
+      server_password: None,
+      server_url: Some(server_url.into()),
+      server_username: None,
+    }
   }
 
   pub(crate) fn or_defaults(self) -> Result<Self> {
@@ -275,9 +310,7 @@ impl Settings {
 
     let data_dir = chain.join_with_data_dir(match &self.data_dir {
       Some(data_dir) => data_dir.clone(),
-      None => dirs::data_dir()
-        .context("could not get data dir")?
-        .join("ord"),
+      None => Self::default_data_dir()?,
     });
 
     let index = match &self.index {
@@ -297,6 +330,8 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username,
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
+      config: None,
+      config_dir: None,
       cookie_file: Some(cookie_file),
       data_dir: Some(data_dir),
       first_inscription_height: Some(if self.integration_test {
@@ -324,8 +359,17 @@ impl Settings {
       integration_test: self.integration_test,
       no_index_inscriptions: self.no_index_inscriptions,
       server_password: self.server_password,
+      server_url: self.server_url,
       server_username: self.server_username,
     })
+  }
+
+  pub(crate) fn default_data_dir() -> Result<PathBuf> {
+    Ok(
+      dirs::data_dir()
+        .context("could not get data dir")?
+        .join("ord"),
+    )
   }
 
   pub(crate) fn bitcoin_credentials(&self) -> Result<Auth> {
@@ -505,6 +549,10 @@ impl Settings {
       None => format!("{base_url}/"),
     }
   }
+
+  pub(crate) fn server_url(&self) -> Option<&str> {
+    self.server_url.as_deref()
+  }
 }
 
 #[cfg(test)]
@@ -544,7 +592,6 @@ mod tests {
           ..Default::default()
         },
         Default::default(),
-        Default::default(),
       )
       .unwrap_err()
       .to_string(),
@@ -560,7 +607,6 @@ mod tests {
           bitcoin_rpc_password: Some("foo".into()),
           ..Default::default()
         },
-        Default::default(),
         Default::default(),
       )
       .unwrap_err()
@@ -850,11 +896,24 @@ mod tests {
 
   #[test]
   fn bitcoin_rpc_and_pass_setting() {
+    let config = Settings {
+      bitcoin_rpc_username: Some("config_user".into()),
+      bitcoin_rpc_password: Some("config_pass".into()),
+      ..Default::default()
+    };
+
+    let tempdir = TempDir::new().unwrap();
+
+    let config_path = tempdir.path().join("ord.yaml");
+
+    fs::write(&config_path, serde_yaml::to_string(&config).unwrap()).unwrap();
+
     assert_eq!(
       Settings::merge(
         Options {
           bitcoin_rpc_username: Some("option_user".into()),
           bitcoin_rpc_password: Some("option_pass".into()),
+          config: Some(config_path.clone()),
           ..Default::default()
         },
         vec![
@@ -863,11 +922,6 @@ mod tests {
         ]
         .into_iter()
         .collect(),
-        Settings {
-          bitcoin_rpc_username: Some("config_user".into()),
-          bitcoin_rpc_password: Some("config_pass".into()),
-          ..Default::default()
-        }
       )
       .unwrap()
       .bitcoin_credentials()
@@ -877,18 +931,16 @@ mod tests {
 
     assert_eq!(
       Settings::merge(
-        Default::default(),
+        Options {
+          config: Some(config_path.clone()),
+          ..Default::default()
+        },
         vec![
           ("BITCOIN_RPC_USERNAME".into(), "env_user".into()),
           ("BITCOIN_RPC_PASSWORD".into(), "env_pass".into()),
         ]
         .into_iter()
         .collect(),
-        Settings {
-          bitcoin_rpc_username: Some("config_user".into()),
-          bitcoin_rpc_password: Some("config_pass".into()),
-          ..Default::default()
-        }
       )
       .unwrap()
       .bitcoin_credentials()
@@ -898,13 +950,11 @@ mod tests {
 
     assert_eq!(
       Settings::merge(
-        Default::default(),
-        Default::default(),
-        Settings {
-          bitcoin_rpc_username: Some("config_user".into()),
-          bitcoin_rpc_password: Some("config_pass".into()),
+        Options {
+          config: Some(config_path),
           ..Default::default()
-        }
+        },
+        Default::default(),
       )
       .unwrap()
       .bitcoin_credentials()
@@ -913,7 +963,7 @@ mod tests {
     );
 
     assert_matches!(
-      Settings::merge(Default::default(), Default::default(), Default::default(),)
+      Settings::merge(Default::default(), Default::default())
         .unwrap()
         .bitcoin_credentials()
         .unwrap(),
@@ -935,6 +985,8 @@ mod tests {
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
+      ("CONFIG", "config"),
+      ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
       ("DATA_DIR", "/data/dir"),
       ("FIRST_INSCRIPTION_HEIGHT", "2"),
@@ -949,6 +1001,7 @@ mod tests {
       ("INTEGRATION_TEST", "1"),
       ("NO_INDEX_INSCRIPTIONS", "1"),
       ("SERVER_PASSWORD", "server password"),
+      ("SERVER_URL", "server url"),
       ("SERVER_USERNAME", "server username"),
     ]
     .into_iter()
@@ -964,6 +1017,8 @@ mod tests {
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
+        config: Some("config".into()),
+        config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
         first_inscription_height: Some(2),
@@ -989,6 +1044,7 @@ mod tests {
         integration_test: true,
         no_index_inscriptions: true,
         server_password: Some("server password".into()),
+        server_url: Some("server url".into()),
         server_username: Some("server username".into()),
       }
     );
@@ -1006,6 +1062,8 @@ mod tests {
           "--bitcoin-rpc-username=bitcoin username",
           "--chain=signet",
           "--commit-interval=1",
+          "--config=config",
+          "--config-dir=config dir",
           "--cookie-file=cookie file",
           "--data-dir=/data/dir",
           "--first-inscription-height=2",
@@ -1030,6 +1088,8 @@ mod tests {
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
+        config: Some("config".into()),
+        config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
         first_inscription_height: Some(2),
@@ -1044,6 +1104,7 @@ mod tests {
         integration_test: true,
         no_index_inscriptions: true,
         server_password: Some("server password".into()),
+        server_url: None,
         server_username: Some("server username".into()),
       }
     );
@@ -1056,29 +1117,42 @@ mod tests {
       .map(|(key, value)| (key.into(), value.into()))
       .collect::<BTreeMap<String, String>>();
 
-    let options = Options::try_parse_from(["ord", "--index=option"]).unwrap();
-
     let config = Settings {
       index: Some("config".into()),
       ..Default::default()
     };
 
+    let tempdir = TempDir::new().unwrap();
+
+    let config_path = tempdir.path().join("ord.yaml");
+
+    fs::write(&config_path, serde_yaml::to_string(&config).unwrap()).unwrap();
+
+    let options =
+      Options::try_parse_from(["ord", "--config", config_path.to_str().unwrap()]).unwrap();
+
     pretty_assert_eq!(
-      Settings::merge(Default::default(), Default::default(), config.clone())
+      Settings::merge(options.clone(), Default::default())
         .unwrap()
         .index,
       Some("config".into()),
     );
 
     pretty_assert_eq!(
-      Settings::merge(Default::default(), env.clone(), config.clone())
-        .unwrap()
-        .index,
+      Settings::merge(options, env.clone()).unwrap().index,
       Some("env".into()),
     );
 
+    let options = Options::try_parse_from([
+      "ord",
+      "--index=option",
+      "--config",
+      config_path.to_str().unwrap(),
+    ])
+    .unwrap();
+
     pretty_assert_eq!(
-      Settings::merge(options, env, config.clone()).unwrap().index,
+      Settings::merge(options, env).unwrap().index,
       Some("option".into()),
     );
   }

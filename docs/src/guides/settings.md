@@ -8,10 +8,15 @@ The command line takes precedence over environment variables, which take
 precedence over the configuration file, which takes precedence over defaults.
 
 The path to the configuration file can be given with `--config <CONFIG_PATH>`.
-`ord` will error if `<CONFIG_PATH>` doesn't exist. The path to a configuration
-directory can be given with `--config-dir <CONFIG_DIR_PATH>`, in which case the
-config path is `<CONFIG_DIR_PATH>/ord.yaml`. It is not an error if
-`<CONFIG_DIR_PATH>/ord.yaml` does not exist.
+`ord` will error if `<CONFIG_PATH>` doesn't exist.
+
+The path to a directory containing a configuration file name named `ord.yaml`
+can be given with `--config-dir <CONFIG_DIR_PATH>` or `--data-dir
+<DATA_DIR_PATH>` in which case the config path is `<CONFIG_DIR_PATH>/ord.yaml`
+or `<DATA_DIR_PATH>/ord.yaml`. It is not an error if it does not exist.
+
+If none of `--config`, `--config-dir`, or `--data-dir` are given, and a file
+named `ord.yaml` exists in the default data directory, it will be loaded.
 
 For a setting named `--setting-name` on the command line, the environment
 variable will be named `ORD_SETTING_NAME`, and the config file field will be

@@ -190,7 +190,6 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
           vec![("INTEGRATION_TEST".into(), "1".into())]
             .into_iter()
             .collect(),
-          Default::default(),
         )
         .unwrap(),
         server,
