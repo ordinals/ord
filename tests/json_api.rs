@@ -482,10 +482,11 @@ fn get_status() {
     .parse::<DateTime<Utc>>()
     .unwrap();
 
-  let dummy_uptime = Duration::from_secs(1);
+  let dummy_duration = Duration::from_secs(1);
 
+  status_json.initial_sync_time = dummy_duration;
   status_json.started = dummy_started;
-  status_json.uptime = dummy_uptime;
+  status_json.uptime = dummy_duration;
 
   pretty_assert_eq!(
     status_json,
@@ -495,6 +496,7 @@ fn get_status() {
       content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
       cursed_inscriptions: 0,
       height: Some(3),
+      initial_sync_time: dummy_duration,
       inscriptions: 1,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99218849511960410),
@@ -504,7 +506,7 @@ fn get_status() {
       started: dummy_started,
       transaction_index: false,
       unrecoverably_reorged: false,
-      uptime: dummy_uptime,
+      uptime: dummy_duration,
     }
   );
 }
