@@ -156,9 +156,12 @@ rpcport={bitcoind_port}
 
     eprintln!(
       "{}
+{server_url}
+{}
 bitcoin-cli -datadir='{relative}' getblockchaininfo
 {}
 {} --data-dir '{relative}' wallet balance",
+      "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
       ord.display(),
