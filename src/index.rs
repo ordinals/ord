@@ -97,6 +97,7 @@ pub(crate) enum Statistic {
   UnboundInscriptions = 11,
   IndexTransactions = 12,
   IndexSpentSats = 13,
+  InitialSyncTime = 14,
 }
 
 impl Statistic {
@@ -464,6 +465,7 @@ impl Index {
 
     let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
+    let initial_sync_time = statistic(Statistic::InitialSyncTime)?;
 
     let mut content_type_counts = rtx
       .open_table(CONTENT_TYPE_TO_COUNT)?
@@ -481,6 +483,7 @@ impl Index {
       content_type_counts,
       cursed_inscriptions,
       height,
+      initial_sync_time: Duration::from_micros(initial_sync_time),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
