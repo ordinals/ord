@@ -31,9 +31,15 @@ impl From<(u64, u64)> for Range {
 
 impl Flow {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
-    let psbt = fs::read(self.psbt).unwrap();
+    let base64 = fs::read(self.psbt).unwrap();
 
-    let psbt = Psbt::deserialize(&psbt).unwrap();
+    let s = std::str::from_utf8(&base64).unwrap();
+
+    let bytes = &base64::engine::general_purpose::STANDARD
+      .decode(s.trim())
+      .unwrap();
+
+    let psbt = Psbt::deserialize(bytes).unwrap();
 
     let index = Index::open(&settings)?;
 
@@ -46,6 +52,20 @@ impl Flow {
     }
 
     let mut fee: VecDeque<(u64, u64)> = inputs.iter().flatten().copied().collect();
+
+    let input_value = fee.iter().map(|(start, end)| end - start).sum::<u64>();
+
+    let output_value = psbt
+      .unsigned_tx
+      .output
+      .iter()
+      .map(|input| input.value)
+      .sum::<u64>();
+
+    ensure!(
+      input_value >= output_value,
+      "insufficient inputs to pay for outputs: {input_value} < {output_value}",
+    );
 
     let mut outputs = Vec::new();
 
