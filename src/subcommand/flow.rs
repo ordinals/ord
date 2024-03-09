@@ -9,6 +9,8 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Flow {
+  #[arg(long)]
+  binary: bool,
   psbt: PathBuf,
 }
 
@@ -31,15 +33,15 @@ impl From<(u64, u64)> for Range {
 
 impl Flow {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
-    let base64 = fs::read(self.psbt).unwrap();
+    let psbt = if self.binary {
+      fs::read(self.psbt).unwrap()
+    } else {
+      base64::engine::general_purpose::STANDARD
+        .decode(fs::read_to_string(self.psbt).unwrap().trim())
+        .unwrap()
+    };
 
-    let s = std::str::from_utf8(&base64).unwrap();
-
-    let bytes = &base64::engine::general_purpose::STANDARD
-      .decode(s.trim())
-      .unwrap();
-
-    let psbt = Psbt::deserialize(bytes).unwrap();
+    let psbt = Psbt::deserialize(&psbt).unwrap();
 
     let index = Index::open(&settings)?;
 
