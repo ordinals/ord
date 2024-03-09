@@ -127,7 +127,7 @@ your wallet of funds.
    bitcoin-cli getwalletinfo
    ```
 
-7. Display your wallet's rare ordinals:
+6. Display your wallet's rare ordinals:
 
    ```sh
    ord wallet sats
@@ -200,7 +200,7 @@ those multiple descriptors into Bitcoin Core.
    bitcoin-cli loadwallet foo-watch-only
    ```
 
-4. Now import the descriptors, with the correct checksums, into Bitcoin Core.
+5. Now import the descriptors, with the correct checksums, into Bitcoin Core.
 
    ```sh
    bitcoin-cli \
@@ -222,7 +222,7 @@ those multiple descriptors into Bitcoin Core.
    instead of `0`. This will reduce the time it takes for Bitcoin Core to
    search for your wallet's UTXOs.
 
-5. Check that everything worked:
+6. Check that everything worked:
 
    ```sh
    bitcoin-cli getwalletinfo
