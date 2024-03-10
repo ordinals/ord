@@ -8,6 +8,7 @@ CHAIN=$1
 RPC_USER=$2
 RPC_PASSWORD=$3
 FIH=$4
+XPRV=$5
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -23,7 +24,8 @@ apt-get install --yes \
   locales-all \
   pkg-config \
   ufw \
-  vim
+  vim \
+  jq
 
 apt-get remove --yes --auto-remove
 
@@ -79,8 +81,27 @@ ufw --force enable
 if ! which bitcoind; then
   ./bin/install-bitcoin-core-linux
 fi
-
 bitcoind --version
+
+LAUNCHPAD_ORDERS_DESC_1="tr($XPRV/86'/1'/0'/0/*)"
+LAUNCHPAD_ORDERS_DESC_2="tr($XPRV/86'/1'/1'/0/*)"
+LAUNCHPAD_ORDERS_DESC_3="tr($XPRV/86'/1'/2'/0/*)"
+LAUNCHPAD_ORDERS_DESC_CS_1=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_ORDERS_DESC_1 | jq -r '.checksum')
+LAUNCHPAD_ORDERS_DESC_CS_2=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_ORDERS_DESC_2 | jq -r '.checksum')
+LAUNCHPAD_ORDERS_DESC_CS_3=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_ORDERS_DESC_3 | jq -r '.checksum')
+LAUNCHPAD_ORDERS_DESC_1=$LAUNCHPAD_ORDERS_DESC_1#$LAUNCHPAD_ORDERS_DESC_CS_1
+LAUNCHPAD_ORDERS_DESC_2=$LAUNCHPAD_ORDERS_DESC_2#$LAUNCHPAD_ORDERS_DESC_CS_2
+LAUNCHPAD_ORDERS_DESC_3=$LAUNCHPAD_ORDERS_DESC_3#$LAUNCHPAD_ORDERS_DESC_CS_3
+# IMPORT DESCRIPTORS TO WALLETS
+LAUNCHPAD_ORDERS_WALLET_1="launchpad-orders-1"
+LAUNCHPAD_ORDERS_WALLET_2="launchpad-orders-2"
+LAUNCHPAD_ORDERS_WALLET_3="launchpad-orders-3"
+bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_ORDERS_WALLET_1 false true "" false true true  
+bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_ORDERS_WALLET_2 false true "" false true true
+bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_ORDERS_WALLET_3 false true "" false true true
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_ORDERS_WALLET_1 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_ORDERS_DESC_1\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_ORDERS_WALLET_2 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_ORDERS_DESC_2\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_ORDERS_WALLET_3 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_ORDERS_DESC_3\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
