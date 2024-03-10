@@ -1493,7 +1493,7 @@ impl Index {
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
         && self
           .client
-          .get_tx_out(&outpoint.txid, outpoint.vout, Some(false))?
+          .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
           .is_none(),
     )
   }
