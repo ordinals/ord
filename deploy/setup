@@ -119,19 +119,7 @@ systemctl restart bitcoind
 #   sleep 1
 # done
 
-while true; do
-  result=$(bitcoin-cli -getinfo 2>&1)
-  exit_code=$?
-  sleeptime=5
-
-  if [[ $exit_code -ne 0 ]]; then
-    echo $result
-    echo "retrying in $sleeptime seconds"
-    sleep $sleeptime
-  else
-    break
-  fi
-done
+sleep 60
 
 LAUNCHPAD_ORDERS_DESC_1="tr($XPRV/86'/1'/0'/0/*)"
 LAUNCHPAD_ORDERS_DESC_2="tr($XPRV/86'/1'/1'/0/*)"
