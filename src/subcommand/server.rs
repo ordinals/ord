@@ -2049,6 +2049,10 @@ mod tests {
     fn redirect_http_to_https(self) -> Self {
       self.server_flag("--redirect-http-to-https")
     }
+
+    fn timeout(self) -> Self {
+      self.server_option("--timeout", "1")
+    }
   }
 
   struct TestServer {
@@ -3322,11 +3326,14 @@ mod tests {
 
   #[test]
   fn output_with_timeout() {
-    TestServer::new_with_timeout().assert_response_regex(
-      "/block/0",
-      StatusCode::OK,
-      ".*<title>Block 0</title>.*<h1>Block 0</h1>.*",
-    );
+    TestServer::builder()
+      .timeout()
+      .build()
+      .assert_response_regex(
+        "/block/0",
+        StatusCode::OK,
+        ".*<title>Block 0</title>.*<h1>Block 0</h1>.*",
+      );
   }
 
   #[test]
