@@ -5568,7 +5568,10 @@ next
         average_fee: 0,
         average_fee_rate: 0,
         bits: 486604799,
-        chainwork: [0; 32],
+        chainwork: hex::decode("0000000000000000000000000000000000000000000000000000000100010001",)
+          .unwrap()
+          .try_into()
+          .unwrap(),
         confirmations: 0,
         difficulty: 0.0,
         hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
@@ -5607,7 +5610,10 @@ next
         average_fee: 0,
         average_fee_rate: 0,
         bits: 0,
-        chainwork: [0; 32],
+        chainwork: hex::decode("0000000000000000000000000000000000000000000000000000000100010001",)
+          .unwrap()
+          .try_into()
+          .unwrap(),
         confirmations: 0,
         difficulty: 0.0,
         hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
