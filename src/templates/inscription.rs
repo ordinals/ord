@@ -3,12 +3,13 @@ use super::*;
 #[derive(Boilerplate, Default)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) charms: u16,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) fee: u64,
   pub(crate) height: u32,
   pub(crate) inscription: Inscription,
-  pub(crate) inscription_id: InscriptionId,
-  pub(crate) inscription_number: i32,
+  pub(crate) id: InscriptionId,
+  pub(crate) number: i32,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
@@ -17,16 +18,15 @@ pub(crate) struct InscriptionHtml {
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
-  pub(crate) charms: u16,
 }
 
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
-    format!("Inscription {}", self.inscription_number)
+    format!("Inscription {}", self.number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
-    Some(Trusted(format!("/content/{}", self.inscription_id)))
+    Some(Trusted(format!("/content/{}", self.id)))
   }
 }
 
@@ -40,8 +40,8 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -91,8 +91,8 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         output: Some(tx_out(1, address())),
         satpoint: satpoint(1, 0),
         ..Default::default()
@@ -123,8 +123,8 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         output: Some(tx_out(1, address())),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
@@ -152,9 +152,9 @@ mod tests {
         children: Vec::new(),
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(2),
+        id: inscription_id(2),
         next: Some(inscription_id(3)),
-        inscription_number: 1,
+        number: 1,
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
@@ -179,8 +179,8 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(2),
-        inscription_number: -1,
+        id: inscription_id(2),
+        number: -1,
         output: Some(tx_out(1, address())),
         satpoint: SatPoint {
           outpoint: unbound_outpoint(),
@@ -212,8 +212,8 @@ mod tests {
         parent: Some(inscription_id(2)),
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -270,8 +270,8 @@ mod tests {
         children: vec![inscription_id(2), inscription_id(3)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -332,8 +332,8 @@ mod tests {
         children: vec![inscription_id(2)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -392,8 +392,8 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         rune: Some(SpacedRune {
           rune: Rune(26),
@@ -423,8 +423,8 @@ mod tests {
           content_encoding: Some("br".into()),
           ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
         },
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
