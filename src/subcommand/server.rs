@@ -1466,7 +1466,7 @@ impl Server {
           height: info.entry.height,
           parent: info.parent,
           fee: info.entry.fee,
-          output_value: info.output.as_ref().map(|o| o.value),
+          value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
             .as_ref()
@@ -4187,7 +4187,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
-      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
+      r".*<dt>value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -4839,7 +4839,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5050,7 +5050,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5110,7 +5110,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5195,7 +5195,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>5000000000</dd>
   .*
 </dl>
