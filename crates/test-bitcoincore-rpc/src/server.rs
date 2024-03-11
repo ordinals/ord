@@ -119,7 +119,10 @@ impl Api for Server {
       Ok(
         serde_json::to_value(GetBlockHeaderResult {
           bits: String::new(),
-          chainwork: Vec::new(),
+          chainwork: hex::decode(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+          )
+          .unwrap(),
           confirmations: 0,
           difficulty: 0.0,
           hash: block_hash,
@@ -142,6 +145,50 @@ impl Api for Server {
         None => Err(Self::not_found()),
       }
     }
+  }
+
+  fn get_block_stats(&self, height: usize) -> Result<GetBlockStatsResult, jsonrpc_core::Error> {
+    let Some(block_hash) = self.state().hashes.get(height).cloned() else {
+      return Err(Self::not_found());
+    };
+
+    Ok(GetBlockStatsResult {
+      avg_fee: Amount::ZERO,
+      avg_fee_rate: Amount::ZERO,
+      avg_tx_size: 0,
+      block_hash,
+      fee_rate_percentiles: FeeRatePercentiles {
+        fr_10th: Amount::ZERO,
+        fr_25th: Amount::ZERO,
+        fr_50th: Amount::ZERO,
+        fr_75th: Amount::ZERO,
+        fr_90th: Amount::ZERO,
+      },
+      height: height.try_into().unwrap(),
+      ins: 0,
+      max_fee: Amount::ZERO,
+      max_fee_rate: Amount::ZERO,
+      max_tx_size: 0,
+      median_fee: Amount::ZERO,
+      median_time: 0,
+      median_tx_size: 0,
+      min_fee: Amount::ZERO,
+      min_fee_rate: Amount::ZERO,
+      min_tx_size: 0,
+      outs: 0,
+      subsidy: Amount::ZERO,
+      sw_total_size: 0,
+      sw_total_weight: 0,
+      sw_txs: 0,
+      time: 0,
+      total_out: Amount::ZERO,
+      total_size: 0,
+      total_weight: 0,
+      total_fee: Amount::ZERO,
+      txs: 0,
+      utxo_increase: 0,
+      utxo_size_inc: 0,
+    })
   }
 
   fn get_block(
