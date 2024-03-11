@@ -1455,17 +1455,17 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscription {
-          inscription_id: info.entry.id,
+          id: info.entry.id,
           charms: Charm::ALL
             .iter()
             .filter(|charm| charm.is_set(info.charms))
             .map(|charm| charm.title().into())
             .collect(),
           children: info.children,
-          inscription_number: info.entry.inscription_number,
-          inscription_height: info.entry.height,
+          number: info.entry.inscription_number,
+          height: info.entry.height,
           parent: info.parent,
-          inscription_fee: info.entry.fee,
+          fee: info.entry.fee,
           output_value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
@@ -1642,7 +1642,7 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscriptions {
-          inscriptions,
+          ids: inscriptions,
           page_index,
           more,
         })
@@ -1701,7 +1701,7 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscriptions {
-          inscriptions,
+          ids: inscriptions,
           page_index,
           more,
         })
