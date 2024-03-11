@@ -70,7 +70,7 @@ Examples
   "average_fee": 0,
   "average_fee_rate": 0,
   "bits": 486604799,
-  "chainwork": 0,
+  "chainwork": "0000000000000000000000000000000000000000000000000000000100010001",
   "confirmations": 0,
   "difficulty": 0.0,
   "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
@@ -79,7 +79,7 @@ Examples
   "max_fee_rate": 0,
   "max_tx_size": 0,
   "median_fee": 0,
-  "median_time": null,
+  "median_time": 1231006505,
   "merkle_root": "0000000000000000000000000000000000000000000000000000000000000000",
   "min_fee": 0,
   "min_fee_rate": 0,
@@ -88,11 +88,11 @@ Examples
   "previous_block": null,
   "subsidy": 5000000000,
   "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
-  "timestamp": 0,
+  "timestamp": 1231006505,
   "total_fee": 0,
   "total_size": 0,
   "total_weight": 0,
-  "transaction_count": 0,
+  "transaction_count": 1,
   "version": 1
 }
 ```

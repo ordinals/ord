@@ -1,6 +1,9 @@
-use super::{
-  target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-  Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
+use {
+  super::{
+    target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
+    Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
+  },
+  serde_hex::{SerHex, Strict},
 };
 
 pub use crate::templates::{
@@ -39,7 +42,8 @@ pub struct BlockInfo {
   pub average_fee: u64,
   pub average_fee_rate: u64,
   pub bits: u32,
-  pub chainwork: u128,
+  #[serde(with = "SerHex::<Strict>")]
+  pub chainwork: [u8; 32],
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
