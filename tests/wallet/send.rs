@@ -74,7 +74,7 @@ fn send_unknown_inscription() {
 }
 
 #[test]
-fn send_inscribed_sat() {
+fn send_inscribed_inscription() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
@@ -104,6 +104,27 @@ fn send_inscribed_sat() {
       ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
+}
+
+#[test]
+fn send_uninscribed_sat(){
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let sat = 1;
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {sat}"
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_stderr(format!("error: could not find sat `{sat}` in wallet outputs\n"))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
 }
 
 #[test]
