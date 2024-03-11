@@ -902,6 +902,7 @@ impl Server {
           content_length: inscription.content_length(),
           fee: entry.fee,
           height: entry.height,
+          id: inscription_id,
           number: entry.inscription_number,
           output: satpoint.outpoint,
           value: output.as_ref().map(|o| o.value),
