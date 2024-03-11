@@ -122,7 +122,9 @@ fn send_uninscribed_sat(){
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .expected_stderr(format!("error: could not find sat `{sat}` in wallet outputs\n"))
+  .expected_stderr(format!(
+    "error: could not find sat `{sat}` in wallet outputs\n"
+  ))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
