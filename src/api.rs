@@ -104,6 +104,7 @@ pub struct InscriptionRecursive {
   pub content_length: Option<usize>,
   pub fee: u64,
   pub height: u32,
+  pub id: InscriptionId,
   pub number: i32,
   pub output: OutPoint,
   pub sat: Option<ordinals::Sat>,
