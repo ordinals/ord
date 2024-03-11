@@ -53,6 +53,14 @@ deploy-all: \
   deploy-mainnet-bravo \
   deploy-mainnet-charlie
 
+delete-indices: \
+  (delete-index "regtest.ordinals.net") \
+  (delete-index "signet.ordinals.net") \
+  (delete-index "testnet.ordinals.net")
+
+delete-index domain:
+  ssh root@{{domain}} 'systemctl stop ord && rm -f /var/lib/ord/*/index.redb'
+
 servers := 'alpha bravo charlie regtest signet testnet'
 
 initialize-server-keys:

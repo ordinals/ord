@@ -22,6 +22,9 @@ pub trait Api {
     verbose: bool,
   ) -> Result<Value, jsonrpc_core::Error>;
 
+  #[rpc(name = "getblockstats")]
+  fn get_block_stats(&self, height: usize) -> Result<GetBlockStatsResult, jsonrpc_core::Error>;
+
   #[rpc(name = "getblock")]
   fn get_block(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
 

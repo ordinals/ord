@@ -1,19 +1,15 @@
 Changelog
 =========
 
-[0.16.0-rc1](https://github.com/ordinals/ord/releases/tag/0.16.0-rc1) - 2023-02-27
-----------------------------------------------------------------------------------
+[0.16.0](https://github.com/ordinals/ord/releases/tag/0.16.0) - 2023-03-11
+--------------------------------------------------------------------------
 
-## Skill Issue
-
-- Update ordinals crate ([#3184](https://github.com/ordinals/ord/pull/3184) by [raphjaph](https://github.com/raphjaph))
-- Refactor test server to use arguments ([#3183](https://github.com/ordinals/ord/pull/3183) by [casey](https://github.com/casey))
-
-[0.16.0-rc0](https://github.com/ordinals/ord/releases/tag/0.16.0-rc0) - 2023-02-27
-----------------------------------------------------------------------------------
-
-## Added
-
+### Added
+- Document recursive endpoint backwards compatibility guarantees ([#3265](https://github.com/ordinals/ord/pull/3265) by [casey](https://github.com/casey))
+- Reserve inscription tag 15 ([#3256](https://github.com/ordinals/ord/pull/3256) by [casey](https://github.com/casey))
+- Display initial sync time on status page ([#3250](https://github.com/ordinals/ord/pull/3250) by [casey](https://github.com/casey))
+- Add content proxy ([#3216](https://github.com/ordinals/ord/pull/3216) by [raphjaph](https://github.com/raphjaph))
+- Allow configuring interval between commits to index ([#3186](https://github.com/ordinals/ord/pull/3186) by [bingryan](https://github.com/bingryan))
 - Print PSBT for dry run inscribe ([#3116](https://github.com/ordinals/ord/pull/3116) by [raphjaph](https://github.com/raphjaph))
 - Add parent preview to inscription page ([#3163](https://github.com/ordinals/ord/pull/3163) by [elocremarc](https://github.com/elocremarc))
 - Add `/r/inscription` endpoint for getting inscription details ([#2628](https://github.com/ordinals/ord/pull/2628) by [devords](https://github.com/devords))
@@ -23,52 +19,64 @@ Changelog
 - Emit inscription update events to channel ([#3137](https://github.com/ordinals/ord/pull/3137) by [mi-yu](https://github.com/mi-yu))
 - Allow inscribing AVIF images ([#3123](https://github.com/ordinals/ord/pull/3123) by [casey](https://github.com/casey))
 - Add `satpoints` batch inscribe mode ([#3115](https://github.com/ordinals/ord/pull/3115) by [raphjaph](https://github.com/raphjaph))
-- Import multiple descriptors at a time ([#3091](https://github.com/ordinals/ord/pull/3091) by [raphjaph](https://github.com/raphjaph))
 - Add /r/blockinfo endpoint ([#3075](https://github.com/ordinals/ord/pull/3075) by [jerryfane](https://github.com/jerryfane))
 - Return signed PSBT from `ord wallet send` ([#3093](https://github.com/ordinals/ord/pull/3093) by [raphjaph](https://github.com/raphjaph))
-- Allow specifying satpoint in `same-sat` batch inscribe ([#3100](https://github.com/ordinals/ord/pull/3100) by [raphjaph](https://github.com/raphjaph))
-- Use a flag to indicate a mint ([#3068](https://github.com/ordinals/ord/pull/3068) by [casey](https://github.com/casey))
-- Add dry run to send, print Outgoing and PSBT ([#3063](https://github.com/ordinals/ord/pull/3063) by [raphjaph](https://github.com/raphjaph))
 - Add /runes/balances ([#2978](https://github.com/ordinals/ord/pull/2978) by [lugondev](https://github.com/lugondev))
 - Dump and restore wallet from descriptors ([#3048](https://github.com/ordinals/ord/pull/3048) by [raphjaph](https://github.com/raphjaph))
-- Enable JSON API by default ([#3047](https://github.com/ordinals/ord/pull/3047) by [raphjaph](https://github.com/raphjaph))
-- Make wallet communicate with index via RPC ([#2929](https://github.com/ordinals/ord/pull/2929) by [raphjaph](https://github.com/raphjaph))
 - Inscribe with delegate ([#3021](https://github.com/ordinals/ord/pull/3021) by [casey](https://github.com/casey))
-- Add blocks and transaction JSON endpoints ([#3004](https://github.com/ordinals/ord/pull/3004) by [DaviRain-Su](https://github.com/DaviRain-Su))
 - Add option to retain sat index for spent outputs ([#2999](https://github.com/ordinals/ord/pull/2999) by [casey](https://github.com/casey))
-- Add minimal Dockerfile ([#2786](https://github.com/ordinals/ord/pull/2786) by [raphjaph](https://github.com/raphjaph))
 - Add `indexed` to output JSON ([#2971](https://github.com/ordinals/ord/pull/2971) by [raphjaph](https://github.com/raphjaph))
-- Use `image-rendering: auto` for AVIF inscriptions ([#3148](https://github.com/ordinals/ord/pull/3148) by [casey](https://github.com/casey))
-- Use `image-rendering: auto` when downscaling images ([#3144](https://github.com/ordinals/ord/pull/3144) by [casey](https://github.com/casey))
 
-## Changed
-
+### Changed
+- Add `id` inscription recursive JSON ([#3258](https://github.com/ordinals/ord/pull/3258) by [raphjaph](https://github.com/raphjaph))
+- Add more fields to /r/blockinfo ([#3260](https://github.com/ordinals/ord/pull/3260) by [raphjaph](https://github.com/raphjaph))
+- Load config from default data dir and configure `ord env ` using config ([#3240](https://github.com/ordinals/ord/pull/3240) by [casey](https://github.com/casey))
+- Overhaul settings ([#3188](https://github.com/ordinals/ord/pull/3188) by [casey](https://github.com/casey))
+- Improve configuration ([#3156](https://github.com/ordinals/ord/pull/3156) by [casey](https://github.com/casey))
 - Represent rune IDs as `BLOCK:TX` ([#3165](https://github.com/ordinals/ord/pull/3165) by [casey](https://github.com/casey))
 - Display parent above metadata on /inscription ([#3160](https://github.com/ordinals/ord/pull/3160) by [casey](https://github.com/casey))
-- Improve configuration ([#3156](https://github.com/ordinals/ord/pull/3156) by [casey](https://github.com/casey))
+- Make `ord env` more user friendly ([#3153](https://github.com/ordinals/ord/pull/3153) by [casey](https://github.com/casey))
+- Use `image-rendering: auto` for AVIF inscriptions ([#3148](https://github.com/ordinals/ord/pull/3148) by [casey](https://github.com/casey))
 - Make wallet async ([#3142](https://github.com/ordinals/ord/pull/3142) by [raphjaph](https://github.com/raphjaph))
+- Use `image-rendering: auto` when downscaling images ([#3144](https://github.com/ordinals/ord/pull/3144) by [casey](https://github.com/casey))
 - Only allow mnemonic from stdin ([#3023](https://github.com/ordinals/ord/pull/3023) by [mj10021](https://github.com/mj10021))
 - Show reinscriptions in `ord wallet inscriptions` ([#3101](https://github.com/ordinals/ord/pull/3101) by [raphjaph](https://github.com/raphjaph))
-- Forbid destinations in same-sat mode ([#3038](https://github.com/ordinals/ord/pull/3038) by [zhiqiangxu](https://github.com/zhiqiangxu))
+- Allow specifying satpoint in `same-sat` batch inscribe ([#3100](https://github.com/ordinals/ord/pull/3100) by [raphjaph](https://github.com/raphjaph))
+- Enable JSON API by default ([#3047](https://github.com/ordinals/ord/pull/3047) by [raphjaph](https://github.com/raphjaph))
+- Make wallet communicate with index via RPC ([#2929](https://github.com/ordinals/ord/pull/2929) by [raphjaph](https://github.com/raphjaph))
+- Add blocks and transaction JSON endpoints ([#3004](https://github.com/ordinals/ord/pull/3004) by [DaviRain-Su](https://github.com/DaviRain-Su))
+- Hide BVM Network inscriptions ([#3012](https://github.com/ordinals/ord/pull/3012) by [casey](https://github.com/casey))
+- Suppress empty command output ([#2995](https://github.com/ordinals/ord/pull/2995) by [casey](https://github.com/casey))
 
-## Documentation
-
+### Misc
+- Rename genesis fee to inscription fee ([#3257](https://github.com/ordinals/ord/pull/3257) by [raphjaph](https://github.com/raphjaph))
+- Don't consider unconfirmed UTXOs as spent ([#3255](https://github.com/ordinals/ord/pull/3255) by [arik-so](https://github.com/arik-so))
+- Create tempdir in download-log recipe ([#3242](https://github.com/ordinals/ord/pull/3242) by [casey](https://github.com/casey))
+- Fix list numbering in handbook ([#3248](https://github.com/ordinals/ord/pull/3248) by [lugondev](https://github.com/lugondev))
+- Document `ord env` commands ([#3241](https://github.com/ordinals/ord/pull/3241) by [casey](https://github.com/casey))
+- Document `ord wallet restore` ([#3237](https://github.com/ordinals/ord/pull/3237) by [raphjaph](https://github.com/raphjaph))
+- Enable indexing runes on mainnet ([#3236](https://github.com/ordinals/ord/pull/3236) by [casey](https://github.com/casey))
+- Add libssl-dev to ubuntu install command ([#3235](https://github.com/ordinals/ord/pull/3235) by [andrewhong5297](https://github.com/andrewhong5297))
+- Test that runes can be minted with no edict ([#3231](https://github.com/ordinals/ord/pull/3231) by [casey](https://github.com/casey))
+- Rename index_envelopes to index_inscriptions ([#3233](https://github.com/ordinals/ord/pull/3233) by [casey](https://github.com/casey))
+- Check for duplicate satpoints in `satpoints` mode ([#3221](https://github.com/ordinals/ord/pull/3221) by [raphjaph](https://github.com/raphjaph))
+- Add reinscribe option to batch file ([#3220](https://github.com/ordinals/ord/pull/3220) by [raphjaph](https://github.com/raphjaph))
+- Encode claims as tag ([#3206](https://github.com/ordinals/ord/pull/3206) by [casey](https://github.com/casey))
+- Make nop and burn tags one byte ([#3207](https://github.com/ordinals/ord/pull/3207) by [casey](https://github.com/casey))
+- Make deploys noninteractive ([#3189](https://github.com/ordinals/ord/pull/3189) by [casey](https://github.com/casey))
+- Credit contributors in changelog ([#3187](https://github.com/ordinals/ord/pull/3187) by [casey](https://github.com/casey))
+- Update ordinals crate ([#3184](https://github.com/ordinals/ord/pull/3184) by [raphjaph](https://github.com/raphjaph))
+- Refactor test server to use arguments ([#3183](https://github.com/ordinals/ord/pull/3183) by [casey](https://github.com/casey))
+- Install openssl in docker image ([#3181](https://github.com/ordinals/ord/pull/3181) by [aekasitt](https://github.com/aekasitt))
 - Document `ord env` ([#3180](https://github.com/ordinals/ord/pull/3180) by [casey](https://github.com/casey))
 - Update docs to reflect wallet changes ([#3179](https://github.com/ordinals/ord/pull/3179) by [raphjaph](https://github.com/raphjaph))
-- Update inscription sat documentation ([#3114](https://github.com/ordinals/ord/pull/3114) by [zhiqiangxu](https://github.com/zhiqiangxu))
-- Exclude unnecessary docs ([#3043](https://github.com/ordinals/ord/pull/3043) by [raphjaph](https://github.com/raphjaph))
-- Add documentation for reinscriptions ([#2963](https://github.com/ordinals/ord/pull/2963) by [mj10021](https://github.com/mj10021))
-- Use --name instead of --wallet in README ([#3010](https://github.com/ordinals/ord/pull/3010) by [RobertClarke](https://github.com/RobertClarke))
-
-## Misc
-
-- Install openssl in docker image ([#3181](https://github.com/ordinals/ord/pull/3181) by [aekasitt](https://github.com/aekasitt))
 - Remove unnecessary lifetime from Formatter ([#3178](https://github.com/ordinals/ord/pull/3178) by [casey](https://github.com/casey))
 - Fix lints ([#3124](https://github.com/ordinals/ord/pull/3124) by [lugondev](https://github.com/lugondev))
+- Update inscription sat documentation ([#3114](https://github.com/ordinals/ord/pull/3114) by [zhiqiangxu](https://github.com/zhiqiangxu))
 - Move JSON structs into api module ([#3167](https://github.com/ordinals/ord/pull/3167) by [casey](https://github.com/casey))
-- Make `ord env` more user friendly ([#3153](https://github.com/ordinals/ord/pull/3153) by [casey](https://github.com/casey))
 - Make Options public ([#3138](https://github.com/ordinals/ord/pull/3138) by [mi-yu](https://github.com/mi-yu))
 - Fix spelling mistake in bip.mediawiki ([#3118](https://github.com/ordinals/ord/pull/3118) by [HarveyV](https://github.com/HarveyV))
+- Import multiple descriptors at a time ([#3091](https://github.com/ordinals/ord/pull/3091) by [raphjaph](https://github.com/raphjaph))
 - fix naming ([#3112](https://github.com/ordinals/ord/pull/3112) by [zhiqiangxu](https://github.com/zhiqiangxu))
 - Move sat and friends into ordinals crate ([#3079](https://github.com/ordinals/ord/pull/3079) by [raphjaph](https://github.com/raphjaph))
 - Remove index parameter from index_block ([#3088](https://github.com/ordinals/ord/pull/3088) by [zhiqiangxu](https://github.com/zhiqiangxu))
@@ -76,19 +84,24 @@ Changelog
 - Use min instead of clamp ([#3081](https://github.com/ordinals/ord/pull/3081) by [zhiqiangxu](https://github.com/zhiqiangxu))
 - [ordinals] Bump version: 0.0.1 → 0.0.2 ([#3078](https://github.com/ordinals/ord/pull/3078) by [casey](https://github.com/casey))
 - Move SatPoint into library ([#3077](https://github.com/ordinals/ord/pull/3077) by [casey](https://github.com/casey))
+- Use a flag to indicate a mint ([#3068](https://github.com/ordinals/ord/pull/3068) by [casey](https://github.com/casey))
+- Add dry run to send, print Outgoing and PSBT ([#3063](https://github.com/ordinals/ord/pull/3063) by [raphjaph](https://github.com/raphjaph))
 - Make invariant message more concise ([#3029](https://github.com/ordinals/ord/pull/3029) by [zhiqiangxu](https://github.com/zhiqiangxu))
+- Forbid destinations in same-sat mode ([#3038](https://github.com/ordinals/ord/pull/3038) by [zhiqiangxu](https://github.com/zhiqiangxu))
+- Exclude unnecessary docs ([#3043](https://github.com/ordinals/ord/pull/3043) by [raphjaph](https://github.com/raphjaph))
+- Add documentation for reinscriptions ([#2963](https://github.com/ordinals/ord/pull/2963) by [mj10021](https://github.com/mj10021))
 - Better wallet error messages ([#3041](https://github.com/ordinals/ord/pull/3041) by [raphjaph](https://github.com/raphjaph))
 - Remove uneccessary allocations in Inscription Script Creation ([#3039](https://github.com/ordinals/ord/pull/3039) by [JeremyRubin](https://github.com/JeremyRubin))
 - Test fee-spent inscription numbering ([#3032](https://github.com/ordinals/ord/pull/3032) by [casey](https://github.com/casey))
 - Break deploy recipes into multiple lines ([#3026](https://github.com/ordinals/ord/pull/3026) by [casey](https://github.com/casey))
 - Use untyped table API to get table info ([#2747](https://github.com/ordinals/ord/pull/2747) by [casey](https://github.com/casey))
-- Hide BVM Network inscriptions ([#3012](https://github.com/ordinals/ord/pull/3012) by [casey](https://github.com/casey))
+- Use --name instead of --wallet in README ([#3010](https://github.com/ordinals/ord/pull/3010) by [RobertClarke](https://github.com/RobertClarke))
 - Don't use browser sniffing when serving favicon ([#3003](https://github.com/ordinals/ord/pull/3003) by [casey](https://github.com/casey))
+- Add minimal Dockerfile ([#2786](https://github.com/ordinals/ord/pull/2786) by [raphjaph](https://github.com/raphjaph))
 - Cache less aggressively ([#3002](https://github.com/ordinals/ord/pull/3002) by [casey](https://github.com/casey))
 - Remove dead link from README ([#3000](https://github.com/ordinals/ord/pull/3000) by [oxSaturn](https://github.com/oxSaturn))
 - Add crate to audit content security policy ([#2993](https://github.com/ordinals/ord/pull/2993) by [casey](https://github.com/casey))
 - Optimize get_inscription_ids_by_sat_paginated ([#2996](https://github.com/ordinals/ord/pull/2996) by [casey](https://github.com/casey))
-- Suppress empty command output ([#2995](https://github.com/ordinals/ord/pull/2995) by [casey](https://github.com/casey))
 - Add recipe to deploy to all servers in fleet ([#2992](https://github.com/ordinals/ord/pull/2992) by [casey](https://github.com/casey))
 
 [0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2023-01-08
