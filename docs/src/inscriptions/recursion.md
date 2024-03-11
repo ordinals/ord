@@ -2,11 +2,21 @@ Recursion
 =========
 
 An important exception to [sandboxing](../inscriptions.md#sandboxing) is
-recursion: access to `ord`'s `/content` endpoint is permitted, allowing
-inscriptions to access the content of other inscriptions by requesting
-`/content/<INSCRIPTION_ID>`.
+recursion. Recursive endpoints are whitelisted endpoints that allow access to
+on-chain data, including the content of other inscriptions.
 
-This has a number of interesting use-cases:
+Since changes to recursive endpoints might break inscriptions that rely on
+them, recursive endpoints have backwards-compatibility guarantees not shared by
+`ord server`'s other endpoints. In particular:
+
+- Recursive endpoints will not be removed
+- Object fields returned by recursive endpoints will not be renamed or change types
+
+However, additional object fields may be added or reordered, so inscriptions
+must handle additional, unexpected fields, and must not expect fields to be
+returned in a specific order.
+
+Recursion has a number of interesting use-cases:
 
 - Remixing the content of existing inscriptions.
 
@@ -22,6 +32,7 @@ This has a number of interesting use-cases:
 
 The recursive endpoints are:
 
+- `/content/<INSCRIPTION_ID>`:  the content of the inscription with `<INSCRIPTION_ID>`
 - `/r/blockhash/<HEIGHT>`: block hash at given block height.
 - `/r/blockhash`: latest block hash.
 - `/r/blockheight`: latest block height.
