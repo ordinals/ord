@@ -668,8 +668,14 @@ OP_ENDIF
 <p>ラベル <code>3</code> を使用されたのは使用できる奇数のラベルです識別されなかった奇数ラベルは銘文にバインドできないようなことはしません。ですので古いバージョンのordは依然として子銘文を識別し、追跡できます</p>
 <p>処分された父の銘文を通して、一つの集合を閉じることができます。この集合の中のより多くの発行されない項目を保証しております。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="再帰"><a class="header" href="#再帰">再帰</a></h1>
-<p><a href="inscriptions/../inscriptions.html#sandboxing">サンドボックス化</a>の重要な例外は再帰です：<code>ord</code>の /content<code>エンドポイントへのアクセスが許可され、碑文が</code>/content/&lt;INSCRIPTION_ID&gt;`をリクエストすることで他の碑文のコンテンツにアクセスできるようになります。</p>
-<p>ここは面白い用例がとても多いです：</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
+<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<ul>
+<li>Recursive endpoints will not be removed</li>
+<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+</ul>
+<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
 <p>既存の銘文の内容を再混合します。</p>
@@ -686,6 +692,7 @@ OP_ENDIF
 </ul>
 <p>The recursive endpoints are:</p>
 <ul>
+<li><code>/content/&lt;INSCRIPTION_ID&gt;</code>:  the content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>

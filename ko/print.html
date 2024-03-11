@@ -668,8 +668,14 @@ OP_ENDIF
 <p>태그 <code>3</code>은 사용 가능한 첫 번째 홀수 태그이기 때문에 사용된다. 인식되지 않는 홀수 태그는 인스크립션을 unbound(바인딩 해제)하지 않으므로 하위 인스크립션은 이전 버전의 <code>ord</code>에서 인식 및 추적된다.</p>
 <p>컬렉션의 상위 인스크립션을 소각하여 컬렉션을 폐쇄할 수 있으며, 이 경우 컬렉션의 아이템을 더 이상 발행할 수 없게 된다.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="리커젼"><a class="header" href="#리커젼">리커젼</a></h1>
-<p><a href="inscriptions/../inscriptions.html#sandboxing">샌드박싱</a>의 중요한 예외는 리커젼(재귀)이다. <code>ord</code>의 <code>/content</code> 엔드포인트에 대한 액세스가 허용되므로 어떤 인스크립션이 <code>/content/&lt;INSCRIPTION_ID&gt;</code>를 요청하여 다른 인스크립션의 콘텐츠에 액세스할 수 있다.</p>
-<p>여기에는 여러 가지 흥미로운 사용 사례가 있다:</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
+<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<ul>
+<li>Recursive endpoints will not be removed</li>
+<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+</ul>
+<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
 <p>기존 인스크립션의 콘텐츠를 리믹스.</p>
@@ -686,6 +692,7 @@ OP_ENDIF
 </ul>
 <p>The recursive endpoints are:</p>
 <ul>
+<li><code>/content/&lt;INSCRIPTION_ID&gt;</code>:  the content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>

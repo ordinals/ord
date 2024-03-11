@@ -668,8 +668,14 @@ OP_ENDIF
 <p>टैग <code>3</code> का उपयोग इसलिए किया जाता है क्योंकि यह पहला उपलब्ध विषम टैग है। अपरिचित अजीब टैग डिजिटल अभिलेख को अनबाउंड यानि अबाध नहीं बनाते हैं, इसलिए चाइल्‍ड डिजिटल अभिलेखों को ऑर्ड के पुराने संस्करणों द्वारा पहचाना और ट्रैक किया जाएगा।</p>
 <p>संग्रह के मूल डिजिटल अभिलेखों को बर्न (कुल सप्लाई कम करने के लिए किसी टोकन की निश्चित संख्या को हटाकर डैड वॉलेट में रखा जाता है) करने के बाद संग्रह को बंद किया जा सकता है, जो गारंटी देता है कि संग्रह में कोई और आइटम जारी नहीं की जा सकती।</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="रिकरसन-परतिवरतन"><a class="header" href="#रिकरसन-परतिवरतन">रिकर्सन-प्रतिवर्तन</a></h1>
-<p><a href="inscriptions/../inscriptions.html#sandboxing">सैंडबॉक्सिंग</a> का एक महत्वपूर्ण अपवाद रिकर्सन (प्रतिवर्तन) है: <code>ord</code>'s <code>/ content</code> के अंतिम बिंदु तक पहुंच की अनुमति देता है, जिससे <code>/content/&lt;INSCRIPTION_ID&gt;</code> पर अनुरोध भेजकर अन्य इंस्‍क्रि‍प्‍शंस(डिजिटल अभिलेखों) की विषय-वस्‍तु तक संपर्क करने की अनुमति मिलती है।</p>
-<p>इसके कई दिलचस्प उपयोज्‍य-मामले हैं:</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
+<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<ul>
+<li>Recursive endpoints will not be removed</li>
+<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+</ul>
+<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
 <p>प्रचलित इंस्‍क्रि‍प्‍शंस संदेशों को रीमिक्स करना।</p>
@@ -686,6 +692,7 @@ OP_ENDIF
 </ul>
 <p>The recursive endpoints are:</p>
 <ul>
+<li><code>/content/&lt;INSCRIPTION_ID&gt;</code>:  the content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>

@@ -668,8 +668,14 @@ OP_ENDIF
 <p>标签 <code>3</code> 被使用是因为它是第一个可用的奇数标签。未识别的奇数标签不会使铭文无法进行绑定，因此，旧版本的ord仍可以识别和追踪子铭文。</p>
 <p>通过销毁集合的父铭文，可以关闭一个集合，这保证了该集合中不能再发行更多的项目。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="递归"><a class="header" href="#递归">递归</a></h1>
-<p><a href="inscriptions/../inscriptions.html#sandboxing">沙盒化</a>的一个重要例外是递归：访问“ord”的“/content”允许端点，允许铭文访问其他端点的内容通过请求 <code>/content/&lt;INSCRIPTION_ID&gt;</code> 来获取铭文。</p>
-<p>这有许多有趣的用例：</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
+<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<ul>
+<li>Recursive endpoints will not be removed</li>
+<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+</ul>
+<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
 <p>重新混合现有铭文的内容。</p>
@@ -686,6 +692,7 @@ OP_ENDIF
 </ul>
 <p>The recursive endpoints are:</p>
 <ul>
+<li><code>/content/&lt;INSCRIPTION_ID&gt;</code>:  the content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>

@@ -668,8 +668,14 @@ OP_ENDIF
 <p><code>3</code> Ginagamit ang tag dahil ito ang unang available na odd tag. Ang mga hindi kilalang odd tag ay hindi gumagawa ng isang inskripsiyon na unbound, kaya ang mga child inscription ay makikilala at masusubaybayan ng mga lumang bersyon ng ord.</p>
 <p>Maaaring i-close ang isang koleksyon sa pamamagitan ng pag-burn sa parent isncription ng koleksyon, na ginagarantiyahan na wala nang mga item sa koleksyon ang maaaring maibigay.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="recursion"><a class="header" href="#recursion">Recursion</a></h1>
-<p>Ang isang eksepsyon sa <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> ay ang recursion: pinahihintulutan ang pag-access sa endpoint ng <code>ord’s</code> <code>/content</code>, na nagdudulot sa mga inskripsiyon na ma-access ang nilalaman ng iba pang mga inskripsiyon sa pamamagitan ng paggamit ng <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
-<p>Ito ay nagdudulot ng magagandang use-cases:</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
+<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<ul>
+<li>Recursive endpoints will not be removed</li>
+<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+</ul>
+<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
 <p>Paggamit sa mga existing na inskripsyon.</p>
@@ -686,6 +692,7 @@ OP_ENDIF
 </ul>
 <p>The recursive endpoints are:</p>
 <ul>
+<li><code>/content/&lt;INSCRIPTION_ID&gt;</code>:  the content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></li>
 <li><code>/r/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
 <li><code>/r/blockhash</code>: latest block hash.</li>
 <li><code>/r/blockheight</code>: latest block height.</li>
