@@ -11,7 +11,12 @@ pub(crate) struct PreviewCodeHtml {
   pub(crate) language: media::Language,
 }
 
-#[derive(Boilerplate)]
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewSourceHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewFontHtml {
   pub(crate) inscription_id: InscriptionId,
 }

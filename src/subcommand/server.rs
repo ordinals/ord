@@ -10,7 +10,7 @@ use {
     templates::{
       BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
       InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+      PreviewAudioHtml, PreviewCodeHtml, PreviewSourceHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
       RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
     },
@@ -1374,6 +1374,18 @@ impl Server {
             PreviewCodeHtml {
               inscription_id,
               language,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Source => Ok(
+          (
+            [(
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://cdn.jsdelivr.net",
+            )],
+            PreviewSourceHtml {
+              inscription_id,
             },
           )
             .into_response(),
