@@ -107,7 +107,7 @@ fn send_inscribed_inscription() {
 }
 
 #[test]
-fn send_uninscribed_sat(){
+fn send_uninscribed_sat() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let ord_rpc_server =
