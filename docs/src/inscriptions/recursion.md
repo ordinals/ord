@@ -67,19 +67,31 @@ Examples
 
 ```json
 {
+  "average_fee": 0,
+  "average_fee_rate": 0,
   "bits": 486604799,
   "chainwork": 0,
   "confirmations": 0,
   "difficulty": 0.0,
   "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
   "height": 0,
+  "max_fee": 0,
+  "max_fee_rate": 0,
+  "max_tx_size": 0,
+  "median_fee": 0,
   "median_time": null,
   "merkle_root": "0000000000000000000000000000000000000000000000000000000000000000",
+  "min_fee": 0,
+  "min_fee_rate": 0,
   "next_block": null,
   "nonce": 0,
   "previous_block": null,
+  "subsidy": 5000000000,
   "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
   "timestamp": 0,
+  "total_fee": 0,
+  "total_size": 0,
+  "total_weight": 0,
   "transaction_count": 0,
   "version": 1
 }
