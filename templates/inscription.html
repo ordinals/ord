@@ -1,11 +1,11 @@
-<h1>Inscription {{ self.inscription_number }}</h1>
+<h1>Inscription {{ self.number }}</h1>
 <div class=inscription>
 %% if let Some(previous) = self.previous {
 <a class=prev href=/inscription/{{previous}}>❮</a>
 %% } else {
 <div>❮</div>
 %% }
-{{Iframe::main(self.inscription_id)}}
+{{Iframe::main(self.id)}}
 %% if let Some(next) = self.next {
 <a class=next href=/inscription/{{next}}>❯</a>
 %% } else {
@@ -22,12 +22,12 @@
 %% }
     </div>
     <div class=center>
-      <a href=/children/{{self.inscription_id}}>all</a>
+      <a href=/children/{{self.id}}>all</a>
     </div>
   </dd>
 %% }
   <dt>id</dt>
-  <dd class=monospace>{{ self.inscription_id }}</dd>
+  <dd class=monospace>{{ self.id }}</dd>
 %% if let Some(parent) = &self.parent {
   <dt>parent</dt>
   <dd>
@@ -57,7 +57,7 @@
   <dt>address</dt>
   <dd class=monospace>{{ address }}</dd>
 %% }
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>{{ output.value }}</dd>
 %% }
 %% if let Some(sat) = self.sat {
@@ -74,9 +74,9 @@
   <dd><a href=/inscription/{{ delegate }}>{{ delegate }}</a></dd>
 %% }
   <dt>preview</dt>
-  <dd><a href=/preview/{{self.inscription_id}}>link</a></dd>
+  <dd><a href=/preview/{{self.id}}>link</a></dd>
   <dt>content</dt>
-  <dd><a href=/content/{{self.inscription_id}}>link</a></dd>
+  <dd><a href=/content/{{self.id}}>link</a></dd>
 %% if let Some(content_length) = self.inscription.content_length() {
   <dt>content length</dt>
   <dd>{{ content_length }} bytes</dd>
@@ -92,12 +92,12 @@
 %% }
   <dt>timestamp</dt>
   <dd><time>{{ self.timestamp }}</time></dd>
-  <dt>genesis height</dt>
-  <dd><a href=/block/{{ self.genesis_height }}>{{ self.genesis_height }}</a></dd>
-  <dt>genesis fee</dt>
-  <dd>{{ self.genesis_fee }}</dd>
-  <dt>genesis transaction</dt>
-  <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
+  <dt>height</dt>
+  <dd><a href=/block/{{ self.height }}>{{ self.height }}</a></dd>
+  <dt>fee</dt>
+  <dd>{{ self.fee }}</dd>
+  <dt>reveal transaction</dt>
+  <dd><a class=monospace href=/tx/{{ self.id.txid }}>{{ self.id.txid }}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{{ self.satpoint }}</dd>
   <dt>output</dt>
@@ -105,7 +105,7 @@
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
-  <dd>{{ teleburn::Ethereum::from(self.inscription_id) }}</dd>
+  <dd>{{ teleburn::Ethereum::from(self.id) }}</dd>
 %% if let Some(rune) = self.rune {
   <dt>rune</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>

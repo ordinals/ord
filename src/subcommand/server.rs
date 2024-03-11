@@ -1455,18 +1455,6 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscription {
-          inscription_id: info.entry.id,
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(info.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
-          children: info.children,
-          inscription_number: info.entry.inscription_number,
-          genesis_height: info.entry.height,
-          parent: info.parent,
-          genesis_fee: info.entry.fee,
-          output_value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
             .as_ref()
@@ -1477,14 +1465,26 @@ impl Server {
                 .ok()
             })
             .map(|address| address.to_string()),
+          charms: Charm::ALL
+            .iter()
+            .filter(|charm| charm.is_set(info.charms))
+            .map(|charm| charm.title().into())
+            .collect(),
+          children: info.children,
+          content_length: info.inscription.content_length(),
+          content_type: info.inscription.content_type().map(|s| s.to_string()),
+          fee: info.entry.fee,
+          height: info.entry.height,
+          id: info.entry.id,
+          next: info.next,
+          number: info.entry.inscription_number,
+          parent: info.parent,
+          previous: info.previous,
+          rune: info.rune,
           sat: info.entry.sat,
           satpoint: info.satpoint,
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          content_length: info.inscription.content_length(),
           timestamp: timestamp(info.entry.timestamp).timestamp(),
-          previous: info.previous,
-          next: info.next,
-          rune: info.rune,
+          value: info.output.as_ref().map(|o| o.value),
         })
         .into_response()
       } else {
@@ -1492,11 +1492,11 @@ impl Server {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms),
           children: info.children,
-          genesis_fee: info.entry.fee,
-          genesis_height: info.entry.height,
+          fee: info.entry.fee,
+          height: info.entry.height,
           inscription: info.inscription,
-          inscription_id: info.entry.id,
-          inscription_number: info.entry.inscription_number,
+          id: info.entry.id,
+          number: info.entry.inscription_number,
           next: info.next,
           output: info.output,
           parent: info.parent,
@@ -1642,7 +1642,7 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscriptions {
-          inscriptions,
+          ids: inscriptions,
           page_index,
           more,
         })
@@ -1701,7 +1701,7 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscriptions {
-          inscriptions,
+          ids: inscriptions,
           page_index,
           more,
         })
@@ -4187,7 +4187,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
-      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
+      r".*<dt>value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -4839,7 +4839,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5050,7 +5050,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5110,7 +5110,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   .*
 </dl>
 .*
@@ -5195,7 +5195,7 @@ next
 <dl>
   <dt>id</dt>
   <dd class=monospace>{id}</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>5000000000</dd>
   .*
 </dl>

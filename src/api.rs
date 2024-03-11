@@ -67,18 +67,18 @@ pub struct Inscription {
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
-  pub genesis_fee: u64,
-  pub genesis_height: u32,
-  pub inscription_id: InscriptionId,
-  pub inscription_number: i32,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
   pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
+  pub number: i32,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+  pub value: Option<u64>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -98,7 +98,7 @@ pub struct InscriptionRecursive {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inscriptions {
-  pub inscriptions: Vec<InscriptionId>,
+  pub ids: Vec<InscriptionId>,
   pub more: bool,
   pub page_index: u32,
 }
