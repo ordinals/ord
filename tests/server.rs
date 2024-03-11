@@ -61,7 +61,7 @@ fn inscription_page() {
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
   <dd><a href=/preview/{inscription}>link</a></dd>
