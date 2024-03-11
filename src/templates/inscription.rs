@@ -4,8 +4,8 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) children: Vec<InscriptionId>,
-  pub(crate) inscription_fee: u64,
-  pub(crate) inscription_height: u32,
+  pub(crate) fee: u64,
+  pub(crate) height: u32,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription_number: i32,
@@ -38,7 +38,7 @@ mod tests {
   fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -65,9 +65,9 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>inscription height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>inscription fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
@@ -89,7 +89,7 @@ mod tests {
   fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -121,7 +121,7 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -150,7 +150,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: Vec::new(),
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
@@ -177,7 +177,7 @@ mod tests {
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         inscription_number: -1,
@@ -210,7 +210,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         parent: Some(inscription_id(2)),
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -243,9 +243,9 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>inscription height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>inscription fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
@@ -268,7 +268,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2), inscription_id(3)],
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -305,9 +305,9 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>inscription height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>inscription fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
@@ -330,7 +330,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2)],
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -366,9 +366,9 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>inscription height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>inscription fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
@@ -390,7 +390,7 @@ mod tests {
   fn with_rune() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         inscription_number: 1,
@@ -418,7 +418,7 @@ mod tests {
   fn with_content_encoding() {
     assert_regex_match!(
       InscriptionHtml {
-        inscription_fee: 1,
+        fee: 1,
         inscription: Inscription {
           content_encoding: Some("br".into()),
           ..inscription("text/plain;charset=utf-8", "HELLOWORLD")

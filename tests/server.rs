@@ -73,9 +73,9 @@ fn inscription_page() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>inscription height</dt>
+  <dt>height</dt>
   <dd><a href=/block/2>2</a></dd>
-  <dt>inscription fee</dt>
+  <dt>fee</dt>
   <dd>138</dd>
   <dt>reveal transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
