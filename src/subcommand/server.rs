@@ -79,15 +79,6 @@ impl Display for StaticHtml {
   }
 }
 
-fn chainwork(chainwork: &[u8]) -> u128 {
-  chainwork
-    .iter()
-    .rev()
-    .enumerate()
-    .map(|(i, byte)| u128::from(*byte) * 256u128.pow(i.try_into().unwrap()))
-    .sum()
-}
-
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
@@ -1130,30 +1121,46 @@ impl Server {
           .ok_or_not_found(|| format!("block {height}"))?,
       };
 
-      let info = index
-        .block_header_info(hash)?
-        .ok_or_not_found(|| format!("block {hash}"))?;
-
       let header = index
         .block_header(hash)?
         .ok_or_not_found(|| format!("block {hash}"))?;
 
+      let info = index
+        .block_header_info(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      let stats = index
+        .block_stats(info.height.try_into().unwrap())?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
       Ok(Json(api::BlockInfo {
+        average_fee: stats.avg_fee.to_sat(),
+        average_fee_rate: stats.avg_fee_rate.to_sat(),
         bits: header.bits.to_consensus(),
-        chainwork: chainwork(&info.chainwork),
+        chainwork: info.chainwork.try_into().unwrap(),
         confirmations: info.confirmations,
         difficulty: info.difficulty,
         hash,
         height: info.height.try_into().unwrap(),
+        max_fee: stats.max_fee.to_sat(),
+        max_fee_rate: stats.max_fee_rate.to_sat(),
+        max_tx_size: stats.max_tx_size,
+        median_fee: stats.median_fee.to_sat(),
         median_time: info
           .median_time
           .map(|median_time| median_time.try_into().unwrap()),
         merkle_root: info.merkle_root,
+        min_fee: stats.min_fee.to_sat(),
+        min_fee_rate: stats.min_fee_rate.to_sat(),
         next_block: info.next_block_hash,
         nonce: info.nonce,
         previous_block: info.previous_block_hash,
+        subsidy: stats.subsidy.to_sat(),
         target: target_as_block_hash(header.target()),
         timestamp: info.time.try_into().unwrap(),
+        total_fee: stats.total_fee.to_sat(),
+        total_size: stats.total_size,
+        total_weight: stats.total_weight,
         transaction_count: info.n_tx.try_into().unwrap(),
         #[allow(clippy::cast_sign_loss)]
         version: info.version.to_consensus() as u32,
@@ -1988,6 +1995,7 @@ mod tests {
       Builder::default().build()
     }
 
+    #[track_caller]
     fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
@@ -1995,6 +2003,7 @@ mod tests {
       reqwest::blocking::get(self.join_url(path.as_ref())).unwrap()
     }
 
+    #[track_caller]
     pub(crate) fn get_json<T: DeserializeOwned>(&self, path: impl AsRef<str>) -> T {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
@@ -5550,40 +5559,41 @@ next
   }
 
   #[test]
-  fn chainwork_conversion_to_integer() {
-    assert_eq!(chainwork(&[]), 0);
-    assert_eq!(chainwork(&[1]), 1);
-    assert_eq!(chainwork(&[1, 0]), 256);
-    assert_eq!(chainwork(&[1, 1]), 257);
-    assert_eq!(chainwork(&[1, 0, 0]), 65536);
-    assert_eq!(chainwork(&[1, 0, 1]), 65537);
-    assert_eq!(chainwork(&[1, 1, 1]), 65793);
-  }
-
-  #[test]
   fn block_info() {
     let server = TestServer::new();
 
     pretty_assert_eq!(
       server.get_json::<api::BlockInfo>("/r/blockinfo/0"),
       api::BlockInfo {
+        average_fee: 0,
+        average_fee_rate: 0,
         bits: 486604799,
-        chainwork: 0,
+        chainwork: [0; 32],
         confirmations: 0,
         difficulty: 0.0,
         hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
           .parse()
           .unwrap(),
         height: 0,
+        max_fee: 0,
+        max_fee_rate: 0,
+        max_tx_size: 0,
+        median_fee: 0,
         median_time: None,
         merkle_root: TxMerkleNode::all_zeros(),
+        min_fee: 0,
+        min_fee_rate: 0,
         next_block: None,
         nonce: 0,
         previous_block: None,
+        subsidy: 0,
         target: "00000000ffff0000000000000000000000000000000000000000000000000000"
           .parse()
           .unwrap(),
         timestamp: 0,
+        total_fee: 0,
+        total_size: 0,
+        total_weight: 0,
         transaction_count: 0,
         version: 1,
       },
@@ -5594,21 +5604,33 @@ next
     pretty_assert_eq!(
       server.get_json::<api::BlockInfo>("/r/blockinfo/1"),
       api::BlockInfo {
+        average_fee: 0,
+        average_fee_rate: 0,
         bits: 0,
-        chainwork: 0,
+        chainwork: [0; 32],
         confirmations: 0,
         difficulty: 0.0,
         hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
           .parse()
           .unwrap(),
         height: 1,
+        max_fee: 0,
+        max_fee_rate: 0,
+        max_tx_size: 0,
+        median_fee: 0,
         median_time: None,
         merkle_root: TxMerkleNode::all_zeros(),
+        min_fee: 0,
+        min_fee_rate: 0,
         next_block: None,
         nonce: 0,
         previous_block: None,
+        subsidy: 0,
         target: BlockHash::all_zeros(),
         timestamp: 0,
+        total_fee: 0,
+        total_size: 0,
+        total_weight: 0,
         transaction_count: 0,
         version: 1,
       },
