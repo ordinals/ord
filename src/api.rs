@@ -72,7 +72,7 @@ pub struct Inscription {
   pub id: InscriptionId,
   pub number: i32,
   pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
+  pub value: Option<u64>,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,

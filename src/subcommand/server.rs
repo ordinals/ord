@@ -1466,7 +1466,7 @@ impl Server {
           height: info.entry.height,
           parent: info.parent,
           fee: info.entry.fee,
-          output_value: info.output.as_ref().map(|o| o.value),
+          value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
             .as_ref()

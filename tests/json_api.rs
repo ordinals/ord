@@ -162,7 +162,7 @@ fn get_inscription() {
       id: inscription_id,
       number: 0,
       next: None,
-      output_value: Some(10000),
+      value: Some(10000),
       parent: None,
       previous: None,
       rune: None,
