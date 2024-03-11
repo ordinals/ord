@@ -73,11 +73,11 @@ fn inscription_page() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>genesis height</dt>
+  <dt>inscription height</dt>
   <dd><a href=/block/2>2</a></dd>
-  <dt>genesis fee</dt>
+  <dt>inscription fee</dt>
   <dd>138</dd>
-  <dt>genesis transaction</dt>
+  <dt>reveal transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{reveal}:0:0</dd>

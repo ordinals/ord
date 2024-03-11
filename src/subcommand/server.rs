@@ -1463,9 +1463,9 @@ impl Server {
             .collect(),
           children: info.children,
           inscription_number: info.entry.inscription_number,
-          genesis_height: info.entry.height,
+          inscription_height: info.entry.height,
           parent: info.parent,
-          genesis_fee: info.entry.fee,
+          inscription_fee: info.entry.fee,
           output_value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
@@ -1492,8 +1492,8 @@ impl Server {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms),
           children: info.children,
-          genesis_fee: info.entry.fee,
-          genesis_height: info.entry.height,
+          inscription_fee: info.entry.fee,
+          inscription_height: info.entry.height,
           inscription: info.inscription,
           inscription_id: info.entry.id,
           inscription_number: info.entry.inscription_number,

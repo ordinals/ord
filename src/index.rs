@@ -3832,7 +3832,7 @@ mod tests {
   }
 
   #[test]
-  fn genesis_fee_distributed_evenly() {
+  fn inscription_fee_distributed_evenly() {
     for context in Context::configurations() {
       context.rpc_server.mine_blocks(1);
 
