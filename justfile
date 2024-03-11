@@ -17,6 +17,13 @@ fmt:
 clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
+git-hooks:
+	mkdir -p .git/hooks
+
+git-pre-commit: git-hooks
+	cp bin/pre-commit .git/hooks/
+	chmod +x .git/hooks/pre-commit
+
 deploy branch remote chain domain:
   ssh root@{{domain}} '\
     export DEBIAN_FRONTEND=noninteractive \
