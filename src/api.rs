@@ -86,15 +86,15 @@ pub struct Inscription {
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
-  pub number: i32,
   pub next: Option<InscriptionId>,
-  pub value: Option<u64>,
+  pub number: i32,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+  pub value: Option<u64>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

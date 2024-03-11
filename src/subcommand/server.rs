@@ -1462,18 +1462,6 @@ impl Server {
 
       Ok(if accept_json {
         Json(api::Inscription {
-          id: info.entry.id,
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(info.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
-          children: info.children,
-          number: info.entry.inscription_number,
-          height: info.entry.height,
-          parent: info.parent,
-          fee: info.entry.fee,
-          value: info.output.as_ref().map(|o| o.value),
           address: info
             .output
             .as_ref()
@@ -1484,14 +1472,26 @@ impl Server {
                 .ok()
             })
             .map(|address| address.to_string()),
+          charms: Charm::ALL
+            .iter()
+            .filter(|charm| charm.is_set(info.charms))
+            .map(|charm| charm.title().into())
+            .collect(),
+          children: info.children,
+          content_length: info.inscription.content_length(),
+          content_type: info.inscription.content_type().map(|s| s.to_string()),
+          fee: info.entry.fee,
+          height: info.entry.height,
+          id: info.entry.id,
+          next: info.next,
+          number: info.entry.inscription_number,
+          parent: info.parent,
+          previous: info.previous,
+          rune: info.rune,
           sat: info.entry.sat,
           satpoint: info.satpoint,
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          content_length: info.inscription.content_length(),
           timestamp: timestamp(info.entry.timestamp).timestamp(),
-          previous: info.previous,
-          next: info.next,
-          rune: info.rune,
+          value: info.output.as_ref().map(|o| o.value),
         })
         .into_response()
       } else {
