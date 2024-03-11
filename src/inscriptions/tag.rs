@@ -13,6 +13,8 @@ pub(crate) enum Tag {
   ContentEncoding,
   Delegate,
   #[allow(unused)]
+  Note,
+  #[allow(unused)]
   Nop,
 }
 
@@ -32,6 +34,7 @@ impl Tag {
       Self::Metaprotocol => &[7],
       Self::ContentEncoding => &[9],
       Self::Delegate => &[11],
+      Self::Note => &[15],
       Self::Nop => &[255],
     }
   }
