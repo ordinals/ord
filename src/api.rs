@@ -1,6 +1,9 @@
-use super::{
-  target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-  Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
+use {
+  super::{
+    target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
+    Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
+  },
+  serde_hex::{SerHex, Strict},
 };
 
 pub use crate::templates::{
@@ -36,19 +39,32 @@ impl Block {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
+  pub average_fee: u64,
+  pub average_fee_rate: u64,
   pub bits: u32,
-  pub chainwork: u128,
+  #[serde(with = "SerHex::<Strict>")]
+  pub chainwork: [u8; 32],
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
   pub height: u32,
+  pub max_fee: u64,
+  pub max_fee_rate: u64,
+  pub max_tx_size: u32,
+  pub median_fee: u64,
   pub median_time: Option<u64>,
   pub merkle_root: TxMerkleNode,
+  pub min_fee: u64,
+  pub min_fee_rate: u64,
   pub next_block: Option<BlockHash>,
   pub nonce: u32,
   pub previous_block: Option<BlockHash>,
+  pub subsidy: u64,
   pub target: BlockHash,
   pub timestamp: u64,
+  pub total_fee: u64,
+  pub total_size: usize,
+  pub total_weight: usize,
   pub transaction_count: u64,
   pub version: u32,
 }
@@ -88,6 +104,7 @@ pub struct InscriptionRecursive {
   pub content_length: Option<usize>,
   pub fee: u64,
   pub height: u32,
+  pub id: InscriptionId,
   pub number: i32,
   pub output: OutPoint,
   pub sat: Option<ordinals::Sat>,

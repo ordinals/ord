@@ -316,6 +316,7 @@ fn recursive_inscription_endpoint() {
       content_length: Some(3),
       fee: 138,
       height: 2,
+      id: inscription.id,
       number: 0,
       output: inscription.location.outpoint,
       sat: Some(Sat(50 * COIN_VALUE)),
