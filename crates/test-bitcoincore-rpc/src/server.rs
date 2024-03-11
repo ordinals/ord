@@ -119,7 +119,10 @@ impl Api for Server {
       Ok(
         serde_json::to_value(GetBlockHeaderResult {
           bits: String::new(),
-          chainwork: Vec::new(),
+          chainwork: hex::decode(
+            "0000000000000000000000000000000000000000000000000000000100010001",
+          )
+          .unwrap(),
           confirmations: 0,
           difficulty: 0.0,
           hash: block_hash,
