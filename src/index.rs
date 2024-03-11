@@ -1559,10 +1559,11 @@ impl Index {
     Ok(Blocktime::Expected(
       Utc::now()
         .round_subsecs(0)
-        .checked_add_signed(chrono::Duration::seconds(
-          10 * 60 * i64::from(expected_blocks),
-        ))
-        .ok_or_else(|| anyhow!("block timestamp out of range"))?,
+        .checked_add_signed(
+          chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
+            .context("timestamp out of range")?,
+        )
+        .context("timestamp out of range")?,
     ))
   }
 
