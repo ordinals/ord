@@ -1130,15 +1130,20 @@ impl Server {
           .ok_or_not_found(|| format!("block {height}"))?,
       };
 
-      let info = index
-        .block_header_info(hash)?
-        .ok_or_not_found(|| format!("block {hash}"))?;
-
       let header = index
         .block_header(hash)?
         .ok_or_not_found(|| format!("block {hash}"))?;
 
+      let info = index
+        .block_header_info(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
+      let stats = index
+        .block_stats(info.height.try_into().unwrap())?
+        .ok_or_not_found(|| format!("block {hash}"))?;
+
       Ok(Json(api::BlockInfo {
+        avg_fee_rate: stats.avg_fee_rate.to_sat(),
         bits: header.bits.to_consensus(),
         chainwork: chainwork(&info.chainwork),
         confirmations: info.confirmations,
@@ -1988,6 +1993,7 @@ mod tests {
       Builder::default().build()
     }
 
+    #[track_caller]
     fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
@@ -1995,6 +2001,7 @@ mod tests {
       reqwest::blocking::get(self.join_url(path.as_ref())).unwrap()
     }
 
+    #[track_caller]
     pub(crate) fn get_json<T: DeserializeOwned>(&self, path: impl AsRef<str>) -> T {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
@@ -5567,6 +5574,7 @@ next
     pretty_assert_eq!(
       server.get_json::<api::BlockInfo>("/r/blockinfo/0"),
       api::BlockInfo {
+        avg_fee_rate: 0,
         bits: 486604799,
         chainwork: 0,
         confirmations: 0,
@@ -5594,6 +5602,7 @@ next
     pretty_assert_eq!(
       server.get_json::<api::BlockInfo>("/r/blockinfo/1"),
       api::BlockInfo {
+        avg_fee_rate: 0,
         bits: 0,
         chainwork: 0,
         confirmations: 0,

@@ -36,6 +36,7 @@ impl Block {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
+  pub avg_fee_rate: u64,
   pub bits: u32,
   pub chainwork: u128,
   pub confirmations: i32,
