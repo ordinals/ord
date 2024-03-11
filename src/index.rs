@@ -15,7 +15,10 @@ use {
     templates::StatusHtml,
   },
   bitcoin::block::Header,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
+  bitcoincore_rpc::{
+    json::{GetBlockHeaderResult, GetBlockStatsResult},
+    Client,
+  },
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -990,6 +993,10 @@ impl Index {
 
   pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
     self.client.get_block_header_info(&hash).into_option()
+  }
+
+  pub(crate) fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
+    self.client.get_block_stats(height).into_option()
   }
 
   pub(crate) fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
