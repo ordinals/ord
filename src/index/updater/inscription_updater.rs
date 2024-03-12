@@ -502,6 +502,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .get(&parent_id.store())?
             .unwrap()
             .value();
+
           self
             .sequence_number_to_children
             .insert(parent_sequence_number, sequence_number)?;

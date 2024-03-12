@@ -53,7 +53,6 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let delegate = Tag::Delegate.remove_field(&mut fields);
     let metadata = Tag::Metadata.remove_field(&mut fields);
     let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
-    // let parent = Tag::Parent.remove_field(&mut fields);
     let parents = Tag::Parent.remove_array_field(&mut fields);
     let pointer = Tag::Pointer.remove_field(&mut fields);
 
