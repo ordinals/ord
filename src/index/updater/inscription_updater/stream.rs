@@ -155,6 +155,7 @@ pub struct StreamEvent {
   metadata: Option<Value>,
   metaprotocol: Option<String>,
   pointer: Option<u64>,
+  delegate: Option<String>,
 
   // plugins
   brc20: Option<BRC20>,
@@ -216,6 +217,7 @@ impl StreamEvent {
       metadata: None,
       metaprotocol: None,
       pointer: None,
+      delegate: None,
       brc20: None,
       domain: None,
       old_location: None,
@@ -294,6 +296,7 @@ impl StreamEvent {
       }
       None => None,
     };
+    self.delegate = inscription.delegate().map(|d| d.to_string());
     self
   }
 
