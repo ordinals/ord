@@ -225,14 +225,17 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
-          <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
           <dt>parents</dt>
           <dd>
             <div class=thumbnails>
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
+            <div class=center>
+              <a href=/parents/1{64}i1>all</a>
+            </div>
           </dd>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -258,7 +261,7 @@ mod tests {
           <dt>ethereum teleburn address</dt>
           <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
-      "
+"
       .unindent()
     );
   }

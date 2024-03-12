@@ -13,6 +13,19 @@
 %% }
 </div>
 <dl>
+%% if !&self.parents.is_empty() {
+  <dt>parents</dt>
+  <dd>
+    <div class=thumbnails>
+%% for parent in &self.parents {
+      {{Iframe::thumbnail(*parent)}}
+%% }
+    </div>
+    <div class=center>
+      <a href=/parents/{{self.id}}>all</a>
+    </div>
+  </dd>
+%% }
 %% if !self.children.is_empty() {
   <dt>children</dt>
   <dd>
@@ -28,19 +41,6 @@
 %% }
   <dt>id</dt>
   <dd class=monospace>{{ self.id }}</dd>
-%% if !&self.parents.is_empty() {
-  <dt>parents</dt>
-  <dd>
-    <div class=thumbnails>
-%% for parent in &self.parents {
-      {{Iframe::thumbnail(*parent)}}
-%% }
-    </div>
-    <div class=center>
-      <a href=/parents/{{self.inscription_id}}>all</a>
-    </div>
-  </dd>
-%% }
 %% if self.charms != 0 {
   <dt>charms</dt>
   <dd>
