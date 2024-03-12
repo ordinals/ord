@@ -1,5 +1,5 @@
 use ord::index::entry::RuneInfo;
-use ord::templates::runes::RunesPaginatedHtml;
+use ord::templates::RunesHtml;
 use {super::*, bitcoin::BlockHash};
 
 #[test]
@@ -514,7 +514,7 @@ fn get_status() {
 }
 
 #[test]
-fn get_all_runes() {
+fn get_runes() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -561,7 +561,7 @@ fn get_all_runes() {
     }
   );
 
-  let response = ord_rpc_server.json_request("/runes/all");
+  let response = ord_rpc_server.json_request("/runes");
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -570,51 +570,13 @@ fn get_all_runes() {
   pretty_assert_eq!(
     runes_json,
     api::Runes {
-      entries: vec![
-        (
-          RuneId {
-            height: 5,
-            index: 1
-          },
-          RuneEntry {
-            burned: 0,
-            mint: None,
-            divisibility: 0,
-            etching: a.transaction,
-            mints: 0,
-            number: 0,
-            rune: Rune(RUNE),
-            spacers: 0,
-            supply: 1000,
-            symbol: Some('¢'),
-            timestamp: 5,
-          }
-        ),
-        (
-          RuneId {
-            height: 7,
-            index: 1
-          },
-          RuneEntry {
-            burned: 0,
-            mint: None,
-            divisibility: 0,
-            etching: b.transaction,
-            mints: 0,
-            number: 1,
-            rune: Rune(RUNE + 1),
-            spacers: 0,
-            supply: 1000,
-            symbol: Some('¢'),
-            timestamp: 7,
-          }
-        ),
-        (
-          RuneId {
+      runes: vec![
+        RuneInfo {
+          id: RuneId {
             height: 9,
             index: 1
           },
-          RuneEntry {
+          entry: RuneEntry {
             burned: 0,
             mint: None,
             divisibility: 0,
@@ -627,8 +589,49 @@ fn get_all_runes() {
             symbol: Some('¢'),
             timestamp: 9,
           }
-        )
-      ]
+        },
+        RuneInfo {
+          id: RuneId {
+            height: 7,
+            index: 1
+          },
+          entry: RuneEntry {
+            burned: 0,
+            mint: None,
+            divisibility: 0,
+            etching: b.transaction,
+            mints: 0,
+            number: 1,
+            rune: Rune(RUNE + 1),
+            spacers: 0,
+            supply: 1000,
+            symbol: Some('¢'),
+            timestamp: 7,
+          }
+        },
+        RuneInfo {
+          id: RuneId {
+            height: 5,
+            index: 1
+          },
+          entry: RuneEntry {
+            burned: 0,
+            mint: None,
+            divisibility: 0,
+            etching: a.transaction,
+            mints: 0,
+            number: 0,
+            rune: Rune(RUNE),
+            spacers: 0,
+            supply: 1000,
+            symbol: Some('¢'),
+            timestamp: 5,
+          }
+        },
+      ],
+      more: false,
+      next: None,
+      prev: None,
     }
   );
 }
@@ -725,7 +728,7 @@ fn get_runes_paginated() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let runes_paginated: RunesPaginatedHtml = RunesPaginatedHtml {
+  let runes_paginated: RunesHtml = RunesHtml {
     runes: vec![
       RuneInfo {
         id: RuneId {
@@ -774,7 +777,7 @@ fn get_runes_paginated() {
   let response = ord_rpc_server.json_request("/runes/0");
   assert_eq!(response.status(), StatusCode::OK);
 
-  let runes_json: RunesPaginatedHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let runes_json: RunesHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(runes_paginated, runes_json);
 }

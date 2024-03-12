@@ -12,6 +12,7 @@ use {
   },
   super::*,
   crate::{
+    index::entry::RuneInfo,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
@@ -35,7 +36,6 @@ use {
   },
 };
 
-use crate::index::entry::RuneInfo;
 pub use {self::entry::RuneEntry, entry::MintEntry};
 
 pub mod entry;

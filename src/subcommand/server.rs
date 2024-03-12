@@ -12,8 +12,7 @@ use {
       InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
       PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
       PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, RunesPaginatedHtml, SatHtml,
-      TransactionHtml,
+      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
     },
   },
   axum::{
@@ -247,7 +246,6 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
-        .route("/runes/all", get(Self::runes_all))
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
@@ -664,27 +662,6 @@ impl Server {
     })
   }
 
-  async fn runes_all(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    AcceptJson(accept_json): AcceptJson,
-  ) -> ServerResult<Response> {
-    task::block_in_place(|| {
-      Ok(if accept_json {
-        Json(api::Runes {
-          entries: index.runes()?,
-        })
-        .into_response()
-      } else {
-        RunesHtml {
-          entries: index.runes()?,
-        }
-        .page(server_config)
-        .into_response()
-      })
-    })
-  }
-
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -713,7 +690,7 @@ impl Server {
       let next = more.then_some(page_index + 1);
 
       Ok(if accept_json {
-        Json(RunesPaginatedHtml {
+        Json(RunesHtml {
           runes,
           more,
           prev,
@@ -721,7 +698,7 @@ impl Server {
         })
         .into_response()
       } else {
-        RunesPaginatedHtml {
+        RunesHtml {
           runes,
           more,
           prev,
@@ -2530,7 +2507,7 @@ mod tests {
     server.assert_response_regex(
       "/runes",
       StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n  </ul>\n<div class=center>\n    prev\n      next\n  </div>.*",
     );
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2585,8 +2562,8 @@ mod tests {
       ".*<title>Runes</title>.*
 <h1>Runes</h1>
 <ul>
-  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
-</ul>.*",
+    <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
+  </ul>.*",
     );
   }
 
@@ -2777,7 +2754,7 @@ mod tests {
     );
 
     server.assert_response_regex(
-      "/runes/all",
+      "/runes",
       StatusCode::OK,
       ".*<li><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></li>.*",
     );
@@ -2811,9 +2788,9 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/runes/all",
+      "/runes",
       StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n  </ul>\n<div class=center>\n    prev\n      next\n  </div>.*",
     );
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {

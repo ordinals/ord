@@ -1,26 +1,11 @@
-use super::*;
-use {
-  super::*,
-  crate::index::entry::RuneInfo,
-};
+use {super::*, crate::index::entry::RuneInfo};
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesHtml {
-  pub entries: Vec<(RuneId, RuneEntry)>,
-}
-
-#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
-pub struct RunesPaginatedHtml {
   pub runes: Vec<RuneInfo>,
   pub more: bool,
   pub prev: Option<u64>,
   pub next: Option<u64>,
-}
-
-impl PageContent for RunesPaginatedHtml {
-  fn title(&self) -> String {
-    "Runes".to_string()
-  }
 }
 
 impl PageContent for RunesHtml {
@@ -37,23 +22,30 @@ mod tests {
   fn display() {
     assert_eq!(
       RunesHtml {
-        entries: vec![(
-          RuneId {
+        runes: vec![RuneInfo {
+          id: RuneId {
             height: 0,
             index: 0,
           },
-          RuneEntry {
+          entry: RuneEntry {
             rune: Rune(26),
             spacers: 1,
             ..Default::default()
           }
-        )],
+        }],
+        more: false,
+        prev: None,
+        next: None,
       }
       .to_string(),
       "<h1>Runes</h1>
 <ul>
-  <li><a href=/rune/A•A>A•A</a></li>
-</ul>
+    <li><a href=/rune/A•A>A•A</a></li>
+  </ul>
+<div class=center>
+    prev
+      next
+  </div>
 "
     );
   }
@@ -61,7 +53,7 @@ mod tests {
   #[test]
   fn with_prev_and_next() {
     assert_eq!(
-      RunesPaginatedHtml {
+      RunesHtml {
         runes: vec![
           RuneInfo {
             id: RuneId {
@@ -91,13 +83,13 @@ mod tests {
       .to_string(),
       "<h1>Runes</h1>
 <ul>
-  <li><a href=/rune/A>A</a></li>
-  <li><a href=/rune/C>C</a></li>
-</ul>
+    <li><a href=/rune/A>A</a></li>
+    <li><a href=/rune/C>C</a></li>
+  </ul>
 <div class=center>
-<a class=prev href=/runes/1>prev</a>
-<a class=next href=/runes/2>next</a>
-</div>
+    <a class=prev href=/runes/1>prev</a>
+      <a class=next href=/runes/2>next</a>
+  </div>
 "
     );
   }
