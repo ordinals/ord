@@ -6128,7 +6128,7 @@ mod tests {
         sequence_number: 0,
         block_height: 2,
         charms: expected_charms,
-        parent_inscription_ids: vec![]
+        parent_inscription_ids: Vec::new(),
       }
     );
 

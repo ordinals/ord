@@ -495,7 +495,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let mut parent_sequence_numbers = Vec::with_capacity(parents.len());
+        let mut parent_sequence_numbers = Vec::new();
         for parent_id in &parents {
           let parent_sequence_number = self
             .id_to_sequence_number
