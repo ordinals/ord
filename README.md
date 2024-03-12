@@ -255,6 +255,7 @@ Release x.y.z
 
 - Bump version: x.y.z → x.y.z
 - Update changelog
+- Update changelog contributor credits
 - Update dependencies
 ```
 

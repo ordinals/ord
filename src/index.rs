@@ -15,7 +15,10 @@ use {
     templates::StatusHtml,
   },
   bitcoin::block::Header,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
+  bitcoincore_rpc::{
+    json::{GetBlockHeaderResult, GetBlockStatsResult},
+    Client,
+  },
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -992,6 +995,10 @@ impl Index {
     self.client.get_block_header_info(&hash).into_option()
   }
 
+  pub(crate) fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
+    self.client.get_block_stats(height).into_option()
+  }
+
   pub(crate) fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
     Ok(
       self
@@ -1571,10 +1578,11 @@ impl Index {
     Ok(Blocktime::Expected(
       Utc::now()
         .round_subsecs(0)
-        .checked_add_signed(chrono::Duration::seconds(
-          10 * 60 * i64::from(expected_blocks),
-        ))
-        .ok_or_else(|| anyhow!("block timestamp out of range"))?,
+        .checked_add_signed(
+          chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
+            .context("timestamp out of range")?,
+        )
+        .context("timestamp out of range")?,
     ))
   }
 
@@ -3851,7 +3859,7 @@ mod tests {
   }
 
   #[test]
-  fn genesis_fee_distributed_evenly() {
+  fn inscription_fee_distributed_evenly() {
     for context in Context::configurations() {
       context.rpc_server.mine_blocks(1);
 
