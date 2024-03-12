@@ -901,7 +901,8 @@ impl Index {
 
     let last = number_to_rune_info
       .iter()?
-      .next_back()
+      .rev()
+      .next()
       .map(|result| result.map(|(number, _info)| number.value()))
       .transpose()?
       .unwrap_or_default();
