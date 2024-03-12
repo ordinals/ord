@@ -1,5 +1,8 @@
 use super::*;
-use crate::index::entry::RuneInfo;
+use {
+  super::*,
+  crate::index::entry::RuneInfo,
+};
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesHtml {
