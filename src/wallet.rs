@@ -109,10 +109,21 @@ impl Wallet {
         if !no_sync {
           for i in 0.. {
             let response = async_ord_client.get("/blockcount").await?;
-            if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
-              break;
-            } else if i == 20 {
-              bail!("wallet failed to synchronize with ord server");
+
+            if let Ok(parsed_value) = response.text().await?.parse::<u64>() {
+              if parsed_value >= chain_block_count {
+                break;
+              }
+            } else {
+              eprintln!(
+                "wallet failed to request with the `ord server` after {} times",
+                i
+              );
+              if i == 20 {
+                bail!(
+                  "wallet failed to request with the `ord server`, make sure `ord server` is started !!!"
+                );
+              }
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
           }
