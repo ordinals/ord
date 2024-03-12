@@ -1151,16 +1151,33 @@ impl Index {
 
   pub(crate) fn get_parents_by_sequence_number_paginated(
     &self,
-    _sequence_number: u32,
-    _page_size: usize,
-    _page_index: usize,
+    parent_sequence_numbers: Vec<u32>,
+    page_size: usize,
+    page_index: usize,
   ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
-    let _sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    // TODO
-    Ok((Vec::new(), false))
+    let mut parents = parent_sequence_numbers
+      .iter()
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
+      .map(|sequence_number| {
+        sequence_number_to_entry
+          .get(sequence_number)
+          .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more_parents = parents.len() > 100;
+
+    if more_parents {
+      parents.pop();
+    }
+
+    Ok((parents, more_parents))
   }
 
   pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
