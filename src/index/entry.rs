@@ -211,7 +211,7 @@ pub(crate) type InscriptionEntryValue = (
   u32,                // height
   InscriptionIdValue, // inscription id
   i32,                // inscription number
-  Vec<u32>,           // parent
+  Vec<u32>,           // parents
   Option<u64>,        // sat
   u32,                // sequence number
   u32,                // timestamp
