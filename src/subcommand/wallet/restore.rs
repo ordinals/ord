@@ -2,24 +2,53 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Restore {
-  #[arg(help = "Restore wallet from <MNEMONIC>")]
-  mnemonic: Mnemonic,
-  #[arg(
-    long,
-    default_value = "",
-    help = "Use <PASSPHRASE> when deriving wallet"
-  )]
-  pub(crate) passphrase: String,
+  #[clap(value_enum, long, help = "Restore wallet from <SOURCE> on stdin.")]
+  from: Source,
+  #[arg(long, help = "Use <PASSPHRASE> when deriving wallet")]
+  pub(crate) passphrase: Option<String>,
+}
+
+#[derive(clap::ValueEnum, Debug, Clone)]
+enum Source {
+  Descriptor,
+  Mnemonic,
 }
 
 impl Restore {
-  pub(crate) fn run(self, wallet_name: String, options: Options) -> SubcommandResult {
-    wallet::initialize(
-      wallet_name,
-      &options,
-      self.mnemonic.to_seed(self.passphrase),
-    )?;
+  pub(crate) fn run(self, name: String, settings: &Settings) -> SubcommandResult {
+    ensure!(
+      !settings
+        .bitcoin_rpc_client(None)?
+        .list_wallet_dir()?
+        .iter()
+        .any(|wallet_name| wallet_name == &name),
+      "wallet `{}` already exists",
+      name
+    );
 
-    Ok(Box::new(Empty {}))
+    let mut buffer = String::new();
+
+    match self.from {
+      Source::Descriptor => {
+        io::stdin().read_to_string(&mut buffer)?;
+        ensure!(
+          self.passphrase.is_none(),
+          "descriptor does not take a passphrase"
+        );
+        let wallet_descriptors: ListDescriptorsResult = serde_json::from_str(&buffer)?;
+        Wallet::initialize_from_descriptors(name, settings, wallet_descriptors.descriptors)?;
+      }
+      Source::Mnemonic => {
+        io::stdin().read_line(&mut buffer)?;
+        let mnemonic = Mnemonic::from_str(&buffer)?;
+        Wallet::initialize(
+          name,
+          settings,
+          mnemonic.to_seed(self.passphrase.unwrap_or_default()),
+        )?;
+      }
+    }
+
+    Ok(None)
   }
 }

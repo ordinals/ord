@@ -30,11 +30,14 @@ impl ToArgs for Vec<String> {
 
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
+  bitcoin_rpc_server_cookie_file: Option<PathBuf>,
+  bitcoin_rpc_server_url: Option<String>,
+  env: BTreeMap<String, OsString>,
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
-  rpc_server_cookie_file: Option<PathBuf>,
-  rpc_server_url: Option<String>,
+  integration_test: bool,
+  ord_rpc_server_url: Option<Url>,
   stdin: Vec<u8>,
   tempdir: Arc<TempDir>,
 }
@@ -43,13 +46,28 @@ impl CommandBuilder {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
+      bitcoin_rpc_server_cookie_file: None,
+      bitcoin_rpc_server_url: None,
+      env: BTreeMap::new(),
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
-      rpc_server_cookie_file: None,
-      rpc_server_url: None,
+      integration_test: true,
+      ord_rpc_server_url: None,
       stdin: Vec::new(),
       tempdir: Arc::new(TempDir::new().unwrap()),
+    }
+  }
+
+  pub(crate) fn env(mut self, key: &str, value: impl AsRef<OsStr>) -> Self {
+    self.env.insert(key.into(), value.as_ref().into());
+    self
+  }
+
+  pub(crate) fn integration_test(self, integration_test: bool) -> Self {
+    Self {
+      integration_test,
+      ..self
     }
   }
 
@@ -58,10 +76,20 @@ impl CommandBuilder {
     self
   }
 
-  pub(crate) fn rpc_server(self, rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+  pub(crate) fn bitcoin_rpc_server(
+    self,
+    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  ) -> Self {
     Self {
-      rpc_server_url: Some(rpc_server.url()),
-      rpc_server_cookie_file: Some(rpc_server.cookie_file()),
+      bitcoin_rpc_server_url: Some(bitcoin_rpc_server.url()),
+      bitcoin_rpc_server_cookie_file: Some(bitcoin_rpc_server.cookie_file()),
+      ..self
+    }
+  }
+
+  pub(crate) fn ord_rpc_server(self, ord_rpc_server: &TestServer) -> Self {
+    Self {
+      ord_rpc_server_url: Some(ord_rpc_server.url()),
       ..self
     }
   }
@@ -105,13 +133,13 @@ impl CommandBuilder {
   pub(crate) fn command(&self) -> Command {
     let mut command = Command::new(executable_path("ord"));
 
-    if let Some(rpc_server_url) = &self.rpc_server_url {
+    if let Some(rpc_server_url) = &self.bitcoin_rpc_server_url {
       command.args([
-        "--rpc-url",
+        "--bitcoin-rpc-url",
         rpc_server_url,
         "--cookie-file",
         self
-          .rpc_server_cookie_file
+          .bitcoin_rpc_server_cookie_file
           .as_ref()
           .unwrap()
           .to_str()
@@ -119,15 +147,34 @@ impl CommandBuilder {
       ]);
     }
 
+    let mut args = Vec::new();
+
+    for arg in self.args.iter() {
+      args.push(arg.clone());
+      if arg == "wallet" {
+        if let Some(ord_server_url) = &self.ord_rpc_server_url {
+          args.push("--server-url".to_string());
+          args.push(ord_server_url.to_string());
+        }
+      }
+    }
+
+    for (key, value) in &self.env {
+      command.env(key, value);
+    }
+
+    if self.integration_test {
+      command.env("ORD_INTEGRATION_TEST", "1");
+    }
+
     command
-      .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::piped())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
       .current_dir(&*self.tempdir)
       .arg("--data-dir")
       .arg(self.tempdir.path())
-      .args(&self.args);
+      .args(&args);
 
     command
   }

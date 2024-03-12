@@ -1,7 +1,8 @@
 #![allow(
+  clippy::large_enum_variant,
+  clippy::result_large_err,
   clippy::too_many_arguments,
-  clippy::type_complexity,
-  clippy::result_large_err
+  clippy::type_complexity
 )]
 #![deny(
   clippy::cast_lossless,
@@ -14,18 +15,15 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
-    decimal_sat::DecimalSat,
-    degree::Degree,
-    deserialize_from_str::DeserializeFromStr,
-    epoch::Epoch,
-    height::Height,
-    index::List,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
-    outgoing::Outgoing,
+    inscriptions::{
+      inscription_id,
+      media::{self, ImageRendering, Media},
+      teleburn, Charm, ParsedEnvelope,
+    },
     representation::Representation,
     runes::{Etching, Pile, SpacedRune},
+    settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -34,13 +32,11 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::{
-      constants::{
-        COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,
-      },
+      constants::{DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
       locktime::absolute::LockTime,
     },
     consensus::{self, Decodable, Encodable},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     opcodes,
     script::{self, Instruction},
@@ -51,24 +47,23 @@ use {
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
-  derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
+  ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
-    ffi::OsString,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    io::{self, Cursor},
+    io::{self, Cursor, Read},
     mem,
-    net::{TcpListener, ToSocketAddrs},
-    ops::{Add, AddAssign, Sub},
+    net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process::{self, Command},
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -78,22 +73,18 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  tempfile::TempDir,
   tokio::{runtime::Runtime, task},
 };
 
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, RuneEntry},
+  index::{Index, MintEntry, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  rarity::Rarity,
   runes::{Edict, Rune, RuneId, Runestone},
-  sat::Sat,
-  sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
+  wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -104,49 +95,40 @@ mod test;
 use self::test::*;
 
 macro_rules! tprintln {
-    ($($arg:tt)*) => {
-
-      if cfg!(test) {
-        eprint!("==> ");
-        eprintln!($($arg)*);
-      }
-    };
+  ($($arg:tt)*) => {
+    if cfg!(test) {
+      eprint!("==> ");
+      eprintln!($($arg)*);
+    }
+  };
 }
 
-mod arguments;
+pub mod api;
+pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod config;
 mod decimal;
-mod decimal_sat;
-mod degree;
-mod deserialize_from_str;
-mod epoch;
 mod fee_rate;
-mod height;
-mod index;
+pub mod index;
 mod inscriptions;
 mod object;
 mod options;
 mod ordzaar;
-mod outgoing;
-pub mod rarity;
+pub mod outgoing;
 mod representation;
 pub mod runes;
-pub mod sat;
-mod sat_point;
 mod server_config;
+mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
+pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const CYCLE_EPOCHS: u32 = 6;
-
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
-static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -185,20 +167,37 @@ fn fund_raw_transaction(
   )
 }
 
-fn integration_test() -> bool {
-  env::var_os("ORD_INTEGRATION_TEST")
-    .map(|value| value.len() > 0)
-    .unwrap_or(false)
-}
-
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
+}
+
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
 fn unbound_outpoint() -> OutPoint {
   OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
+  }
+}
+
+pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
+  match Arguments::try_parse_from(args.split_whitespace()) {
+    Ok(arguments) => match arguments.subcommand {
+      Subcommand::Server(server) => (
+        Settings::merge(
+          arguments.options,
+          vec![("INTEGRATION_TEST".into(), "1".into())]
+            .into_iter()
+            .collect(),
+        )
+        .unwrap(),
+        server,
+      ),
+      subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+    },
+    Err(err) => panic!("error parsing arguments: {err}"),
   }
 }
 
@@ -228,10 +227,16 @@ pub fn main() {
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    gracefully_shutdown_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
-  match Arguments::parse().run() {
+  let args = Arguments::parse();
+
+  let minify = args.options.minify;
+
+  match args.run() {
     Err(err) => {
       eprintln!("error: {err}");
       err
@@ -249,8 +254,11 @@ pub fn main() {
 
       process::exit(1);
     }
-    Ok(output) => output.print_json(),
+    Ok(output) => {
+      if let Some(output) = output {
+        output.print_json(minify);
+      }
+      gracefully_shutdown_indexer();
+    }
   }
-
-  gracefully_shutdown_indexer();
 }

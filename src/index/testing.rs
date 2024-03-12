@@ -1,8 +1,9 @@
-use super::*;
+use {super::*, std::ffi::OsString, tempfile::TempDir};
 
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,
   chain: Chain,
+  event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   tempdir: Option<TempDir>,
 }
 
@@ -22,7 +23,7 @@ impl ContextBuilder {
 
     let command: Vec<OsString> = vec![
       "ord".into(),
-      "--rpc-url".into(),
+      "--bitcoin-rpc-url".into(),
       rpc_server.url().into(),
       "--data-dir".into(),
       tempdir.path().into(),
@@ -32,14 +33,16 @@ impl ContextBuilder {
     ];
 
     let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
-    let index = Index::open(&options)?;
+    let index = Index::open_with_event_sender(
+      &Settings::from_options(options).or_defaults().unwrap(),
+      self.event_sender,
+    )?;
     index.update().unwrap();
 
     Ok(Context {
-      options,
+      index,
       rpc_server,
       tempdir,
-      index,
     })
   }
 
@@ -62,28 +65,39 @@ impl ContextBuilder {
     self.tempdir = Some(tempdir);
     self
   }
+
+  pub(crate) fn event_sender(mut self, sender: tokio::sync::mpsc::Sender<Event>) -> Self {
+    self.event_sender = Some(sender);
+    self
+  }
 }
 
 pub(crate) struct Context {
-  pub(crate) options: Options,
+  pub(crate) index: Index,
   pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
   #[allow(unused)]
   pub(crate) tempdir: TempDir,
-  pub(crate) index: Index,
 }
 
 impl Context {
   pub(crate) fn builder() -> ContextBuilder {
     ContextBuilder {
       args: Vec::new(),
-      tempdir: None,
       chain: Chain::Regtest,
+      event_sender: None,
+      tempdir: None,
     }
   }
 
   pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {
+    self.mine_blocks_with_update(n, true)
+  }
+
+  pub(crate) fn mine_blocks_with_update(&self, n: u64, update: bool) -> Vec<Block> {
     let blocks = self.rpc_server.mine_blocks(n);
-    self.index.update().unwrap();
+    if update {
+      self.index.update().unwrap();
+    }
     blocks
   }
 
@@ -116,9 +130,9 @@ impl Context {
       balances.sort_by_key(|(id, _)| *id);
     }
 
-    assert_eq!(runes, self.index.runes().unwrap());
+    pretty_assert_eq!(runes, self.index.runes().unwrap());
 
-    assert_eq!(balances, self.index.get_rune_balances().unwrap());
+    pretty_assert_eq!(balances, self.index.get_rune_balances().unwrap());
 
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
 
@@ -129,7 +143,7 @@ impl Context {
     }
 
     for (id, entry) in runes {
-      assert_eq!(
+      pretty_assert_eq!(
         outstanding.get(id).copied().unwrap_or_default(),
         entry.supply - entry.burned
       );

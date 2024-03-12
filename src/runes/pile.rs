@@ -1,9 +1,10 @@
 use super::*;
 
-pub(crate) struct Pile {
-  pub(crate) amount: u128,
-  pub(crate) divisibility: u8,
-  pub(crate) symbol: Option<char>,
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone, Copy)]
+pub struct Pile {
+  pub amount: u128,
+  pub divisibility: u8,
+  pub symbol: Option<char>,
 }
 
 impl Display for Pile {
@@ -122,7 +123,7 @@ mod tests {
     );
     assert_eq!(
       Pile {
-        amount: u128::max_value(),
+        amount: u128::MAX,
         divisibility: 18,
         symbol: None,
       }
@@ -131,7 +132,7 @@ mod tests {
     );
     assert_eq!(
       Pile {
-        amount: u128::max_value(),
+        amount: u128::MAX,
         divisibility: MAX_DIVISIBILITY,
         symbol: None,
       }

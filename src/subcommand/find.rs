@@ -21,8 +21,8 @@ pub struct FindRangeOutput {
 }
 
 impl Find {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
+    let index = Index::open(&settings)?;
 
     if !index.has_sat_index() {
       bail!("find requires index created with `--index-sats` flag");
@@ -32,11 +32,11 @@ impl Find {
 
     match self.end {
       Some(end) => match index.find_range(self.sat, end)? {
-        Some(result) => Ok(Box::new(result)),
+        Some(result) => Ok(Some(Box::new(result))),
         None => Err(anyhow!("range has not been mined as of index height")),
       },
       None => match index.find(self.sat)? {
-        Some(satpoint) => Ok(Box::new(Output { satpoint })),
+        Some(satpoint) => Ok(Some(Box::new(Output { satpoint }))),
         None => Err(anyhow!("sat has not been mined as of index height")),
       },
     }

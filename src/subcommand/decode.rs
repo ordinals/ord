@@ -74,9 +74,9 @@ pub(crate) struct Decode {
 }
 
 impl Decode {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let transaction = if let Some(txid) = self.txid {
-      options
+      settings
         .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {
@@ -88,15 +88,15 @@ impl Decode {
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);
 
     if self.compact {
-      Ok(Box::new(CompactOutput {
+      Ok(Some(Box::new(CompactOutput {
         inscriptions: inscriptions
           .clone()
           .into_iter()
           .map(|inscription| inscription.payload.try_into())
           .collect::<Result<Vec<CompactInscription>>>()?,
-      }))
+      })))
     } else {
-      Ok(Box::new(RawOutput { inscriptions }))
+      Ok(Some(Box::new(RawOutput { inscriptions })))
     }
   }
 }

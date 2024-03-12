@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) struct Decimal {
+pub struct Decimal {
   value: u128,
   scale: u8,
 }
@@ -24,6 +24,30 @@ impl Decimal {
   }
 }
 
+impl Display for Decimal {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    let magnitude = 10u128.pow(self.scale.into());
+
+    let integer = self.value / magnitude;
+    let mut fraction = self.value % magnitude;
+
+    write!(f, "{integer}")?;
+
+    if fraction > 0 {
+      let mut width = self.scale.into();
+
+      while fraction % 10 == 0 {
+        fraction /= 10;
+        width -= 1;
+      }
+
+      write!(f, ".{fraction:0>width$}", width = width)?;
+    }
+
+    Ok(())
+  }
+}
+
 impl FromStr for Decimal {
   type Err = Error;
 
@@ -39,19 +63,14 @@ impl FromStr for Decimal {
         integer.parse::<u128>()?
       };
 
-      let decimal = if decimal.is_empty() {
-        0
+      let (decimal, scale) = if decimal.is_empty() {
+        (0, 0)
       } else {
-        decimal.parse::<u128>()?
+        let trailing_zeros = decimal.chars().rev().take_while(|c| *c == '0').count();
+        let significant_digits = decimal.chars().count() - trailing_zeros;
+        let decimal = decimal.parse::<u128>()? / 10u128.pow(u32::try_from(trailing_zeros).unwrap());
+        (decimal, u8::try_from(significant_digits).unwrap())
       };
-
-      let scale = s
-        .trim_end_matches('0')
-        .chars()
-        .skip_while(|c| *c != '.')
-        .skip(1)
-        .count()
-        .try_into()?;
 
       Ok(Self {
         value: integer * 10u128.pow(u32::from(scale)) + decimal,
@@ -63,6 +82,24 @@ impl FromStr for Decimal {
         scale: 0,
       })
     }
+  }
+}
+
+impl Serialize for Decimal {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for Decimal {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    DeserializeFromStr::with(deserializer)
   }
 }
 
@@ -99,6 +136,7 @@ mod tests {
     case("1.11", 111, 2);
     case("1.", 1, 0);
     case(".1", 1, 1);
+    case("1.10", 11, 1);
   }
 
   #[test]
@@ -148,5 +186,66 @@ mod tests {
     case("1.2", 2, 120);
     case("123.456", 3, 123456);
     case("123.456", 6, 123456000);
+  }
+
+  #[test]
+  fn to_string() {
+    #[track_caller]
+    fn case(decimal: Decimal, string: &str) {
+      assert_eq!(decimal.to_string(), string);
+      assert_eq!(decimal, string.parse::<Decimal>().unwrap());
+    }
+
+    case(Decimal { value: 1, scale: 0 }, "1");
+    case(Decimal { value: 1, scale: 1 }, "0.1");
+    case(
+      Decimal {
+        value: 101,
+        scale: 2,
+      },
+      "1.01",
+    );
+    case(
+      Decimal {
+        value: 1234,
+        scale: 6,
+      },
+      "0.001234",
+    );
+    case(
+      Decimal {
+        value: 12,
+        scale: 0,
+      },
+      "12",
+    );
+    case(
+      Decimal {
+        value: 12,
+        scale: 1,
+      },
+      "1.2",
+    );
+    case(
+      Decimal {
+        value: 12,
+        scale: 2,
+      },
+      "0.12",
+    );
+    case(
+      Decimal {
+        value: 123456,
+        scale: 3,
+      },
+      "123.456",
+    );
+    case(
+      Decimal {
+        value: 123456789,
+        scale: 6,
+      },
+      "123.456789",
+    );
   }
 }

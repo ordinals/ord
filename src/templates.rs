@@ -1,35 +1,36 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::{BlockHtml, BlockJson},
-  blocks::BlocksHtml,
-  children::{ChildrenHtml, ChildrenJson},
+  block::BlockHtml,
+  children::ChildrenHtml,
   clock::ClockSvg,
   collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::{InscriptionHtml, InscriptionJson},
-  inscriptions::{InscriptionsHtml, InscriptionsJson},
+  inscription::InscriptionHtml,
+  inscriptions::InscriptionsHtml,
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
-  output::{OutputHtml, OutputJson},
+  output::OutputHtml,
   preview::{
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
-  rune::{RuneHtml, RuneJson},
-  runes::{RunesHtml, RunesJson},
-  sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
+  rune_balances::RuneBalancesHtml,
+  sat::SatHtml,
   server_config::ServerConfig,
-  status::StatusHtml,
+};
+
+pub use {
+  blocks::BlocksHtml, rune::RuneHtml, runes::RunesHtml, status::StatusHtml,
   transaction::TransactionHtml,
 };
 
 pub mod block;
-mod blocks;
+pub mod blocks;
 mod children;
 mod clock;
 pub mod collections;
@@ -45,10 +46,11 @@ mod preview;
 mod range;
 mod rare;
 pub mod rune;
+pub mod rune_balances;
 pub mod runes;
 pub mod sat;
 pub mod status;
-mod transaction;
+pub mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml<T: PageContent> {
@@ -134,7 +136,9 @@ mod tests {
     <meta property=og:image content='https://signet.ordinals.com/static/favicon.png'>
     <meta property=twitter:card content=summary>
     <title>Foo</title>
-    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription RSS Feed'>
+    <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription Feed'>
+    <link rel=icon href=/static/favicon.png>
+    <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
     <script src=/static/index.js defer></script>

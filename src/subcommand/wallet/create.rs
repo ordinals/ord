@@ -1,4 +1,7 @@
-use super::*;
+use {
+  super::*,
+  bitcoin::secp256k1::rand::{self, RngCore},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -17,17 +20,17 @@ pub(crate) struct Create {
 }
 
 impl Create {
-  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, name: String, settings: &Settings) -> SubcommandResult {
     let mut entropy = [0; 16];
     rand::thread_rng().fill_bytes(&mut entropy);
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-    wallet::initialize(wallet, &options, mnemonic.to_seed(self.passphrase.clone()))?;
+    Wallet::initialize(name, settings, mnemonic.to_seed(&self.passphrase))?;
 
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       mnemonic,
       passphrase: Some(self.passphrase),
-    }))
+    })))
   }
 }

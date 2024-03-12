@@ -8,14 +8,12 @@ pub struct Output {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneInfo {
   pub burned: u128,
-  pub deadline: Option<u32>,
   pub divisibility: u8,
-  pub end: Option<u32>,
   pub etching: Txid,
   pub height: u32,
   pub id: RuneId,
   pub index: u16,
-  pub limit: Option<u128>,
+  pub mint: Option<MintEntry>,
   pub mints: u64,
   pub number: u64,
   pub rune: Rune,
@@ -25,8 +23,8 @@ pub struct RuneInfo {
   pub timestamp: DateTime<Utc>,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
+  let index = Index::open(&settings)?;
 
   ensure!(
     index.has_rune_index(),
@@ -35,7 +33,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
 
   index.update()?;
 
-  Ok(Box::new(Output {
+  Ok(Some(Box::new(Output {
     runes: index
       .runes()?
       .into_iter()
@@ -44,11 +42,9 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
           id,
           RuneEntry {
             burned,
-            deadline,
             divisibility,
-            end,
             etching,
-            limit,
+            mint,
             mints,
             number,
             rune,
@@ -62,14 +58,12 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
             rune,
             RuneInfo {
               burned,
-              deadline,
               divisibility,
-              end,
               etching,
               height: id.height,
               id,
               index: id.index,
-              limit,
+              mint,
               mints,
               number,
               rune,
@@ -82,5 +76,5 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
         },
       )
       .collect::<BTreeMap<Rune, RuneInfo>>(),
-  }))
+  })))
 }

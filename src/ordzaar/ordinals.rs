@@ -30,42 +30,41 @@ pub struct Output {
 }
 
 pub fn get_ordinals(index: &Index, outpoint: OutPoint) -> Result<Vec<OrdinalJson>> {
-  match index.list(outpoint)? {
-    Some(crate::index::List::Unspent(ranges)) => {
-      let mut ordinals = Vec::new();
-      for Output {
+  let index_list = index.list(outpoint)?;
+  if let Some(ranges) = index_list {
+    let mut ordinals = Vec::new();
+    for Output {
+      output,
+      start,
+      end,
+      size,
+      offset,
+      rarity,
+      name,
+    } in list(outpoint, ranges)
+    {
+      let sat = Sat(start);
+      ordinals.push(OrdinalJson {
+        number: sat.n(),
+        decimal: sat.decimal().to_string(),
+        degree: sat.degree().to_string(),
+        name,
+        height: sat.height().0,
+        cycle: sat.cycle(),
+        epoch: sat.epoch().0,
+        period: sat.period(),
+        offset,
+        rarity,
         output,
         start,
         end,
         size,
-        offset,
-        rarity,
-        name,
-      } in list(outpoint, ranges)
-      {
-        let sat = Sat(start);
-        ordinals.push(OrdinalJson {
-          number: sat.n(),
-          decimal: sat.decimal().to_string(),
-          degree: sat.degree().to_string(),
-          name,
-          height: sat.height().0,
-          cycle: sat.cycle(),
-          epoch: sat.epoch().0,
-          period: sat.period(),
-          offset,
-          rarity,
-          output,
-          start,
-          end,
-          size,
-        });
-      }
-      Ok(ordinals)
+      });
     }
-    Some(crate::index::List::Spent) => Ok(Vec::new()),
-    None => Ok(Vec::new()),
-  }
+    return Ok(ordinals);
+  };
+
+  return Ok(Vec::new());
 }
 
 fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<Output> {

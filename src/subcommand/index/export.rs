@@ -9,12 +9,12 @@ pub(crate) struct Export {
 }
 
 impl Export {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
+    let index = Index::open(&settings)?;
 
     index.update()?;
     index.export(&self.tsv, self.include_addresses)?;
 
-    Ok(Box::new(Empty {}))
+    Ok(None)
   }
 }

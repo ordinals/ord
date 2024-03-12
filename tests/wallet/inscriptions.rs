@@ -5,14 +5,19 @@ use {
 
 #[test]
 fn inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -24,7 +29,8 @@ fn inscriptions() {
   );
 
   let address = CommandBuilder::new("wallet receive")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<receive::Output>()
     .address;
 
@@ -32,16 +38,18 @@ fn inscriptions() {
     "wallet send --fee-rate 1 {} {inscription}",
     address.assume_checked()
   ))
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(0)
   .stdout_regex(".*")
   .run_and_deserialize_output::<send::Output>()
-  .transaction;
+  .txid;
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -51,22 +59,26 @@ fn inscriptions() {
 
 #[test]
 fn inscriptions_includes_locked_utxos() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  rpc_server.mine_blocks(1);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
-  let (inscription, reveal) = inscribe(&rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  rpc_server.lock(OutPoint {
+  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  bitcoin_rpc_server.lock(OutPoint {
     txid: reveal,
     vout: 0,
   });
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -76,20 +88,26 @@ fn inscriptions_includes_locked_utxos() {
 
 #[test]
 fn inscriptions_with_postage() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let (inscription, _) = inscribe(&rpc_server);
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output[0].postage, 10000);
 
   let address = CommandBuilder::new("wallet receive")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<receive::Output>()
     .address;
 
@@ -97,15 +115,17 @@ fn inscriptions_with_postage() {
     "wallet send --fee-rate 1 {} {inscription}",
     address.assume_checked()
   ))
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(0)
   .stdout_regex(".*")
   .run_and_extract_stdout();
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output[0].postage, 9889);

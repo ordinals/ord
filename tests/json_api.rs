@@ -2,21 +2,21 @@ use {super::*, bitcoin::BlockHash};
 
 #[test]
 fn get_sat_without_sat_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
+  let response = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[])
     .json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut sat_json: SatJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   // this is a hack to ignore the timestamp, since it changes for every request
   sat_json.timestamp = 0;
 
   pretty_assert_eq!(
     sat_json,
-    SatJson {
+    api::Sat {
       number: 2099999997689999,
       decimal: "6929999.0".into(),
       degree: "5°209999′1007″0‴".into(),
@@ -37,23 +37,24 @@ fn get_sat_without_sat_index() {
 
 #[test]
 fn get_sat_with_inscription_and_sat_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
-  let (inscription_id, reveal) = inscribe(&rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let response =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
-      .json_request(format!("/sat/{}", 50 * COIN_VALUE));
+  let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let response = ord_rpc_server.json_request(format!("/sat/{}", 50 * COIN_VALUE));
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: SatJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     sat_json,
-    SatJson {
+    api::Sat {
       number: 50 * COIN_VALUE,
       decimal: "1.0".into(),
       degree: "0°1′1″0‴".into(),
@@ -74,39 +75,42 @@ fn get_sat_with_inscription_and_sat_index() {
 
 #[test]
 fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
-  inscribe(&rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { reveal, .. } = CommandBuilder::new(format!(
     "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
     txid
   ))
   .write("foo.txt", "FOO")
-  .rpc_server(&rpc_server)
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .run_and_deserialize_output();
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
+
   let inscription_id = InscriptionId {
     txid: reveal,
     index: 0,
   };
 
-  let response =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
-      .json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
+  let response = ord_rpc_server.json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: SatJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     sat_json,
-    SatJson {
+    api::Sat {
       number: 3 * 50 * COIN_VALUE + 1,
       decimal: "3.1".into(),
       degree: "0°3′3″1‴".into(),
@@ -127,52 +131,60 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
 #[test]
 fn get_inscription() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
-  let (inscription_id, reveal) = inscribe(&rpc_server);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let response =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"])
-      .json_request(format!("/inscription/{}", inscription_id));
+  let (inscription_id, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let response = ord_rpc_server.json_request(format!("/inscription/{}", inscription_id));
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut inscription_json: InscriptionJson =
+  let mut inscription_json: api::Inscription =
     serde_json::from_str(&response.text().unwrap()).unwrap();
   assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
   inscription_json.address = None;
 
   pretty_assert_eq!(
     inscription_json,
-    InscriptionJson {
+    api::Inscription {
       address: None,
       charms: vec!["coin".into(), "uncommon".into()],
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
-      genesis_fee: 138,
-      genesis_height: 2,
-      inscription_id,
-      inscription_number: 0,
+      fee: 138,
+      height: 2,
+      id: inscription_id,
+      number: 0,
       next: None,
-      output_value: Some(10000),
+      value: Some(10000),
       parent: None,
       previous: None,
       rune: None,
-      sat: Some(ord::Sat(50 * COIN_VALUE)),
+      sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
+
+      // ---- Ordzaar ----
+      inscription_sequence: 0,
+      // ---- Ordzaar ----
     }
   )
 }
 
 #[test]
 fn get_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  create_wallet(&rpc_server);
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
   let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
@@ -180,11 +192,11 @@ fn get_inscriptions() {
 
   // Create 150 inscriptions
   for i in 0..50 {
-    rpc_server.mine_blocks(1);
-    rpc_server.mine_blocks(1);
-    rpc_server.mine_blocks(1);
+    bitcoin_rpc_server.mine_blocks(1);
+    bitcoin_rpc_server.mine_blocks(1);
+    bitcoin_rpc_server.mine_blocks(1);
 
-    let txid = rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[
         (i * 3 + 1, 0, 0, witness.clone()),
         (i * 3 + 2, 0, 0, witness.clone()),
@@ -198,40 +210,44 @@ fn get_inscriptions() {
     inscriptions.push(InscriptionId { txid, index: 2 });
   }
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let server =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
-
-  let response = server.json_request("/inscriptions");
+  let response = ord_rpc_server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 100);
+  assert_eq!(inscriptions_json.ids.len(), 100);
   assert!(inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 0);
 
-  let response = server.json_request("/inscriptions/1");
+  let response = ord_rpc_server.json_request("/inscriptions/1");
   assert_eq!(response.status(), StatusCode::OK);
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 50);
+  assert_eq!(inscriptions_json.ids.len(), 50);
   assert!(!inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 1);
 }
 
 #[test]
 fn get_inscriptions_in_block() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(10);
+  let ord_rpc_server = TestServer::spawn_with_server_args(
+    &bitcoin_rpc_server,
+    &["--index-sats", "--first-inscription-height", "0"],
+    &[],
+  );
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(10);
 
   let envelope = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
-  let txid = rpc_server.broadcast_tx(TransactionTemplate {
+  let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[
       (1, 0, 0, envelope.clone()),
       (2, 0, 0, envelope.clone()),
@@ -240,37 +256,31 @@ fn get_inscriptions_in_block() {
     ..Default::default()
   });
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let _ = rpc_server.broadcast_tx(TransactionTemplate {
+  let _ = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[(4, 0, 0, envelope.clone()), (5, 0, 0, envelope.clone())],
     ..Default::default()
   });
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let _ = rpc_server.broadcast_tx(TransactionTemplate {
+  let _ = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[(6, 0, 0, envelope.clone())],
     ..Default::default()
   });
 
-  rpc_server.mine_blocks(1);
-
-  let server = TestServer::spawn_with_server_args(
-    &rpc_server,
-    &["--index-sats", "--first-inscription-height", "0"],
-    &["--enable-json-api"],
-  );
+  bitcoin_rpc_server.mine_blocks(1);
 
   // get all inscriptions from block 11
-  let response = server.json_request(format!("/inscriptions/block/{}", 11));
+  let response = ord_rpc_server.json_request(format!("/inscriptions/block/{}", 11));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let inscriptions_json: InscriptionsJson =
+  let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
-    inscriptions_json.inscriptions,
+    inscriptions_json.ids,
     vec![
       InscriptionId { txid, index: 0 },
       InscriptionId { txid, index: 1 },
@@ -281,14 +291,15 @@ fn get_inscriptions_in_block() {
 
 #[test]
 fn get_output() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(3);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  bitcoin_rpc_server.mine_blocks(3);
 
   let envelope = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
-  let txid = rpc_server.broadcast_tx(TransactionTemplate {
+  let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[
       (1, 0, 0, envelope.clone()),
       (2, 0, 0, envelope.clone()),
@@ -296,64 +307,84 @@ fn get_output() {
     ],
     ..Default::default()
   });
-  rpc_server.mine_blocks(1);
+
+  bitcoin_rpc_server.mine_blocks(1);
 
   let server =
-    TestServer::spawn_with_server_args(&rpc_server, &["--index-sats"], &["--enable-json-api"]);
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &["--no-sync"]);
+
+  let response = reqwest::blocking::Client::new()
+    .get(server.url().join(&format!("/output/{}:0", txid)).unwrap())
+    .header(reqwest::header::ACCEPT, "application/json")
+    .send()
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert!(
+    !serde_json::from_str::<api::Output>(&response.text().unwrap())
+      .unwrap()
+      .indexed
+  );
+
+  let server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
   let response = server.json_request(format!("/output/{}:0", txid));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     output_json,
-    OutputJson {
-      value: 3 * 50 * COIN_VALUE,
-      script_pubkey: "".to_string(),
+    api::Output {
       address: None,
-      transaction: txid.to_string(),
-      sat_ranges: Some(vec![
-        (5000000000, 10000000000,),
-        (10000000000, 15000000000,),
-        (15000000000, 20000000000,),
-      ],),
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
-      runes: BTreeMap::new(),
+      indexed: true,
+      runes: Vec::new(),
+      sat_ranges: Some(vec![
+        (5000000000, 10000000000,),
+        (10000000000, 15000000000,),
+        (15000000000, 20000000000,),
+      ],),
+      script_pubkey: "".to_string(),
+      spent: false,
+      transaction: txid.to_string(),
+      value: 3 * 50 * COIN_VALUE,
     }
   );
 }
 
 #[test]
-fn json_request_fails_when_not_enabled() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+fn json_request_fails_when_disabled() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).json_request("/sat/2099999997689999");
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--disable-json-api"])
+      .json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
 }
 
 #[test]
 fn get_block() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(1);
 
-  let response = TestServer::spawn_with_server_args(&rpc_server, &[], &["--enable-json-api"])
-    .json_request("/block/0");
+  let response =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]).json_request("/block/0");
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let block_json: BlockJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let block_json: api::Block = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   assert_eq!(
     block_json,
-    BlockJson {
+    api::Block {
       hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
         .parse::<BlockHash>()
         .unwrap(),
@@ -368,43 +399,108 @@ fn get_block() {
 }
 
 #[test]
-fn get_status() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+fn get_blocks() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let blocks: Vec<BlockHash> = bitcoin_rpc_server
+    .mine_blocks(101)
+    .iter()
+    .rev()
+    .take(100)
+    .map(|block| block.block_hash())
+    .collect();
 
-  inscribe(&rpc_server);
+  ord_rpc_server.sync_server();
 
-  let response = TestServer::spawn_with_server_args(
-    &rpc_server,
-    &["--regtest", "--index-sats", "--index-runes"],
-    &["--enable-json-api"],
-  )
-  .json_request("/status");
+  let response = ord_rpc_server.json_request("/blocks");
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let mut status_json: StatusHtml = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let blocks_json: api::Blocks = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    blocks_json,
+    api::Blocks {
+      last: 101,
+      blocks: blocks.clone(),
+      featured_blocks: blocks
+        .into_iter()
+        .take(5)
+        .map(|block_hash| (block_hash, Vec::new()))
+        .collect(),
+    }
+  );
+}
+
+#[test]
+fn get_transaction() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+
+  let transaction = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].clone();
+
+  let txid = transaction.txid();
+
+  let response = ord_rpc_server.json_request(format!("/tx/{txid}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert_eq!(
+    serde_json::from_str::<api::Transaction>(&response.text().unwrap()).unwrap(),
+    api::Transaction {
+      chain: Chain::Mainnet,
+      etching: None,
+      inscription_count: 0,
+      transaction,
+      txid,
+    }
+  );
+}
+
+#[test]
+fn get_status() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(
+    &bitcoin_rpc_server,
+    &["--regtest", "--index-sats", "--index-runes"],
+    &[],
+  );
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  bitcoin_rpc_server.mine_blocks(1);
+
+  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let response = ord_rpc_server.json_request("/status");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let mut status_json: api::Status = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   let dummy_started = "2012-12-12 12:12:12+00:00"
     .parse::<DateTime<Utc>>()
     .unwrap();
 
-  let dummy_uptime = Duration::from_secs(1);
+  let dummy_duration = Duration::from_secs(1);
 
+  status_json.initial_sync_time = dummy_duration;
   status_json.started = dummy_started;
-  status_json.uptime = dummy_uptime;
+  status_json.uptime = dummy_duration;
 
   pretty_assert_eq!(
     status_json,
-    StatusHtml {
+    api::Status {
       blessed_inscriptions: 1,
-      cursed_inscriptions: 0,
       chain: Chain::Regtest,
+      content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
+      cursed_inscriptions: 0,
       height: Some(3),
+      initial_sync_time: dummy_duration,
       inscriptions: 1,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99218849511960410),
@@ -414,47 +510,43 @@ fn get_status() {
       started: dummy_started,
       transaction_index: false,
       unrecoverably_reorged: false,
-      uptime: dummy_uptime,
+      uptime: dummy_duration,
     }
   );
 }
 
 #[test]
 fn get_runes() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(3);
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
 
-  let a = etch(&rpc_server, Rune(RUNE));
-  let b = etch(&rpc_server, Rune(RUNE + 1));
-  let c = etch(&rpc_server, Rune(RUNE + 2));
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  rpc_server.mine_blocks(1);
+  bitcoin_rpc_server.mine_blocks(3);
 
-  let server = TestServer::spawn_with_server_args(
-    &rpc_server,
-    &["--index-runes", "--regtest"],
-    &["--enable-json-api"],
-  );
+  let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
+  let c = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 2));
 
-  let response = server.json_request(format!("/rune/{}", a.rune));
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let response = ord_rpc_server.json_request(format!("/rune/{}", a.rune));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let rune_json: RuneJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let rune_json: api::Rune = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     rune_json,
-    RuneJson {
+    api::Rune {
       entry: RuneEntry {
         burned: 0,
-        deadline: None,
+        mint: None,
         divisibility: 0,
-        end: None,
         etching: a.transaction,
-        limit: None,
         mints: 0,
         number: 0,
         rune: Rune(RUNE),
@@ -471,15 +563,15 @@ fn get_runes() {
     }
   );
 
-  let response = server.json_request("/runes");
+  let response = ord_rpc_server.json_request("/runes");
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let runes_json: RunesJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let runes_json: api::Runes = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     runes_json,
-    RunesJson {
+    api::Runes {
       entries: vec![
         (
           RuneId {
@@ -488,11 +580,9 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            deadline: None,
+            mint: None,
             divisibility: 0,
-            end: None,
             etching: a.transaction,
-            limit: None,
             mints: 0,
             number: 0,
             rune: Rune(RUNE),
@@ -509,11 +599,9 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            deadline: None,
+            mint: None,
             divisibility: 0,
-            end: None,
             etching: b.transaction,
-            limit: None,
             mints: 0,
             number: 1,
             rune: Rune(RUNE + 1),
@@ -530,11 +618,9 @@ fn get_runes() {
           },
           RuneEntry {
             burned: 0,
-            deadline: None,
+            mint: None,
             divisibility: 0,
-            end: None,
             etching: c.transaction,
-            limit: None,
             mints: 0,
             number: 2,
             rune: Rune(RUNE + 2),
@@ -547,4 +633,76 @@ fn get_runes() {
       ]
     }
   );
+}
+#[test]
+fn get_runes_balances() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(3);
+
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+  let rune2 = Rune(RUNE + 2);
+
+  let e0 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune0);
+  let e1 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune1);
+  let e2 = etch(&bitcoin_rpc_server, &ord_rpc_server, rune2);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+    (
+      rune0,
+      vec![(
+        OutPoint {
+          txid: e0.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune1,
+      vec![(
+        OutPoint {
+          txid: e1.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune2,
+      vec![(
+        OutPoint {
+          txid: e2.transaction,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+  ]
+  .into_iter()
+  .collect();
+
+  let response = ord_rpc_server.json_request("/runes/balances");
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_balance_json: BTreeMap<Rune, BTreeMap<OutPoint, u128>> =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(runes_balance_json, rune_balances);
 }

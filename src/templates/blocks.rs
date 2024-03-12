@@ -1,10 +1,10 @@
 use super::*;
 
-#[derive(Boilerplate)]
-pub(crate) struct BlocksHtml {
-  last: u32,
-  blocks: Vec<BlockHash>,
-  featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlocksHtml {
+  pub last: u32,
+  pub blocks: Vec<BlockHash>,
+  pub featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
 }
 
 impl BlocksHtml {

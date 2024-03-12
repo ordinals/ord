@@ -18,24 +18,40 @@ clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
 deploy branch remote chain domain:
-  ssh root@{{domain}} 'mkdir -p deploy \
+  ssh root@{{domain}} '\
+    export DEBIAN_FRONTEND=noninteractive \
+    && mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync'
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{remote}} {{chain}} {{domain}}'
 
-deploy-mainnet-alpha branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'alpha.ordinals.net')
+deploy-mainnet-alpha branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'alpha.ordinals.net')
 
-deploy-mainnet-bravo branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'bravo.ordinals.net')
+deploy-mainnet-bravo branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'bravo.ordinals.net')
 
-deploy-mainnet-charlie branch='master' remote='ordinals/ord': (deploy branch remote 'main' 'charlie.ordinals.net')
+deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-regtest branch='master' remote='ordinals/ord': (deploy branch remote 'regtest' 'regtest.ordinals.net')
+deploy-regtest branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'regtest' 'regtest.ordinals.net')
 
-deploy-signet branch='master' remote='ordinals/ord': (deploy branch remote 'signet' 'signet.ordinals.net')
+deploy-signet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'signet' 'signet.ordinals.net')
 
-deploy-testnet branch='master' remote='ordinals/ord': (deploy branch remote 'test' 'testnet.ordinals.net')
+deploy-testnet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'test' 'testnet.ordinals.net')
+
+deploy-all: \
+  deploy-regtest \
+  deploy-testnet \
+  deploy-signet \
+  deploy-mainnet-alpha \
+  deploy-mainnet-bravo \
+  deploy-mainnet-charlie
 
 servers := 'alpha bravo charlie regtest signet testnet'
 
@@ -83,7 +99,7 @@ open:
   open http://localhost
 
 doc:
-  cargo doc --all --open
+  cargo doc --workspace --exclude audit-content-security-policy --exclude audit-cache --open
 
 prepare-release revision='master':
   #!/usr/bin/env bash
@@ -137,6 +153,7 @@ update-modern-normalize:
 
 download-log unit='ord' host='alpha.ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
+  mkdir -p tmp/{{unit}}
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph log:
@@ -146,8 +163,10 @@ flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph $1
 
 serve-docs: build-docs
-  open http://127.0.0.1:8080
   python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
+
+open-docs:
+  open http://127.0.0.1:8080
 
 build-docs:
   #!/usr/bin/env bash
@@ -161,20 +180,25 @@ update-changelog:
   echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
-preview-examples:
-  cargo run preview examples/*
-
 convert-logo-to-favicon:
   convert -background none -resize 256x256 logo.svg static/favicon.png
 
 update-mdbook-theme:
-  curl https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs > docs/theme/index.hbs
+  curl \
+    https://raw.githubusercontent.com/rust-lang/mdBook/v0.4.35/src/theme/index.hbs \
+    > docs/theme/index.hbs
 
 audit-cache:
   cargo run --package audit-cache
+
+audit-content-security-policy:
+  cargo run --package audit-content-security-policy
 
 coverage:
   cargo llvm-cov
 
 benchmark-server:
   cargo bench --bench server
+
+update-contributors:
+  cargo run --release --package update-contributors

@@ -19,7 +19,8 @@ ExecStart=/usr/local/bin/ord \
   --acme-contact mailto:casey@rodarmor.com \
   --csp-origin https://${CSP_ORIGIN} \
   --http \
-  --https
+  --https \
+  --disable-json-api
 Group=ord
 LimitNOFILE=65536
 MemoryDenyWriteExecute=true

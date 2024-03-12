@@ -1,9 +1,9 @@
 use super::*;
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
+  let index = Index::open(&settings)?;
 
   index.update()?;
 
-  Ok(Box::new(Empty {}))
+  Ok(None)
 }

@@ -15,8 +15,8 @@ pub struct TransactionsOutput {
 }
 
 impl Info {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
+    let index = Index::open(&settings)?;
 
     index.update()?;
 
@@ -34,9 +34,9 @@ impl Info {
           elapsed: (end.starting_timestamp - start.starting_timestamp) as f64 / 1000.0 / 60.0,
         });
       }
-      Ok(Box::new(output))
+      Ok(Some(Box::new(output)))
     } else {
-      Ok(Box::new(info))
+      Ok(Some(Box::new(info)))
     }
   }
 }

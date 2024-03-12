@@ -3,12 +3,13 @@ use super::*;
 #[derive(Boilerplate, Default)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) charms: u16,
   pub(crate) children: Vec<InscriptionId>,
-  pub(crate) genesis_fee: u64,
-  pub(crate) genesis_height: u32,
+  pub(crate) fee: u64,
+  pub(crate) height: u32,
   pub(crate) inscription: Inscription,
-  pub(crate) inscription_id: InscriptionId,
-  pub(crate) inscription_number: i32,
+  pub(crate) id: InscriptionId,
+  pub(crate) number: i32,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
@@ -17,41 +18,15 @@ pub(crate) struct InscriptionHtml {
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
-  pub(crate) charms: u16,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InscriptionJson {
-  pub address: Option<String>,
-  pub charms: Vec<String>,
-  pub children: Vec<InscriptionId>,
-  pub content_length: Option<usize>,
-  pub content_type: Option<String>,
-  pub genesis_fee: u64,
-  pub genesis_height: u32,
-  pub inscription_id: InscriptionId,
-  pub inscription_number: i32,
-  pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
-  pub parent: Option<InscriptionId>,
-  pub previous: Option<InscriptionId>,
-  pub rune: Option<SpacedRune>,
-  pub sat: Option<Sat>,
-  pub satpoint: SatPoint,
-  pub timestamp: i64,
-
-  // ---- Ordzaar ----
-  pub inscription_sequence: u32
-  // ---- Ordzaar ----
 }
 
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
-    format!("Inscription {}", self.inscription_number)
+    format!("Inscription {}", self.number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
-    Some(Trusted(format!("/content/{}", self.inscription_id)))
+    Some(Trusted(format!("/content/{}", self.id)))
   }
 }
 
@@ -63,10 +38,10 @@ mod tests {
   fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -90,11 +65,11 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>genesis height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>genesis fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
-          <dt>genesis transaction</dt>
+          <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
@@ -114,10 +89,10 @@ mod tests {
   fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         output: Some(tx_out(1, address())),
         satpoint: satpoint(1, 0),
         ..Default::default()
@@ -133,7 +108,7 @@ mod tests {
           .*
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
-          <dt>output value</dt>
+          <dt>value</dt>
           <dd>1</dd>
           .*
         </dl>
@@ -146,10 +121,10 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         output: Some(tx_out(1, address())),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
@@ -175,11 +150,11 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: Vec::new(),
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(2),
+        id: inscription_id(2),
         next: Some(inscription_id(3)),
-        inscription_number: 1,
+        number: 1,
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
@@ -202,10 +177,10 @@ mod tests {
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(2),
-        inscription_number: -1,
+        id: inscription_id(2),
+        number: -1,
         output: Some(tx_out(1, address())),
         satpoint: SatPoint {
           outpoint: unbound_outpoint(),
@@ -235,10 +210,10 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         parent: Some(inscription_id(2)),
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -253,7 +228,11 @@ mod tests {
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
           <dt>parent</dt>
-          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+            </div>
+          </dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -264,11 +243,11 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>genesis height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>genesis fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
-          <dt>genesis transaction</dt>
+          <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
@@ -289,10 +268,10 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2), inscription_id(3)],
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -326,11 +305,11 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>genesis height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>genesis fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
-          <dt>genesis transaction</dt>
+          <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
@@ -351,10 +330,10 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         children: vec![inscription_id(2)],
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },
@@ -387,11 +366,11 @@ mod tests {
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-          <dt>genesis height</dt>
+          <dt>height</dt>
           <dd><a href=/block/0>0</a></dd>
-          <dt>genesis fee</dt>
+          <dt>fee</dt>
           <dd>1</dd>
-          <dt>genesis transaction</dt>
+          <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
@@ -411,10 +390,10 @@ mod tests {
   fn with_rune() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         rune: Some(SpacedRune {
           rune: Rune(26),
@@ -439,13 +418,13 @@ mod tests {
   fn with_content_encoding() {
     assert_regex_match!(
       InscriptionHtml {
-        genesis_fee: 1,
+        fee: 1,
         inscription: Inscription {
           content_encoding: Some("br".into()),
           ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
         },
-        inscription_id: inscription_id(1),
-        inscription_number: 1,
+        id: inscription_id(1),
+        number: 1,
         satpoint: satpoint(1, 0),
         ..Default::default()
       },

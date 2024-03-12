@@ -6,20 +6,14 @@ pub struct Output {
   pub amount: u64,
 }
 
-pub(crate) fn run(wallet: String, options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-
-  index.update()?;
-
-  let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
-
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut outputs = Vec::new();
-  for (output, amount) in get_unspent_outputs(&client, &index)? {
+  for (output, txout) in wallet.utxos() {
     outputs.push(Output {
-      output,
-      amount: amount.to_sat(),
+      output: *output,
+      amount: txout.value,
     });
   }
 
-  Ok(Box::new(outputs))
+  Ok(Some(Box::new(outputs)))
 }

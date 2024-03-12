@@ -21,30 +21,26 @@ pub struct Output {
 }
 
 impl Etch {
-  pub(crate) fn run(self, wallet: String, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
-
+  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      index.has_rune_index(),
+      wallet.has_rune_index(),
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    index.update()?;
-
-    let client = bitcoin_rpc_client_for_wallet_command(wallet, &options)?;
-
     let SpacedRune { rune, spacers } = self.rune;
 
-    let count = client.get_block_count()?;
+    let bitcoin_client = wallet.bitcoin_client();
+
+    let count = bitcoin_client.get_block_count()?;
 
     ensure!(
-      index.rune(rune)?.is_none(),
+      wallet.get_rune(rune)?.is_none(),
       "rune `{}` has already been etched",
       rune,
     );
 
     let minimum_at_height =
-      Rune::minimum_at_height(options.chain(), Height(u32::try_from(count).unwrap() + 1));
+      Rune::minimum_at_height(wallet.chain(), Height(u32::try_from(count).unwrap() + 1));
 
     ensure!(
       rune >= minimum_at_height,
@@ -59,17 +55,15 @@ impl Etch {
       "<DIVISIBILITY> must be equal to or less than 38"
     );
 
-    let destination = get_change_address(&client, options.chain())?;
+    let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
       etching: Some(Etching {
-        deadline: None,
         divisibility: self.divisibility,
-        limit: None,
+        mint: None,
         rune: Some(rune),
         spacers,
         symbol: Some(self.symbol),
-        term: None,
       }),
       edicts: vec![Edict {
         amount: self.supply.to_amount(self.divisibility)?,
@@ -78,6 +72,7 @@ impl Etch {
       }],
       default_output: None,
       burn: false,
+      claim: None,
     };
 
     let script_pubkey = runestone.encipher();
@@ -104,29 +99,28 @@ impl Etch {
       ],
     };
 
-    let unspent_outputs = get_unspent_outputs(&client, &index)?;
-
-    let inscriptions = index
-      .get_inscriptions(&unspent_outputs)?
+    let inscriptions = wallet
+      .inscriptions()
       .keys()
       .map(|satpoint| satpoint.outpoint)
       .collect::<Vec<OutPoint>>();
 
-    if !client.lock_unspent(&inscriptions)? {
+    if !bitcoin_client.lock_unspent(&inscriptions)? {
       bail!("failed to lock UTXOs");
     }
 
-    let unsigned_transaction = fund_raw_transaction(&client, self.fee_rate, &unfunded_transaction)?;
+    let unsigned_transaction =
+      fund_raw_transaction(bitcoin_client, self.fee_rate, &unfunded_transaction)?;
 
-    let signed_transaction = client
+    let signed_transaction = bitcoin_client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
-    let transaction = client.send_raw_transaction(&signed_transaction)?;
+    let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;
 
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       rune: self.rune,
       transaction,
-    }))
+    })))
   }
 }
