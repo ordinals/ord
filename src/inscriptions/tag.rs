@@ -122,7 +122,6 @@ impl Tag {
 
   pub(crate) fn remove_array_field(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Vec<Vec<u8>> {
     let values = fields.remove(self.bytes()).unwrap_or_default();
-  
     values.into_iter().map(|v| v.to_vec()).collect()
   }
 }
