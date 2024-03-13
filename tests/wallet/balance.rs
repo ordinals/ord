@@ -146,7 +146,7 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     .ord_rpc_server(&no_sync_ord_rpc_server)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: wallet failed to synchronize with ord server\n")
+    .expected_stderr("error: wallet failed to synchronize with `ord server` after 20 attempts\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("wallet --no-sync balance")
