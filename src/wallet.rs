@@ -113,7 +113,7 @@ impl Wallet {
               break;
             } else if i == 20 {
               bail!(
-                "wallet failed to synchronize with the server. Make sure `ord server` is running."
+                "wallet failed to synchronize with the ord server. Make sure `ord server` is running."
               );
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
