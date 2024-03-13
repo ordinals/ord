@@ -39,7 +39,7 @@ bitcoin-cli -datadir=env`
 And the `ord` will be:
 
 ```
-ord --data-dir env
+ord --datadir env
 ```
 
 Test Networks

@@ -172,7 +172,7 @@ impl CommandBuilder {
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
       .current_dir(&*self.tempdir)
-      .arg("--data-dir")
+      .arg("--datadir")
       .arg(self.tempdir.path())
       .args(&args);
 
