@@ -114,16 +114,10 @@ impl Wallet {
               if parsed_value >= chain_block_count {
                 break;
               }
-            } else {
-              eprintln!(
-                "wallet failed to request with the `ord server` after {} times",
-                i
+            } else if i == 20 {
+              bail!(
+                "wallet failed to synchronize with the server. Make sure `ord server` is running."
               );
-              if i == 20 {
-                bail!(
-                  "wallet failed to request with the `ord server`, make sure `ord server` is started !!!"
-                );
-              }
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
           }
