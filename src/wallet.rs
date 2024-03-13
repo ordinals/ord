@@ -109,7 +109,6 @@ impl Wallet {
         if !no_sync {
           for i in 0.. {
             let response = async_ord_client.get("/blockcount").await?;
-
             if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
               break;
             } else if i == 20 {
