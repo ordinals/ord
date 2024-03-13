@@ -113,12 +113,12 @@ impl Wallet {
               .text()
               .await?
               .parse::<u64>()
-              .expect("wallet failed to talk to server. Make sure `ord server` is running")
+              .expect("wallet failed to talk to server. Make sure `ord server` is running.")
               >= chain_block_count
             {
               break;
             } else if i == 20 {
-              bail!("wallet failed to synchronize with `ord server`");
+              bail!("wallet failed to synchronize with `ord server` after {i} attempts");
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
           }
