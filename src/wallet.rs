@@ -110,10 +110,8 @@ impl Wallet {
           for i in 0.. {
             let response = async_ord_client.get("/blockcount").await?;
 
-            if let Ok(parsed_value) = response.text().await?.parse::<u64>() {
-              if parsed_value >= chain_block_count {
-                break;
-              }
+            if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
+              break;
             } else if i == 20 {
               bail!(
                 "wallet failed to synchronize with the server. Make sure `ord server` is running."
