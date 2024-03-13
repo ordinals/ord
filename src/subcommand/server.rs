@@ -1371,14 +1371,23 @@ impl Server {
           .ok_or_not_found(|| format!("delegate {inscription_id}"))?
       }
 
+      let mut headers = HeaderMap::new();
+      let mut csp_value = "script-src-elem 'self' https://cdn.jsdelivr.net".to_string();
+
+      if let Some(origin) = &server_config.csp_origin {
+        csp_value.push_str(&format!(" {}", origin));
+      }
+
+      headers.insert(
+        header::CONTENT_SECURITY_POLICY,
+        HeaderValue::from_str(&csp_value).map_err(|err| ServerError::Internal(Error::from(err)))?,
+      );
+
       match inscription.media() {
-        Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+        Media::Audio => Ok((headers, PreviewAudioHtml { inscription_id }).into_response()),
         Media::Code(language) => Ok(
           (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
+            headers,
             PreviewCodeHtml {
               inscription_id,
               language,
@@ -1386,67 +1395,47 @@ impl Server {
           )
             .into_response(),
         ),
-        Media::Font => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
-            )],
-            PreviewFontHtml { inscription_id },
-          )
-            .into_response(),
-        ),
+        Media::Font => {
+          headers.insert(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("script-src-elem 'self'; style-src 'self' 'unsafe-inline';"),
+          );
+
+          Ok((headers, PreviewFontHtml { inscription_id }).into_response())
+        }
         Media::Iframe => Ok(
           Self::content_response(inscription, accept_encoding, &server_config)?
             .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
         ),
-        Media::Image(image_rendering) => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "default-src 'self' 'unsafe-inline'",
-            )],
-            PreviewImageHtml {
-              image_rendering,
-              inscription_id,
-            },
+        Media::Image(image_rendering) => {
+          headers.insert(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("default-src 'self' 'unsafe-inline'"),
+          );
+          Ok(
+            (
+              headers,
+              PreviewImageHtml {
+                image_rendering,
+                inscription_id,
+              },
+            )
+              .into_response(),
           )
-            .into_response(),
-        ),
-        Media::Markdown => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
-            PreviewMarkdownHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Model => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://ajax.googleapis.com",
-            )],
-            PreviewModelHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Pdf => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
-            PreviewPdfHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Text => Ok(PreviewTextHtml { inscription_id }.into_response()),
-        Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
-        Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
+        }
+        Media::Markdown => Ok((headers, PreviewMarkdownHtml { inscription_id }).into_response()),
+        Media::Model => {
+          headers.insert(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("script-src-elem 'self' https://ajax.googleapis.com"),
+          );
+          Ok((headers, PreviewModelHtml { inscription_id }).into_response())
+        }
+        Media::Pdf => Ok((headers, PreviewPdfHtml { inscription_id }).into_response()),
+        Media::Text => Ok((headers, PreviewTextHtml { inscription_id }).into_response()),
+        Media::Unknown => Ok((headers, PreviewUnknownHtml).into_response()),
+        Media::Video => Ok((headers, PreviewVideoHtml { inscription_id }).into_response()),
       }
     })
   }
