@@ -34,7 +34,7 @@ pub struct Options {
   pub(crate) config_dir: Option<PathBuf>,
   #[arg(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[arg(long, help = "Store index in <DATA_DIR>.")]
+  #[arg(long, alias = "datadir", help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
   #[arg(
     long,

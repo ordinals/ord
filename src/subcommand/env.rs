@@ -91,7 +91,7 @@ rpcport={bitcoind_port}
 
     let _ord = KillOnDrop(
       Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("server")
         .arg("--polling-interval=100ms")
@@ -104,7 +104,7 @@ rpcport={bitcoind_port}
 
     if !absolute.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("wallet")
         .arg("create")
@@ -113,7 +113,7 @@ rpcport={bitcoind_port}
       ensure!(status.success(), "failed to create wallet: {status}");
 
       let output = Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("wallet")
         .arg("receive")
@@ -127,13 +127,19 @@ rpcport={bitcoind_port}
       let receive =
         serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
 
-      let address = receive.address.require_network(Network::Regtest)?;
-
       let status = Command::new("bitcoin-cli")
         .arg(format!("-datadir={relative}"))
         .arg("generatetoaddress")
         .arg("200")
-        .arg(address.to_string())
+        .arg(
+          receive
+            .addresses
+            .first()
+            .cloned()
+            .unwrap()
+            .require_network(Network::Regtest)?
+            .to_string(),
+        )
         .status()?;
 
       ensure!(status.success(), "failed to create wallet: {status}");
@@ -147,7 +153,7 @@ rpcport={bitcoind_port}
         bitcoin_cli_command: vec!["bitcoin-cli".into(), format!("-datadir={relative}")],
         ord_wallet_command: vec![
           ord.to_str().unwrap().into(),
-          "--data-dir".into(),
+          "--datadir".into(),
           absolute.to_str().unwrap().into(),
           "wallet".into(),
         ],
@@ -160,7 +166,7 @@ rpcport={bitcoind_port}
 {}
 bitcoin-cli -datadir='{relative}' getblockchaininfo
 {}
-{} --data-dir '{relative}' wallet balance",
+{} --datadir '{relative}' wallet balance",
       "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
