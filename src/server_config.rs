@@ -1,6 +1,6 @@
 use {
   super::*,
-  axum::http::{header, HeaderMap, HeaderValue},
+  axum::http::{header, HeaderName},
 };
 
 #[derive(Default)]
@@ -13,19 +13,16 @@ pub(crate) struct ServerConfig {
   pub(crate) index_sats: bool,
   pub(crate) json_api_enabled: bool,
 }
+
 impl ServerConfig {
-  pub(crate) fn csp_header(&self, src: Option<&str>) -> Result<HeaderMap> {
-    let mut headers = HeaderMap::new();
-
-    let mut csp = src.map_or_else(|| "default-src 'self'".to_string(), |s| s.to_string());
-    if let Some(origin) = &self.csp_origin {
-      csp.push_str(&format!(" {}", origin));
-    }
-
-    headers.insert(
+  pub(crate) fn append_origin(&self, src: &str) -> [(HeaderName, String); 1] {
+    [(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_str(&csp).map_err(Error::from)?,
-    );
-    Ok(headers)
+      if let Some(origin) = &self.csp_origin {
+        src.replace("'self'", origin)
+      } else {
+        src.to_string()
+      },
+    )]
   }
 }

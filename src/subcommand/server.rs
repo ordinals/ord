@@ -1390,14 +1390,14 @@ impl Server {
       match inscription.media() {
         Media::Audio => Ok(
           (
-            server_config.csp_header(None)?,
+            server_config.append_origin("default-src 'self'"),
             PreviewAudioHtml { inscription_id },
           )
             .into_response(),
         ),
         Media::Code(language) => Ok(
           (
-            server_config.csp_header(Some("script-src-elem 'self' https://cdn.jsdelivr.net"))?,
+            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
             PreviewCodeHtml {
               inscription_id,
               language,
@@ -1407,9 +1407,8 @@ impl Server {
         ),
         Media::Font => Ok(
           (
-            server_config.csp_header(Some(
-              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
-            ))?,
+            server_config
+              .append_origin("script-src-elem 'self'; style-src 'self' 'unsafe-inline';"),
             PreviewFontHtml { inscription_id },
           )
             .into_response(),
@@ -1421,7 +1420,7 @@ impl Server {
         ),
         Media::Image(image_rendering) => Ok(
           (
-            server_config.csp_header(Some("default-src 'self' 'unsafe-inline'"))?,
+            server_config.append_origin("default-src 'self' 'unsafe-inline'"),
             PreviewImageHtml {
               image_rendering,
               inscription_id,
@@ -1431,36 +1430,42 @@ impl Server {
         ),
         Media::Markdown => Ok(
           (
-            server_config.csp_header(Some("script-src-elem 'self' https://cdn.jsdelivr.net"))?,
+            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
             PreviewMarkdownHtml { inscription_id },
           )
             .into_response(),
         ),
         Media::Model => Ok(
           (
-            server_config.csp_header(Some("script-src-elem 'self' https://ajax.googleapis.com"))?,
+            server_config.append_origin("script-src-elem 'self' https://ajax.googleapis.com"),
             PreviewModelHtml { inscription_id },
           )
             .into_response(),
         ),
         Media::Pdf => Ok(
           (
-            server_config.csp_header(Some("script-src-elem 'self' https://cdn.jsdelivr.net"))?,
+            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
             PreviewPdfHtml { inscription_id },
           )
             .into_response(),
         ),
         Media::Text => Ok(
           (
-            server_config.csp_header(None)?,
+            server_config.append_origin("default-src 'self'"),
             PreviewTextHtml { inscription_id },
           )
             .into_response(),
         ),
-        Media::Unknown => Ok((server_config.csp_header(None)?, PreviewUnknownHtml).into_response()),
+        Media::Unknown => Ok(
+          (
+            server_config.append_origin("default-src 'self'"),
+            PreviewUnknownHtml,
+          )
+            .into_response(),
+        ),
         Media::Video => Ok(
           (
-            server_config.csp_header(None)?,
+            server_config.append_origin("default-src 'self'"),
             PreviewVideoHtml { inscription_id },
           )
             .into_response(),
