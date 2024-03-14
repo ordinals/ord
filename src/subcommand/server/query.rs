@@ -28,13 +28,15 @@ impl FromStr for Inscription {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.contains('i') {
-      Self::Id(s.parse()?)
-    } else if s.chars().all(|c| c.is_ascii_lowercase()) {
-      Self::Sat(s.parse()?)
+    if re::INSCRIPTION_ID.is_match(s) {
+      Ok(Self::Id(s.parse()?))
+    } else if re::INSCRIPTION_NUMBER.is_match(s) {
+      Ok(Self::Number(s.parse()?))
+    } else if re::SAT_NAME.is_match(s) {
+      Ok(Self::Sat(s.parse()?))
     } else {
-      Self::Number(s.parse()?)
-    })
+      Err(anyhow!("bad inscription query {s}"))
+    }
   }
 }
 
