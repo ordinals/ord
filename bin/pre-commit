@@ -7,6 +7,5 @@ REPO_ROOT_DIR=$(git rev-parse --show-toplevel)
 files=$(git diff --cached --name-only --diff-filter=ACMR | grep -Ei "\.rs$" || true)
 
 if [[ -n $files ]]; then
-    cargo fmt --all
-    git add -- $(echo "$files" | paste -s -d " " -)
+    cargo fmt --check
 fi
