@@ -5,20 +5,17 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::{
-    server_config::ServerConfig,
-    templates::{
-      BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
-      InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-      PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-      PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-      RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
-    },
+  crate::templates::{
+    BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
+    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
     extract::{Extension, Json, Path, Query},
-    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -42,10 +39,13 @@ use {
   },
 };
 
+pub(crate) use server_config::ServerConfig;
+
 mod accept_encoding;
 mod accept_json;
 mod error;
 pub(crate) mod query;
+mod server_config;
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -1387,17 +1387,25 @@ impl Server {
           .ok_or_not_found(|| format!("delegate {inscription_id}"))?
       }
 
-      match inscription.media() {
-        Media::Audio => Ok(
-          (
-            server_config.append_origin("default-src 'self'"),
-            PreviewAudioHtml { inscription_id },
-          )
+      let media = inscription.media();
+
+      if let Media::Iframe = media {
+        return Ok(
+          Self::content_response(inscription, accept_encoding, &server_config)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
-        ),
+        );
+      }
+
+      let content_security_policy = server_config.preview_content_security_policy(media)?;
+
+      match media {
+        Media::Audio => {
+          Ok((content_security_policy, PreviewAudioHtml { inscription_id }).into_response())
+        }
         Media::Code(language) => Ok(
           (
-            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
+            content_security_policy,
             PreviewCodeHtml {
               inscription_id,
               language,
@@ -1405,22 +1413,13 @@ impl Server {
           )
             .into_response(),
         ),
-        Media::Font => Ok(
-          (
-            server_config
-              .append_origin("script-src-elem 'self'; style-src 'self' 'unsafe-inline';"),
-            PreviewFontHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Iframe => Ok(
-          Self::content_response(inscription, accept_encoding, &server_config)?
-            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-            .into_response(),
-        ),
+        Media::Font => {
+          Ok((content_security_policy, PreviewFontHtml { inscription_id }).into_response())
+        }
+        Media::Iframe => unreachable!(),
         Media::Image(image_rendering) => Ok(
           (
-            server_config.append_origin("default-src 'self' 'unsafe-inline'"),
+            content_security_policy,
             PreviewImageHtml {
               image_rendering,
               inscription_id,
@@ -1430,46 +1429,24 @@ impl Server {
         ),
         Media::Markdown => Ok(
           (
-            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
+            content_security_policy,
             PreviewMarkdownHtml { inscription_id },
           )
             .into_response(),
         ),
-        Media::Model => Ok(
-          (
-            server_config.append_origin("script-src-elem 'self' https://ajax.googleapis.com"),
-            PreviewModelHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Pdf => Ok(
-          (
-            server_config.append_origin("script-src-elem 'self' https://cdn.jsdelivr.net"),
-            PreviewPdfHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Text => Ok(
-          (
-            server_config.append_origin("default-src 'self'"),
-            PreviewTextHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Unknown => Ok(
-          (
-            server_config.append_origin("default-src 'self'"),
-            PreviewUnknownHtml,
-          )
-            .into_response(),
-        ),
-        Media::Video => Ok(
-          (
-            server_config.append_origin("default-src 'self'"),
-            PreviewVideoHtml { inscription_id },
-          )
-            .into_response(),
-        ),
+        Media::Model => {
+          Ok((content_security_policy, PreviewModelHtml { inscription_id }).into_response())
+        }
+        Media::Pdf => {
+          Ok((content_security_policy, PreviewPdfHtml { inscription_id }).into_response())
+        }
+        Media::Text => {
+          Ok((content_security_policy, PreviewTextHtml { inscription_id }).into_response())
+        }
+        Media::Unknown => Ok((content_security_policy, PreviewUnknownHtml).into_response()),
+        Media::Video => {
+          Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
+        }
       }
     })
   }
