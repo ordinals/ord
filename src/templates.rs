@@ -14,7 +14,7 @@ pub(crate) use {
   metadata::MetadataHtml,
   output::OutputHtml,
   preview::{
-    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewSourceHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
