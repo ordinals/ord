@@ -1364,29 +1364,37 @@ impl Server {
       }
 
       let mut headers = HeaderMap::new();
-      let mut csp_value = "script-src-elem 'self' https://cdn.jsdelivr.net".to_string();
+      let mut default_csp_value = "default-src 'self'".to_string();
+      let mut script_csp_value = "script-src-elem 'self' https://cdn.jsdelivr.net".to_string();
 
       if let Some(origin) = &server_config.csp_origin {
-        csp_value.push_str(&format!(" {}", origin));
+        default_csp_value.push_str(&format!(" {}", origin));
+        script_csp_value.push_str(&format!(" {}", origin));
       }
 
-      headers.insert(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_str(&csp_value).map_err(|err| ServerError::Internal(Error::from(err)))?,
-      );
+      let default_header = HeaderValue::from_str(&default_csp_value)
+        .map_err(|err| ServerError::Internal(Error::from(err)))?;
+
+      let script_header = HeaderValue::from_str(&script_csp_value)
+        .map_err(|err| ServerError::Internal(Error::from(err)))?;
+
+      headers.insert(header::CONTENT_SECURITY_POLICY, default_header);
 
       match inscription.media() {
         Media::Audio => Ok((headers, PreviewAudioHtml { inscription_id }).into_response()),
-        Media::Code(language) => Ok(
-          (
-            headers,
-            PreviewCodeHtml {
-              inscription_id,
-              language,
-            },
+        Media::Code(language) => {
+          headers.insert(header::CONTENT_SECURITY_POLICY, script_header);
+          Ok(
+            (
+              headers,
+              PreviewCodeHtml {
+                inscription_id,
+                language,
+              },
+            )
+              .into_response(),
           )
-            .into_response(),
-        ),
+        }
         Media::Font => {
           headers.insert(
             header::CONTENT_SECURITY_POLICY,
@@ -1416,7 +1424,10 @@ impl Server {
               .into_response(),
           )
         }
-        Media::Markdown => Ok((headers, PreviewMarkdownHtml { inscription_id }).into_response()),
+        Media::Markdown => {
+          headers.insert(header::CONTENT_SECURITY_POLICY, script_header);
+          Ok((headers, PreviewMarkdownHtml { inscription_id }).into_response())
+        }
         Media::Model => {
           headers.insert(
             header::CONTENT_SECURITY_POLICY,
@@ -1424,7 +1435,10 @@ impl Server {
           );
           Ok((headers, PreviewModelHtml { inscription_id }).into_response())
         }
-        Media::Pdf => Ok((headers, PreviewPdfHtml { inscription_id }).into_response()),
+        Media::Pdf => {
+          headers.insert(header::CONTENT_SECURITY_POLICY, script_header);
+          Ok((headers, PreviewPdfHtml { inscription_id }).into_response())
+        }
         Media::Text => Ok((headers, PreviewTextHtml { inscription_id }).into_response()),
         Media::Unknown => Ok((headers, PreviewUnknownHtml).into_response()),
         Media::Video => Ok((headers, PreviewVideoHtml { inscription_id }).into_response()),
