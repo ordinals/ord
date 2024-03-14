@@ -1,6 +1,7 @@
-use super::*;
-use anyhow::Ok;
-use axum::http::{header, HeaderMap, HeaderValue};
+use {
+  super::*,
+  axum::http::{header, HeaderMap, HeaderValue},
+};
 
 #[derive(Default)]
 pub(crate) struct ServerConfig {
