@@ -16,7 +16,7 @@ impl ServerConfig {
   pub(crate) fn csp_header(&self, src: Option<&str>) -> Result<HeaderMap> {
     let mut headers = HeaderMap::new();
 
-    let mut csp = src.map_or_else(|| "default-src 'self'".to_string(), |s| format!("{}", s));
+    let mut csp = src.map_or_else(|| "default-src 'self'".to_string(), |s| s.to_string());
     if let Some(origin) = &self.csp_origin {
       csp.push_str(&format!(" {}", origin));
     }
