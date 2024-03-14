@@ -17,12 +17,14 @@ fmt:
 clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
-git-hooks:
-	mkdir -p .git/hooks
-
-git-pre-commit: git-hooks
-	cp bin/pre-commit .git/hooks/
-	chmod +x .git/hooks/pre-commit
+install-git-hooks:
+  #!/usr/bin/env bash
+  for file in hooks/*; do
+      filename=$(basename "$file")
+      if [ ! -e ".git/hooks/$filename" ]; then
+          ln -s "$PWD/$file" ".git/hooks/$filename"
+      fi
+  done
 
 deploy branch remote chain domain:
   ssh root@{{domain}} '\
