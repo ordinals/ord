@@ -1473,6 +1473,15 @@ impl Server {
       let info = Index::inscription_info(&index, query)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
+      let effective_mime_type = if let Some(delegate_id) = info.inscription.delegate() {
+        let delegate_result = index.get_inscription_by_id(delegate_id);
+        if let Ok(Some(delegate)) = delegate_result {
+          delegate.content_type().map(str::to_string)
+        } else {
+          info.inscription.content_type().map(str::to_string)
+        }
+      } else { info.inscription.content_type().map(str::to_string) };
+
       Ok(if accept_json {
         Json(api::Inscription {
           address: info
@@ -1493,6 +1502,7 @@ impl Server {
           children: info.children,
           content_length: info.inscription.content_length(),
           content_type: info.inscription.content_type().map(|s| s.to_string()),
+          effective_content_type: effective_mime_type,
           fee: info.entry.fee,
           height: info.entry.height,
           id: info.entry.id,
