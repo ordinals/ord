@@ -7,24 +7,21 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Receive {
-  #[arg(
-    short,
-    long,
-    default_value_t = 1,
-    help = "Generate <NUMBER> addresses."
-  )]
-  number: u64,
+  #[arg(short, long, help = "Generate <NUMBER> addresses.")]
+  number: Option<u64>,
 }
 
 impl Receive {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let addresses = (0..self.number)
-      .map(|_| {
+    let mut addresses: Vec<Address<NetworkUnchecked>> = Vec::new();
+
+    for _ in 0..self.number.unwrap_or(1) {
+      addresses.push(
         wallet
           .bitcoin_client()
-          .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))
-      })
-      .collect::<Result<Vec<_>, _>>()?;
+          .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?,
+      );
+    }
 
     Ok(Some(Box::new(Output { addresses })))
   }
