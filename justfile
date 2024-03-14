@@ -19,10 +19,11 @@ clippy:
 
 install-git-hooks:
   #!/usr/bin/env bash
-  for file in hooks/*; do
-      filename=$(basename "$file")
-      if [ ! -e ".git/hooks/$filename" ]; then
-          ln -s "$PWD/$file" ".git/hooks/$filename"
+  set -euo pipefail
+  for hook in hooks/*; do
+      name=$(basename "$hook")
+      if [ ! -e ".git/hooks/$name" ]; then
+          ln -s "$PWD/$hook" ".git/hooks/$name"
       fi
   done
 
