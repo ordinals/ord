@@ -940,29 +940,21 @@ impl Server {
 
   async fn search_inner(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
     task::block_in_place(|| {
-      lazy_static! {
-        static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
-        static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
-        static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
-        static ref RUNE: Regex = Regex::new(r"^[A-Z•.]+$").unwrap();
-        static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+:[0-9]+$").unwrap();
-      }
-
       let query = query.trim();
 
-      if HASH.is_match(query) {
+      if re::HASH.is_match(query) {
         if index.block_header(query.parse().unwrap())?.is_some() {
           Ok(Redirect::to(&format!("/block/{query}")))
         } else {
           Ok(Redirect::to(&format!("/tx/{query}")))
         }
-      } else if OUTPOINT.is_match(query) {
+      } else if re::OUTPOINT.is_match(query) {
         Ok(Redirect::to(&format!("/output/{query}")))
-      } else if INSCRIPTION_ID.is_match(query) {
+      } else if re::INSCRIPTION_ID.is_match(query) {
         Ok(Redirect::to(&format!("/inscription/{query}")))
-      } else if RUNE.is_match(query) {
+      } else if re::SPACED_RUNE.is_match(query) {
         Ok(Redirect::to(&format!("/rune/{query}")))
-      } else if RUNE_ID.is_match(query) {
+      } else if re::RUNE_ID.is_match(query) {
         let id = query
           .parse::<RuneId>()
           .map_err(|err| ServerError::BadRequest(err.to_string()))?;
@@ -4206,8 +4198,17 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", Sat(5000000000).name()),
       StatusCode::OK,
-      r".*<title>Inscription 0</title.*",
+      ".*<title>Inscription 0</title.*",
     );
+  }
+
+  #[test]
+  fn inscriptions_can_be_looked_up_by_sat_name_with_letter_i() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+    server.assert_response_regex("/inscription/i", StatusCode::NOT_FOUND, ".*");
   }
 
   #[test]
