@@ -133,9 +133,9 @@ rpcport={bitcoind_port}
         .arg("200")
         .arg(
           receive
-            .clone()
             .addresses
             .first()
+            .cloned()
             .unwrap()
             .require_network(Network::Regtest)?
             .to_string(),
