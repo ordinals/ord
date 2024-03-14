@@ -127,13 +127,19 @@ rpcport={bitcoind_port}
       let receive =
         serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
 
-      let address = receive.address.require_network(Network::Regtest)?;
-
       let status = Command::new("bitcoin-cli")
         .arg(format!("-datadir={relative}"))
         .arg("generatetoaddress")
         .arg("200")
-        .arg(address.to_string())
+        .arg(
+          receive
+            .addresses
+            .first()
+            .cloned()
+            .unwrap()
+            .require_network(Network::Regtest)?
+            .to_string(),
+        )
         .status()?;
 
       ensure!(status.success(), "failed to create wallet: {status}");
