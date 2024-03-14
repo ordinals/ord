@@ -1458,6 +1458,12 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
+      if let query::Inscription::Sat(_) = query {
+        if !index.has_sat_index() {
+          return Err(ServerError::NotFound("sat index required".into()));
+        }
+      }
+
       let info = Index::inscription_info(&index, query)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
@@ -4183,6 +4189,28 @@ mod tests {
   }
 
   #[test]
+  fn inscriptions_can_be_looked_up_by_sat_name() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{}", Sat(5000000000).name()),
+      StatusCode::OK,
+      r".*<title>Inscription 0</title.*",
+    );
+  }
+
+  #[test]
   fn inscription_page_does_not_have_sat_when_sats_are_not_tracked() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
@@ -5465,6 +5493,18 @@ next
         "/inscription/0",
         StatusCode::NOT_FOUND,
         "inscription 0 not found",
+      );
+  }
+
+  #[test]
+  fn looking_up_inscription_by_sat_requires_sat_index() {
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_response(
+        "/inscription/abcd",
+        StatusCode::NOT_FOUND,
+        "sat index required",
       );
   }
 
