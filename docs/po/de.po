@@ -5111,11 +5111,11 @@ msgstr ""
 #: src\guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index run` or give it a specific filename and path "
+"`ord --datadir <DIR> index run` or give it a specific filename and path "
 "with `ord --index <FILENAME> index run`."
 msgstr ""
 "Sie können natürlich auch den Speicherort des Dataverzeichnisses selbst "
-"festlegen, indem Sie `ord --data-dir <DIR> index run` verwenden oder ihm "
+"festlegen, indem Sie `ord --datadir <DIR> index run` verwenden oder ihm "
 "einen bestimmten Dateinamen und path mit `ord --index <DATEINAME> index run` "
 "zuweisen."
 

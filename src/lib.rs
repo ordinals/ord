@@ -114,6 +114,7 @@ mod inscriptions;
 mod object;
 pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
 mod server_config;

@@ -1740,30 +1740,20 @@ impl Index {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      query::Inscription::Id(id) => {
-        let inscription_id_to_sequence_number =
-          rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
-
-        let sequence_number = inscription_id_to_sequence_number
-          .get(&id.store())?
-          .map(|guard| guard.value());
-
-        drop(inscription_id_to_sequence_number);
-
-        sequence_number
-      }
-      query::Inscription::Number(inscription_number) => {
-        let inscription_number_to_sequence_number =
-          rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
-
-        let sequence_number = inscription_number_to_sequence_number
-          .get(inscription_number)?
-          .map(|guard| guard.value());
-
-        drop(inscription_number_to_sequence_number);
-
-        sequence_number
-      }
+      query::Inscription::Id(id) => rtx
+        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+        .get(&id.store())?
+        .map(|guard| guard.value()),
+      query::Inscription::Number(inscription_number) => rtx
+        .open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?
+        .get(inscription_number)?
+        .map(|guard| guard.value()),
+      query::Inscription::Sat(sat) => rtx
+        .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
+        .get(sat.n())?
+        .next()
+        .transpose()?
+        .map(|guard| guard.value()),
     };
 
     let Some(sequence_number) = sequence_number else {

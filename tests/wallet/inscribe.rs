@@ -283,6 +283,11 @@ fn inscribe_with_optional_satpoint_arg() {
   );
 
   ord_rpc_server.assert_response_regex(format!("/content/{inscription}",), "FOO");
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{}", Sat(5000010000).name()),
+    ".*<title>Inscription 0</title>.*",
+  );
 }
 
 #[test]
@@ -477,11 +482,13 @@ fn inscribe_to_specific_destination() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let destination = CommandBuilder::new("wallet receive")
+  let addresses = CommandBuilder::new("wallet receive")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<receive::Output>()
-    .address;
+    .addresses;
+
+  let destination = addresses.first().unwrap();
 
   let txid = CommandBuilder::new(format!(
     "wallet inscribe --destination {} --file degenerate.png --fee-rate 1",
