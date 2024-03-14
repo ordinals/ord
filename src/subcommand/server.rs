@@ -1864,7 +1864,7 @@ mod tests {
       args.push("--cookie-file".into());
       args.push(cookiefile.to_str().unwrap().into());
 
-      args.push("--data-dir".into());
+      args.push("--datadir".into());
       args.push(tempdir.path().to_str().unwrap().into());
 
       if !self.ord_args.contains_key("--chain") {
@@ -2223,7 +2223,7 @@ mod tests {
 
   #[test]
   fn acme_cache_defaults_to_data_dir() {
-    let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--datadir", "foo", "server"]).unwrap();
 
     let settings = Settings::from_options(arguments.options)
       .or_defaults()
@@ -2243,7 +2243,7 @@ mod tests {
   #[test]
   fn acme_cache_flag_is_respected() {
     let arguments =
-      Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
+      Arguments::try_parse_from(["ord", "--datadir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
 
     let settings = Settings::from_options(arguments.options)
