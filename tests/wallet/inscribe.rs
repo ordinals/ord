@@ -2178,6 +2178,36 @@ fn file_inscribe_with_delegate_inscription() {
 }
 
 #[test]
+fn inscription_with_delegate_returns_effective_content_type() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+  let (delegate, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {delegate} --file meow.wav"
+  ))
+      .write("meow.wav", [0; 2048])
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let inscription_id = inscribe.inscriptions[0].id;
+  let json_response = ord_rpc_server.json_request(format!("/inscription/{}", inscription_id));
+
+  let mut inscription_json: api::Inscription =
+      serde_json::from_str(&json_response.text().unwrap()).unwrap();
+  assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
+
+  assert_eq!(inscription_json.content_type, Some("audio/wav".to_string()));
+  assert_eq!(inscription_json.effective_content_type, Some("text/plain;charset=utf-8".to_string()));
+}
+
+#[test]
 fn file_inscribe_with_non_existent_delegate_inscription() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
