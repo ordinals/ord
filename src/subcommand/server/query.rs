@@ -21,6 +21,7 @@ impl FromStr for Block {
 pub(crate) enum Inscription {
   Id(InscriptionId),
   Number(i32),
+  Sat(Sat),
 }
 
 impl FromStr for Inscription {
@@ -29,6 +30,8 @@ impl FromStr for Inscription {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(if s.contains('i') {
       Self::Id(s.parse()?)
+    } else if s.chars().all(|c| c.is_ascii_lowercase()) {
+      Self::Sat(s.parse()?)
     } else {
       Self::Number(s.parse()?)
     })
@@ -40,6 +43,7 @@ impl Display for Inscription {
     match self {
       Self::Id(id) => write!(f, "{id}"),
       Self::Number(number) => write!(f, "{number}"),
+      Self::Sat(sat) => write!(f, "on sat {}", sat.name()),
     }
   }
 }
