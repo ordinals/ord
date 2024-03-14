@@ -1480,7 +1480,9 @@ impl Server {
         } else {
           info.inscription.content_type().map(str::to_string)
         }
-      } else { info.inscription.content_type().map(str::to_string) };
+      } else {
+        info.inscription.content_type().map(str::to_string)
+      };
 
       Ok(if accept_json {
         Json(api::Inscription {
