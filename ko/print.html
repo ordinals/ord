@@ -1436,7 +1436,7 @@ inscriptions:
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
 ord index update
 </code></pre>
-<p>물론 <code>ord --data-dir &lt;DIR&gt; index update</code>로 데이터 디렉터리의 위치를 직접 설정하거나 <code>ord --index &lt;FILENAME&gt; index update</code>로 특정 파일 이름과 경로를 지정할 수도 있다.</p>
+<p>물론 <code>ord --datadir &lt;DIR&gt; index update</code>로 데이터 디렉터리의 위치를 직접 설정하거나 <code>ord --index &lt;FILENAME&gt; index update</code>로 특정 파일 이름과 경로를 지정할 수도 있다.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sat-헌팅"><a class="header" href="#sat-헌팅">SAT 헌팅</a></h1>
 <p><em>이 가이드는 오래되었다. 이 가이드가 작성된 이후, <code>ord</code> 바이너리는 <code>--index-sats</code> 플래그가 제공될 때만 풀 사토시 인덱스를 빌드하도록 변경되다. 또한 <code>ord</code>에는 이제 Bitcoin Core 지갑을 감싸는 지갑이 내장되어 있다. <code>ord wallet —help</code>를 참조하자.</em></p>
 <p>오디널 헌팅은 어렵지만 보람이 있다. 희귀하고 이색적인 SAT의 향기가 풍기는 UTXO가 가득한 지갑을 소유했을 때의 기분은 그 무엇과도 비교할 수 없다.</p>
@@ -1613,9 +1613,9 @@ ord index update
 <p><code>ord</code> can be configured with the command line, environment variables, a configuration file, and default values.</p>
 <p>The command line takes precedence over environment variables, which take precedence over the configuration file, which takes precedence over defaults.</p>
 <p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>. <code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist.</p>
-<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--data-dir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
-<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--data-dir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
-<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
+<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--datadir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
+<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--datadir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
+<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--datadir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
 <p>See <code>ord --help</code> for documentation of all the settings.</p>
 <p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
 <h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
@@ -1696,7 +1696,7 @@ $ord outputs
 <pre><code>bitcoin-cli -datadir=env`
 </code></pre>
 <p>And the <code>ord</code> will be:</p>
-<pre><code>ord --data-dir env
+<pre><code>ord --datadir env
 </code></pre>
 <h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>Ord는 다음 플래그를 사용하여 테스트 네트워크를 지정하여 테스트할 수 있다. 테스트를 위한 Bitcoin Core 실행에 대한 자세한 내용은 <a href="https://developer.bitcoin.org/examples/testing.html">비트코인 개발자 문서</a>를 참조하자.</p>

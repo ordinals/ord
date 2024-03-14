@@ -1985,7 +1985,7 @@ commands in the terminal:</p>
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
 ord index update
 </code></pre>
-<p>You can of course also set the location of the data directory yourself with <code>ord --data-dir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
+<p>You can of course also set the location of the data directory yourself with <code>ord --datadir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sat-hunting"><a class="header" href="#sat-hunting">Sat Hunting</a></h1>
 <p><em>This guide is out of date. Since it was written, the <code>ord</code> binary was changed
 to only build the full satoshi index when the <code>--index-sats</code> flag is supplied.
@@ -2199,14 +2199,14 @@ precedence over the configuration file, which takes precedence over defaults.</p
 <p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>.
 <code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist.</p>
 <p>The path to a directory containing a configuration file name named <code>ord.yaml</code>
-can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--data-dir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code>
+can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--datadir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code>
 or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
-<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--data-dir</code> are given, and a file
+<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--datadir</code> are given, and a file
 named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
 <p>For a setting named <code>--setting-name</code> on the command line, the environment
 variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be
 named <code>setting_name</code>. For example, the data directory can be configured with
-<code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or
+<code>--datadir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or
 <code>data_dir</code> in the config file.</p>
 <p>See <code>ord --help</code> for documentation of all the settings.</p>
 <p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code>
@@ -2311,7 +2311,7 @@ command will be:</p>
 <pre><code>bitcoin-cli -datadir=env`
 </code></pre>
 <p>And the <code>ord</code> will be:</p>
-<pre><code>ord --data-dir env
+<pre><code>ord --datadir env
 </code></pre>
 <h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>Ord can be tested using the following flags to specify the test network. For more

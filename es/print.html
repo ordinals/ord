@@ -1436,7 +1436,7 @@ inscriptions:
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
 ord index update
 </code></pre>
-<p>También tienes la opción de determinar la ubicación del directorio de datos utilizando el comando <code>ord --data-dir &lt;DIR&gt; index update</code> o asignarle un nombre de archivo y ruta específicos utilizando el comando <code>ord --index &lt;NOMBRE_DE_ARCHIVO&gt; index update</code>.</p>
+<p>También tienes la opción de determinar la ubicación del directorio de datos utilizando el comando <code>ord --datadir &lt;DIR&gt; index update</code> o asignarle un nombre de archivo y ruta específicos utilizando el comando <code>ord --index &lt;NOMBRE_DE_ARCHIVO&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="caza-de-sats"><a class="header" href="#caza-de-sats">Caza de Sats</a></h1>
 <p><em>Esta guía está desactualizada. Desde que se escribió, el binario <code>ord</code> ord fue modificado para construir el índice completo de satoshis únicamente cuando se utiliza la bandera <code>--index-sats</code>. Además, <code>ord</code> ahora tiene un monedero integrado que envuelve un monedero de Bitcoin Core. Ver <code>ord wallet –help</code>.</em></p>
 <p>La caza de Ordinals es difícil pero gratificante. La sensación de poseer un monedero lleno de UTXOs, impregnado con el aroma de sats raros y exóticos, es incomparable.</p>
@@ -1615,9 +1615,9 @@ ord index update
 <p><code>ord</code> can be configured with the command line, environment variables, a configuration file, and default values.</p>
 <p>The command line takes precedence over environment variables, which take precedence over the configuration file, which takes precedence over defaults.</p>
 <p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>. <code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist.</p>
-<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--data-dir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
-<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--data-dir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
-<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--data-dir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
+<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--datadir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
+<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--datadir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
+<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--datadir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
 <p>See <code>ord --help</code> for documentation of all the settings.</p>
 <p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
 <h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
@@ -1698,7 +1698,7 @@ $ord outputs
 <pre><code>bitcoin-cli -datadir=env`
 </code></pre>
 <p>And the <code>ord</code> will be:</p>
-<pre><code>ord --data-dir env
+<pre><code>ord --datadir env
 </code></pre>
 <h2 id="test-networks"><a class="header" href="#test-networks">Test Networks</a></h2>
 <p>Puedes hacer pruebas en <code>ord</code> utilizando las siguientes flags (banderas) para especificar la red de pruebas. Para obtener más información sobre cómo ejecutar Bitcoin Core en modo de pruebas, consulta la <a href="https://developer.bitcoin.org/examples/testing.html">documentación para desarrolladores de Bitcoin</a>.</p>
