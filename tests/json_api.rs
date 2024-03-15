@@ -30,7 +30,7 @@ fn get_sat_without_sat_index() {
       percentile: "100%".into(),
       satpoint: None,
       timestamp: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   )
 }
@@ -163,7 +163,7 @@ fn get_inscription() {
       number: 0,
       next: None,
       value: Some(10000),
-      parent: None,
+      parents: Vec::new(),
       previous: None,
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
@@ -389,7 +389,7 @@ fn get_block() {
         .unwrap(),
       best_height: 1,
       height: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   );
 }
