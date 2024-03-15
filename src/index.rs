@@ -1152,17 +1152,17 @@ impl Index {
   pub(crate) fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
-    page_size: usize,
     page_index: usize,
   ) -> Result<(Vec<InscriptionId>, bool)> {
+    const PAGE_SIZE: usize = 100;
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let mut parents = parent_sequence_numbers
       .iter()
-      .skip(page_index * page_size)
-      .take(page_size.saturating_add(1))
+      .skip(page_index * PAGE_SIZE)
+      .take(PAGE_SIZE.saturating_add(1))
       .map(|sequence_number| {
         sequence_number_to_entry
           .get(sequence_number)
@@ -1171,7 +1171,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more_parents = parents.len() > 100;
+    let more_parents = parents.len() > PAGE_SIZE;
 
     if more_parents {
       parents.pop();
@@ -1848,18 +1848,22 @@ impl Index {
       None
     };
 
-    let mut parents = Vec::new();
-    for parent in entry.parents.iter() {
-      parents.push(
-        InscriptionEntry::load(
-          sequence_number_to_inscription_entry
-            .get(parent)?
-            .unwrap()
-            .value(),
+    let parents = entry
+      .parents
+      .iter()
+      .take(4)
+      .map(|parent| {
+        Ok(
+          InscriptionEntry::load(
+            sequence_number_to_inscription_entry
+              .get(parent)?
+              .unwrap()
+              .value(),
+          )
+          .id,
         )
-        .id,
-      );
-    }
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
 
     let mut charms = entry.charms;
 
