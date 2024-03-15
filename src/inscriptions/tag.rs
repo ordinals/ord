@@ -119,7 +119,11 @@ impl Tag {
   }
 
   pub(crate) fn take_array(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Vec<Vec<u8>> {
-    let values = fields.remove(self.bytes()).unwrap_or_default();
-    values.into_iter().map(|v| v.to_vec()).collect()
+    fields
+      .remove(self.bytes())
+      .unwrap_or_default()
+      .into_iter()
+      .map(|v| v.to_vec())
+      .collect()
   }
 }
