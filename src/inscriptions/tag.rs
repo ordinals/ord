@@ -88,7 +88,7 @@ impl Tag {
     mem::swap(&mut tmp, builder);
   }
 
-  pub(crate) fn remove_field(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
+  pub(crate) fn take(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
     match self.parsing_strategy() {
       TagCodecStrategy::First => {
         let values = fields.get_mut(self.bytes())?;
@@ -120,7 +120,7 @@ impl Tag {
     }
   }
 
-  pub(crate) fn remove_array_field(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Vec<Vec<u8>> {
+  pub(crate) fn take_array(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Vec<Vec<u8>> {
     let values = fields.remove(self.bytes()).unwrap_or_default();
     values.into_iter().map(|v| v.to_vec()).collect()
   }

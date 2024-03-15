@@ -48,13 +48,13 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_encoding = Tag::ContentEncoding.remove_field(&mut fields);
-    let content_type = Tag::ContentType.remove_field(&mut fields);
-    let delegate = Tag::Delegate.remove_field(&mut fields);
-    let metadata = Tag::Metadata.remove_field(&mut fields);
-    let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
-    let parents = Tag::Parent.remove_array_field(&mut fields);
-    let pointer = Tag::Pointer.remove_field(&mut fields);
+    let content_encoding = Tag::ContentEncoding.take(&mut fields);
+    let content_type = Tag::ContentType.take(&mut fields);
+    let delegate = Tag::Delegate.take(&mut fields);
+    let metadata = Tag::Metadata.take(&mut fields);
+    let metaprotocol = Tag::Metaprotocol.take(&mut fields);
+    let parents = Tag::Parent.take_array(&mut fields);
+    let pointer = Tag::Pointer.take(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
