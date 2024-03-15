@@ -511,13 +511,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .txid,
-      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
-        .parse()
-        .unwrap()
+      .parents(),
+      [
+        "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -528,11 +527,12 @@ mod tests {
         parents: vec![vec![1; 32]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0
+      .parents(),
+      [
+        "0101010101010101010101010101010101010101010101010101010101010101i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -547,11 +547,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      1
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi1"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -566,11 +567,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x0201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi513"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -585,11 +587,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi197121"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -604,11 +607,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x04030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305985"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
