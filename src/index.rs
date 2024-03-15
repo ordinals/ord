@@ -4176,7 +4176,7 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let mut inscription_ids = vec![];
+      let mut inscription_ids = Vec::new();
       for i in 1..=21 {
         let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
           inputs: &[(
@@ -4783,7 +4783,7 @@ mod tests {
           .index
           .get_children_by_inscription_id(parent_inscription_id_b)
           .unwrap(),
-        vec![]
+        Vec::new()
       );
       assert_eq!(
         context
@@ -4876,7 +4876,7 @@ mod tests {
           .index
           .get_children_by_inscription_id(parent_inscription_id_b)
           .unwrap(),
-        vec![]
+        Vec::new()
       );
       assert_eq!(
         context

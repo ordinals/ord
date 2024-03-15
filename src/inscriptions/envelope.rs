@@ -855,7 +855,7 @@ mod tests {
       parse(&[envelope(&[&PROTOCOL_ID, Tag::Metadata.bytes(), &[]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
-          metadata: Some(vec![]),
+          metadata: Some(Vec::new()),
           ..Default::default()
         },
         ..Default::default()

@@ -435,7 +435,7 @@ mod tests {
   #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
     assert!(Inscription {
-      parents: vec![],
+      parents: Vec::new(),
       ..Default::default()
     }
     .parents()
@@ -445,7 +445,7 @@ mod tests {
   #[test]
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
     assert!(Inscription {
-      parents: vec![vec![]],
+      parents: vec![Vec::new()],
       ..Default::default()
     }
     .parents()

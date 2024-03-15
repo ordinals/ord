@@ -5423,7 +5423,7 @@ next
     assert_eq!(
       server.get_json::<api::SatInscriptions>("/r/sat/5000000000"),
       api::SatInscriptions {
-        ids: vec![],
+        ids: Vec::new(),
         page: 0,
         more: false
       }
