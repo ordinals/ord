@@ -44,7 +44,7 @@ impl TestServer {
       .port();
 
     let (settings, server) = parse_ord_server_args(&format!(
-      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
       bitcoin_rpc_server.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),

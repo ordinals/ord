@@ -4794,10 +4794,10 @@ msgstr ""
 #: /workspaces/ord_ko/docs/src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"`ord --datadir <DIR> index update` or give it a specific filename and path "
 "with `ord --index <FILENAME> index update`."
 msgstr ""
-"물론 `ord --data-dir <DIR> index update`로 데이터 디렉터리의 위치를 직접 설정"
+"물론 `ord --datadir <DIR> index update`로 데이터 디렉터리의 위치를 직접 설정"
 "하거나 `ord --index <FILENAME> index update`로 특정 파일 이름과 경로를 지정"
 "할 수도 있다."
 

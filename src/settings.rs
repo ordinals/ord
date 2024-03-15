@@ -780,7 +780,7 @@ mod tests {
 
   #[test]
   fn network_is_joined_with_data_dir() {
-    let data_dir = parse(&["--chain=signet", "--data-dir=foo"])
+    let data_dir = parse(&["--chain=signet", "--datadir=foo"])
       .data_dir()
       .display()
       .to_string();
@@ -1065,7 +1065,7 @@ mod tests {
           "--config=config",
           "--config-dir=config dir",
           "--cookie-file=cookie file",
-          "--data-dir=/data/dir",
+          "--datadir=/data/dir",
           "--first-inscription-height=2",
           "--height-limit=3",
           "--index-cache-size=4",

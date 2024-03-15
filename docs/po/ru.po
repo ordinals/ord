@@ -4024,10 +4024,10 @@ msgstr ""
 
 #: src/guides/reindexing.md:29
 msgid ""
-"You can of course also set the location of the data directory yourself with `ord --data-dir <DIR> index run` or give it a specific filename and path with `ord "
+"You can of course also set the location of the data directory yourself with `ord --datadir <DIR> index run` or give it a specific filename and path with `ord "
 "--index <FILENAME> index run`."
 msgstr ""
-"Конечно, можно также самостоятельно задать расположение директории данных командой `ord --data-dir <DIR> index run` или указать ему конкретное имя файла и путь "
+"Конечно, можно также самостоятельно задать расположение директории данных командой `ord --datadir <DIR> index run` или указать ему конкретное имя файла и путь "
 "к нему командой `ord --index <FILENAME> index run`."
 
 #: src/bounties.md:1

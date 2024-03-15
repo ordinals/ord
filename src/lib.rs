@@ -48,6 +48,7 @@ use {
   ciborium::Value,
   clap::{ArgGroup, Parser},
   html_escaper::{Escape, Trusted},
+  http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
@@ -114,9 +115,9 @@ mod inscriptions;
 mod object;
 pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
-mod server_config;
 mod settings;
 pub mod subcommand;
 mod tally;

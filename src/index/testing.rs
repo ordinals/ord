@@ -25,7 +25,7 @@ impl ContextBuilder {
       "ord".into(),
       "--bitcoin-rpc-url".into(),
       rpc_server.url().into(),
-      "--data-dir".into(),
+      "--datadir".into(),
       tempdir.path().into(),
       "--cookie-file".into(),
       cookie_file.into(),

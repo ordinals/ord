@@ -28,15 +28,17 @@ fn inscriptions() {
     format!("https://ordinals.com/inscription/{inscription}")
   );
 
-  let address = CommandBuilder::new("wallet receive")
+  let addresses = CommandBuilder::new("wallet receive")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<receive::Output>()
-    .address;
+    .addresses;
+
+  let destination = addresses.first().unwrap();
 
   let txid = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 {} {inscription}",
-    address.assume_checked()
+    destination.clone().assume_checked()
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
@@ -105,15 +107,17 @@ fn inscriptions_with_postage() {
 
   assert_eq!(output[0].postage, 10000);
 
-  let address = CommandBuilder::new("wallet receive")
+  let addresses = CommandBuilder::new("wallet receive")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<receive::Output>()
-    .address;
+    .addresses;
+
+  let destination = addresses.first().unwrap();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 {} {inscription}",
-    address.assume_checked()
+    destination.clone().assume_checked()
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
