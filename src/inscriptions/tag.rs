@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Copy, Clone)]
-#[repr(u64)]
+#[repr(u8)]
 pub(crate) enum Tag {
   Pointer = 2,
   #[allow(unused)]
@@ -25,7 +25,7 @@ impl Tag {
   }
 
   pub(crate) fn bytes(self) -> [u8; 1] {
-    [(self as u64).try_into().unwrap()]
+    [self as u8]
   }
 
   pub(crate) fn append(self, builder: &mut script::Builder, value: &Option<Vec<u8>>) {
