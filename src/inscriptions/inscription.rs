@@ -127,13 +127,13 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    Tag::ContentEncoding.append(&mut builder, &self.content_encoding);
     Tag::ContentType.append(&mut builder, &self.content_type);
-    Tag::Delegate.append(&mut builder, &self.delegate);
-    Tag::Metadata.append(&mut builder, &self.metadata);
+    Tag::ContentEncoding.append(&mut builder, &self.content_encoding);
     Tag::Metaprotocol.append(&mut builder, &self.metaprotocol);
     Tag::Parent.append_array(&mut builder, &self.parents);
+    Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
+    Tag::Metadata.append(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
