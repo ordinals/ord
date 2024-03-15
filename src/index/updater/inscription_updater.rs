@@ -260,7 +260,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         ..
       } = flotsam
       {
-        purported_parents.retain(|p| potential_parents.contains(p));
+        let mut seen = HashSet::new();
+        purported_parents
+          .retain(|parent| seen.insert(*parent) && potential_parents.contains(parent));
       }
     }
 

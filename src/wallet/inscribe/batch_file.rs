@@ -134,7 +134,7 @@ impl Batchfile {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent.map_or(Vec::new(), |parent| vec![parent]),
+        self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
       )?);

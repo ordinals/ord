@@ -168,7 +168,7 @@ impl Inscription {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
-  fn inscription_id_field(field: &Option<Vec<u8>>) -> Option<InscriptionId> {
+  fn inscription_id_field(field: Option<&[u8]>) -> Option<InscriptionId> {
     let value = field.as_ref()?;
 
     if value.len() < Txid::LEN {
@@ -236,7 +236,7 @@ impl Inscription {
   }
 
   pub(crate) fn delegate(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(&self.delegate)
+    Self::inscription_id_field(self.delegate.as_deref())
   }
 
   pub(crate) fn metadata(&self) -> Option<Value> {
@@ -247,21 +247,11 @@ impl Inscription {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
-  /// Returns a deduplicated list of parent inscription IDs the inscription claims to have.
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
-    let mut unique_parents: HashSet<InscriptionId> = HashSet::with_capacity(self.parents.len());
     self
       .parents
       .iter()
-      .filter_map(|p| {
-        let Some(parent_id) = Self::inscription_id_field(&Some(p.clone())) else {
-          return None;
-        };
-        if !unique_parents.insert(parent_id) {
-          return None;
-        }
-        Some(parent_id)
-      })
+      .filter_map(|parent| Self::inscription_id_field(Some(parent)))
       .collect()
   }
 

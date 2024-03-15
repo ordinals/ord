@@ -109,7 +109,7 @@ impl Inscribe {
           self.delegate,
           metadata,
           self.metaprotocol,
-          self.parent.map_or(Vec::new(), |parent| vec![parent]),
+          self.parent.into_iter().collect(),
           file,
           None,
         )?];
