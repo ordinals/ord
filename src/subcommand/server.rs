@@ -1768,8 +1768,8 @@ impl Server {
 
       Ok(
         ParentsHtml {
-          child: child_id,
-          child_number: child_entry.inscription_number,
+          id: child_id,
+          number: child_entry.inscription_number,
           parents,
           prev_page,
           next_page,

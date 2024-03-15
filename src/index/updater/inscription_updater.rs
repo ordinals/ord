@@ -246,7 +246,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.transaction_buffer.clear();
     }
 
-    let eligible_parents = floating_inscriptions
+    let potential_parents = floating_inscriptions
       .iter()
       .map(|flotsam| flotsam.inscription_id)
       .collect::<HashSet<InscriptionId>>();
@@ -254,13 +254,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
         origin: Origin::New {
-          parents: claimed_parents,
+          parents: purported_parents,
           ..
         },
         ..
       } = flotsam
       {
-        claimed_parents.retain(|p| eligible_parents.contains(p));
+        purported_parents.retain(|p| potential_parents.contains(p));
       }
     }
 
