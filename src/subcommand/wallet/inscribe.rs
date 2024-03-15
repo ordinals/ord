@@ -1334,22 +1334,16 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      parent,
+      vec![parent],
       ParsedEnvelope::from_transaction(&reveal_tx)[0]
         .payload
-        .parents()
-        .first()
-        .unwrap()
-        .clone()
+        .parents(),
     );
     assert_eq!(
-      parent,
+      vec![parent],
       ParsedEnvelope::from_transaction(&reveal_tx)[1]
         .payload
-        .parents()
-        .first()
-        .unwrap()
-        .clone()
+        .parents(),
     );
 
     let sig_vbytes = 17;

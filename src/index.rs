@@ -1088,8 +1088,6 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)
       .unwrap();
 
-    // we need to introduce a temporary variable to appease the borrow checker
-    // a historically tried and true strategy
     let parent_sequences = InscriptionEntry::load(
       sequence_number_to_inscription_entry
         .get(sequence_number)
