@@ -18,19 +18,9 @@ pub(crate) enum Tag {
   Nop,
 }
 
-enum TagCodecStrategy {
-  First,
-  Chunked,
-  Array,
-}
-
 impl Tag {
-  fn parsing_strategy(self) -> TagCodecStrategy {
-    match self {
-      Tag::Metadata => TagCodecStrategy::Chunked,
-      Tag::Parent => TagCodecStrategy::Array,
-      _ => TagCodecStrategy::First,
-    }
+  fn chunked(self) -> bool {
+    matches!(self, Self::Metadata)
   }
 
   pub(crate) fn bytes(self) -> &'static [u8] {
@@ -54,19 +44,16 @@ impl Tag {
       let mut tmp = script::Builder::new();
       mem::swap(&mut tmp, builder);
 
-      match self.parsing_strategy() {
-        TagCodecStrategy::First | TagCodecStrategy::Array => {
+      if self.chunked() {
+        for chunk in value.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
           tmp = tmp
             .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
-            .push_slice::<&script::PushBytes>(value.as_slice().try_into().unwrap());
+            .push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
         }
-        TagCodecStrategy::Chunked => {
-          for chunk in value.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
-            tmp = tmp
-              .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
-              .push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
-          }
-        }
+      } else {
+        tmp = tmp
+          .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
+          .push_slice::<&script::PushBytes>(value.as_slice().try_into().unwrap());
       }
 
       mem::swap(&mut tmp, builder);
@@ -87,33 +74,27 @@ impl Tag {
   }
 
   pub(crate) fn take(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
-    match self.parsing_strategy() {
-      TagCodecStrategy::First => {
-        let values = fields.get_mut(self.bytes())?;
+    if self.chunked() {
+      let value = fields.remove(self.bytes())?;
+
+      if value.is_empty() {
+        None
+      } else {
+        Some(value.into_iter().flatten().cloned().collect())
+      }
+    } else {
+      let values = fields.get_mut(self.bytes())?;
+
+      if values.is_empty() {
+        None
+      } else {
+        let value = values.remove(0).to_vec();
 
         if values.is_empty() {
-          None
-        } else {
-          let value = values.remove(0).to_vec();
-
-          if values.is_empty() {
-            fields.remove(self.bytes());
-          }
-
-          Some(value)
+          fields.remove(self.bytes());
         }
-      }
-      TagCodecStrategy::Chunked => {
-        let value = fields.remove(self.bytes())?;
 
-        if value.is_empty() {
-          None
-        } else {
-          Some(value.into_iter().flatten().cloned().collect())
-        }
-      }
-      TagCodecStrategy::Array => {
-        panic!("Array-type fields must not be removed as a simple byte array.")
+        Some(value)
       }
     }
   }
