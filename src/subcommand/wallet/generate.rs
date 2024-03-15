@@ -16,9 +16,9 @@ pub(crate) enum SelectNetwork {
   Regtest,
 }
 
-impl Into<Network> for SelectNetwork {
-  fn into(self) -> Network {
-    match self {
+impl From<SelectNetwork> for Network {
+  fn from(network: SelectNetwork) -> Network {
+    match network {
       SelectNetwork::Mainnet => Network::Bitcoin,
       SelectNetwork::Testnet => Network::Testnet,
       SelectNetwork::Signet => Network::Signet,
@@ -93,16 +93,14 @@ impl Wallet {
     let private_key = PrivateKey::new(key_pair.secret_key(), network);
     let public_key = PublicKey::from_private_key(secp, &private_key);
     let address = match derivation_path {
-      "m/84'/0'/0'/0/0" => Address::p2wpkh(&public_key.to_public_key(), network)?.to_string(),
+      "m/44'/0'/0'/0/0" => Address::p2pkh(&public_key.to_public_key(), network).to_string(),
       "m/49'/0'/0'/0/0" => {
         let p2wpkh = Address::p2wpkh(&public_key.to_public_key(), network)?;
         let p2sh_script = p2wpkh.script_pubkey();
         Address::p2sh(&p2sh_script, network)?.to_string()
       }
-      "m/44'/0'/0'/0/0" => Address::p2pkh(&public_key.to_public_key(), network).to_string(),
-      "m/86'/0'/0'/0/0" | _ => {
-        Address::p2tr(secp, public_key.to_x_only_pubkey(), None, network).to_string()
-      }
+      "m/84'/0'/0'/0/0" => Address::p2wpkh(&public_key.to_public_key(), network)?.to_string(),
+      _ => Address::p2tr(secp, public_key.to_x_only_pubkey(), None, network).to_string(),
     };
     let wif = private_key.to_wif();
     Ok(AddressInfo {
