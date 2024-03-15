@@ -30,7 +30,7 @@ fn get_sat_without_sat_index() {
       percentile: "100%".into(),
       satpoint: None,
       timestamp: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   )
 }
@@ -389,7 +389,7 @@ fn get_block() {
         .unwrap(),
       best_height: 1,
       height: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   );
 }
