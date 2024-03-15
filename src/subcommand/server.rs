@@ -5,21 +5,17 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::{
-    server_config::ServerConfig,
-    templates::{
-      BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
-      InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-      ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-      PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml,
-      TransactionHtml,
-    },
+  crate::templates::{
+    BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
+    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
+    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
     extract::{Extension, Json, Path, Query},
-    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -43,10 +39,13 @@ use {
   },
 };
 
+pub(crate) use server_config::ServerConfig;
+
 mod accept_encoding;
 mod accept_json;
 mod error;
 pub(crate) mod query;
+mod server_config;
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -256,6 +255,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
@@ -483,6 +483,29 @@ impl Server {
           .into_response(),
       )
     })
+  }
+
+  async fn fallback(Extension(index): Extension<Arc<Index>>, uri: Uri) -> ServerResult<Response> {
+    let path = urlencoding::decode(uri.path().trim_matches('/'))
+      .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+    let prefix = if re::INSCRIPTION_ID.is_match(&path) || re::INSCRIPTION_NUMBER.is_match(&path) {
+      "inscription"
+    } else if re::RUNE_ID.is_match(&path) || re::SPACED_RUNE.is_match(&path) {
+      "rune"
+    } else if re::OUTPOINT.is_match(&path) {
+      "output"
+    } else if re::HASH.is_match(&path) {
+      if index.block_header(path.parse().unwrap())?.is_some() {
+        "block"
+      } else {
+        "tx"
+      }
+    } else {
+      return Ok(StatusCode::NOT_FOUND.into_response());
+    };
+
+    Ok(Redirect::to(&format!("/{prefix}/{path}")).into_response())
   }
 
   async fn sat(
@@ -952,7 +975,7 @@ impl Server {
         }
       } else if re::OUTPOINT.is_match(query) {
         Ok(Redirect::to(&format!("/output/{query}")))
-      } else if re::INSCRIPTION_ID.is_match(query) {
+      } else if re::INSCRIPTION_ID.is_match(query) || re::INSCRIPTION_NUMBER.is_match(query) {
         Ok(Redirect::to(&format!("/inscription/{query}")))
       } else if re::SPACED_RUNE.is_match(query) {
         Ok(Redirect::to(&format!("/rune/{query}")))
@@ -1365,14 +1388,25 @@ impl Server {
           .ok_or_not_found(|| format!("delegate {inscription_id}"))?
       }
 
-      match inscription.media() {
-        Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      let media = inscription.media();
+
+      if let Media::Iframe = media {
+        return Ok(
+          Self::content_response(inscription, accept_encoding, &server_config)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+            .into_response(),
+        );
+      }
+
+      let content_security_policy = server_config.preview_content_security_policy(media)?;
+
+      match media {
+        Media::Audio => {
+          Ok((content_security_policy, PreviewAudioHtml { inscription_id }).into_response())
+        }
         Media::Code(language) => Ok(
           (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
+            content_security_policy,
             PreviewCodeHtml {
               inscription_id,
               language,
@@ -1380,27 +1414,13 @@ impl Server {
           )
             .into_response(),
         ),
-        Media::Font => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self'; style-src 'self' 'unsafe-inline';",
-            )],
-            PreviewFontHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Iframe => Ok(
-          Self::content_response(inscription, accept_encoding, &server_config)?
-            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-            .into_response(),
-        ),
+        Media::Font => {
+          Ok((content_security_policy, PreviewFontHtml { inscription_id }).into_response())
+        }
+        Media::Iframe => unreachable!(),
         Media::Image(image_rendering) => Ok(
           (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "default-src 'self' 'unsafe-inline'",
-            )],
+            content_security_policy,
             PreviewImageHtml {
               image_rendering,
               inscription_id,
@@ -1410,37 +1430,24 @@ impl Server {
         ),
         Media::Markdown => Ok(
           (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
+            content_security_policy,
             PreviewMarkdownHtml { inscription_id },
           )
             .into_response(),
         ),
-        Media::Model => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://ajax.googleapis.com",
-            )],
-            PreviewModelHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Pdf => Ok(
-          (
-            [(
-              header::CONTENT_SECURITY_POLICY,
-              "script-src-elem 'self' https://cdn.jsdelivr.net",
-            )],
-            PreviewPdfHtml { inscription_id },
-          )
-            .into_response(),
-        ),
-        Media::Text => Ok(PreviewTextHtml { inscription_id }.into_response()),
-        Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
-        Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
+        Media::Model => {
+          Ok((content_security_policy, PreviewModelHtml { inscription_id }).into_response())
+        }
+        Media::Pdf => {
+          Ok((content_security_policy, PreviewPdfHtml { inscription_id }).into_response())
+        }
+        Media::Text => {
+          Ok((content_security_policy, PreviewTextHtml { inscription_id }).into_response())
+        }
+        Media::Unknown => Ok((content_security_policy, PreviewUnknownHtml).into_response()),
+        Media::Video => {
+          Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
+        }
       }
     })
   }
@@ -2350,11 +2357,6 @@ mod tests {
   }
 
   #[test]
-  fn search_by_query_returns_sat() {
-    TestServer::new().assert_redirect("/search?query=0", "/sat/0");
-  }
-
-  #[test]
   fn search_by_query_returns_rune() {
     TestServer::new().assert_redirect("/search?query=ABCD", "/rune/ABCD");
   }
@@ -2373,13 +2375,18 @@ mod tests {
   }
 
   #[test]
+  fn search_by_query_returns_inscription_by_number() {
+    TestServer::new().assert_redirect("/search?query=0", "/inscription/0");
+  }
+
+  #[test]
   fn search_is_whitespace_insensitive() {
-    TestServer::new().assert_redirect("/search/ 0 ", "/sat/0");
+    TestServer::new().assert_redirect("/search/ abc ", "/sat/abc");
   }
 
   #[test]
   fn search_by_path_returns_sat() {
-    TestServer::new().assert_redirect("/search/0", "/sat/0");
+    TestServer::new().assert_redirect("/search/abc", "/sat/abc");
   }
 
   #[test]
@@ -2466,6 +2473,44 @@ mod tests {
       "/search/100000000000000000000:200000000000000000",
       StatusCode::BAD_REQUEST,
       ".*",
+    );
+  }
+
+  #[test]
+  fn fallback() {
+    let server = TestServer::new();
+
+    server.assert_redirect("/0", "/inscription/0");
+    server.assert_redirect("/0/", "/inscription/0");
+    server.assert_redirect("/0//", "/inscription/0");
+    server.assert_redirect(
+      "/521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0",
+      "/inscription/521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0",
+    );
+    server.assert_redirect("/-1", "/inscription/-1");
+    server.assert_redirect("/FOO", "/rune/FOO");
+    server.assert_redirect("/FO.O", "/rune/FO.O");
+    server.assert_redirect("/FO•O", "/rune/FO•O");
+    server.assert_redirect("/0:0", "/rune/0:0");
+    server.assert_redirect(
+      "/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+      "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    );
+    server.assert_redirect(
+      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+    );
+    server.assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000",
+      "/tx/0000000000000000000000000000000000000000000000000000000000000000",
+    );
+
+    server.assert_response_regex("/hello", StatusCode::NOT_FOUND, "");
+
+    server.assert_response_regex(
+      "/%C3%28",
+      StatusCode::BAD_REQUEST,
+      "invalid utf-8 sequence of 1 bytes from index 0",
     );
   }
 
@@ -3929,6 +3974,56 @@ mod tests {
     .unwrap();
 
     assert_eq!(headers["content-security-policy"], HeaderValue::from_static("default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"));
+  }
+
+  #[test]
+  fn preview_content_security_policy() {
+    {
+      let server = TestServer::builder().chain(Chain::Regtest).build();
+
+      server.mine_blocks(1);
+
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      server.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      server.assert_response_csp(
+        format!("/preview/{}", inscription_id),
+        StatusCode::OK,
+        "default-src 'self'",
+        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+      );
+    }
+
+    {
+      let server = TestServer::builder()
+        .chain(Chain::Regtest)
+        .server_option("--csp-origin", "https://ordinals.com")
+        .build();
+
+      server.mine_blocks(1);
+
+      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      server.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      server.assert_response_csp(
+        format!("/preview/{}", inscription_id),
+        StatusCode::OK,
+        "default-src https://ordinals.com",
+        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+      );
+    }
   }
 
   #[test]

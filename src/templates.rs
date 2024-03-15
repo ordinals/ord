@@ -1,6 +1,7 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
+  crate::subcommand::server::ServerConfig,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -22,7 +23,6 @@ pub(crate) use {
   rare::RareTxt,
   rune_balances::RuneBalancesHtml,
   sat::SatHtml,
-  server_config::ServerConfig,
 };
 
 pub use {
