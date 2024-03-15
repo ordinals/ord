@@ -1752,24 +1752,24 @@ impl Server {
   async fn parents_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((child_id, page)): Path<(InscriptionId, usize)>,
+    Path((id, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<Response> {
     task::block_in_place(|| {
-      let child_entry = index
-        .get_inscription_entry(child_id)?
-        .ok_or_not_found(|| format!("inscription {child_id}"))?;
+      let child = index
+        .get_inscription_entry(id)?
+        .ok_or_not_found(|| format!("inscription {id}"))?;
 
-      let (parents, more_parents) =
-        index.get_parents_by_sequence_number_paginated(child_entry.parents, 100, page)?;
+      let (parents, more) =
+        index.get_parents_by_sequence_number_paginated(child.parents, 100, page)?;
 
       let prev_page = page.checked_sub(1);
 
-      let next_page = more_parents.then_some(page + 1);
+      let next_page = more.then_some(page + 1);
 
       Ok(
         ParentsHtml {
-          id: child_id,
-          number: child_entry.inscription_number,
+          id,
+          number: child.inscription_number,
           parents,
           prev_page,
           next_page,
