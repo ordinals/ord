@@ -49,7 +49,7 @@ impl Tag {
     }
   }
 
-  pub(crate) fn encode(self, builder: &mut script::Builder, value: &Option<Vec<u8>>) {
+  pub(crate) fn append(self, builder: &mut script::Builder, value: &Option<Vec<u8>>) {
     if let Some(value) = value {
       let mut tmp = script::Builder::new();
       mem::swap(&mut tmp, builder);
@@ -75,7 +75,7 @@ impl Tag {
     }
   }
 
-  pub(crate) fn encode_array(self, builder: &mut script::Builder, values: &Vec<Vec<u8>>) {
+  pub(crate) fn append_array(self, builder: &mut script::Builder, values: &Vec<Vec<u8>>) {
     let mut tmp = script::Builder::new();
     mem::swap(&mut tmp, builder);
 
