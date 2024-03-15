@@ -497,20 +497,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let mut parent_sequence_numbers = Vec::new();
-        for parent_id in &parents {
-          let parent_sequence_number = self
-            .id_to_sequence_number
-            .get(&parent_id.store())?
-            .unwrap()
-            .value();
+        let parent_sequence_numbers = parents
+          .iter()
+          .map(|parent| {
+            let parent_sequence_number = self
+              .id_to_sequence_number
+              .get(&parent.store())?
+              .unwrap()
+              .value();
 
-          self
-            .sequence_number_to_children
-            .insert(parent_sequence_number, sequence_number)?;
+            self
+              .sequence_number_to_children
+              .insert(parent_sequence_number, sequence_number)?;
 
-          parent_sequence_numbers.push(parent_sequence_number);
-        }
+            Ok(parent_sequence_number)
+          })
+          .collect::<Result<Vec<u32>>>()?;
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
