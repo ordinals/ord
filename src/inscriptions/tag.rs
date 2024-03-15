@@ -66,9 +66,7 @@ impl Tag {
               .push_slice::<&script::PushBytes>(self.bytes().try_into().unwrap())
               .push_slice::<&script::PushBytes>(chunk.try_into().unwrap());
           }
-        } // TagParsingStrategy::Array => {
-          //   unimplemented!()
-          // }
+        }
       }
 
       mem::swap(&mut tmp, builder);
