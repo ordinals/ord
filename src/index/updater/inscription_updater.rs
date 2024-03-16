@@ -70,7 +70,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
-  pub(super) fn index_envelopes(
+  pub(super) fn index_inscriptions(
     &mut self,
     tx: &Transaction,
     txid: Txid,
@@ -253,16 +253,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin:
-          Origin::New {
-            // these are the parents the inscription claims it has
-            parents,
-            ..
-          },
+        origin: Origin::New {
+          parents: purported_parents,
+          ..
+        },
         ..
       } = flotsam
       {
-        parents.retain(|purported_parent| potential_parents.contains(purported_parent));
+        let mut seen = HashSet::new();
+        purported_parents
+          .retain(|parent| seen.insert(*parent) && potential_parents.contains(parent));
       }
     }
 
@@ -497,19 +497,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let mut parent_sequence_numbers = Vec::with_capacity(parents.len());
-        for parent_id in &parents {
-          let parent_sequence_number = self
-            .id_to_sequence_number
-            .get(&parent_id.store())?
-            .unwrap()
-            .value();
-          self
-            .sequence_number_to_children
-            .insert(parent_sequence_number, sequence_number)?;
+        let parent_sequence_numbers = parents
+          .iter()
+          .map(|parent| {
+            let parent_sequence_number = self
+              .id_to_sequence_number
+              .get(&parent.store())?
+              .unwrap()
+              .value();
 
-          parent_sequence_numbers.push(parent_sequence_number);
-        }
+            self
+              .sequence_number_to_children
+              .insert(parent_sequence_number, sequence_number)?;
+
+            Ok(parent_sequence_number)
+          })
+          .collect::<Result<Vec<u32>>>()?;
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionCreated {

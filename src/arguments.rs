@@ -43,10 +43,6 @@ impl Arguments {
       );
     }
 
-    let config = self.options.config()?;
-
-    self
-      .subcommand
-      .run(Settings::new(self.options, env, config)?)
+    self.subcommand.run(Settings::load(self.options)?)
   }
 }

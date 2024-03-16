@@ -27,5 +27,5 @@ ord index update
 ```
 
 You can of course also set the location of the data directory yourself with `ord
---data-dir <DIR> index update` or give it a specific filename and path with `ord
+--datadir <DIR> index update` or give it a specific filename and path with `ord
 --index <FILENAME> index update`.

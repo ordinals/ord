@@ -127,13 +127,13 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    Tag::ContentType.encode(&mut builder, &self.content_type);
-    Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
-    Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
-    Tag::Parent.encode_array(&mut builder, &self.parents);
-    Tag::Delegate.encode(&mut builder, &self.delegate);
-    Tag::Pointer.encode(&mut builder, &self.pointer);
-    Tag::Metadata.encode(&mut builder, &self.metadata);
+    Tag::ContentType.append(&mut builder, &self.content_type);
+    Tag::ContentEncoding.append(&mut builder, &self.content_encoding);
+    Tag::Metaprotocol.append(&mut builder, &self.metaprotocol);
+    Tag::Parent.append_array(&mut builder, &self.parents);
+    Tag::Delegate.append(&mut builder, &self.delegate);
+    Tag::Pointer.append(&mut builder, &self.pointer);
+    Tag::Metadata.append(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -168,7 +168,7 @@ impl Inscription {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
-  fn inscription_id_field(field: &Option<Vec<u8>>) -> Option<InscriptionId> {
+  fn inscription_id_field(field: Option<&[u8]>) -> Option<InscriptionId> {
     let value = field.as_ref()?;
 
     if value.len() < Txid::LEN {
@@ -236,7 +236,7 @@ impl Inscription {
   }
 
   pub(crate) fn delegate(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(&self.delegate)
+    Self::inscription_id_field(self.delegate.as_deref())
   }
 
   pub(crate) fn metadata(&self) -> Option<Value> {
@@ -248,21 +248,11 @@ impl Inscription {
   }
 
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {
-    let mut parents: Vec<InscriptionId> = self
+    self
       .parents
       .iter()
-      .map(|p| {
-        // the option detour is a bit awkward
-        Self::inscription_id_field(&Some(p.clone()))
-      })
-      .flatten()
-      .collect();
-
-    // remove duplicates
-    let mut uniques: HashSet<InscriptionId> = HashSet::with_capacity(self.parents.len());
-    parents.retain(|p| uniques.insert(p.clone()));
-
-    parents
+      .filter_map(|parent| Self::inscription_id_field(Some(parent)))
+      .collect()
   }
 
   pub(crate) fn pointer(&self) -> Option<u64> {
@@ -435,7 +425,7 @@ mod tests {
   #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
     assert!(Inscription {
-      parents: vec![],
+      parents: Vec::new(),
       ..Default::default()
     }
     .parents()
@@ -445,7 +435,7 @@ mod tests {
   #[test]
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
     assert!(Inscription {
-      parents: vec![vec![]],
+      parents: vec![Vec::new()],
       ..Default::default()
     }
     .parents()
@@ -521,13 +511,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .txid,
-      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
-        .parse()
-        .unwrap()
+      .parents(),
+      [
+        "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -538,11 +527,12 @@ mod tests {
         parents: vec![vec![1; 32]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0
+      .parents(),
+      [
+        "0101010101010101010101010101010101010101010101010101010101010101i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -557,11 +547,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      1
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi1"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -576,11 +567,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x0201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi513"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -595,11 +587,12 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi197121"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -614,11 +607,42 @@ mod tests {
         ]],
         ..Default::default()
       }
-      .parents()
-      .first()
-      .unwrap()
-      .index,
-      0x04030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305985"
+          .parse()
+          .unwrap()
+      ],
+    );
+  }
+
+  #[test]
+  fn inscription_parent_returns_multiple_parents() {
+    assert_eq!(
+      Inscription {
+        parents: vec![
+          vec![
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0x01, 0x02, 0x03, 0x04,
+          ],
+          vec![
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0x00, 0x02, 0x03, 0x04,
+          ]
+        ],
+        ..Default::default()
+      }
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305985"
+          .parse()
+          .unwrap(),
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305984"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -752,7 +776,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       None,
     )
@@ -766,7 +790,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(0),
     )
@@ -780,7 +804,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(1),
     )
@@ -794,7 +818,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(256),
     )

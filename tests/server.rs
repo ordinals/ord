@@ -61,7 +61,7 @@ fn inscription_page() {
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
   <dd><a href=/preview/{inscription}>link</a></dd>
@@ -73,11 +73,11 @@ fn inscription_page() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>genesis height</dt>
+  <dt>height</dt>
   <dd><a href=/block/2>2</a></dd>
-  <dt>genesis fee</dt>
+  <dt>fee</dt>
   <dd>138</dd>
-  <dt>genesis transaction</dt>
+  <dt>reveal transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{reveal}:0:0</dd>
@@ -316,6 +316,7 @@ fn recursive_inscription_endpoint() {
       content_length: Some(3),
       fee: 138,
       height: 2,
+      id: inscription.id,
       number: 0,
       output: inscription.location.outpoint,
       sat: Some(Sat(50 * COIN_VALUE)),
@@ -405,16 +406,16 @@ fn expected_sat_time_is_rounded() {
 fn missing_credentials() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("--bitcoin-rpc-user foo server")
+  CommandBuilder::new("--bitcoin-rpc-username foo server")
     .bitcoin_rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: no bitcoind rpc password specified\n")
+    .expected_stderr("error: no bitcoin RPC password specified\n")
     .run_and_extract_stdout();
 
-  CommandBuilder::new("--bitcoin-rpc-pass bar server")
+  CommandBuilder::new("--bitcoin-rpc-password bar server")
     .bitcoin_rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: no bitcoind rpc user specified\n")
+    .expected_stderr("error: no bitcoin RPC username specified\n")
     .run_and_extract_stdout();
 }
 
@@ -586,7 +587,7 @@ fn authentication() {
     .port();
 
   let builder = CommandBuilder::new(format!(
-    " --username foo --password bar server --address 127.0.0.1 --http-port {port}"
+    " --server-username foo --server-password bar server --address 127.0.0.1 --http-port {port}"
   ))
   .bitcoin_rpc_server(&rpc_server);
 

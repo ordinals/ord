@@ -15,10 +15,12 @@ impl Expected {
   pub(crate) fn assert_match(&self, output: &str) {
     match self {
       Self::String(string) => pretty_assert_eq!(output, string),
-      Self::Regex(regex) => assert!(
-        regex.is_match(output),
-        "regex:\n{regex}\ndid not match output:\n{output}",
-      ),
+      Self::Regex(regex) => {
+        if !regex.is_match(output) {
+          eprintln!("Regex did not match:");
+          pretty_assert_eq!(regex.as_str(), output);
+        }
+      }
     }
   }
 }

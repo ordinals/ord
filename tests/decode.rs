@@ -136,7 +136,7 @@ fn compact() {
         incomplete_field: false,
         metadata: None,
         metaprotocol: None,
-        parents: vec![],
+        parents: Vec::new(),
         pointer: None,
         unrecognized_even_field: false,
       }],

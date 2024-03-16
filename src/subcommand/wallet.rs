@@ -30,10 +30,9 @@ pub(crate) struct WalletCommand {
   pub(crate) no_sync: bool,
   #[arg(
     long,
-    default_value = "http://127.0.0.1:80",
-    help = "Use ord running at <SERVER_URL>."
+    help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
   )]
-  pub(crate) server_url: Url,
+  pub(crate) server_url: Option<Url>,
   #[command(subcommand)]
   pub(crate) subcommand: Subcommand,
 }
@@ -54,7 +53,7 @@ pub(crate) enum Subcommand {
   #[command(about = "List wallet inscriptions")]
   Inscriptions,
   #[command(about = "Generate receive address")]
-  Receive,
+  Receive(receive::Receive),
   #[command(about = "Restore wallet")]
   Restore(restore::Restore),
   #[command(about = "List wallet satoshis")]
@@ -81,7 +80,14 @@ impl WalletCommand {
       self.name.clone(),
       self.no_sync,
       settings.clone(),
-      self.server_url,
+      self
+        .server_url
+        .as_ref()
+        .map(Url::as_str)
+        .or(settings.server_url())
+        .unwrap_or("http://127.0.0.1:80")
+        .parse::<Url>()
+        .context("invalid server URL")?,
     )?;
 
     match self.subcommand {
@@ -90,7 +96,7 @@ impl WalletCommand {
       Subcommand::Etch(etch) => etch.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
-      Subcommand::Receive => receive::run(wallet),
+      Subcommand::Receive(receive) => receive.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),

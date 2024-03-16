@@ -15,9 +15,9 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
     inscriptions::{
+      inscription_id,
       media::{self, ImageRendering, Media},
       teleburn, Charm, ParsedEnvelope,
     },
@@ -48,6 +48,7 @@ use {
   ciborium::Value,
   clap::{ArgGroup, Parser},
   html_escaper::{Escape, Trusted},
+  http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
@@ -107,7 +108,6 @@ pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod config;
 mod decimal;
 mod fee_rate;
 pub mod index;
@@ -115,9 +115,9 @@ mod inscriptions;
 mod object;
 pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
-mod server_config;
 mod settings;
 pub mod subcommand;
 mod tally;
@@ -186,12 +186,11 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
       Subcommand::Server(server) => (
-        Settings::new(
+        Settings::merge(
           arguments.options,
           vec![("INTEGRATION_TEST".into(), "1".into())]
             .into_iter()
             .collect(),
-          Default::default(),
         )
         .unwrap(),
         server,

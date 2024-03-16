@@ -30,7 +30,7 @@ fn get_sat_without_sat_index() {
       percentile: "100%".into(),
       satpoint: None,
       timestamp: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   )
 }
@@ -157,12 +157,12 @@ fn get_inscription() {
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
-      genesis_fee: 138,
-      genesis_height: 2,
-      inscription_id,
-      inscription_number: 0,
+      fee: 138,
+      height: 2,
+      id: inscription_id,
+      number: 0,
       next: None,
-      output_value: Some(10000),
+      value: Some(10000),
       parents: Vec::new(),
       previous: None,
       rune: None,
@@ -213,7 +213,7 @@ fn get_inscriptions() {
   let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 100);
+  assert_eq!(inscriptions_json.ids.len(), 100);
   assert!(inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 0);
 
@@ -222,7 +222,7 @@ fn get_inscriptions() {
   let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 50);
+  assert_eq!(inscriptions_json.ids.len(), 50);
   assert!(!inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 1);
 }
@@ -276,7 +276,7 @@ fn get_inscriptions_in_block() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
-    inscriptions_json.inscriptions,
+    inscriptions_json.ids,
     vec![
       InscriptionId { txid, index: 0 },
       InscriptionId { txid, index: 1 },
@@ -389,7 +389,7 @@ fn get_block() {
         .unwrap(),
       best_height: 1,
       height: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   );
 }
@@ -482,10 +482,11 @@ fn get_status() {
     .parse::<DateTime<Utc>>()
     .unwrap();
 
-  let dummy_uptime = Duration::from_secs(1);
+  let dummy_duration = Duration::from_secs(1);
 
+  status_json.initial_sync_time = dummy_duration;
   status_json.started = dummy_started;
-  status_json.uptime = dummy_uptime;
+  status_json.uptime = dummy_duration;
 
   pretty_assert_eq!(
     status_json,
@@ -495,6 +496,7 @@ fn get_status() {
       content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
       cursed_inscriptions: 0,
       height: Some(3),
+      initial_sync_time: dummy_duration,
       inscriptions: 1,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99218849511960410),
@@ -504,7 +506,7 @@ fn get_status() {
       started: dummy_started,
       transaction_index: false,
       unrecoverably_reorged: false,
-      uptime: dummy_uptime,
+      uptime: dummy_duration,
     }
   );
 }

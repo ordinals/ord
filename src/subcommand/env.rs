@@ -21,9 +21,9 @@ pub(crate) struct Env {
 
 #[derive(Serialize)]
 struct Info {
+  bitcoin_cli_command: Vec<String>,
   bitcoind_port: u16,
   ord_port: u16,
-  bitcoin_cli_command: Vec<String>,
   ord_wallet_command: Vec<String>,
 }
 
@@ -76,19 +76,23 @@ rpcport={bitcoind_port}
       }
     }
 
-    let ord = std::env::current_exe()?;
-
     let rpc_url = format!("http://localhost:{bitcoind_port}");
+
+    let server_url = format!("http://127.0.0.1:{ord_port}");
+
+    let config = absolute.join("ord.yaml");
+
+    fs::write(
+      config,
+      serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
+    )?;
+
+    let ord = std::env::current_exe()?;
 
     let _ord = KillOnDrop(
       Command::new(&ord)
-        .arg("--regtest")
-        .arg("--bitcoin-data-dir")
+        .arg("--datadir")
         .arg(&absolute)
-        .arg("--data-dir")
-        .arg(&absolute)
-        .arg("--rpc-url")
-        .arg(&rpc_url)
         .arg("server")
         .arg("--polling-interval=100ms")
         .arg("--http-port")
@@ -98,17 +102,10 @@ rpcport={bitcoind_port}
 
     thread::sleep(Duration::from_millis(250));
 
-    let server_url = format!("http://127.0.0.1:{ord_port}");
-
     if !absolute.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
-        .arg("--regtest")
-        .arg("--bitcoin-data-dir")
+        .arg("--datadir")
         .arg(&absolute)
-        .arg("--data-dir")
-        .arg(&absolute)
-        .arg("--rpc-url")
-        .arg(&rpc_url)
         .arg("wallet")
         .arg("create")
         .status()?;
@@ -116,16 +113,9 @@ rpcport={bitcoind_port}
       ensure!(status.success(), "failed to create wallet: {status}");
 
       let output = Command::new(&ord)
-        .arg("--regtest")
-        .arg("--bitcoin-data-dir")
+        .arg("--datadir")
         .arg(&absolute)
-        .arg("--data-dir")
-        .arg(&absolute)
-        .arg("--rpc-url")
-        .arg(&rpc_url)
         .arg("wallet")
-        .arg("--server-url")
-        .arg(&server_url)
         .arg("receive")
         .output()?;
 
@@ -137,13 +127,19 @@ rpcport={bitcoind_port}
       let receive =
         serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
 
-      let address = receive.address.require_network(Network::Regtest)?;
-
       let status = Command::new("bitcoin-cli")
         .arg(format!("-datadir={relative}"))
         .arg("generatetoaddress")
         .arg("200")
-        .arg(address.to_string())
+        .arg(
+          receive
+            .addresses
+            .first()
+            .cloned()
+            .unwrap()
+            .require_network(Network::Regtest)?
+            .to_string(),
+        )
         .status()?;
 
       ensure!(status.success(), "failed to create wallet: {status}");
@@ -157,30 +153,24 @@ rpcport={bitcoind_port}
         bitcoin_cli_command: vec!["bitcoin-cli".into(), format!("-datadir={relative}")],
         ord_wallet_command: vec![
           ord.to_str().unwrap().into(),
-          "--regtest".into(),
-          "--bitcoin-data-dir".into(),
-          relative.clone(),
-          "--data-dir".into(),
-          relative.clone(),
-          "--rpc-url".into(),
-          rpc_url.clone(),
+          "--datadir".into(),
+          absolute.to_str().unwrap().into(),
           "wallet".into(),
-          "--server-url".into(),
-          server_url.clone(),
         ],
       },
     )?;
 
     eprintln!(
       "{}
+{server_url}
+{}
 bitcoin-cli -datadir='{relative}' getblockchaininfo
 {}
-{} --regtest --bitcoin-data-dir '{relative}' --data-dir '{relative}' --rpc-url '{}' wallet --server-url  {} balance",
+{} --datadir '{relative}' wallet balance",
+      "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
       ord.display(),
-      rpc_url,
-      server_url,
     );
 
     loop {

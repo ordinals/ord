@@ -84,12 +84,12 @@ impl Chain {
     Address::from_script(script, self.network())
   }
 
-  pub(crate) fn join_with_data_dir(self, data_dir: &Path) -> PathBuf {
+  pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
     match self {
-      Self::Mainnet => data_dir.to_owned(),
-      Self::Testnet => data_dir.join("testnet3"),
-      Self::Signet => data_dir.join("signet"),
-      Self::Regtest => data_dir.join("regtest"),
+      Self::Mainnet => data_dir.as_ref().to_owned(),
+      Self::Testnet => data_dir.as_ref().join("testnet3"),
+      Self::Signet => data_dir.as_ref().join("signet"),
+      Self::Regtest => data_dir.as_ref().join("regtest"),
     }
   }
 }

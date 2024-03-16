@@ -42,7 +42,9 @@ pub(crate) struct Updater<'index> {
 
 impl<'index> Updater<'index> {
   pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
+    let start = Instant::now();
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
+    let starting_index_height = self.height;
 
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
@@ -57,7 +59,7 @@ impl<'index> Updater<'index> {
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
-      || self.index.settings.integration_test
+      || self.index.settings.integration_test()
     {
       None
     } else {
@@ -98,7 +100,7 @@ impl<'index> Updater<'index> {
 
       uncommitted += 1;
 
-      if uncommitted == self.index.settings.commit_interval {
+      if uncommitted == self.index.settings.commit_interval() {
         self.commit(wtx, value_cache)?;
         value_cache = HashMap::new();
         uncommitted = 0;
@@ -120,15 +122,21 @@ impl<'index> Updater<'index> {
           .insert(
             &self.height,
             &SystemTime::now()
-              .duration_since(SystemTime::UNIX_EPOCH)
-              .map(|duration| duration.as_millis())
-              .unwrap_or(0),
+              .duration_since(SystemTime::UNIX_EPOCH)?
+              .as_millis(),
           )?;
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
+    }
+
+    if starting_index_height == 0 && self.height > 0 {
+      wtx.open_table(STATISTIC_TO_COUNT)?.insert(
+        Statistic::InitialSyncTime.key(),
+        &u64::try_from(start.elapsed().as_micros())?,
+      )?;
     }
 
     if uncommitted > 0 {
@@ -326,7 +334,7 @@ impl<'index> Updater<'index> {
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     let index_inscriptions = self.height >= self.index.first_inscription_height
-      && !self.index.settings.no_index_inscriptions;
+      && self.index.settings.index_inscriptions();
 
     if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
@@ -537,7 +545,7 @@ impl<'index> Updater<'index> {
       }
     } else if index_inscriptions {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_envelopes(tx, *txid, None)?;
+        inscription_updater.index_inscriptions(tx, *txid, None)?;
       }
     }
 
@@ -642,7 +650,7 @@ impl<'index> Updater<'index> {
     index_inscriptions: bool,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_envelopes(tx, txid, Some(input_sat_ranges))?;
+      inscription_updater.index_inscriptions(tx, txid, Some(input_sat_ranges))?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
