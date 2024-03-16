@@ -11,8 +11,8 @@ pub(crate) struct Mint {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
   pub rune: SpacedRune,
-  // pub amount: Pile,
-  pub transaction: Txid,
+  pub pile: Pile,
+  pub txid: Txid,
 }
 
 impl Mint {
@@ -107,7 +107,12 @@ impl Mint {
 
     Ok(Some(Box::new(Output {
       rune: self.rune,
-      transaction,
+      pile: Pile {
+        amount: mint.limit.unwrap_or(crate::runes::MAX_LIMIT),
+        divisibility: rune_entry.divisibility,
+        symbol: rune_entry.symbol,
+      },
+      txid: transaction,
     })))
   }
 }

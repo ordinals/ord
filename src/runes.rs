@@ -5,10 +5,10 @@ use {
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
+pub use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
-pub(crate) const MAX_LIMIT: u128 = 1 << 64;
+pub const MAX_LIMIT: u128 = 1 << 64;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
 mod edict;

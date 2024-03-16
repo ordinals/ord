@@ -130,7 +130,7 @@ impl Runestone {
     }))
   }
 
-  pub(crate) fn encipher(&self) -> ScriptBuf {
+  pub fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
     if let Some(etching) = self.etching {
