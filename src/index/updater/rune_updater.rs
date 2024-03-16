@@ -4,7 +4,7 @@ use {
 };
 
 struct Claim {
-  id: u128,
+  id: RuneId,
   limit: u128,
 }
 
@@ -65,12 +65,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|id| self.claim(id).transpose())
         .transpose()?
       {
-        *unallocated.entry(claim.id).or_default() += claim.limit;
+        *unallocated.entry(claim.id.into()).or_default() += claim.limit;
 
-        let update = self
-          .updates
-          .entry(RuneId::try_from(claim.id).unwrap())
-          .or_default();
+        let update = self.updates.entry(claim.id).or_default();
 
         update.mints += 1;
         update.supply += claim.limit;
@@ -367,12 +364,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }))
   }
 
-  fn claim(&self, id: u128) -> Result<Option<Claim>> {
-    let Ok(key) = RuneId::try_from(id) else {
-      return Ok(None);
-    };
-
-    let Some(entry) = self.id_to_entry.get(&key.store())? else {
+  fn claim(&self, id: RuneId) -> Result<Option<Claim>> {
+    let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
 

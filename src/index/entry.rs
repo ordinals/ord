@@ -59,9 +59,9 @@ pub(super) type RuneEntryValue = (
 
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize, Default)]
 pub struct MintEntry {
-  pub deadline: Option<u32>,
-  pub end: Option<u32>,
-  pub limit: Option<u128>,
+  pub deadline: Option<u32>, // unix time
+  pub end: Option<u32>,      // block height
+  pub limit: Option<u128>,   // max amount
 }
 
 type MintEntryValue = (

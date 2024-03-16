@@ -4273,7 +4273,7 @@ mod tests {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4370,7 +4370,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4415,7 +4415,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4465,7 +4465,7 @@ mod tests {
       op_return: Some(
         Runestone {
           burn: true,
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           edicts: vec![Edict {
             id: u128::from(id),
             amount: 1000,
@@ -4576,7 +4576,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4621,7 +4621,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4724,7 +4724,7 @@ mod tests {
             amount: 1,
             output: 3,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4813,7 +4813,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4858,7 +4858,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4954,7 +4954,7 @@ mod tests {
             amount: 0,
             output: 3,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5114,7 +5114,7 @@ mod tests {
             amount: MAX_LIMIT + 1,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5266,7 +5266,7 @@ mod tests {
             amount: 2000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5386,7 +5386,7 @@ mod tests {
               output: 0,
             },
           ],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
