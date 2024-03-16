@@ -1,4 +1,6 @@
-use crate::{InscriptionId, SatPoint};
+use bitcoin::{OutPoint, Txid};
+
+use crate::{InscriptionId, RuneId, SatPoint};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
@@ -16,5 +18,29 @@ pub enum Event {
     new_location: SatPoint,
     old_location: SatPoint,
     sequence_number: u32,
+  },
+  RuneEtched {
+    block_height: u32,
+    txid: Txid,
+    rune_id: RuneId,
+  },
+  RuneClaimed {
+    block_height: u32,
+    txid: Txid,
+    rune_id: RuneId,
+    amount: u128,
+  },
+  RuneTransferred {
+    block_height: u32,
+    txid: Txid,
+    rune_id: RuneId,
+    amount: u128,
+    outpoint: OutPoint,
+  },
+  RuneBurned {
+    block_height: u32,
+    txid: Txid,
+    rune_id: RuneId,
+    amount: u128,
   },
 }
