@@ -380,7 +380,9 @@ impl Api for Server {
       let (additional_input_value, outpoint) = utxos
         .iter()
         .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
-        .ok_or_else(Self::not_found)?;
+        .ok_or_else(|| {
+          jsonrpc_core::Error::new(jsonrpc_core::types::error::ErrorCode::ServerError(-6))
+        })?;
 
       transaction.input.push(TxIn {
         previous_output: *outpoint,

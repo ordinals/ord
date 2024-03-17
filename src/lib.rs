@@ -163,7 +163,18 @@ fn fund_raw_transaction(
         }),
         Some(false),
       )
-      .map_err(|_| anyhow!("not enough cardinal utxos"))?
+      .map_err(|err| {
+        if matches!(
+          err,
+          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          ))
+        ) {
+          anyhow!("not enough cardinal utxos")
+        } else {
+          err.into()
+        }
+      })?
       .hex,
   )
 }
