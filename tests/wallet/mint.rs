@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::Witness,
   ord::{
-    runes::{Etching, Mint},
+    runes::{Etching, Mint, Pile},
     subcommand::wallet::mint::Output,
   },
   std::time::{Duration, SystemTime, UNIX_EPOCH},
@@ -37,6 +37,8 @@ fn minting_rune_and_fails_if_after_end() {
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          symbol: Some('*'),
+          divisibility: 1,
           mint: Some(Mint {
             limit: Some(1111),
             term: Some(2),
@@ -69,16 +71,25 @@ fn minting_rune_and_fails_if_after_end() {
     .run_and_deserialize_output::<ord::subcommand::balances::Output>();
 
   assert_eq!(
+    output.pile,
+    Pile {
+      amount: 1111,
+      divisibility: 1,
+      symbol: Some('*'),
+    }
+  );
+
+  assert_eq!(
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        output.rune.rune,
         vec![(
           OutPoint {
             txid: output.mint,
             vout: 1
           },
-          1111
+          output.pile.amount
         )]
         .into_iter()
         .collect()
@@ -201,5 +212,30 @@ fn minting_rune_fails_if_after_deadline() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!("error: rune {rune} mint ended at {deadline}\n"))
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn minting_rune_with_no_rune_index_fails() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &[]);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: `ord wallet etch` requires index created with `--index-runes` flag\n"
+  ))
   .run_and_extract_stdout();
 }
