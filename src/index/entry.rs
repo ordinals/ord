@@ -43,6 +43,28 @@ pub struct RuneEntry {
   pub timestamp: u32,
 }
 
+impl RuneEntry {
+  pub fn mintable(&self, block_height: u32, block_time: u32) -> Result<u128, MintError> {
+    let Some(mint) = self.mint else {
+      return Err(MintError::Unmintable(self.rune));
+    };
+
+    if let Some(end) = mint.end {
+      if block_height >= end {
+        return Err(MintError::End((self.rune, end)));
+      }
+    }
+
+    if let Some(deadline) = mint.deadline {
+      if block_time >= deadline {
+        return Err(MintError::Deadline((self.rune, deadline)));
+      }
+    }
+
+    Ok(mint.limit.unwrap_or(runes::MAX_LIMIT))
+  }
+}
+
 pub(super) type RuneEntryValue = (
   u128,                   // burned
   u8,                     // divisibility

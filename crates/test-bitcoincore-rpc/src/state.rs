@@ -94,7 +94,12 @@ impl State {
         version: Version::ONE,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
-        time: self.blocks.len().try_into().unwrap(),
+        time: SystemTime::now()
+          .duration_since(UNIX_EPOCH)
+          .unwrap()
+          .as_secs()
+          .try_into()
+          .unwrap(),
         bits: CompactTarget::from_consensus(0),
         nonce: self.nonce,
       },

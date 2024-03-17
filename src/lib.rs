@@ -71,7 +71,7 @@ use {
       Arc, Mutex,
     },
     thread,
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
   tokio::{runtime::Runtime, task},

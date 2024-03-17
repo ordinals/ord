@@ -204,6 +204,7 @@ fn minting_rune_fails_if_after_deadline() {
   .run_and_deserialize_output::<mint::Output>();
 
   thread::sleep(Duration::from_secs(1));
+  bitcoin_rpc_server.mine_blocks(1);
 
   CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {rune}",
@@ -234,8 +235,6 @@ fn minting_rune_with_no_rune_index_fails() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr(format!(
-    "error: `ord wallet etch` requires index created with `--index-runes` flag\n"
-  ))
+  .expected_stderr("error: `ord wallet etch` requires index created with `--index-runes` flag\n")
   .run_and_extract_stdout();
 }

@@ -26,27 +26,20 @@ impl Mint {
 
     let bitcoin_client = wallet.bitcoin_client();
 
-    let Some((id, entry, _)) = wallet.get_rune(rune)? else {
+    let block_height: u32 = bitcoin_client.get_block_count()?.try_into().unwrap();
+
+    let block_time = bitcoin_client
+      .get_block(&bitcoin_client.get_best_block_hash()?)?
+      .header
+      .time;
+
+    let Some((id, rune_entry, _)) = wallet.get_rune(rune)? else {
       bail!("rune {rune} has not been etched");
     };
 
-    let Some(mint) = entry.mint else {
-      bail!("rune {rune} not mintable");
-    };
-
-    if let Some(end) = mint.end {
-      ensure!(
-        end > bitcoin_client.get_block_count()?.try_into().unwrap(),
-        "rune {rune} mint ended on block {end}",
-      );
-    };
-
-    if let Some(deadline) = mint.deadline {
-      ensure!(
-        Duration::from_secs(deadline.into()) > SystemTime::now().duration_since(UNIX_EPOCH)?,
-        "rune {rune} mint ended at {deadline}",
-      );
-    };
+    let limit = rune_entry
+      .mintable(block_height, block_time)
+      .map_err(|e| anyhow!(e))?;
 
     let destination = wallet.get_change_address()?;
 
@@ -101,9 +94,9 @@ impl Mint {
     Ok(Some(Box::new(Output {
       rune: self.rune,
       pile: Pile {
-        amount: mint.limit.unwrap_or(crate::runes::MAX_LIMIT),
-        divisibility: entry.divisibility,
-        symbol: entry.symbol,
+        amount: limit,
+        divisibility: rune_entry.divisibility,
+        symbol: rune_entry.symbol,
       },
       mint: transaction,
     })))

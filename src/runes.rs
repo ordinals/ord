@@ -25,6 +25,25 @@ pub mod varint;
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
+#[derive(Debug)]
+pub enum MintError {
+  Deadline((Rune, u32)),
+  End((Rune, u32)),
+  Unmintable(Rune),
+}
+
+impl fmt::Display for MintError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      MintError::Deadline((rune, deadline)) => {
+        write!(f, "rune {rune} mint ended at {deadline}")
+      }
+      MintError::End((rune, end)) => write!(f, "rune {rune} mint ended on block {end}"),
+      MintError::Unmintable(rune) => write!(f, "rune {rune} not mintable"),
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};

@@ -38,7 +38,7 @@ use {
     path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
-    time::Duration,
+    time::{Duration, SystemTime, UNIX_EPOCH},
   },
   tempfile::TempDir,
 };

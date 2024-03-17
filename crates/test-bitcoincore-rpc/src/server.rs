@@ -46,6 +46,13 @@ impl Api for Server {
     })
   }
 
+  fn get_best_block_hash(&self) -> Result<bitcoin::BlockHash, jsonrpc_core::Error> {
+    match self.state().hashes.last() {
+      Some(block_hash) => Ok(*block_hash),
+      None => Err(Self::not_found()),
+    }
+  }
+
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
       chain: String::from(match self.network {

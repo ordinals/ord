@@ -35,7 +35,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
-  pub(super) timestamp: u32,
+  pub(super) block_time: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
@@ -280,7 +280,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           u128::MAX
         } - balance,
         symbol,
-        timestamp: self.timestamp,
+        timestamp: self.block_time,
       }
       .store(),
     )?;
@@ -369,28 +369,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       return Ok(None);
     };
 
-    let entry = RuneEntry::load(entry.value());
+    let rune_entry = RuneEntry::load(entry.value());
 
-    let Some(mint) = entry.mint else {
+    let Ok(limit) = rune_entry.mintable(self.height, self.block_time) else {
       return Ok(None);
     };
 
-    if let Some(end) = mint.end {
-      if self.height >= end {
-        return Ok(None);
-      }
-    }
-
-    if let Some(deadline) = mint.deadline {
-      if self.timestamp >= deadline {
-        return Ok(None);
-      }
-    }
-
-    Ok(Some(Claim {
-      id,
-      limit: mint.limit.unwrap_or(runes::MAX_LIMIT),
-    }))
+    Ok(Some(Claim { id, limit }))
   }
 
   fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<u128, u128>> {
