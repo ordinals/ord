@@ -53,7 +53,7 @@ pub(crate) enum Subcommand {
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
   Inscriptions,
-  #[command(about = "Mint runes")]
+  #[command(about = "Mint a rune")]
   Mint(mint::Mint),
   #[command(about = "Generate receive address")]
   Receive(receive::Receive),
