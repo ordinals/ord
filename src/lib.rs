@@ -162,7 +162,8 @@ fn fund_raw_transaction(
           ..Default::default()
         }),
         Some(false),
-      )?
+      )
+      .map_err(|_| anyhow!("not enough cardinal utxos"))?
       .hex,
   )
 }

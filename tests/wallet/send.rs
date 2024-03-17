@@ -1117,6 +1117,6 @@ fn sending_rune_does_not_send_inscription() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .stderr_regex("error:.*")
+  .expected_stderr("error: not enough cardinal utxos\n")
   .run_and_extract_stdout();
 }

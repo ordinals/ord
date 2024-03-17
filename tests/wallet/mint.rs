@@ -3,9 +3,8 @@ use {
   bitcoin::Witness,
   ord::{
     runes::{Etching, Mint, Pile},
-    subcommand::wallet::mint::Output,
+    subcommand::wallet::{balance, mint},
   },
-  std::time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 #[test]
@@ -169,11 +168,7 @@ fn minting_rune_fails_if_after_deadline() {
 
   let rune = Rune(RUNE);
 
-  let deadline: u32 = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
-    + Duration::from_secs(1))
-  .as_secs()
-  .try_into()
-  .unwrap();
+  let deadline: u32 = 3;
 
   bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[(1, 0, 0, Witness::new())],
@@ -203,7 +198,6 @@ fn minting_rune_fails_if_after_deadline() {
   .ord_rpc_server(&ord_rpc_server)
   .run_and_deserialize_output::<mint::Output>();
 
-  thread::sleep(Duration::from_secs(1));
   bitcoin_rpc_server.mine_blocks(1);
 
   CommandBuilder::new(format!(
@@ -237,4 +231,93 @@ fn minting_rune_with_no_rune_index_fails() {
   .expected_exit_code(1)
   .expected_stderr("error: `ord wallet etch` requires index created with `--index-runes` flag\n")
   .run_and_extract_stdout();
+}
+
+#[test]
+fn minting_rune_does_not_send_inscription() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  bitcoin_rpc_server.mine_blocks_with_subsidy(1, 0);
+
+  bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, Witness::new())],
+    op_return: Some(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          symbol: Some('*'),
+          divisibility: 1,
+          mint: Some(Mint {
+            limit: Some(1111),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }),
+        ..Default::default()
+      }
+      .encipher(),
+    ),
+    ..Default::default()
+  });
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
+
+  CommandBuilder::new("--chain regtest --index-runes wallet inscribe --fee-rate 0 --file foo.txt")
+    .write("foo.txt", "FOO")
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks_with_subsidy(1, 0);
+
+  assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .ord_rpc_server(&ord_rpc_server)
+      .run_and_deserialize_output::<balance::Output>(),
+    balance::Output {
+      cardinal: 0,
+      ordinal: 10000,
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
+      total: 10000,
+    }
+  );
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: not enough cardinal utxos\n")
+  .run_and_extract_stdout();
+
+  //  bitcoin_rpc_server.mine_blocks(1);
+  //  let balances = CommandBuilder::new("--regtest --index-runes balances")
+  //    .bitcoin_rpc_server(&bitcoin_rpc_server)
+  //    .ord_rpc_server(&ord_rpc_server)
+  //    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+  //
+  //  assert_eq!(
+  //    CommandBuilder::new("--regtest --index-runes wallet balance")
+  //      .bitcoin_rpc_server(&bitcoin_rpc_server)
+  //      .ord_rpc_server(&ord_rpc_server)
+  //      .run_and_deserialize_output::<balance::Output>(),
+  //    balance::Output {
+  //      cardinal: 0,
+  //      ordinal: 10000,
+  //      runic: Some(10000),
+  //      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+  //      total: 20000,
+  //    }
+  //  );
 }
