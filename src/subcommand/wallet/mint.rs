@@ -45,7 +45,7 @@ impl Mint {
 
     if let Some(deadline) = mint.deadline {
       ensure!(
-        Duration::from_secs(deadline.into()) < SystemTime::now().duration_since(UNIX_EPOCH)?,
+        Duration::from_secs(deadline.into()) > SystemTime::now().duration_since(UNIX_EPOCH)?,
         "Mint deadline {} for rune {} has passed",
         deadline,
         rune

@@ -5,10 +5,11 @@ use {
     runes::{Etching, Mint},
     subcommand::wallet::mint::Output,
   },
+  std::time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 #[test]
-fn minting_rune_works() {
+fn minting_rune_and_fails_if_after_end() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -97,5 +98,110 @@ fn minting_rune_works() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr("error: Mint block height end of 4 for rune AAAAAAAAAAAAA has passed\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn minting_rune_fails_if_not_mintable() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, Witness::new())],
+    op_return: Some(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          mint: None,
+          ..Default::default()
+        }),
+        ..Default::default()
+      }
+      .encipher(),
+    ),
+    ..Default::default()
+  });
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: Rune AAAAAAAAAAAAA does not allow minting\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn minting_rune_fails_if_after_deadline() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let rune = Rune(RUNE);
+
+  let deadline: u32 = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+    + Duration::from_secs(1))
+  .as_secs()
+  .try_into()
+  .unwrap();
+
+  bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, Witness::new())],
+    op_return: Some(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(rune),
+          mint: Some(Mint {
+            deadline: Some(deadline),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }),
+        ..Default::default()
+      }
+      .encipher(),
+    ),
+    ..Default::default()
+  });
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {rune}",
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<mint::Output>();
+
+  thread::sleep(Duration::from_secs(1));
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {rune}",
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: Mint deadline {deadline} for rune {rune} has passed\n"
+  ))
   .run_and_extract_stdout();
 }
