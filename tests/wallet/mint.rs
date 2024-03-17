@@ -300,24 +300,4 @@ fn minting_rune_does_not_send_inscription() {
   .expected_exit_code(1)
   .expected_stderr("error: not enough cardinal utxos\n")
   .run_and_extract_stdout();
-
-  //  bitcoin_rpc_server.mine_blocks(1);
-  //  let balances = CommandBuilder::new("--regtest --index-runes balances")
-  //    .bitcoin_rpc_server(&bitcoin_rpc_server)
-  //    .ord_rpc_server(&ord_rpc_server)
-  //    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
-  //
-  //  assert_eq!(
-  //    CommandBuilder::new("--regtest --index-runes wallet balance")
-  //      .bitcoin_rpc_server(&bitcoin_rpc_server)
-  //      .ord_rpc_server(&ord_rpc_server)
-  //      .run_and_deserialize_output::<balance::Output>(),
-  //    balance::Output {
-  //      cardinal: 0,
-  //      ordinal: 10000,
-  //      runic: Some(10000),
-  //      runes: Some(vec![(rune, 1000)].into_iter().collect()),
-  //      total: 20000,
-  //    }
-  //  );
 }
