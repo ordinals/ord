@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Mint {
-  #[clap(long, help = "Etch with fee rate of <FEE_RATE> sats/vB.")]
+  #[clap(long, help = "Use <FEE_RATE> sats/vbyte for mint transaction.")]
   fee_rate: FeeRate,
-  #[clap(long, help = "Etch rune <RUNE>. May contain `.` or `•`as spacers.")]
+  #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
 }
 
