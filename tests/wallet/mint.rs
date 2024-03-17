@@ -97,7 +97,7 @@ fn minting_rune_and_fails_if_after_end() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: rune AAAAAAAAAAAAA mint has ended as of block 4\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA mint ended on block 4\n")
   .run_and_extract_stdout();
 }
 
@@ -139,7 +139,7 @@ fn minting_rune_fails_if_not_mintable() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: rune AAAAAAAAAAAAA is not mintable\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA not mintable\n")
   .run_and_extract_stdout();
 }
 
@@ -200,8 +200,6 @@ fn minting_rune_fails_if_after_deadline() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr(format!(
-    "error: rune {rune} mint has ended as of {deadline}\n"
-  ))
+  .expected_stderr(format!("error: rune {rune} mint ended at {deadline}\n"))
   .run_and_extract_stdout();
 }

@@ -31,20 +31,20 @@ impl Mint {
     };
 
     let Some(mint) = entry.mint else {
-      bail!("rune {rune} is not mintable");
+      bail!("rune {rune} not mintable");
     };
 
     if let Some(end) = mint.end {
       ensure!(
         end > bitcoin_client.get_block_count()?.try_into().unwrap(),
-        "rune {rune} mint has ended as of block {end}",
+        "rune {rune} mint ended on block {end}",
       );
     };
 
     if let Some(deadline) = mint.deadline {
       ensure!(
         Duration::from_secs(deadline.into()) > SystemTime::now().duration_since(UNIX_EPOCH)?,
-        "rune {rune} mint has ended as of {deadline}",
+        "rune {rune} mint ended at {deadline}",
       );
     };
 
