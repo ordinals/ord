@@ -22,7 +22,7 @@ impl Mint {
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    let SpacedRune { rune, spacers: _ } = self.rune;
+    let rune = self.rune.rune;
 
     let bitcoin_client = wallet.bitcoin_client();
 
