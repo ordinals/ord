@@ -75,7 +75,7 @@ fn minting_rune_and_fails_if_after_end() {
         Rune(RUNE),
         vec![(
           OutPoint {
-            txid: output.txid,
+            txid: output.mint,
             vout: 1
           },
           1111

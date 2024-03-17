@@ -12,7 +12,7 @@ pub(crate) struct Mint {
 pub struct Output {
   pub rune: SpacedRune,
   pub pile: Pile,
-  pub txid: Txid,
+  pub mint: Txid,
 }
 
 impl Mint {
@@ -112,7 +112,7 @@ impl Mint {
         divisibility: rune_entry.divisibility,
         symbol: rune_entry.symbol,
       },
-      txid: transaction,
+      mint: transaction,
     })))
   }
 }
