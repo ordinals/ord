@@ -30,7 +30,7 @@ fn get_sat_without_sat_index() {
       percentile: "100%".into(),
       satpoint: None,
       timestamp: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   )
 }
@@ -157,13 +157,13 @@ fn get_inscription() {
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
-      genesis_fee: 138,
-      genesis_height: 2,
-      inscription_id,
-      inscription_number: 0,
+      fee: 138,
+      height: 2,
+      id: inscription_id,
+      number: 0,
       next: None,
-      output_value: Some(10000),
-      parent: None,
+      value: Some(10000),
+      parents: Vec::new(),
       previous: None,
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
@@ -213,7 +213,7 @@ fn get_inscriptions() {
   let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 100);
+  assert_eq!(inscriptions_json.ids.len(), 100);
   assert!(inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 0);
 
@@ -222,7 +222,7 @@ fn get_inscriptions() {
   let inscriptions_json: api::Inscriptions =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 50);
+  assert_eq!(inscriptions_json.ids.len(), 50);
   assert!(!inscriptions_json.more);
   assert_eq!(inscriptions_json.page_index, 1);
 }
@@ -276,7 +276,7 @@ fn get_inscriptions_in_block() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
-    inscriptions_json.inscriptions,
+    inscriptions_json.ids,
     vec![
       InscriptionId { txid, index: 0 },
       InscriptionId { txid, index: 1 },
@@ -389,7 +389,7 @@ fn get_block() {
         .unwrap(),
       best_height: 1,
       height: 0,
-      inscriptions: vec![],
+      inscriptions: Vec::new(),
     }
   );
 }

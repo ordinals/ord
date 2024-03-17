@@ -5,10 +5,10 @@ use {
 
 pub use {edict::Edict, rune::Rune, rune_id::RuneId, runestone::Runestone};
 
-pub(crate) use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
+pub use {etching::Etching, mint::Mint, pile::Pile, spaced_rune::SpacedRune};
 
 pub const MAX_DIVISIBILITY: u8 = 38;
-pub(crate) const MAX_LIMIT: u128 = 1 << 64;
+pub const MAX_LIMIT: u128 = 1 << 64;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
 mod edict;
@@ -24,6 +24,25 @@ mod tag;
 pub mod varint;
 
 type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Debug)]
+pub enum MintError {
+  Deadline((Rune, u32)),
+  End((Rune, u32)),
+  Unmintable(Rune),
+}
+
+impl fmt::Display for MintError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      MintError::Deadline((rune, deadline)) => {
+        write!(f, "rune {rune} mint ended at {deadline}")
+      }
+      MintError::End((rune, end)) => write!(f, "rune {rune} mint ended on block {end}"),
+      MintError::Unmintable(rune) => write!(f, "rune {rune} not mintable"),
+    }
+  }
+}
 
 #[cfg(test)]
 mod tests {
@@ -4273,7 +4292,7 @@ mod tests {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4370,7 +4389,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4415,7 +4434,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4465,7 +4484,7 @@ mod tests {
       op_return: Some(
         Runestone {
           burn: true,
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           edicts: vec![Edict {
             id: u128::from(id),
             amount: 1000,
@@ -4576,7 +4595,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4621,7 +4640,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4724,7 +4743,7 @@ mod tests {
             amount: 1,
             output: 3,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5105,7 +5124,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5150,7 +5169,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5247,7 +5266,7 @@ mod tests {
             amount: 0,
             output: 3,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5407,7 +5426,7 @@ mod tests {
             amount: MAX_LIMIT + 1,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5559,7 +5578,7 @@ mod tests {
             amount: 2000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5679,7 +5698,7 @@ mod tests {
               output: 0,
             },
           ],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),

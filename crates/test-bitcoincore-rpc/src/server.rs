@@ -46,6 +46,13 @@ impl Api for Server {
     })
   }
 
+  fn get_best_block_hash(&self) -> Result<bitcoin::BlockHash, jsonrpc_core::Error> {
+    match self.state().hashes.last() {
+      Some(block_hash) => Ok(*block_hash),
+      None => Err(Self::not_found()),
+    }
+  }
+
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
       chain: String::from(match self.network {
@@ -119,7 +126,10 @@ impl Api for Server {
       Ok(
         serde_json::to_value(GetBlockHeaderResult {
           bits: String::new(),
-          chainwork: Vec::new(),
+          chainwork: hex::decode(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+          )
+          .unwrap(),
           confirmations: 0,
           difficulty: 0.0,
           hash: block_hash,
@@ -142,6 +152,50 @@ impl Api for Server {
         None => Err(Self::not_found()),
       }
     }
+  }
+
+  fn get_block_stats(&self, height: usize) -> Result<GetBlockStatsResult, jsonrpc_core::Error> {
+    let Some(block_hash) = self.state().hashes.get(height).cloned() else {
+      return Err(Self::not_found());
+    };
+
+    Ok(GetBlockStatsResult {
+      avg_fee: Amount::ZERO,
+      avg_fee_rate: Amount::ZERO,
+      avg_tx_size: 0,
+      block_hash,
+      fee_rate_percentiles: FeeRatePercentiles {
+        fr_10th: Amount::ZERO,
+        fr_25th: Amount::ZERO,
+        fr_50th: Amount::ZERO,
+        fr_75th: Amount::ZERO,
+        fr_90th: Amount::ZERO,
+      },
+      height: height.try_into().unwrap(),
+      ins: 0,
+      max_fee: Amount::ZERO,
+      max_fee_rate: Amount::ZERO,
+      max_tx_size: 0,
+      median_fee: Amount::ZERO,
+      median_time: 0,
+      median_tx_size: 0,
+      min_fee: Amount::ZERO,
+      min_fee_rate: Amount::ZERO,
+      min_tx_size: 0,
+      outs: 0,
+      subsidy: Amount::ZERO,
+      sw_total_size: 0,
+      sw_total_weight: 0,
+      sw_txs: 0,
+      time: 0,
+      total_out: Amount::ZERO,
+      total_size: 0,
+      total_weight: 0,
+      total_fee: Amount::ZERO,
+      txs: 0,
+      utxo_increase: 0,
+      utxo_size_inc: 0,
+    })
   }
 
   fn get_block(
@@ -326,7 +380,9 @@ impl Api for Server {
       let (additional_input_value, outpoint) = utxos
         .iter()
         .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
-        .ok_or_else(Self::not_found)?;
+        .ok_or_else(|| {
+          jsonrpc_core::Error::new(jsonrpc_core::types::error::ErrorCode::ServerError(-6))
+        })?;
 
       transaction.input.push(TxIn {
         previous_output: *outpoint,

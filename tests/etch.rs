@@ -318,8 +318,8 @@ fn etch_does_not_select_inscribed_utxos() {
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .stderr_regex("error: JSON-RPC error: .*")
   .expected_exit_code(1)
+  .expected_stderr("error: not enough cardinal utxos\n")
   .run_and_extract_stdout();
 }
 
@@ -393,7 +393,7 @@ fn send_amount_does_not_select_runic_utxos() {
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .stderr_regex("error: JSON-RPC error: .*")
+    .expected_stderr("error: not enough cardinal utxos\n")
     .run_and_extract_stdout();
 }
 
