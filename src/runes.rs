@@ -4834,7 +4834,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4880,7 +4880,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -4980,7 +4980,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5026,7 +5026,7 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          claim: Some(u128::from(id)),
+          claim: Some(id),
           ..Default::default()
         }
         .encipher(),
@@ -5206,7 +5206,6 @@ mod tests {
     );
   }
 
-  
   #[test]
   fn open_etching_claims_can_use_split() {
     let context = Context::builder().arg("--index-runes").build();
