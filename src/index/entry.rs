@@ -44,13 +44,13 @@ pub struct RuneEntry {
 }
 
 impl RuneEntry {
-  pub fn mintable(&self, block_height: u32, block_time: u32) -> Result<u128, MintError> {
+  pub fn mintable(&self, block_height: Height, block_time: u32) -> Result<u128, MintError> {
     let Some(mint) = self.mint else {
       return Err(MintError::Unmintable(self.rune));
     };
 
     if let Some(end) = mint.end {
-      if block_height >= end {
+      if block_height.0 >= end {
         return Err(MintError::End((self.rune, end)));
       }
     }

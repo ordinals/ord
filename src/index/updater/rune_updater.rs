@@ -371,7 +371,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     let rune_entry = RuneEntry::load(entry.value());
 
-    let Ok(limit) = rune_entry.mintable(self.height, self.block_time) else {
+    let Ok(limit) = rune_entry.mintable(Height(self.height), self.block_time) else {
       return Ok(None);
     };
 
