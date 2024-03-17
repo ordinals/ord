@@ -1,0 +1,17 @@
+#!/bin/bash
+
+export HOME="/root"
+
+# Enable logs
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+# Clone ord
+echo "Cloning ord"
+mkdir -p /sources
+cd /sources
+git clone https://github.com/brc721-core/ord.git .
+cd ord
+
+# Run setup script
+echo "Running ord setup script"
+./deploy/setup test test test 2520000 
