@@ -26,29 +26,25 @@ impl Mint {
 
     let bitcoin_client = wallet.bitcoin_client();
 
-    let Some((rune_id, rune_entry, _)) = wallet.get_rune(rune)? else {
-      bail!("Rune {} does not exist", rune);
+    let Some((id, entry, _)) = wallet.get_rune(rune)? else {
+      bail!("rune {rune} has not been etched");
     };
 
-    let Some(mint) = rune_entry.mint else {
-      bail!("Rune {} does not allow minting", rune);
+    let Some(mint) = entry.mint else {
+      bail!("rune {rune} is not mintable");
     };
 
     if let Some(end) = mint.end {
       ensure!(
         end > bitcoin_client.get_block_count()?.try_into().unwrap(),
-        "Mint block height end of {} for rune {} has passed",
-        end,
-        rune
+        "rune {rune} mint has ended as of block {end}",
       );
     };
 
     if let Some(deadline) = mint.deadline {
       ensure!(
         Duration::from_secs(deadline.into()) > SystemTime::now().duration_since(UNIX_EPOCH)?,
-        "Mint deadline {} for rune {} has passed",
-        deadline,
-        rune
+        "rune {rune} mint has ended as of {deadline}",
       );
     };
 
@@ -56,10 +52,10 @@ impl Mint {
 
     let runestone = Runestone {
       etching: None,
-      edicts: vec![],
+      edicts: Vec::new(),
       default_output: None,
       burn: false,
-      claim: Some(rune_id),
+      claim: Some(id),
     };
 
     let script_pubkey = runestone.encipher();
@@ -109,8 +105,8 @@ impl Mint {
       rune: self.rune,
       pile: Pile {
         amount: mint.limit.unwrap_or(crate::runes::MAX_LIMIT),
-        divisibility: rune_entry.divisibility,
-        symbol: rune_entry.symbol,
+        divisibility: entry.divisibility,
+        symbol: entry.symbol,
       },
       mint: transaction,
     })))
