@@ -114,24 +114,39 @@ systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
 
-# while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
-#   echo "Waiting for bitcoind…"
-#   sleep 1
-# done
-
 sleep 60
 
 # DECLARE DESCRIPTORS
-LAUNCHPAD_FUNDING_DESC="tr($XPRV/86'/1'/0'/0/*)"
-LAUNCHPAD_CONTROL_DESC="tr($XPRV/86'/1'/1'/0/*)"
+# TO KEEP ADDRESS RANGE 0-999999 WE USE DIFFERENT ACCOUNTS
+# ACCOUNT RANGE 0-99 FOR FUNDING AND 100-199 FOR RUNE CONTROL
+LAUNCHPAD_FUNDING_DESC_1="tr($XPRV/86'/1'/0'/0/*)"
+LAUNCHPAD_FUNDING_DESC_2="tr($XPRV/86'/1'/1'/0/*)"
+LAUNCHPAD_FUNDING_DESC_3="tr($XPRV/86'/1'/2'/0/*)"
+LAUNCHPAD_FUNDING_DESC_4="tr($XPRV/86'/1'/3'/0/*)"
+LAUNCHPAD_CONTROL_DESC_1="tr($XPRV/86'/1'/100'/0/*)"
+LAUNCHPAD_CONTROL_DESC_2="tr($XPRV/86'/1'/101'/0/*)"
+LAUNCHPAD_CONTROL_DESC_3="tr($XPRV/86'/1'/102'/0/*)"
+LAUNCHPAD_CONTROL_DESC_4="tr($XPRV/86'/1'/103'/0/*)"
 
 # GET DESCRIPTORS CHECKSUMS
-LAUNCHPAD_FUNDING_DESC_CS=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_FUNDING_DESC | jq -r '.checksum')
-LAUNCHPAD_CONTROL_DESC_CS=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_CONTROL_DESC | jq -r '.checksum')
+LAUNCHPAD_FUNDING_DESC_CS_1=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_FUNDING_DESC_1 | jq -r '.checksum')
+LAUNCHPAD_FUNDING_DESC_CS_2=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_FUNDING_DESC_2 | jq -r '.checksum')
+LAUNCHPAD_FUNDING_DESC_CS_3=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_FUNDING_DESC_3 | jq -r '.checksum')
+LAUNCHPAD_FUNDING_DESC_CS_4=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_FUNDING_DESC_4 | jq -r '.checksum')
+LAUNCHPAD_CONTROL_DESC_CS_1=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_CONTROL_DESC_1 | jq -r '.checksum')
+LAUNCHPAD_CONTROL_DESC_CS_2=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_CONTROL_DESC_2 | jq -r '.checksum')
+LAUNCHPAD_CONTROL_DESC_CS_3=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_CONTROL_DESC_3 | jq -r '.checksum')
+LAUNCHPAD_CONTROL_DESC_CS_4=$(bitcoin-cli -chain=test getdescriptorinfo $LAUNCHPAD_CONTROL_DESC_4 | jq -r '.checksum')
 
 # ADD CHECKSUM TO DESCRIPTORS
-LAUNCHPAD_FUNDING_DESC=$LAUNCHPAD_FUNDING_DESC#$LAUNCHPAD_FUNDING_DESC_CS
-LAUNCHPAD_CONTROL_DESC=$LAUNCHPAD_CONTROL_DESC#$LAUNCHPAD_CONTROL_DESC_CS
+LAUNCHPAD_FUNDING_DESC_1=$LAUNCHPAD_FUNDING_DESC_1#$LAUNCHPAD_FUNDING_DESC_CS_1
+LAUNCHPAD_FUNDING_DESC_2=$LAUNCHPAD_FUNDING_DESC_2#$LAUNCHPAD_FUNDING_DESC_CS_2
+LAUNCHPAD_FUNDING_DESC_3=$LAUNCHPAD_FUNDING_DESC_3#$LAUNCHPAD_FUNDING_DESC_CS_3
+LAUNCHPAD_FUNDING_DESC_4=$LAUNCHPAD_FUNDING_DESC_4#$LAUNCHPAD_FUNDING_DESC_CS_4
+LAUNCHPAD_CONTROL_DESC_1=$LAUNCHPAD_CONTROL_DESC_1#$LAUNCHPAD_CONTROL_DESC_CS_1
+LAUNCHPAD_CONTROL_DESC_2=$LAUNCHPAD_CONTROL_DESC_2#$LAUNCHPAD_CONTROL_DESC_CS_2
+LAUNCHPAD_CONTROL_DESC_3=$LAUNCHPAD_CONTROL_DESC_3#$LAUNCHPAD_CONTROL_DESC_CS_3
+LAUNCHPAD_CONTROL_DESC_4=$LAUNCHPAD_CONTROL_DESC_4#$LAUNCHPAD_CONTROL_DESC_CS_4
 
 # DECLATE WALLET NAMES
 LAUNCHPAD_FUNDING_WALLET_1="launchpad-funding-1"
@@ -140,6 +155,8 @@ LAUNCHPAD_FUNDING_WALLET_3="launchpad-funding-3"
 LAUNCHPAD_FUNDING_WALLET_4="launchpad-funding-4"
 LAUNCHPAD_CONTROL_WALLET_1="launchpad-control-1"
 LAUNCHPAD_CONTROL_WALLET_2="launchpad-control-2"
+LAUNCHPAD_CONTROL_WALLET_3="launchpad-control-3"
+LAUNCHPAD_CONTROL_WALLET_4="launchpad-control-4"
 
 # CREATE WALLETS WITH DECLARED NAMES
 bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_FUNDING_WALLET_1 false true "" false true true  
@@ -148,16 +165,20 @@ bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_FUNDING_WALLET_3 false true ""
 bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_FUNDING_WALLET_4 false true "" false true true
 bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_CONTROL_WALLET_1 false true "" false true true
 bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_CONTROL_WALLET_2 false true "" false true true
+bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_CONTROL_WALLET_3 false true "" false true true
+bitcoin-cli -chain=$CHAIN createwallet $LAUNCHPAD_CONTROL_WALLET_4 false true "" false true true
 
 # IMPORT FUNDING DESCRIPTORS TO FUNDING WALLETS
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_1 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_2 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [1000000,1999999] }]"
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_3 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [2000000,2999999] }]"
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_4 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [3000000,3999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_1 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC_1\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_2 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC_2\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_3 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC_3\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_FUNDING_WALLET_4 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_FUNDING_DESC_4\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
 
 # IMPORT CONTOL DESCRIPTORS TO CONTROL WALLETS
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_1 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
-bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_2 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC\", \"timestamp\":\"now\", \"active\": true, \"range\": [1000000,1999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_1 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC_1\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_2 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC_2\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_3 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC_3\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
+bitcoin-cli -chain=$CHAIN -rpcwallet=$LAUNCHPAD_CONTROL_WALLET_4 importdescriptors "[{ \"desc\": \"$LAUNCHPAD_CONTROL_DESC_4\", \"timestamp\":\"now\", \"active\": true, \"range\": [0,999999] }]"
 
 setfacl -m ord:x /var/lib/bitcoind
 # setfacl -m ord:x $COOKIE_FILE_DIR
