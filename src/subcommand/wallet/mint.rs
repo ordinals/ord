@@ -51,11 +51,8 @@ impl Mint {
     let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
-      etching: None,
-      edicts: Vec::new(),
-      default_output: None,
-      burn: false,
       claim: Some(id),
+      ..Default::default()
     };
 
     let script_pubkey = runestone.encipher();
