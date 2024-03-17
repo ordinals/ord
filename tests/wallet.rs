@@ -7,6 +7,7 @@ mod create;
 mod dump;
 mod inscribe;
 mod inscriptions;
+mod mint;
 mod outputs;
 mod receive;
 mod restore;

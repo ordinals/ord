@@ -600,7 +600,7 @@ impl<'index> Updater<'index> {
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
         statistic_to_count: &mut statistic_to_count,
-        timestamp: block.header.time,
+        block_time: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,
         updates: HashMap::new(),
       };
