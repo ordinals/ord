@@ -28,7 +28,7 @@ fn minting_rune_and_fails_if_after_end() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: Rune AAAAAAAAAAAAA does not exist\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA has not been etched\n")
   .run_and_extract_stdout();
 
   bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -97,7 +97,7 @@ fn minting_rune_and_fails_if_after_end() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: Mint block height end of 4 for rune AAAAAAAAAAAAA has passed\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA mint has ended as of block 4\n")
   .run_and_extract_stdout();
 }
 
@@ -139,7 +139,7 @@ fn minting_rune_fails_if_not_mintable() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: Rune AAAAAAAAAAAAA does not allow minting\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA is not mintable\n")
   .run_and_extract_stdout();
 }
 
@@ -201,7 +201,7 @@ fn minting_rune_fails_if_after_deadline() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: Mint deadline {deadline} for rune {rune} has passed\n"
+    "error: rune {rune} mint has ended as of {deadline}\n"
   ))
   .run_and_extract_stdout();
 }
