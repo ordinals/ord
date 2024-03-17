@@ -5362,6 +5362,67 @@ mod tests {
   }
 
   #[test]
+  fn inscription_with_three_delegates_serves_the_first_available_one() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let delegate_txid = context.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let delegate_inscription_id_real = InscriptionId {
+        txid: delegate_txid,
+        index: 0,
+      };
+
+      let delegate_inscription_id_fake_a = InscriptionId {
+        txid: delegate_txid,
+        index: 1,
+      };
+      let delegate_inscription_id_fake_b = InscriptionId {
+        txid: delegate_txid,
+        index: 2,
+      };
+
+      let multi_delegate_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("world".into()),
+        delegates: vec![
+          delegate_inscription_id_fake_a.value(),
+          delegate_inscription_id_real.value(),
+          delegate_inscription_id_fake_b.value(),
+        ],
+        ..Default::default()
+      };
+      let txid = context.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, multi_delegate_inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      let recovered_delegator = context
+        .index
+        .get_inscription_by_id(inscription_id)
+        .unwrap()
+        .unwrap();
+
+      assert_eq!(
+        recovered_delegator.delegates(),
+        vec![
+          delegate_inscription_id_fake_a,
+          delegate_inscription_id_real,
+          delegate_inscription_id_fake_b
+        ]
+      );
+    }
+  }
+
+  #[test]
   fn inscription_with_pointer() {
     for context in Context::configurations() {
       context.mine_blocks(1);
