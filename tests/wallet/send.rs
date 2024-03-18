@@ -977,11 +977,18 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
+    "
+      --chain regtest
+      --index-runes
+      wallet
+      send
+      --fee-rate 1
+      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}
+    ",
     Rune(RUNE),
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
   .run_and_deserialize_output::<Send>();
 
   bitcoin_rpc_server.mine_blocks(1);
