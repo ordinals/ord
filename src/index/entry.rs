@@ -225,11 +225,8 @@ pub(super) type RuneIdValue = (u32, u16);
 impl Entry for RuneId {
   type Value = RuneIdValue;
 
-  fn load((height, index): Self::Value) -> Self {
-    Self {
-      block: height,
-      tx: index,
-    }
+  fn load((block, tx): Self::Value) -> Self {
+    Self { block, tx }
   }
 
   fn store(self) -> Self::Value {
