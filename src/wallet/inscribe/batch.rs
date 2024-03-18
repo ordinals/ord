@@ -435,7 +435,7 @@ impl Batch {
       premine = etch.premine.to_amount(etch.divisibility)?;
 
       if premine > 0 {
-        vout = Some(u32::try_from(reveal_outputs.len()).unwrap());
+        let output = u32::try_from(reveal_outputs.len()).unwrap();
         destination = Some(reveal_change.clone());
 
         reveal_outputs.push(TxOut {
@@ -446,13 +446,10 @@ impl Batch {
         edicts.push(Edict {
           id: 0,
           amount: premine,
-          output: reveal_outputs
-            .len()
-            .checked_sub(1)
-            .unwrap()
-            .try_into()
-            .unwrap(),
+          output: output.into(),
         });
+
+        vout = Some(output);
       } else {
         vout = None;
         destination = None;
