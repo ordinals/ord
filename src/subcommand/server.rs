@@ -2540,7 +2540,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2620,7 +2620,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2661,7 +2661,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2723,7 +2723,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2832,7 +2832,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2932,7 +2932,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2991,7 +2991,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],

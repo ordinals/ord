@@ -131,6 +131,10 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   format!("{}i{n}", hex.repeat(64)).parse().unwrap()
 }
 
+pub(crate) fn rune_id(tx: u16) -> RuneId {
+  RuneId { block: 0, tx }
+}
+
 pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
   let mut builder = script::Builder::new()
     .push_opcode(opcodes::OP_FALSE)
