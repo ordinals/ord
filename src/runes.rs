@@ -3949,14 +3949,14 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_term_zero_cannot_be_minted() {
+  fn open_etchings_with_term_zero_can_be_premined() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
           id: 0,
-          amount: 1000,
+          amount: 1111,
           output: 0,
         }],
         etching: Some(Etching {
@@ -3985,10 +3985,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
+          supply: 1111,
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3996,11 +3997,6 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          edicts: vec![Edict {
-            id: u128::from(id),
-            amount: 1,
-            output: 3,
-          }],
           claim: Some(id),
           ..Default::default()
         }
@@ -4023,10 +4019,11 @@ mod tests {
             end: Some(id.block),
             ..Default::default()
           }),
+          supply: 1111,
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
   }
 
@@ -4493,7 +4490,7 @@ mod tests {
   }
 
   #[test]
-  fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
+  fn runes_can_be_etched_and_premined_in_the_same_transaction() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4527,11 +4524,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
-          supply: 1000,
+          supply: 2000,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 2000)])],
     );
   }
 
@@ -4657,10 +4654,10 @@ mod tests {
   }
 
   #[test]
-  fn transactions_cannot_claim_more_than_limit() {
+  fn premines_can_claim_over_the_max_limit() {
     let context = Context::builder().arg("--index-runes").build();
 
-    let (txid0, id) = context.etch(
+    let (txid0, rune_id) = context.etch(
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
@@ -4682,7 +4679,7 @@ mod tests {
 
     context.assert_runes(
       [(
-        id,
+        rune_id,
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
@@ -4690,8 +4687,9 @@ mod tests {
             limit: Some(1000),
             ..Default::default()
           }),
-          timestamp: id.block,
-          supply: 1000,
+          timestamp: rune_id.block,
+          supply: 2000,
+          mints: 0,
           ..Default::default()
         },
       )],
@@ -4700,8 +4698,28 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, 1000)],
+        vec![(rune_id, 2000)],
       )],
+    );
+  }
+
+  #[test]
+  fn transactions_cannot_claim_more_than_limit() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          mint: Some(Mint {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }),
+        ..Default::default()
+      },
+      1,
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4734,27 +4752,18 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
-          supply: 2000,
+          supply: 1000,
           mints: 1,
           ..Default::default()
         },
       )],
-      [
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-        (
-          OutPoint {
-            txid: txid1,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-      ],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
     );
   }
 
