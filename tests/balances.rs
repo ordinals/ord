@@ -57,10 +57,14 @@ fn with_runes() {
           Rune(RUNE),
           vec![(
             OutPoint {
-              txid: a.transaction,
+              txid: a.inscribe.reveal,
               vout: 1
             },
-            1000
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
           )]
           .into_iter()
           .collect()
@@ -69,10 +73,14 @@ fn with_runes() {
           Rune(RUNE + 1),
           vec![(
             OutPoint {
-              txid: b.transaction,
+              txid: b.inscribe.reveal,
               vout: 1
             },
-            1000
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
           )]
           .into_iter()
           .collect()

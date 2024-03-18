@@ -1,8 +1,5 @@
 use {
-  super::{
-    target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-    Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
-  },
+  super::*,
   serde_hex::{SerHex, Strict},
 };
 
@@ -88,7 +85,7 @@ pub struct Inscription {
   pub id: InscriptionId,
   pub next: Option<InscriptionId>,
   pub number: i32,
-  pub parent: Option<InscriptionId>,
+  pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
@@ -122,7 +119,7 @@ pub struct Inscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub address: Option<String>,
+  pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<(SpacedRune, Pile)>,
@@ -148,7 +145,7 @@ impl Output {
       address: chain
         .address_from_script(&output.script_pubkey)
         .ok()
-        .map(|address| address.to_string()),
+        .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,

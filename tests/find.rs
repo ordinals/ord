@@ -32,16 +32,24 @@ fn find_range_command_returns_satpoints_and_ranges() {
       FindRangeOutput {
         start: 0,
         size: 50 * COIN_VALUE,
-        satpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"
-          .parse()
-          .unwrap()
+        satpoint: SatPoint {
+          outpoint: OutPoint {
+            txid: rpc_server.tx(0, 0).into(),
+            vout: 0,
+          },
+          offset: 0,
+        }
       },
       FindRangeOutput {
         start: 50 * COIN_VALUE,
         size: 5 * COIN_VALUE,
-        satpoint: "84aca0d43f45ac753d4744f40b2f54edec3a496b298951735d450e601386089d:0:0"
-          .parse()
-          .unwrap()
+        satpoint: SatPoint {
+          outpoint: OutPoint {
+            txid: rpc_server.tx(1, 0).into(),
+            vout: 0,
+          },
+          offset: 0,
+        }
       }
     ]
   );

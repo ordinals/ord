@@ -109,10 +109,16 @@ impl Wallet {
         if !no_sync {
           for i in 0.. {
             let response = async_ord_client.get("/blockcount").await?;
-            if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
+            if response
+              .text()
+              .await?
+              .parse::<u64>()
+              .expect("wallet failed to talk to server. Make sure `ord server` is running.")
+              >= chain_block_count
+            {
               break;
             } else if i == 20 {
-              bail!("wallet failed to synchronize with ord server");
+              bail!("wallet failed to synchronize with `ord server` after {i} attempts");
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
           }
@@ -471,6 +477,10 @@ impl Wallet {
 
   pub(crate) fn chain(&self) -> Chain {
     self.settings.chain()
+  }
+
+  pub(crate) fn integration_test(&self) -> bool {
+    self.settings.integration_test()
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {

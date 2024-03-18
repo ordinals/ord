@@ -5,7 +5,7 @@ use {
 };
 
 struct Claim {
-  id: u128,
+  id: RuneId,
   limit: u128,
 }
 
@@ -32,12 +32,13 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) outpoint_to_output: &'a mut Table<'db, 'tx, &'static OutPointValue, OutputValue>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
   pub(super) number_to_rune_info: &'a mut Table<'db, 'tx, u64, RuneInfoValue>,
   pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
-  pub(super) timestamp: u32,
+  pub(super) block_time: u32,
   pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
@@ -67,18 +68,15 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|id| self.claim(id).transpose())
         .transpose()?
       {
-        *unallocated.entry(claim.id).or_default() += claim.limit;
+        *unallocated.entry(claim.id.into()).or_default() += claim.limit;
 
-        let update = self
-          .updates
-          .entry(RuneId::try_from(claim.id).unwrap())
-          .or_default();
+        let update = self.updates.entry(claim.id).or_default();
 
         update.mints += 1;
         update.supply += claim.limit;
       }
 
-      let mut etched = self.etched(index, &runestone)?;
+      let mut etched = self.etched(index, tx, &runestone)?;
 
       if !burn {
         for Edict { id, amount, output } in runestone.edicts {
@@ -233,6 +231,33 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       )?;
     }
 
+    for input in tx.input.iter() {
+      if input.previous_output.is_null() {
+        continue;
+      }
+
+      self
+        .outpoint_to_output
+        .remove(&input.previous_output.store())?
+        .unwrap();
+    }
+
+    for (vout, output) in tx.output.iter().enumerate() {
+      let outpoint = OutPoint {
+        txid,
+        vout: vout.try_into().unwrap(),
+      };
+
+      self.outpoint_to_output.insert(
+        &outpoint.store(),
+        OutputEntry {
+          height: self.height,
+          taproot: output.script_pubkey.is_v1_p2tr(),
+        }
+        .store(),
+      )?;
+    }
+
     // increment entries with burned runes
     for (id, amount) in burned {
       self
@@ -283,7 +308,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         u128::MAX
       } - balance,
       symbol,
-      timestamp: self.timestamp,
+      timestamp: self.block_time,
     };
     self
       .number_to_rune_info
@@ -304,25 +329,24 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     Ok(())
   }
 
-  fn etched(&mut self, index: usize, runestone: &Runestone) -> Result<Option<Etched>> {
+  fn etched(
+    &mut self,
+    index: usize,
+    tx: &Transaction,
+    runestone: &Runestone,
+  ) -> Result<Option<Etched>> {
     let Some(etching) = runestone.etching else {
       return Ok(None);
     };
 
-    if etching
-      .rune
-      .map(|rune| rune < self.minimum || rune.is_reserved())
-      .unwrap_or_default()
-      || etching
-        .rune
-        .and_then(|rune| self.rune_to_id.get(rune.0).transpose())
-        .transpose()?
-        .is_some()
-    {
-      return Ok(None);
-    }
-
     let rune = if let Some(rune) = etching.rune {
+      if rune < self.minimum
+        || rune.is_reserved()
+        || self.rune_to_id.get(rune.0)?.is_some()
+        || !self.tx_commits_to_rune(tx, rune)?
+      {
+        return Ok(None);
+      }
       rune
     } else {
       let reserved_runes = self
@@ -369,37 +393,55 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }))
   }
 
-  fn claim(&self, id: u128) -> Result<Option<Claim>> {
-    let Ok(key) = RuneId::try_from(id) else {
+  fn claim(&self, id: RuneId) -> Result<Option<Claim>> {
+    let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
 
-    let Some(entry) = self.id_to_entry.get(&key.store())? else {
+    let rune_entry = RuneEntry::load(entry.value());
+
+    let Ok(limit) = rune_entry.mintable(Height(self.height), self.block_time) else {
       return Ok(None);
     };
 
-    let entry = RuneEntry::load(entry.value());
+    Ok(Some(Claim { id, limit }))
+  }
 
-    let Some(mint) = entry.mint else {
-      return Ok(None);
-    };
+  fn tx_commits_to_rune(&self, tx: &Transaction, rune: Rune) -> Result<bool> {
+    let commitment = rune.commitment();
 
-    if let Some(end) = mint.end {
-      if self.height >= end {
-        return Ok(None);
+    for input in &tx.input {
+      let Some(tapscript) = input.witness.tapscript() else {
+        continue;
+      };
+
+      for instruction in tapscript.instructions() {
+        let instruction = instruction?;
+
+        let Some(pushbytes) = instruction.push_bytes() else {
+          continue;
+        };
+
+        if pushbytes.as_bytes() != commitment {
+          continue;
+        }
+
+        let Some(output) = self
+          .outpoint_to_output
+          .get(&input.previous_output.store())?
+        else {
+          panic!("input not in UTXO set: {}", input.previous_output);
+        };
+
+        let output = OutputEntry::load(output.value());
+
+        if output.taproot && self.height >= output.height + RUNE_COMMIT_INTERVAL {
+          return Ok(true);
+        }
       }
     }
 
-    if let Some(deadline) = mint.deadline {
-      if self.timestamp >= deadline {
-        return Ok(None);
-      }
-    }
-
-    Ok(Some(Claim {
-      id,
-      limit: mint.limit.unwrap_or(runes::MAX_LIMIT),
-    }))
+    Ok(false)
   }
 
   fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<u128, u128>> {

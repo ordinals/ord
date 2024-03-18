@@ -2,8 +2,8 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, RuneInfoValue, SatPointValue, SatRange,
-      TxidValue,
+      OutPointValue, OutputEntry, OutputValue, RuneEntryValue, RuneIdValue, RuneInfoValue,
+      SatPointValue, SatRange, TxidValue,
     },
     event::Event,
     reorg::*,
@@ -13,6 +13,7 @@ use {
   super::*,
   crate::{
     index::entry::RuneInfo,
+    runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
@@ -48,7 +49,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 18;
+const SCHEMA_VERSION: u64 = 20;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -72,6 +73,7 @@ define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
+define_table! { OUTPOINT_TO_OUTPUT, &OutPointValue, OutputValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
@@ -174,7 +176,7 @@ pub(crate) struct TransactionInfo {
 pub(crate) struct InscriptionInfo {
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) entry: InscriptionEntry,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) satpoint: SatPoint,
   pub(crate) inscription: Inscription,
@@ -336,7 +338,6 @@ impl Index {
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
-        tx.open_table(NUMBER_TO_RUNE_INFO)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
@@ -962,31 +963,56 @@ impl Index {
     Ok(balances)
   }
 
-  pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, u128>>> {
+  pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, Pile>>> {
     let outpoint_balances = self.get_rune_balances()?;
 
     let rtx = self.database.begin_read()?;
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
-    let mut rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = BTreeMap::new();
+    let mut rune_balances_by_id: BTreeMap<RuneId, BTreeMap<OutPoint, u128>> = BTreeMap::new();
 
     for (outpoint, balances) in outpoint_balances {
       for (rune_id, amount) in balances {
-        let rune = RuneEntry::load(
-          rune_id_to_rune_entry
-            .get(&rune_id.store())?
-            .unwrap()
-            .value(),
-        )
-        .rune;
-
-        *rune_balances
-          .entry(rune)
+        *rune_balances_by_id
+          .entry(rune_id)
           .or_default()
           .entry(outpoint)
           .or_default() += amount;
       }
+    }
+
+    let mut rune_balances = BTreeMap::new();
+
+    for (rune_id, balances) in rune_balances_by_id {
+      let RuneEntry {
+        rune,
+        divisibility,
+        symbol,
+        ..
+      } = RuneEntry::load(
+        rune_id_to_rune_entry
+          .get(&rune_id.store())?
+          .unwrap()
+          .value(),
+      );
+
+      rune_balances.insert(
+        rune,
+        balances
+          .into_iter()
+          .map(|(outpoint, amount)| {
+            (
+              outpoint,
+              Pile {
+                amount,
+                divisibility,
+                symbol,
+              },
+            )
+          })
+          .collect(),
+      );
     }
 
     Ok(rune_balances)
@@ -1104,10 +1130,10 @@ impl Index {
   }
 
   #[cfg(test)]
-  pub(crate) fn get_parent_by_inscription_id(
+  pub(crate) fn get_parents_by_inscription_id(
     &self,
     inscription_id: InscriptionId,
-  ) -> InscriptionId {
+  ) -> Vec<InscriptionId> {
     let rtx = self.database.begin_read().unwrap();
 
     let sequence_number = rtx
@@ -1122,25 +1148,28 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)
       .unwrap();
 
-    let parent_sequence_number = InscriptionEntry::load(
+    let parent_sequences = InscriptionEntry::load(
       sequence_number_to_inscription_entry
         .get(sequence_number)
         .unwrap()
         .unwrap()
         .value(),
     )
-    .parent
-    .unwrap();
+    .parents;
 
-    let entry = InscriptionEntry::load(
-      sequence_number_to_inscription_entry
-        .get(parent_sequence_number)
-        .unwrap()
-        .unwrap()
-        .value(),
-    );
-
-    entry.id
+    parent_sequences
+      .into_iter()
+      .map(|parent_sequence_number| {
+        InscriptionEntry::load(
+          sequence_number_to_inscription_entry
+            .get(parent_sequence_number)
+            .unwrap()
+            .unwrap()
+            .value(),
+        )
+        .id
+      })
+      .collect()
   }
 
   pub(crate) fn get_children_by_sequence_number_paginated(
@@ -1176,6 +1205,37 @@ impl Index {
     }
 
     Ok((children, more))
+  }
+
+  pub(crate) fn get_parents_by_sequence_number_paginated(
+    &self,
+    parent_sequence_numbers: Vec<u32>,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    const PAGE_SIZE: usize = 100;
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let mut parents = parent_sequence_numbers
+      .iter()
+      .skip(page_index * PAGE_SIZE)
+      .take(PAGE_SIZE.saturating_add(1))
+      .map(|sequence_number| {
+        sequence_number_to_entry
+          .get(sequence_number)
+          .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more_parents = parents.len() > PAGE_SIZE;
+
+    if more_parents {
+      parents.pop();
+    }
+
+    Ok((parents, more_parents))
   }
 
   pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
@@ -1738,30 +1798,20 @@ impl Index {
     let rtx = index.database.begin_read()?;
 
     let sequence_number = match query {
-      query::Inscription::Id(id) => {
-        let inscription_id_to_sequence_number =
-          rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
-
-        let sequence_number = inscription_id_to_sequence_number
-          .get(&id.store())?
-          .map(|guard| guard.value());
-
-        drop(inscription_id_to_sequence_number);
-
-        sequence_number
-      }
-      query::Inscription::Number(inscription_number) => {
-        let inscription_number_to_sequence_number =
-          rtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
-
-        let sequence_number = inscription_number_to_sequence_number
-          .get(inscription_number)?
-          .map(|guard| guard.value());
-
-        drop(inscription_number_to_sequence_number);
-
-        sequence_number
-      }
+      query::Inscription::Id(id) => rtx
+        .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+        .get(&id.store())?
+        .map(|guard| guard.value()),
+      query::Inscription::Number(inscription_number) => rtx
+        .open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?
+        .get(inscription_number)?
+        .map(|guard| guard.value()),
+      query::Inscription::Sat(sat) => rtx
+        .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?
+        .get(sat.n())?
+        .next()
+        .transpose()?
+        .map(|guard| guard.value()),
     };
 
     let Some(sequence_number) = sequence_number else {
@@ -1856,18 +1906,22 @@ impl Index {
       None
     };
 
-    let parent = match entry.parent {
-      Some(parent) => Some(
-        InscriptionEntry::load(
-          sequence_number_to_inscription_entry
-            .get(parent)?
-            .unwrap()
-            .value(),
+    let parents = entry
+      .parents
+      .iter()
+      .take(4)
+      .map(|parent| {
+        Ok(
+          InscriptionEntry::load(
+            sequence_number_to_inscription_entry
+              .get(parent)?
+              .unwrap()
+              .value(),
+          )
+          .id,
         )
-        .id,
-      ),
-      None => None,
-    };
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
 
     let mut charms = entry.charms;
 
@@ -1878,7 +1932,7 @@ impl Index {
     Ok(Some(InscriptionInfo {
       children,
       entry,
-      parent,
+      parents,
       output,
       satpoint,
       inscription,
@@ -2419,12 +2473,14 @@ mod tests {
   fn find_first_sat_of_second_block() {
     let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
+    let tx = context.rpc_server.tx(1, 0);
     assert_eq!(
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
-        outpoint: "84aca0d43f45ac753d4744f40b2f54edec3a496b298951735d450e601386089d:0"
-          .parse()
-          .unwrap(),
+        outpoint: OutPoint {
+          txid: tx.txid(),
+          vout: 0,
+        },
         offset: 0,
       }
     )
@@ -4184,7 +4240,7 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let mut inscription_ids = vec![];
+      let mut inscription_ids = Vec::new();
       for i in 1..=21 {
         let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
           inputs: &[(
@@ -4431,8 +4487,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4461,7 +4517,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4478,8 +4534,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4508,7 +4564,7 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4521,14 +4577,375 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
         context
           .index
           .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_two_parent_tags_and_parents_has_parent_entries() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let parent_txid_a = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_b = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "world").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id_a = InscriptionId {
+        txid: parent_txid_a,
+        index: 0,
+      };
+      let parent_inscription_id_b = InscriptionId {
+        txid: parent_txid_b,
+        index: 0,
+      };
+
+      let multi_parent_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![
+          parent_inscription_id_a.value(),
+          parent_inscription_id_b.value(),
+        ],
+        ..Default::default()
+      };
+      let multi_parent_witness = multi_parent_inscription.to_witness();
+
+      let revelation_input = (3, 1, 0, multi_parent_witness);
+
+      let parent_b_input = (3, 2, 0, Witness::new());
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[revelation_input, parent_b_input],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id_a, parent_inscription_id_b]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_a)
+          .unwrap(),
+        vec![inscription_id]
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_b)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_repeated_parent_tags_and_parents_has_singular_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          1,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value(), parent_inscription_id.value()],
+            ..Default::default()
+          }
+          .to_witness(),
+        )],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_distinct_parent_tag_encodings_for_same_parent_has_singular_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let trailing_zero_inscription_id: Vec<u8> = parent_inscription_id
+        .value()
+        .into_iter()
+        .chain(vec![0, 0, 0, 0])
+        .collect();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          1,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value(), trailing_zero_inscription_id],
+            ..Default::default()
+          }
+          .to_witness(),
+        )],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_three_parent_tags_and_two_parents_has_two_parent_entries() {
+    for context in Context::configurations() {
+      context.mine_blocks(3);
+
+      let parent_txid_a = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_b = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "world").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_c = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 0, 0, inscription("text/plain", "wazzup").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id_a = InscriptionId {
+        txid: parent_txid_a,
+        index: 0,
+      };
+      let parent_inscription_id_b = InscriptionId {
+        txid: parent_txid_b,
+        index: 0,
+      };
+      let parent_inscription_id_c = InscriptionId {
+        txid: parent_txid_c,
+        index: 0,
+      };
+
+      let multi_parent_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![
+          parent_inscription_id_a.value(),
+          parent_inscription_id_b.value(),
+          parent_inscription_id_c.value(),
+        ],
+        ..Default::default()
+      };
+      let multi_parent_witness = multi_parent_inscription.to_witness();
+
+      let revealing_parent_a_input = (4, 1, 0, multi_parent_witness);
+
+      let parent_c_input = (4, 3, 0, Witness::new());
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[revealing_parent_a_input, parent_c_input],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id_a, parent_inscription_id_c]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_a)
+          .unwrap(),
+        vec![inscription_id]
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_b)
+          .unwrap(),
+        Vec::new()
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_c)
+          .unwrap(),
+        vec![inscription_id]
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_valid_and_malformed_parent_tags_only_lists_valid_entries() {
+    for context in Context::configurations() {
+      context.mine_blocks(3);
+
+      let parent_txid_a = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_b = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "world").to_witness())],
+        ..Default::default()
+      });
+      let parent_txid_c = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 0, 0, inscription("text/plain", "wazzup").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id_a = InscriptionId {
+        txid: parent_txid_a,
+        index: 0,
+      };
+      let parent_inscription_id_b = InscriptionId {
+        txid: parent_txid_b,
+        index: 0,
+      };
+      let parent_inscription_id_c = InscriptionId {
+        txid: parent_txid_c,
+        index: 0,
+      };
+
+      let malformed_inscription_id_b = parent_inscription_id_b
+        .value()
+        .into_iter()
+        .chain(iter::once(0))
+        .collect();
+
+      let multi_parent_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![
+          parent_inscription_id_a.value(),
+          malformed_inscription_id_b,
+          parent_inscription_id_c.value(),
+        ],
+        ..Default::default()
+      };
+      let multi_parent_witness = multi_parent_inscription.to_witness();
+
+      let revealing_parent_a_input = (4, 1, 0, multi_parent_witness);
+      let parent_b_input = (4, 2, 0, Witness::new());
+      let parent_c_input = (4, 3, 0, Witness::new());
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[revealing_parent_a_input, parent_b_input, parent_c_input],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id_a, parent_inscription_id_c]
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_a)
+          .unwrap(),
+        vec![inscription_id]
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_b)
+          .unwrap(),
+        Vec::new()
+      );
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id_c)
           .unwrap(),
         vec![inscription_id]
       );
@@ -4562,7 +4979,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4576,8 +4993,8 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -4616,7 +5033,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_inscription_id.value()),
+              parents: vec![parent_inscription_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4631,8 +5048,8 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       assert_eq!(
-        context.index.get_parent_by_inscription_id(inscription_id),
-        parent_inscription_id
+        context.index.get_parents_by_inscription_id(inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -4670,13 +5087,11 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(
-              parent_inscription_id
-                .value()
-                .into_iter()
-                .chain(iter::once(0))
-                .collect(),
-            ),
+            parents: vec![parent_inscription_id
+              .value()
+              .into_iter()
+              .chain(iter::once(0))
+              .collect()],
             ..Default::default()
           }
           .to_witness(),
@@ -4693,8 +5108,8 @@ mod tests {
         .get_inscription_entry(inscription_id)
         .unwrap()
         .unwrap()
-        .parent
-        .is_none());
+        .parents
+        .is_empty());
     }
   }
 
@@ -4849,7 +5264,7 @@ mod tests {
       let child_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
-        parent: Some(parent_inscription_id.value()),
+        parents: vec![parent_inscription_id.value()],
         pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
@@ -4886,8 +5301,8 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_parent_by_inscription_id(child_inscription_id),
-        parent_inscription_id
+          .get_parents_by_inscription_id(child_inscription_id),
+        vec![parent_inscription_id]
       );
 
       assert_eq!(
@@ -5767,7 +6182,7 @@ mod tests {
         sequence_number: 0,
         block_height: 2,
         charms: expected_charms,
-        parent_inscription_id: None
+        parent_inscription_ids: Vec::new(),
       }
     );
 

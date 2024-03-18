@@ -5,7 +5,7 @@ const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
   pub burn: bool,
-  pub claim: Option<u128>,
+  pub claim: Option<RuneId>,
   pub default_output: Option<u32>,
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
@@ -123,14 +123,14 @@ impl Runestone {
 
     Ok(Some(Self {
       burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
-      claim,
+      claim: claim.and_then(|claim| claim.try_into().ok()),
       default_output,
       edicts,
       etching,
     }))
   }
 
-  pub(crate) fn encipher(&self) -> ScriptBuf {
+  pub fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
     if let Some(etching) = self.etching {
@@ -175,7 +175,7 @@ impl Runestone {
     }
 
     if let Some(claim) = self.claim {
-      Tag::Claim.encode(claim, &mut payload);
+      Tag::Claim.encode(claim.into(), &mut payload);
     }
 
     if let Some(default_output) = self.default_output {
@@ -1554,7 +1554,7 @@ mod tests {
         ],
         default_output: Some(11),
         burn: true,
-        claim: Some(12),
+        claim: Some(RuneId::try_from(12).unwrap()),
       },
       &[
         Tag::Flags.into(),

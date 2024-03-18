@@ -17,6 +17,16 @@ fmt:
 clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
+install-git-hooks:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  for hook in hooks/*; do
+      name=$(basename "$hook")
+      if [ ! -e ".git/hooks/$name" ]; then
+          ln -s "$PWD/$hook" ".git/hooks/$name"
+      fi
+  done
+
 deploy branch remote chain domain:
   ssh root@{{domain}} '\
     export DEBIAN_FRONTEND=noninteractive \

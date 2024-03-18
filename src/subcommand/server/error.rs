@@ -11,7 +11,7 @@ pub(super) enum ServerError {
   NotFound(String),
 }
 
-pub(super) type ServerResult<T> = Result<T, ServerError>;
+pub(super) type ServerResult<T = Response> = Result<T, ServerError>;
 
 impl IntoResponse for ServerError {
   fn into_response(self) -> Response {

@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq, Default)]
 pub struct SpacedRune {
-  pub(crate) rune: Rune,
-  pub(crate) spacers: u32,
+  pub rune: Rune,
+  pub spacers: u32,
 }
 
 impl FromStr for SpacedRune {

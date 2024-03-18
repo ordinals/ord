@@ -12,9 +12,9 @@ pub mod balance;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
-pub mod etch;
 pub mod inscribe;
 pub mod inscriptions;
+pub mod mint;
 pub mod outputs;
 pub mod receive;
 pub mod restore;
@@ -46,14 +46,14 @@ pub(crate) enum Subcommand {
   Create(create::Create),
   #[command(about = "Dump wallet descriptors")]
   Dump,
-  #[command(about = "Create rune")]
-  Etch(etch::Etch),
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
   Inscriptions,
+  #[command(about = "Mint a rune")]
+  Mint(mint::Mint),
   #[command(about = "Generate receive address")]
-  Receive,
+  Receive(receive::Receive),
   #[command(about = "Restore wallet")]
   Restore(restore::Restore),
   #[command(about = "List wallet satoshis")]
@@ -93,10 +93,10 @@ impl WalletCommand {
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Dump => dump::run(wallet),
-      Subcommand::Etch(etch) => etch.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
-      Subcommand::Receive => receive::run(wallet),
+      Subcommand::Mint(mint) => mint.run(wallet),
+      Subcommand::Receive(receive) => receive.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),

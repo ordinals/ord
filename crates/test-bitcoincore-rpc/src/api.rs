@@ -12,6 +12,9 @@ pub trait Api {
   #[rpc(name = "getbalances")]
   fn get_balances(&self) -> Result<GetBalancesResult, jsonrpc_core::Error>;
 
+  #[rpc(name = "getbestblockhash")]
+  fn get_best_block_hash(&self) -> Result<bitcoin::BlockHash, jsonrpc_core::Error>;
+
   #[rpc(name = "getblockhash")]
   fn get_block_hash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
 

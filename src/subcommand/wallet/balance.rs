@@ -28,15 +28,26 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   for (output, txout) in unspent_outputs {
     let rune_balances = wallet.get_runes_balances_for_output(output)?;
 
-    if inscription_outputs.contains(output) {
+    let is_ordinal = inscription_outputs.contains(output);
+    let is_runic = !rune_balances.is_empty();
+
+    if is_ordinal {
       ordinal += txout.value;
-    } else if !rune_balances.is_empty() {
+    }
+
+    if is_runic {
       for (spaced_rune, pile) in rune_balances {
         *runes.entry(spaced_rune.rune).or_default() += pile.amount;
       }
       runic += txout.value;
-    } else {
+    }
+
+    if !is_ordinal && !is_runic {
       cardinal += txout.value;
+    }
+
+    if is_ordinal && is_runic {
+      eprintln!("warning: output {output} contains both inscriptions and runes");
     }
   }
 

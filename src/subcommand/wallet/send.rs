@@ -107,23 +107,23 @@ impl Send {
       )
     };
 
+    let mut fee = 0;
+    for txin in unsigned_transaction.input.iter() {
+      let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
+        panic!("input {} not found in utxos", txin.previous_output);
+      };
+      fee += txout.value;
+    }
+
+    for txout in unsigned_transaction.output.iter() {
+      fee = fee.checked_sub(txout.value).unwrap();
+    }
+
     Ok(Some(Box::new(Output {
       txid,
       psbt,
       outgoing: self.outgoing,
-      fee: unsigned_transaction
-        .input
-        .iter()
-        .map(|txin| unspent_outputs.get(&txin.previous_output).unwrap().value)
-        .sum::<u64>()
-        .checked_sub(
-          unsigned_transaction
-            .output
-            .iter()
-            .map(|txout| txout.value)
-            .sum::<u64>(),
-        )
-        .unwrap(),
+      fee,
     })))
   }
 

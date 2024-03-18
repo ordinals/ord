@@ -5062,11 +5062,11 @@ msgstr ""
 #: src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"`ord --datadir <DIR> index update` or give it a specific filename and path "
 "with `ord --index <FILENAME> index update`."
 msgstr ""
 "También tienes la opción de determinar la ubicación del directorio de datos "
-"utilizando el comando `ord --data-dir <DIR> index update` o asignarle un nombre "
+"utilizando el comando `ord --datadir <DIR> index update` o asignarle un nombre "
 "de archivo y ruta específicos utilizando el comando `ord --index <NOMBRE_DE_ARCHIVO> "
 "index update`."
 

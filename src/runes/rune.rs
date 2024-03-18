@@ -69,8 +69,20 @@ impl Rune {
     self.0 >= RESERVED
   }
 
-  pub(crate) fn reserved(n: u128) -> Self {
+  pub fn reserved(n: u128) -> Self {
     Rune(RESERVED.checked_add(n).unwrap())
+  }
+
+  pub(crate) fn commitment(self) -> Vec<u8> {
+    let bytes = self.0.to_le_bytes();
+
+    let mut end = bytes.len();
+
+    while end > 0 && bytes[end - 1] == 0 {
+      end -= 1;
+    }
+
+    bytes[..end].into()
   }
 }
 
@@ -357,5 +369,21 @@ mod tests {
         }
       }
     }
+  }
+
+  #[test]
+  fn commitment() {
+    #[track_caller]
+    fn case(rune: u128, bytes: &[u8]) {
+      assert_eq!(Rune(rune).commitment(), bytes);
+    }
+
+    case(0, &[]);
+    case(1, &[1]);
+    case(255, &[255]);
+    case(256, &[0, 1]);
+    case(65535, &[255, 255]);
+    case(65536, &[0, 0, 1]);
+    case(u128::MAX, &[255; 16]);
   }
 }

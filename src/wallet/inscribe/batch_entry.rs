@@ -1,14 +1,14 @@
 use super::*;
 
-#[derive(Deserialize, Default, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct BatchEntry {
-  pub(crate) delegate: Option<InscriptionId>,
-  pub(crate) destination: Option<Address<NetworkUnchecked>>,
-  pub(crate) file: PathBuf,
-  pub(crate) metadata: Option<serde_yaml::Value>,
-  pub(crate) metaprotocol: Option<String>,
-  pub(crate) satpoint: Option<SatPoint>,
+  pub delegate: Option<InscriptionId>,
+  pub destination: Option<Address<NetworkUnchecked>>,
+  pub file: PathBuf,
+  pub metadata: Option<serde_yaml::Value>,
+  pub metaprotocol: Option<String>,
+  pub satpoint: Option<SatPoint>,
 }
 
 impl BatchEntry {
