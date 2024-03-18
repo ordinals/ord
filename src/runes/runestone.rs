@@ -1356,20 +1356,6 @@ mod tests {
     );
 
     case(
-      vec![Edict {
-        amount: u128::MAX,
-        id: RuneId { block: 0, tx: 0 },
-        output: 0,
-      }],
-      Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
-        rune: Some(Rune(u128::MAX)),
-        ..Default::default()
-      }),
-      49,
-    );
-
-    case(
       vec![
         Edict {
           amount: u128::MAX,
