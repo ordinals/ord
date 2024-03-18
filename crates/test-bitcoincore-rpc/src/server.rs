@@ -424,7 +424,7 @@ impl Api for Server {
 
     let change = input_value - output_value;
 
-    if change != 0 {
+    if change > 0 {
       transaction.output.push(TxOut {
         value: change,
         script_pubkey: state.new_address(true).into(),
