@@ -1578,7 +1578,15 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n- file: tulip.png\n- file: meow.wav\n  destination: bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k\n"
+      "\
+mode: separate-outputs
+inscriptions:
+- file: inscription.txt
+  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+- file: tulip.png
+- file: meow.wav
+  destination: bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k
+",
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
@@ -1601,7 +1609,7 @@ fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
       ".*
   <dt>address</dt>
   <dd class=monospace>{}</dd>.*",
-      bitcoin_rpc_server.change_addresses()[0]
+      bitcoin_rpc_server.state().change_addresses[0],
     ),
   );
 
@@ -2401,9 +2409,9 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let inscription_1 = output.inscriptions[0];
-  let inscription_2 = output.inscriptions[1];
-  let inscription_3 = output.inscriptions[2];
+  let inscription_1 = output.inscriptions[0].clone();
+  let inscription_2 = output.inscriptions[1].clone();
+  let inscription_3 = output.inscriptions[2].clone();
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", inscription_1.id),
@@ -2442,12 +2450,16 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
+  let address_1 = receive(&bitcoin_rpc_server, &ord_rpc_server);
+  let address_2 = receive(&bitcoin_rpc_server, &ord_rpc_server);
+  let address_3 = receive(&bitcoin_rpc_server, &ord_rpc_server);
+
   bitcoin_rpc_server.mine_blocks(3);
 
   let outpoint_1 = OutPoint {
-    txid: CommandBuilder::new(
-      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 25btc",
-    )
+    txid: CommandBuilder::new(format!(
+      "--index-sats wallet send --fee-rate 1 {address_1} 25btc"
+    ))
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
@@ -2459,9 +2471,9 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let outpoint_2 = OutPoint {
-    txid: CommandBuilder::new(
-      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
-    )
+    txid: CommandBuilder::new(format!(
+      "--index-sats wallet send --fee-rate 1 {address_2} 1btc"
+    ))
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
@@ -2473,9 +2485,9 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
   bitcoin_rpc_server.mine_blocks(1);
 
   let outpoint_3 = OutPoint {
-    txid: CommandBuilder::new(
-      "--index-sats wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 3btc",
-    )
+    txid: CommandBuilder::new(format!(
+      "--index-sats wallet send --fee-rate 1 {address_3} 3btc"
+    ))
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .stdout_regex(r".*")
@@ -2570,9 +2582,9 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let inscription_1 = output.inscriptions[0];
-  let inscription_2 = output.inscriptions[1];
-  let inscription_3 = output.inscriptions[2];
+  let inscription_1 = output.inscriptions[0].clone();
+  let inscription_2 = output.inscriptions[1].clone();
+  let inscription_3 = output.inscriptions[2].clone();
 
   ord_rpc_server.assert_response_regex(
      format!("/inscription/{}", inscription_1.id),
@@ -2603,4 +2615,285 @@ inscriptions:
            inscription_3.location
          ),
   );
+}
+
+#[test]
+fn batch_inscribe_can_etch_rune() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let batch = batch(
+    &bitcoin_rpc_server,
+    &ord_rpc_server,
+    Batchfile {
+      etch: Some(Etch {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        mint: None,
+      }),
+      inscriptions: vec![BatchEntry {
+        file: "inscription.jpeg".into(),
+        ..Default::default()
+      }],
+      ..Default::default()
+    },
+  );
+
+  let parent = batch.inscribe.inscriptions[0].id;
+
+  let request = ord_rpc_server.request(format!("/content/{parent}"));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(request.headers().get("content-type").unwrap(), "image/jpeg");
+  assert_eq!(request.text().unwrap(), "inscription");
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{parent}"),
+    r".*<dt>rune</dt>\s*<dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>.*",
+  );
+
+  ord_rpc_server.assert_response_regex(
+    "/rune/AAAAAAAAAAAAA",
+    format!(
+      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+    ),
+  );
+
+  assert!(bitcoin_rpc_server.state().is_wallet_address(
+    &batch
+      .inscribe
+      .rune
+      .unwrap()
+      .destination
+      .unwrap()
+      .require_network(Network::Regtest)
+      .unwrap()
+  ));
+}
+
+#[test]
+fn etch_existing_rune_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&Batchfile {
+        etch: Some(Etch {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 1,
+          },
+          premine: "1000".parse().unwrap(),
+          symbol: '¢',
+          mint: None,
+        }),
+        inscriptions: vec![BatchEntry {
+          file: "inscription.txt".into(),
+          ..Default::default()
+        }],
+        ..Default::default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: rune `AAAAAAAAAAAAA` has already been etched\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_reserved_rune_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&Batchfile {
+        etch: Some(Etch {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune::reserved(0),
+            spacers: 0,
+          },
+          premine: "1000".parse().unwrap(),
+          symbol: '¢',
+          mint: None,
+        }),
+        inscriptions: vec![BatchEntry {
+          file: "inscription.txt".into(),
+          ..Default::default()
+        }],
+        ..Default::default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: rune `AAAAAAAAAAAAAAAAAAAAAAAAAAA` is reserved\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_sub_minimum_rune_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&Batchfile {
+        etch: Some(Etch {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
+          premine: "1000".parse().unwrap(),
+          symbol: '¢',
+          mint: None,
+        }),
+        inscriptions: vec![BatchEntry {
+          file: "inscription.txt".into(),
+          ..Default::default()
+        }],
+        ..Default::default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: rune is less than minimum for next block: A < ZZWZRFAGQTKZ\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_requires_rune_index() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&Batchfile {
+        etch: Some(Etch {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: "1000".parse().unwrap(),
+          symbol: '¢',
+          mint: None,
+        }),
+        inscriptions: vec![BatchEntry {
+          file: "inscription.txt".into(),
+          ..Default::default()
+        }],
+        ..Default::default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: etching runes requires index created with `--index-runes`\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_divisibility_over_maximum_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&Batchfile {
+        etch: Some(Etch {
+          divisibility: 39,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: "1000".parse().unwrap(),
+          symbol: '¢',
+          mint: None,
+        }),
+        inscriptions: vec![BatchEntry {
+          file: "inscription.txt".into(),
+          ..Default::default()
+        }],
+        ..Default::default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: <DIVISIBILITY> must be less than or equal 38\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
 }

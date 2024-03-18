@@ -333,7 +333,11 @@ fn get_output() {
   pretty_assert_eq!(
     output_json,
     api::Output {
-      address: None,
+      address: Some(
+        "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs"
+          .parse()
+          .unwrap()
+      ),
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
@@ -346,7 +350,7 @@ fn get_output() {
         (10000000000, 15000000000,),
         (15000000000, 20000000000,),
       ],),
-      script_pubkey: "".to_string(),
+      script_pubkey: "OP_0 OP_PUSHBYTES_20 0000000000000000000000000000000000000000".into(),
       spent: false,
       transaction: txid.to_string(),
       value: 3 * 50 * COIN_VALUE,
@@ -530,7 +534,7 @@ fn get_runes() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let response = ord_rpc_server.json_request(format!("/rune/{}", a.rune));
+  let response = ord_rpc_server.json_request(format!("/rune/{}", a.inscribe.rune.unwrap().rune));
   assert_eq!(response.status(), StatusCode::OK);
 
   let rune_json: api::Rune = serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -542,20 +546,23 @@ fn get_runes() {
         burned: 0,
         mint: None,
         divisibility: 0,
-        etching: a.transaction,
+        etching: a.inscribe.reveal,
         mints: 0,
         number: 0,
         rune: Rune(RUNE),
         spacers: 0,
         supply: 1000,
         symbol: Some('¢'),
-        timestamp: 5,
+        timestamp: 11,
       },
       id: RuneId {
-        height: 5,
+        height: 11,
         index: 1
       },
-      parent: None,
+      parent: Some(InscriptionId {
+        txid: a.inscribe.reveal,
+        index: 0,
+      }),
     }
   );
 
@@ -571,59 +578,59 @@ fn get_runes() {
       entries: vec![
         (
           RuneId {
-            height: 5,
+            height: 11,
             index: 1
           },
           RuneEntry {
             burned: 0,
             mint: None,
             divisibility: 0,
-            etching: a.transaction,
+            etching: a.inscribe.reveal,
             mints: 0,
             number: 0,
             rune: Rune(RUNE),
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: 5,
+            timestamp: 11,
           }
         ),
         (
           RuneId {
-            height: 7,
+            height: 19,
             index: 1
           },
           RuneEntry {
             burned: 0,
             mint: None,
             divisibility: 0,
-            etching: b.transaction,
+            etching: b.inscribe.reveal,
             mints: 0,
             number: 1,
             rune: Rune(RUNE + 1),
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: 7,
+            timestamp: 19,
           }
         ),
         (
           RuneId {
-            height: 9,
+            height: 27,
             index: 1
           },
           RuneEntry {
             burned: 0,
             mint: None,
             divisibility: 0,
-            etching: c.transaction,
+            etching: c.inscribe.reveal,
             mints: 0,
             number: 2,
             rune: Rune(RUNE + 2),
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: 9,
+            timestamp: 27,
           }
         )
       ]
@@ -658,7 +665,7 @@ fn get_runes_balances() {
       rune0,
       vec![(
         OutPoint {
-          txid: e0.transaction,
+          txid: e0.inscribe.reveal,
           vout: 1,
         },
         1000,
@@ -670,7 +677,7 @@ fn get_runes_balances() {
       rune1,
       vec![(
         OutPoint {
-          txid: e1.transaction,
+          txid: e1.inscribe.reveal,
           vout: 1,
         },
         1000,
@@ -682,7 +689,7 @@ fn get_runes_balances() {
       rune2,
       vec![(
         OutPoint {
-          txid: e2.transaction,
+          txid: e2.inscribe.reveal,
           vout: 1,
         },
         1000,

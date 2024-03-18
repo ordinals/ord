@@ -23,6 +23,7 @@ pub struct Inscription {
   pub metaprotocol: Option<Vec<u8>>,
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
+  pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -134,6 +135,7 @@ impl Inscription {
     Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
+    Tag::Rune.append(&mut builder, &self.rune);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);

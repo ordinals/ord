@@ -28,6 +28,31 @@ impl Entry for Header {
   }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub(super) struct OutputEntry {
+  pub(super) height: u32,
+  pub(super) taproot: bool,
+  pub(super) value: u64,
+}
+
+pub(super) type OutputValue = (u32, bool, u64);
+
+impl Entry for OutputEntry {
+  type Value = OutputValue;
+
+  fn load((height, taproot, value): Self::Value) -> Self {
+    Self {
+      height,
+      taproot,
+      value,
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.height, self.taproot, self.value)
+  }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct RuneEntry {
   pub burned: u128,
@@ -565,5 +590,18 @@ mod tests {
     let actual = header.store();
 
     assert_eq!(actual, expected);
+  }
+
+  #[test]
+  fn output() {
+    let value = (0, true, 2);
+    let entry = OutputEntry {
+      height: 0,
+      taproot: true,
+      value: 2,
+    };
+
+    assert_eq!(entry.store(), value);
+    assert_eq!(OutputEntry::load(value), entry);
   }
 }

@@ -135,9 +135,10 @@ pub struct TransactionTemplate<'a> {
   pub op_return_index: Option<usize>,
   pub output_values: &'a [u64],
   pub outputs: usize,
+  pub p2tr: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct JsonOutPoint {
   txid: Txid,
   vout: u32,
@@ -181,6 +182,7 @@ impl<'a> Default for TransactionTemplate<'a> {
       op_return_index: None,
       output_values: &[],
       outputs: 1,
+      p2tr: false,
     }
   }
 }
@@ -197,7 +199,17 @@ impl Handle {
     format!("http://127.0.0.1:{}", self.port)
   }
 
-  fn state(&self) -> MutexGuard<State> {
+  pub fn address(&self, output: OutPoint) -> Address {
+    let state = self.state();
+
+    Address::from_script(
+      &state.transactions.get(&output.txid).unwrap().output[output.vout as usize].script_pubkey,
+      state.network,
+    )
+    .unwrap()
+  }
+
+  pub fn state(&self) -> MutexGuard<State> {
     self.state.lock().unwrap()
   }
 
@@ -209,15 +221,19 @@ impl Handle {
     self.state().wallets.clone()
   }
 
+  #[track_caller]
   pub fn mine_blocks(&self, n: u64) -> Vec<Block> {
     self.mine_blocks_with_subsidy(n, 50 * COIN_VALUE)
   }
 
+  #[track_caller]
   pub fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
     let mut bitcoin_rpc_data = self.state();
-    (0..n)
-      .map(|_| bitcoin_rpc_data.push_block(subsidy))
-      .collect()
+    let mut blocks = Vec::new();
+    for _ in 0..n {
+      blocks.push(bitcoin_rpc_data.mine_block(subsidy));
+    }
+    blocks
   }
 
   pub fn broadcast_tx(&self, template: TransactionTemplate) -> Txid {
@@ -236,9 +252,25 @@ impl Handle {
     self.state().utxos.get(outpoint).cloned()
   }
 
-  pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
+  #[track_caller]
+  pub fn tx(&self, block: usize, transaction: usize) -> Transaction {
     let state = self.state();
-    state.blocks[&state.hashes[bi]].txdata[ti].clone()
+    let blockhash = state.hashes.get(block).expect("block index out of bounds");
+    state.blocks[blockhash]
+      .txdata
+      .get(transaction)
+      .expect("transaction index out of bounds")
+      .clone()
+  }
+
+  #[track_caller]
+  pub fn tx_by_id(&self, txid: Txid) -> Transaction {
+    self
+      .state()
+      .transactions
+      .get(&txid)
+      .expect("unknown transaction")
+      .clone()
   }
 
   pub fn mempool(&self) -> Vec<Transaction> {
@@ -269,10 +301,6 @@ impl Handle {
 
   pub fn loaded_wallets(&self) -> BTreeSet<String> {
     self.state().loaded_wallets.clone()
-  }
-
-  pub fn change_addresses(&self) -> Vec<Address> {
-    self.state().change_addresses.clone()
   }
 
   pub fn cookie_file(&self) -> PathBuf {

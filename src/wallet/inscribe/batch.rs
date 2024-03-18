@@ -4,6 +4,7 @@ pub struct Batch {
   pub(crate) commit_fee_rate: FeeRate,
   pub(crate) destinations: Vec<Address>,
   pub(crate) dry_run: bool,
+  pub(crate) etch: Option<Etch>,
   pub(crate) inscriptions: Vec<Inscription>,
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
@@ -22,6 +23,7 @@ impl Default for Batch {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
+      etch: None,
       inscriptions: Vec::new(),
       mode: Mode::SharedOutput,
       no_backup: false,
@@ -44,17 +46,21 @@ impl Batch {
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
-    let commit_tx_change = [wallet.get_change_address()?, wallet.get_change_address()?];
-
-    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
-      .create_batch_inscription_transactions(
-        wallet.inscriptions().clone(),
-        wallet.chain(),
-        locked_utxos.clone(),
-        runic_utxos,
-        utxos.clone(),
-        commit_tx_change,
-      )?;
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      recovery_key_pair,
+      total_fees,
+      rune,
+    } = self.create_batch_transactions(
+      wallet.inscriptions().clone(),
+      wallet.chain(),
+      locked_utxos.clone(),
+      runic_utxos,
+      utxos.clone(),
+      [wallet.get_change_address()?, wallet.get_change_address()?],
+      wallet.get_change_address()?,
+    )?;
 
     if self.dry_run {
       let commit_psbt = wallet
@@ -77,6 +83,7 @@ impl Batch {
         Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
+        rune,
       ))));
     }
 
@@ -119,6 +126,33 @@ impl Batch {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
+    if self.etch.is_some() {
+      eprintln!("Waiting for rune commitment to mature…");
+
+      loop {
+        let transaction = wallet
+          .bitcoin_client()
+          .get_transaction(&commit_tx.txid(), Some(true))
+          .into_option()?;
+
+        if let Some(transaction) = transaction {
+          if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+            continue;
+          }
+        }
+
+        let tx_out = wallet
+          .bitcoin_client()
+          .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
+
+        if let Some(tx_out) = tx_out {
+          if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+            break;
+          }
+        }
+      }
+    }
+
     let reveal = match wallet
       .bitcoin_client()
       .send_raw_transaction(&signed_reveal_tx)
@@ -138,6 +172,7 @@ impl Batch {
       None,
       total_fees,
       self.inscriptions.clone(),
+      rune,
     ))))
   }
 
@@ -157,10 +192,11 @@ impl Batch {
     reveal_psbt: Option<String>,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
+    rune: Option<RuneInfo>,
   ) -> Output {
     let mut inscriptions_output = Vec::new();
-    for index in 0..inscriptions.len() {
-      let index = u32::try_from(index).unwrap();
+    for i in 0..inscriptions.len() {
+      let index = u32::try_from(i).unwrap();
 
       let vout = match self.mode {
         Mode::SharedOutput | Mode::SameSat => {
@@ -180,11 +216,16 @@ impl Batch {
       };
 
       let offset = match self.mode {
-        Mode::SharedOutput => self.postages[0..usize::try_from(index).unwrap()]
+        Mode::SharedOutput => self.postages[0..i]
           .iter()
           .map(|amount| amount.to_sat())
           .sum(),
         Mode::SeparateOutputs | Mode::SameSat | Mode::SatPoints => 0,
+      };
+
+      let destination = match self.mode {
+        Mode::SameSat | Mode::SharedOutput => self.destinations[0].clone(),
+        Mode::SatPoints | Mode::SeparateOutputs => self.destinations[i].clone(),
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -192,6 +233,7 @@ impl Batch {
           txid: reveal,
           index,
         },
+        destination: destination.to_string().parse().unwrap(),
         location: SatPoint {
           outpoint: OutPoint { txid: reveal, vout },
           offset,
@@ -202,23 +244,25 @@ impl Batch {
     Output {
       commit,
       commit_psbt,
+      inscriptions: inscriptions_output,
+      parent: self.parent_info.clone().map(|info| info.id),
       reveal,
       reveal_psbt,
+      rune,
       total_fees,
-      parent: self.parent_info.clone().map(|info| info.id),
-      inscriptions: inscriptions_output,
     }
   }
 
-  pub(crate) fn create_batch_inscription_transactions(
+  pub(crate) fn create_batch_transactions(
     &self,
     wallet_inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, TxOut>,
-    change: [Address; 2],
-  ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
+    commit_change: [Address; 2],
+    reveal_change: Address,
+  ) -> Result<BatchTransactions> {
     if let Some(parent_info) = &self.parent_info {
       for inscription in &self.inscriptions {
         assert_eq!(inscription.parents(), vec![parent_info.id]);
@@ -376,22 +420,101 @@ impl Batch {
       });
     }
 
+    let rune;
+    let premine;
+
+    if let Some(etch) = self.etch {
+      let mut edicts = Vec::new();
+
+      let vout;
+      let destination;
+      premine = etch.premine.to_amount(etch.divisibility)?;
+
+      if premine > 0 {
+        vout = Some(u32::try_from(reveal_outputs.len()).unwrap());
+        destination = Some(reveal_change.clone());
+
+        reveal_outputs.push(TxOut {
+          script_pubkey: reveal_change.into(),
+          value: TARGET_POSTAGE.to_sat(),
+        });
+
+        edicts.push(Edict {
+          id: 0,
+          amount: premine,
+          output: reveal_outputs
+            .len()
+            .checked_sub(1)
+            .unwrap()
+            .try_into()
+            .unwrap(),
+        });
+      } else {
+        vout = None;
+        destination = None;
+      }
+
+      let script_pubkey = Runestone {
+        burn: false,
+        claim: None,
+        default_output: None,
+        edicts,
+        etching: Some(Etching {
+          divisibility: etch.divisibility,
+          mint: etch
+            .mint
+            .map(|mint| -> Result<runes::Mint> {
+              Ok(runes::Mint {
+                deadline: mint.deadline,
+                term: mint.term,
+                limit: Some(mint.limit.to_amount(etch.divisibility)?),
+              })
+            })
+            .transpose()?,
+          rune: Some(etch.rune.rune),
+          spacers: etch.rune.spacers,
+          symbol: Some(etch.symbol),
+        }),
+      }
+      .encipher();
+
+      ensure!(
+        script_pubkey.len() <= 82,
+        "runestone greater than maximum OP_RETURN size: {} > 82",
+        script_pubkey.len()
+      );
+
+      reveal_outputs.push(TxOut {
+        script_pubkey,
+        value: 0,
+      });
+
+      rune = Some((destination, etch.rune, vout));
+    } else {
+      premine = 0;
+      rune = None;
+    }
+
     let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
 
-    let (_, reveal_fee) = Self::build_reveal_transaction(
+    let (_reveal_tx, reveal_fee) = Self::build_reveal_transaction(
+      commit_input,
       &control_block,
       self.reveal_fee_rate,
-      reveal_inputs.clone(),
-      commit_input,
       reveal_outputs.clone(),
+      reveal_inputs.clone(),
       &reveal_script,
     );
 
-    let target = if self.mode == Mode::SatPoints {
-      Target::Value(reveal_fee)
-    } else {
-      Target::Value(reveal_fee + Amount::from_sat(total_postage))
-    };
+    let mut target_value = reveal_fee;
+
+    if self.mode != Mode::SatPoints {
+      target_value += Amount::from_sat(total_postage);
+    }
+
+    if premine > 0 {
+      target_value += TARGET_POSTAGE;
+    }
 
     let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
@@ -400,9 +523,9 @@ impl Batch {
       locked_utxos.clone(),
       runic_utxos,
       commit_tx_address.clone(),
-      change,
+      commit_change,
       self.commit_fee_rate,
-      target,
+      Target::Value(target_value),
     )
     .build_transaction()?;
 
@@ -419,11 +542,11 @@ impl Batch {
     };
 
     let (mut reveal_tx, _fee) = Self::build_reveal_transaction(
+      commit_input,
       &control_block,
       self.reveal_fee_rate,
-      reveal_inputs,
-      commit_input,
       reveal_outputs.clone(),
+      reveal_inputs,
       &reveal_script,
     );
 
@@ -431,7 +554,7 @@ impl Batch {
       ensure!(
         output.value >= output.script_pubkey.dust_value().to_sat(),
         "commit transaction output would be dust"
-      )
+      );
     }
 
     let mut prevouts = Vec::new();
@@ -508,7 +631,22 @@ impl Batch {
     let total_fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
+    let rune = rune.map(|(destination, rune, vout)| RuneInfo {
+      destination: destination.map(|destination| uncheck(&destination)),
+      location: vout.map(|vout| OutPoint {
+        txid: reveal_tx.txid(),
+        vout,
+      }),
+      rune,
+    });
+
+    Ok(BatchTransactions {
+      commit_tx: unsigned_commit_tx,
+      recovery_key_pair,
+      reveal_tx,
+      rune,
+      total_fees,
+    })
   }
 
   fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeyPair) -> Result {
@@ -543,24 +681,24 @@ impl Batch {
   }
 
   fn build_reveal_transaction(
+    commit_input_index: usize,
     control_block: &ControlBlock,
     fee_rate: FeeRate,
-    reveal_inputs: Vec<OutPoint>,
-    commit_input_index: usize,
-    outputs: Vec<TxOut>,
+    output: Vec<TxOut>,
+    input: Vec<OutPoint>,
     script: &Script,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
-      input: reveal_inputs
-        .iter()
-        .map(|outpoint| TxIn {
-          previous_output: *outpoint,
+      input: input
+        .into_iter()
+        .map(|previous_output| TxIn {
+          previous_output,
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         })
         .collect(),
-      output: outputs,
+      output,
       lock_time: LockTime::ZERO,
       version: 2,
     };

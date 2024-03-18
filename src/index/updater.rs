@@ -580,6 +580,7 @@ impl<'index> Updater<'index> {
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+      let mut outpoint_to_output = wtx.open_table(OUTPOINT_TO_OUTPUT)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
@@ -596,6 +597,7 @@ impl<'index> Updater<'index> {
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
         minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
+        outpoint_to_output: &mut outpoint_to_output,
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,

@@ -1,16 +1,17 @@
 use super::*;
 
-#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Batchfile {
-  pub(crate) inscriptions: Vec<BatchEntry>,
-  pub(crate) mode: Mode,
-  pub(crate) parent: Option<InscriptionId>,
-  pub(crate) postage: Option<u64>,
+  pub inscriptions: Vec<BatchEntry>,
+  pub mode: Mode,
+  pub parent: Option<InscriptionId>,
+  pub postage: Option<u64>,
   #[serde(default)]
-  pub(crate) reinscribe: bool,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: Option<SatPoint>,
+  pub reinscribe: bool,
+  pub etch: Option<Etch>,
+  pub sat: Option<Sat>,
+  pub satpoint: Option<SatPoint>,
 }
 
 impl Batchfile {
@@ -128,7 +129,7 @@ impl Batchfile {
         }
       }
 
-      inscriptions.push(Inscription::from_file(
+      let mut inscription = Inscription::from_file(
         wallet.chain(),
         compress,
         entry.delegate,
@@ -137,7 +138,15 @@ impl Batchfile {
         self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
-      )?);
+      )?;
+
+      if i == 0 {
+        if let Some(etch) = &self.etch {
+          inscription.rune = Some(etch.rune.rune.commitment());
+        }
+      }
+
+      inscriptions.push(inscription);
 
       let postage = if self.mode == Mode::SatPoints {
         let satpoint = entry

@@ -1,12 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{
-    consensus::Decodable,
-    psbt::Psbt,
-    secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-    Witness,
-  },
+  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
   std::io::Cursor,
 };
 
@@ -228,26 +223,36 @@ impl Api for Server {
     vout: u32,
     _include_mempool: Option<bool>,
   ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
-    Ok(
-      self
-        .state()
-        .utxos
-        .get(&OutPoint { txid, vout })
-        .map(|&value| GetTxOutResult {
-          bestblock: BlockHash::all_zeros(),
-          confirmations: 0,
-          value,
-          script_pub_key: GetRawTransactionResultVoutScriptPubKey {
-            asm: String::new(),
-            hex: Vec::new(),
-            req_sigs: None,
-            type_: None,
-            addresses: Vec::new(),
-            address: None,
-          },
-          coinbase: false,
-        }),
-    )
+    let state = self.state();
+
+    let Some(value) = state.utxos.get(&OutPoint { txid, vout }) else {
+      return Ok(None);
+    };
+
+    let mut confirmations = None;
+
+    for (height, hash) in state.hashes.iter().enumerate() {
+      for tx in &state.blocks[hash].txdata {
+        if tx.txid() == txid {
+          confirmations = Some(state.hashes.len() - height);
+        }
+      }
+    }
+
+    Ok(Some(GetTxOutResult {
+      bestblock: BlockHash::all_zeros(),
+      coinbase: false,
+      confirmations: confirmations.unwrap().try_into().unwrap(),
+      script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+        asm: String::new(),
+        hex: Vec::new(),
+        req_sigs: None,
+        type_: None,
+        addresses: Vec::new(),
+        address: None,
+      },
+      value: *value,
+    }))
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
@@ -350,7 +355,7 @@ impl Api for Server {
       Some(transaction.output.len().try_into().unwrap())
     );
 
-    let state = self.state();
+    let mut state = self.state();
 
     let output_value = transaction
       .output
@@ -371,35 +376,60 @@ impl Api for Server {
       .map(|txin| state.utxos.get(&txin.previous_output).unwrap().to_sat())
       .sum::<u64>();
 
-    let shortfall = output_value.saturating_sub(input_value);
-
     utxos.sort();
     utxos.reverse();
 
-    if shortfall > 0 {
-      let (additional_input_value, outpoint) = utxos
-        .iter()
-        .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
-        .ok_or_else(|| {
-          jsonrpc_core::Error::new(jsonrpc_core::types::error::ErrorCode::ServerError(-6))
-        })?;
+    if output_value > input_value {
+      for (value, outpoint) in utxos {
+        if state.locked.contains(&outpoint) {
+          continue;
+        }
 
-      transaction.input.push(TxIn {
-        previous_output: *outpoint,
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::default(),
-      });
+        let tx = state.transactions.get(&outpoint.txid).unwrap();
 
-      input_value += additional_input_value.to_sat();
+        let tx_out = &tx.output[usize::try_from(outpoint.vout).unwrap()];
+
+        let Ok(address) = Address::from_script(&tx_out.script_pubkey, state.network) else {
+          continue;
+        };
+
+        if !state.is_wallet_address(&address) {
+          continue;
+        }
+
+        transaction.input.push(TxIn {
+          previous_output: outpoint,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::default(),
+        });
+
+        input_value += value.to_sat();
+
+        if input_value > output_value {
+          break;
+        }
+      }
+
+      if output_value > input_value {
+        return Err(jsonrpc_core::Error {
+          code: jsonrpc_core::ErrorCode::ServerError(-6),
+          message: "insufficent funds".into(),
+          data: None,
+        });
+      }
     }
 
     let change_position = transaction.output.len() as i32;
 
-    transaction.output.push(TxOut {
-      value: input_value - output_value,
-      script_pubkey: ScriptBuf::new(),
-    });
+    let change = input_value - output_value;
+
+    if change != 0 {
+      transaction.output.push(TxOut {
+        value: change,
+        script_pubkey: state.new_address(true).into(),
+      });
+    }
 
     let fee = if let Some(fee_rate) = options.fee_rate {
       // increase vsize to account for the witness that `fundrawtransaction` will add
@@ -528,32 +558,45 @@ impl Api for Server {
     txid: Txid,
     _include_watchonly: Option<bool>,
   ) -> Result<Value, jsonrpc_core::Error> {
-    match self.state.lock().unwrap().transactions.get(&txid) {
-      Some(tx) => Ok(
-        serde_json::to_value(GetTransactionResult {
-          info: WalletTxInfo {
-            txid,
-            confirmations: 0,
-            time: 0,
-            timereceived: 0,
-            blockhash: None,
-            blockindex: None,
-            blockheight: None,
-            blocktime: None,
-            wallet_conflicts: Vec::new(),
-            bip125_replaceable: Bip125Replaceable::Unknown,
-          },
-          amount: SignedAmount::from_sat(0),
-          fee: None,
-          details: Vec::new(),
-          hex: serialize(tx),
-        })
-        .unwrap(),
-      ),
-      None => Err(jsonrpc_core::Error::new(
+    let state = self.state();
+
+    let Some(tx) = state.transactions.get(&txid) else {
+      return Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      )),
+      ));
+    };
+
+    let mut confirmations = None;
+
+    for (height, hash) in state.hashes.iter().enumerate() {
+      for tx in &state.blocks[hash].txdata {
+        if tx.txid() == txid {
+          confirmations = Some(state.hashes.len() - height);
+        }
+      }
     }
+
+    Ok(
+      serde_json::to_value(GetTransactionResult {
+        info: WalletTxInfo {
+          txid,
+          confirmations: confirmations.unwrap().try_into().unwrap(),
+          time: 0,
+          timereceived: 0,
+          blockhash: None,
+          blockindex: None,
+          blockheight: None,
+          blocktime: None,
+          wallet_conflicts: Vec::new(),
+          bip125_replaceable: Bip125Replaceable::Unknown,
+        },
+        amount: SignedAmount::from_sat(0),
+        fee: None,
+        details: Vec::new(),
+        hex: serialize(tx),
+      })
+      .unwrap(),
+    )
   }
 
   fn get_raw_transaction(
@@ -626,28 +669,43 @@ impl Api for Server {
 
     let state = self.state();
 
-    Ok(
-      state
-        .utxos
-        .iter()
-        .filter(|(outpoint, _amount)| !state.locked.contains(outpoint))
-        .map(|(outpoint, &amount)| ListUnspentResultEntry {
-          txid: outpoint.txid,
-          vout: outpoint.vout,
-          address: None,
-          label: None,
-          redeem_script: None,
-          witness_script: None,
-          script_pub_key: ScriptBuf::new(),
-          amount,
-          confirmations: 0,
-          spendable: true,
-          solvable: true,
-          descriptor: None,
-          safe: true,
-        })
-        .collect(),
-    )
+    let mut unspent = Vec::new();
+
+    for (outpoint, &amount) in &state.utxos {
+      if state.locked.contains(outpoint) {
+        continue;
+      }
+
+      let tx = state.transactions.get(&outpoint.txid).unwrap();
+
+      let tx_out = &tx.output[usize::try_from(outpoint.vout).unwrap()];
+
+      let Ok(address) = Address::from_script(&tx_out.script_pubkey, state.network) else {
+        continue;
+      };
+
+      if !state.is_wallet_address(&address) {
+        continue;
+      }
+
+      unspent.push(ListUnspentResultEntry {
+        txid: outpoint.txid,
+        vout: outpoint.vout,
+        address: None,
+        label: None,
+        redeem_script: None,
+        witness_script: None,
+        script_pub_key: ScriptBuf::new(),
+        amount,
+        confirmations: 0,
+        spendable: true,
+        solvable: true,
+        descriptor: None,
+        safe: true,
+      });
+    }
+
+    Ok(unspent)
   }
 
   fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error> {
@@ -665,13 +723,7 @@ impl Api for Server {
     &self,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error> {
-    let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
-    self.state().change_addresses.push(address.clone());
-
-    Ok(address)
+    Ok(self.state().new_address(true))
   }
 
   fn get_descriptor_info(
@@ -708,12 +760,7 @@ impl Api for Server {
     _label: Option<String>,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error> {
-    let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
-
-    Ok(address)
+    Ok(self.state().new_address(false))
   }
 
   fn list_transactions(
