@@ -297,15 +297,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
         rune,
         spacers,
-        supply: if let Some(mint) = mint {
-          if mint.end == Some(self.height) {
-            0
-          } else {
-            mint.limit.unwrap_or(runes::MAX_LIMIT)
-          }
-        } else {
-          u128::MAX
-        } - balance,
+        supply: u128::MAX - balance,
         symbol,
         timestamp: self.block_time,
       }
@@ -368,15 +360,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     };
 
     Ok(Some(Etched {
-      balance: if let Some(mint) = etching.mint {
-        if mint.term == Some(0) {
-          0
-        } else {
-          mint.limit.unwrap_or(runes::MAX_LIMIT)
-        }
-      } else {
-        u128::MAX
-      },
+      balance: u128::MAX,
       divisibility: etching.divisibility,
       id: RuneId {
         block: self.height,
