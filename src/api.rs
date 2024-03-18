@@ -98,6 +98,7 @@ pub struct Inscription {
 
   // ---- Ordzaar ----
   pub inscription_sequence: u32,
+  pub delegate: Option<InscriptionId>,
   // ---- Ordzaar ----
 }
 

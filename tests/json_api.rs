@@ -172,6 +172,7 @@ fn get_inscription() {
 
       // ---- Ordzaar ----
       inscription_sequence: 0,
+      delegate: None
       // ---- Ordzaar ----
     }
   )
