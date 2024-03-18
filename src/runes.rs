@@ -4668,7 +4668,7 @@ mod tests {
         edicts: vec![Edict {
           id: 0,
           amount: 2000,
-          ..Default::default()
+          output: 0,
         }],
         ..Default::default()
       },
