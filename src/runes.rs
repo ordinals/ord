@@ -805,6 +805,7 @@ mod tests {
           mint: None,
           mints: 0,
           number: 0,
+          premine: 0,
           rune: Rune(RUNE),
           spacers: 1,
           supply: 0,
