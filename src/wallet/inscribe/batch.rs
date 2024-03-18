@@ -228,8 +228,8 @@ impl Batch {
       };
 
       let destination = match self.mode {
-        Mode::SameSat | Mode::SharedOutput => self.destinations[0].clone(),
-        Mode::SatPoints | Mode::SeparateOutputs => self.destinations[i].clone(),
+        Mode::SameSat | Mode::SharedOutput => &self.destinations[0],
+        Mode::SatPoints | Mode::SeparateOutputs => &self.destinations[i],
       };
 
       inscriptions_output.push(InscriptionInfo {
@@ -237,7 +237,7 @@ impl Batch {
           txid: reveal,
           index,
         },
-        destination: destination.to_string().parse().unwrap(),
+        destination: uncheck(destination),
         location: SatPoint {
           outpoint: OutPoint { txid: reveal, vout },
           offset,
