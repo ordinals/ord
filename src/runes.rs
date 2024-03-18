@@ -3989,6 +3989,40 @@ mod tests {
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          claim: Some(id),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid,
+          rune: Rune(RUNE),
+          timestamp: id.block,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            end: Some(id.block),
+            ..Default::default()
+          }),
+          supply: 1111,
+          ..Default::default()
+        },
+      )],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
+    );
   }
 
   #[test]
