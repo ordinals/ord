@@ -2409,9 +2409,9 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let inscription_1 = output.inscriptions[0].clone();
-  let inscription_2 = output.inscriptions[1].clone();
-  let inscription_3 = output.inscriptions[2].clone();
+  let inscription_1 = &output.inscriptions[0];
+  let inscription_2 = &output.inscriptions[1];
+  let inscription_3 = &output.inscriptions[2];
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", inscription_1.id),
@@ -2582,9 +2582,9 @@ inscriptions:
 
   assert_eq!(outpoints.len(), output.inscriptions.len());
 
-  let inscription_1 = output.inscriptions[0].clone();
-  let inscription_2 = output.inscriptions[1].clone();
-  let inscription_3 = output.inscriptions[2].clone();
+  let inscription_1 = &output.inscriptions[0];
+  let inscription_2 = &output.inscriptions[1];
+  let inscription_3 = &output.inscriptions[2];
 
   ord_rpc_server.assert_response_regex(
      format!("/inscription/{}", inscription_1.id),
