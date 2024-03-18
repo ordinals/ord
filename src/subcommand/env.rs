@@ -160,13 +160,22 @@ rpcport={bitcoind_port}
       },
     )?;
 
+    let datadir = if relative
+      .chars()
+      .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+    {
+      relative
+    } else {
+      format!("'{relative}'")
+    };
+
     eprintln!(
       "{}
 {server_url}
 {}
-bitcoin-cli -datadir='{relative}' getblockchaininfo
+bitcoin-cli -datadir={datadir} getblockchaininfo
 {}
-{} --datadir '{relative}' wallet balance",
+{} --datadir '{datadir}' wallet balance",
       "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),

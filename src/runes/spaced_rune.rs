@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq, Default)]
 pub struct SpacedRune {
   pub rune: Rune,
   pub spacers: u32,

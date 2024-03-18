@@ -23,6 +23,7 @@ pub struct Inscription {
   pub metaprotocol: Option<Vec<u8>>,
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
+  pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -45,6 +46,7 @@ impl Inscription {
     parents: Vec<InscriptionId>,
     path: impl AsRef<Path>,
     pointer: Option<u64>,
+    rune: Option<Rune>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -104,6 +106,7 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
+      rune: rune.map(|rune| rune.commitment()),
       ..Default::default()
     })
   }
@@ -134,6 +137,7 @@ impl Inscription {
     Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
+    Tag::Rune.append(&mut builder, &self.rune);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -779,6 +783,7 @@ mod tests {
       Vec::new(),
       file.path(),
       None,
+      None,
     )
     .unwrap();
 
@@ -793,6 +798,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(0),
+      None,
     )
     .unwrap();
 
@@ -807,6 +813,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(1),
+      None,
     )
     .unwrap();
 
@@ -821,6 +828,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(256),
+      None,
     )
     .unwrap();
 

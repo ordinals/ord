@@ -45,7 +45,7 @@ fn one_rune() {
 
   let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
@@ -56,10 +56,10 @@ fn one_rune() {
           burned: 0,
           mint: None,
           divisibility: 0,
-          etching: etch.transaction,
-          height: 2,
+          etching: etch.inscribe.reveal,
+          height: 8,
           id: RuneId {
-            height: 2,
+            height: 8,
             index: 1
           },
           index: 1,
@@ -69,7 +69,7 @@ fn one_rune() {
           spacers: 0,
           supply: 1000,
           symbol: Some('¢'),
-          timestamp: ord::timestamp(2),
+          timestamp: ord::timestamp(8),
         }
       )]
       .into_iter()
@@ -104,10 +104,10 @@ fn two_runes() {
             burned: 0,
             mint: None,
             divisibility: 0,
-            etching: a.transaction,
-            height: 2,
+            etching: a.inscribe.reveal,
+            height: 8,
             id: RuneId {
-              height: 2,
+              height: 8,
               index: 1
             },
             index: 1,
@@ -117,7 +117,7 @@ fn two_runes() {
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(2),
+            timestamp: ord::timestamp(8),
           }
         ),
         (
@@ -126,10 +126,10 @@ fn two_runes() {
             burned: 0,
             mint: None,
             divisibility: 0,
-            etching: b.transaction,
-            height: 4,
+            etching: b.inscribe.reveal,
+            height: 16,
             id: RuneId {
-              height: 4,
+              height: 16,
               index: 1
             },
             index: 1,
@@ -139,7 +139,7 @@ fn two_runes() {
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(4),
+            timestamp: ord::timestamp(16),
           }
         )
       ]
