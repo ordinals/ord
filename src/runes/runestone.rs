@@ -1316,7 +1316,7 @@ mod tests {
     case(
       vec![Edict {
         amount: u128::MAX,
-        id: RuneId { block: 0, tx: 0 }.into(),
+        id: RuneId { block: 0, tx: 0 },
         output: 0,
       }],
       Some(Etching {
@@ -1333,8 +1333,7 @@ mod tests {
         id: RuneId {
           block: 1_000_000,
           tx: u16::MAX,
-        }
-        .into(),
+        },
         output: 0,
       }],
       None,
@@ -1347,8 +1346,7 @@ mod tests {
         id: RuneId {
           block: 1_000_000,
           tx: u16::MAX,
-        }
-        .into(),
+        },
         output: 0,
       }],
       None,
