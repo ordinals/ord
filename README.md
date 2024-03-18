@@ -107,6 +107,16 @@ cd ord
 cargo build --release
 ```
 
+By default this builds the `master` branch, which is under heavy development. If
+you wish to build a specific version do:
+
+```
+git clone https://github.com/ordinals/ord.git
+cd ord
+git checkout <VERSION>
+cargo build --release
+```
+
 Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
