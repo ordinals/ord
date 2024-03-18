@@ -150,10 +150,10 @@ impl Batch {
             break;
           }
         }
-      }
 
-      if !wallet.integration_test() {
-        thread::sleep(Duration::from_secs(5));
+        if !wallet.integration_test() {
+          thread::sleep(Duration::from_secs(5));
+        }
       }
     }
 
