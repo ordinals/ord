@@ -215,7 +215,7 @@ impl Runestone {
 
     let mut builder = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
-      .push_slice(b"RUNE_TEST");
+      .push_opcode(MAGIC_NUMBER);
 
     for chunk in payload.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
       let push: &script::PushBytes = chunk.try_into().unwrap();
@@ -233,7 +233,7 @@ impl Runestone {
         continue;
       }
 
-      if instructions.next().transpose()? != Some(Instruction::PushBytes(b"RUNE_TEST".into())) {
+      if instructions.next().transpose()? != Some(Instruction::Op(MAGIC_NUMBER)) {
         continue;
       }
 
@@ -279,7 +279,7 @@ mod tests {
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
           .push_opcode(opcodes::all::OP_RETURN)
-          .push_slice(b"RUNE_TEST")
+          .push_opcode(MAGIC_NUMBER)
           .push_slice(payload)
           .into_script(),
         value: 0,
@@ -401,7 +401,7 @@ mod tests {
   fn deciphering_valid_runestone_with_invalid_script_postfix_returns_script_error() {
     let mut script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
-      .push_slice(b"RUNE_TEST")
+      .push_opcode(MAGIC_NUMBER)
       .into_script()
       .into_bytes();
 
@@ -426,7 +426,7 @@ mod tests {
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
           .push_opcode(opcodes::all::OP_RETURN)
-          .push_slice(b"RUNE_TEST")
+          .push_opcode(MAGIC_NUMBER)
           .push_slice([128])
           .into_script(),
         value: 0,
@@ -445,7 +445,7 @@ mod tests {
         output: vec![TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .push_slice([0, 1])
             .push_opcode(opcodes::all::OP_VERIFY)
             .push_slice([2, 0])
@@ -476,7 +476,7 @@ mod tests {
         output: vec![TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .into_script(),
           value: 0
         }],
@@ -493,11 +493,12 @@ mod tests {
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
-    let mut script_pubkey = Vec::new();
-    script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
-    script_pubkey.push(opcodes::all::OP_PUSHBYTES_9.to_u8());
-    script_pubkey.extend_from_slice(b"RUNE_TEST");
-    script_pubkey.push(opcodes::all::OP_PUSHBYTES_4.to_u8());
+    let script_pubkey = vec![
+      opcodes::all::OP_RETURN.to_u8(),
+      opcodes::all::OP_PUSHBYTES_9.to_u8(),
+      MAGIC_NUMBER.to_u8(),
+      opcodes::all::OP_PUSHBYTES_4.to_u8(),
+    ];
 
     Runestone::decipher(&Transaction {
       input: Vec::new(),
@@ -509,7 +510,7 @@ mod tests {
         TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .push_slice(payload)
             .into_script(),
           value: 0,
@@ -1109,7 +1110,7 @@ mod tests {
         output: vec![TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .push_slice::<&PushBytes>(
               varint::encode(Tag::Flags.into())
                 .as_slice()
@@ -1176,7 +1177,7 @@ mod tests {
           TxOut {
             script_pubkey: script::Builder::new()
               .push_opcode(opcodes::all::OP_RETURN)
-              .push_slice(b"RUNE_TEST")
+              .push_opcode(MAGIC_NUMBER)
               .push_slice(payload)
               .into_script(),
             value: 0
@@ -1216,7 +1217,7 @@ mod tests {
           TxOut {
             script_pubkey: script::Builder::new()
               .push_opcode(opcodes::all::OP_RETURN)
-              .push_slice(b"RUNE_TEST")
+              .push_opcode(MAGIC_NUMBER)
               .push_slice(payload)
               .into_script(),
             value: 0
@@ -1247,14 +1248,12 @@ mod tests {
           ..Default::default()
         }
         .encipher()
-        .len()
-          - 1
-          - b"RUNE_TEST".len(),
+        .len(),
         size
       );
     }
 
-    case(Vec::new(), None, 1);
+    case(Vec::new(), None, 2);
 
     case(
       Vec::new(),
@@ -1262,7 +1261,7 @@ mod tests {
         rune: Some(Rune(0)),
         ..Default::default()
       }),
-      6,
+      7,
     );
 
     case(
@@ -1272,7 +1271,7 @@ mod tests {
         rune: Some(Rune(0)),
         ..Default::default()
       }),
-      8,
+      9,
     );
 
     case(
@@ -1288,7 +1287,7 @@ mod tests {
         symbol: Some('$'),
         spacers: 1,
       }),
-      19,
+      20,
     );
 
     case(
@@ -1297,7 +1296,7 @@ mod tests {
         rune: Some(Rune(u128::MAX)),
         ..Default::default()
       }),
-      24,
+      25,
     );
 
     case(
@@ -1311,50 +1310,50 @@ mod tests {
         rune: Some(Rune(u128::MAX)),
         ..Default::default()
       }),
+      31,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::MAX,
+        id: RuneId { block: 0, tx: 0 },
+        output: 0,
+      }],
+      Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Some(Rune(u128::MAX)),
+        ..Default::default()
+      }),
+      49,
+    );
+
+    case(
+      vec![Edict {
+        amount: 0,
+        id: RuneId {
+          block: 1_000_000,
+          tx: u16::MAX,
+        },
+        output: 0,
+      }],
+      None,
+      12,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::MAX,
+        id: RuneId {
+          block: 1_000_000,
+          tx: u16::MAX,
+        },
+        output: 0,
+      }],
+      None,
       30,
     );
 
     case(
-      vec![Edict {
-        amount: u128::MAX,
-        id: RuneId { block: 0, tx: 0 },
-        output: 0,
-      }],
-      Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
-        rune: Some(Rune(u128::MAX)),
-        ..Default::default()
-      }),
-      48,
-    );
-
-    case(
-      vec![Edict {
-        amount: 0,
-        id: RuneId {
-          block: 1_000_000,
-          tx: u16::MAX,
-        },
-        output: 0,
-      }],
-      None,
-      11,
-    );
-
-    case(
-      vec![Edict {
-        amount: u128::MAX,
-        id: RuneId {
-          block: 1_000_000,
-          tx: u16::MAX,
-        },
-        output: 0,
-      }],
-      None,
-      29,
-    );
-
-    case(
       vec![
         Edict {
           amount: u128::MAX,
@@ -1374,7 +1373,7 @@ mod tests {
         },
       ],
       None,
-      50,
+      51,
     );
 
     case(
@@ -1405,7 +1404,7 @@ mod tests {
         },
       ],
       None,
-      71,
+      72,
     );
 
     case(
@@ -1421,7 +1420,7 @@ mod tests {
         4
       ],
       None,
-      56,
+      57,
     );
 
     case(
@@ -1437,7 +1436,7 @@ mod tests {
         5
       ],
       None,
-      68,
+      69,
     );
 
     case(
@@ -1453,7 +1452,7 @@ mod tests {
         5
       ],
       None,
-      65,
+      66,
     );
 
     case(
@@ -1469,7 +1468,7 @@ mod tests {
         5
       ],
       None,
-      63,
+      64,
     );
   }
 
