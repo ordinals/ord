@@ -226,11 +226,14 @@ impl Entry for RuneId {
   type Value = RuneIdValue;
 
   fn load((height, index): Self::Value) -> Self {
-    Self { height, index }
+    Self {
+      block: height,
+      tx: index,
+    }
   }
 
   fn store(self) -> Self::Value {
-    (self.height, self.index)
+    (self.block, self.tx)
   }
 }
 
@@ -554,22 +557,9 @@ mod tests {
 
   #[test]
   fn rune_id_entry() {
-    assert_eq!(
-      RuneId {
-        height: 1,
-        index: 2,
-      }
-      .store(),
-      (1, 2),
-    );
+    assert_eq!(RuneId { block: 1, tx: 2 }.store(), (1, 2),);
 
-    assert_eq!(
-      RuneId {
-        height: 1,
-        index: 2,
-      },
-      RuneId::load((1, 2)),
-    );
+    assert_eq!(RuneId { block: 1, tx: 2 }, RuneId::load((1, 2)),);
   }
 
   #[test]

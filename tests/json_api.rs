@@ -555,10 +555,7 @@ fn get_runes() {
         symbol: Some('¢'),
         timestamp: 11,
       },
-      id: RuneId {
-        height: 11,
-        index: 1
-      },
+      id: RuneId { block: 11, tx: 1 },
       parent: Some(InscriptionId {
         txid: a.inscribe.reveal,
         index: 0,
@@ -577,10 +574,7 @@ fn get_runes() {
     api::Runes {
       entries: vec![
         (
-          RuneId {
-            height: 11,
-            index: 1
-          },
+          RuneId { block: 11, tx: 1 },
           RuneEntry {
             burned: 0,
             mint: None,
@@ -596,10 +590,7 @@ fn get_runes() {
           }
         ),
         (
-          RuneId {
-            height: 19,
-            index: 1
-          },
+          RuneId { block: 19, tx: 1 },
           RuneEntry {
             burned: 0,
             mint: None,
@@ -615,10 +606,7 @@ fn get_runes() {
           }
         ),
         (
-          RuneId {
-            height: 27,
-            index: 1
-          },
+          RuneId { block: 27, tx: 1 },
           RuneEntry {
             burned: 0,
             mint: None,

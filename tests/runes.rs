@@ -58,10 +58,7 @@ fn one_rune() {
           divisibility: 0,
           etching: etch.inscribe.reveal,
           height: 8,
-          id: RuneId {
-            height: 8,
-            index: 1
-          },
+          id: RuneId { block: 8, tx: 1 },
           index: 1,
           mints: 0,
           number: 0,
@@ -106,10 +103,7 @@ fn two_runes() {
             divisibility: 0,
             etching: a.inscribe.reveal,
             height: 8,
-            id: RuneId {
-              height: 8,
-              index: 1
-            },
+            id: RuneId { block: 8, tx: 1 },
             index: 1,
             mints: 0,
             number: 0,
@@ -128,10 +122,7 @@ fn two_runes() {
             divisibility: 0,
             etching: b.inscribe.reveal,
             height: 16,
-            id: RuneId {
-              height: 16,
-              index: 1
-            },
+            id: RuneId { block: 16, tx: 1 },
             index: 1,
             mints: 0,
             number: 1,

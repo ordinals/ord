@@ -230,8 +230,8 @@ fn batch(
   let height = bitcoin_rpc_server.height();
 
   let id = RuneId {
-    height: u32::try_from(height).unwrap(),
-    index: 1,
+    block: u32::try_from(height).unwrap(),
+    tx: 1,
   };
 
   let reveal = inscribe.reveal;
