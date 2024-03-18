@@ -479,6 +479,10 @@ impl Wallet {
     self.settings.chain()
   }
 
+  pub(crate) fn integration_test(&self) -> bool {
+    self.settings.integration_test()
+  }
+
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
     let tr = descriptors
       .iter()

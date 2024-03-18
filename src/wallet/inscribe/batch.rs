@@ -151,6 +151,10 @@ impl Batch {
           }
         }
       }
+
+      if !wallet.integration_test() {
+        thread::sleep(Duration::from_secs(5));
+      }
     }
 
     let reveal = match wallet
