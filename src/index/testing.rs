@@ -1,4 +1,4 @@
-use {super::*, std::ffi::OsString, tempfile::TempDir};
+use {super::*, bitcoin::script::PushBytes, std::ffi::OsString, tempfile::TempDir};
 
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,
@@ -89,10 +89,12 @@ impl Context {
     }
   }
 
+  #[track_caller]
   pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {
     self.mine_blocks_with_update(n, true)
   }
 
+  #[track_caller]
   pub(crate) fn mine_blocks_with_update(&self, n: u64, update: bool) -> Vec<Block> {
     let blocks = self.rpc_server.mine_blocks(n);
     if update {
@@ -148,5 +150,59 @@ impl Context {
         entry.supply - entry.burned
       );
     }
+  }
+
+  pub(crate) fn etch(&self, runestone: Runestone, outputs: usize) -> (Txid, RuneId) {
+    let block_count = usize::try_from(self.index.block_count().unwrap()).unwrap();
+
+    self.mine_blocks(1);
+
+    self.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count, 0, 0, Witness::new())],
+      p2tr: true,
+      ..Default::default()
+    });
+
+    self.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+
+    let mut witness = Witness::new();
+
+    if let Some(etching) = runestone.etching {
+      let tapscript = script::Builder::new()
+        .push_slice::<&PushBytes>(
+          etching
+            .rune
+            .unwrap()
+            .commitment()
+            .as_slice()
+            .try_into()
+            .unwrap(),
+        )
+        .into_script();
+
+      witness.push(tapscript);
+    } else {
+      witness.push(ScriptBuf::new());
+    }
+
+    witness.push([]);
+
+    let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count + 1, 1, 0, witness)],
+      op_return: Some(runestone.encipher()),
+      outputs,
+      ..Default::default()
+    });
+
+    self.mine_blocks(1);
+
+    (
+      txid,
+      RuneId {
+        height: u32::try_from(block_count + usize::try_from(RUNE_COMMIT_INTERVAL).unwrap() + 1)
+          .unwrap(),
+        index: 1,
+      },
+    )
   }
 }

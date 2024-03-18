@@ -16,13 +16,14 @@ use {
     arguments::Arguments,
     blocktime::Blocktime,
     decimal::Decimal,
+    index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
       teleburn, Charm, ParsedEnvelope,
     },
     representation::Representation,
-    runes::{Etching, Pile, SpacedRune},
+    runes::Etching,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -84,7 +85,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  runes::{Edict, Rune, RuneId, Runestone},
+  runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -126,11 +127,12 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+const RUNE_COMMIT_INTERVAL: u32 = 6;
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
-
-const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
@@ -192,6 +194,10 @@ fn unbound_outpoint() -> OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
   }
+}
+
+fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
+  address.to_string().parse().unwrap()
 }
 
 pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {

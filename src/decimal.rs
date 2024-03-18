@@ -1,13 +1,13 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct Decimal {
   value: u128,
   scale: u8,
 }
 
 impl Decimal {
-  pub(crate) fn to_amount(self, divisibility: u8) -> Result<u128> {
+  pub fn to_amount(self, divisibility: u8) -> Result<u128> {
     match divisibility.checked_sub(self.scale) {
       Some(difference) => Ok(
         self
@@ -196,6 +196,7 @@ mod tests {
       assert_eq!(decimal, string.parse::<Decimal>().unwrap());
     }
 
+    case(Decimal { value: 0, scale: 0 }, "0");
     case(Decimal { value: 1, scale: 0 }, "1");
     case(Decimal { value: 1, scale: 1 }, "0.1");
     case(

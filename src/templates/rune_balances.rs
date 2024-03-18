@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneBalancesHtml {
-  pub balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>>,
+  pub balances: BTreeMap<Rune, BTreeMap<OutPoint, Pile>>,
 }
 
 impl PageContent for RuneBalancesHtml {
@@ -19,7 +19,7 @@ mod tests {
 
   #[test]
   fn display_rune_balances() {
-    let balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+    let balances: BTreeMap<Rune, BTreeMap<OutPoint, Pile>> = vec![
       (
         Rune(RUNE),
         vec![(
@@ -27,7 +27,11 @@ mod tests {
             txid: txid(1),
             vout: 1,
           },
-          1000,
+          Pile {
+            amount: 1000,
+            divisibility: 0,
+            symbol: Some('$'),
+          },
         )]
         .into_iter()
         .collect(),
@@ -39,7 +43,11 @@ mod tests {
             txid: txid(2),
             vout: 2,
           },
-          12345678,
+          Pile {
+            amount: 12345678,
+            divisibility: 1,
+            symbol: Some('¢'),
+          },
         )]
         .into_iter()
         .collect(),
@@ -65,7 +73,7 @@ mod tests {
             <a href=/output/1{64}:1>1{64}:1</a>
           </td>
           <td class=monospace>
-            1000
+            1000\u{00A0}\\$
           </td>
         </tr>
       </table>
@@ -80,7 +88,7 @@ mod tests {
             <a href=/output/2{64}:2>2{64}:2</a>
           </td>
           <td class=monospace>
-            12345678
+            1234567\\.8\u{00A0}¢
           </td>
         </tr>
       </table>

@@ -2,7 +2,8 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      OutPointValue, OutputEntry, OutputValue, RuneEntryValue, RuneIdValue, SatPointValue,
+      SatRange, TxidValue,
     },
     event::Event,
     reorg::*,
@@ -47,7 +48,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 19;
+const SCHEMA_VERSION: u64 = 20;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -71,6 +72,7 @@ define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
+define_table! { OUTPOINT_TO_OUTPUT, &OutPointValue, OutputValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
@@ -929,31 +931,56 @@ impl Index {
     Ok(balances)
   }
 
-  pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, u128>>> {
+  pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, Pile>>> {
     let outpoint_balances = self.get_rune_balances()?;
 
     let rtx = self.database.begin_read()?;
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
-    let mut rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = BTreeMap::new();
+    let mut rune_balances_by_id: BTreeMap<RuneId, BTreeMap<OutPoint, u128>> = BTreeMap::new();
 
     for (outpoint, balances) in outpoint_balances {
       for (rune_id, amount) in balances {
-        let rune = RuneEntry::load(
-          rune_id_to_rune_entry
-            .get(&rune_id.store())?
-            .unwrap()
-            .value(),
-        )
-        .rune;
-
-        *rune_balances
-          .entry(rune)
+        *rune_balances_by_id
+          .entry(rune_id)
           .or_default()
           .entry(outpoint)
           .or_default() += amount;
       }
+    }
+
+    let mut rune_balances = BTreeMap::new();
+
+    for (rune_id, balances) in rune_balances_by_id {
+      let RuneEntry {
+        rune,
+        divisibility,
+        symbol,
+        ..
+      } = RuneEntry::load(
+        rune_id_to_rune_entry
+          .get(&rune_id.store())?
+          .unwrap()
+          .value(),
+      );
+
+      rune_balances.insert(
+        rune,
+        balances
+          .into_iter()
+          .map(|(outpoint, amount)| {
+            (
+              outpoint,
+              Pile {
+                amount,
+                divisibility,
+                symbol,
+              },
+            )
+          })
+          .collect(),
+      );
     }
 
     Ok(rune_balances)
@@ -2414,12 +2441,14 @@ mod tests {
   fn find_first_sat_of_second_block() {
     let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
+    let tx = context.rpc_server.tx(1, 0);
     assert_eq!(
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
-        outpoint: "84aca0d43f45ac753d4744f40b2f54edec3a496b298951735d450e601386089d:0"
-          .parse()
-          .unwrap(),
+        outpoint: OutPoint {
+          txid: tx.txid(),
+          vout: 0,
+        },
         offset: 0,
       }
     )

@@ -12,5 +12,6 @@ mod outputs;
 mod receive;
 mod restore;
 mod sats;
+mod selection;
 mod send;
 mod transactions;
