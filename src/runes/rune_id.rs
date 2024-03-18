@@ -2,8 +2,8 @@ use {super::*, std::num::TryFromIntError};
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
 pub struct RuneId {
-  pub height: u32,
-  pub index: u16,
+  pub block: u32,
+  pub tx: u16,
 }
 
 impl TryFrom<u128> for RuneId {
@@ -11,21 +11,21 @@ impl TryFrom<u128> for RuneId {
 
   fn try_from(n: u128) -> Result<Self, Self::Error> {
     Ok(Self {
-      height: u32::try_from(n >> 16)?,
-      index: u16::try_from(n & 0xFFFF).unwrap(),
+      block: u32::try_from(n >> 16)?,
+      tx: u16::try_from(n & 0xFFFF).unwrap(),
     })
   }
 }
 
 impl From<RuneId> for u128 {
   fn from(id: RuneId) -> Self {
-    u128::from(id.height) << 16 | u128::from(id.index)
+    u128::from(id.block) << 16 | u128::from(id.tx)
   }
 }
 
 impl Display for RuneId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "{}:{}", self.height, self.index,)
+    write!(f, "{}:{}", self.block, self.tx,)
   }
 }
 
@@ -38,8 +38,8 @@ impl FromStr for RuneId {
       .ok_or_else(|| anyhow!("invalid rune ID: {s}"))?;
 
     Ok(Self {
-      height: height.parse()?,
-      index: index.parse()?,
+      block: height.parse()?,
+      tx: index.parse()?,
     })
   }
 }
@@ -70,24 +70,13 @@ mod tests {
   fn rune_id_to_128() {
     assert_eq!(
       0b11_0000_0000_0000_0001u128,
-      RuneId {
-        height: 3,
-        index: 1,
-      }
-      .into()
+      RuneId { block: 3, tx: 1 }.into()
     );
   }
 
   #[test]
   fn display() {
-    assert_eq!(
-      RuneId {
-        height: 1,
-        index: 2
-      }
-      .to_string(),
-      "1:2"
-    );
+    assert_eq!(RuneId { block: 1, tx: 2 }.to_string(), "1:2");
   }
 
   #[test]
@@ -97,13 +86,7 @@ mod tests {
     assert!(":2".parse::<RuneId>().is_err());
     assert!("a:2".parse::<RuneId>().is_err());
     assert!("1:a".parse::<RuneId>().is_err());
-    assert_eq!(
-      "1:2".parse::<RuneId>().unwrap(),
-      RuneId {
-        height: 1,
-        index: 2
-      }
-    );
+    assert_eq!("1:2".parse::<RuneId>().unwrap(), RuneId { block: 1, tx: 2 });
   }
 
   #[test]
@@ -111,8 +94,8 @@ mod tests {
     assert_eq!(
       RuneId::try_from(0x060504030201).unwrap(),
       RuneId {
-        height: 0x06050403,
-        index: 0x0201
+        block: 0x06050403,
+        tx: 0x0201
       }
     );
 
@@ -121,10 +104,7 @@ mod tests {
 
   #[test]
   fn serde() {
-    let rune_id = RuneId {
-      height: 1,
-      index: 2,
-    };
+    let rune_id = RuneId { block: 1, tx: 2 };
     let json = "\"1:2\"";
     assert_eq!(serde_json::to_string(&rune_id).unwrap(), json);
     assert_eq!(serde_json::from_str::<RuneId>(json).unwrap(), rune_id);

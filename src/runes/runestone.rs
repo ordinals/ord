@@ -1285,11 +1285,7 @@ mod tests {
     case(
       vec![Edict {
         amount: 0,
-        id: RuneId {
-          height: 0,
-          index: 0,
-        }
-        .into(),
+        id: RuneId { block: 0, tx: 0 }.into(),
         output: 0,
       }],
       Some(Etching {
@@ -1303,11 +1299,7 @@ mod tests {
     case(
       vec![Edict {
         amount: u128::MAX,
-        id: RuneId {
-          height: 0,
-          index: 0,
-        }
-        .into(),
+        id: RuneId { block: 0, tx: 0 }.into(),
         output: 0,
       }],
       Some(Etching {
@@ -1322,8 +1314,8 @@ mod tests {
       vec![Edict {
         amount: 0,
         id: RuneId {
-          height: 1_000_000,
-          index: u16::MAX,
+          block: 1_000_000,
+          tx: u16::MAX,
         }
         .into(),
         output: 0,
@@ -1336,8 +1328,8 @@ mod tests {
       vec![Edict {
         amount: u128::MAX,
         id: RuneId {
-          height: 1_000_000,
-          index: u16::MAX,
+          block: 1_000_000,
+          tx: u16::MAX,
         }
         .into(),
         output: 0,
@@ -1351,8 +1343,8 @@ mod tests {
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1360,8 +1352,8 @@ mod tests {
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1376,8 +1368,8 @@ mod tests {
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1385,8 +1377,8 @@ mod tests {
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1394,8 +1386,8 @@ mod tests {
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1410,8 +1402,8 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1427,8 +1419,8 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1444,8 +1436,8 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 0,
-            index: u16::MAX,
+            block: 0,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
@@ -1461,8 +1453,8 @@ mod tests {
         Edict {
           amount: 1_000_000_000_000_000_000,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
+            block: 1_000_000,
+            tx: u16::MAX,
           }
           .into(),
           output: 0,
