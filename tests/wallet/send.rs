@@ -140,7 +140,6 @@ fn send_inscription_by_sat() {
 
   let sat_list = sats(&bitcoin_rpc_server, &ord_rpc_server);
 
-  // select sat by filter txid
   let sat = sat_list.iter().find(|s| s.output.txid == txid).unwrap().sat;
 
   let address = "bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv";
