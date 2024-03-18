@@ -134,7 +134,7 @@ impl Batchfile {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent,
+        self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
       )?);

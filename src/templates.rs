@@ -1,6 +1,7 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
+  crate::subcommand::server::ServerConfig,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -13,6 +14,7 @@ pub(crate) use {
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
   output::OutputHtml,
+  parents::ParentsHtml,
   preview::{
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
@@ -21,7 +23,6 @@ pub(crate) use {
   rare::RareTxt,
   rune_balances::RuneBalancesHtml,
   sat::SatHtml,
-  server_config::ServerConfig,
 };
 
 pub use {
@@ -42,6 +43,7 @@ pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;
 pub mod output;
+mod parents;
 mod preview;
 mod range;
 mod rare;

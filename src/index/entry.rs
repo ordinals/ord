@@ -43,6 +43,28 @@ pub struct RuneEntry {
   pub timestamp: u32,
 }
 
+impl RuneEntry {
+  pub fn mintable(&self, block_height: Height, block_time: u32) -> Result<u128, MintError> {
+    let Some(mint) = self.mint else {
+      return Err(MintError::Unmintable(self.rune));
+    };
+
+    if let Some(end) = mint.end {
+      if block_height.0 >= end {
+        return Err(MintError::End((self.rune, end)));
+      }
+    }
+
+    if let Some(deadline) = mint.deadline {
+      if block_time >= deadline {
+        return Err(MintError::Deadline((self.rune, deadline)));
+      }
+    }
+
+    Ok(mint.limit.unwrap_or(runes::MAX_LIMIT))
+  }
+}
+
 pub(super) type RuneEntryValue = (
   u128,                   // burned
   u8,                     // divisibility
@@ -59,9 +81,9 @@ pub(super) type RuneEntryValue = (
 
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize, Default)]
 pub struct MintEntry {
-  pub deadline: Option<u32>,
-  pub end: Option<u32>,
-  pub limit: Option<u128>,
+  pub deadline: Option<u32>, // unix timestamp
+  pub end: Option<u32>,      // block height
+  pub limit: Option<u128>,   // claim amount
 }
 
 type MintEntryValue = (
@@ -192,14 +214,14 @@ impl Entry for RuneId {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub(crate) struct InscriptionEntry {
   pub(crate) charms: u16,
   pub(crate) fee: u64,
   pub(crate) height: u32,
   pub(crate) id: InscriptionId,
   pub(crate) inscription_number: i32,
-  pub(crate) parent: Option<u32>,
+  pub(crate) parents: Vec<u32>,
   pub(crate) sat: Option<Sat>,
   pub(crate) sequence_number: u32,
   pub(crate) timestamp: u32,
@@ -211,7 +233,7 @@ pub(crate) type InscriptionEntryValue = (
   u32,                // height
   InscriptionIdValue, // inscription id
   i32,                // inscription number
-  Option<u32>,        // parent
+  Vec<u32>,           // parents
   Option<u64>,        // sat
   u32,                // sequence number
   u32,                // timestamp
@@ -228,7 +250,7 @@ impl Entry for InscriptionEntry {
       height,
       id,
       inscription_number,
-      parent,
+      parents,
       sat,
       sequence_number,
       timestamp,
@@ -240,7 +262,7 @@ impl Entry for InscriptionEntry {
       height,
       id: InscriptionId::load(id),
       inscription_number,
-      parent,
+      parents,
       sat: sat.map(Sat),
       sequence_number,
       timestamp,
@@ -254,7 +276,7 @@ impl Entry for InscriptionEntry {
       self.height,
       self.id.store(),
       self.inscription_number,
-      self.parent,
+      self.parents,
       self.sat.map(Sat::n),
       self.sequence_number,
       self.timestamp,
@@ -396,6 +418,30 @@ impl Entry for Txid {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn inscription_entry() {
+    let id = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let entry = InscriptionEntry {
+      charms: 0,
+      fee: 1,
+      height: 2,
+      id,
+      inscription_number: 3,
+      parents: vec![4, 5, 6],
+      sat: Some(Sat(7)),
+      sequence_number: 8,
+      timestamp: 9,
+    };
+
+    let value = (0, 1, 2, id.store(), 3, vec![4, 5, 6], Some(7), 8, 9);
+
+    assert_eq!(entry.clone().store(), value);
+    assert_eq!(InscriptionEntry::load(value), entry);
+  }
 
   #[test]
   fn inscription_id_entry() {

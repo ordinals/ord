@@ -46,6 +46,13 @@ impl Api for Server {
     })
   }
 
+  fn get_best_block_hash(&self) -> Result<bitcoin::BlockHash, jsonrpc_core::Error> {
+    match self.state().hashes.last() {
+      Some(block_hash) => Ok(*block_hash),
+      None => Err(Self::not_found()),
+    }
+  }
+
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
       chain: String::from(match self.network {
@@ -373,7 +380,9 @@ impl Api for Server {
       let (additional_input_value, outpoint) = utxos
         .iter()
         .find(|(value, outpoint)| value.to_sat() >= shortfall && !state.locked.contains(outpoint))
-        .ok_or_else(Self::not_found)?;
+        .ok_or_else(|| {
+          jsonrpc_core::Error::new(jsonrpc_core::types::error::ErrorCode::ServerError(-6))
+        })?;
 
       transaction.input.push(TxIn {
         previous_output: *outpoint,

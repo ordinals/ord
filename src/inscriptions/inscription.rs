@@ -21,7 +21,7 @@ pub struct Inscription {
   pub incomplete_field: bool,
   pub metadata: Option<Vec<u8>>,
   pub metaprotocol: Option<Vec<u8>>,
-  pub parent: Option<Vec<u8>>,
+  pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
@@ -42,7 +42,7 @@ impl Inscription {
     delegate: Option<InscriptionId>,
     metadata: Option<Vec<u8>>,
     metaprotocol: Option<String>,
-    parent: Option<InscriptionId>,
+    parents: Vec<InscriptionId>,
     path: impl AsRef<Path>,
     pointer: Option<u64>,
   ) -> Result<Self, Error> {
@@ -102,7 +102,7 @@ impl Inscription {
       delegate: delegate.map(|delegate| delegate.value()),
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
-      parent: parent.map(|parent| parent.value()),
+      parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
@@ -127,13 +127,13 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(envelope::PROTOCOL_ID);
 
-    Tag::ContentType.encode(&mut builder, &self.content_type);
-    Tag::ContentEncoding.encode(&mut builder, &self.content_encoding);
-    Tag::Metaprotocol.encode(&mut builder, &self.metaprotocol);
-    Tag::Parent.encode(&mut builder, &self.parent);
-    Tag::Delegate.encode(&mut builder, &self.delegate);
-    Tag::Pointer.encode(&mut builder, &self.pointer);
-    Tag::Metadata.encode(&mut builder, &self.metadata);
+    Tag::ContentType.append(&mut builder, &self.content_type);
+    Tag::ContentEncoding.append(&mut builder, &self.content_encoding);
+    Tag::Metaprotocol.append(&mut builder, &self.metaprotocol);
+    Tag::Parent.append_array(&mut builder, &self.parents);
+    Tag::Delegate.append(&mut builder, &self.delegate);
+    Tag::Pointer.append(&mut builder, &self.pointer);
+    Tag::Metadata.append(&mut builder, &self.metadata);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -168,7 +168,7 @@ impl Inscription {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
-  fn inscription_id_field(field: &Option<Vec<u8>>) -> Option<InscriptionId> {
+  fn inscription_id_field(field: Option<&[u8]>) -> Option<InscriptionId> {
     let value = field.as_ref()?;
 
     if value.len() < Txid::LEN {
@@ -236,7 +236,7 @@ impl Inscription {
   }
 
   pub(crate) fn delegate(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(&self.delegate)
+    Self::inscription_id_field(self.delegate.as_deref())
   }
 
   pub(crate) fn metadata(&self) -> Option<Value> {
@@ -247,8 +247,12 @@ impl Inscription {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
-  pub(crate) fn parent(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(&self.parent)
+  pub(crate) fn parents(&self) -> Vec<InscriptionId> {
+    self
+      .parents
+      .iter()
+      .filter_map(|parent| Self::inscription_id_field(Some(parent)))
+      .collect()
   }
 
   pub(crate) fn pointer(&self) -> Option<u64> {
@@ -421,31 +425,31 @@ mod tests {
   #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
     assert!(Inscription {
-      parent: None,
+      parents: Vec::new(),
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
     assert!(Inscription {
-      parent: Some(vec![]),
+      parents: vec![Vec::new()],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
   fn inscription_with_parent_field_longer_than_txid_and_index_has_no_parent() {
     assert!(Inscription {
-      parent: Some(vec![1; 37]),
+      parents: vec![vec![1; 37]],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -454,12 +458,12 @@ mod tests {
 
     parent[35] = 0;
 
-    assert!(Inscription {
-      parent: Some(parent),
+    assert!(!Inscription {
+      parents: vec![parent],
       ..Default::default()
     }
-    .parent()
-    .is_some());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -469,11 +473,11 @@ mod tests {
     parent[34] = 0;
 
     assert!(Inscription {
-      parent: Some(parent),
+      parents: vec![parent],
       ..Default::default()
     }
-    .parent()
-    .is_none());
+    .parents()
+    .is_empty());
   }
 
   #[test]
@@ -500,19 +504,19 @@ mod tests {
   fn inscription_parent_txid_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![
+        parents: vec![vec![
           0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
           0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
           0x1e, 0x1f,
-        ]),
+        ]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .txid,
-      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
-        .parse()
-        .unwrap()
+      .parents(),
+      [
+        "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -520,13 +524,15 @@ mod tests {
   fn inscription_parent_with_zero_byte_index_field_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![1; 32]),
+        parents: vec![vec![1; 32]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .index,
-      0
+      .parents(),
+      [
+        "0101010101010101010101010101010101010101010101010101010101010101i0"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -534,17 +540,19 @@ mod tests {
   fn inscription_parent_with_one_byte_index_field_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![
+        parents: vec![vec![
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01
-        ]),
+        ]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .index,
-      1
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi1"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -552,17 +560,19 @@ mod tests {
   fn inscription_parent_with_two_byte_index_field_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![
+        parents: vec![vec![
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02
-        ]),
+        ]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .index,
-      0x0201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi513"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -570,17 +580,19 @@ mod tests {
   fn inscription_parent_with_three_byte_index_field_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![
+        parents: vec![vec![
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02, 0x03
-        ]),
+        ]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .index,
-      0x030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi197121"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -588,17 +600,49 @@ mod tests {
   fn inscription_parent_with_four_byte_index_field_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
-        parent: Some(vec![
+        parents: vec![vec![
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02, 0x03, 0x04,
-        ]),
+        ]],
         ..Default::default()
       }
-      .parent()
-      .unwrap()
-      .index,
-      0x04030201,
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305985"
+          .parse()
+          .unwrap()
+      ],
+    );
+  }
+
+  #[test]
+  fn inscription_parent_returns_multiple_parents() {
+    assert_eq!(
+      Inscription {
+        parents: vec![
+          vec![
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0x01, 0x02, 0x03, 0x04,
+          ],
+          vec![
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0x00, 0x02, 0x03, 0x04,
+          ]
+        ],
+        ..Default::default()
+      }
+      .parents(),
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305985"
+          .parse()
+          .unwrap(),
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffi67305984"
+          .parse()
+          .unwrap()
+      ],
     );
   }
 
@@ -732,7 +776,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       None,
     )
@@ -746,7 +790,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(0),
     )
@@ -760,7 +804,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(1),
     )
@@ -774,7 +818,7 @@ mod tests {
       None,
       None,
       None,
-      None,
+      Vec::new(),
       file.path(),
       Some(256),
     )

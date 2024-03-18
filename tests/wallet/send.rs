@@ -649,6 +649,43 @@ fn send_btc_does_not_send_locked_utxos() {
 }
 
 #[test]
+fn send_dry_run() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription} --dry-run",
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<send::Output>();
+
+  assert!(bitcoin_rpc_server.mempool().is_empty());
+  assert_eq!(
+    Psbt::deserialize(
+      &base64::engine::general_purpose::STANDARD
+        .decode(output.psbt)
+        .unwrap()
+    )
+    .unwrap()
+    .fee()
+    .unwrap()
+    .to_sat(),
+    output.fee
+  );
+  assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
+}
+
+#[test]
 fn sending_rune_that_has_not_been_etched_is_an_error() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
@@ -1139,43 +1176,6 @@ fn sending_rune_does_not_send_inscription() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .stderr_regex("error:.*")
+  .expected_stderr("error: not enough cardinal utxos\n")
   .run_and_extract_stdout();
-}
-
-#[test]
-fn send_dry_run() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
-
-  bitcoin_rpc_server.mine_blocks(1);
-
-  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
-
-  bitcoin_rpc_server.mine_blocks(1);
-
-  let output = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription} --dry-run",
-  ))
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<send::Output>();
-
-  assert!(bitcoin_rpc_server.mempool().is_empty());
-  assert_eq!(
-    Psbt::deserialize(
-      &base64::engine::general_purpose::STANDARD
-        .decode(output.psbt)
-        .unwrap()
-    )
-    .unwrap()
-    .fee()
-    .unwrap()
-    .to_sat(),
-    output.fee
-  );
-  assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
 }
