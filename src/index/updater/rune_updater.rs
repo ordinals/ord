@@ -414,7 +414,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       };
 
       for instruction in tapscript.instructions() {
-        let instruction = instruction?;
+        let Ok(instruction) = instruction else {
+          continue;
+        };
 
         let Some(pushbytes) = instruction.push_bytes() else {
           continue;
