@@ -9,10 +9,10 @@
   <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>
-  <dt>etching block height</dt>
-  <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
-  <dt>etching transaction index</dt>
-  <dd>{{ self.id.index }}</dd>
+  <dt>etching block</dt>
+  <dd><a href=/block/{{ self.id.block }}>{{ self.id.block }}</a></dd>
+  <dt>etching transaction</dt>
+  <dd>{{ self.id.tx }}</dd>
   <dt>mint</dt>
 %% if let Some(mint) = self.entry.mint {
   <dd>
