@@ -221,7 +221,7 @@ impl Runestone {
         continue;
       }
 
-      if instructions.next().transpose()? != Some(Instruction::Op(opcodes::all::OP_PUSHNUM_13)) {
+      if instructions.next().transpose()? != Some(Instruction::Op(MAGIC_NUMBER)) {
         continue;
       }
 
@@ -267,7 +267,7 @@ mod tests {
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
           .push_opcode(opcodes::all::OP_RETURN)
-          .push_opcode(opcodes::all::OP_PUSHNUM_13)
+          .push_opcode(MAGIC_NUMBER)
           .push_slice(payload)
           .into_script(),
         value: 0,
