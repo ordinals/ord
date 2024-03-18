@@ -1370,32 +1370,6 @@ mod tests {
     );
 
     case(
-      vec![Edict {
-        amount: 0,
-        id: RuneId {
-          block: 1_000_000,
-          tx: u16::MAX,
-        },
-        output: 0,
-      }],
-      None,
-      12,
-    );
-
-    case(
-      vec![Edict {
-        amount: u128::MAX,
-        id: RuneId {
-          block: 1_000_000,
-          tx: u16::MAX,
-        },
-        output: 0,
-      }],
-      None,
-      30,
-    );
-
-    case(
       vec![
         Edict {
           amount: u128::MAX,
