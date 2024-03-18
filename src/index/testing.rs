@@ -152,6 +152,29 @@ impl Context {
     }
   }
 
+  pub(crate) fn _mint(&self, rune_id: RuneId) -> Txid {
+    let block_count = usize::try_from(self.index.block_count().unwrap()).unwrap();
+
+    self.mine_blocks(1);
+
+    let runestone = Runestone {
+      etching: None,
+      edicts: Vec::new(),
+      claim: Some(rune_id),
+      ..Default::default()
+    };
+
+    let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count, 0, 0, Witness::new())],
+      op_return: Some(runestone.encipher()),
+      ..Default::default()
+    });
+
+    self.mine_blocks(1);
+
+    txid
+  }
+
   pub(crate) fn etch(&self, runestone: Runestone, outputs: usize) -> (Txid, RuneId) {
     let block_count = usize::try_from(self.index.block_count().unwrap()).unwrap();
 

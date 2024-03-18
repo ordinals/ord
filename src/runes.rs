@@ -3956,14 +3956,14 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_term_zero_cannot_be_minted() {
+  fn open_etchings_with_term_zero_can_be_premined() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
           id: 0,
-          amount: 1000,
+          amount: 1111,
           output: 0,
         }],
         etching: Some(Etching {
@@ -3992,48 +3992,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.height,
+          supply: 1111,
           ..Default::default()
         },
       )],
-      [],
-    );
-
-    context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 0, 0, Witness::new())],
-      outputs: 2,
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: u128::from(id),
-            amount: 1,
-            output: 3,
-          }],
-          claim: Some(id),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching: txid,
-          rune: Rune(RUNE),
-          timestamp: id.height,
-          mint: Some(MintEntry {
-            limit: Some(1000),
-            end: Some(id.height),
-            ..Default::default()
-          }),
-          ..Default::default()
-        },
-      )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
   }
 
@@ -4500,7 +4463,7 @@ mod tests {
   }
 
   #[test]
-  fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
+  fn runes_can_be_etched_and_claimed_in_the_same_premine_transaction() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4534,11 +4497,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.height,
-          supply: 1000,
+          supply: 2000,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 2000)])],
     );
   }
 
@@ -4664,10 +4627,10 @@ mod tests {
   }
 
   #[test]
-  fn transactions_cannot_claim_more_than_limit() {
+  fn premines_can_claim_over_the_max_limit() {
     let context = Context::builder().arg("--index-runes").build();
 
-    let (txid0, id) = context.etch(
+    let (txid0, rune_id) = context.etch(
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
@@ -4680,7 +4643,7 @@ mod tests {
         edicts: vec![Edict {
           id: 0,
           amount: 2000,
-          output: 0,
+          ..Default::default()
         }],
         ..Default::default()
       },
@@ -4689,7 +4652,7 @@ mod tests {
 
     context.assert_runes(
       [(
-        id,
+        rune_id,
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
@@ -4697,8 +4660,9 @@ mod tests {
             limit: Some(1000),
             ..Default::default()
           }),
-          timestamp: id.height,
-          supply: 1000,
+          timestamp: rune_id.height,
+          supply: 2000,
+          mints: 0,
           ..Default::default()
         },
       )],
@@ -4707,61 +4671,8 @@ mod tests {
           txid: txid0,
           vout: 0,
         },
-        vec![(id, 1000)],
+        vec![(rune_id, 2000)],
       )],
-    );
-
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id: u128::from(id),
-            amount: 2000,
-            output: 0,
-          }],
-          claim: Some(id),
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching: txid0,
-          rune: Rune(RUNE),
-          mint: Some(MintEntry {
-            limit: Some(1000),
-            ..Default::default()
-          }),
-          timestamp: id.height,
-          supply: 2000,
-          mints: 1,
-          ..Default::default()
-        },
-      )],
-      [
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-        (
-          OutPoint {
-            txid: txid1,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-      ],
     );
   }
 
