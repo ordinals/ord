@@ -1,6 +1,6 @@
 use {super::*, std::num::TryFromIntError};
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd, Default)]
 pub struct RuneId {
   pub block: u32,
   pub tx: u16,

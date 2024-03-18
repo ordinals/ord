@@ -10,7 +10,9 @@ pub use {
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub const MAX_LIMIT: u128 = 1 << 64;
+
 const RESERVED: u128 = 6402364363415443603228541259936211926;
+const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
 
 mod edict;
 mod etching;
@@ -132,7 +134,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -173,7 +175,7 @@ mod tests {
       context.etch(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -198,7 +200,7 @@ mod tests {
       let (txid, id) = context.etch(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -235,7 +237,7 @@ mod tests {
       context.etch(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -257,7 +259,7 @@ mod tests {
       let (txid, id) = context.etch(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -298,7 +300,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -344,7 +346,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -413,7 +415,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -453,12 +455,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           },
@@ -495,12 +497,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX / 2,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           },
@@ -539,7 +541,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 100,
           output: 0,
         }],
@@ -575,12 +577,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 100,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 100,
             output: 1,
           },
@@ -611,19 +613,19 @@ mod tests {
   }
 
   #[test]
-  fn allocations_to_invalid_outputs_are_ignored() {
+  fn allocations_to_invalid_outputs_burn_runestone() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 100,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 100,
             output: 3,
           },
@@ -643,12 +645,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: 100,
+          supply: 0,
           timestamp: id.block,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
+      [],
     );
   }
 
@@ -659,7 +661,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -697,7 +699,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: u128::MAX,
             output: 0,
           }],
@@ -738,7 +740,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -774,7 +776,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -827,7 +829,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           }],
@@ -865,7 +867,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -935,7 +937,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1004,7 +1006,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1069,7 +1071,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1145,7 +1147,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1221,7 +1223,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1293,7 +1295,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1362,7 +1364,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1392,7 +1394,7 @@ mod tests {
     context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1429,7 +1431,7 @@ mod tests {
     let (txid0, id0) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1465,7 +1467,7 @@ mod tests {
     let (txid1, id1) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1571,7 +1573,7 @@ mod tests {
     let (txid0, id0) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1607,7 +1609,7 @@ mod tests {
     let (txid1, id1) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1712,12 +1714,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX / 2,
               output: 1,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX / 2,
               output: 1,
             },
@@ -1781,7 +1783,7 @@ mod tests {
     let (txid0, id0) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1817,7 +1819,7 @@ mod tests {
     let (txid1, id1) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -1881,12 +1883,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX,
               output: 0,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX,
               output: 0,
             },
@@ -1942,7 +1944,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2010,7 +2012,7 @@ mod tests {
     let (txid0, id0) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2026,7 +2028,7 @@ mod tests {
     let (txid1, id1) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2091,7 +2093,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2130,12 +2132,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: 0,
+              id: RuneId::default(),
               amount: 100,
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX,
               output: 0,
             },
@@ -2177,7 +2179,7 @@ mod tests {
     let (txid0, id0) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2213,7 +2215,7 @@ mod tests {
     let (txid1, id1) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2274,12 +2276,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX,
               output: 0,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX,
               output: 0,
             },
@@ -2343,7 +2345,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX / 2,
           output: 0,
         }],
@@ -2381,7 +2383,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: u128::MAX,
             output: 0,
           }],
@@ -2422,7 +2424,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 1,
         }],
@@ -2458,7 +2460,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2494,12 +2496,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 0,
             output: 1,
           },
@@ -2535,7 +2537,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 0,
           output: 5,
         }],
@@ -2576,12 +2578,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 1000,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 0,
             output: 5,
           },
@@ -2635,12 +2637,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 0,
             output: 5,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 1000,
             output: 0,
           },
@@ -2681,7 +2683,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 1000,
           output: 5,
         }],
@@ -2722,12 +2724,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX - 3000,
             output: 0,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 1000,
             output: 5,
           },
@@ -2768,12 +2770,12 @@ mod tests {
       Runestone {
         edicts: vec![
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: 1000,
             output: 5,
           },
           Edict {
-            id: 0,
+            id: RuneId::default(),
             amount: u128::MAX,
             output: 0,
           },
@@ -2817,7 +2819,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2856,7 +2858,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 0,
             output: 3,
           }],
@@ -2906,7 +2908,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2946,12 +2948,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 0,
               output: 3,
             },
@@ -3002,7 +3004,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3042,12 +3044,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 0,
               output: 3,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 1,
             },
@@ -3098,7 +3100,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3137,7 +3139,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 1000,
             output: 3,
           }],
@@ -3187,7 +3189,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3227,12 +3229,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX - 2000,
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 5,
             },
@@ -3283,7 +3285,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3323,12 +3325,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 5,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX,
               output: 0,
             },
@@ -3393,7 +3395,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3430,7 +3432,7 @@ mod tests {
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 0,
           output: 0,
         }],
@@ -3465,7 +3467,7 @@ mod tests {
     let (txid0, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3504,7 +3506,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 0,
             output: 1,
           }],
@@ -3667,7 +3669,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -3712,7 +3714,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -3768,7 +3770,7 @@ mod tests {
           burn: true,
           claim: Some(id),
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -3860,7 +3862,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -3905,7 +3907,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -3947,14 +3949,14 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_term_zero_cannot_be_minted() {
+  fn open_etchings_with_term_zero_can_be_premined() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
-          amount: 1000,
+          id: RuneId::default(),
+          amount: 1111,
           output: 0,
         }],
         etching: Some(Etching {
@@ -3983,10 +3985,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
+          supply: 1111,
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3994,11 +3997,6 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          edicts: vec![Edict {
-            id: u128::from(id),
-            amount: 1,
-            output: 3,
-          }],
           claim: Some(id),
           ..Default::default()
         }
@@ -4021,10 +4019,11 @@ mod tests {
             end: Some(id.block),
             ..Default::default()
           }),
+          supply: 1111,
           ..Default::default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
   }
 
@@ -4313,7 +4312,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -4358,7 +4357,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -4441,7 +4440,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 0,
             output: 3,
           }],
@@ -4491,7 +4490,7 @@ mod tests {
   }
 
   #[test]
-  fn runes_can_be_etched_and_claimed_in_the_same_transaction() {
+  fn runes_can_be_etched_and_premined_in_the_same_transaction() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4505,7 +4504,7 @@ mod tests {
           ..Default::default()
         }),
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 2000,
           output: 0,
         }],
@@ -4525,11 +4524,11 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
-          supply: 1000,
+          supply: 2000,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 1000)])],
+      [(OutPoint { txid, vout: 0 }, vec![(id, 2000)])],
     );
   }
 
@@ -4575,7 +4574,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: MAX_LIMIT + 1,
             output: 0,
           }],
@@ -4655,6 +4654,56 @@ mod tests {
   }
 
   #[test]
+  fn premines_can_claim_over_the_max_limit() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, rune_id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          mint: Some(Mint {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }),
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: 2000,
+          output: 0,
+        }],
+        ..Default::default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        rune_id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          timestamp: rune_id.block,
+          supply: 2000,
+          mints: 0,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(rune_id, 2000)],
+      )],
+    );
+  }
+
+  #[test]
   fn transactions_cannot_claim_more_than_limit() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -4668,38 +4717,9 @@ mod tests {
           }),
           ..Default::default()
         }),
-        edicts: vec![Edict {
-          id: 0,
-          amount: 2000,
-          output: 0,
-        }],
         ..Default::default()
       },
       1,
-    );
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          etching: txid0,
-          rune: Rune(RUNE),
-          mint: Some(MintEntry {
-            limit: Some(1000),
-            ..Default::default()
-          }),
-          timestamp: id.block,
-          supply: 1000,
-          ..Default::default()
-        },
-      )],
-      [(
-        OutPoint {
-          txid: txid0,
-          vout: 0,
-        },
-        vec![(id, 1000)],
-      )],
     );
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4707,7 +4727,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id,
             amount: 2000,
             output: 0,
           }],
@@ -4732,27 +4752,18 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
-          supply: 2000,
+          supply: 1000,
           mints: 1,
           ..Default::default()
         },
       )],
-      [
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-        (
-          OutPoint {
-            txid: txid1,
-            vout: 0,
-          },
-          vec![(id, 1000)],
-        ),
-      ],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
     );
   }
 
@@ -4798,17 +4809,17 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: u128::from(id),
+              id,
               amount: 500,
               output: 0,
             },
             Edict {
-              id: u128::from(id),
+              id,
               amount: 500,
               output: 0,
             },
             Edict {
-              id: u128::from(id),
+              id,
               amount: 500,
               output: 0,
             },
