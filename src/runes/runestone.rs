@@ -758,6 +758,18 @@ mod tests {
   }
 
   #[test]
+  fn output_over_max_is_burn() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 2, 2]),
+      Runestone {
+        edicts: Vec::new(),
+        burn: true,
+        ..Default::default()
+      },
+    );
+  }
+
+  #[test]
   fn tag_with_no_value_is_ignored() {
     assert_eq!(
       decipher(&[Tag::Flags.into(), 1, Tag::Flags.into()]),

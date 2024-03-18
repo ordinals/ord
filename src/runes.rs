@@ -611,7 +611,7 @@ mod tests {
   }
 
   #[test]
-  fn allocations_to_invalid_outputs_are_ignored() {
+  fn allocations_to_invalid_outputs_burn_runestone() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -643,12 +643,12 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          supply: 100,
+          supply: 0,
           timestamp: id.block,
           ..Default::default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
+      [],
     );
   }
 
