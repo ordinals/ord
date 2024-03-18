@@ -7,7 +7,7 @@ pub enum Event {
     charms: u16,
     inscription_id: InscriptionId,
     location: Option<SatPoint>,
-    parent_inscription_id: Option<InscriptionId>,
+    parent_inscription_ids: Vec<InscriptionId>,
     sequence_number: u32,
   },
   InscriptionTransferred {

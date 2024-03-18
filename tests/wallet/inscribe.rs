@@ -657,7 +657,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
-      ".*<dt>parent</dt>.*<a href=/inscription/{}>.*",
+      ".*<dt>parents</dt>.*<a href=/inscription/{}>.*",
       child_output.parent.unwrap()
     ),
   );
@@ -1050,12 +1050,12 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    r".*<dt>parent</dt>\s*<dd>.*</dd>.*",
+    r".*<dt>parents</dt>\s*<dd>.*</dd>.*",
   );
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    r".*<dt>parent</dt>\s*<dd>.*</dd>.*",
+    r".*<dt>parents</dt>\s*<dd>.*</dd>.*",
   );
 
   let request = ord_rpc_server.request(format!("/content/{}", output.inscriptions[2].id));
@@ -1282,7 +1282,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_1
     ),
   );
@@ -1290,7 +1290,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_2
     ),
   );
@@ -1298,7 +1298,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_3
     ),
   );
@@ -1360,7 +1360,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_1
     ),
   );
@@ -1368,7 +1368,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_2
     ),
   );
@@ -1376,7 +1376,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
       output_3
     ),
   );
@@ -2407,7 +2407,7 @@ inscriptions:
 
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{}", inscription_1.id),
-    format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
       50 * COIN_VALUE,
       sat_1,
       inscription_1.location,
@@ -2416,7 +2416,7 @@ inscriptions:
 
   ord_rpc_server.assert_response_regex(
       format!("/inscription/{}", inscription_2.id),
-      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
          50 * COIN_VALUE,
          sat_2,
          inscription_2.location
@@ -2425,7 +2425,7 @@ inscriptions:
 
   ord_rpc_server.assert_response_regex(
       format!("/inscription/{}", inscription_3.id),
-      format!(r".*<dt>parent</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+      format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
         50 * COIN_VALUE,
         sat_3,
         inscription_3.location

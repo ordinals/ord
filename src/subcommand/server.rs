@@ -8,9 +8,10 @@ use {
   crate::templates::{
     BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
     InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml,
+    TransactionHtml,
   },
   axum::{
     body,
@@ -215,6 +216,11 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
+        .route("/parents/:inscription_id", get(Self::parents))
+        .route(
+          "/parents/:inscription_id/:page",
+          get(Self::parents_paginated),
+        )
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
@@ -1520,7 +1526,7 @@ impl Server {
           id: info.entry.id,
           next: info.next,
           number: info.entry.inscription_number,
-          parent: info.parent,
+          parents: info.parents,
           previous: info.previous,
           rune: info.rune,
           sat: info.entry.sat,
@@ -1541,7 +1547,7 @@ impl Server {
           number: info.entry.inscription_number,
           next: info.next,
           output: info.output,
-          parent: info.parent,
+          parents: info.parents,
           previous: info.previous,
           rune: info.rune,
           sat: info.entry.sat,
@@ -1759,6 +1765,49 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn parents(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    Self::parents_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn parents_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((id, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      let child = index
+        .get_inscription_entry(id)?
+        .ok_or_not_found(|| format!("inscription {id}"))?;
+
+      let (parents, more) = index.get_parents_by_sequence_number_paginated(child.parents, page)?;
+
+      let prev_page = page.checked_sub(1);
+
+      let next_page = more.then_some(page + 1);
+
+      Ok(
+        ParentsHtml {
+          id,
+          number: child.inscription_number,
+          parents,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response(),
+      )
     })
   }
 
@@ -4571,7 +4620,7 @@ mod tests {
             Inscription {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
-              parent: Some(parent_id.value()),
+              parents: vec![parent_id.value()],
               ..Default::default()
             }
             .to_witness(),
@@ -4689,7 +4738,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4706,7 +4755,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 1</title>.*<dt>parent</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
     );
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
@@ -4717,8 +4766,8 @@ next
     assert_eq!(
       server
         .get_json::<api::Inscription>(format!("/inscription/{inscription_id}"))
-        .parent,
-      Some(parent_inscription_id),
+        .parents,
+      vec![parent_inscription_id],
     );
 
     assert_eq!(
@@ -4761,7 +4810,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4808,7 +4857,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4820,7 +4869,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4832,7 +4881,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4844,7 +4893,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4856,7 +4905,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parent: Some(parent_inscription_id.value()),
+            parents: vec![parent_inscription_id.value()],
             ..Default::default()
           }
           .to_witness(),
@@ -4881,6 +4930,136 @@ next
       <a href=/children/{parent_inscription_id}>all</a>
     </div>.*"
       ),
+    );
+  }
+
+  #[test]
+  fn inscription_with_parent_page() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(2);
+
+    let parent_a_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    let parent_b_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_a_inscription_id = InscriptionId {
+      txid: parent_a_txid,
+      index: 0,
+    };
+
+    let parent_b_inscription_id = InscriptionId {
+      txid: parent_b_txid,
+      index: 0,
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![
+              parent_a_inscription_id.value(),
+              parent_b_inscription_id.value(),
+            ],
+            ..Default::default()
+          }
+          .to_witness(),
+        ),
+        (3, 1, 0, Default::default()),
+        (3, 2, 0, Default::default()),
+      ],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/parents/{inscription_id}"),
+      StatusCode::OK,
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/preview/{parent_b_inscription_id}></iframe></a>.*"),
+    );
+  }
+
+  #[test]
+  fn inscription_parent_page_pagination() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let mut parent_ids = Vec::new();
+    let mut inputs = Vec::new();
+    for i in 0..101 {
+      parent_ids.push(
+        InscriptionId {
+          txid: server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+            inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+            ..Default::default()
+          }),
+          index: 0,
+        }
+        .value(),
+      );
+
+      inputs.push((i + 2, 1, 0, Witness::default()));
+
+      server.mine_blocks(1);
+    }
+
+    inputs.insert(
+      0,
+      (
+        101,
+        0,
+        0,
+        Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("hello".into()),
+          parents: parent_ids,
+          ..Default::default()
+        }
+        .to_witness(),
+      ),
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &inputs,
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/parents/{inscription_id}"),
+      StatusCode::OK,
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{100}}.*"),
+    );
+
+    server.assert_response_regex(
+      format!("/parents/{inscription_id}/1"),
+      StatusCode::OK,
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{1}}.*"),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      ".*<title>Inscription -1</title>.*<h1>Inscription -1</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){4}.*",
     );
   }
 
@@ -5405,7 +5584,7 @@ next
     assert_eq!(
       server.get_json::<api::SatInscriptions>("/r/sat/5000000000"),
       api::SatInscriptions {
-        ids: vec![],
+        ids: Vec::new(),
         page: 0,
         more: false
       }
@@ -5527,7 +5706,7 @@ next
       builder = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        parent: Some(parent_inscription_id.value()),
+        parents: vec![parent_inscription_id.value()],
         unrecognized_even_field: false,
         ..Default::default()
       }
