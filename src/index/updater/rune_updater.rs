@@ -71,7 +71,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|id| self.claim(id).transpose())
         .transpose()?
       {
-        *unallocated.entry(claim.id.into()).or_default() += claim.limit;
+        *unallocated.entry(claim.id).or_default() += claim.limit;
 
         let update = self.updates.entry(claim.id).or_default();
 
@@ -262,11 +262,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     // increment entries with burned runes
     for (id, amount) in burned {
-      self
-        .updates
-        .entry(RuneId::try_from(id).unwrap())
-        .or_default()
-        .burned += amount;
+      self.updates.entry(id).or_default().burned += amount;
     }
 
     Ok(())
@@ -283,7 +279,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       symbol,
     } = etched;
 
-    let id = RuneId::try_from(id).unwrap();
     self.rune_to_id.insert(rune.0, id.store())?;
     self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
     let number = self.runes;

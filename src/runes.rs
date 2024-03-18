@@ -697,7 +697,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: u128::MAX,
             output: 0,
           }],
@@ -1712,12 +1712,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX / 2,
               output: 1,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX / 2,
               output: 1,
             },
@@ -1881,12 +1881,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX,
               output: 0,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX,
               output: 0,
             },
@@ -2135,7 +2135,7 @@ mod tests {
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX,
               output: 0,
             },
@@ -2274,12 +2274,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0.into(),
+              id: id0,
               amount: u128::MAX,
               output: 0,
             },
             Edict {
-              id: id1.into(),
+              id: id1,
               amount: u128::MAX,
               output: 0,
             },
@@ -2381,7 +2381,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: u128::MAX,
             output: 0,
           }],
@@ -2856,7 +2856,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 0,
             output: 3,
           }],
@@ -2946,12 +2946,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 0,
               output: 3,
             },
@@ -3042,12 +3042,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 0,
               output: 3,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 1,
             },
@@ -3137,7 +3137,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 1000,
             output: 3,
           }],
@@ -3227,12 +3227,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX - 2000,
               output: 0,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 5,
             },
@@ -3323,12 +3323,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
+              id,
               amount: 1000,
               output: 5,
             },
             Edict {
-              id: id.into(),
+              id,
               amount: u128::MAX,
               output: 0,
             },
@@ -3504,7 +3504,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 0,
             output: 1,
           }],
