@@ -4702,6 +4702,70 @@ mod tests {
   }
 
   #[test]
+  fn transactions_cannot_claim_more_than_limit() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          mint: Some(Mint {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          ..Default::default()
+        }),
+        ..Default::default()
+      },
+      1,
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: u128::from(id),
+            amount: 2000,
+            output: 0,
+          }],
+          claim: Some(id),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            ..Default::default()
+          }),
+          timestamp: id.block,
+          supply: 1000,
+          mints: 1,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
   fn multiple_edicts_in_one_transaction_may_claim_open_etching() {
     let context = Context::builder().arg("--index-runes").build();
 
