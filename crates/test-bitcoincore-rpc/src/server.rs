@@ -568,10 +568,11 @@ impl Api for Server {
 
     let mut confirmations = None;
 
-    for (height, hash) in state.hashes.iter().enumerate() {
+    'outer: for (height, hash) in state.hashes.iter().enumerate() {
       for tx in &state.blocks[hash].txdata {
         if tx.txid() == txid {
           confirmations = Some(state.hashes.len() - height);
+          break 'outer;
         }
       }
     }

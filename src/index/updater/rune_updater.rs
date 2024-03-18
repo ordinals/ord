@@ -250,7 +250,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         &outpoint.store(),
         OutputEntry {
           height: self.height,
-          value: output.value,
           taproot: output.script_pubkey.is_v1_p2tr(),
         }
         .store(),
