@@ -10,6 +10,7 @@ pub use {
 
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub const MAX_LIMIT: u128 = u64::MAX as u128;
+
 const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
