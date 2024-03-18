@@ -99,21 +99,22 @@ You'll also need Rust:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-To build `ord` from source:
+Clone the `ord` repo:
 
 ```
 git clone https://github.com/ordinals/ord.git
 cd ord
-cargo build --release
 ```
 
-By default this builds the `master` branch, which is under heavy development. If
-you wish to build a specific version do:
+To build a specific version of `ord`, first checkout that version:
 
 ```
-git clone https://github.com/ordinals/ord.git
-cd ord
 git checkout <VERSION>
+```
+
+And finally to actually build `ord`:
+
+```
 cargo build --release
 ```
 
