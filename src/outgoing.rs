@@ -63,9 +63,9 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if s.parse::<u64>().is_ok() {
-      Self::Sat(Sat(s.parse::<u64>()?))
-    } else if SATPOINT.is_match(s) {
+    Ok(if s.parse::<Sat>().is_ok() {
+      Self::Sat(s.parse()?)
+    } else if re::SATPOINT.is_match(s) {
       Self::SatPoint(s.parse()?)
     } else if re::INSCRIPTION_ID.is_match(s) {
       Self::InscriptionId(s.parse()?)
