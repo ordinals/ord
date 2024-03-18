@@ -113,6 +113,7 @@ impl Inscribe {
           self.parent.into_iter().collect(),
           file,
           None,
+          None,
         )?];
 
         mode = Mode::SeparateOutputs;

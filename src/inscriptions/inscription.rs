@@ -46,6 +46,7 @@ impl Inscription {
     parents: Vec<InscriptionId>,
     path: impl AsRef<Path>,
     pointer: Option<u64>,
+    rune: Option<Rune>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -105,6 +106,7 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
+      rune: rune.map(|rune| rune.commitment()),
       ..Default::default()
     })
   }
@@ -781,6 +783,7 @@ mod tests {
       Vec::new(),
       file.path(),
       None,
+      None,
     )
     .unwrap();
 
@@ -795,6 +798,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(0),
+      None,
     )
     .unwrap();
 
@@ -809,6 +813,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(1),
+      None,
     )
     .unwrap();
 
@@ -823,6 +828,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(256),
+      None,
     )
     .unwrap();
 

@@ -129,7 +129,7 @@ impl Batchfile {
         }
       }
 
-      let mut inscription = Inscription::from_file(
+      inscriptions.push(Inscription::from_file(
         wallet.chain(),
         compress,
         entry.delegate,
@@ -138,15 +138,10 @@ impl Batchfile {
         self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
-      )?;
-
-      if i == 0 {
-        if let Some(etch) = &self.etch {
-          inscription.rune = Some(etch.rune.rune.commitment());
-        }
-      }
-
-      inscriptions.push(inscription);
+        self
+          .etch
+          .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
+      )?);
 
       let postage = if self.mode == Mode::SatPoints {
         let satpoint = entry
