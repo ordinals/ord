@@ -2130,9 +2130,13 @@ mod tests {
 
       self.mine_blocks(1);
 
-      let height = u32::try_from(self.index.block_count().unwrap()).unwrap() - 1;
-
-      (txid, RuneId { height, index: 1 })
+      (
+        txid,
+        RuneId {
+          height: self.index.block_count().unwrap() - 1,
+          index: 1,
+        },
+      )
     }
 
     #[track_caller]
