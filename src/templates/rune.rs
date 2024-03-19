@@ -4,6 +4,7 @@ use super::*;
 pub struct RuneHtml {
   pub entry: RuneEntry,
   pub id: RuneId,
+  pub mintable: bool,
   pub parent: Option<InscriptionId>,
 }
 
@@ -40,6 +41,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: true,
         parent: Some(InscriptionId {
           txid: Txid::all_zeros(),
           index: 0,
@@ -69,6 +71,8 @@ mod tests {
       <dd>1.000000001 %</dd>
       <dt>mints</dt>
       <dd>100</dd>
+      <dt>mintable</dt>
+      <dd>true</dd>
     </dl>
   </dd>
   <dt>supply</dt>
@@ -109,6 +113,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -165,6 +170,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
