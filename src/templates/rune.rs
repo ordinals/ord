@@ -26,12 +26,13 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 100,
-          number: 25,
           mint: Some(MintEntry {
             end: Some(11),
             limit: Some(1000000001),
             deadline: Some(7),
           }),
+          number: 25,
+          premine: 123456789,
           rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
@@ -72,6 +73,8 @@ mod tests {
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0.123456789\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -98,6 +101,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 0,
           number: 25,
+          premine: 0,
           rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
@@ -123,6 +127,8 @@ mod tests {
   <dd>no</dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -150,6 +156,7 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 0,
+          premine: 0,
           number: 25,
           rune: Rune(u128::MAX),
           spacers: 1,
@@ -187,6 +194,8 @@ mod tests {
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
