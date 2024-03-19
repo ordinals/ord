@@ -281,11 +281,16 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     self.rune_to_id.insert(rune.0, id.store())?;
     self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+
     let number = self.runes;
     self.runes += 1;
+
+    let premine = u128::MAX - balance;
+
     self
       .statistic_to_count
       .insert(&Statistic::Runes.into(), self.runes)?;
+
     self.id_to_entry.insert(
       id.store(),
       RuneEntry {
@@ -295,10 +300,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         mints: 0,
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
         number,
-        premine: u128::MAX - balance,
+        premine,
         rune,
         spacers,
-        supply: u128::MAX - balance,
+        supply: premine,
         symbol,
         timestamp: self.block_time,
       }
