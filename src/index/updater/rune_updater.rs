@@ -11,7 +11,7 @@ struct Claim {
 struct Etched {
   balance: u128,
   divisibility: u8,
-  id: u128,
+  id: RuneId,
   mint: Option<MintEntry>,
   rune: Rune,
   spacers: u32,
@@ -42,7 +42,12 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
-  pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
+  pub(super) fn index_runes(
+    &mut self,
+    tx_index: usize,
+    tx: &Transaction,
+    txid: Txid,
+  ) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     let mut unallocated = self.unallocated(tx)?;
@@ -58,7 +63,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|default| usize::try_from(default).ok())
     });
 
-    let mut allocated: Vec<HashMap<u128, u128>> = vec![HashMap::new(); tx.output.len()];
+    let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(runestone) = runestone {
       if let Some(claim) = runestone
@@ -66,7 +71,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .and_then(|id| self.claim(id).transpose())
         .transpose()?
       {
-        *unallocated.entry(claim.id.into()).or_default() += claim.limit;
+        *unallocated.entry(claim.id).or_default() += claim.limit;
 
         let update = self.updates.entry(claim.id).or_default();
 
@@ -74,7 +79,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         update.supply += claim.limit;
       }
 
-      let mut etched = self.etched(index, tx, &runestone)?;
+      let mut etched = self.etched(tx_index, tx, &runestone)?;
 
       if !burn {
         for Edict { id, amount, output } in runestone.edicts {
@@ -82,12 +87,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             continue;
           };
 
-          // Skip edicts not referring to valid outputs
-          if output > tx.output.len() {
-            continue;
-          }
+          // edicts with output values greater than the number of outputs
+          // should never be produced by the edict parser
+          assert!(output <= tx.output.len());
 
-          let (balance, id) = if id == 0 {
+          let (balance, id) = if id == RuneId::default() {
             // If this edict allocates new issuance runes, skip it
             // if no issuance was present, or if the issuance was invalid.
             // Additionally, replace ID 0 with the newly assigned ID, and
@@ -158,7 +162,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
     }
 
-    let mut burned: HashMap<u128, u128> = HashMap::new();
+    let mut burned: HashMap<RuneId, u128> = HashMap::new();
 
     if burn {
       for (id, balance) in unallocated {
@@ -209,13 +213,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       buffer.clear();
 
-      let mut balances = balances.into_iter().collect::<Vec<(u128, u128)>>();
+      let mut balances = balances.into_iter().collect::<Vec<(RuneId, u128)>>();
 
       // Sort balances by id so tests can assert balances in a fixed order
       balances.sort();
 
       for (id, balance) in balances {
-        varint::encode_to_vec(id, &mut buffer);
+        varint::encode_to_vec(id.into(), &mut buffer);
         varint::encode_to_vec(balance, &mut buffer);
       }
 
@@ -258,11 +262,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     // increment entries with burned runes
     for (id, amount) in burned {
-      self
-        .updates
-        .entry(RuneId::try_from(id).unwrap())
-        .or_default()
-        .burned += amount;
+      self.updates.entry(id).or_default().burned += amount;
     }
 
     Ok(())
@@ -279,7 +279,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       symbol,
     } = etched;
 
-    let id = RuneId::try_from(id).unwrap();
     self.rune_to_id.insert(rune.0, id.store())?;
     self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
     let number = self.runes;
@@ -322,7 +321,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
   fn etched(
     &mut self,
-    index: usize,
+    tx_index: usize,
     tx: &Transaction,
     runestone: &Runestone,
   ) -> Result<Option<Etched>> {
@@ -357,14 +356,17 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     // with 2**16 + 1 transactions, there is no test that checks that
     // an eching in a transaction with an out-of-bounds index is
     // ignored.
-    let Ok(index) = u16::try_from(index) else {
+    let Ok(index) = u16::try_from(tx_index) else {
       return Ok(None);
     };
 
     Ok(Some(Etched {
       balance: u128::MAX,
       divisibility: etching.divisibility,
-      id: u128::from(self.height) << 16 | u128::from(index),
+      id: RuneId {
+        block: self.height,
+        tx: index,
+      },
       rune,
       spacers: etching.spacers,
       symbol: etching.symbol,
@@ -427,9 +429,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     Ok(false)
   }
 
-  fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<u128, u128>> {
+  fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<RuneId, u128>> {
     // map of rune ID to un-allocated balance of that rune
-    let mut unallocated: HashMap<u128, u128> = HashMap::new();
+    let mut unallocated: HashMap<RuneId, u128> = HashMap::new();
 
     // increment unallocated runes with the runes in tx inputs
     for input in &tx.input {
@@ -444,7 +446,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           i += len;
           let (balance, len) = varint::decode(&buffer[i..]);
           i += len;
-          *unallocated.entry(id).or_default() += balance;
+          *unallocated.entry(id.try_into().unwrap()).or_default() += balance;
         }
       }
     }
