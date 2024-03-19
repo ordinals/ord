@@ -574,59 +574,53 @@ fn get_runes() {
   pretty_assert_eq!(
     runes_json,
     api::Runes {
-      entries: vec![
-        (
-          RuneId { block: 11, tx: 1 },
-          RuneEntry {
-            burned: 0,
-            mint: None,
-            divisibility: 0,
-            etching: a.inscribe.reveal,
-            mints: 0,
-            number: 0,
-            premine: 1000,
-            rune: Rune(RUNE),
-            spacers: 0,
-            supply: 1000,
-            symbol: Some('¢'),
-            timestamp: 11,
-          }
-        ),
-        (
-          RuneId { block: 19, tx: 1 },
-          RuneEntry {
-            burned: 0,
-            mint: None,
-            divisibility: 0,
-            etching: b.inscribe.reveal,
-            mints: 0,
-            number: 1,
-            premine: 1000,
-            rune: Rune(RUNE + 1),
-            spacers: 0,
-            supply: 1000,
-            symbol: Some('¢'),
-            timestamp: 19,
-          }
-        ),
-        (
-          RuneId { block: 27, tx: 1 },
-          RuneEntry {
-            burned: 0,
-            mint: None,
-            divisibility: 0,
-            etching: c.inscribe.reveal,
-            mints: 0,
-            number: 2,
-            premine: 1000,
-            rune: Rune(RUNE + 2),
-            spacers: 0,
-            supply: 1000,
-            symbol: Some('¢'),
-            timestamp: 27,
-          }
-        )
-      ]
+      runes: vec![
+        RuneEntry {
+          burned: 0,
+          mint: None,
+          divisibility: 0,
+          etching: c.inscribe.reveal,
+          mints: 0,
+          number: 2,
+          premine: 1000,
+          rune: Rune(RUNE + 2),
+          spacers: 0,
+          supply: 1000,
+          symbol: Some('¢'),
+          timestamp: 27,
+        },
+        RuneEntry {
+          burned: 0,
+          mint: None,
+          divisibility: 0,
+          etching: b.inscribe.reveal,
+          mints: 0,
+          number: 1,
+          premine: 1000,
+          rune: Rune(RUNE + 1),
+          spacers: 0,
+          supply: 1000,
+          symbol: Some('¢'),
+          timestamp: 19,
+        },
+        RuneEntry {
+          burned: 0,
+          mint: None,
+          divisibility: 0,
+          etching: a.inscribe.reveal,
+          mints: 0,
+          number: 0,
+          premine: 1000,
+          rune: Rune(RUNE),
+          spacers: 0,
+          supply: 1000,
+          symbol: Some('¢'),
+          timestamp: 11,
+        }
+      ],
+      more: false,
+      prev: None,
+      next: None,
     }
   );
 }

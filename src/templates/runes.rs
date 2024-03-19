@@ -1,8 +1,8 @@
-use {super::*, crate::index::entry::RuneInfo};
+use super::*;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RunesHtml {
-  pub runes: Vec<RuneInfo>,
+  pub runes: Vec<RuneEntry>,
   pub more: bool,
   pub prev: Option<u64>,
   pub next: Option<u64>,
@@ -22,13 +22,10 @@ mod tests {
   fn display() {
     assert_eq!(
       RunesHtml {
-        runes: vec![RuneInfo {
-          id: RuneId { block: 0, tx: 0 },
-          entry: RuneEntry {
-            rune: Rune(26),
-            spacers: 1,
-            ..Default::default()
-          }
+        runes: vec![RuneEntry {
+          rune: Rune(26),
+          spacers: 1,
+          ..Default::default()
         }],
         more: false,
         prev: None,
@@ -52,19 +49,13 @@ mod tests {
     assert_eq!(
       RunesHtml {
         runes: vec![
-          RuneInfo {
-            id: RuneId { block: 0, tx: 0 },
-            entry: RuneEntry {
-              rune: Rune(0),
-              ..Default::default()
-            }
+          RuneEntry {
+            rune: Rune(0),
+            ..Default::default()
           },
-          RuneInfo {
-            id: RuneId { block: 0, tx: 0 },
-            entry: RuneEntry {
-              rune: Rune(2),
-              ..Default::default()
-            }
+          RuneEntry {
+            rune: Rune(2),
+            ..Default::default()
           }
         ],
         prev: Some(1),
