@@ -748,7 +748,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_is_allocated_with_zero_supply_for_burned_runestone() {
+  fn etched_rune_is_allocated_with_zero_supply_for_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -763,7 +763,7 @@ mod tests {
           ..Default::default()
         }),
         default_output: None,
-        burn: true,
+        cenotaph: true,
         ..Default::default()
       },
       1,
@@ -784,7 +784,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_open_etching_parameters_are_unset_for_burned_runestone() {
+  fn etched_rune_open_etching_parameters_are_unset_for_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -805,7 +805,7 @@ mod tests {
           symbol: Some('$'),
           spacers: 1,
         }),
-        burn: true,
+        cenotaph: true,
         ..Default::default()
       },
       1,
@@ -834,7 +834,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_reserved_rune_is_allocated_with_zero_supply_for_burned_runestone() {
+  fn etched_reserved_rune_is_allocated_with_zero_supply_in_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -849,7 +849,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          burn: true,
+          cenotaph: true,
           ..Default::default()
         }
         .encipher(),
@@ -920,7 +920,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          burn: true,
+          cenotaph: true,
           ..Default::default()
         }
         .encipher(),
@@ -3855,7 +3855,7 @@ mod tests {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          burn: true,
+          cenotaph: true,
           claim: Some(id),
           edicts: vec![Edict {
             id,

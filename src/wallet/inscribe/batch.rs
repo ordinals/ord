@@ -456,7 +456,7 @@ impl Batch {
       }
 
       let script_pubkey = Runestone {
-        burn: false,
+        cenotaph: false,
         claim: None,
         default_output: None,
         edicts,
