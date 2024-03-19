@@ -446,8 +446,14 @@ mod tests {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
             .push_opcode(MAGIC_NUMBER)
-            .push_slice([0, 1])
             .push_opcode(opcodes::all::OP_VERIFY)
+            .push_slice([0])
+            .push_slice::<&script::PushBytes>(
+              varint::encode(rune_id(1).into())
+                .as_slice()
+                .try_into()
+                .unwrap()
+            )
             .push_slice([2, 0])
             .into_script(),
           value: 0,
@@ -525,10 +531,10 @@ mod tests {
   #[test]
   fn deciphering_non_empty_runestone_is_successful() {
     assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 0]),
+      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0]),
       Runestone {
         edicts: vec![Edict {
-          id: RuneId { block: 0, tx: 1 },
+          id: rune_id(1),
           amount: 2,
           output: 0,
         }],
@@ -544,7 +550,7 @@ mod tests {
         Tag::Flags.into(),
         Flag::Etch.mask(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -569,7 +575,7 @@ mod tests {
         Tag::Rune.into(),
         4,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -597,7 +603,7 @@ mod tests {
         Tag::Term.into(),
         4,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -621,7 +627,7 @@ mod tests {
         Tag::Term.into(),
         4,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -652,7 +658,7 @@ mod tests {
         Tag::Limit.into(),
         4,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -685,7 +691,7 @@ mod tests {
         Tag::Rune.into(),
         5,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -707,7 +713,14 @@ mod tests {
   #[test]
   fn unrecognized_odd_tag_is_ignored() {
     assert_eq!(
-      decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 2, 0]),
+      decipher(&[
+        Tag::Nop.into(),
+        100,
+        Tag::Body.into(),
+        rune_id(1).into(),
+        2,
+        0
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -722,7 +735,14 @@ mod tests {
   #[test]
   fn unrecognized_even_tag_is_burn() {
     assert_eq!(
-      decipher(&[Tag::Burn.into(), 0, Tag::Body.into(), 1, 2, 0]),
+      decipher(&[
+        Tag::Burn.into(),
+        0,
+        Tag::Body.into(),
+        rune_id(1).into(),
+        2,
+        0
+      ]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -742,7 +762,7 @@ mod tests {
         Tag::Flags.into(),
         Flag::Burn.mask(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0
       ]),
@@ -752,6 +772,18 @@ mod tests {
           amount: 2,
           output: 0,
         }],
+        burn: true,
+        ..Default::default()
+      },
+    );
+  }
+
+  #[test]
+  fn rune_id_with_zero_block_and_nonzero_tx_is_burn() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), RuneId { block: 0, tx: 1 }.into(), 2, 0]),
+      Runestone {
+        edicts: Vec::new(),
         burn: true,
         ..Default::default()
       },
@@ -790,7 +822,7 @@ mod tests {
         Tag::Rune.into(),
         4,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
         4,
@@ -822,7 +854,7 @@ mod tests {
         Tag::Divisibility.into(),
         5,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -853,7 +885,7 @@ mod tests {
         Tag::Divisibility.into(),
         (MAX_DIVISIBILITY + 1).into(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -881,7 +913,7 @@ mod tests {
         Tag::Symbol.into(),
         u128::from(u32::from(char::MAX) + 1),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -908,7 +940,7 @@ mod tests {
         Tag::Symbol.into(),
         'a'.into(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -949,7 +981,7 @@ mod tests {
         Tag::Limit.into(),
         3,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -990,7 +1022,7 @@ mod tests {
         Tag::Limit.into(),
         3,
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -1018,7 +1050,7 @@ mod tests {
         Tag::Symbol.into(),
         'a'.into(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -1048,7 +1080,7 @@ mod tests {
         Tag::Divisibility.into(),
         Tag::Body.into(),
         Tag::Body.into(),
-        1,
+        rune_id(1).into(),
         2,
         0,
       ]),
@@ -1067,7 +1099,7 @@ mod tests {
   #[test]
   fn runestone_may_contain_multiple_edicts() {
     pretty_assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 0, 3, 5, 0]),
+      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0, 3, 5, 0]),
       Runestone {
         edicts: vec![
           Edict {
@@ -1088,8 +1120,8 @@ mod tests {
 
   #[test]
   fn runestones_with_invalid_rune_ids_are_burn() {
-    assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 0, u128::MAX, 5, 6]),
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0, u128::MAX, 5, 6]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -1136,7 +1168,12 @@ mod tests {
                 .try_into()
                 .unwrap()
             )
-            .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+            .push_slice::<&script::PushBytes>(
+              varint::encode(rune_id(1).into())
+                .as_slice()
+                .try_into()
+                .unwrap()
+            )
             .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(0).as_slice().try_into().unwrap())
             .into_script(),
@@ -1162,7 +1199,7 @@ mod tests {
 
   #[test]
   fn runestone_may_be_in_second_output() {
-    let payload = payload(&[0, 1, 2, 0]);
+    let payload = payload(&[0, rune_id(1).into(), 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1199,7 +1236,7 @@ mod tests {
 
   #[test]
   fn runestone_may_be_after_non_matching_op_return() {
-    let payload = payload(&[0, 1, 2, 0]);
+    let payload = payload(&[0, rune_id(1).into(), 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1578,7 +1615,7 @@ mod tests {
         Tag::Burn.into(),
         0,
         Tag::Body.into(),
-        6,
+        rune_id(6).into(),
         5,
         1,
         3,

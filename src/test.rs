@@ -132,7 +132,7 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
 }
 
 pub(crate) fn rune_id(tx: u16) -> RuneId {
-  RuneId { block: 0, tx }
+  RuneId { block: 1, tx }
 }
 
 pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
