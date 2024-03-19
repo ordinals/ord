@@ -44,15 +44,15 @@ impl Rtx<'_> {
     )
   }
 
-//  pub(crate) fn block_time(&self) -> Result<Option<u32>> {
-//    Ok(
-//      self
-//        .0
-//        .open_table(HEIGHT_TO_BLOCK_HEADER)?
-//        .range(0..)?
-//        .next_back()
-//        .transpose()?
-//        .map(|(_height, header)| Header::load(*header.value()).time),
-//    )
-//  }
+  //  pub(crate) fn block_time(&self) -> Result<Option<u32>> {
+  //    Ok(
+  //      self
+  //        .0
+  //        .open_table(HEIGHT_TO_BLOCK_HEADER)?
+  //        .range(0..)?
+  //        .next_back()
+  //        .transpose()?
+  //        .map(|(_height, header)| Header::load(*header.value()).time),
+  //    )
+  //  }
 }

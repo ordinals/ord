@@ -695,7 +695,13 @@ impl Server {
       let mintable = entry.mintable(Height(block_height + 1), block_time).is_ok();
 
       Ok(if accept_json {
-        Json(api::Rune { entry, id, mintable, parent }).into_response()
+        Json(api::Rune {
+          entry,
+          id,
+          mintable,
+          parent,
+        })
+        .into_response()
       } else {
         RuneHtml {
           entry,
