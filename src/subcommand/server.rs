@@ -684,15 +684,17 @@ impl Server {
         .rune(rune)?
         .ok_or_not_found(|| format!("rune {rune}"))?;
 
-      let block_height = index.block_count()?;
+      let block_height = index.block_height()?.unwrap_or(Height(0));
 
       let block_time: u32 = index
-        .block_time(Height(block_height))?
+        .block_time(block_height)?
         .unix_timestamp()
         .try_into()
         .unwrap_or_default();
 
-      let mintable = entry.mintable(Height(block_height + 1), block_time).is_ok();
+      let mintable = entry
+        .mintable(Height(block_height.n() + 1), block_time)
+        .is_ok();
 
       Ok(if accept_json {
         Json(api::Rune {
