@@ -291,11 +291,7 @@ fn batch(
     mint_definition.push("<dd>0</dd>".into());
 
     mint_definition.push("<dt>mintable</dt>".into());
-    if mintable {
-      mint_definition.push("<dd>true</dd>".into());
-    } else {
-      mint_definition.push("<dd>false</dd>".into());
-    }
+    mint_definition.push(format!("<dd>{mintable}</dd>"));
 
     mint_definition.push("</dl>".into());
     mint_definition.push("</dd>".into());
