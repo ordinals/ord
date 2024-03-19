@@ -11,7 +11,7 @@ pub struct RuneRand {
 
 impl RuneRand {
   pub(super) fn hash(self) -> u64 {
-    let combined_tx = format!("{}{}", self.txid.to_string(), self.tx_index);
+    let combined_tx = format!("{}{}", self.txid, self.tx_index);
     let mut hasher = DefaultHasher::new();
     combined_tx.hash(&mut hasher);
 
@@ -24,7 +24,7 @@ impl RuneRand {
   pub(super) fn get_output(self, output_len: usize) -> usize {
     let hash = self.hash();
 
-    (hash as usize) % output_len
+    usize::try_from(hash).unwrap() % output_len
   }
 }
 

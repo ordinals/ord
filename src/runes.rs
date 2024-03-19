@@ -792,7 +792,7 @@ mod tests {
     );
 
     let outputs = 2;
-    let op_return_index: Option<usize> = Some(1);
+    let op_return_index = usize::try_from(1).unwrap();
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
@@ -806,7 +806,7 @@ mod tests {
         }
         .encipher(),
       ),
-      op_return_index,
+      op_return_index: Some(op_return_index),
       outputs,
       ..Default::default()
     });
@@ -820,7 +820,7 @@ mod tests {
     }
     .get_output(outputs + 1);
 
-    if vout == op_return_index.unwrap() {
+    if vout == op_return_index {
       context.assert_runes(
         [(
           id,
@@ -852,7 +852,7 @@ mod tests {
         [(
           OutPoint {
             txid: txid1,
-            vout: vout as u32,
+            vout: u32::try_from(vout).unwrap(),
           },
           vec![(id, u128::MAX)],
         )],
