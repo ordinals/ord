@@ -444,7 +444,7 @@ impl Batch {
         });
 
         edicts.push(Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: premine,
           output: output.into(),
         });
@@ -456,7 +456,7 @@ impl Batch {
       }
 
       let script_pubkey = Runestone {
-        burn: false,
+        cenotaph: false,
         claim: None,
         default_output: None,
         edicts,

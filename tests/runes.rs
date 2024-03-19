@@ -53,23 +53,21 @@ fn one_rune() {
       runes: vec![(
         Rune(RUNE),
         RuneInfo {
+          block: 8,
           burned: 0,
-          mint: None,
           divisibility: 0,
           etching: etch.inscribe.reveal,
-          height: 8,
-          id: RuneId {
-            height: 8,
-            index: 1
-          },
-          index: 1,
+          id: RuneId { block: 8, tx: 1 },
+          mint: None,
           mints: 0,
           number: 0,
+          premine: 1000,
           rune: Rune(RUNE),
           spacers: 0,
           supply: 1000,
           symbol: Some('¢'),
           timestamp: ord::timestamp(8),
+          tx: 1,
         }
       )]
       .into_iter()
@@ -101,45 +99,41 @@ fn two_runes() {
         (
           Rune(RUNE),
           RuneInfo {
+            block: 8,
             burned: 0,
-            mint: None,
             divisibility: 0,
             etching: a.inscribe.reveal,
-            height: 8,
-            id: RuneId {
-              height: 8,
-              index: 1
-            },
-            index: 1,
+            id: RuneId { block: 8, tx: 1 },
+            mint: None,
             mints: 0,
             number: 0,
+            premine: 1000,
             rune: Rune(RUNE),
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(8),
+            tx: 1,
           }
         ),
         (
           Rune(RUNE + 1),
           RuneInfo {
+            block: 16,
             burned: 0,
-            mint: None,
             divisibility: 0,
             etching: b.inscribe.reveal,
-            height: 16,
-            id: RuneId {
-              height: 16,
-              index: 1
-            },
-            index: 1,
+            id: RuneId { block: 16, tx: 1 },
+            mint: None,
             mints: 0,
             number: 1,
+            premine: 1000,
             rune: Rune(RUNE + 1),
             spacers: 0,
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(16),
+            tx: 1,
           }
         )
       ]

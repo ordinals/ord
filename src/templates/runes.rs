@@ -23,10 +23,7 @@ mod tests {
     assert_eq!(
       RunesHtml {
         runes: vec![RuneInfo {
-          id: RuneId {
-            height: 0,
-            index: 0,
-          },
+          id: RuneId { block: 0, tx: 0 },
           entry: RuneEntry {
             rune: Rune(26),
             spacers: 1,
@@ -56,20 +53,14 @@ mod tests {
       RunesHtml {
         runes: vec![
           RuneInfo {
-            id: RuneId {
-              height: 0,
-              index: 0
-            },
+            id: RuneId { block: 0, tx: 0 },
             entry: RuneEntry {
               rune: Rune(0),
               ..Default::default()
             }
           },
           RuneInfo {
-            id: RuneId {
-              height: 0,
-              index: 0
-            },
+            id: RuneId { block: 0, tx: 0 },
             entry: RuneEntry {
               rune: Rune(2),
               ..Default::default()

@@ -2,7 +2,7 @@ pub(super) enum Flag {
   Etch = 0,
   Mint = 1,
   #[allow(unused)]
-  Burn = 127,
+  Cenotaph = 127,
 }
 
 impl Flag {
@@ -29,7 +29,7 @@ mod tests {
   #[test]
   fn mask() {
     assert_eq!(Flag::Etch.mask(), 0b1);
-    assert_eq!(Flag::Burn.mask(), 1 << 127);
+    assert_eq!(Flag::Cenotaph.mask(), 1 << 127);
   }
 
   #[test]

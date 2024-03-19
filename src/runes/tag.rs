@@ -11,7 +11,7 @@ pub(super) enum Tag {
   DefaultOutput = 12,
   Claim = 14,
   #[allow(unused)]
-  Burn = 126,
+  Cenotaph = 126,
 
   Divisibility = 1,
   Spacers = 3,
@@ -86,7 +86,7 @@ mod tests {
   #[test]
   fn burn_and_nop_are_one_byte() {
     let mut payload = Vec::new();
-    Tag::Burn.encode(0, &mut payload);
+    Tag::Cenotaph.encode(0, &mut payload);
     assert_eq!(payload.len(), 2);
 
     let mut payload = Vec::new();

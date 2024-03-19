@@ -685,12 +685,35 @@ impl Server {
         .rune(rune)?
         .ok_or_not_found(|| format!("rune {rune}"))?;
 
+      let block_height = index.block_height()?.unwrap_or(Height(0));
+
+      let block_time: u32 = index
+        .block_time(block_height)?
+        .unix_timestamp()
+        .try_into()
+        .unwrap_or_default();
+
+      let mintable = entry
+        .mintable(Height(block_height.n() + 1), block_time)
+        .is_ok();
+
       Ok(if accept_json {
-        Json(api::Rune { entry, id, parent }).into_response()
+        Json(api::Rune {
+          entry,
+          id,
+          mintable,
+          parent,
+        })
+        .into_response()
       } else {
-        RuneHtml { entry, id, parent }
-          .page(server_config)
-          .into_response()
+        RuneHtml {
+          entry,
+          id,
+          mintable,
+          parent,
+        }
+        .page(server_config)
+        .into_response()
       })
     })
   }
@@ -2161,8 +2184,8 @@ mod tests {
       (
         txid,
         RuneId {
-          height: self.index.block_count().unwrap() - 1,
-          index: 1,
+          block: self.index.block_count().unwrap() - 1,
+          tx: 1,
         },
       )
     }
@@ -2568,7 +2591,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2648,7 +2671,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2689,7 +2712,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2711,8 +2734,9 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           symbol: Some('%'),
           ..Default::default()
         }
@@ -2751,7 +2775,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2781,9 +2805,10 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
@@ -2808,13 +2833,15 @@ mod tests {
   <dd><time>1970-01-01 00:00:09 UTC</time></dd>
   <dt>id</dt>
   <dd>9:1</dd>
-  <dt>etching block height</dt>
+  <dt>etching block</dt>
   <dd><a href=/block/9>9</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>1</dd>
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
+  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>0\u{00A0}%</dd>
@@ -2860,7 +2887,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2891,9 +2918,10 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
-          timestamp: id.height,
+          timestamp: id.block,
           spacers: 1,
           ..Default::default()
         }
@@ -2960,7 +2988,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2981,8 +3009,9 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
@@ -3019,7 +3048,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3042,8 +3071,9 @@ mod tests {
           divisibility: 1,
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
