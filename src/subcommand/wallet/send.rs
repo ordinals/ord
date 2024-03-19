@@ -308,7 +308,7 @@ impl Send {
     let runestone = Runestone {
       edicts: vec![Edict {
         amount,
-        id: id.into(),
+        id,
         output: 2,
       }],
       ..Default::default()

@@ -38,10 +38,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
         parent: Some(InscriptionId {
           txid: Txid::all_zeros(),
           index: 0,
@@ -56,9 +53,9 @@ mod tests {
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
   <dd>10:9</dd>
-  <dt>etching block height</dt>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>
@@ -107,10 +104,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -121,9 +115,9 @@ mod tests {
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
   <dd>10:9</dd>
-  <dt>etching block height</dt>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>no</dd>
@@ -163,10 +157,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -177,9 +168,9 @@ mod tests {
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
   <dd>10:9</dd>
-  <dt>etching block height</dt>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>

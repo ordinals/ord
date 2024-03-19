@@ -243,8 +243,8 @@ fn batch(
   let height = bitcoin_rpc_server.height();
 
   let id = RuneId {
-    height: u32::try_from(height).unwrap(),
-    index: 1,
+    block: u32::try_from(height).unwrap(),
+    tx: 1,
   };
 
   let reveal = inscribe.reveal;
@@ -302,13 +302,17 @@ fn batch(
     mint_definition.push("<dd>no</dd>".into());
   }
 
+  let RuneId { block, tx } = id;
+
   ord_rpc_server.assert_response_regex(
     format!("/rune/{rune}"),
     format!(
       r".*<dt>id</dt>
   <dd>{id}</dd>.*
-  <dt>etching transaction index</dt>
-  <dd>1</dd>
+  <dt>etching block</dt>
+  <dd><a href=/block/{block}>{block}</a></dd>
+  <dt>etching transaction</dt>
+  <dd>{tx}</dd>
   <dt>mint</dt>
   {}
   <dt>supply</dt>

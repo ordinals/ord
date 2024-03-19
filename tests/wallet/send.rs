@@ -1104,7 +1104,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
       default_output: None,
       etching: None,
       edicts: vec![Edict {
-        id: etch.id.into(),
+        id: etch.id,
         amount: 750,
         output: 2
       }],

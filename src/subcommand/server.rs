@@ -2133,8 +2133,8 @@ mod tests {
       (
         txid,
         RuneId {
-          height: self.index.block_count().unwrap() - 1,
-          index: 1,
+          block: self.index.block_count().unwrap() - 1,
+          tx: 1,
         },
       )
     }
@@ -2540,7 +2540,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2620,7 +2620,7 @@ mod tests {
     server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2661,7 +2661,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2684,7 +2684,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           symbol: Some('%'),
           ..Default::default()
         }
@@ -2723,7 +2723,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2755,7 +2755,7 @@ mod tests {
           rune,
           supply: u128::MAX,
           symbol: Some('%'),
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
@@ -2780,9 +2780,9 @@ mod tests {
   <dd><time>1970-01-01 00:00:09 UTC</time></dd>
   <dt>id</dt>
   <dd>9:1</dd>
-  <dt>etching block height</dt>
+  <dt>etching block</dt>
   <dd><a href=/block/9>9</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>1</dd>
   <dt>mint</dt>
   <dd>no</dd>
@@ -2832,7 +2832,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2865,7 +2865,7 @@ mod tests {
           rune,
           supply: u128::MAX,
           symbol: Some('%'),
-          timestamp: id.height,
+          timestamp: id.block,
           spacers: 1,
           ..Default::default()
         }
@@ -2932,7 +2932,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -2954,7 +2954,7 @@ mod tests {
           etching: txid,
           rune: Rune(RUNE),
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
@@ -2991,7 +2991,7 @@ mod tests {
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: u128::MAX,
           output: 0,
         }],
@@ -3015,7 +3015,7 @@ mod tests {
           etching: txid,
           rune,
           supply: u128::MAX,
-          timestamp: id.height,
+          timestamp: id.block,
           ..Default::default()
         }
       )]
