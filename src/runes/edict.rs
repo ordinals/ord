@@ -16,6 +16,10 @@ impl Edict {
   ) -> Option<Self> {
     let id = RuneId::try_from(id).ok()?;
 
+    if id.block == 0 && id.tx > 0 {
+      return None;
+    }
+
     if output > u128::try_from(tx.output.len()).ok()? {
       return None;
     }
