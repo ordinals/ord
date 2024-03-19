@@ -234,7 +234,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }
 
     for input in tx.input.iter() {
-      if input.previous_output.is_null() {
+      if input.previous_output.is_null()
+        || self
+        .outpoint_to_output
+        .get(&input.previous_output.store())?
+        .is_none()
+      {
         continue;
       }
 
