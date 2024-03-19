@@ -196,7 +196,7 @@ mod tests {
       <dd>none</dd>
       <dt>mints</dt>
       <dd>0</dd>
-      <dt>mintability</dt>
+      <dt>mintable</dt>
       <dd>false</dd>
     </dl>
   </dd>
