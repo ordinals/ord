@@ -304,6 +304,8 @@ fn batch(
   {}
   <dt>supply</dt>
   <dd>{premine} {symbol}</dd>
+  <dt>premine</dt>
+  <dd>{premine} {symbol}</dd>
   <dt>burned</dt>
   <dd>0 {symbol}</dd>
   <dt>divisibility</dt>

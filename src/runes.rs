@@ -151,6 +151,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -217,6 +218,7 @@ mod tests {
           RuneEntry {
             etching: txid,
             rune: Rune(minimum),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
             ..Default::default()
@@ -276,6 +278,7 @@ mod tests {
           RuneEntry {
             etching: txid,
             rune: Rune(RESERVED - 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
             ..Default::default()
@@ -323,6 +326,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RESERVED),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: 2,
           ..Default::default()
@@ -370,6 +374,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RESERVED),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: 2,
             ..Default::default()
@@ -380,6 +385,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RESERVED + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: 4,
             number: 1,
@@ -436,6 +442,7 @@ mod tests {
           rune: Rune(RUNE),
           etching: txid,
           divisibility: 1,
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -478,6 +485,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -520,6 +528,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: None,
           timestamp: id.block,
@@ -558,6 +567,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: 100,
           supply: 100,
           timestamp: id.block,
           ..Default::default()
@@ -601,6 +611,7 @@ mod tests {
           burned: 100,
           etching: txid,
           rune: Rune(RUNE),
+          premine: 200,
           supply: 200,
           timestamp: id.block,
           ..Default::default()
@@ -643,6 +654,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: 100,
           supply: 100,
           timestamp: id.block,
           ..Default::default()
@@ -678,6 +690,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -716,6 +729,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -885,6 +899,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -920,6 +935,7 @@ mod tests {
           burned: u128::MAX,
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -955,6 +971,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -983,6 +1000,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1024,6 +1042,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1053,6 +1072,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           burned: u128::MAX,
@@ -1089,6 +1109,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1124,6 +1145,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1165,6 +1187,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1200,6 +1223,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1241,6 +1265,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1276,6 +1301,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           burned: u128::MAX,
           timestamp: id.block,
@@ -1313,6 +1339,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1341,6 +1368,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1382,6 +1410,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1414,6 +1443,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1449,6 +1479,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
           ..Default::default()
@@ -1486,6 +1517,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1496,6 +1528,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1538,6 +1571,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1548,6 +1582,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1591,6 +1626,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
           ..Default::default()
@@ -1628,6 +1664,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1638,6 +1675,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1680,6 +1718,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1690,6 +1729,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1739,6 +1779,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1749,6 +1790,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1801,6 +1843,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
           ..Default::default()
@@ -1838,6 +1881,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1848,6 +1892,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1908,6 +1953,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -1918,6 +1964,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -1962,6 +2009,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -1995,6 +2043,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2047,6 +2096,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -2057,6 +2107,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -2111,6 +2162,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2156,6 +2208,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2197,6 +2250,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
           ..Default::default()
@@ -2234,6 +2288,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -2244,6 +2299,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -2301,6 +2357,7 @@ mod tests {
           RuneEntry {
             etching: txid0,
             rune: Rune(RUNE),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
             ..Default::default()
@@ -2311,6 +2368,7 @@ mod tests {
           RuneEntry {
             etching: txid1,
             rune: Rune(RUNE + 1),
+            premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
@@ -2363,6 +2421,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
           ..Default::default()
@@ -2401,6 +2460,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
           ..Default::default()
@@ -2443,6 +2503,7 @@ mod tests {
           burned: u128::MAX,
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2478,6 +2539,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2520,6 +2582,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2555,6 +2618,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2602,6 +2666,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2661,6 +2726,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2701,6 +2767,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: 4000,
           supply: 4000,
           timestamp: id.block,
           ..Default::default()
@@ -2748,6 +2815,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2794,6 +2862,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2837,6 +2906,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2876,6 +2946,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2926,6 +2997,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -2972,6 +3044,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3022,6 +3095,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3068,6 +3142,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3118,6 +3193,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3157,6 +3233,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3207,6 +3284,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3253,6 +3331,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3303,6 +3382,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3349,6 +3429,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3414,6 +3495,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('$'),
           timestamp: id.block,
@@ -3450,6 +3532,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3485,6 +3568,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3524,6 +3608,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3550,7 +3635,6 @@ mod tests {
   fn rune_can_be_minted_without_edict() {
     let context = Context::builder().arg("--index-runes").build();
 
-    // etch the rune
     let (txid0, id) = context.etch(
       Runestone {
         etching: Some(Etching {
@@ -3584,7 +3668,6 @@ mod tests {
       [],
     );
 
-    // claim the rune
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
@@ -3610,6 +3693,7 @@ mod tests {
           }),
           mints: 1,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           ..Default::default()
@@ -3651,6 +3735,8 @@ mod tests {
           etching: txid0,
           rune: Rune(RUNE),
           timestamp: id.block,
+          premine: 0,
+          supply: 0,
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -3662,7 +3748,6 @@ mod tests {
       [],
     );
 
-    // claim the rune
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
@@ -3693,6 +3778,7 @@ mod tests {
           }),
           mints: 1,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           ..Default::default()
@@ -3738,6 +3824,7 @@ mod tests {
           }),
           mints: 2,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 2000,
           timestamp: id.block,
           ..Default::default()
@@ -3794,6 +3881,7 @@ mod tests {
           }),
           mints: 3,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 3000,
           timestamp: id.block,
           ..Default::default()
@@ -3886,6 +3974,7 @@ mod tests {
             end: Some(id.block + 2),
             ..Default::default()
           }),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           mints: 1,
@@ -3926,6 +4015,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
@@ -3984,6 +4074,7 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
+          premine: 1111,
           supply: 1111,
           ..Default::default()
         },
@@ -4018,6 +4109,7 @@ mod tests {
             end: Some(id.block),
             ..Default::default()
           }),
+          premine: 1111,
           supply: 1111,
           ..Default::default()
         },
@@ -4085,6 +4177,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: 9,
           mints: 1,
@@ -4126,6 +4219,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: 9,
           mint: Some(MintEntry {
@@ -4206,6 +4300,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           mints: 1,
@@ -4247,6 +4342,7 @@ mod tests {
         RuneEntry {
           etching: txid0,
           rune: Rune(RUNE),
+          premine: 0,
           supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
@@ -4523,6 +4619,7 @@ mod tests {
             ..Default::default()
           }),
           timestamp: id.block,
+          premine: 2000,
           supply: 2000,
           ..Default::default()
         },
@@ -4687,6 +4784,7 @@ mod tests {
             ..Default::default()
           }),
           timestamp: rune_id.block,
+          premine: 2000,
           supply: 2000,
           mints: 0,
           ..Default::default()

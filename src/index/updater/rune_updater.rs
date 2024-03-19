@@ -296,7 +296,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         mints: 0,
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
         number,
-        premine: balance,
+        premine: u128::MAX - balance,
         rune,
         spacers,
         supply: u128::MAX - balance,

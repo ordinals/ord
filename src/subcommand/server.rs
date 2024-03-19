@@ -2683,6 +2683,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           symbol: Some('%'),
@@ -2753,6 +2754,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
@@ -2787,6 +2789,8 @@ mod tests {
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
+  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>0\u{00A0}%</dd>
@@ -2863,6 +2867,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
@@ -3014,6 +3019,7 @@ mod tests {
           divisibility: 1,
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
