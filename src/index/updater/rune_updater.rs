@@ -52,9 +52,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
     let mut unallocated = self.unallocated(tx)?;
 
-    let burn = runestone
+    let cenotaph = runestone
       .as_ref()
-      .map(|runestone| runestone.burn)
+      .map(|runestone| runestone.cenotaph)
       .unwrap_or_default();
 
     let default_output = runestone.as_ref().and_then(|runestone| {
@@ -81,7 +81,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       let mut etched = self.etched(tx_index, tx, &runestone)?;
 
-      if !burn {
+      if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
           let Ok(output) = usize::try_from(output) else {
             continue;
@@ -158,13 +158,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
 
       if let Some(etched) = etched {
-        self.create_rune_entry(txid, burn, etched)?;
+        self.create_rune_entry(txid, cenotaph, etched)?;
       }
     }
 
     let mut burned: HashMap<RuneId, u128> = HashMap::new();
 
-    if burn {
+    if cenotaph {
       for (id, balance) in unallocated {
         *burned.entry(id).or_default() += balance;
       }
