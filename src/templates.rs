@@ -1,6 +1,7 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
+  crate::subcommand::server::ServerConfig,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -13,6 +14,7 @@ pub(crate) use {
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
   output::OutputHtml,
+  parents::ParentsHtml,
   preview::{
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
@@ -21,7 +23,6 @@ pub(crate) use {
   rare::RareTxt,
   rune_balances::RuneBalancesHtml,
   sat::SatHtml,
-  server_config::ServerConfig,
 };
 
 pub use {
@@ -42,6 +43,7 @@ pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;
 pub mod output;
+mod parents;
 mod preview;
 mod range;
 mod rare;
@@ -76,7 +78,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "beta".into()
+      "alpha".into()
     } else {
       self.config.chain.to_string()
     }
@@ -146,7 +148,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>beta</sup></a>
+      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -176,7 +178,7 @@ mod tests {
         index_sats: true,
         ..Default::default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
@@ -190,7 +192,7 @@ mod tests {
         index_sats: false,
         ..Default::default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 

@@ -1,12 +1,13 @@
 pub(crate) use {
   super::*,
   bitcoin::{
-    blockdata::{opcodes, script, script::PushBytesBuf},
+    blockdata::script::{PushBytes, PushBytesBuf},
     constants::COIN_VALUE,
-    ScriptBuf, Witness,
+    WPubkeyHash,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
+  tempfile::TempDir,
   test_bitcoincore_rpc::TransactionTemplate,
   unindent::Unindent,
 };
@@ -102,14 +103,14 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 #[derive(Default, Debug)]
 pub(crate) struct InscriptionTemplate {
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) pointer: Option<u64>,
 }
 
 impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
-      parent: template.parent.map(|id| id.value()),
+      parents: template.parents.into_iter().map(|id| id.value()).collect(),
       pointer: template.pointer.map(Inscription::pointer_value),
       ..Default::default()
     }
@@ -130,6 +131,10 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   format!("{}i{n}", hex.repeat(64)).parse().unwrap()
 }
 
+pub(crate) fn rune_id(tx: u16) -> RuneId {
+  RuneId { block: 1, tx }
+}
+
 pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
   let mut builder = script::Builder::new()
     .push_opcode(opcodes::OP_FALSE)
@@ -144,4 +149,12 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
   let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
 
   Witness::from_slice(&[script.into_bytes(), Vec::new()])
+}
+
+pub(crate) fn default_address(chain: Chain) -> Address {
+  Address::from_script(
+    &ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros()),
+    chain.network(),
+  )
+  .unwrap()
 }

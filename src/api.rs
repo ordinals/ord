@@ -1,6 +1,6 @@
-use super::{
-  target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-  Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
+use {
+  super::*,
+  serde_hex::{SerHex, Strict},
 };
 
 pub use crate::templates::{
@@ -36,19 +36,32 @@ impl Block {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
+  pub average_fee: u64,
+  pub average_fee_rate: u64,
   pub bits: u32,
-  pub chainwork: u128,
+  #[serde(with = "SerHex::<Strict>")]
+  pub chainwork: [u8; 32],
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
   pub height: u32,
+  pub max_fee: u64,
+  pub max_fee_rate: u64,
+  pub max_tx_size: u32,
+  pub median_fee: u64,
   pub median_time: Option<u64>,
   pub merkle_root: TxMerkleNode,
+  pub min_fee: u64,
+  pub min_fee_rate: u64,
   pub next_block: Option<BlockHash>,
   pub nonce: u32,
   pub previous_block: Option<BlockHash>,
+  pub subsidy: u64,
   pub target: BlockHash,
   pub timestamp: u64,
+  pub total_fee: u64,
+  pub total_size: usize,
+  pub total_weight: usize,
   pub transaction_count: u64,
   pub version: u32,
 }
@@ -67,18 +80,18 @@ pub struct Inscription {
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
-  pub genesis_fee: u64,
-  pub genesis_height: u32,
-  pub inscription_id: InscriptionId,
-  pub inscription_number: i32,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
   pub next: Option<InscriptionId>,
-  pub output_value: Option<u64>,
-  pub parent: Option<InscriptionId>,
+  pub number: i32,
+  pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+  pub value: Option<u64>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -88,6 +101,7 @@ pub struct InscriptionRecursive {
   pub content_length: Option<usize>,
   pub fee: u64,
   pub height: u32,
+  pub id: InscriptionId,
   pub number: i32,
   pub output: OutPoint,
   pub sat: Option<ordinals::Sat>,
@@ -98,14 +112,14 @@ pub struct InscriptionRecursive {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inscriptions {
-  pub inscriptions: Vec<InscriptionId>,
+  pub ids: Vec<InscriptionId>,
   pub more: bool,
   pub page_index: u32,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub address: Option<String>,
+  pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<(SpacedRune, Pile)>,
@@ -131,7 +145,7 @@ impl Output {
       address: chain
         .address_from_script(&output.script_pubkey)
         .ok()
-        .map(|address| address.to_string()),
+        .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,

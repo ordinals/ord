@@ -7,20 +7,21 @@ pub struct Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneInfo {
+  pub block: u32,
   pub burned: u128,
   pub divisibility: u8,
   pub etching: Txid,
-  pub height: u32,
   pub id: RuneId,
-  pub index: u16,
   pub mint: Option<MintEntry>,
   pub mints: u64,
   pub number: u64,
+  pub premine: u128,
   pub rune: Rune,
   pub spacers: u32,
   pub supply: u128,
   pub symbol: Option<char>,
   pub timestamp: DateTime<Utc>,
+  pub tx: u16,
 }
 
 pub(crate) fn run(settings: Settings) -> SubcommandResult {
@@ -47,6 +48,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
             mint,
             mints,
             number,
+            premine,
             rune,
             spacers,
             supply,
@@ -57,20 +59,21 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
           (
             rune,
             RuneInfo {
+              block: id.block,
               burned,
               divisibility,
               etching,
-              height: id.height,
               id,
-              index: id.index,
               mint,
               mints,
               number,
+              premine,
               rune,
               spacers,
               supply,
               symbol,
               timestamp: crate::timestamp(timestamp),
+              tx: id.tx,
             },
           )
         },

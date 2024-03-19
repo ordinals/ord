@@ -26,8 +26,8 @@ pub struct CompactInscription {
   pub metadata: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metaprotocol: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub parent: Option<InscriptionId>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub parents: Vec<InscriptionId>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub pointer: Option<u64>,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
@@ -45,7 +45,7 @@ impl TryFrom<Inscription> for CompactInscription {
         .transpose()?,
       content_type: inscription.content_type().map(str::to_string),
       metaprotocol: inscription.metaprotocol().map(str::to_string),
-      parent: inscription.parent(),
+      parents: inscription.parents(),
       pointer: inscription.pointer(),
       body: inscription.body.map(hex::encode),
       duplicate_field: inscription.duplicate_field,

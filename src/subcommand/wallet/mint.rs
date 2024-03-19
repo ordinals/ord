@@ -1,77 +1,51 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-pub(crate) struct Etch {
-  #[clap(long, help = "Set divisibility to <DIVISIBILITY>.")]
-  divisibility: u8,
-  #[clap(long, help = "Etch with fee rate of <FEE_RATE> sats/vB.")]
+pub(crate) struct Mint {
+  #[clap(long, help = "Use <FEE_RATE> sats/vbyte for mint transaction.")]
   fee_rate: FeeRate,
-  #[clap(long, help = "Etch rune <RUNE>. May contain `.` or `•`as spacers.")]
+  #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
-  #[clap(long, help = "Set supply to <SUPPLY>.")]
-  supply: Decimal,
-  #[clap(long, help = "Set currency symbol to <SYMBOL>.")]
-  symbol: char,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Output {
   pub rune: SpacedRune,
-  pub transaction: Txid,
+  pub pile: Pile,
+  pub mint: Txid,
 }
 
-impl Etch {
+impl Mint {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
       "`ord wallet etch` requires index created with `--index-runes` flag",
     );
 
-    let SpacedRune { rune, spacers } = self.rune;
+    let rune = self.rune.rune;
 
     let bitcoin_client = wallet.bitcoin_client();
 
-    let count = bitcoin_client.get_block_count()?;
+    let block_height: u32 = bitcoin_client.get_block_count()?.try_into().unwrap();
 
-    ensure!(
-      wallet.get_rune(rune)?.is_none(),
-      "rune `{}` has already been etched",
-      rune,
-    );
+    let block_time = bitcoin_client
+      .get_block(&bitcoin_client.get_best_block_hash()?)?
+      .header
+      .time;
 
-    let minimum_at_height =
-      Rune::minimum_at_height(wallet.chain(), Height(u32::try_from(count).unwrap() + 1));
+    let Some((id, rune_entry, _)) = wallet.get_rune(rune)? else {
+      bail!("rune {rune} has not been etched");
+    };
 
-    ensure!(
-      rune >= minimum_at_height,
-      "rune is less than minimum for next block: {} < {minimum_at_height}",
-      rune,
-    );
-
-    ensure!(!rune.is_reserved(), "rune `{}` is reserved", rune);
-
-    ensure!(
-      self.divisibility <= crate::runes::MAX_DIVISIBILITY,
-      "<DIVISIBILITY> must be equal to or less than 38"
-    );
+    let limit = rune_entry
+      .mintable(Height(block_height), block_time)
+      .map_err(|e| anyhow!(e))?;
 
     let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
-      etching: Some(Etching {
-        divisibility: self.divisibility,
-        mint: None,
-        rune: Some(rune),
-        spacers,
-        symbol: Some(self.symbol),
-      }),
-      edicts: vec![Edict {
-        amount: self.supply.to_amount(self.divisibility)?,
-        id: 0,
-        output: 1,
-      }],
-      default_output: None,
-      burn: false,
+      claim: Some(id),
+      ..Default::default()
     };
 
     let script_pubkey = runestone.encipher();
@@ -119,7 +93,12 @@ impl Etch {
 
     Ok(Some(Box::new(Output {
       rune: self.rune,
-      transaction,
+      pile: Pile {
+        amount: limit,
+        divisibility: rune_entry.divisibility,
+        symbol: rune_entry.symbol,
+      },
+      mint: transaction,
     })))
   }
 }

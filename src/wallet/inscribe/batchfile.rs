@@ -1,14 +1,17 @@
 use super::*;
 
-#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Batchfile {
-  pub(crate) inscriptions: Vec<BatchEntry>,
-  pub(crate) mode: Mode,
-  pub(crate) parent: Option<InscriptionId>,
-  pub(crate) postage: Option<u64>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: Option<SatPoint>,
+  pub inscriptions: Vec<BatchEntry>,
+  pub mode: Mode,
+  pub parent: Option<InscriptionId>,
+  pub postage: Option<u64>,
+  #[serde(default)]
+  pub reinscribe: bool,
+  pub etch: Option<Etch>,
+  pub sat: Option<Sat>,
+  pub satpoint: Option<SatPoint>,
 }
 
 impl Batchfile {
@@ -82,10 +85,19 @@ impl Batchfile {
         batchfile.sat.is_none(),
         "`sat` cannot be set if in `satpoints` mode"
       );
+
       ensure!(
         batchfile.satpoint.is_none(),
         "`satpoint cannot be set if in `satpoints` mode"
       );
+
+      let mut seen = HashSet::new();
+      for entry in batchfile.inscriptions.iter() {
+        let satpoint = entry.satpoint.unwrap_or_default();
+        if !seen.insert(satpoint) {
+          bail!("duplicate satpoint {}", satpoint);
+        }
+      }
     }
 
     Ok(batchfile)
@@ -123,9 +135,12 @@ impl Batchfile {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent,
+        self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
+        self
+          .etch
+          .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
       )?);
 
       let postage = if self.mode == Mode::SatPoints {
@@ -315,6 +330,35 @@ inscriptions:
         .unwrap_err()
         .to_string(),
       "`postage` cannot be set if in `satpoints` mode"
+    );
+  }
+
+  #[test]
+  fn batchfile_no_duplicate_satpoints() {
+    let tempdir = tempfile::TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: satpoints
+inscriptions:
+- file: inscription.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+- file: tulip.png
+  satpoint: 5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0:0
+- file: meow.wav
+  satpoint: 4651dc5e964879b1eb9183d467d1187dcd252504698002b01853446c460db2c5:0:0
+- file: inscription_1.txt
+  satpoint: bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      Batchfile::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "duplicate satpoint bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0"
     );
   }
 }

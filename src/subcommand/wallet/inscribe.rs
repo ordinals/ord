@@ -82,12 +82,14 @@ impl Inscribe {
 
     let chain = wallet.chain();
 
-    let postages;
     let destinations;
     let inscriptions;
     let mode;
     let parent_info;
+    let postages;
+    let reinscribe;
     let reveal_satpoints;
+    let etch;
 
     let satpoint = match (self.file, self.batch) {
       (Some(file), None) => {
@@ -108,12 +110,15 @@ impl Inscribe {
           self.delegate,
           metadata,
           self.metaprotocol,
-          self.parent,
+          self.parent.into_iter().collect(),
           file,
+          None,
           None,
         )?];
 
         mode = Mode::SeparateOutputs;
+
+        reinscribe = self.reinscribe;
 
         reveal_satpoints = Vec::new();
 
@@ -121,6 +126,8 @@ impl Inscribe {
           Some(destination) => destination.require_network(chain.network())?,
           None => wallet.get_change_address()?,
         }];
+
+        etch = None;
 
         if let Some(sat) = self.sat {
           Some(wallet.find_sat_in_outputs(sat)?)
@@ -148,6 +155,10 @@ impl Inscribe {
 
         mode = batchfile.mode;
 
+        reinscribe = batchfile.reinscribe;
+
+        etch = batchfile.etch;
+
         if let Some(sat) = batchfile.sat {
           Some(wallet.find_sat_in_outputs(sat)?)
         } else {
@@ -157,17 +168,51 @@ impl Inscribe {
       _ => unreachable!(),
     };
 
+    if let Some(etch) = etch {
+      let rune = etch.rune.rune;
+
+      ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
+
+      ensure!(
+        etch.divisibility <= crate::runes::MAX_DIVISIBILITY,
+        "<DIVISIBILITY> must be less than or equal 38"
+      );
+
+      ensure!(
+        wallet.has_rune_index(),
+        "etching runes requires index created with `--index-runes`",
+      );
+
+      ensure!(
+        wallet.get_rune(rune)?.is_none(),
+        "rune `{rune}` has already been etched",
+      );
+
+      let bitcoin_client = wallet.bitcoin_client();
+
+      let count = bitcoin_client.get_block_count()?;
+
+      let minimum =
+        Rune::minimum_at_height(wallet.chain(), Height(u32::try_from(count).unwrap() + 1));
+
+      ensure!(
+        rune >= minimum,
+        "rune is less than minimum for next block: {rune} < {minimum}",
+      );
+    }
+
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
       destinations,
       dry_run: self.dry_run,
+      etch,
       inscriptions,
       mode,
       no_backup: self.no_backup,
       no_limit: self.no_limit,
       parent_info,
       postages,
-      reinscribe: self.reinscribe,
+      reinscribe,
       reveal_fee_rate: self.fee_rate,
       reveal_satpoints,
       satpoint,
@@ -204,7 +249,7 @@ impl Inscribe {
 mod tests {
   use {
     super::*,
-    crate::wallet::inscribe::{BatchEntry, ParentInfo},
+    crate::wallet::inscribe::{BatchEntry, BatchTransactions, ParentInfo},
     bitcoin::policy::MAX_STANDARD_TX_WEIGHT,
     serde_yaml::{Mapping, Value},
     tempfile::TempDir,
@@ -216,9 +261,13 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
-    let change = [commit_address, change(1)];
+    let reveal_change = [commit_address, change(1)];
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint: Some(satpoint(1, 0)),
       parent_info: None,
       inscriptions: vec![inscription],
@@ -231,13 +280,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
-      change,
+      reveal_change,
+      change(2),
     )
     .unwrap();
 
@@ -257,9 +307,13 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
-    let change = [commit_address, change(1)];
+    let reveal_change = [commit_address, change(1)];
 
-    let (commit_tx, reveal_tx, _, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint: Some(satpoint(1, 0)),
       parent_info: None,
       inscriptions: vec![inscription],
@@ -272,13 +326,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
-      change,
+      reveal_change,
+      change(2),
     )
     .unwrap();
 
@@ -316,13 +371,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       inscriptions,
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .unwrap_err()
     .to_string();
@@ -367,13 +423,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       inscriptions,
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .is_ok())
   }
@@ -399,7 +456,11 @@ mod tests {
     let reveal_address = recipient();
     let fee_rate = 3.3;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint,
       parent_info: None,
       inscriptions: vec![inscription],
@@ -412,13 +473,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .unwrap();
 
@@ -473,7 +535,7 @@ mod tests {
     inscriptions.insert(parent_info.location, vec![parent_inscription]);
 
     let child_inscription = InscriptionTemplate {
-      parent: Some(parent_inscription),
+      parents: vec![parent_inscription],
       ..Default::default()
     }
     .into();
@@ -482,7 +544,11 @@ mod tests {
     let reveal_address = recipient();
     let fee_rate = 4.0;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint: None,
       parent_info: Some(parent_info.clone()),
       inscriptions: vec![child_inscription],
@@ -495,13 +561,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(1),
     )
     .unwrap();
 
@@ -564,7 +631,11 @@ mod tests {
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint,
       parent_info: None,
       inscriptions: vec![inscription],
@@ -577,13 +648,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .unwrap();
 
@@ -635,13 +707,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .unwrap_err()
     .to_string();
@@ -662,7 +735,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (_commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions { reveal_tx, .. } = Batch {
       satpoint,
       parent_info: None,
       inscriptions: vec![inscription],
@@ -675,13 +748,14 @@ mod tests {
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(1)],
+      change(2),
     )
     .unwrap();
 
@@ -815,17 +889,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -835,7 +909,11 @@ inscriptions:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint: None,
       parent_info: Some(parent_info.clone()),
       inscriptions,
@@ -848,13 +926,14 @@ inscriptions:
       mode,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(2),
     )
     .unwrap();
 
@@ -923,17 +1002,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(10_000),
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(11_111),
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         pointer: Some(13_3333),
       }
       .into(),
@@ -957,7 +1036,11 @@ inscriptions:
 
     let fee_rate = 1.0.try_into().unwrap();
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       reveal_satpoints: reveal_satpoints.clone(),
       parent_info: Some(parent_info.clone()),
       inscriptions,
@@ -972,7 +1055,7 @@ inscriptions:
       mode,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       reveal_satpoints
@@ -982,6 +1065,7 @@ inscriptions:
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     )
     .unwrap();
 
@@ -1039,17 +1123,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -1071,13 +1155,14 @@ inscriptions:
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     )
     .unwrap_err()
     .to_string();
@@ -1115,17 +1200,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -1147,13 +1232,14 @@ inscriptions:
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     );
   }
 
@@ -1185,13 +1271,14 @@ inscriptions:
       mode: Mode::SharedOutput,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     )
     .unwrap_err()
     .to_string();
@@ -1225,7 +1312,7 @@ inscriptions:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (_commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions { reveal_tx, .. } = Batch {
       satpoint: None,
       parent_info: None,
       inscriptions,
@@ -1238,13 +1325,14 @@ inscriptions:
       mode,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     )
     .unwrap();
 
@@ -1285,17 +1373,17 @@ inscriptions:
 
     let inscriptions = vec![
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
       InscriptionTemplate {
-        parent: Some(parent),
+        parents: vec![parent],
         ..Default::default()
       }
       .into(),
@@ -1305,7 +1393,11 @@ inscriptions:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+    let BatchTransactions {
+      commit_tx,
+      reveal_tx,
+      ..
+    } = Batch {
       satpoint: None,
       parent_info: Some(parent_info.clone()),
       inscriptions,
@@ -1318,29 +1410,28 @@ inscriptions:
       mode,
       ..Default::default()
     }
-    .create_batch_inscription_transactions(
+    .create_batch_transactions(
       wallet_inscriptions,
       Chain::Signet,
       BTreeSet::new(),
       BTreeSet::new(),
       utxos.into_iter().collect(),
       [commit_address, change(2)],
+      change(3),
     )
     .unwrap();
 
     assert_eq!(
-      parent,
+      vec![parent],
       ParsedEnvelope::from_transaction(&reveal_tx)[0]
         .payload
-        .parent()
-        .unwrap()
+        .parents(),
     );
     assert_eq!(
-      parent,
+      vec![parent],
       ParsedEnvelope::from_transaction(&reveal_tx)[1]
         .payload
-        .parent()
-        .unwrap()
+        .parents(),
     );
 
     let sig_vbytes = 17;

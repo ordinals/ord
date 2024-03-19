@@ -15,14 +15,15 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
+    index::BitcoinCoreRpcResultExt,
     inscriptions::{
+      inscription_id,
       media::{self, ImageRendering, Media},
       teleburn, Charm, ParsedEnvelope,
     },
     representation::Representation,
-    runes::{Etching, Pile, SpacedRune},
+    runes::Etching,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -48,9 +49,11 @@ use {
   ciborium::Value,
   clap::{ArgGroup, Parser},
   html_escaper::{Escape, Trusted},
+  http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp::{self, Reverse},
@@ -82,7 +85,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  runes::{Edict, Rune, RuneId, Runestone},
+  runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -106,7 +109,6 @@ pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod config;
 mod decimal;
 mod fee_rate;
 pub mod index;
@@ -114,9 +116,9 @@ mod inscriptions;
 mod object;
 pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
-mod server_config;
 mod settings;
 pub mod subcommand;
 mod tally;
@@ -125,11 +127,12 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+const RUNE_COMMIT_INTERVAL: u32 = 6;
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
-
-const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
@@ -161,7 +164,19 @@ fn fund_raw_transaction(
           ..Default::default()
         }),
         Some(false),
-      )?
+      )
+      .map_err(|err| {
+        if matches!(
+          err,
+          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          ))
+        ) {
+          anyhow!("not enough cardinal utxos")
+        } else {
+          err.into()
+        }
+      })?
       .hex,
   )
 }
@@ -181,16 +196,19 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
+fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
+  address.to_string().parse().unwrap()
+}
+
 pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
       Subcommand::Server(server) => (
-        Settings::new(
+        Settings::merge(
           arguments.options,
           vec![("INTEGRATION_TEST".into(), "1".into())]
             .into_iter()
             .collect(),
-          Default::default(),
         )
         .unwrap(),
         server,
