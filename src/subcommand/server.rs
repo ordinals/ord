@@ -684,12 +684,35 @@ impl Server {
         .rune(rune)?
         .ok_or_not_found(|| format!("rune {rune}"))?;
 
+      let block_height = index.block_height()?.unwrap_or(Height(0));
+
+      let block_time: u32 = index
+        .block_time(block_height)?
+        .unix_timestamp()
+        .try_into()
+        .unwrap_or_default();
+
+      let mintable = entry
+        .mintable(Height(block_height.n() + 1), block_time)
+        .is_ok();
+
       Ok(if accept_json {
-        Json(api::Rune { entry, id, parent }).into_response()
+        Json(api::Rune {
+          entry,
+          id,
+          mintable,
+          parent,
+        })
+        .into_response()
       } else {
-        RuneHtml { entry, id, parent }
-          .page(server_config)
-          .into_response()
+        RuneHtml {
+          entry,
+          id,
+          mintable,
+          parent,
+        }
+        .page(server_config)
+        .into_response()
       })
     })
   }

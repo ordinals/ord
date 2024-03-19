@@ -557,6 +557,7 @@ fn get_runes() {
         timestamp: 11,
       },
       id: RuneId { block: 11, tx: 1 },
+      mintable: false,
       parent: Some(InscriptionId {
         txid: a.inscribe.reveal,
         index: 0,
