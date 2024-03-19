@@ -1,3 +1,4 @@
+use crate::rand::RuneRand;
 use {
   super::*,
   crate::runes::{varint, Edict, Runestone},
@@ -83,9 +84,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
-          let Ok(output) = usize::try_from(output) else {
+          let Ok(mut output) = usize::try_from(output) else {
             continue;
           };
+          if output == usize::MAX && id != RuneId::default() {
+            output = RuneRand {
+              rune_id: id,
+              txid,
+              tx_index,
+              timestamp: self.block_time,
+            }
+            .get_output(tx.output.len());
+          }
 
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser

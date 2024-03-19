@@ -11,6 +11,8 @@ pub use {
 pub const MAX_DIVISIBILITY: u8 = 38;
 pub const MAX_LIMIT: u128 = u64::MAX as u128;
 
+pub const RANDOMNESS_OUTPUT: u128 = usize::MAX as u128;
+
 const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
 
@@ -49,6 +51,7 @@ impl fmt::Display for MintError {
 
 #[cfg(test)]
 mod tests {
+  use crate::rand::RuneRand;
   use {super::*, crate::index::testing::Context};
 
   const RUNE: u128 = 99246114928149462;
@@ -745,6 +748,116 @@ mod tests {
         vec![(id, u128::MAX)],
       )],
     );
+  }
+
+  #[test]
+  fn input_runes_randomness_allocated() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: u128::MAX,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          ..Default::default()
+        }),
+        ..Default::default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          rune: Rune(RUNE),
+          premine: u128::MAX,
+          supply: u128::MAX,
+          timestamp: id.block,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(id, u128::MAX)],
+      )],
+    );
+
+    let outputs = 2;
+    let op_return_index: Option<usize> = Some(1);
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: u128::MAX,
+            output: RANDOMNESS_OUTPUT,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      op_return_index,
+      outputs,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+    let vout = RuneRand {
+      rune_id: id,
+      txid: txid1,
+      tx_index: 1,
+      timestamp: id.block + 1,
+    }
+    .get_output(outputs + 1);
+
+    if vout == op_return_index.unwrap() {
+      context.assert_runes(
+        [(
+          id,
+          RuneEntry {
+            burned: u128::MAX,
+            etching: txid0,
+            rune: Rune(RUNE),
+            premine: u128::MAX,
+            supply: u128::MAX,
+            timestamp: id.block,
+            ..Default::default()
+          },
+        )],
+        [],
+      );
+    } else {
+      context.assert_runes(
+        [(
+          id,
+          RuneEntry {
+            etching: txid0,
+            rune: Rune(RUNE),
+            premine: u128::MAX,
+            supply: u128::MAX,
+            timestamp: id.block,
+            ..Default::default()
+          },
+        )],
+        [(
+          OutPoint {
+            txid: txid1,
+            vout: vout as u32,
+          },
+          vec![(id, u128::MAX)],
+        )],
+      );
+    }
   }
 
   #[test]

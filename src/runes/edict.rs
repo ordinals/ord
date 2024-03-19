@@ -20,7 +20,7 @@ impl Edict {
       return None;
     }
 
-    if output > u128::try_from(tx.output.len()).ok()? {
+    if output > u128::try_from(tx.output.len()).ok()? && output != RANDOMNESS_OUTPUT {
       return None;
     }
 

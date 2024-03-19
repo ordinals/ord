@@ -116,6 +116,7 @@ mod inscriptions;
 mod object;
 pub mod options;
 pub mod outgoing;
+pub mod rand;
 mod re;
 mod representation;
 pub mod runes;
