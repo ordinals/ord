@@ -1108,7 +1108,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         amount: 750,
         output: 2
       }],
-      burn: false,
+      cenotaph: false,
       claim: None,
     },
   );

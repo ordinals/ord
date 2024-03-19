@@ -684,12 +684,35 @@ impl Server {
         .rune(rune)?
         .ok_or_not_found(|| format!("rune {rune}"))?;
 
+      let block_height = index.block_height()?.unwrap_or(Height(0));
+
+      let block_time: u32 = index
+        .block_time(block_height)?
+        .unix_timestamp()
+        .try_into()
+        .unwrap_or_default();
+
+      let mintable = entry
+        .mintable(Height(block_height.n() + 1), block_time)
+        .is_ok();
+
       Ok(if accept_json {
-        Json(api::Rune { entry, id, parent }).into_response()
+        Json(api::Rune {
+          entry,
+          id,
+          mintable,
+          parent,
+        })
+        .into_response()
       } else {
-        RuneHtml { entry, id, parent }
-          .page(server_config)
-          .into_response()
+        RuneHtml {
+          entry,
+          id,
+          mintable,
+          parent,
+        }
+        .page(server_config)
+        .into_response()
       })
     })
   }
@@ -2683,6 +2706,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           symbol: Some('%'),
@@ -2753,6 +2777,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
@@ -2787,6 +2812,8 @@ mod tests {
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
+  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>0\u{00A0}%</dd>
@@ -2863,6 +2890,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
@@ -2953,6 +2981,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()
@@ -3014,6 +3043,7 @@ mod tests {
           divisibility: 1,
           etching: txid,
           rune,
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()

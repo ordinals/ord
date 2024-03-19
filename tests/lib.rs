@@ -240,10 +240,12 @@ fn batch(
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let height = bitcoin_rpc_server.height();
+  let block_height = bitcoin_rpc_server.height();
+  let block_hash = *bitcoin_rpc_server.state().hashes.last().unwrap();
+  let block_time = bitcoin_rpc_server.state().blocks[&block_hash].header.time;
 
   let id = RuneId {
-    block: u32::try_from(height).unwrap(),
+    block: u32::try_from(block_height).unwrap(),
     tx: 1,
   };
 
@@ -263,8 +265,12 @@ fn batch(
   if let Some(mint) = mint {
     mint_definition.push("<dd>".into());
     mint_definition.push("<dl>".into());
+
+    let mut mintable = true;
+
     mint_definition.push("<dt>deadline</dt>".into());
     if let Some(deadline) = mint.deadline {
+      mintable &= block_time < deadline;
       mint_definition.push(format!(
         "<dd><time>{}</time></dd>",
         ord::timestamp(deadline)
@@ -276,7 +282,8 @@ fn batch(
     mint_definition.push("<dt>end</dt>".into());
 
     if let Some(term) = mint.term {
-      let end = height + u64::from(term);
+      let end = block_height + u64::from(term);
+      mintable &= block_height + 1 < end;
       mint_definition.push(format!("<dd><a href=/block/{end}>{end}</a></dd>"));
     } else {
       mint_definition.push("<dd>none</dd>".into());
@@ -295,6 +302,9 @@ fn batch(
 
     mint_definition.push("<dt>mints</dt>".into());
     mint_definition.push("<dd>0</dd>".into());
+
+    mint_definition.push("<dt>mintable</dt>".into());
+    mint_definition.push(format!("<dd>{mintable}</dd>"));
 
     mint_definition.push("</dl>".into());
     mint_definition.push("</dd>".into());
@@ -316,6 +326,8 @@ fn batch(
   <dt>mint</dt>
   {}
   <dt>supply</dt>
+  <dd>{premine} {symbol}</dd>
+  <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
   <dt>burned</dt>
   <dd>0 {symbol}</dd>

@@ -4,6 +4,7 @@ use super::*;
 pub struct RuneHtml {
   pub entry: RuneEntry,
   pub id: RuneId,
+  pub mintable: bool,
   pub parent: Option<InscriptionId>,
 }
 
@@ -26,12 +27,13 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 100,
-          number: 25,
           mint: Some(MintEntry {
             end: Some(11),
             limit: Some(1000000001),
             deadline: Some(7),
           }),
+          number: 25,
+          premine: 123456789,
           rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
@@ -39,6 +41,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: true,
         parent: Some(InscriptionId {
           txid: Txid::all_zeros(),
           index: 0,
@@ -68,10 +71,14 @@ mod tests {
       <dd>1.000000001 %</dd>
       <dt>mints</dt>
       <dd>100</dd>
+      <dt>mintable</dt>
+      <dd>true</dd>
     </dl>
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0.123456789\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -98,6 +105,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 0,
           number: 25,
+          premine: 0,
           rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
@@ -105,6 +113,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -123,6 +132,8 @@ mod tests {
   <dd>no</dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -150,6 +161,7 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 0,
+          premine: 0,
           number: 25,
           rune: Rune(u128::MAX),
           spacers: 1,
@@ -158,6 +170,7 @@ mod tests {
           timestamp: 0,
         },
         id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -183,10 +196,14 @@ mod tests {
       <dd>none</dd>
       <dt>mints</dt>
       <dd>0</dd>
+      <dt>mintable</dt>
+      <dd>false</dd>
     </dl>
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>

@@ -56,6 +56,7 @@ pub struct RuneEntry {
   pub mint: Option<MintEntry>,
   pub mints: u64,
   pub number: u64,
+  pub premine: u128,
   pub rune: Rune,
   pub spacers: u32,
   pub supply: u128,
@@ -92,6 +93,7 @@ pub(super) type RuneEntryValue = (
   Option<MintEntryValue>, // mint parameters
   u64,                    // mints
   u64,                    // number
+  u128,                   // premine
   u128,                   // rune
   u32,                    // spacers
   u128,                   // supply
@@ -130,6 +132,7 @@ impl Default for RuneEntry {
       mint: None,
       mints: 0,
       number: 0,
+      premine: 0,
       rune: Rune(0),
       spacers: 0,
       supply: 0,
@@ -150,6 +153,7 @@ impl Entry for RuneEntry {
       mint,
       mints,
       number,
+      premine,
       rune,
       spacers,
       supply,
@@ -177,6 +181,7 @@ impl Entry for RuneEntry {
       }),
       mints,
       number,
+      premine,
       rune: Rune(rune),
       spacers,
       supply,
@@ -211,6 +216,7 @@ impl Entry for RuneEntry {
       ),
       self.mints,
       self.number,
+      self.premine,
       self.rune.0,
       self.spacers,
       self.supply,
@@ -524,6 +530,7 @@ mod tests {
       }),
       mints: 11,
       number: 6,
+      premine: 12,
       rune: Rune(7),
       spacers: 8,
       supply: 9,
@@ -541,6 +548,7 @@ mod tests {
       Some((Some(2), Some(4), Some(5))),
       11,
       6,
+      12,
       7,
       8,
       9,
