@@ -2958,6 +2958,7 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
+          premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
           ..Default::default()

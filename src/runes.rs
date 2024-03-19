@@ -656,8 +656,8 @@ mod tests {
         RuneEntry {
           etching: txid,
           rune: Rune(RUNE),
-          premine: 100,
-          supply: 100,
+          premine: 0,
+          supply: 0,
           timestamp: id.block,
           ..Default::default()
         },

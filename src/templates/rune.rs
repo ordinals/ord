@@ -32,7 +32,7 @@ mod tests {
             deadline: Some(7),
           }),
           number: 25,
-          premine: 6,
+          premine: 123456789,
           rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
@@ -74,7 +74,7 @@ mod tests {
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>premine</dt>
-  <dd>6\u{00A0}%</dd>
+  <dd>0.123456789\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -127,6 +127,8 @@ mod tests {
   <dd>no</dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -192,6 +194,8 @@ mod tests {
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
