@@ -208,7 +208,7 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 }
 
 pub struct Index {
-  client: Client,
+  pub(crate) client: Client,
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,

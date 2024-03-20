@@ -25,7 +25,8 @@ pub(crate) struct RuneUpdate {
   pub(crate) supply: u128,
 }
 
-pub(super) struct RuneUpdater<'a, 'db, 'tx> {
+pub(super) struct RuneUpdater<'a, 'db, 'tx, 'client> {
+  pub(super) client: &'client Client,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
@@ -41,7 +42,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
-impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
+impl<'a, 'db, 'tx, 'client> RuneUpdater<'a, 'db, 'tx, 'client> {
   pub(super) fn index_runes(
     &mut self,
     tx_index: usize,
@@ -238,10 +239,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         continue;
       }
 
-      self
-        .outpoint_to_output
-        .remove(&input.previous_output.store())?
-        .unwrap();
+      // self
+      //   .outpoint_to_output
+      //   .remove(&input.previous_output.store())?;
+      // // .unwrap();
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
@@ -250,14 +251,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         vout: vout.try_into().unwrap(),
       };
 
-      self.outpoint_to_output.insert(
-        &outpoint.store(),
-        OutputEntry {
-          height: self.height,
-          taproot: output.script_pubkey.is_v1_p2tr(),
-        }
-        .store(),
-      )?;
+      //self.outpoint_to_output.insert(
+      //  &outpoint.store(),
+      //  OutputEntry {
+      //    height: self.height,
+      //    taproot: output.script_pubkey.is_v1_p2tr(),
+      //  }
+      //  .store(),
+      //)?;
     }
 
     // increment entries with burned runes
@@ -416,16 +417,19 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           continue;
         }
 
-        let Some(output) = self
-          .outpoint_to_output
-          .get(&input.previous_output.store())?
-        else {
-          panic!("input not in UTXO set: {}", input.previous_output);
-        };
+        let tx_info = self
+          .client
+          .get_raw_transaction_info(&input.previous_output.txid, None)
+          .expect(&format!("input not in UTXO set: {}", input.previous_output));
 
-        let output = OutputEntry::load(output.value());
+        let is_taproot = tx_info.vout[input.previous_output.vout as usize]
+          .script_pub_key
+          .script()?
+          .is_v1_p2tr();
 
-        if output.taproot && self.height >= output.height + RUNE_COMMIT_INTERVAL {
+        let height = self.height - tx_info.confirmations.unwrap_or_default();
+
+        if is_taproot && self.height >= height + RUNE_COMMIT_INTERVAL {
           return Ok(true);
         }
       }
