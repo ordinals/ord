@@ -398,6 +398,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     let commitment = rune.commitment();
 
     for input in &tx.input {
+      // extracting a tapscript does not indicate that the input being spent
+      // was actually a taproot output. this is checked below, when we load the
+      // output's entry from the database
       let Some(tapscript) = input.witness.tapscript() else {
         continue;
       };
