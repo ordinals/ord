@@ -77,8 +77,10 @@ impl Runestone {
 
     let deadline = Tag::Deadline.take(&mut fields, |deadline| u32::try_from(deadline).ok());
 
-    let default_output =
-      Tag::DefaultOutput.take(&mut fields, |default| u32::try_from(default).ok());
+    let default_output = Tag::DefaultOutput.take(&mut fields, |default_output| {
+      let default_output = u32::try_from(default_output).ok()?;
+      (default_output.into_usize() < transaction.output.len()).then_some(default_output)
+    });
 
     let divisibility = Tag::Divisibility
       .take(&mut fields, |divisibility| {
@@ -1606,7 +1608,7 @@ mod tests {
             output: 1,
           },
         ],
-        default_output: Some(11),
+        default_output: Some(0),
         cenotaph: true,
         claim: Some(rune_id(12)),
       },
@@ -1630,7 +1632,7 @@ mod tests {
         Tag::Claim.into(),
         rune_id(12).into(),
         Tag::DefaultOutput.into(),
-        11,
+        0,
         Tag::Cenotaph.into(),
         0,
         Tag::Body.into(),
@@ -1755,6 +1757,7 @@ mod tests {
 
   #[test]
   fn invalid_default_output_produces_cenotaph() {
+    assert!(decipher(&[Tag::DefaultOutput.into(), 1]).cenotaph);
     assert!(decipher(&[Tag::DefaultOutput.into(), u128::MAX]).cenotaph);
   }
 
