@@ -21,11 +21,7 @@ pub(super) enum Tag {
 }
 
 impl Tag {
-  pub(super) fn take(self, fields: &mut HashMap<u128, u128>) -> Option<u128> {
-    fields.remove(&self.into())
-  }
-
-  pub(super) fn take_with<T>(
+  pub(super) fn take<T>(
     self,
     fields: &mut HashMap<u128, u128>,
     with: impl Fn(u128) -> Option<T>,
@@ -77,11 +73,15 @@ mod tests {
   fn take() {
     let mut fields = vec![(2, 3)].into_iter().collect::<HashMap<u128, u128>>();
 
-    assert_eq!(Tag::Flags.take(&mut fields), Some(3));
+    assert_eq!(Tag::Flags.take(&mut fields, |_| None::<u128>), None);
+
+    assert!(!fields.is_empty());
+
+    assert_eq!(Tag::Flags.take(&mut fields, |flags| Some(flags)), Some(3));
 
     assert!(fields.is_empty());
 
-    assert_eq!(Tag::Flags.take(&mut fields), None);
+    assert_eq!(Tag::Flags.take(&mut fields, |_| Some(1)), None);
   }
 
   #[test]

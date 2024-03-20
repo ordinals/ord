@@ -73,44 +73,40 @@ impl Runestone {
       mut fields,
     } = Message::from_integers(transaction, &integers);
 
-    let claim = Tag::Claim.take_with(&mut fields, |id| RuneId::try_from(id).ok());
+    let claim = Tag::Claim.take(&mut fields, |id| RuneId::try_from(id).ok());
 
-    let deadline = Tag::Deadline
-      .take(&mut fields)
-      .and_then(|deadline| u32::try_from(deadline).ok());
+    let deadline = Tag::Deadline.take(&mut fields, |deadline| u32::try_from(deadline).ok());
 
-    let default_output = Tag::DefaultOutput
-      .take(&mut fields)
-      .and_then(|default| u32::try_from(default).ok());
+    let default_output =
+      Tag::DefaultOutput.take(&mut fields, |default| u32::try_from(default).ok());
 
     let divisibility = Tag::Divisibility
-      .take(&mut fields)
-      .and_then(|divisibility| u8::try_from(divisibility).ok())
-      .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
+      .take(&mut fields, |divisibility| {
+        let divisibility = u8::try_from(divisibility).ok()?;
+        (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
+      })
       .unwrap_or_default();
 
-    let limit = Tag::Limit
-      .take(&mut fields)
-      .map(|limit| limit.min(MAX_LIMIT));
+    let limit = Tag::Limit.take(&mut fields, |limit| (limit <= MAX_LIMIT).then_some(limit));
 
-    let rune = Tag::Rune.take(&mut fields).map(Rune);
+    let rune = Tag::Rune.take(&mut fields, |rune| Some(Rune(rune)));
 
     let spacers = Tag::Spacers
-      .take(&mut fields)
-      .and_then(|spacers| u32::try_from(spacers).ok())
-      .and_then(|spacers| (spacers <= MAX_SPACERS).then_some(spacers))
+      .take(&mut fields, |spacers| {
+        let spacers = u32::try_from(spacers).ok()?;
+        (spacers <= MAX_SPACERS).then_some(spacers)
+      })
       .unwrap_or_default();
 
-    let symbol = Tag::Symbol
-      .take(&mut fields)
-      .and_then(|symbol| u32::try_from(symbol).ok())
-      .and_then(char::from_u32);
+    let symbol = Tag::Symbol.take(&mut fields, |symbol| {
+      char::from_u32(u32::try_from(symbol).ok()?)
+    });
 
-    let term = Tag::Term
-      .take(&mut fields)
-      .and_then(|term| u32::try_from(term).ok());
+    let term = Tag::Term.take(&mut fields, |term| u32::try_from(term).ok());
 
-    let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
+    let mut flags = Tag::Flags
+      .take(&mut fields, |flags| Some(flags))
+      .unwrap_or_default();
 
     let etch = Flag::Etch.take(&mut flags);
 
@@ -1534,7 +1530,7 @@ mod tests {
   }
 
   #[test]
-  fn etching_with_term_greater_than_maximum_is_ignored() {
+  fn etching_with_term_greater_than_maximum_is_still_an_etching() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
@@ -1544,6 +1540,7 @@ mod tests {
       ]),
       Runestone {
         etching: Some(Etching::default()),
+        cenotaph: true,
         ..Default::default()
       },
     );
@@ -1751,5 +1748,46 @@ mod tests {
   #[test]
   fn invalid_claim_produces_cenotaph() {
     assert!(decipher(&[Tag::Claim.into(), 1]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_deadline_produces_cenotaph() {
+    assert!(decipher(&[Tag::Deadline.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_default_output_produces_cenotaph() {
+    assert!(decipher(&[Tag::DefaultOutput.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_divisibility_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Divisibility.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_limit_produces_cenotaph() {
+    assert!(decipher(&[Tag::Limit.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn min_and_max_runes_are_not_cenotaphs() {
+    assert!(!decipher(&[Tag::Rune.into(), 0]).cenotaph);
+    assert!(!decipher(&[Tag::Rune.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_spacers_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Spacers.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_symbol_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Symbol.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_term_produces_cenotaph() {
+    assert!(decipher(&[Tag::Term.into(), u128::MAX]).cenotaph);
   }
 }
