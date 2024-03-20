@@ -226,22 +226,29 @@ impl Runestone {
   }
 
   fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>, script::Error> {
-    for output in &transaction.output {
+    // search transaction outputs for payload
+    'outer: for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
 
+      // payload starts with OP_RETURN
       if instructions.next().transpose()? != Some(Instruction::Op(opcodes::all::OP_RETURN)) {
         continue;
       }
 
+      // followed by the protocol identifier
       if instructions.next().transpose()? != Some(Instruction::Op(MAGIC_NUMBER)) {
         continue;
       }
 
+      // construct the payload by concatinating remaining data pushes
       let mut payload = Vec::new();
 
       for result in instructions {
         if let Instruction::PushBytes(push) = result? {
           payload.extend_from_slice(push.as_bytes());
+        } else {
+          // if we encounter a non data push opcode, continue to the next output
+          continue 'outer;
         }
       }
 
@@ -438,26 +445,43 @@ mod tests {
   }
 
   #[test]
-  fn non_push_opcodes_in_runestone_are_ignored() {
+  fn outputs_with_non_pushdata_opcodes_are_skipped() {
     assert_eq!(
       Runestone::decipher(&Transaction {
         input: Vec::new(),
-        output: vec![TxOut {
-          script_pubkey: script::Builder::new()
-            .push_opcode(opcodes::all::OP_RETURN)
-            .push_opcode(MAGIC_NUMBER)
-            .push_opcode(opcodes::all::OP_VERIFY)
-            .push_slice([0])
-            .push_slice::<&script::PushBytes>(
-              varint::encode(rune_id(1).into())
-                .as_slice()
-                .try_into()
-                .unwrap()
-            )
-            .push_slice([2, 0])
-            .into_script(),
-          value: 0,
-        }],
+        output: vec![
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_opcode(MAGIC_NUMBER)
+              .push_opcode(opcodes::all::OP_VERIFY)
+              .push_slice([0])
+              .push_slice::<&script::PushBytes>(
+                varint::encode(rune_id(1).into())
+                  .as_slice()
+                  .try_into()
+                  .unwrap()
+              )
+              .push_slice([2, 0])
+              .into_script(),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_opcode(MAGIC_NUMBER)
+              .push_slice([0])
+              .push_slice::<&script::PushBytes>(
+                varint::encode(rune_id(2).into())
+                  .as_slice()
+                  .try_into()
+                  .unwrap()
+              )
+              .push_slice([3, 0])
+              .into_script(),
+            value: 0,
+          },
+        ],
         lock_time: LockTime::ZERO,
         version: 2,
       })
@@ -465,8 +489,8 @@ mod tests {
       .unwrap(),
       Runestone {
         edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
+          id: rune_id(2),
+          amount: 3,
           output: 0,
         }],
         ..Default::default()
