@@ -1588,7 +1588,7 @@ impl Index {
       return Ok(false);
     }
 
-    if usize::try_from(outpoint.vout).unwrap() >= info.vout.len() {
+    if outpoint.vout.into_usize() >= info.vout.len() {
       return Ok(false);
     }
 

@@ -4963,7 +4963,7 @@ mod tests {
   fn commits_are_not_valid_in_non_taproot_witnesses() {
     let context = Context::builder().arg("--index-runes").build();
 
-    let block_count = usize::try_from(context.index.block_count().unwrap()).unwrap();
+    let block_count = context.index.block_count().unwrap().into_usize();
 
     context.mine_blocks(1);
 
@@ -5023,7 +5023,7 @@ mod tests {
   fn immature_commits_are_not_valid() {
     let context = Context::builder().arg("--index-runes").build();
 
-    let block_count = usize::try_from(context.index.block_count().unwrap()).unwrap();
+    let block_count = context.index.block_count().unwrap().into_usize();
 
     context.mine_blocks(1);
 
@@ -5083,7 +5083,7 @@ mod tests {
   fn etchings_are_not_valid_without_commitment() {
     let context = Context::builder().arg("--index-runes").build();
 
-    let block_count = usize::try_from(context.index.block_count().unwrap()).unwrap();
+    let block_count = context.index.block_count().unwrap().into_usize();
 
     context.mine_blocks(1);
 

@@ -57,11 +57,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .map(|runestone| runestone.cenotaph)
       .unwrap_or_default();
 
-    let default_output = runestone.as_ref().and_then(|runestone| {
-      runestone
-        .default_output
-        .and_then(|default| usize::try_from(default).ok())
-    });
+    let default_output = runestone
+      .as_ref()
+      .and_then(|runestone| runestone.default_output);
 
     let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
@@ -170,6 +168,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       // OP_RETURN output if there is no default, or if the default output is
       // too large
       if let Some(vout) = default_output
+        .map(|vout| vout.into_usize())
         .filter(|vout| *vout < allocated.len())
         .or_else(|| {
           tx.output
