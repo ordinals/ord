@@ -77,7 +77,7 @@ mod tests {
 
     assert!(!fields.is_empty());
 
-    assert_eq!(Tag::Flags.take(&mut fields, |flags| Some(flags)), Some(3));
+    assert_eq!(Tag::Flags.take(&mut fields, Some), Some(3));
 
     assert!(fields.is_empty());
 

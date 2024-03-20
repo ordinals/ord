@@ -104,9 +104,7 @@ impl Runestone {
 
     let term = Tag::Term.take(&mut fields, |term| u32::try_from(term).ok());
 
-    let mut flags = Tag::Flags
-      .take(&mut fields, |flags| Some(flags))
-      .unwrap_or_default();
+    let mut flags = Tag::Flags.take(&mut fields, Some).unwrap_or_default();
 
     let etch = Flag::Etch.take(&mut flags);
 
