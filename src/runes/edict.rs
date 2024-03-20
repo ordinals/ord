@@ -16,10 +16,6 @@ impl Edict {
   ) -> Option<Self> {
     let id = RuneId::try_from(id).ok()?;
 
-    if id.block == 0 && id.tx > 0 {
-      return None;
-    }
-
     let Ok(output) = u32::try_from(output) else {
       return None;
     };

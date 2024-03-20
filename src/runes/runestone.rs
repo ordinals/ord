@@ -73,7 +73,7 @@ impl Runestone {
       mut fields,
     } = Message::from_integers(transaction, &integers);
 
-    let claim = Tag::Claim.take(&mut fields);
+    let claim = Tag::Claim.take_with(&mut fields, |id| RuneId::try_from(id).ok());
 
     let deadline = Tag::Deadline
       .take(&mut fields)
@@ -134,7 +134,7 @@ impl Runestone {
 
     Ok(Some(Self {
       cenotaph: cenotaph || flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
-      claim: claim.and_then(|claim| claim.try_into().ok()),
+      claim,
       default_output,
       edicts,
       etching,
@@ -1613,7 +1613,7 @@ mod tests {
         ],
         default_output: Some(11),
         cenotaph: true,
-        claim: Some(RuneId::try_from(12).unwrap()),
+        claim: Some(rune_id(12)),
       },
       &[
         Tag::Flags.into(),
@@ -1633,7 +1633,7 @@ mod tests {
         Tag::Term.into(),
         5,
         Tag::Claim.into(),
-        12,
+        rune_id(12).into(),
         Tag::DefaultOutput.into(),
         11,
         Tag::Cenotaph.into(),
@@ -1736,7 +1736,7 @@ mod tests {
   }
 
   #[test]
-  fn edict_output_greater_than_32_max() {
+  fn edict_output_greater_than_32_max_produces_cenotaph() {
     assert!(
       decipher(&[
         Tag::Body.into(),
@@ -1746,5 +1746,10 @@ mod tests {
       ])
       .cenotaph
     );
+  }
+
+  #[test]
+  fn invalid_claim_produces_cenotaph() {
+    assert!(decipher(&[Tag::Claim.into(), 1]).cenotaph);
   }
 }

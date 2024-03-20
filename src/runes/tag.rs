@@ -25,6 +25,20 @@ impl Tag {
     fields.remove(&self.into())
   }
 
+  pub(super) fn take_with<T>(
+    self,
+    fields: &mut HashMap<u128, u128>,
+    with: impl Fn(u128) -> Option<T>,
+  ) -> Option<T> {
+    let value = fields.get(&self.into())?;
+
+    let value = with(*value)?;
+
+    fields.remove(&self.into());
+
+    Some(value)
+  }
+
   pub(super) fn encode(self, value: u128, payload: &mut Vec<u8>) {
     varint::encode_to_vec(self.into(), payload);
     varint::encode_to_vec(value, payload);

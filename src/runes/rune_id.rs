@@ -1,4 +1,4 @@
-use {super::*, std::num::TryFromIntError};
+use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd, Default)]
 pub struct RuneId {
@@ -7,13 +7,19 @@ pub struct RuneId {
 }
 
 impl TryFrom<u128> for RuneId {
-  type Error = TryFromIntError;
+  type Error = Error;
 
-  fn try_from(n: u128) -> Result<Self, Self::Error> {
-    Ok(Self {
+  fn try_from(n: u128) -> Result<Self, Error> {
+    let id = Self {
       block: u32::try_from(n >> 16)?,
       tx: u16::try_from(n & 0xFFFF).unwrap(),
-    })
+    };
+
+    if id.block == 0 && id.tx > 0 {
+      bail!("invalid rune ID: {id}")
+    }
+
+    Ok(id)
   }
 }
 
