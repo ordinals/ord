@@ -83,12 +83,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
-          let Ok(output) = usize::try_from(output) else {
-            continue;
-          };
-
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser
+          let output = usize::try_from(output).unwrap();
           assert!(output <= tx.output.len());
 
           let (balance, id) = if id == RuneId::default() {

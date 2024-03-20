@@ -208,7 +208,7 @@ impl Runestone {
         let next = u128::from(edict.id);
         varint::encode_to_vec(next - id, &mut payload);
         varint::encode_to_vec(edict.amount, &mut payload);
-        varint::encode_to_vec(edict.output, &mut payload);
+        varint::encode_to_vec(edict.output.into(), &mut payload);
         id = next;
       }
     }
@@ -1709,5 +1709,18 @@ mod tests {
     }
 
     assert_eq!(MAX_SPACERS, rune.parse::<SpacedRune>().unwrap().spacers);
+  }
+
+  #[test]
+  fn edict_output_greater_than_32_max() {
+    assert!(
+      decipher(&[
+        Tag::Body.into(),
+        rune_id(1).into(),
+        1,
+        u128::from(u32::MAX) + 1,
+      ])
+      .cenotaph
+    );
   }
 }

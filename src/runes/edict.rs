@@ -4,7 +4,7 @@ use super::*;
 pub struct Edict {
   pub id: RuneId,
   pub amount: u128,
-  pub output: u128,
+  pub output: u32,
 }
 
 impl Edict {
@@ -20,7 +20,11 @@ impl Edict {
       return None;
     }
 
-    if output > u128::try_from(tx.output.len()).ok()? {
+    let Ok(output) = u32::try_from(output) else {
+      return None;
+    };
+
+    if output > u32::try_from(tx.output.len()).unwrap() {
       return None;
     }
 
