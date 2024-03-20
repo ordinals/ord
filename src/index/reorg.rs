@@ -6,8 +6,8 @@ pub(crate) enum ReorgError {
   Unrecoverable,
 }
 
-impl fmt::Display for ReorgError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for ReorgError {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       ReorgError::Recoverable { height, depth } => {
         write!(f, "{depth} block deep reorg detected at height {height}")
@@ -72,7 +72,7 @@ impl Reorg {
 
     log::info!(
       "successfully rolled back database to height {}",
-      index.block_count()?
+      index.begin_read()?.block_count()?
     );
 
     Ok(())
@@ -86,7 +86,7 @@ impl Reorg {
     if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
       && u32::try_from(
         index
-          .options
+          .settings
           .bitcoin_rpc_client(None)?
           .get_blockchain_info()?
           .headers,

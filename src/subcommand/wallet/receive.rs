@@ -2,13 +2,27 @@ use super::*;
 
 #[derive(Deserialize, Serialize)]
 pub struct Output {
-  pub address: Address<NetworkUnchecked>,
+  pub addresses: Vec<Address<NetworkUnchecked>>,
 }
 
-pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let address = wallet
-    .bitcoin_client()?
-    .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+#[derive(Debug, Parser)]
+pub(crate) struct Receive {
+  #[arg(short, long, help = "Generate <NUMBER> addresses.")]
+  number: Option<u64>,
+}
 
-  Ok(Some(Box::new(Output { address })))
+impl Receive {
+  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
+    let mut addresses: Vec<Address<NetworkUnchecked>> = Vec::new();
+
+    for _ in 0..self.number.unwrap_or(1) {
+      addresses.push(
+        wallet
+          .bitcoin_client()
+          .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?,
+      );
+    }
+
+    Ok(Some(Box::new(Output { addresses })))
+  }
 }

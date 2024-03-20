@@ -1,11 +1,10 @@
 use super::*;
 
-pub type RuneJson = RuneHtml;
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneHtml {
   pub entry: RuneEntry,
   pub id: RuneId,
+  pub mintable: bool,
   pub parent: Option<InscriptionId>,
 }
 
@@ -28,22 +27,21 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 100,
-          number: 25,
           mint: Some(MintEntry {
             end: Some(11),
             limit: Some(1000000001),
             deadline: Some(7),
           }),
-          rune: Rune(u128::max_value()),
+          number: 25,
+          premine: 123456789,
+          rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
+        mintable: true,
         parent: Some(InscriptionId {
           txid: Txid::all_zeros(),
           index: 0,
@@ -57,10 +55,10 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
-  <dt>etching block height</dt>
+  <dd>10:9</dd>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>
@@ -73,10 +71,14 @@ mod tests {
       <dd>1.000000001 %</dd>
       <dt>mints</dt>
       <dd>100</dd>
+      <dt>mintable</dt>
+      <dd>true</dd>
     </dl>
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0.123456789\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -103,16 +105,15 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 0,
           number: 25,
-          rune: Rune(u128::max_value()),
+          premine: 0,
+          rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -122,15 +123,17 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
-  <dt>etching block height</dt>
+  <dd>10:9</dd>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>
@@ -158,17 +161,16 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 0,
+          premine: 0,
           number: 25,
-          rune: Rune(u128::max_value()),
+          rune: Rune(u128::MAX),
           spacers: 1,
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
-        id: RuneId {
-          height: 10,
-          index: 9,
-        },
+        id: RuneId { block: 10, tx: 9 },
+        mintable: false,
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
@@ -178,10 +180,10 @@ mod tests {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:00 UTC</time></dd>
   <dt>id</dt>
-  <dd>10/9</dd>
-  <dt>etching block height</dt>
+  <dd>10:9</dd>
+  <dt>etching block</dt>
   <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction index</dt>
+  <dt>etching transaction</dt>
   <dd>9</dd>
   <dt>mint</dt>
   <dd>
@@ -194,10 +196,14 @@ mod tests {
       <dd>none</dd>
       <dt>mints</dt>
       <dd>0</dd>
+      <dt>mintable</dt>
+      <dd>false</dd>
     </dl>
   </dd>
   <dt>supply</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
+  <dt>premine</dt>
+  <dd>0\u{00A0}%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{00A0}%</dd>
   <dt>divisibility</dt>

@@ -78,7 +78,7 @@ This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until you 
 
 ## Importing into `ord` wallet
 
-For details on setting up Bitcoin Core and the `ord` wallet check out the [Inscriptions Guide](../inscriptions.md)
+For details on setting up Bitcoin Core and the `ord` wallet check out the [Wallet Guide](../wallet.md)
 
 When setting up `ord`, instead of running `ord wallet create` to create a brand-new wallet, you can import your existing wallet using `ord wallet restore "BIP39 SEED PHRASE"` using the seed phrase you generated with Sparrow Wallet.
 

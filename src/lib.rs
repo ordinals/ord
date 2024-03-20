@@ -15,11 +15,16 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
-    inscriptions::{media, teleburn, Charm, Media, ParsedEnvelope},
+    index::BitcoinCoreRpcResultExt,
+    inscriptions::{
+      inscription_id,
+      media::{self, ImageRendering, Media},
+      teleburn, Charm, ParsedEnvelope,
+    },
     representation::Representation,
-    runes::{Etching, Pile, SpacedRune},
+    runes::Etching,
+    settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -44,12 +49,14 @@ use {
   ciborium::Value,
   clap::{ArgGroup, Parser},
   html_escaper::{Escape, Trusted},
+  http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
-    cmp,
+    cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
@@ -58,7 +65,7 @@ use {
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process,
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -68,7 +75,6 @@ use {
     time::{Duration, Instant, SystemTime},
   },
   sysinfo::System,
-  templates::{InscriptionJson, OutputJson, RuneJson, StatusJson},
   tokio::{runtime::Runtime, task},
 };
 
@@ -79,7 +85,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  runes::{Edict, Rune, RuneId, Runestone},
+  runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -91,29 +97,29 @@ mod test;
 use self::test::*;
 
 macro_rules! tprintln {
-    ($($arg:tt)*) => {
-
-      if cfg!(test) {
-        eprint!("==> ");
-        eprintln!($($arg)*);
-      }
-    };
+  ($($arg:tt)*) => {
+    if cfg!(test) {
+      eprint!("==> ");
+      eprintln!($($arg)*);
+    }
+  };
 }
 
+pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod config;
 mod decimal;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
 mod object;
-mod options;
+pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
-mod server_config;
+mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
@@ -121,11 +127,12 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+const RUNE_COMMIT_INTERVAL: u32 = 6;
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
-static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
-
-const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
@@ -157,15 +164,21 @@ fn fund_raw_transaction(
           ..Default::default()
         }),
         Some(false),
-      )?
+      )
+      .map_err(|err| {
+        if matches!(
+          err,
+          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          ))
+        ) {
+          anyhow!("not enough cardinal utxos")
+        } else {
+          err.into()
+        }
+      })?
       .hex,
   )
-}
-
-fn integration_test() -> bool {
-  env::var_os("ORD_INTEGRATION_TEST")
-    .map(|value| value.len() > 0)
-    .unwrap_or(false)
 }
 
 pub fn timestamp(seconds: u32) -> DateTime<Utc> {
@@ -183,10 +196,23 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
-pub fn parse_ord_server_args(args: &str) -> (Options, crate::subcommand::server::Server) {
+fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
+  address.to_string().parse().unwrap()
+}
+
+pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
   match Arguments::try_parse_from(args.split_whitespace()) {
     Ok(arguments) => match arguments.subcommand {
-      Subcommand::Server(server) => (arguments.options, server),
+      Subcommand::Server(server) => (
+        Settings::merge(
+          arguments.options,
+          vec![("INTEGRATION_TEST".into(), "1".into())]
+            .into_iter()
+            .collect(),
+        )
+        .unwrap(),
+        server,
+      ),
       subcommand => panic!("unexpected subcommand: {subcommand:?}"),
     },
     Err(err) => panic!("error parsing arguments: {err}"),

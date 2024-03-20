@@ -61,8 +61,8 @@ pub enum Target {
   ExactPostage(Amount),
 }
 
-impl fmt::Display for Error {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Error::Dust {
         output_value,
@@ -93,7 +93,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub struct TransactionBuilder {
-  amounts: BTreeMap<OutPoint, Amount>,
+  amounts: BTreeMap<OutPoint, TxOut>,
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
@@ -119,7 +119,7 @@ impl TransactionBuilder {
   pub fn new(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-    amounts: BTreeMap<OutPoint, Amount>,
+    amounts: BTreeMap<OutPoint, TxOut>,
     locked_utxos: BTreeSet<OutPoint>,
     runic_utxos: BTreeSet<OutPoint>,
     recipient: Address,
@@ -201,23 +201,26 @@ impl TransactionBuilder {
       }
     }
 
-    let amount = *self
+    let amount = self
       .amounts
       .get(&self.outgoing.outpoint)
-      .ok_or(Error::NotInWallet(self.outgoing))?;
+      .ok_or(Error::NotInWallet(self.outgoing))?
+      .value;
 
-    if self.outgoing.offset >= amount.to_sat() {
-      return Err(Error::OutOfRange(self.outgoing, amount.to_sat() - 1));
+    if self.outgoing.offset >= amount {
+      return Err(Error::OutOfRange(self.outgoing, amount - 1));
     }
 
     self.utxos.remove(&self.outgoing.outpoint);
     self.inputs.push(self.outgoing.outpoint);
-    self.outputs.push((self.recipient.clone(), amount));
+    self
+      .outputs
+      .push((self.recipient.clone(), Amount::from_sat(amount)));
 
     tprintln!(
       "selected outgoing outpoint {} with value {}",
       self.outgoing.outpoint,
-      amount.to_sat()
+      amount
     );
 
     Ok(self)
@@ -268,7 +271,8 @@ impl TransactionBuilder {
         tprintln!("no padding needed");
       } else {
         while self.outputs[0].1 < dust_limit {
-          let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1, true)?;
+          let (utxo, size) =
+            self.select_cardinal_utxo((dust_limit - self.outputs[0].1).to_sat(), true)?;
 
           self.inputs.insert(0, utxo);
           self.outputs[0].1 += size;
@@ -304,7 +308,7 @@ impl TransactionBuilder {
           .checked_add(additional_fee)
           .ok_or(Error::ValueOverflow)?;
 
-        let (utxo, value) = self.select_cardinal_utxo(needed, false)?;
+        let (utxo, value) = self.select_cardinal_utxo(needed.to_sat(), false)?;
 
         let benefit = value
           .checked_sub(additional_fee)
@@ -483,8 +487,8 @@ impl TransactionBuilder {
       self
         .amounts
         .iter()
-        .filter(|(outpoint, amount)| *outpoint == &self.outgoing.outpoint
-          && self.outgoing.offset < amount.to_sat())
+        .filter(|(outpoint, txout)| *outpoint == &self.outgoing.outpoint
+          && self.outgoing.offset < txout.value)
         .count(),
       1,
       "invariant: outgoing sat is contained in utxos"
@@ -508,7 +512,7 @@ impl TransactionBuilder {
         found = true;
         break;
       } else {
-        sat_offset += self.amounts[&tx_in.previous_output].to_sat();
+        sat_offset += self.amounts[&tx_in.previous_output].value;
       }
     }
     assert!(found, "invariant: outgoing sat is found in inputs");
@@ -602,7 +606,7 @@ impl TransactionBuilder {
 
     let mut actual_fee = Amount::ZERO;
     for input in &transaction.input {
-      actual_fee += self.amounts[&input.previous_output];
+      actual_fee += Amount::from_sat(self.amounts[&input.previous_output].value);
     }
     for output in &transaction.output {
       actual_fee -= Amount::from_sat(output.value);
@@ -635,7 +639,7 @@ impl TransactionBuilder {
       if *outpoint == self.outgoing.outpoint {
         return sat_offset + self.outgoing.offset;
       } else {
-        sat_offset += self.amounts[outpoint].to_sat();
+        sat_offset += self.amounts[outpoint].value;
       }
     }
 
@@ -649,7 +653,7 @@ impl TransactionBuilder {
   /// dust outputs) the target value.
   fn select_cardinal_utxo(
     &mut self,
-    target_value: Amount,
+    target_value: u64,
     prefer_under: bool,
   ) -> Result<(OutPoint, Amount)> {
     tprintln!(
@@ -672,7 +676,7 @@ impl TransactionBuilder {
         continue;
       }
 
-      let current_value = self.amounts[utxo];
+      let current_value = self.amounts[utxo].value;
 
       let (_, best_value) = match best_match {
         Some(prev) => prev,
@@ -682,7 +686,7 @@ impl TransactionBuilder {
         }
       };
 
-      let abs_diff = |a: Amount, b: Amount| -> Amount { max(a, b) - min(a, b) };
+      let abs_diff = |a: u64, b: u64| -> u64 { max(a, b) - min(a, b) };
       let is_closer = abs_diff(current_value, target_value) < abs_diff(best_value, target_value);
 
       let not_preference_but_closer = if prefer_under {
@@ -713,7 +717,7 @@ impl TransactionBuilder {
     self.utxos.remove(&utxo);
     tprintln!("found cardinal worth {}", value);
 
-    Ok((utxo, value))
+    Ok((utxo, Amount::from_sat(value)))
   }
 }
 
@@ -724,9 +728,9 @@ mod tests {
   #[test]
   fn select_sat() {
     let mut utxos = vec![
-      (outpoint(1), Amount::from_sat(5_000)),
-      (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
-      (outpoint(3), Amount::from_sat(2_000)),
+      (outpoint(1), tx_out(5_000, address())),
+      (outpoint(2), tx_out(49 * COIN_VALUE, address())),
+      (outpoint(3), tx_out(2_000, address())),
     ];
 
     let tx_builder = TransactionBuilder::new(
@@ -761,9 +765,9 @@ mod tests {
   #[test]
   fn tx_builder_to_transaction() {
     let mut amounts = BTreeMap::new();
-    amounts.insert(outpoint(1), Amount::from_sat(5_000));
-    amounts.insert(outpoint(2), Amount::from_sat(5_000));
-    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+    amounts.insert(outpoint(1), tx_out(5_000, address()));
+    amounts.insert(outpoint(2), tx_out(5_000, address()));
+    amounts.insert(outpoint(3), tx_out(2_000, address()));
 
     let tx_builder = TransactionBuilder {
       amounts,
@@ -802,7 +806,7 @@ mod tests {
 
   #[test]
   fn transactions_are_rbf() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+    let utxos = vec![(outpoint(1), tx_out(5_000, address()))];
 
     assert!(TransactionBuilder::new(
       satpoint(1, 0),
@@ -822,7 +826,7 @@ mod tests {
 
   #[test]
   fn deduct_fee() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+    let utxos = vec![(outpoint(1), tx_out(5_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -849,7 +853,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: deducting fee does not consume sat")]
   fn invariant_deduct_fee_does_not_consume_sat() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+    let utxos = vec![(outpoint(1), tx_out(5_000, address()))];
 
     TransactionBuilder::new(
       satpoint(1, 4_950),
@@ -872,8 +876,8 @@ mod tests {
   #[test]
   fn additional_postage_added_when_required() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(5_000)),
-      (outpoint(2), Amount::from_sat(5_000)),
+      (outpoint(1), tx_out(5_000, address())),
+      (outpoint(2), tx_out(5_000, address())),
     ];
 
     pretty_assert_eq!(
@@ -900,7 +904,7 @@ mod tests {
 
   #[test]
   fn insufficient_padding_to_add_postage_no_utxos() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+    let utxos = vec![(outpoint(1), tx_out(5_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -922,8 +926,8 @@ mod tests {
   #[test]
   fn insufficient_padding_to_add_postage_small_utxos() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(5_000)),
-      (outpoint(2), Amount::from_sat(1)),
+      (outpoint(1), tx_out(5_000, address())),
+      (outpoint(2), tx_out(1, address())),
     ];
 
     pretty_assert_eq!(
@@ -946,8 +950,8 @@ mod tests {
   #[test]
   fn excess_additional_postage_is_stripped() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(5_000)),
-      (outpoint(2), Amount::from_sat(25_000)),
+      (outpoint(1), tx_out(5_000, address())),
+      (outpoint(2), tx_out(25_000, address())),
     ];
 
     pretty_assert_eq!(
@@ -982,7 +986,7 @@ mod tests {
     TransactionBuilder::new(
       satpoint(2, 0),
       BTreeMap::new(),
-      vec![(outpoint(1), Amount::from_sat(4))]
+      vec![(outpoint(1), tx_out(4, address()))]
         .into_iter()
         .collect(),
       BTreeSet::new(),
@@ -1002,7 +1006,7 @@ mod tests {
     TransactionBuilder::new(
       satpoint(1, 4),
       BTreeMap::new(),
-      vec![(outpoint(1), Amount::from_sat(4))]
+      vec![(outpoint(1), tx_out(4, address()))]
         .into_iter()
         .collect(),
       BTreeSet::new(),
@@ -1022,7 +1026,7 @@ mod tests {
     TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
-      vec![(outpoint(1), Amount::from_sat(5))]
+      vec![(outpoint(1), tx_out(5, address()))]
         .into_iter()
         .collect(),
       BTreeSet::new(),
@@ -1042,7 +1046,7 @@ mod tests {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
-      vec![(outpoint(1), Amount::from_sat(5))]
+      vec![(outpoint(1), tx_out(5, address()))]
         .into_iter()
         .collect(),
       BTreeSet::new(),
@@ -1069,7 +1073,7 @@ mod tests {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
-      vec![(outpoint(1), Amount::from_sat(5))]
+      vec![(outpoint(1), tx_out(5, address()))]
         .into_iter()
         .collect(),
       BTreeSet::new(),
@@ -1089,7 +1093,7 @@ mod tests {
 
   #[test]
   fn excess_postage_is_stripped() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
+    let utxos = vec![(outpoint(1), tx_out(1_000_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -1119,7 +1123,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: excess postage is stripped")]
   fn invariant_excess_postage_is_stripped() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
+    let utxos = vec![(outpoint(1), tx_out(1_000_000, address()))];
 
     TransactionBuilder::new(
       satpoint(1, 0),
@@ -1140,7 +1144,7 @@ mod tests {
 
   #[test]
   fn sat_is_aligned() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -1167,8 +1171,8 @@ mod tests {
   #[test]
   fn alignment_output_under_dust_limit_is_padded() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(10_000)),
+      (outpoint(1), tx_out(10_000, address())),
+      (outpoint(2), tx_out(10_000, address())),
     ];
 
     pretty_assert_eq!(
@@ -1196,7 +1200,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are either change or recipient")]
   fn invariant_all_output_are_recognized() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     let mut builder = TransactionBuilder::new(
       satpoint(1, 3_333),
@@ -1225,7 +1229,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are above dust limit")]
   fn invariant_all_output_are_above_dust_limit() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     TransactionBuilder::new(
       satpoint(1, 1),
@@ -1252,7 +1256,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: sat is at first position in recipient output")]
   fn invariant_sat_is_aligned() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     TransactionBuilder::new(
       satpoint(1, 3_333),
@@ -1276,7 +1280,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: fee estimation is correct")]
   fn invariant_fee_is_at_least_target_fee_rate() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     TransactionBuilder::new(
       satpoint(1, 0),
@@ -1300,9 +1304,9 @@ mod tests {
   #[should_panic(expected = "invariant: recipient address appears exactly once in outputs")]
   fn invariant_recipient_appears_exactly_once() {
     let mut amounts = BTreeMap::new();
-    amounts.insert(outpoint(1), Amount::from_sat(5_000));
-    amounts.insert(outpoint(2), Amount::from_sat(5_000));
-    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+    amounts.insert(outpoint(1), tx_out(5_000, address()));
+    amounts.insert(outpoint(2), tx_out(5_000, address()));
+    amounts.insert(outpoint(3), tx_out(2_000, address()));
 
     TransactionBuilder {
       amounts,
@@ -1331,9 +1335,9 @@ mod tests {
   #[should_panic(expected = "invariant: change addresses appear at most once in outputs")]
   fn invariant_change_appears_at_most_once() {
     let mut amounts = BTreeMap::new();
-    amounts.insert(outpoint(1), Amount::from_sat(5_000));
-    amounts.insert(outpoint(2), Amount::from_sat(5_000));
-    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+    amounts.insert(outpoint(1), tx_out(5_000, address()));
+    amounts.insert(outpoint(2), tx_out(5_000, address()));
+    amounts.insert(outpoint(3), tx_out(2_000, address()));
 
     TransactionBuilder {
       amounts,
@@ -1361,8 +1365,8 @@ mod tests {
   #[test]
   fn do_not_select_already_inscribed_sats_for_cardinal_utxos() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(100)),
-      (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
+      (outpoint(1), tx_out(100, address())),
+      (outpoint(2), tx_out(49 * COIN_VALUE, address())),
     ];
 
     pretty_assert_eq!(
@@ -1385,8 +1389,8 @@ mod tests {
   #[test]
   fn do_not_select_runic_utxos_for_cardinal_utxos() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(100)),
-      (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
+      (outpoint(1), tx_out(100, address())),
+      (outpoint(2), tx_out(49 * COIN_VALUE, address())),
     ];
 
     pretty_assert_eq!(
@@ -1408,7 +1412,7 @@ mod tests {
 
   #[test]
   fn do_not_send_two_inscriptions_at_once() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1_000))];
+    let utxos = vec![(outpoint(1), tx_out(1_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -1433,7 +1437,7 @@ mod tests {
 
   #[test]
   fn build_transaction_with_custom_fee_rate() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), tx_out(10_000, address()))];
 
     let fee_rate = FeeRate::try_from(17.3).unwrap();
 
@@ -1467,7 +1471,7 @@ mod tests {
 
   #[test]
   fn exact_transaction_has_correct_value() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+    let utxos = vec![(outpoint(1), tx_out(5_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -1494,8 +1498,8 @@ mod tests {
   #[test]
   fn exact_transaction_adds_output_to_cover_value() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(1_000)),
-      (outpoint(2), Amount::from_sat(1_000)),
+      (outpoint(1), tx_out(1_000, address())),
+      (outpoint(2), tx_out(1_000, address())),
     ];
 
     pretty_assert_eq!(
@@ -1522,7 +1526,7 @@ mod tests {
 
   #[test]
   fn refuse_to_send_dust() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1_000))];
+    let utxos = vec![(outpoint(1), tx_out(1_000, address()))];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
@@ -1547,8 +1551,8 @@ mod tests {
   #[test]
   fn do_not_select_outputs_which_do_not_pay_for_their_own_fee_at_default_fee_rate() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(1_000)),
-      (outpoint(2), Amount::from_sat(100)),
+      (outpoint(1), tx_out(1_000, address())),
+      (outpoint(2), tx_out(100, address())),
     ];
 
     pretty_assert_eq!(
@@ -1571,8 +1575,8 @@ mod tests {
   #[test]
   fn do_not_select_outputs_which_do_not_pay_for_their_own_fee_at_higher_fee_rate() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(1_000)),
-      (outpoint(2), Amount::from_sat(500)),
+      (outpoint(1), tx_out(1_000, address())),
+      (outpoint(2), tx_out(500, address())),
     ];
 
     pretty_assert_eq!(
@@ -1620,7 +1624,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(1_000))]
+        vec![(outpoint(1), tx_out(1_000, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1646,7 +1650,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(20_099))]
+        vec![(outpoint(1), tx_out(20_099, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1672,7 +1676,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(1_500))]
+        vec![(outpoint(1), tx_out(1_500, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1698,7 +1702,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(1_500))]
+        vec![(outpoint(1), tx_out(1_500, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1719,7 +1723,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(1000))]
+        vec![(outpoint(1), tx_out(1000, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1740,7 +1744,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(1000))]
+        vec![(outpoint(1), tx_out(1000, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1761,7 +1765,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(2000))]
+        vec![(outpoint(1), tx_out(2000, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1787,7 +1791,7 @@ mod tests {
       TransactionBuilder::new(
         satpoint(1, 0),
         BTreeMap::new(),
-        vec![(outpoint(1), Amount::from_sat(45000))]
+        vec![(outpoint(1), tx_out(45000, address()))]
           .into_iter()
           .collect(),
         BTreeSet::new(),
@@ -1810,12 +1814,12 @@ mod tests {
   #[test]
   fn select_outgoing_can_select_multiple_utxos() {
     let mut utxos = vec![
-      (outpoint(2), Amount::from_sat(3_006)), // 2. biggest utxo is selected 2nd leaving us needing 4206 more
-      (outpoint(1), Amount::from_sat(3_003)), // 1. satpoint is selected 1st leaving us needing 7154 more
-      (outpoint(5), Amount::from_sat(3_004)),
-      (outpoint(4), Amount::from_sat(3_001)), // 4. smallest utxo >= 1259 is selected 4th, filling deficit
-      (outpoint(3), Amount::from_sat(3_005)), // 3. next biggest utxo is selected 3rd leaving us needing 1259 more
-      (outpoint(6), Amount::from_sat(3_002)),
+      (outpoint(2), tx_out(3_006, address())), // 2. biggest utxo is selected 2nd leaving us needing 4206 more
+      (outpoint(1), tx_out(3_003, address())), // 1. satpoint is selected 1st leaving us needing 7154 more
+      (outpoint(5), tx_out(3_004, address())),
+      (outpoint(4), tx_out(3_001, address())), // 4. smallest utxo >= 1259 is selected 4th, filling deficit
+      (outpoint(3), tx_out(3_005, address())), // 3. next biggest utxo is selected 3rd leaving us needing 1259 more
+      (outpoint(6), tx_out(3_002, address())),
     ];
 
     let tx_builder = TransactionBuilder::new(
@@ -1855,13 +1859,13 @@ mod tests {
   #[test]
   fn pad_alignment_output_can_select_multiple_utxos() {
     let mut utxos = vec![
-      (outpoint(4), Amount::from_sat(101)), // 4. smallest utxo >= 84 is selected 4th, filling deficit
-      (outpoint(1), Amount::from_sat(20_000)), // 1. satpoint is selected 1st leaving deficit 293
-      (outpoint(2), Amount::from_sat(105)), // 2. biggest utxo <= 293 is selected 2nd leaving deficit 188
-      (outpoint(5), Amount::from_sat(103)),
-      (outpoint(6), Amount::from_sat(10_000)),
-      (outpoint(3), Amount::from_sat(104)), // 3. biggest utxo <= 188 is selected 3rd leaving deficit 84
-      (outpoint(7), Amount::from_sat(102)),
+      (outpoint(4), tx_out(101, address())), // 4. smallest utxo >= 84 is selected 4th, filling deficit
+      (outpoint(1), tx_out(20_000, address())), // 1. satpoint is selected 1st leaving deficit 293
+      (outpoint(2), tx_out(105, address())), // 2. biggest utxo <= 293 is selected 2nd leaving deficit 188
+      (outpoint(5), tx_out(103, address())),
+      (outpoint(6), tx_out(10_000, address())),
+      (outpoint(3), tx_out(104, address())), // 3. biggest utxo <= 188 is selected 3rd leaving deficit 84
+      (outpoint(7), tx_out(102, address())),
     ];
 
     let tx_builder = TransactionBuilder::new(
@@ -1908,13 +1912,13 @@ mod tests {
     expected_value: Amount,
   ) {
     let utxos = vec![
-      (outpoint(4), Amount::from_sat(101)),
-      (outpoint(1), Amount::from_sat(20_000)),
-      (outpoint(2), Amount::from_sat(105)),
-      (outpoint(5), Amount::from_sat(103)),
-      (outpoint(6), Amount::from_sat(10_000)),
-      (outpoint(3), Amount::from_sat(104)),
-      (outpoint(7), Amount::from_sat(102)),
+      (outpoint(4), tx_out(101, address())),
+      (outpoint(1), tx_out(20_000, address())),
+      (outpoint(2), tx_out(105, address())),
+      (outpoint(5), tx_out(103, address())),
+      (outpoint(6), tx_out(10_000, address())),
+      (outpoint(3), tx_out(104, address())),
+      (outpoint(7), tx_out(102, address())),
     ];
 
     let mut tx_builder = TransactionBuilder::new(
@@ -1931,7 +1935,7 @@ mod tests {
 
     assert_eq!(
       tx_builder
-        .select_cardinal_utxo(target_value, prefer_under)
+        .select_cardinal_utxo(target_value.to_sat(), prefer_under)
         .unwrap()
         .1,
       expected_value
@@ -1969,7 +1973,7 @@ mod tests {
 
   #[test]
   fn build_transaction_with_custom_postage() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
+    let utxos = vec![(outpoint(1), tx_out(1_000_000, address()))];
 
     let fee_rate = FeeRate::try_from(17.3).unwrap();
 
@@ -2006,7 +2010,7 @@ mod tests {
 
   #[test]
   fn select_cardinal_utxo_ignores_locked_utxos_and_errors_if_none_available() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(500))];
+    let utxos = vec![(outpoint(1), tx_out(500, address()))];
     let locked_utxos = vec![outpoint(1)];
 
     let mut tx_builder = TransactionBuilder::new(
@@ -2022,7 +2026,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder.select_cardinal_utxo(Amount::from_sat(500), false),
+      tx_builder.select_cardinal_utxo(500, false),
       Err(Error::NotEnoughCardinalUtxos),
     );
   }
@@ -2030,8 +2034,8 @@ mod tests {
   #[test]
   fn select_cardinal_utxo_ignores_locked_utxos() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(500)),
-      (outpoint(2), Amount::from_sat(500)),
+      (outpoint(1), tx_out(500, address())),
+      (outpoint(2), tx_out(500, address())),
     ];
     let locked_utxos = vec![outpoint(1)];
 
@@ -2048,10 +2052,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(Amount::from_sat(500), false)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, false).unwrap().0,
       outpoint(2),
     );
   }
@@ -2059,8 +2060,8 @@ mod tests {
   #[test]
   fn prefer_further_away_utxos_if_they_are_newly_under_target() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(510)),
-      (outpoint(2), Amount::from_sat(400)),
+      (outpoint(1), tx_out(510, address())),
+      (outpoint(2), tx_out(400, address())),
     ];
 
     let mut tx_builder = TransactionBuilder::new(
@@ -2076,10 +2077,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(Amount::from_sat(500), true)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, true).unwrap().0,
       outpoint(2),
     );
   }
@@ -2087,8 +2085,8 @@ mod tests {
   #[test]
   fn prefer_further_away_utxos_if_they_are_newly_over_target() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(490)),
-      (outpoint(2), Amount::from_sat(600)),
+      (outpoint(1), tx_out(490, address())),
+      (outpoint(2), tx_out(600, address())),
     ];
 
     let mut tx_builder = TransactionBuilder::new(
@@ -2104,10 +2102,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(Amount::from_sat(500), false)
-        .unwrap()
-        .0,
+      tx_builder.select_cardinal_utxo(500, false).unwrap().0,
       outpoint(2),
     );
   }

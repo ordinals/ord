@@ -1,5 +1,5 @@
-Ordinal Inscription Guide
-=========================
+Wallet
+======
 
 Individual sats can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
@@ -158,17 +158,114 @@ ord --version
 
 Which prints out `ord`'s version number.
 
-Creating a Bitcoin Core Wallet
-------------------------------
+Creating a Wallet
+-----------------
 
-`ord` uses Bitcoin Core to manage private keys, sign transactions, and
-broadcast transactions to the Bitcoin network.
+`ord` uses `bitcoind` to manage private keys, sign transactions, and
+broadcast transactions to the Bitcoin network. Additionally the `ord wallet`
+requires [`ord server`](explorer.md) running in the background. Make sure these
+programs are running:
 
-To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
+```
+bitcoind -txindex
+```
+
+```
+ord server
+```
+
+To create a wallet named `ord`, the default, for use with `ord wallet`, run:
 
 ```
 ord wallet create
 ```
+
+This will print out your seed phrase mnemonic, store it somewhere safe.
+
+```
+{
+  "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
+  "passphrase": ""
+}
+```
+
+If you want to specify a different name or use an `ord server` running on a
+non-default URL you can set these options:
+
+```
+ord wallet --name foo --server-url http://127.0.0.1:8080 create
+```
+
+To see all available wallet options you can run:
+
+```
+ord wallet help
+```
+
+Restoring and Dumping Wallet
+----------------------------
+
+The `ord` wallet uses descriptors, so you can export the output descriptors and
+import them into another descriptor-based wallet. To export the wallet
+descriptors, which include your private keys:
+
+```
+$ ord wallet dump
+==========================================
+= THIS STRING CONTAINS YOUR PRIVATE KEYS =
+=        DO NOT SHARE WITH ANYONE        =
+==========================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+```
+
+An `ord` wallet can be restored from a mnemonic:
+
+```
+ord wallet restore --from mnemonic
+```
+
+Type your mnemonic and press return.
+
+To restore from a descriptor in `descriptor.json`:
+
+```
+cat descriptor.json | ord wallet restore --from descriptor
+```
+
+To restore from a descriptor in the clipboard:
+
+```
+ord wallet restore --from descriptor
+```
+
+Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z
+on Windows.
 
 Receiving Sats
 --------------
@@ -301,7 +398,7 @@ ord wallet receive
 The sender can transfer the inscription to your address using:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> ADDRESS INSCRIPTION_ID
 ```
 
 See the pending transaction with:

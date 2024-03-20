@@ -69,8 +69,20 @@ impl Rune {
     self.0 >= RESERVED
   }
 
-  pub(crate) fn reserved(n: u128) -> Self {
+  pub fn reserved(n: u128) -> Self {
     Rune(RESERVED.checked_add(n).unwrap())
+  }
+
+  pub(crate) fn commitment(self) -> Vec<u8> {
+    let bytes = self.0.to_le_bytes();
+
+    let mut end = bytes.len();
+
+    while end > 0 && bytes[end - 1] == 0 {
+      end -= 1;
+    }
+
+    bytes[..end].into()
   }
 }
 
@@ -95,7 +107,7 @@ impl<'de> Deserialize<'de> for Rune {
 impl Display for Rune {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     let mut n = self.0;
-    if n == u128::max_value() {
+    if n == u128::MAX {
       return write!(f, "BCGDENLQRQWDSLRUGSNLBTMFIJAV");
     }
 
@@ -120,7 +132,7 @@ impl Display for Rune {
 }
 
 impl FromStr for Rune {
-  type Err = crate::Error;
+  type Err = Error;
 
   fn from_str(s: &str) -> crate::Result<Self> {
     let mut x = 0u128;
@@ -183,9 +195,9 @@ mod tests {
     case(27, "AB");
     case(51, "AZ");
     case(52, "BA");
-    case(u128::max_value() - 2, "BCGDENLQRQWDSLRUGSNLBTMFIJAT");
-    case(u128::max_value() - 1, "BCGDENLQRQWDSLRUGSNLBTMFIJAU");
-    case(u128::max_value(), "BCGDENLQRQWDSLRUGSNLBTMFIJAV");
+    case(u128::MAX - 2, "BCGDENLQRQWDSLRUGSNLBTMFIJAT");
+    case(u128::MAX - 1, "BCGDENLQRQWDSLRUGSNLBTMFIJAU");
+    case(u128::MAX, "BCGDENLQRQWDSLRUGSNLBTMFIJAV");
   }
 
   #[test]
@@ -217,7 +229,7 @@ mod tests {
     case(END - 1, "A");
     case(END, "A");
     case(END + 1, "A");
-    case(u32::max_value(), "A");
+    case(u32::MAX, "A");
 
     case(START + INTERVAL * 00 - 1, "AAAAAAAAAAAAA");
     case(START + INTERVAL * 00 + 0, "ZZYZXBRKWXVA");
@@ -357,5 +369,21 @@ mod tests {
         }
       }
     }
+  }
+
+  #[test]
+  fn commitment() {
+    #[track_caller]
+    fn case(rune: u128, bytes: &[u8]) {
+      assert_eq!(Rune(rune).commitment(), bytes);
+    }
+
+    case(0, &[]);
+    case(1, &[1]);
+    case(255, &[255]);
+    case(256, &[0, 1]);
+    case(65535, &[255, 255]);
+    case(65536, &[0, 0, 1]);
+    case(u128::MAX, &[255; 16]);
   }
 }

@@ -9,7 +9,7 @@ pub enum Outgoing {
 }
 
 impl Display for Outgoing {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Self::Amount(amount) => write!(f, "{}", amount.to_string().to_lowercase()),
       Self::InscriptionId(inscription_id) => inscription_id.fmt(f),
@@ -24,8 +24,6 @@ impl FromStr for Outgoing {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     lazy_static! {
-      static ref SATPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+:\d+$").unwrap();
-      static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
       static ref AMOUNT: Regex = Regex::new(
         r"(?x)
         ^
@@ -63,9 +61,9 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if SATPOINT.is_match(s) {
+    Ok(if re::SATPOINT.is_match(s) {
       Self::SatPoint(s.parse()?)
-    } else if INSCRIPTION_ID.is_match(s) {
+    } else if re::INSCRIPTION_ID.is_match(s) {
       Self::InscriptionId(s.parse()?)
     } else if AMOUNT.is_match(s) {
       Self::Amount(s.parse()?)

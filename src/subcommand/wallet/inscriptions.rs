@@ -9,10 +9,6 @@ pub struct Output {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.get_unspent_outputs()?;
-
-  let inscriptions = wallet.get_inscriptions()?;
-
   let explorer = match wallet.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",
     Chain::Regtest => "http://localhost/inscription/",
@@ -22,14 +18,14 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut output = Vec::new();
 
-  for (location, inscriptions) in inscriptions {
-    if let Some(postage) = unspent_outputs.get(&location.outpoint) {
+  for (location, inscriptions) in wallet.inscriptions() {
+    if let Some(txout) = wallet.utxos().get(&location.outpoint) {
       for inscription in inscriptions {
         output.push(Output {
-          location,
-          inscription,
+          location: *location,
+          inscription: *inscription,
           explorer: format!("{explorer}{inscription}"),
-          postage: postage.to_sat(),
+          postage: txout.value,
         })
       }
     }

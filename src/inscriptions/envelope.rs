@@ -48,13 +48,14 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_encoding = Tag::ContentEncoding.remove_field(&mut fields);
-    let content_type = Tag::ContentType.remove_field(&mut fields);
-    let delegate = Tag::Delegate.remove_field(&mut fields);
-    let metadata = Tag::Metadata.remove_field(&mut fields);
-    let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
-    let parent = Tag::Parent.remove_field(&mut fields);
-    let pointer = Tag::Pointer.remove_field(&mut fields);
+    let content_encoding = Tag::ContentEncoding.take(&mut fields);
+    let content_type = Tag::ContentType.take(&mut fields);
+    let delegate = Tag::Delegate.take(&mut fields);
+    let metadata = Tag::Metadata.take(&mut fields);
+    let metaprotocol = Tag::Metaprotocol.take(&mut fields);
+    let parents = Tag::Parent.take_array(&mut fields);
+    let pointer = Tag::Pointer.take(&mut fields);
+    let rune = Tag::Rune.take(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
@@ -76,8 +77,9 @@ impl From<RawEnvelope> for ParsedEnvelope {
         incomplete_field,
         metadata,
         metaprotocol,
-        parent,
+        parents,
         pointer,
+        rune,
         unrecognized_even_field,
       },
       input: envelope.input,
@@ -283,11 +285,11 @@ mod tests {
   #[test]
   fn ignore_key_path_spends() {
     assert_eq!(
-      parse(&[Witness::from_slice(&[bitcoin::script::Builder::new()
-        .push_opcode(bitcoin::opcodes::OP_FALSE)
-        .push_opcode(bitcoin::opcodes::all::OP_IF)
+      parse(&[Witness::from_slice(&[script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
         .push_slice(PROTOCOL_ID)
-        .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::all::OP_ENDIF)
         .into_script()
         .into_bytes()])]),
       Vec::new()
@@ -298,11 +300,11 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       parse(&[Witness::from_slice(&[
-        bitcoin::script::Builder::new()
-          .push_opcode(bitcoin::opcodes::OP_FALSE)
-          .push_opcode(bitcoin::opcodes::all::OP_IF)
+        script::Builder::new()
+          .push_opcode(opcodes::OP_FALSE)
+          .push_opcode(opcodes::all::OP_IF)
           .push_slice(PROTOCOL_ID)
-          .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+          .push_opcode(opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
         vec![0x50]
@@ -315,11 +317,11 @@ mod tests {
   fn parse_from_tapscript() {
     assert_eq!(
       parse(&[Witness::from_slice(&[
-        bitcoin::script::Builder::new()
-          .push_opcode(bitcoin::opcodes::OP_FALSE)
-          .push_opcode(bitcoin::opcodes::all::OP_IF)
+        script::Builder::new()
+          .push_opcode(opcodes::OP_FALSE)
+          .push_opcode(opcodes::all::OP_IF)
           .push_slice(PROTOCOL_ID)
-          .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+          .push_opcode(opcodes::all::OP_ENDIF)
           .into_script()
           .into_bytes(),
         Vec::new()
@@ -332,11 +334,11 @@ mod tests {
 
   #[test]
   fn ignore_unparsable_scripts() {
-    let mut script_bytes = bitcoin::script::Builder::new()
-      .push_opcode(bitcoin::opcodes::OP_FALSE)
-      .push_opcode(bitcoin::opcodes::all::OP_IF)
+    let mut script_bytes = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID)
-      .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::all::OP_ENDIF)
       .into_script()
       .into_bytes();
     script_bytes.push(0x01);
@@ -363,9 +365,9 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::Nop.bytes(),
+        Tag::Nop.bytes().as_slice(),
         &[],
-        Tag::Nop.bytes(),
+        &Tag::Nop.bytes(),
         &[]
       ])]),
       vec![ParsedEnvelope {
@@ -383,7 +385,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord",
@@ -400,7 +402,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[9],
         b"br",
@@ -422,9 +424,9 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
-        Tag::Nop.bytes(),
+        Tag::Nop.bytes().as_slice(),
         b"bar",
         &[],
         b"ord",
@@ -441,7 +443,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8"
       ])]),
       vec![ParsedEnvelope {
@@ -473,7 +475,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"foo",
@@ -491,7 +493,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[]
       ])]),
@@ -507,7 +509,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[],
@@ -611,7 +613,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[0b10000000]
@@ -666,7 +668,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord"
@@ -720,7 +722,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"image/png",
         &[],
         &[1; 100]
@@ -769,7 +771,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Nop.bytes(), &[0]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Nop.bytes(), &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
         ..Default::default()
@@ -824,7 +826,7 @@ mod tests {
   #[test]
   fn tag_66_makes_inscriptions_unbound() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Unbound.bytes(), &[1]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Unbound.bytes(), &[1]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
@@ -852,10 +854,10 @@ mod tests {
   #[test]
   fn metadata_is_parsed_correctly() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Metadata.bytes(), &[]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Metadata.bytes(), &[]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
-          metadata: Some(vec![]),
+          metadata: Some(Vec::new()),
           ..Default::default()
         },
         ..Default::default()
@@ -868,9 +870,9 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::Metadata.bytes(),
+        &Tag::Metadata.bytes(),
         &[0],
-        Tag::Metadata.bytes(),
+        &Tag::Metadata.bytes(),
         &[1]
       ])]),
       vec![ParsedEnvelope {

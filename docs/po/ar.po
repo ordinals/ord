@@ -127,12 +127,12 @@ msgid "For more details on ordinal theory, see the [overview](overview.md)."
 msgstr "للحصول على مزيد من التفاصيل حول نظرية ordinal ، راجع [overview](overview.md)."
 
 #: src\introduction.md:29
-msgid "For more details on inscriptions, see [inscriptions](inscriptions.md)."
-msgstr "لمزيد من التفاصيل حول الإنسكريبشين، راجع [inscriptions](inscriptions.md)."
+msgid "For more details on inscriptions, see [inscriptions](wallet.md)."
+msgstr "لمزيد من التفاصيل حول الإنسكريبشين، راجع [inscriptions](wallet.md)."
 
 #: src\introduction.md:31
-msgid "When you're ready to get your hands dirty, a good place to start is with [inscriptions](guides/inscriptions.md), a curious species of digital artifact enabled by ordinal theory."
-msgstr "عندما تكون جاهزًا لبدء العمل، مكانًا جيدًا للبداية هو [inscriptions](guides/inscriptions.md)، وهي نوع فضولي من الأصول الرقمية digital artifact الممكّنة بواسطة نظرية أوردينالس."
+msgid "When you're ready to get your hands dirty, a good place to start is with [inscriptions](guides/wallet.md), a curious species of digital artifact enabled by ordinal theory."
+msgstr "عندما تكون جاهزًا لبدء العمل، مكانًا جيدًا للبداية هو [inscriptions](guides/wallet.md)، وهي نوع فضولي من الأصول الرقمية digital artifact الممكّنة بواسطة نظرية أوردينالس."
 
 #: src\introduction.md:35
 msgid "Links"
@@ -1591,239 +1591,239 @@ msgstr "أو بالنسبة المئوية، نسبة إمداد بيتكوين 
 msgid "[100%](https://ordinals.com/search/100%)"
 msgstr ""
 
-#: src\guides/inscriptions.md:1
+#: src\guides/wallet.md:1
 msgid "Ordinal Inscription Guide"
 msgstr "دليل صناعه الأوردينال"
 
-#: src\guides/inscriptions.md:4
+#: src\guides/wallet.md:4
 msgid "Individual sats can be inscribed with arbitrary content, creating Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and transferred using Bitcoin transactions. Inscriptions are as durable, immutable, secure, and decentralized as Bitcoin itself."
 msgstr "يمكن أن تُرسم العملات الفردية بمحتوى تعسفي، مما يُنشئ قطع فنية رقمية متناسبة مع بيتكوين يمكن الاحتفاظ بها في محفظة بيتكوين ونقلها باستخدام المعاملات المالية في بيتكوين. إن النقوش متينة وثابتة وآمنة ولامركزية تمامًا مثل بيتكوين نفسه."
 
-#: src\guides/inscriptions.md:9
+#: src\guides/wallet.md:9
 msgid "Working with inscriptions requires a Bitcoin full node, to give you a view of the current state of the Bitcoin blockchain, and a wallet that can create inscriptions and perform sat control when constructing transactions to send inscriptions to another wallet."
 msgstr "العمل مع الأنسكريبشين يتطلب وجود نود بيتكوين كاملة لمنحك نظرة على الحالة الحالية لسلسلة كتل بيتكوين، ومحفظة قادرة على إنشاء الأنسكريبشين وأداء التحكم في العملات عند بناء المعاملات لإرسالها إلى محفظة أخرى."
 
-#: src\guides/inscriptions.md:14
+#: src\guides/wallet.md:14
 msgid "Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin Core wallet cannot create inscriptions and does not perform sat control."
 msgstr "توفر Bitcoin Core كل من نود بيتكوين كاملة ومحفظة. ومع ذلك، لا يمكن لمحفظة Bitcoin Core إنشاء النقوش ولا تؤدي إلى التحكم في العملات."
 
-#: src\guides/inscriptions.md:17
+#: src\guides/wallet.md:17
 msgid "This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. `ord` doesn't implement its own wallet, so `ord wallet` subcommands interact with Bitcoin Core wallets."
 msgstr "هذا يتطلب [`ord`](https://github.com/ordinals/ord), وهو أداة ترتيبية. أورد لا تنفذ محفظة خاصة بها، لذا تفاعل أوامر محفظة أورد مع محافظ Bitcoin Core."
 
-#: src\guides/inscriptions.md:21
+#: src\guides/wallet.md:21
 msgid "This guide covers:"
 msgstr "تشمل هذه الدليل الفقرات التالية:"
 
-#: src\guides/inscriptions.md:23 src\guides/inscriptions.md:39
+#: src\guides/wallet.md:23 src\guides/wallet.md:39
 msgid "Installing Bitcoin Core"
 msgstr "تثبيت Bitcoin Core"
 
-#: src\guides/inscriptions.md:24
+#: src\guides/wallet.md:24
 msgid "Syncing the Bitcoin blockchain"
 msgstr "مزامنة Bitcoin blockchain"
 
-#: src\guides/inscriptions.md:25
+#: src\guides/wallet.md:25
 msgid "Creating a Bitcoin Core wallet"
 msgstr " إنشاء محفظة Bitcoin Core"
 
-#: src\guides/inscriptions.md:26
+#: src\guides/wallet.md:26
 msgid "Using `ord wallet receive` to receive sats"
 msgstr "استخدام `ord wallet receive` لاستقبال العملات"
 
-#: src\guides/inscriptions.md:27
+#: src\guides/wallet.md:27
 msgid "Creating inscriptions with `ord wallet inscribe`"
 msgstr " إنشاء الأنسكريبشين باستخدام `ord wallet inscribe`"
 
-#: src\guides/inscriptions.md:28
+#: src\guides/wallet.md:28
 msgid "Sending inscriptions with `ord wallet send`"
 msgstr "إرسال الأنسكريبشين باستخدام `ord wallet send`"
 
-#: src\guides/inscriptions.md:29
+#: src\guides/wallet.md:29
 msgid "Receiving inscriptions with `ord wallet receive`"
 msgstr "استقبال الأنسكريبشين باستخدام `ord wallet receive`"
 
-#: src\guides/inscriptions.md:31
+#: src\guides/wallet.md:31
 msgid "Getting Help"
 msgstr "الحصول على المساعدة"
 
-#: src\guides/inscriptions.md:34
+#: src\guides/wallet.md:34
 msgid "If you get stuck, try asking for help on the [Ordinals Discord Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant [issues](https://github.com/ordinals/ord/issues) and [discussions](https://github.com/ordinals/ord/discussions)."
 msgstr "إذا واجهتك مشكلة، جرب أن تطلب المساعدة على [الديسكورد](https://discord.com/invite/87cjuz4FYg) ، أو تفقد موقع[issues](https://github.com/ordinals/ord/issues) [discussions](https://github.com/ordinals/ord/discussions) GitHub للقضايا والمناقشات ذات الصلة."
 
-#: src\guides/inscriptions.md:42
+#: src\guides/wallet.md:42
 msgid "Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) on the [download page](https://bitcoincore.org/en/download/)."
 msgstr "يتوفر Bitcoin Core من موقع [bitcoincore.org](https://bitcoincore.org/) على [صفحه التحميل](https://bitcoincore.org/en/download/)."
 
-#: src\guides/inscriptions.md:45
+#: src\guides/wallet.md:45
 msgid "Making inscriptions requires Bitcoin Core 24 or newer."
 msgstr "إن إجراء الإنسكريبشين يتطلب Bitcoin Core 24 أو الإصدارات الأحدث."
 
-#: src\guides/inscriptions.md:47
+#: src\guides/wallet.md:47
 msgid "This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run `bitcoind -version` successfully from the command line."
 msgstr "لا يتضمن هذا الدليل تفاصيل تثبيت Bitcoin Core بالتفصيل. بمجرد تثبيت Bitcoin Core، يجب أن تتمكن من تشغيل bitcoind -version بنجاح من أوامر الجهاز."
 
-#: src\guides/inscriptions.md:51
+#: src\guides/wallet.md:51
 msgid "Configuring Bitcoin Core"
 msgstr "تهيئة Bitcoin Core"
 
-#: src\guides/inscriptions.md:54
+#: src\guides/wallet.md:54
 msgid "`ord` requires Bitcoin Core's transaction index."
 msgstr "تتطلب `ord` فهرس المعاملات الخاص بـ Bitcoin Core."
 
-#: src\guides/inscriptions.md:56
+#: src\guides/wallet.md:56
 msgid "To configure your Bitcoin Core node to maintain a transaction index, add the following to your `bitcoin.conf`:"
 msgstr "لتهيئة نود Bitcoin Core الخاص بك للحفاظ على فهرس المعاملات، أضف ما يلي إلى ملف bitcoin.conf الخاص بك:"
 
-#: src\guides/inscriptions.md:59 src\guides/sat-hunting.md:30
+#: src\guides/wallet.md:59 src\guides/sat-hunting.md:30
 msgid ""
 "```\n"
 "txindex=1\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:63
+#: src\guides/wallet.md:63
 msgid "Or, run `bitcoind` with `-txindex`:"
 msgstr ""
 
-#: src\guides/inscriptions.md:65 src\guides/inscriptions.md:74
+#: src\guides/wallet.md:65 src\guides/wallet.md:74
 msgid ""
 "```\n"
 "bitcoind -txindex\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:69
+#: src\guides/wallet.md:69
 msgid "Syncing the Bitcoin Blockchain"
 msgstr "مزامنة شبكه البيتكوين"
 
-#: src\guides/inscriptions.md:72
+#: src\guides/wallet.md:72
 msgid "To sync the chain, run:"
 msgstr "لبدء مزامنه السلسلة:"
 
-#: src\guides/inscriptions.md:78
+#: src\guides/wallet.md:78
 msgid "…and leave it running until `getblockcount`:"
 msgstr "...واتركها تعمل حتى يتم استدعاء الأمر `getblockcount`:"
 
-#: src\guides/inscriptions.md:80
+#: src\guides/wallet.md:80
 msgid ""
 "```\n"
 "bitcoin-cli getblockcount\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:84
+#: src\guides/wallet.md:84
 msgid "agrees with the block count on a block explorer like [the mempool.space block explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so you should leave `bitcoind` running in the background when you're using `ord`."
 msgstr "يتم قبول عدد البلوكات من خلال المتصفح مثل [the mempool.space block explorer](https://mempool.space/).ال `ord` يتفاعل مع `bitcoind` لذالك يجب أن تبقي النود فعال بلخلفيه عند استعمالك له."
 
-#: src\guides/inscriptions.md:88
+#: src\guides/wallet.md:88
 msgid "Installing `ord`"
 msgstr "تحميل برنامج أورد `ord`"
 
-#: src\guides/inscriptions.md:91
+#: src\guides/wallet.md:91
 msgid "The `ord` utility is written in Rust and can be built from [source](https://github.com/ordinals/ord). Pre-built binaries are available on the [releases page](https://github.com/ordinals/ord/releases)."
 msgstr "أدوات `ord` مكتوبه بلغه الداست ويمكن بنائها من[المصدر](https://github.com/ordinals/ord).الثنائيات المبنية مسبقًا متوفرة على [صفحه الإصدار](https://github.com/ordinals/ord/releases)."
 
-#: src\guides/inscriptions.md:95
+#: src\guides/wallet.md:95
 msgid "You can install the latest pre-built binary from the command line with:"
 msgstr "يمكنك تحميل الثنائيات المبنية مسبقًا بإعطاء الأمر التالي:"
 
-#: src\guides/inscriptions.md:97
+#: src\guides/wallet.md:97
 msgid ""
 "```sh\n"
 "curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:101
+#: src\guides/wallet.md:101
 msgid "Once `ord` is installed, you should be able to run:"
 msgstr "بمجرد الانتهاء من تحميل ال `ord`، يجب أن تكون قادرًا على تشغيل:"
 
-#: src\guides/inscriptions.md:103
+#: src\guides/wallet.md:103
 msgid ""
 "```\n"
 "ord --version\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:107
+#: src\guides/wallet.md:107
 msgid "Which prints out `ord`'s version number."
 msgstr "والذي يشير الى الإصدار `ord` الحالي."
 
-#: src\guides/inscriptions.md:109
+#: src\guides/wallet.md:109
 msgid "Creating a Bitcoin Core Wallet"
 msgstr "إنشاء محفظة بيتكوين كور"
 
-#: src\guides/inscriptions.md:112
+#: src\guides/wallet.md:112
 msgid "`ord` uses Bitcoin Core to manage private keys, sign transactions, and broadcast transactions to the Bitcoin network."
 msgstr "أورد `ord` يستخدم بيتكوين كور ليدير المفاتيح الخاصة وتواقيع المعاملات وإرسالها الى شبكه البيتكوين."
 
-#: src\guides/inscriptions.md:115
+#: src\guides/wallet.md:115
 msgid "To create a Bitcoin Core wallet named `ord` for use with `ord`, run:"
 msgstr "لإنشاء محفظة Bitcoin Core تحمل اسم `ord` واستخدامها, اعطي الأمر:"
 
-#: src\guides/inscriptions.md:117
+#: src\guides/wallet.md:117
 msgid ""
 "```\n"
 "ord wallet create\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:121
+#: src\guides/wallet.md:121
 msgid "Receiving Sats"
 msgstr "استقبال الساتس"
 
-#: src\guides/inscriptions.md:124
+#: src\guides/wallet.md:124
 msgid "Inscriptions are made on individual sats, using normal Bitcoin transactions that pay fees in sats, so your wallet will need some sats."
 msgstr "يتم إنشاء الأنسكريبشين على الساتوشيات فردية باستخدام معاملات بيتكوين العادية التي تدفع الرسوم بوحدات الساتوشي، لذا ستحتاج محفظتك إلى بعض الساتوشيات."
 
-#: src\guides/inscriptions.md:127
+#: src\guides/wallet.md:127
 msgid "Get a new address from your `ord` wallet by running:"
 msgstr "إحصل على عنوان جديد من محفظة ال `ord` من خلال الأمر التالي:"
 
-#: src\guides/inscriptions.md:129 src\guides/inscriptions.md:201 src\guides/inscriptions.md:229
+#: src\guides/wallet.md:129 src\guides/wallet.md:201 src\guides/wallet.md:229
 msgid ""
 "```\n"
 "ord wallet receive\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:133
+#: src\guides/wallet.md:133
 msgid "And send it some funds."
 msgstr "وأرسل لها بعض التمويل."
 
-#: src\guides/inscriptions.md:135
+#: src\guides/wallet.md:135
 msgid "You can see pending transactions with:"
 msgstr "يمكنك رؤية المعاملات المعلقة بالأمر التالي:"
 
-#: src\guides/inscriptions.md:137 src\guides/inscriptions.md:213 src\guides/inscriptions.md:240
+#: src\guides/wallet.md:137 src\guides/wallet.md:213 src\guides/wallet.md:240
 msgid ""
 "```\n"
 "ord wallet transactions\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:141
+#: src\guides/wallet.md:141
 msgid "Once the transaction confirms, you should be able to see the transactions outputs with `ord wallet outputs`."
 msgstr "بمجرد تأكيد الصفقة، يجب أن تكون قادرًا على رؤية المعاملات من خلال `ord wallet outputs`."
 
-#: src\guides/inscriptions.md:144
+#: src\guides/wallet.md:144
 msgid "Creating Inscription Content"
 msgstr "إنشاء محتوى إنسكريبشين"
 
-#: src\guides/inscriptions.md:147
+#: src\guides/wallet.md:147
 msgid "Sats can be inscribed with any kind of content, but the `ord` wallet only supports content types that can be displayed by the `ord` block explorer."
 msgstr "يمكن إنسكرايب الساتوشيات بأي نوع من المحتوى، ولكن محفظة `ord` تدعم فقط أنواع المحتوى التي يمكن عرضها عبر مستكشف الكتل `ord`."
 
-#: src\guides/inscriptions.md:150
+#: src\guides/wallet.md:150
 msgid "Additionally, inscriptions are included in transactions, so the larger the content, the higher the fee that the inscription transaction must pay."
 msgstr "بالإضافة إلى ذلك، تُدرج الإنسكريبشين في المعاملات، لذلك كلما زاد حجم المحتوى، زادت الرسوم التي يجب دفعها لعملية الإنسكريبشين ."
 
-#: src\guides/inscriptions.md:153
+#: src\guides/wallet.md:153
 msgid "Inscription content is included in transaction witnesses, which receive the witness discount. To calculate the approximate fee that an inscribe transaction will pay, divide the content size by four and multiply by the fee rate."
 msgstr "يتم تضمين محتوى الإنسكريبشين في شهادات المعاملات، والتي تحصل على الشاهد. لحساب الرسوم التقريبية التي ستدفعها معاملة الإنسكريبشين ، قسم حجم المحتوى على أربعة ثم اضرب الناتج بمعدل الرسوم."
 
-#: src\guides/inscriptions.md:157
+#: src\guides/wallet.md:157
 msgid ""
 "Inscription transactions must be less than 400,000 weight units, or they will not be relayed by Bitcoin Core. One byte of inscription content costs one weight unit. Since an inscription transaction includes not just the inscription content, limit inscription content to "
 "less than 400,000 weight units. 390,000 weight units should be safe."
@@ -1831,97 +1831,97 @@ msgstr ""
 "يجب أن تكون المعاملات أقل من 400,000 وحدة وزنية، وإلا فلن يتم نقلها بواسطة بيتكوين كور. بايت واحد من المحتوى يكلف وحدة وزنية واحدة. نظرًا لأن المعاملات لا تشمل فقط المحتوى ، يجب تقييد محتوى الإنسكريبشين لأقل من 400,000 وحدة وزنية. 390,000 وحدة وزنية يجب أن تكون آمنة "
 "وصحيحه."
 
-#: src\guides/inscriptions.md:163
+#: src\guides/wallet.md:163
 msgid "Creating Inscriptions"
 msgstr "إنشاء الإنسكريبشينس"
 
-#: src\guides/inscriptions.md:166
+#: src\guides/wallet.md:166
 msgid "To create an inscription with the contents of `FILE`, run:"
 msgstr "لإنشاء الإنسكريبشين مع محتوى `FILE` , اعطي الأمر:"
 
-#: src\guides/inscriptions.md:168
+#: src\guides/wallet.md:168
 msgid ""
 "```\n"
 "ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:172
+#: src\guides/wallet.md:172
 msgid ""
 "Ord will output two transactions IDs, one for the commit transaction, and one for the reveal transaction, and the inscription ID. Inscription IDs are of the form `TXIDiN`, where `TXID` is the transaction ID of the reveal transaction, and `N` is the index of the "
 "inscription in the reveal transaction."
 msgstr "أورد سيقوم بإخراج رقمين معرّفين للمعاملات، واحد لمعاملة الالتزام، وآخر لمعاملة الكشف، وكذلك مُعرف إنسكريبشين . مُعرفات إنسكريبشين على الشكل `TXIDiN`، حيث `TXID` هو مُعرّف المعاملة لمعاملة الكشف، و `N` هو المؤشر الإنسكريبشين في معاملة الكشف."
 
-#: src\guides/inscriptions.md:177
+#: src\guides/wallet.md:177
 msgid "The commit transaction commits to a tapscript containing the content of the inscription, and the reveal transaction spends from that tapscript, revealing the content on chain and inscribing it on the first sat of the input that contains the corresponding tapscript."
 msgstr "تُؤكد معاملة الالتزام على tapscript يحتوي على محتوى الإنسكريبشين، وتقوم معاملة الكشف بإنفاق من هذا الـ tapscript، مكشفةً المحتوى على الشبكة وتسجيله على أول ساتوشي في المدخل الذي يحتوي على الـ tapscript المقابل."
 
-#: src\guides/inscriptions.md:182
+#: src\guides/wallet.md:182
 msgid "Wait for the reveal transaction to be mined. You can check the status of the commit and reveal transactions using  [the mempool.space block explorer](https://mempool.space/)."
 msgstr "إنتظر حتى يتم تعدين المعاملة. يمكنك التحقق منها من خلال[the mempool.space block explorer](https://mempool.space/)."
 
-#: src\guides/inscriptions.md:186
+#: src\guides/wallet.md:186
 msgid "Once the reveal transaction has been mined, the inscription ID should be printed when you run:"
 msgstr "بمجرد أن يتم تعدين الصفقة (reveal transaction)، يجب أن يتم طباعة معرّف الإنسكريبشين (inscription ID) عند تشغيل الأمر:"
 
-#: src\guides/inscriptions.md:189 src\guides/inscriptions.md:220 src\guides/inscriptions.md:246
+#: src\guides/wallet.md:189 src\guides/wallet.md:220 src\guides/wallet.md:246
 msgid ""
 "```\n"
 "ord wallet inscriptions\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:193
+#: src\guides/wallet.md:193
 msgid "And when you visit [the ordinals explorer](https://ordinals.com/) at `ordinals.com/inscription/INSCRIPTION_ID`."
 msgstr "وعند زيارتك [the ordinals explorer](https://ordinals.com/) على `ordinals.com/inscription/INSCRIPTION_ID`."
 
-#: src\guides/inscriptions.md:196
+#: src\guides/wallet.md:196
 msgid "Sending Inscriptions"
 msgstr "إرسال الإنسكريبشينس"
 
-#: src\guides/inscriptions.md:199
+#: src\guides/wallet.md:199
 msgid "Ask the recipient to generate a new address by running:"
 msgstr "أطلب من المستلم إنشاء عنوان جديد عن طريق تشغيل:"
 
-#: src\guides/inscriptions.md:205
+#: src\guides/wallet.md:205
 msgid "Send the inscription by running:"
 msgstr "أرسل الإنسكريبشين من خلال:"
 
-#: src\guides/inscriptions.md:207
+#: src\guides/wallet.md:207
 msgid ""
 "```\n"
 "ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:211 src\guides/inscriptions.md:239
+#: src\guides/wallet.md:211 src\guides/wallet.md:239
 msgid "See the pending transaction with:"
 msgstr "تفقد حاله المعاملة من خلال:"
 
-#: src\guides/inscriptions.md:217
+#: src\guides/wallet.md:217
 msgid "Once the send transaction confirms, the recipient can confirm receipt by running:"
 msgstr "بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :"
 
-#: src\guides/inscriptions.md:224
+#: src\guides/wallet.md:224
 msgid "Receiving Inscriptions"
 msgstr "استقبال الإنسكريبشينس"
 
-#: src\guides/inscriptions.md:227
+#: src\guides/wallet.md:227
 msgid "Generate a new receive address using:"
 msgstr "قم بإنشاء عنوان استقبال جديد باستخدام:"
 
-#: src\guides/inscriptions.md:233
+#: src\guides/wallet.md:233
 msgid "The sender can transfer the inscription to your address using:"
 msgstr "يمكن للمرسل نقل الإنسكريبشين إلى عنوانك باستخدام:"
 
-#: src\guides/inscriptions.md:235
+#: src\guides/wallet.md:235
 msgid ""
 "```\n"
 "ord wallet send ADDRESS INSCRIPTION_ID\n"
 "```"
 msgstr ""
 
-#: src\guides/inscriptions.md:244
+#: src\guides/wallet.md:244
 msgid "Once the send transaction confirms, you can can confirm receipt by running:"
 msgstr "بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :"
 
@@ -2691,8 +2691,8 @@ msgid "Ord can be tested using the following flags to specify the test network. 
 msgstr "يمكن اختبار Ord باستخدام الأعلام التالية لتحديد شبكة الاختبار. لمزيد من المعلومات حول تشغيل Bitcoin Core لأغراض الاختبار، انظر [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html)."
 
 #: src\guides/testing.md:7
-msgid "Most `ord` commands in [inscriptions](inscriptions.md) and [explorer](explorer.md) can be run with the following network flags:"
-msgstr "معظم أوامر `ord` في [inscriptions](inscriptions.md) و[explorer](explorer.md) يمكن تشغيلها باستخدام الأعلام الشبكية التالية:"
+msgid "Most `ord` commands in [inscriptions](wallet.md) and [explorer](explorer.md) can be run with the following network flags:"
+msgstr "معظم أوامر `ord` في [inscriptions](wallet.md) و[explorer](explorer.md) يمكن تشغيلها باستخدام الأعلام الشبكية التالية:"
 
 #: src\guides/testing.md:10
 msgid "Network"

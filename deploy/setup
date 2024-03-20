@@ -10,6 +10,8 @@ RPC_PASSWORD=$3
 FIH=$4
 XPRV=$5
 
+export DEBIAN_FRONTEND=noninteractive
+
 touch ~/.hushlogin
 
 apt-get update
@@ -24,6 +26,8 @@ apt-get install --yes \
   ufw \
   vim \
   jq
+
+apt-get remove --yes --auto-remove
 
 ufw default allow outgoing
 ufw default deny incoming

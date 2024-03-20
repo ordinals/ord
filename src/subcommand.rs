@@ -2,6 +2,7 @@ use super::*;
 
 pub mod balances;
 pub mod decode;
+pub mod env;
 pub mod epochs;
 pub mod find;
 pub mod index;
@@ -9,6 +10,7 @@ pub mod list;
 pub mod parse;
 pub mod runes;
 pub(crate) mod server;
+mod settings;
 pub mod subsidy;
 pub mod supply;
 pub mod teleburn;
@@ -21,6 +23,8 @@ pub(crate) enum Subcommand {
   Balances,
   #[command(about = "Decode a transaction")]
   Decode(decode::Decode),
+  #[command(about = "Start a regtest ord and bitcoind instance")]
+  Env(env::Env),
   #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
   #[command(about = "Find a satoshi's current location")]
@@ -35,6 +39,8 @@ pub(crate) enum Subcommand {
   Runes,
   #[command(about = "Run the explorer server")]
   Server(server::Server),
+  #[command(about = "Display settings")]
+  Settings,
   #[command(about = "Display information about a block's subsidy")]
   Subsidy(subsidy::Subsidy),
   #[command(about = "Display Bitcoin supply information")]
@@ -48,27 +54,29 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self {
-      Self::Balances => balances::run(options),
-      Self::Decode(decode) => decode.run(options),
+      Self::Balances => balances::run(settings),
+      Self::Decode(decode) => decode.run(settings),
+      Self::Env(env) => env.run(),
       Self::Epochs => epochs::run(),
-      Self::Find(find) => find.run(options),
-      Self::Index(index) => index.run(options),
-      Self::List(list) => list.run(options),
+      Self::Find(find) => find.run(settings),
+      Self::Index(index) => index.run(settings),
+      Self::List(list) => list.run(settings),
       Self::Parse(parse) => parse.run(),
-      Self::Runes => runes::run(options),
+      Self::Runes => runes::run(settings),
       Self::Server(server) => {
-        let index = Arc::new(Index::open(&options)?);
+        let index = Arc::new(Index::open(&settings)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(options, index, handle)
+        server.run(settings, index, handle)
       }
+      Self::Settings => settings::run(settings),
       Self::Subsidy(subsidy) => subsidy.run(),
       Self::Supply => supply::run(),
       Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
-      Self::Wallet(wallet) => wallet.run(options),
+      Self::Wallet(wallet) => wallet.run(settings),
     }
   }
 }

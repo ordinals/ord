@@ -84,12 +84,12 @@ impl Chain {
     Address::from_script(script, self.network())
   }
 
-  pub(crate) fn join_with_data_dir(self, data_dir: &Path) -> PathBuf {
+  pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
     match self {
-      Self::Mainnet => data_dir.to_owned(),
-      Self::Testnet => data_dir.join("testnet3"),
-      Self::Signet => data_dir.join("signet"),
-      Self::Regtest => data_dir.join("regtest"),
+      Self::Mainnet => data_dir.as_ref().to_owned(),
+      Self::Testnet => data_dir.as_ref().join("testnet3"),
+      Self::Signet => data_dir.as_ref().join("signet"),
+      Self::Regtest => data_dir.as_ref().join("regtest"),
     }
   }
 }
@@ -106,5 +106,36 @@ impl Display for Chain {
         Self::Testnet => "testnet",
       }
     )
+  }
+}
+
+impl FromStr for Chain {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "mainnet" => Ok(Self::Mainnet),
+      "regtest" => Ok(Self::Regtest),
+      "signet" => Ok(Self::Signet),
+      "testnet" => Ok(Self::Testnet),
+      _ => bail!("invalid chain `{s}`"),
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn from_str() {
+    assert_eq!("mainnet".parse::<Chain>().unwrap(), Chain::Mainnet);
+    assert_eq!("regtest".parse::<Chain>().unwrap(), Chain::Regtest);
+    assert_eq!("signet".parse::<Chain>().unwrap(), Chain::Signet);
+    assert_eq!("testnet".parse::<Chain>().unwrap(), Chain::Testnet);
+    assert_eq!(
+      "foo".parse::<Chain>().unwrap_err().to_string(),
+      "invalid chain `foo`"
+    );
   }
 }

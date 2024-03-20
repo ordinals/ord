@@ -4775,10 +4775,10 @@ msgstr ""
 #: src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"`ord --datadir <DIR> index update` or give it a specific filename and path "
 "with `ord --index <FILENAME> index update`."
 msgstr ""
-"もちろん自分でデータの目録の位置を設置することができます,`ord --data-dir "
+"もちろん自分でデータの目録の位置を設置することができます,`ord --datadir "
 "<DIR> index update` または指定された特定のファイル名とパスに‘ord --index "
 "<FILENAME>で索引運行します’。"
 
