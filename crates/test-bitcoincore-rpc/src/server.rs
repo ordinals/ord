@@ -608,11 +608,13 @@ impl Api for Server {
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     let state = self.state();
+    dbg!("here3");
     let current_height: u32 = (state.hashes.len() - 1).try_into().unwrap();
     let confirmations = state
       .txid_to_block_height
       .get(&txid)
       .map(|tx_height| current_height - tx_height);
+    dbg!("here4");
 
     if verbose.unwrap_or(false) {
       match state.transactions.get(&txid) {
