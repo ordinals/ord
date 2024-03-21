@@ -1769,6 +1769,7 @@ mod tests {
   #[test]
   fn invalid_limit_produces_cenotaph() {
     assert!(decipher(&[Tag::Limit.into(), u128::MAX]).cenotaph);
+    assert!(decipher(&[Tag::Limit.into(), u128::from(u64::MAX) + 1]).cenotaph);
   }
 
   #[test]
