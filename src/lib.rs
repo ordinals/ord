@@ -24,7 +24,7 @@ use {
     },
     into_usize::IntoUsize,
     representation::Representation,
-    runes::Etching,
+    runes::{varint, Etching},
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,

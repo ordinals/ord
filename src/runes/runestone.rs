@@ -65,7 +65,9 @@ impl Runestone {
       return Ok(None);
     };
 
-    let integers = Runestone::integers(&payload);
+    let Some(integers) = Runestone::integers(&payload) else {
+      return Ok(None);
+    };
 
     let Message {
       cenotaph,
@@ -223,7 +225,7 @@ impl Runestone {
 
   fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>, script::Error> {
     // search transaction outputs for payload
-    'outer: for output in &transaction.output {
+    for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
 
       // payload starts with OP_RETURN
@@ -243,8 +245,7 @@ impl Runestone {
         if let Instruction::PushBytes(push) = result? {
           payload.extend_from_slice(push.as_bytes());
         } else {
-          // if we encounter a non data push opcode, continue to the next output
-          continue 'outer;
+          return Ok(None);
         }
       }
 
@@ -254,17 +255,17 @@ impl Runestone {
     Ok(None)
   }
 
-  fn integers(payload: &[u8]) -> Vec<u128> {
+  fn integers(payload: &[u8]) -> Option<Vec<u128>> {
     let mut integers = Vec::new();
     let mut i = 0;
 
     while i < payload.len() {
-      let (integer, length) = varint::decode(&payload[i..]);
+      let (integer, length) = varint::decode(&payload[i..])?;
       integers.push(integer);
       i += length;
     }
 
-    integers
+    Some(integers)
   }
 }
 
@@ -441,7 +442,7 @@ mod tests {
   }
 
   #[test]
-  fn outputs_with_non_pushdata_opcodes_are_skipped() {
+  fn outputs_with_non_pushdata_opcodes_are_ignored_and_terminate_search_for_runestone() {
     assert_eq!(
       Runestone::decipher(&Transaction {
         input: Vec::new(),
@@ -481,16 +482,8 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(2),
-          amount: 3,
-          output: 0,
-        }],
-        ..Default::default()
-      },
+      None,
     );
   }
 
@@ -1564,7 +1557,7 @@ mod tests {
 
       let payload = Runestone::payload(&transaction).unwrap().unwrap();
 
-      pretty_assert_eq!(Runestone::integers(&payload), expected);
+      pretty_assert_eq!(Runestone::integers(&payload).unwrap(), expected);
 
       let runestone = {
         let mut edicts = runestone.edicts;
