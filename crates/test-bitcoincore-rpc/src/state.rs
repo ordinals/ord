@@ -157,10 +157,9 @@ impl State {
     };
 
     for tx in block.txdata.iter() {
-      self.txid_to_block_height.insert(
-        tx.txid(),
-        self.hashes.len().saturating_sub(1).try_into().unwrap(),
-      );
+      self
+        .txid_to_block_height
+        .insert(tx.txid(), self.hashes.len().try_into().unwrap());
 
       for input in tx.input.iter() {
         if !input.previous_output.is_null() {
