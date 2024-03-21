@@ -76,11 +76,11 @@ mod tests {
     </dl>
   </dd>
   <dt>supply</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>premine</dt>
-  <dd>0.123456789\u{00A0}%</dd>
+  <dd>0.123456789\u{A0}%</dd>
   <dt>burned</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
@@ -131,11 +131,11 @@ mod tests {
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>premine</dt>
-  <dd>0\u{00A0}%</dd>
+  <dd>0\u{A0}%</dd>
   <dt>burned</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
@@ -201,11 +201,11 @@ mod tests {
     </dl>
   </dd>
   <dt>supply</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>premine</dt>
-  <dd>0\u{00A0}%</dd>
+  <dd>0\u{A0}%</dd>
   <dt>burned</dt>
-  <dd>123456789.123456789\u{00A0}%</dd>
+  <dd>123456789.123456789\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
