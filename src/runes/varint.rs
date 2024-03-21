@@ -1,7 +1,7 @@
 pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   while n >> 7 > 0 {
     v.push(n.to_le_bytes()[0] | 0b1000_0000);
-    n = n >> 7;
+    n >>= 7;
   }
   v.push(n.to_le_bytes()[0]);
 }
@@ -31,7 +31,7 @@ fn try_decode(buffer: &[u8]) -> Result<(u128, usize), Error> {
       return Err(Error::Overflow);
     }
 
-    n |= value << 7 * i;
+    n |= value << (7 * i);
 
     if byte & 0b1000_0000 == 0 {
       return Ok((n, i + 1));
