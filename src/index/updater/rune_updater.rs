@@ -77,7 +77,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         update.supply += claim.limit;
       }
 
-      let mut etched = self.etched(tx_index, tx, &runestone)?;
+      // Nota bene: Because it would require constructing a block
+      // with 2**16 + 1 transactions, there is no test that checks that
+      // an eching in a transaction with an out-of-bounds index is
+      // ignored.
+      let mut etched = u16::try_from(tx_index)
+        .ok()
+        .and_then(|tx_index| self.etched(tx_index, tx, &runestone).transpose())
+        .transpose()?;
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
@@ -322,7 +329,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
   fn etched(
     &mut self,
-    tx_index: usize,
+    tx_index: u16,
     tx: &Transaction,
     runestone: &Runestone,
   ) -> Result<Option<Etched>> {
@@ -353,20 +360,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       Rune::reserved(reserved_runes.into())
     };
 
-    // Nota bene: Because it would require constructing a block
-    // with 2**16 + 1 transactions, there is no test that checks that
-    // an eching in a transaction with an out-of-bounds index is
-    // ignored.
-    let Ok(index) = u16::try_from(tx_index) else {
-      return Ok(None);
-    };
-
     Ok(Some(Etched {
       balance: u128::MAX,
       divisibility: etching.divisibility,
       id: RuneId {
         block: self.height,
-        tx: index,
+        tx: tx_index,
       },
       rune,
       spacers: etching.spacers,
