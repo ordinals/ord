@@ -21,27 +21,35 @@ pub(super) enum Tag {
 }
 
 impl Tag {
-  pub(super) fn take<T>(
+  pub(super) fn take<const N: usize, T>(
     self,
     fields: &mut HashMap<u128, VecDeque<u128>>,
-    with: impl Fn(u128) -> Option<T>,
+    with: impl Fn([u128; N]) -> Option<T>,
   ) -> Option<T> {
-    let values = fields.get_mut(&self.into())?;
+    let field = fields.get_mut(&self.into())?;
 
-    let value = with(*values.front()?)?;
+    let mut values: [u128; N] = [0; N];
 
-    values.pop_front().unwrap();
+    for (i, v) in values.iter_mut().enumerate() {
+      *v = *field.get(i)?;
+    }
 
-    if values.is_empty() {
+    let value = with(values)?;
+
+    field.drain(0..N);
+
+    if field.is_empty() {
       fields.remove(&self.into()).unwrap();
     }
 
     Some(value)
   }
 
-  pub(super) fn encode(self, value: u128, payload: &mut Vec<u8>) {
-    varint::encode_to_vec(self.into(), payload);
-    varint::encode_to_vec(value, payload);
+  pub(super) fn encode<const N: usize>(self, values: [u128; N], payload: &mut Vec<u8>) {
+    for value in values {
+      varint::encode_to_vec(self.into(), payload);
+      varint::encode_to_vec(value, payload);
+    }
   }
 }
 
@@ -79,38 +87,66 @@ mod tests {
       .into_iter()
       .collect::<HashMap<u128, VecDeque<u128>>>();
 
-    assert_eq!(Tag::Flags.take(&mut fields, |_| None::<u128>), None);
+    assert_eq!(Tag::Flags.take(&mut fields, |[_]| None::<u128>), None);
 
     assert!(!fields.is_empty());
 
-    assert_eq!(Tag::Flags.take(&mut fields, Some), Some(3));
+    assert_eq!(Tag::Flags.take(&mut fields, |[flags]| Some(flags)), Some(3));
 
     assert!(fields.is_empty());
 
-    assert_eq!(Tag::Flags.take(&mut fields, |_| Some(1)), None);
+    assert_eq!(Tag::Flags.take(&mut fields, |[flags]| Some(flags)), None);
+  }
+
+  #[test]
+  fn take_leaves_unconsumed_values() {
+    let mut fields = vec![(2, vec![1, 2, 3].into_iter().collect())]
+      .into_iter()
+      .collect::<HashMap<u128, VecDeque<u128>>>();
+
+    assert_eq!(fields[&2].len(), 3);
+
+    assert_eq!(Tag::Flags.take(&mut fields, |[_]| None::<u128>), None);
+
+    assert_eq!(fields[&2].len(), 3);
+
+    assert_eq!(
+      Tag::Flags.take(&mut fields, |[a, b]| Some((a, b))),
+      Some((1, 2))
+    );
+
+    assert_eq!(fields[&2].len(), 1);
+
+    assert_eq!(Tag::Flags.take(&mut fields, |[a]| Some(a)), Some(3));
+
+    assert_eq!(fields.get(&2), None);
   }
 
   #[test]
   fn encode() {
     let mut payload = Vec::new();
 
-    Tag::Flags.encode(3, &mut payload);
+    Tag::Flags.encode([3], &mut payload);
 
     assert_eq!(payload, [2, 3]);
 
-    Tag::Rune.encode(5, &mut payload);
+    Tag::Rune.encode([5], &mut payload);
 
     assert_eq!(payload, [2, 3, 4, 5]);
+
+    Tag::Rune.encode([5, 6], &mut payload);
+
+    assert_eq!(payload, [2, 3, 4, 5, 4, 5, 4, 6]);
   }
 
   #[test]
   fn burn_and_nop_are_one_byte() {
     let mut payload = Vec::new();
-    Tag::Cenotaph.encode(0, &mut payload);
+    Tag::Cenotaph.encode([0], &mut payload);
     assert_eq!(payload.len(), 2);
 
     let mut payload = Vec::new();
-    Tag::Nop.encode(0, &mut payload);
+    Tag::Nop.encode([0], &mut payload);
     assert_eq!(payload.len(), 2);
   }
 }

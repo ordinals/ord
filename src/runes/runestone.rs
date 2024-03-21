@@ -75,40 +75,47 @@ impl Runestone {
       mut fields,
     } = Message::from_integers(transaction, &integers);
 
-    let claim = Tag::Claim.take(&mut fields, |id| RuneId::try_from(id).ok());
+    let claim = Tag::Claim.take(&mut fields, |[block, tx]| {
+      Some(RuneId {
+        block: block.try_into().ok()?,
+        tx: tx.try_into().ok()?,
+      })
+    });
 
-    let deadline = Tag::Deadline.take(&mut fields, |deadline| u32::try_from(deadline).ok());
+    let deadline = Tag::Deadline.take(&mut fields, |[deadline]| u32::try_from(deadline).ok());
 
-    let default_output = Tag::DefaultOutput.take(&mut fields, |default_output| {
+    let default_output = Tag::DefaultOutput.take(&mut fields, |[default_output]| {
       let default_output = u32::try_from(default_output).ok()?;
       (default_output.into_usize() < transaction.output.len()).then_some(default_output)
     });
 
     let divisibility = Tag::Divisibility
-      .take(&mut fields, |divisibility| {
+      .take(&mut fields, |[divisibility]| {
         let divisibility = u8::try_from(divisibility).ok()?;
         (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
       })
       .unwrap_or_default();
 
-    let limit = Tag::Limit.take(&mut fields, |limit| (limit <= MAX_LIMIT).then_some(limit));
+    let limit = Tag::Limit.take(&mut fields, |[limit]| (limit <= MAX_LIMIT).then_some(limit));
 
-    let rune = Tag::Rune.take(&mut fields, |rune| Some(Rune(rune)));
+    let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
 
     let spacers = Tag::Spacers
-      .take(&mut fields, |spacers| {
+      .take(&mut fields, |[spacers]| {
         let spacers = u32::try_from(spacers).ok()?;
         (spacers <= MAX_SPACERS).then_some(spacers)
       })
       .unwrap_or_default();
 
-    let symbol = Tag::Symbol.take(&mut fields, |symbol| {
+    let symbol = Tag::Symbol.take(&mut fields, |[symbol]| {
       char::from_u32(u32::try_from(symbol).ok()?)
     });
 
-    let term = Tag::Term.take(&mut fields, |term| u32::try_from(term).ok());
+    let term = Tag::Term.take(&mut fields, |[term]| u32::try_from(term).ok());
 
-    let mut flags = Tag::Flags.take(&mut fields, Some).unwrap_or_default();
+    let mut flags = Tag::Flags
+      .take(&mut fields, |[flags]| Some(flags))
+      .unwrap_or_default();
 
     let etch = Flag::Etch.take(&mut flags);
 
@@ -150,49 +157,49 @@ impl Runestone {
         Flag::Mint.set(&mut flags);
       }
 
-      Tag::Flags.encode(flags, &mut payload);
+      Tag::Flags.encode([flags], &mut payload);
 
       if let Some(rune) = etching.rune {
-        Tag::Rune.encode(rune.0, &mut payload);
+        Tag::Rune.encode([rune.0], &mut payload);
       }
 
       if etching.divisibility != 0 {
-        Tag::Divisibility.encode(etching.divisibility.into(), &mut payload);
+        Tag::Divisibility.encode([etching.divisibility.into()], &mut payload);
       }
 
       if etching.spacers != 0 {
-        Tag::Spacers.encode(etching.spacers.into(), &mut payload);
+        Tag::Spacers.encode([etching.spacers.into()], &mut payload);
       }
 
       if let Some(symbol) = etching.symbol {
-        Tag::Symbol.encode(symbol.into(), &mut payload);
+        Tag::Symbol.encode([symbol.into()], &mut payload);
       }
 
       if let Some(mint) = etching.mint {
         if let Some(deadline) = mint.deadline {
-          Tag::Deadline.encode(deadline.into(), &mut payload);
+          Tag::Deadline.encode([deadline.into()], &mut payload);
         }
 
         if let Some(limit) = mint.limit {
-          Tag::Limit.encode(limit, &mut payload);
+          Tag::Limit.encode([limit], &mut payload);
         }
 
         if let Some(term) = mint.term {
-          Tag::Term.encode(term.into(), &mut payload);
+          Tag::Term.encode([term.into()], &mut payload);
         }
       }
     }
 
-    if let Some(claim) = self.claim {
-      Tag::Claim.encode(claim.into(), &mut payload);
+    if let Some(RuneId { block, tx }) = self.claim {
+      Tag::Claim.encode([block.into(), tx.into()], &mut payload);
     }
 
     if let Some(default_output) = self.default_output {
-      Tag::DefaultOutput.encode(default_output.into(), &mut payload);
+      Tag::DefaultOutput.encode([default_output.into()], &mut payload);
     }
 
     if self.cenotaph {
-      Tag::Cenotaph.encode(0, &mut payload);
+      Tag::Cenotaph.encode([0], &mut payload);
     }
 
     if !self.edicts.is_empty() {
@@ -1655,7 +1662,9 @@ mod tests {
         Tag::Term.into(),
         5,
         Tag::Claim.into(),
-        rune_id(12).into(),
+        1,
+        Tag::Claim.into(),
+        12,
         Tag::DefaultOutput.into(),
         0,
         Tag::Cenotaph.into(),
