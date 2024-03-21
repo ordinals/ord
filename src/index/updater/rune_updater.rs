@@ -32,7 +32,6 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx, 'client> {
   pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) outpoint_to_output: &'a mut Table<'db, 'tx, &'static OutPointValue, OutputValue>,
   pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
@@ -234,33 +233,6 @@ impl<'a, 'db, 'tx, 'client> RuneUpdater<'a, 'db, 'tx, 'client> {
       )?;
     }
 
-    for input in tx.input.iter() {
-      if input.previous_output.is_null() {
-        continue;
-      }
-
-      // self
-      //   .outpoint_to_output
-      //   .remove(&input.previous_output.store())?;
-      // // .unwrap();
-    }
-
-    for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
-        txid,
-        vout: vout.try_into().unwrap(),
-      };
-
-      //self.outpoint_to_output.insert(
-      //  &outpoint.store(),
-      //  OutputEntry {
-      //    height: self.height,
-      //    taproot: output.script_pubkey.is_v1_p2tr(),
-      //  }
-      //  .store(),
-      //)?;
-    }
-
     // increment entries with burned runes
     for (id, amount) in burned {
       self.updates.entry(id).or_default().burned += amount;
@@ -420,16 +392,16 @@ impl<'a, 'db, 'tx, 'client> RuneUpdater<'a, 'db, 'tx, 'client> {
         let tx_info = self
           .client
           .get_raw_transaction_info(&input.previous_output.txid, None)
-          .expect(&format!("input not in UTXO set: {}", input.previous_output));
+          .unwrap_or_else(|_| panic!("input not in UTXO set: {}", input.previous_output));
 
         let is_taproot = tx_info.vout[input.previous_output.vout as usize]
           .script_pub_key
           .script()?
           .is_v1_p2tr();
 
-        let height = self.height - tx_info.confirmations.unwrap_or_default();
+        let confirmations = tx_info.confirmations.unwrap_or_default();
 
-        if is_taproot && self.height >= height + RUNE_COMMIT_INTERVAL {
+        if is_taproot && confirmations >= RUNE_COMMIT_INTERVAL {
           return Ok(true);
         }
       }
