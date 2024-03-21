@@ -14,13 +14,13 @@ pub struct Runestone {
 struct Message {
   cenotaph: bool,
   edicts: Vec<Edict>,
-  fields: HashMap<u128, u128>,
+  fields: HashMap<u128, VecDeque<u128>>,
 }
 
 impl Message {
   fn from_integers(tx: &Transaction, payload: &[u128]) -> Self {
     let mut edicts = Vec::new();
-    let mut fields = HashMap::new();
+    let mut fields = HashMap::<u128, VecDeque<u128>>::new();
     let mut cenotaph = false;
 
     for i in (0..payload.len()).step_by(2) {
@@ -44,7 +44,7 @@ impl Message {
         break;
       };
 
-      fields.entry(tag).or_insert(value);
+      fields.entry(tag).or_default().push_back(value);
     }
 
     Self {
@@ -694,7 +694,7 @@ mod tests {
   }
 
   #[test]
-  fn duplicate_tags_are_ignored() {
+  fn duplicate_even_tags_produce_cenotaph() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
@@ -716,6 +716,38 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
+          ..Default::default()
+        }),
+        cenotaph: true,
+        ..Default::default()
+      }
+    );
+  }
+
+  #[test]
+  fn duplicate_odd_tags_are_ignored() {
+    assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask(),
+        Tag::Divisibility.into(),
+        4,
+        Tag::Divisibility.into(),
+        5,
+        Tag::Body.into(),
+        rune_id(1).into(),
+        2,
+        0,
+      ]),
+      Runestone {
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: None,
+          divisibility: 4,
           ..Default::default()
         }),
         ..Default::default()
