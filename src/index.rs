@@ -26,8 +26,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RepairSession, StorageError, Table,
-    TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
+    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,

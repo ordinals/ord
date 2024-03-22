@@ -24,23 +24,23 @@ pub(crate) struct RuneUpdate {
   pub(crate) supply: u128,
 }
 
-pub(super) struct RuneUpdater<'a, 'db, 'tx> {
+pub(super) struct RuneUpdater<'a, 'tx> {
   pub(super) height: u32,
-  pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
-  pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
+  pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
-  pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) outpoint_to_output: &'a mut Table<'db, 'tx, &'static OutPointValue, OutputValue>,
-  pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) outpoint_to_output: &'a mut Table<'tx, &'static OutPointValue, OutputValue>,
+  pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
-  pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
-  pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+  pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
+  pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
   pub(super) block_time: u32,
-  pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
-impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
+impl<'a, 'tx> RuneUpdater<'a, 'tx> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
