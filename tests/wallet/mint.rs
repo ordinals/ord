@@ -268,7 +268,7 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    111 as u128
+    111_u128
   );
 
   let output = CommandBuilder::new(format!(
@@ -288,7 +288,7 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    132 as u128
+    132_u128
   );
 
   pretty_assert_eq!(
