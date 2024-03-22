@@ -1831,8 +1831,13 @@ mod tests {
   }
 
   #[test]
-  fn invalid_claim_produces_cenotaph() {
+  fn partial_claim_produces_cenotaph() {
     assert!(decipher(&[Tag::Claim.into(), 1]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_claim_produces_cenotaph() {
+    assert!(decipher(&[Tag::Claim.into(), 0, Tag::Claim.into(), 1]).cenotaph);
   }
 
   #[test]
