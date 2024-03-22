@@ -16,7 +16,7 @@ pub enum Charm {
 }
 
 impl Charm {
-  pub(crate) const ALL: [Charm; 11] = [
+  pub const ALL: [Charm; 11] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -34,37 +34,19 @@ impl Charm {
     1 << self as u16
   }
 
-  pub(crate) fn set(self, charms: &mut u16) {
+  pub fn set(self, charms: &mut u16) {
     *charms |= self.flag();
   }
 
-  pub(crate) fn is_set(self, charms: u16) -> bool {
+  pub fn is_set(self, charms: u16) -> bool {
     charms & self.flag() != 0
   }
 
-  pub(crate) fn unset(self, charms: u16) -> u16 {
+  pub fn unset(self, charms: u16) -> u16 {
     charms & !self.flag()
   }
 
-  pub(crate) fn set_with_sat(sat: Sat, charms: &mut u16) {
-    if sat.nineball() {
-      Charm::Nineball.set(charms);
-    }
-
-    if sat.coin() {
-      Charm::Coin.set(charms);
-    }
-
-    match sat.rarity() {
-      Rarity::Common | Rarity::Mythic => {}
-      Rarity::Uncommon => Charm::Uncommon.set(charms),
-      Rarity::Rare => Charm::Rare.set(charms),
-      Rarity::Epic => Charm::Epic.set(charms),
-      Rarity::Legendary => Charm::Legendary.set(charms),
-    }
-  }
-
-  pub(crate) fn icon(self) -> &'static str {
+  pub fn icon(self) -> &'static str {
     match self {
       Self::Coin => "🪙",
       Self::Cursed => "👹",
@@ -80,7 +62,7 @@ impl Charm {
     }
   }
 
-  pub(crate) fn charms(charms: u16) -> Vec<Charm> {
+  pub fn charms(charms: u16) -> Vec<Charm> {
     Self::ALL
       .iter()
       .filter(|charm| charm.is_set(charms))
@@ -112,7 +94,7 @@ impl Display for Charm {
 }
 
 impl FromStr for Charm {
-  type Err = Error;
+  type Err = String;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(match s {
@@ -127,7 +109,7 @@ impl FromStr for Charm {
       "unbound" => Self::Unbound,
       "uncommon" => Self::Uncommon,
       "vindicated" => Self::Vindicated,
-      _ => bail!("invalid charm `{s}`"),
+      _ => return Err(format!("invalid charm `{s}`")),
     })
   }
 }

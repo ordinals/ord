@@ -534,8 +534,7 @@ impl Server {
       });
       let blocktime = index.block_time(sat.height())?;
 
-      let mut charms: u16 = 0;
-      Charm::set_with_sat(sat, &mut charms);
+      let charms = sat.charms();
 
       Ok(if accept_json {
         Json(api::Sat {

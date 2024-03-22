@@ -462,7 +462,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         }
 
         if let Some(sat) = sat {
-          Charm::set_with_sat(sat, &mut charms);
+          charms |= sat.charms();
         }
 
         if new_satpoint.outpoint == OutPoint::null() {
