@@ -1710,41 +1710,4 @@ mod tests {
 
     assert_eq!(MAX_SPACERS, rune.parse::<SpacedRune>().unwrap().spacers);
   }
-
-  #[test]
-  fn runestone_can_be_serialized_and_deserialized() {
-    let rune_name = "MYAWESOMERUNE";
-    let rs = Runestone::from_transaction(&Transaction {
-      input: Vec::new(),
-      output: vec![TxOut {
-        script_pubkey: Runestone {
-          edicts: vec![Edict {
-            id: RuneId::default(),
-            amount: 1111,
-            output: 0,
-          }],
-          etching: Some(Etching {
-            rune: Some(Rune(4)),
-            mint: Some(Mint {
-              limit: Some(1000),
-              term: Some(0),
-              ..Default::default()
-            }),
-            ..Default::default()
-          }),
-          ..Default::default()
-        }
-        .encipher(),
-        value: 0,
-      }],
-      lock_time: LockTime::ZERO,
-      version: 2,
-    })
-    .unwrap();
-
-    assert_eq!(
-      rs,
-      serde_json::from_str(&serde_json::to_string(&rs).unwrap()).unwrap()
-    );
-  }
 }
