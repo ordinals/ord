@@ -827,7 +827,7 @@ impl Api for Server {
         txid: output.txid,
       };
       assert!(state.utxos.contains_key(&output));
-      state.locked.insert(output);
+      assert!(state.locked.insert(output));
     }
 
     Ok(true)
