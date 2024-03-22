@@ -13,8 +13,7 @@ struct Etched {
   divisibility: u8,
   id: RuneId,
   mint: Option<MintEntry>,
-  rune: Rune,
-  spacers: u32,
+  spaced_rune: SpacedRune,
   symbol: Option<char>,
 }
 
@@ -277,13 +276,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       divisibility,
       id,
       mint,
-      rune,
-      spacers,
+      spaced_rune,
       symbol,
     } = etched;
 
-    self.rune_to_id.insert(rune.0, id.store())?;
-    self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+    self.rune_to_id.insert(spaced_rune.rune.0, id.store())?;
+    self
+      .transaction_id_to_rune
+      .insert(&txid.store(), spaced_rune.rune.0)?;
 
     let number = self.runes;
     self.runes += 1;
@@ -300,12 +300,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         burned: 0,
         divisibility,
         etching: txid,
-        mints: 0,
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
+        mints: 0,
         number,
         premine,
-        rune,
-        spacers,
+        spaced_rune,
         supply: premine,
         symbol,
         timestamp: self.block_time,
@@ -367,8 +366,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         block: self.height,
         tx: tx_index,
       },
-      rune,
-      spacers: etching.spacers,
+      spaced_rune: SpacedRune {
+        rune,
+        spacers: etching.spacers,
+      },
       symbol: etching.symbol,
       mint: etching.mint.map(|mint| MintEntry {
         deadline: mint.deadline,

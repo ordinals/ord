@@ -10,7 +10,7 @@ pub struct RuneHtml {
 
 impl PageContent for RuneHtml {
   fn title(&self) -> String {
-    format!("Rune {}", self.entry.spaced_rune())
+    format!("Rune {}", self.entry.spaced_rune)
   }
 }
 
@@ -34,8 +34,10 @@ mod tests {
           }),
           number: 25,
           premine: 123456789,
-          rune: Rune(u128::MAX),
-          spacers: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(u128::MAX),
+            spacers: 1
+          },
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
@@ -106,8 +108,10 @@ mod tests {
           mints: 0,
           number: 25,
           premine: 0,
-          rune: Rune(u128::MAX),
-          spacers: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(u128::MAX),
+            spacers: 1
+          },
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
@@ -163,8 +167,10 @@ mod tests {
           mints: 0,
           premine: 0,
           number: 25,
-          rune: Rune(u128::MAX),
-          spacers: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(u128::MAX),
+            spacers: 1
+          },
           supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,

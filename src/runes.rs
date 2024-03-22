@@ -118,7 +118,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           ..Default::default()
         },
@@ -152,7 +155,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -219,7 +225,10 @@ mod tests {
           id,
           RuneEntry {
             etching: txid,
-            rune: Rune(minimum),
+            spaced_rune: SpacedRune {
+              rune: Rune(minimum),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
@@ -279,7 +288,10 @@ mod tests {
           id,
           RuneEntry {
             etching: txid,
-            rune: Rune(RESERVED - 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RESERVED - 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
@@ -327,7 +339,10 @@ mod tests {
         id0,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RESERVED),
+          spaced_rune: SpacedRune {
+            rune: Rune(RESERVED),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: 2,
@@ -375,7 +390,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RESERVED),
+            spaced_rune: SpacedRune {
+              rune: Rune(RESERVED),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: 2,
@@ -386,7 +404,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RESERVED + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RESERVED + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: 4,
@@ -441,7 +462,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           etching: txid,
           divisibility: 1,
           premine: u128::MAX,
@@ -486,7 +510,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -529,7 +556,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: None,
@@ -568,7 +598,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 100,
           supply: 100,
           timestamp: id.block,
@@ -612,7 +645,10 @@ mod tests {
         RuneEntry {
           burned: 100,
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 200,
           supply: 200,
           timestamp: id.block,
@@ -655,7 +691,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 0,
           timestamp: id.block,
@@ -691,7 +730,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -730,7 +772,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -774,7 +819,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           ..Default::default()
         },
@@ -822,8 +870,10 @@ mod tests {
           mints: 0,
           number: 0,
           premine: 0,
-          rune: Rune(RUNE),
-          spacers: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 1,
+          },
           supply: 0,
           symbol: Some('$'),
           timestamp: id.block,
@@ -866,7 +916,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RESERVED),
+          spaced_rune: SpacedRune {
+            rune: Rune(RESERVED),
+            spacers: 0,
+          },
           timestamp: 2,
           ..Default::default()
         },
@@ -900,7 +953,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -936,7 +992,10 @@ mod tests {
         RuneEntry {
           burned: u128::MAX,
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -972,7 +1031,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1001,7 +1063,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1043,7 +1108,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1073,7 +1141,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1110,7 +1181,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1146,7 +1220,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1188,7 +1265,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1224,7 +1304,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           burned: u128::MAX,
@@ -1262,7 +1345,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1291,7 +1377,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1333,7 +1422,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1366,7 +1458,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1402,7 +1497,10 @@ mod tests {
         id0,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
@@ -1440,7 +1538,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1451,7 +1552,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1494,7 +1598,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1505,7 +1612,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1549,7 +1659,10 @@ mod tests {
         id0,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
@@ -1587,7 +1700,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1598,7 +1714,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1641,7 +1760,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1652,7 +1774,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1702,7 +1827,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1713,7 +1841,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1766,7 +1897,10 @@ mod tests {
         id0,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
@@ -1804,7 +1938,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1815,7 +1952,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1876,7 +2016,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -1887,7 +2030,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -1932,7 +2078,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -1966,7 +2115,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2019,7 +2171,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -2030,7 +2185,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -2085,7 +2243,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2131,7 +2292,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2173,7 +2337,10 @@ mod tests {
         id0,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
@@ -2211,7 +2378,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -2222,7 +2392,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -2280,7 +2453,10 @@ mod tests {
           id0,
           RuneEntry {
             etching: txid0,
-            rune: Rune(RUNE),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
@@ -2291,7 +2467,10 @@ mod tests {
           id1,
           RuneEntry {
             etching: txid1,
-            rune: Rune(RUNE + 1),
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0,
+            },
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id1.block,
@@ -2344,7 +2523,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
@@ -2383,7 +2565,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
@@ -2426,7 +2611,10 @@ mod tests {
         RuneEntry {
           burned: u128::MAX,
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2462,7 +2650,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2505,7 +2696,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2541,7 +2735,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2589,7 +2786,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2649,7 +2849,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2690,7 +2893,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 4000,
           supply: 4000,
           timestamp: id.block,
@@ -2738,7 +2944,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2785,7 +2994,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2829,7 +3041,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2869,7 +3084,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2920,7 +3138,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2967,7 +3188,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3018,7 +3242,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3065,7 +3292,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3116,7 +3346,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3156,7 +3389,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3207,7 +3443,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3254,7 +3493,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3305,7 +3547,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3352,7 +3597,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3418,7 +3666,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('$'),
@@ -3455,7 +3706,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3491,7 +3745,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3531,7 +3788,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3579,7 +3839,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           mints: 0,
           mint: Some(MintEntry {
@@ -3616,7 +3879,10 @@ mod tests {
             ..Default::default()
           }),
           mints: 1,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: id.block,
@@ -3657,7 +3923,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           premine: 0,
           supply: 0,
@@ -3701,7 +3970,10 @@ mod tests {
             ..Default::default()
           }),
           mints: 1,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: id.block,
@@ -3747,7 +4019,10 @@ mod tests {
             ..Default::default()
           }),
           mints: 2,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 2000,
           timestamp: id.block,
@@ -3804,7 +4079,10 @@ mod tests {
             ..Default::default()
           }),
           mints: 3,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 3000,
           timestamp: id.block,
@@ -3855,7 +4133,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
@@ -3892,7 +4173,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
@@ -3938,7 +4222,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: id.block,
@@ -3991,7 +4278,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block),
@@ -4026,7 +4316,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -4069,7 +4362,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: 9,
           mint: Some(MintEntry {
             deadline: Some(12),
@@ -4100,7 +4396,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: 9,
@@ -4142,7 +4441,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: 9,
@@ -4192,7 +4494,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           mint: Some(MintEntry {
             deadline: Some(11),
@@ -4223,7 +4528,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: id.block,
@@ -4265,7 +4573,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           premine: 0,
           supply: 1000,
           timestamp: id.block,
@@ -4313,7 +4624,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           timestamp: id.block,
           mint: Some(MintEntry {
             deadline: Some(id.block + 2),
@@ -4349,7 +4663,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           supply: 1000,
           timestamp: id.block,
           mints: 1,
@@ -4395,7 +4712,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
@@ -4441,7 +4761,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
@@ -4478,7 +4801,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
@@ -4537,7 +4863,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
@@ -4576,7 +4905,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: None,
             end: Some(id.block + 1),
@@ -4619,7 +4951,10 @@ mod tests {
         rune_id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
@@ -4684,7 +5019,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
@@ -4729,7 +5067,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()
@@ -4777,7 +5118,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid0,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
           mint: Some(MintEntry {
             limit: Some(1000),
             ..Default::default()

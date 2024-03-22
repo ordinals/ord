@@ -48,7 +48,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 21;
+const SCHEMA_VERSION: u64 = 22;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -834,7 +834,7 @@ impl Index {
         .begin_read()?
         .open_table(RUNE_ID_TO_RUNE_ENTRY)?
         .get(&id.store())?
-        .map(|entry| RuneEntry::load(entry.value()).rune),
+        .map(|entry| RuneEntry::load(entry.value()).spaced_rune.rune),
     )
   }
 
@@ -919,7 +919,7 @@ impl Index {
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
       balances.push((
-        entry.spaced_rune(),
+        entry.spaced_rune,
         Pile {
           amount,
           divisibility: entry.divisibility,
@@ -954,8 +954,8 @@ impl Index {
 
     for (rune_id, balances) in rune_balances_by_id {
       let RuneEntry {
-        rune,
         divisibility,
+        spaced_rune,
         symbol,
         ..
       } = RuneEntry::load(
@@ -966,7 +966,7 @@ impl Index {
       );
 
       rune_balances.insert(
-        rune,
+        spaced_rune.rune,
         balances
           .into_iter()
           .map(|(outpoint, amount)| {
@@ -1220,7 +1220,7 @@ impl Index {
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
     let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
 
-    Ok(Some(RuneEntry::load(entry.value()).spaced_rune()))
+    Ok(Some(RuneEntry::load(entry.value()).spaced_rune))
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
@@ -1869,7 +1869,7 @@ impl Index {
     {
       let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let entry = rune_id_to_rune_entry.get(&rune_id.value())?.unwrap();
-      Some(RuneEntry::load(entry.value()).spaced_rune())
+      Some(RuneEntry::load(entry.value()).spaced_rune)
     } else {
       None
     };

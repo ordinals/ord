@@ -274,7 +274,7 @@ impl Send {
         continue;
       }
 
-      let balance = wallet.get_rune_balance_in_output(&output, entry.rune)?;
+      let balance = wallet.get_rune_balance_in_output(&output, entry.spaced_rune.rune)?;
 
       if balance > 0 {
         input_runes += balance;

@@ -550,8 +550,10 @@ fn get_runes() {
         mints: 0,
         number: 0,
         premine: 1000,
-        rune: Rune(RUNE),
-        spacers: 0,
+        spaced_rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0
+        },
         supply: 1000,
         symbol: Some('¢'),
         timestamp: 11,
@@ -585,8 +587,10 @@ fn get_runes() {
             mints: 0,
             number: 0,
             premine: 1000,
-            rune: Rune(RUNE),
-            spacers: 0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
             timestamp: 11,
@@ -602,8 +606,10 @@ fn get_runes() {
             mints: 0,
             number: 1,
             premine: 1000,
-            rune: Rune(RUNE + 1),
-            spacers: 0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
             timestamp: 19,
@@ -619,8 +625,10 @@ fn get_runes() {
             mints: 0,
             number: 2,
             premine: 1000,
-            rune: Rune(RUNE + 2),
-            spacers: 0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 2),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
             timestamp: 27,
