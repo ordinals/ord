@@ -66,6 +66,14 @@ impl Send {
         self.fee_rate,
         false,
       )?,
+      Outgoing::Sat(sat) => Self::create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        wallet.find_sat_in_outputs(sat)?,
+        self.postage,
+        self.fee_rate,
+        true,
+      )?,
     };
 
     let unspent_outputs = wallet.utxos();
