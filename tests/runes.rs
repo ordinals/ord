@@ -62,8 +62,10 @@ fn one_rune() {
           mints: 0,
           number: 0,
           premine: 1000,
-          rune: Rune(RUNE),
-          spacers: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           supply: 1000,
           symbol: Some('¢'),
           timestamp: ord::timestamp(8),
@@ -108,8 +110,10 @@ fn two_runes() {
             mints: 0,
             number: 0,
             premine: 1000,
-            rune: Rune(RUNE),
-            spacers: 0,
+            rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(8),
@@ -128,8 +132,10 @@ fn two_runes() {
             mints: 0,
             number: 1,
             premine: 1000,
-            rune: Rune(RUNE + 1),
-            spacers: 0,
+            rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(16),

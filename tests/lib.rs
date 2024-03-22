@@ -360,7 +360,7 @@ fn batch(
             <a href=/output/{location}>{location}</a>
           </td>
           <td class=monospace>
-            {premine}\u{00A0}{symbol}
+            {premine}\u{A0}{symbol}
           </td>
         </tr>
       </table>
