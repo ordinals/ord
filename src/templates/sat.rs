@@ -2,11 +2,11 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
+  pub(crate) blocktime: Blocktime,
+  pub(crate) charms: u16,
+  pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat: Sat,
   pub(crate) satpoint: Option<SatPoint>,
-  pub(crate) blocktime: Blocktime,
-  pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) charms: u16,
 }
 
 impl PageContent for SatHtml {
