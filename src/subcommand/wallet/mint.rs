@@ -72,15 +72,7 @@ impl Mint {
       ],
     };
 
-    let inscriptions = wallet
-      .inscriptions()
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<Vec<OutPoint>>();
-
-    if !bitcoin_client.lock_unspent(&inscriptions)? {
-      bail!("failed to lock UTXOs");
-    }
+    wallet.lock_non_cardinal_outputs()?;
 
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, self.fee_rate, &unfunded_transaction)?;
