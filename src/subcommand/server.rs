@@ -1548,7 +1548,8 @@ impl Server {
 
           // ---- Ordzaar ----
           inscription_sequence: info.entry.sequence_number,
-          delegate: info.inscription.delegate()
+          delegate: info.inscription.delegate(),
+          content_encoding: info.inscription.content_encoding_str().map(|s| s.to_string()),
           // ---- Ordzaar ----
         })
         .into_response()

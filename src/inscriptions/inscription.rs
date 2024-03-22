@@ -231,6 +231,12 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  // ---- Ordzaar ----
+  pub(crate) fn content_encoding_str(&self) -> Option<&str> {
+    str::from_utf8(self.content_encoding.as_ref()?).ok()
+  }
+  // ---- Ordzaar ----
+
   pub(crate) fn content_encoding(&self) -> Option<HeaderValue> {
     HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
   }
