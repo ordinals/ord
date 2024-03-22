@@ -20,7 +20,7 @@ pub struct RuneInfo {
   pub supply: u128,
   pub symbol: Option<char>,
   pub timestamp: DateTime<Utc>,
-  pub tx: u16,
+  pub tx: u32,
 }
 
 pub(crate) fn run(settings: Settings) -> SubcommandResult {

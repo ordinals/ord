@@ -909,12 +909,8 @@ impl Index {
     let mut balances = Vec::new();
     let mut i = 0;
     while i < balances_buffer.len() {
-      let (id, length) = varint::decode(&balances_buffer[i..]).unwrap();
+      let ((id, amount), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
       i += length;
-      let (amount, length) = varint::decode(&balances_buffer[i..]).unwrap();
-      i += length;
-
-      let id = RuneId::try_from(id).unwrap();
 
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
@@ -1002,11 +998,9 @@ impl Index {
       let mut balances = Vec::new();
       let mut i = 0;
       while i < balances_buffer.len() {
-        let (id, length) = varint::decode(&balances_buffer[i..]).unwrap();
+        let ((id, balance), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
         i += length;
-        let (balance, length) = varint::decode(&balances_buffer[i..]).unwrap();
-        i += length;
-        balances.push((RuneId::try_from(id)?, balance));
+        balances.push((id, balance));
       }
 
       result.push((outpoint, balances));

@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone},
+  crate::runes::{Edict, Runestone},
 };
 
 struct Claim {
@@ -41,12 +41,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
-  pub(super) fn index_runes(
-    &mut self,
-    tx_index: usize,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result<()> {
+  pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     let mut unallocated = self.unallocated(tx)?;
@@ -76,14 +71,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         update.supply += claim.limit;
       }
 
-      // Nota bene: Because it would require constructing a block
-      // with 2**16 + 1 transactions, there is no test that checks that
-      // an eching in a transaction with an out-of-bounds index is
-      // ignored.
-      let mut etched = u16::try_from(tx_index)
-        .ok()
-        .and_then(|tx_index| self.etched(tx_index, tx, &runestone).transpose())
-        .transpose()?;
+      let mut etched = self.etched(tx_index, tx, &runestone)?;
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
@@ -221,8 +209,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       balances.sort();
 
       for (id, balance) in balances {
-        varint::encode_to_vec(id.into(), &mut buffer);
-        varint::encode_to_vec(balance, &mut buffer);
+        id.encode_balance(balance, &mut buffer);
       }
 
       self.outpoint_to_balances.insert(
@@ -328,7 +315,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
   fn etched(
     &mut self,
-    tx_index: u16,
+    tx_index: u32,
     tx: &Transaction,
     runestone: &Runestone,
   ) -> Result<Option<Etched>> {
@@ -446,11 +433,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         let buffer = guard.value();
         let mut i = 0;
         while i < buffer.len() {
-          let (id, len) = varint::decode(&buffer[i..]).unwrap();
+          let ((id, balance), len) = RuneId::decode_balance(&buffer[i..]).unwrap();
           i += len;
-          let (balance, len) = varint::decode(&buffer[i..]).unwrap();
-          i += len;
-          *unallocated.entry(id.try_into().unwrap()).or_default() += balance;
+          *unallocated.entry(id).or_default() += balance;
         }
       }
     }

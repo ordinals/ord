@@ -214,7 +214,7 @@ impl Entry for RuneEntry {
   }
 }
 
-pub(super) type RuneIdValue = (u32, u16);
+pub(super) type RuneIdValue = (u32, u32);
 
 impl Entry for RuneId {
   type Value = RuneIdValue;

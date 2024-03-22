@@ -3,29 +3,58 @@ use super::*;
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd, Default)]
 pub struct RuneId {
   pub block: u32,
-  pub tx: u16,
+  pub tx: u32,
 }
 
-impl TryFrom<u128> for RuneId {
-  type Error = Error;
+impl RuneId {
+  pub(crate) fn delta(self, next: RuneId) -> Option<(u128, u128)> {
+    let block = next.block.checked_sub(self.block)?;
 
-  fn try_from(n: u128) -> Result<Self, Error> {
-    let id = Self {
-      block: u32::try_from(n >> 16)?,
-      tx: u16::try_from(n & 0xFFFF).unwrap(),
+    let tx = if block == 0 {
+      next.tx.checked_sub(self.tx)?
+    } else {
+      next.tx
+    };
+
+    Some((block.into(), tx.into()))
+  }
+
+  pub(crate) fn next(self: RuneId, block: u128, tx: u128) -> Option<RuneId> {
+    let id = RuneId {
+      block: self.block.checked_add(block.try_into().ok()?)?,
+      tx: if block == 0 {
+        self.tx.checked_add(tx.try_into().ok()?)?
+      } else {
+        tx.try_into().ok()?
+      },
     };
 
     if id.block == 0 && id.tx > 0 {
-      bail!("invalid rune ID: {id}")
+      return None;
     }
 
-    Ok(id)
+    Some(id)
   }
-}
 
-impl From<RuneId> for u128 {
-  fn from(id: RuneId) -> Self {
-    u128::from(id.block) << 16 | u128::from(id.tx)
+  pub(crate) fn encode_balance(self, balance: u128, buffer: &mut Vec<u8>) {
+    varint::encode_to_vec(self.block.into(), buffer);
+    varint::encode_to_vec(self.tx.into(), buffer);
+    varint::encode_to_vec(balance, buffer);
+  }
+
+  pub(crate) fn decode_balance(buffer: &[u8]) -> Option<((RuneId, u128), usize)> {
+    let mut len = 0;
+    let (block, block_len) = varint::decode(&buffer[len..])?;
+    len += block_len;
+    let (tx, tx_len) = varint::decode(&buffer[len..])?;
+    len += tx_len;
+    let id = RuneId {
+      block: block.try_into().ok()?,
+      tx: tx.try_into().ok()?,
+    };
+    let (balance, balance_len) = varint::decode(&buffer[len..])?;
+    len += balance_len;
+    Some(((id, balance), len))
   }
 }
 
@@ -73,11 +102,46 @@ mod tests {
   use super::*;
 
   #[test]
-  fn rune_id_to_128() {
+  fn delta() {
+    let mut expected = [
+      RuneId { block: 4, tx: 2 },
+      RuneId { block: 1, tx: 2 },
+      RuneId { block: 1, tx: 1 },
+      RuneId { block: 3, tx: 1 },
+      RuneId { block: 2, tx: 0 },
+    ];
+
+    expected.sort();
+
     assert_eq!(
-      0b11_0000_0000_0000_0001u128,
-      RuneId { block: 3, tx: 1 }.into()
+      expected,
+      [
+        RuneId { block: 1, tx: 1 },
+        RuneId { block: 1, tx: 2 },
+        RuneId { block: 2, tx: 0 },
+        RuneId { block: 3, tx: 1 },
+        RuneId { block: 4, tx: 2 },
+      ]
     );
+
+    let mut previous = RuneId::default();
+    let mut deltas = Vec::new();
+    for id in expected {
+      deltas.push(previous.delta(id).unwrap());
+      previous = id;
+    }
+
+    assert_eq!(deltas, [(1, 1), (0, 1), (1, 0), (1, 1), (1, 2)]);
+
+    let mut previous = RuneId::default();
+    let mut actual = Vec::new();
+    for (block, tx) in deltas {
+      let next = previous.next(block, tx).unwrap();
+      actual.push(next);
+      previous = next;
+    }
+
+    assert_eq!(actual, expected);
   }
 
   #[test]
@@ -93,19 +157,6 @@ mod tests {
     assert!("a:2".parse::<RuneId>().is_err());
     assert!("1:a".parse::<RuneId>().is_err());
     assert_eq!("1:2".parse::<RuneId>().unwrap(), RuneId { block: 1, tx: 2 });
-  }
-
-  #[test]
-  fn try_from() {
-    assert_eq!(
-      RuneId::try_from(0x060504030201).unwrap(),
-      RuneId {
-        block: 0x06050403,
-        tx: 0x0201
-      }
-    );
-
-    assert!(RuneId::try_from(0x07060504030201).is_err());
   }
 
   #[test]

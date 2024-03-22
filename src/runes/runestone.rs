@@ -27,20 +27,31 @@ impl Message {
       let tag = payload[i];
 
       if Tag::Body == tag {
-        let mut id = 0u128;
-        for chunk in payload[i + 1..].chunks_exact(3) {
-          id = id.saturating_add(chunk[0]);
-
-          if let Some(edict) = Edict::from_integers(tx, id, chunk[1], chunk[2]) {
-            edicts.push(edict);
-          } else {
+        let mut id = RuneId::default();
+        for chunk in payload[i + 1..].chunks(4) {
+          if chunk.len() != 4 {
             cenotaph = true;
+            break;
           }
+
+          let Some(next) = id.next(chunk[0], chunk[1]) else {
+            cenotaph = true;
+            break;
+          };
+
+          let Some(edict) = Edict::from_integers(tx, next, chunk[2], chunk[3]) else {
+            cenotaph = true;
+            break;
+          };
+
+          id = next;
+          edicts.push(edict);
         }
         break;
       }
 
       let Some(&value) = payload.get(i + 1) else {
+        cenotaph = true;
         break;
       };
 
@@ -208,13 +219,14 @@ impl Runestone {
       let mut edicts = self.edicts.clone();
       edicts.sort_by_key(|edict| edict.id);
 
-      let mut id = 0;
+      let mut previous = RuneId::default();
       for edict in edicts {
-        let next = u128::from(edict.id);
-        varint::encode_to_vec(next - id, &mut payload);
+        let (block, tx) = previous.delta(edict.id).unwrap();
+        varint::encode_to_vec(block, &mut payload);
+        varint::encode_to_vec(tx, &mut payload);
         varint::encode_to_vec(edict.amount, &mut payload);
         varint::encode_to_vec(edict.output.into(), &mut payload);
-        id = next;
+        previous = edict.id;
       }
     }
 
@@ -460,12 +472,8 @@ mod tests {
               .push_opcode(MAGIC_NUMBER)
               .push_opcode(opcodes::all::OP_VERIFY)
               .push_slice([0])
-              .push_slice::<&script::PushBytes>(
-                varint::encode(rune_id(1).into())
-                  .as_slice()
-                  .try_into()
-                  .unwrap()
-              )
+              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
               .push_slice([2, 0])
               .into_script(),
             value: 0,
@@ -475,12 +483,8 @@ mod tests {
               .push_opcode(opcodes::all::OP_RETURN)
               .push_opcode(MAGIC_NUMBER)
               .push_slice([0])
-              .push_slice::<&script::PushBytes>(
-                varint::encode(rune_id(2).into())
-                  .as_slice()
-                  .try_into()
-                  .unwrap()
-              )
+              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&script::PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
               .push_slice([3, 0])
               .into_script(),
             value: 0,
@@ -551,7 +555,7 @@ mod tests {
   #[test]
   fn deciphering_non_empty_runestone_is_successful() {
     assert_eq!(
-      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0]),
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -570,7 +574,8 @@ mod tests {
         Tag::Flags.into(),
         Flag::Etch.mask(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -588,14 +593,15 @@ mod tests {
 
   #[test]
   fn decipher_etching_with_rune() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask(),
         Tag::Rune.into(),
         4,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -616,14 +622,15 @@ mod tests {
 
   #[test]
   fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Mint.mask(),
         Tag::Term.into(),
         4,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -640,14 +647,15 @@ mod tests {
 
   #[test]
   fn decipher_etching_with_term() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask() | Flag::Mint.mask(),
         Tag::Term.into(),
         4,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -678,7 +686,8 @@ mod tests {
         Tag::Limit.into(),
         4,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -702,7 +711,7 @@ mod tests {
 
   #[test]
   fn duplicate_even_tags_produce_cenotaph() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask(),
@@ -711,7 +720,8 @@ mod tests {
         Tag::Rune.into(),
         5,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -733,7 +743,7 @@ mod tests {
 
   #[test]
   fn duplicate_odd_tags_are_ignored() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask(),
@@ -742,7 +752,8 @@ mod tests {
         Tag::Divisibility.into(),
         5,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -765,14 +776,7 @@ mod tests {
   #[test]
   fn unrecognized_odd_tag_is_ignored() {
     assert_eq!(
-      decipher(&[
-        Tag::Nop.into(),
-        100,
-        Tag::Body.into(),
-        rune_id(1).into(),
-        2,
-        0
-      ]),
+      decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -787,14 +791,7 @@ mod tests {
   #[test]
   fn runestone_with_unrecognized_even_tag_is_cenotaph() {
     assert_eq!(
-      decipher(&[
-        Tag::Cenotaph.into(),
-        0,
-        Tag::Body.into(),
-        rune_id(1).into(),
-        2,
-        0
-      ]),
+      decipher(&[Tag::Cenotaph.into(), 0, Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -814,7 +811,8 @@ mod tests {
         Tag::Flags.into(),
         Flag::Cenotaph.mask(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0
       ]),
@@ -833,7 +831,7 @@ mod tests {
   #[test]
   fn runestone_with_edict_id_with_zero_block_and_nonzero_tx_is_cenotaph() {
     pretty_assert_eq!(
-      decipher(&[Tag::Body.into(), RuneId { block: 0, tx: 1 }.into(), 2, 0]),
+      decipher(&[Tag::Body.into(), 0, 1, 2, 0]),
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
@@ -845,7 +843,7 @@ mod tests {
   #[test]
   fn runestone_with_output_over_max_is_cenotaph() {
     pretty_assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 2]),
+      decipher(&[Tag::Body.into(), 1, 1, 2, 2]),
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
@@ -855,44 +853,37 @@ mod tests {
   }
 
   #[test]
-  fn tag_with_no_value_is_ignored() {
+  fn tag_with_no_value_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Flags.into(), 1, Tag::Flags.into()]),
       Runestone {
         etching: Some(Etching::default()),
+        cenotaph: true,
         ..Default::default()
       },
     );
   }
 
   #[test]
-  fn additional_integers_in_body_are_ignored() {
-    pretty_assert_eq!(
-      decipher(&[
-        Tag::Flags.into(),
-        Flag::Etch.mask(),
-        Tag::Rune.into(),
-        4,
-        Tag::Body.into(),
-        rune_id(1).into(),
-        2,
-        0,
-        4,
-        5
-      ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(4)),
+  fn trailing_integers_in_body_is_cenotaph() {
+    let mut integers = vec![Tag::Body.into(), 1, 1, 2, 0];
+
+    for i in 0..4 {
+      pretty_assert_eq!(
+        decipher(&integers),
+        Runestone {
+          cenotaph: i > 0,
+          edicts: vec![Edict {
+            id: rune_id(1),
+            amount: 2,
+            output: 0,
+          }],
           ..Default::default()
-        }),
-        ..Default::default()
-      },
-    );
+        }
+      );
+
+      integers.push(0);
+    }
   }
 
   #[test]
@@ -906,7 +897,8 @@ mod tests {
         Tag::Divisibility.into(),
         5,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -937,7 +929,8 @@ mod tests {
         Tag::Divisibility.into(),
         (MAX_DIVISIBILITY + 1).into(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -965,7 +958,8 @@ mod tests {
         Tag::Symbol.into(),
         u128::from(u32::from(char::MAX) + 1),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -983,7 +977,7 @@ mod tests {
 
   #[test]
   fn decipher_etching_with_symbol() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask(),
@@ -992,7 +986,8 @@ mod tests {
         Tag::Symbol.into(),
         'a'.into(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -1033,7 +1028,8 @@ mod tests {
         Tag::Limit.into(),
         3,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -1074,7 +1070,8 @@ mod tests {
         Tag::Limit.into(),
         3,
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -1102,7 +1099,8 @@ mod tests {
         Tag::Symbol.into(),
         'a'.into(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -1125,14 +1123,15 @@ mod tests {
 
   #[test]
   fn tag_values_are_not_parsed_as_tags() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask(),
         Tag::Divisibility.into(),
         Tag::Body.into(),
         Tag::Body.into(),
-        rune_id(1).into(),
+        1,
+        1,
         2,
         0,
       ]),
@@ -1151,7 +1150,7 @@ mod tests {
   #[test]
   fn runestone_may_contain_multiple_edicts() {
     pretty_assert_eq!(
-      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0, 3, 5, 0]),
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, 0, 3, 5, 0]),
       Runestone {
         edicts: vec![
           Edict {
@@ -1171,9 +1170,25 @@ mod tests {
   }
 
   #[test]
-  fn runestones_with_invalid_rune_ids_are_burn() {
+  fn runestones_with_invalid_rune_id_blocks_are_cenotaph() {
     pretty_assert_eq!(
-      decipher(&[Tag::Body.into(), rune_id(1).into(), 2, 0, u128::MAX, 5, 6]),
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, u128::MAX, 1, 0, 0,]),
+      Runestone {
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        cenotaph: true,
+        ..Default::default()
+      },
+    );
+  }
+
+  #[test]
+  fn runestones_with_invalid_rune_id_txs_are_cenotaph() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, 1, u128::MAX, 0, 0,]),
       Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
@@ -1220,12 +1235,8 @@ mod tests {
                 .try_into()
                 .unwrap()
             )
-            .push_slice::<&script::PushBytes>(
-              varint::encode(rune_id(1).into())
-                .as_slice()
-                .try_into()
-                .unwrap()
-            )
+            .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+            .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(0).as_slice().try_into().unwrap())
             .into_script(),
@@ -1251,7 +1262,7 @@ mod tests {
 
   #[test]
   fn runestone_may_be_in_second_output() {
-    let payload = payload(&[0, rune_id(1).into(), 2, 0]);
+    let payload = payload(&[0, 1, 1, 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1288,7 +1299,7 @@ mod tests {
 
   #[test]
   fn runestone_may_be_after_non_matching_op_return() {
-    let payload = payload(&[0, rune_id(1).into(), 2, 0]);
+    let payload = payload(&[0, 1, 1, 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1399,7 +1410,7 @@ mod tests {
         rune: Some(Rune(u128::MAX)),
         ..Default::default()
       }),
-      31,
+      32,
     );
 
     case(
@@ -1413,7 +1424,7 @@ mod tests {
         rune: Some(Rune(u128::MAX)),
         ..Default::default()
       }),
-      49,
+      50,
     );
 
     case(
@@ -1421,12 +1432,12 @@ mod tests {
         amount: 0,
         id: RuneId {
           block: 1_000_000,
-          tx: u16::MAX,
+          tx: u32::MAX,
         },
         output: 0,
       }],
       None,
-      12,
+      14,
     );
 
     case(
@@ -1434,12 +1445,12 @@ mod tests {
         amount: u128::MAX,
         id: RuneId {
           block: 1_000_000,
-          tx: u16::MAX,
+          tx: u32::MAX,
         },
         output: 0,
       }],
       None,
-      30,
+      32,
     );
 
     case(
@@ -1448,7 +1459,7 @@ mod tests {
           amount: u128::MAX,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         },
@@ -1456,13 +1467,13 @@ mod tests {
           amount: u128::MAX,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         },
       ],
       None,
-      51,
+      54,
     );
 
     case(
@@ -1471,7 +1482,7 @@ mod tests {
           amount: u128::MAX,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         },
@@ -1479,7 +1490,7 @@ mod tests {
           amount: u128::MAX,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         },
@@ -1487,13 +1498,13 @@ mod tests {
           amount: u128::MAX,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         },
       ],
       None,
-      72,
+      76,
     );
 
     case(
@@ -1502,14 +1513,14 @@ mod tests {
           amount: u64::MAX.into(),
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         };
         4
       ],
       None,
-      57,
+      62,
     );
 
     case(
@@ -1518,14 +1529,14 @@ mod tests {
           amount: u64::MAX.into(),
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         };
         5
       ],
       None,
-      69,
+      75,
     );
 
     case(
@@ -1534,14 +1545,14 @@ mod tests {
           amount: u64::MAX.into(),
           id: RuneId {
             block: 0,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         };
         5
       ],
       None,
-      66,
+      73,
     );
 
     case(
@@ -1550,14 +1561,14 @@ mod tests {
           amount: 1_000_000_000_000_000_000,
           id: RuneId {
             block: 1_000_000,
-            tx: u16::MAX,
+            tx: u32::MAX,
           },
           output: 0,
         };
         5
       ],
       None,
-      64,
+      70,
     );
   }
 
@@ -1670,9 +1681,11 @@ mod tests {
         Tag::Cenotaph.into(),
         0,
         Tag::Body.into(),
-        rune_id(6).into(),
+        1,
+        6,
         5,
         1,
+        0,
         3,
         8,
         0,
@@ -1727,7 +1740,7 @@ mod tests {
           amount: 0,
           output: 0
         };
-        173
+        129
       ],
       ..Default::default()
     }
@@ -1742,7 +1755,7 @@ mod tests {
           amount: 0,
           output: 0
         };
-        174
+        130
       ],
       ..Default::default()
     }
@@ -1768,15 +1781,7 @@ mod tests {
 
   #[test]
   fn edict_output_greater_than_32_max_produces_cenotaph() {
-    assert!(
-      decipher(&[
-        Tag::Body.into(),
-        rune_id(1).into(),
-        1,
-        u128::from(u32::MAX) + 1,
-      ])
-      .cenotaph
-    );
+    assert!(decipher(&[Tag::Body.into(), 1, 1, 1, u128::from(u32::MAX) + 1]).cenotaph);
   }
 
   #[test]

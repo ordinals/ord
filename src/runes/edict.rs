@@ -10,12 +10,10 @@ pub struct Edict {
 impl Edict {
   pub(crate) fn from_integers(
     tx: &Transaction,
-    id: u128,
+    id: RuneId,
     amount: u128,
     output: u128,
   ) -> Option<Self> {
-    let id = RuneId::try_from(id).ok()?;
-
     let Ok(output) = u32::try_from(output) else {
       return None;
     };

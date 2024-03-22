@@ -608,7 +608,7 @@ impl<'index> Updater<'index> {
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(i, tx, *txid)?;
+        rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
       for (rune_id, update) in rune_updater.updates {
