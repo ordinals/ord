@@ -7,6 +7,16 @@ pub struct RuneId {
 }
 
 impl RuneId {
+  pub(crate) fn new(block: u32, tx: u32) -> Option<RuneId> {
+    let id = RuneId { block, tx };
+
+    if id.block == 0 && id.tx > 0 {
+      return None;
+    }
+
+    Some(id)
+  }
+
   pub(crate) fn delta(self, next: RuneId) -> Option<(u128, u128)> {
     let block = next.block.checked_sub(self.block)?;
 
@@ -20,20 +30,14 @@ impl RuneId {
   }
 
   pub(crate) fn next(self: RuneId, block: u128, tx: u128) -> Option<RuneId> {
-    let id = RuneId {
-      block: self.block.checked_add(block.try_into().ok()?)?,
-      tx: if block == 0 {
+    RuneId::new(
+      self.block.checked_add(block.try_into().ok()?)?,
+      if block == 0 {
         self.tx.checked_add(tx.try_into().ok()?)?
       } else {
         tx.try_into().ok()?
       },
-    };
-
-    if id.block == 0 && id.tx > 0 {
-      return None;
-    }
-
-    Some(id)
+    )
   }
 
   pub(crate) fn encode_balance(self, balance: u128, buffer: &mut Vec<u8>) {

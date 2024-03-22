@@ -102,10 +102,7 @@ impl Runestone {
     } = Message::from_integers(transaction, &integers);
 
     let claim = Tag::Claim.take(&mut fields, |[block, tx]| {
-      Some(RuneId {
-        block: block.try_into().ok()?,
-        tx: tx.try_into().ok()?,
-      })
+      RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
     });
 
     let deadline = Tag::Deadline.take(&mut fields, |[deadline]| u32::try_from(deadline).ok());
