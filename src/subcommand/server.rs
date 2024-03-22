@@ -533,6 +533,10 @@ impl Server {
         })
       });
       let blocktime = index.block_time(sat.height())?;
+
+      let mut charms: u16 = 0;
+      Charm::set_with_sat(sat, &mut charms);
+
       Ok(if accept_json {
         Json(api::Sat {
           number: sat.0,
@@ -549,6 +553,11 @@ impl Server {
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
           inscriptions,
+          charms: Charm::ALL
+            .iter()
+            .filter(|charm| charm.is_set(charms))
+            .map(|charm| charm.title().into())
+            .collect(),
         })
         .into_response()
       } else {
@@ -557,6 +566,7 @@ impl Server {
           satpoint,
           blocktime,
           inscriptions,
+          charms,
         }
         .page(server_config)
         .into_response()

@@ -1,3 +1,5 @@
+use super::*;
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Charm {
   Coin = 0,
@@ -42,6 +44,24 @@ impl Charm {
 
   pub(crate) fn unset(self, charms: u16) -> u16 {
     charms & !self.flag()
+  }
+
+  pub(crate) fn set_with_sat(sat: Sat, charms: &mut u16) {
+    if sat.nineball() {
+      Charm::Nineball.set(charms);
+    }
+
+    if sat.coin() {
+      Charm::Coin.set(charms);
+    }
+
+    match sat.rarity() {
+      Rarity::Common | Rarity::Mythic => {}
+      Rarity::Uncommon => Charm::Uncommon.set(charms),
+      Rarity::Rare => Charm::Rare.set(charms),
+      Rarity::Epic => Charm::Epic.set(charms),
+      Rarity::Legendary => Charm::Legendary.set(charms),
+    }
   }
 
   pub(crate) fn icon(self) -> &'static str {

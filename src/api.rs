@@ -174,6 +174,7 @@ pub struct Sat {
   pub satpoint: Option<SatPoint>,
   pub timestamp: i64,
   pub inscriptions: Vec<InscriptionId>,
+  pub charms: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
