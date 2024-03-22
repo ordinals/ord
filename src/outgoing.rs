@@ -1,10 +1,11 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, DeserializeFromStr, SerializeDisplay)]
 pub enum Outgoing {
   Amount(Amount),
   InscriptionId(InscriptionId),
   SatPoint(SatPoint),
+  Sat(Sat),
   Rune { decimal: Decimal, rune: SpacedRune },
 }
 
@@ -13,6 +14,7 @@ impl Display for Outgoing {
     match self {
       Self::Amount(amount) => write!(f, "{}", amount.to_string().to_lowercase()),
       Self::InscriptionId(inscription_id) => inscription_id.fmt(f),
+      Self::Sat(sat) => sat.fmt(f),
       Self::SatPoint(satpoint) => satpoint.fmt(f),
       Self::Rune { decimal, rune } => write!(f, "{decimal} {rune}"),
     }
@@ -61,7 +63,9 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if re::SATPOINT.is_match(s) {
+    Ok(if s.parse::<Sat>().is_ok() {
+      Self::Sat(s.parse()?)
+    } else if re::SATPOINT.is_match(s) {
       Self::SatPoint(s.parse()?)
     } else if re::INSCRIPTION_ID.is_match(s) {
       Self::InscriptionId(s.parse()?)
@@ -78,24 +82,6 @@ impl FromStr for Outgoing {
   }
 }
 
-impl Serialize for Outgoing {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Outgoing {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -106,6 +92,12 @@ mod tests {
     fn case(s: &str, outgoing: Outgoing) {
       assert_eq!(s.parse::<Outgoing>().unwrap(), outgoing);
     }
+
+    case("0", Outgoing::Sat("0".parse().unwrap()));
+    case(
+      "2099999997689999",
+      Outgoing::Sat("2099999997689999".parse().unwrap()),
+    );
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -177,8 +169,6 @@ mod tests {
         decimal: "1.1".parse().unwrap(),
       },
     );
-
-    assert!("0".parse::<Outgoing>().is_err());
   }
 
   #[test]
@@ -188,6 +178,12 @@ mod tests {
       assert_eq!(s.parse::<Outgoing>().unwrap(), outgoing);
       assert_eq!(s, outgoing.to_string());
     }
+
+    case("0", Outgoing::Sat("0".parse().unwrap()));
+    case(
+      "2099999997689999",
+      Outgoing::Sat("2099999997689999".parse().unwrap()),
+    );
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -235,6 +231,13 @@ mod tests {
       assert_eq!(serde_json::to_string(&o).unwrap(), j);
       assert_eq!(serde_json::from_str::<Outgoing>(j).unwrap(), o);
     }
+
+    case("0", "\"0\"", Outgoing::Sat("0".parse().unwrap()));
+    case(
+      "2099999997689999",
+      "\"2099999997689999\"",
+      Outgoing::Sat("2099999997689999".parse().unwrap()),
+    );
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",

@@ -111,6 +111,19 @@ fn receive(
     .unwrap()
 }
 
+fn sats(
+  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  ord_rpc_server: &TestServer,
+) -> Vec<ord::subcommand::wallet::sats::OutputRare> {
+  CommandBuilder::new(format!(
+    "--chain {} wallet sats",
+    bitcoin_rpc_server.network()
+  ))
+  .bitcoin_rpc_server(bitcoin_rpc_server)
+  .ord_rpc_server(ord_rpc_server)
+  .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
+}
+
 fn inscribe(
   bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
   ord_rpc_server: &TestServer,
@@ -360,7 +373,7 @@ fn batch(
             <a href=/output/{location}>{location}</a>
           </td>
           <td class=monospace>
-            {premine}\u{00A0}{symbol}
+            {premine}\u{A0}{symbol}
           </td>
         </tr>
       </table>

@@ -41,7 +41,7 @@ pub(crate) struct Updater<'index> {
 }
 
 impl<'index> Updater<'index> {
-  pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
+  pub(crate) fn update_index(&mut self, mut wtx: WriteTransaction) -> Result {
     let start = Instant::now();
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
     let starting_index_height = self.height;
@@ -607,7 +607,7 @@ impl<'index> Updater<'index> {
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(i, tx, *txid)?;
+        rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
       for (rune_id, update) in rune_updater.updates {

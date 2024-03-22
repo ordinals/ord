@@ -37,8 +37,7 @@ pub struct RuneEntry {
   pub mints: u64,
   pub number: u64,
   pub premine: u128,
-  pub rune: Rune,
-  pub spacers: u32,
+  pub spaced_rune: SpacedRune,
   pub supply: u128,
   pub symbol: Option<char>,
   pub timestamp: u32,
@@ -47,18 +46,18 @@ pub struct RuneEntry {
 impl RuneEntry {
   pub fn mintable(&self, block_height: Height, block_time: u32) -> Result<u128, MintError> {
     let Some(mint) = self.mint else {
-      return Err(MintError::Unmintable(self.rune));
+      return Err(MintError::Unmintable(self.spaced_rune.rune));
     };
 
     if let Some(end) = mint.end {
       if block_height.0 >= end {
-        return Err(MintError::End((self.rune, end)));
+        return Err(MintError::End((self.spaced_rune.rune, end)));
       }
     }
 
     if let Some(deadline) = mint.deadline {
       if block_time >= deadline {
-        return Err(MintError::Deadline((self.rune, deadline)));
+        return Err(MintError::Deadline((self.spaced_rune.rune, deadline)));
       }
     }
 
@@ -74,8 +73,7 @@ pub(super) type RuneEntryValue = (
   u64,                    // mints
   u64,                    // number
   u128,                   // premine
-  u128,                   // rune
-  u32,                    // spacers
+  (u128, u32),            // spaced rune
   u128,                   // supply
   Option<char>,           // symbol
   u32,                    // timestamp
@@ -94,15 +92,6 @@ type MintEntryValue = (
   Option<u128>, // limit
 );
 
-impl RuneEntry {
-  pub(crate) fn spaced_rune(&self) -> SpacedRune {
-    SpacedRune {
-      rune: self.rune,
-      spacers: self.spacers,
-    }
-  }
-}
-
 impl Default for RuneEntry {
   fn default() -> Self {
     Self {
@@ -113,8 +102,7 @@ impl Default for RuneEntry {
       mints: 0,
       number: 0,
       premine: 0,
-      rune: Rune(0),
-      spacers: 0,
+      spaced_rune: SpacedRune::default(),
       supply: 0,
       symbol: None,
       timestamp: 0,
@@ -134,8 +122,7 @@ impl Entry for RuneEntry {
       mints,
       number,
       premine,
-      rune,
-      spacers,
+      (rune, spacers),
       supply,
       symbol,
       timestamp,
@@ -162,8 +149,10 @@ impl Entry for RuneEntry {
       mints,
       number,
       premine,
-      rune: Rune(rune),
-      spacers,
+      spaced_rune: SpacedRune {
+        rune: Rune(rune),
+        spacers,
+      },
       supply,
       symbol,
       timestamp,
@@ -197,8 +186,7 @@ impl Entry for RuneEntry {
       self.mints,
       self.number,
       self.premine,
-      self.rune.0,
-      self.spacers,
+      (self.spaced_rune.rune.0, self.spaced_rune.spacers),
       self.supply,
       self.symbol,
       self.timestamp,
@@ -206,7 +194,7 @@ impl Entry for RuneEntry {
   }
 }
 
-pub(super) type RuneIdValue = (u32, u16);
+pub(super) type RuneIdValue = (u32, u32);
 
 impl Entry for RuneId {
   type Value = RuneIdValue;
@@ -511,8 +499,10 @@ mod tests {
       mints: 11,
       number: 6,
       premine: 12,
-      rune: Rune(7),
-      spacers: 8,
+      spaced_rune: SpacedRune {
+        rune: Rune(7),
+        spacers: 8,
+      },
       supply: 9,
       symbol: Some('a'),
       timestamp: 10,
@@ -529,8 +519,7 @@ mod tests {
       11,
       6,
       12,
-      7,
-      8,
+      (7, 8),
       9,
       Some('a'),
       10,
