@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Default, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq)]
+#[derive(
+  Default, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq, DeserializeFromStr, SerializeDisplay,
+)]
 pub struct Rune(pub u128);
 
 impl Rune {
@@ -83,24 +85,6 @@ impl Rune {
     }
 
     bytes[..end].into()
-  }
-}
-
-impl Serialize for Rune {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Rune {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 
