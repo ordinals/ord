@@ -1,6 +1,18 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd, Default)]
+#[derive(
+  Debug,
+  PartialEq,
+  Copy,
+  Clone,
+  Hash,
+  Eq,
+  Ord,
+  PartialOrd,
+  Default,
+  DeserializeFromStr,
+  SerializeDisplay,
+)]
 pub struct RuneId {
   pub block: u32,
   pub tx: u32,
@@ -80,24 +92,6 @@ impl FromStr for RuneId {
       block: height.parse()?,
       tx: index.parse()?,
     })
-  }
-}
-
-impl Serialize for RuneId {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for RuneId {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 
