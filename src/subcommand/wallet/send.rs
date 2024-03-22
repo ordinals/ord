@@ -127,43 +127,13 @@ impl Send {
     })))
   }
 
-  fn lock_non_cardinal_outputs(
-    bitcoin_client: &Client,
-    inscriptions: &BTreeMap<SatPoint, Vec<InscriptionId>>,
-    runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: &BTreeMap<OutPoint, TxOut>,
-  ) -> Result {
-    let all_inscription_outputs = inscriptions
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<HashSet<OutPoint>>();
-
-    let locked_outputs = unspent_outputs
-      .keys()
-      .filter(|utxo| all_inscription_outputs.contains(utxo))
-      .chain(runic_outputs.iter())
-      .cloned()
-      .collect::<Vec<OutPoint>>();
-
-    if !bitcoin_client.lock_unspent(&locked_outputs)? {
-      bail!("failed to lock UTXOs");
-    }
-
-    Ok(())
-  }
-
   fn create_unsigned_send_amount_transaction(
     wallet: &Wallet,
     destination: Address,
     amount: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
-    Self::lock_non_cardinal_outputs(
-      wallet.bitcoin_client(),
-      wallet.inscriptions(),
-      &wallet.get_runic_outputs()?,
-      wallet.utxos(),
-    )?;
+    wallet.lock_non_cardinal_outputs()?;
 
     let unfunded_transaction = Transaction {
       version: 2,
@@ -243,17 +213,11 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    let unspent_outputs = wallet.utxos();
     let inscriptions = wallet.inscriptions();
     let runic_outputs = wallet.get_runic_outputs()?;
     let bitcoin_client = wallet.bitcoin_client();
 
-    Self::lock_non_cardinal_outputs(
-      bitcoin_client,
-      inscriptions,
-      &runic_outputs,
-      unspent_outputs,
-    )?;
+    wallet.lock_non_cardinal_outputs()?;
 
     let (id, entry, _parent) = wallet
       .get_rune(spaced_rune.rune)?
