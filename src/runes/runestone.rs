@@ -17,6 +17,11 @@ struct Message {
   fields: HashMap<u128, VecDeque<u128>>,
 }
 
+enum Payload {
+  Valid(Vec<u8>),
+  Invalid,
+}
+
 impl Message {
   fn from_integers(tx: &Transaction, payload: &[u128]) -> Self {
     let mut edicts = Vec::new();
@@ -72,12 +77,22 @@ impl Runestone {
   }
 
   fn decipher(transaction: &Transaction) -> Result<Option<Self>, script::Error> {
-    let Some(payload) = Runestone::payload(transaction)? else {
-      return Ok(None);
+    let payload = match Runestone::payload(transaction)? {
+      Some(Payload::Valid(payload)) => payload,
+      Some(Payload::Invalid) => {
+        return Ok(Some(Self {
+          cenotaph: true,
+          ..Default::default()
+        }))
+      }
+      None => return Ok(None),
     };
 
     let Some(integers) = Runestone::integers(&payload) else {
-      return Ok(None);
+      return Ok(Some(Self {
+        cenotaph: true,
+        ..Default::default()
+      }));
     };
 
     let Message {
@@ -242,7 +257,7 @@ impl Runestone {
     builder.into_script()
   }
 
-  fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>, script::Error> {
+  fn payload(transaction: &Transaction) -> Result<Option<Payload>, script::Error> {
     // search transaction outputs for payload
     for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
@@ -264,11 +279,11 @@ impl Runestone {
         if let Instruction::PushBytes(push) = result? {
           payload.extend_from_slice(push.as_bytes());
         } else {
-          return Ok(None);
+          return Ok(Some(Payload::Invalid));
         }
       }
 
-      return Ok(Some(payload));
+      return Ok(Some(Payload::Valid(payload)));
     }
 
     Ok(None)
@@ -461,7 +476,7 @@ mod tests {
   }
 
   #[test]
-  fn outputs_with_non_pushdata_opcodes_are_ignored_and_terminate_search_for_runestone() {
+  fn outputs_with_non_pushdata_opcodes_are_cenotaph() {
     assert_eq!(
       Runestone::decipher(&Transaction {
         input: Vec::new(),
@@ -493,8 +508,12 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
+      .unwrap()
       .unwrap(),
-      None,
+      Runestone {
+        cenotaph: true,
+        ..Default::default()
+      }
     );
   }
 
@@ -706,6 +725,31 @@ mod tests {
         }),
         ..Default::default()
       },
+    );
+  }
+
+  #[test]
+  fn invalid_varint_produces_cenotaph() {
+    pretty_assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_opcode(MAGIC_NUMBER)
+            .push_slice([128])
+            .into_script(),
+          value: 0,
+        }],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      })
+      .unwrap()
+      .unwrap(),
+      Runestone {
+        cenotaph: true,
+        ..Default::default()
+      }
     );
   }
 
@@ -1605,7 +1649,9 @@ mod tests {
         version: 2,
       };
 
-      let payload = Runestone::payload(&transaction).unwrap().unwrap();
+      let Payload::Valid(payload) = Runestone::payload(&transaction).unwrap().unwrap() else {
+        panic!("invalid payload")
+      };
 
       pretty_assert_eq!(Runestone::integers(&payload).unwrap(), expected);
 
