@@ -127,7 +127,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
       satpoint: Some(SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap()),
       timestamp: 3,
       inscriptions: vec![inscription_id],
-      charms: vec![],
+      charms: Vec::new(),
     }
   )
 }
