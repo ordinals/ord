@@ -73,7 +73,7 @@ mod tests {
             <a href=/output/1{64}:1>1{64}:1</a>
           </td>
           <td class=monospace>
-            1000\u{00A0}\\$
+            1000\u{A0}\\$
           </td>
         </tr>
       </table>
@@ -88,7 +88,7 @@ mod tests {
             <a href=/output/2{64}:2>2{64}:2</a>
           </td>
           <td class=monospace>
-            1234567\\.8\u{00A0}¢
+            1234567\\.8\u{A0}¢
           </td>
         </tr>
       </table>

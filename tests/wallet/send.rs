@@ -753,7 +753,7 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: insufficient `AAAAAAAAAAAAA` balance, only 1000\u{00A0}¢ in wallet\n")
+  .expected_stderr("error: insufficient `AAAAAAAAAAAAA` balance, only 1000\u{A0}¢ in wallet\n")
   .run_and_extract_stdout();
 }
 
@@ -1133,7 +1133,7 @@ fn error_messages_use_spaced_runes() {
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: insufficient `A•AAAAAAAAAAAA` balance, only 1000\u{00A0}¢ in wallet\n")
+  .expected_stderr("error: insufficient `A•AAAAAAAAAAAA` balance, only 1000\u{A0}¢ in wallet\n")
   .run_and_extract_stdout();
 
   CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1F•OO")

@@ -22,6 +22,7 @@ use {
       media::{self, ImageRendering, Media},
       teleburn, Charm, ParsedEnvelope,
     },
+    into_usize::IntoUsize,
     representation::Representation,
     runes::Etching,
     settings::Settings,
@@ -113,6 +114,7 @@ mod decimal;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod into_usize;
 mod object;
 pub mod options;
 pub mod outgoing;

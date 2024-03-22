@@ -16,12 +16,11 @@ pub struct RuneInfo {
   pub mints: u64,
   pub number: u64,
   pub premine: u128,
-  pub rune: Rune,
-  pub spacers: u32,
+  pub rune: SpacedRune,
   pub supply: u128,
   pub symbol: Option<char>,
   pub timestamp: DateTime<Utc>,
-  pub tx: u16,
+  pub tx: u32,
 }
 
 pub(crate) fn run(settings: Settings) -> SubcommandResult {
@@ -49,15 +48,14 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
             mints,
             number,
             premine,
-            rune,
-            spacers,
+            spaced_rune,
             supply,
             symbol,
             timestamp,
           },
         )| {
           (
-            rune,
+            spaced_rune.rune,
             RuneInfo {
               block: id.block,
               burned,
@@ -68,8 +66,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
               mints,
               number,
               premine,
-              rune,
-              spacers,
+              rune: spaced_rune,
               supply,
               symbol,
               timestamp: crate::timestamp(timestamp),

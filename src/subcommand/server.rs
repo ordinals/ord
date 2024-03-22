@@ -2705,7 +2705,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2776,7 +2779,7 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
@@ -2812,11 +2815,11 @@ mod tests {
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
-  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>premine</dt>
-  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>burned</dt>
-  <dd>0\u{00A0}%</dd>
+  <dd>0\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>symbol</dt>
@@ -2889,12 +2892,11 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 1 },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
-          spacers: 1,
           ..Default::default()
         }
       )]
@@ -2937,7 +2939,7 @@ mod tests {
       StatusCode::OK,
       ".*<tr>
         <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
-        <td>340282366920938463463374607431768211455\u{00A0}%</td>
+        <td>340282366920938463463374607431768211455\u{A0}%</td>
       </tr>.*",
     );
   }
@@ -2980,7 +2982,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3042,7 +3047,7 @@ mod tests {
         RuneEntry {
           divisibility: 1,
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3072,7 +3077,7 @@ mod tests {
       </tr>
       <tr>
         <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
-        <td>34028236692093846346337460743176821145.5</td>
+        <td>34028236692093846346337460743176821145.5\u{A0}¤</td>
       </tr>
     </table>
   </dd>
