@@ -16,7 +16,7 @@ use {
     outgoing::Outgoing,
     subcommand::runes::RuneInfo,
     wallet::inscribe::{BatchEntry, Batchfile, Etch},
-    Edict, InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
+    Charm, Edict, InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
   },
   ordinals::{Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,

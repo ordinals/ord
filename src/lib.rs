@@ -21,7 +21,7 @@ use {
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
-      teleburn, Charm, ParsedEnvelope,
+      teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
     representation::Representation,
@@ -85,7 +85,7 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, MintEntry, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId},
+  inscriptions::{Charm, Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
   runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},

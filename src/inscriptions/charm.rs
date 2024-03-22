@@ -1,7 +1,7 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum Charm {
+#[derive(Copy, Clone, Debug, PartialEq, DeserializeFromStr, SerializeDisplay)]
+pub enum Charm {
   Coin = 0,
   Cursed = 1,
   Epic = 2,
@@ -80,29 +80,55 @@ impl Charm {
     }
   }
 
-  pub(crate) fn title(self) -> &'static str {
-    match self {
-      Self::Coin => "coin",
-      Self::Cursed => "cursed",
-      Self::Epic => "epic",
-      Self::Legendary => "legendary",
-      Self::Lost => "lost",
-      Self::Nineball => "nineball",
-      Self::Rare => "rare",
-      Self::Reinscription => "reinscription",
-      Self::Unbound => "unbound",
-      Self::Uncommon => "uncommon",
-      Self::Vindicated => "vindicated",
-    }
-  }
-
-  #[cfg(test)]
   pub(crate) fn charms(charms: u16) -> Vec<Charm> {
     Self::ALL
       .iter()
       .filter(|charm| charm.is_set(charms))
-      .cloned()
+      .copied()
       .collect()
+  }
+}
+
+impl Display for Charm {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        Self::Coin => "coin",
+        Self::Cursed => "cursed",
+        Self::Epic => "epic",
+        Self::Legendary => "legendary",
+        Self::Lost => "lost",
+        Self::Nineball => "nineball",
+        Self::Rare => "rare",
+        Self::Reinscription => "reinscription",
+        Self::Unbound => "unbound",
+        Self::Uncommon => "uncommon",
+        Self::Vindicated => "vindicated",
+      }
+    )
+  }
+}
+
+impl FromStr for Charm {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(match s {
+      "coin" => Self::Coin,
+      "cursed" => Self::Cursed,
+      "epic" => Self::Epic,
+      "legendary" => Self::Legendary,
+      "lost" => Self::Lost,
+      "nineball" => Self::Nineball,
+      "rare" => Self::Rare,
+      "reinscription" => Self::Reinscription,
+      "unbound" => Self::Unbound,
+      "uncommon" => Self::Uncommon,
+      "vindicated" => Self::Vindicated,
+      _ => bail!("invalid charm `{s}`"),
+    })
   }
 }
 

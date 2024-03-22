@@ -553,11 +553,7 @@ impl Server {
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
           inscriptions,
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(charms))
-            .map(|charm| charm.title().into())
-            .collect(),
+          charms: Charm::charms(charms),
         })
         .into_response()
       } else {
@@ -978,11 +974,7 @@ impl Server {
 
       Ok(
         Json(api::InscriptionRecursive {
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(entry.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
+          charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
           fee: entry.fee,
@@ -1549,11 +1541,7 @@ impl Server {
                 .ok()
             })
             .map(|address| address.to_string()),
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(info.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
+          charms: Charm::charms(info.charms),
           children: info.children,
           content_length: info.inscription.content_length(),
           content_type: info.inscription.content_type().map(|s| s.to_string()),

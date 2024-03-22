@@ -76,7 +76,7 @@ pub struct Children {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -96,7 +96,7 @@ pub struct Inscription {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionRecursive {
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
   pub fee: u64,
@@ -160,21 +160,21 @@ impl Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
-  pub number: u64,
+  pub block: u32,
+  pub charms: Vec<Charm>,
+  pub cycle: u32,
   pub decimal: String,
   pub degree: String,
-  pub name: String,
-  pub block: u32,
-  pub cycle: u32,
   pub epoch: u32,
-  pub period: u32,
+  pub inscriptions: Vec<InscriptionId>,
+  pub name: String,
+  pub number: u64,
   pub offset: u64,
-  pub rarity: Rarity,
   pub percentile: String,
+  pub period: u32,
+  pub rarity: Rarity,
   pub satpoint: Option<SatPoint>,
   pub timestamp: i64,
-  pub inscriptions: Vec<InscriptionId>,
-  pub charms: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
