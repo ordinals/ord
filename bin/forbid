@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if ! which rg > /dev/null; then
-  echo "Error: ripgrep (rg) is not installed or not in PATH."
+  echo "error: ripgrep (rg) not found"
   exit 1
 fi
 
