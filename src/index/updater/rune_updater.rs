@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone},
+  crate::runes::{Edict, Runestone},
 };
 
 struct Claim {
@@ -13,8 +13,7 @@ struct Etched {
   divisibility: u8,
   id: RuneId,
   mint: Option<MintEntry>,
-  rune: Rune,
-  spacers: u32,
+  spaced_rune: SpacedRune,
   symbol: Option<char>,
 }
 
@@ -42,12 +41,7 @@ pub(super) struct RuneUpdater<'a, 'tx> {
 }
 
 impl<'a, 'tx> RuneUpdater<'a, 'tx> {
-  pub(super) fn index_runes(
-    &mut self,
-    tx_index: usize,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result<()> {
+  pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     let mut unallocated = self.unallocated(tx)?;
@@ -57,11 +51,9 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       .map(|runestone| runestone.cenotaph)
       .unwrap_or_default();
 
-    let default_output = runestone.as_ref().and_then(|runestone| {
-      runestone
-        .default_output
-        .and_then(|default| usize::try_from(default).ok())
-    });
+    let default_output = runestone
+      .as_ref()
+      .and_then(|runestone| runestone.default_output);
 
     let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
@@ -83,12 +75,9 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
-          let Ok(output) = usize::try_from(output) else {
-            continue;
-          };
-
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser
+          let output = usize::try_from(output).unwrap();
           assert!(output <= tx.output.len());
 
           let (balance, id) = if id == RuneId::default() {
@@ -173,6 +162,7 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       // OP_RETURN output if there is no default, or if the default output is
       // too large
       if let Some(vout) = default_output
+        .map(|vout| vout.into_usize())
         .filter(|vout| *vout < allocated.len())
         .or_else(|| {
           tx.output
@@ -219,8 +209,7 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       balances.sort();
 
       for (id, balance) in balances {
-        varint::encode_to_vec(id.into(), &mut buffer);
-        varint::encode_to_vec(balance, &mut buffer);
+        id.encode_balance(balance, &mut buffer);
       }
 
       self.outpoint_to_balances.insert(
@@ -274,13 +263,14 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       divisibility,
       id,
       mint,
-      rune,
-      spacers,
+      spaced_rune,
       symbol,
     } = etched;
 
-    self.rune_to_id.insert(rune.0, id.store())?;
-    self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+    self.rune_to_id.insert(spaced_rune.rune.0, id.store())?;
+    self
+      .transaction_id_to_rune
+      .insert(&txid.store(), spaced_rune.rune.0)?;
 
     let number = self.runes;
     self.runes += 1;
@@ -297,12 +287,11 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
         burned: 0,
         divisibility,
         etching: txid,
-        mints: 0,
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
+        mints: 0,
         number,
         premine,
-        rune,
-        spacers,
+        spaced_rune,
         supply: premine,
         symbol,
         timestamp: self.block_time,
@@ -326,7 +315,7 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
 
   fn etched(
     &mut self,
-    tx_index: usize,
+    tx_index: u32,
     tx: &Transaction,
     runestone: &Runestone,
   ) -> Result<Option<Etched>> {
@@ -357,23 +346,17 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       Rune::reserved(reserved_runes.into())
     };
 
-    // Nota bene: Because it would require constructing a block
-    // with 2**16 + 1 transactions, there is no test that checks that
-    // an eching in a transaction with an out-of-bounds index is
-    // ignored.
-    let Ok(index) = u16::try_from(tx_index) else {
-      return Ok(None);
-    };
-
     Ok(Some(Etched {
       balance: u128::MAX,
       divisibility: etching.divisibility,
       id: RuneId {
         block: self.height,
-        tx: index,
+        tx: tx_index,
       },
-      rune,
-      spacers: etching.spacers,
+      spaced_rune: SpacedRune {
+        rune,
+        spacers: etching.spacers,
+      },
       symbol: etching.symbol,
       mint: etching.mint.map(|mint| MintEntry {
         deadline: mint.deadline,
@@ -401,6 +384,9 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
     let commitment = rune.commitment();
 
     for input in &tx.input {
+      // extracting a tapscript does not indicate that the input being spent
+      // was actually a taproot output. this is checked below, when we load the
+      // output's entry from the database
       let Some(tapscript) = input.witness.tapscript() else {
         continue;
       };
@@ -447,11 +433,9 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
         let buffer = guard.value();
         let mut i = 0;
         while i < buffer.len() {
-          let (id, len) = varint::decode(&buffer[i..]);
+          let ((id, balance), len) = RuneId::decode_balance(&buffer[i..]).unwrap();
           i += len;
-          let (balance, len) = varint::decode(&buffer[i..]);
-          i += len;
-          *unallocated.entry(id.try_into().unwrap()).or_default() += balance;
+          *unallocated.entry(id).or_default() += balance;
         }
       }
     }

@@ -22,8 +22,10 @@ mod tests {
         entries: vec![(
           RuneId { block: 0, tx: 0 },
           RuneEntry {
-            rune: Rune(26),
-            spacers: 1,
+            spaced_rune: SpacedRune {
+              rune: Rune(26),
+              spacers: 1
+            },
             ..Default::default()
           }
         )],
