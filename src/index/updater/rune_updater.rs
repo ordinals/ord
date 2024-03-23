@@ -375,19 +375,16 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           continue;
         }
 
-        dbg!("here1");
         let tx_info = self
           .client
           .get_raw_transaction_info(&input.previous_output.txid, None)
           .unwrap_or_else(|_| panic!("input not in UTXO set: {}", input.previous_output));
-        dbg!("here2");
 
         let is_taproot = tx_info.vout[input.previous_output.vout as usize]
           .script_pub_key
           .script()?
           .is_v1_p2tr();
 
-        dbg!("here5");
         let confirmations = tx_info.confirmations.unwrap_or_default();
 
         if is_taproot && confirmations >= RUNE_COMMIT_INTERVAL {
