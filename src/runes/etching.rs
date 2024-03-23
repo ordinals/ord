@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone, Eq)]
 pub struct Etching {
   pub divisibility: u8,
   pub mint: Option<Mint>,
