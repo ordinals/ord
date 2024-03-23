@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone, Eq)]
 pub struct Edict {
   pub id: RuneId,
   pub amount: u128,

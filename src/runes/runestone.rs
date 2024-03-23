@@ -2,7 +2,7 @@ use super::*;
 
 const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
   pub cenotaph: bool,
   pub claim: Option<RuneId>,
