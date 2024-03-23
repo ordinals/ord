@@ -24,13 +24,13 @@ pub(crate) struct RuneUpdate {
   pub(crate) supply: u128,
 }
 
-pub(super) struct RuneUpdater<'a, 'tx> {
+pub(super) struct RuneUpdater<'a, 'tx, 'client> {
+  pub(super) client: &'client Client,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) outpoint_to_output: &'a mut Table<'tx, &'static OutPointValue, OutputValue>,
   pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
@@ -40,7 +40,7 @@ pub(super) struct RuneUpdater<'a, 'tx> {
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
-impl<'a, 'tx> RuneUpdater<'a, 'tx> {
+impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
@@ -222,33 +222,6 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
       )?;
     }
 
-    for input in tx.input.iter() {
-      if input.previous_output.is_null() {
-        continue;
-      }
-
-      self
-        .outpoint_to_output
-        .remove(&input.previous_output.store())?
-        .unwrap();
-    }
-
-    for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
-        txid,
-        vout: vout.try_into().unwrap(),
-      };
-
-      self.outpoint_to_output.insert(
-        &outpoint.store(),
-        OutputEntry {
-          height: self.height,
-          taproot: output.script_pubkey.is_v1_p2tr(),
-        }
-        .store(),
-      )?;
-    }
-
     // increment entries with burned runes
     for (id, amount) in burned {
       self.updates.entry(id).or_default().burned += amount;
@@ -402,16 +375,25 @@ impl<'a, 'tx> RuneUpdater<'a, 'tx> {
           continue;
         }
 
-        let Some(output) = self
-          .outpoint_to_output
-          .get(&input.previous_output.store())?
+        let Some(tx_info) = self
+          .client
+          .get_raw_transaction_info(&input.previous_output.txid, None)
+          .into_option()?
         else {
           panic!("input not in UTXO set: {}", input.previous_output);
         };
 
-        let output = OutputEntry::load(output.value());
+        let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
+          .script_pub_key
+          .script()?
+          .is_v1_p2tr();
 
-        if output.taproot && self.height >= output.height + RUNE_COMMIT_INTERVAL {
+        let mature = tx_info
+          .confirmations
+          .map(|confirmations| confirmations >= RUNE_COMMIT_INTERVAL)
+          .unwrap_or_default();
+
+        if taproot && mature {
           return Ok(true);
         }
       }

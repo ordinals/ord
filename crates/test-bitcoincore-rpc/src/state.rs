@@ -19,6 +19,7 @@ pub struct State {
   pub network: Network,
   pub nonce: u32,
   pub transactions: BTreeMap<Txid, Transaction>,
+  pub txid_to_block_height: BTreeMap<Txid, u32>,
   pub utxos: BTreeMap<OutPoint, Amount>,
   pub version: usize,
   pub receive_addresses: Vec<Address>,
@@ -49,6 +50,7 @@ impl State {
       nonce: 0,
       receive_addresses: Vec::new(),
       transactions: BTreeMap::new(),
+      txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
       version,
       wallets: BTreeSet::new(),
@@ -155,6 +157,10 @@ impl State {
     };
 
     for tx in block.txdata.iter() {
+      self
+        .txid_to_block_height
+        .insert(tx.txid(), self.hashes.len().try_into().unwrap());
+
       for input in tx.input.iter() {
         if !input.previous_output.is_null() {
           assert!(self.utxos.remove(&input.previous_output).is_some());
