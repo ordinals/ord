@@ -54,7 +54,7 @@ fn with_runes() {
     Output {
       runes: vec![
         (
-          Rune(RUNE),
+          SpacedRune::new(Rune(RUNE), 0),
           vec![(
             OutPoint {
               txid: a.inscribe.reveal,
@@ -70,7 +70,7 @@ fn with_runes() {
           .collect()
         ),
         (
-          Rune(RUNE + 1),
+          SpacedRune::new(Rune(RUNE + 1), 0),
           vec![(
             OutPoint {
               txid: b.inscribe.reveal,
