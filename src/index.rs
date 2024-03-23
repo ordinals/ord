@@ -965,8 +965,6 @@ impl Index {
       let ((id, amount), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
       i += length;
 
-      let id = RuneId::try_from(id).unwrap();
-
       let number = id_to_rune_numbers.get(&id.store())?.unwrap().value();
       let entry = RuneEntry::load(number_to_rune_entries.get(&number)?.unwrap().value());
 
