@@ -5,7 +5,7 @@ pub struct Output {
   pub cardinal: u64,
   pub ordinal: u64,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub runes: Option<BTreeMap<Rune, u128>>,
+  pub runes: Option<BTreeMap<SpacedRune, u128>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
@@ -37,7 +37,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        *runes.entry(spaced_rune.rune).or_default() += pile.amount;
+        *runes.entry(spaced_rune).or_default() += pile.amount;
       }
       runic += txout.value;
     }
