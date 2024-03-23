@@ -96,11 +96,12 @@ impl Sat {
     }
 
     match self.rarity() {
-      Rarity::Common | Rarity::Mythic => {}
-      Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
-      Rarity::Rare => Charm::Rare.set(&mut charms),
+      Rarity::Common => {}
       Rarity::Epic => Charm::Epic.set(&mut charms),
       Rarity::Legendary => Charm::Legendary.set(&mut charms),
+      Rarity::Mythic => Charm::Mythic.set(&mut charms),
+      Rarity::Rare => Charm::Rare.set(&mut charms),
+      Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
     }
 
     charms

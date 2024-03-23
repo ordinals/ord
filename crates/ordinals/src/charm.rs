@@ -13,15 +13,17 @@ pub enum Charm {
   Unbound = 8,
   Uncommon = 9,
   Vindicated = 10,
+  Mythic = 11,
 }
 
 impl Charm {
-  pub const ALL: [Charm; 11] = [
+  pub const ALL: [Charm; 12] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
     Self::Epic,
     Self::Legendary,
+    Self::Mythic,
     Self::Nineball,
     Self::Reinscription,
     Self::Cursed,
@@ -53,6 +55,7 @@ impl Charm {
       Self::Epic => "🪻",
       Self::Legendary => "🌝",
       Self::Lost => "🤔",
+      Self::Mythic => "🎃",
       Self::Nineball => "9️⃣",
       Self::Rare => "🧿",
       Self::Reinscription => "♻️",
@@ -82,6 +85,7 @@ impl Display for Charm {
         Self::Epic => "epic",
         Self::Legendary => "legendary",
         Self::Lost => "lost",
+        Self::Mythic => "mythic",
         Self::Nineball => "nineball",
         Self::Rare => "rare",
         Self::Reinscription => "reinscription",
@@ -103,6 +107,7 @@ impl FromStr for Charm {
       "epic" => Self::Epic,
       "legendary" => Self::Legendary,
       "lost" => Self::Lost,
+      "mythic" => Self::Mythic,
       "nineball" => Self::Nineball,
       "rare" => Self::Rare,
       "reinscription" => Self::Reinscription,

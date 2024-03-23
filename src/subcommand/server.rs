@@ -561,7 +561,6 @@ impl Server {
           satpoint,
           blocktime,
           inscriptions,
-          charms,
         }
         .page(server_config)
         .into_response()

@@ -3,7 +3,6 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
   pub(crate) blocktime: Blocktime,
-  pub(crate) charms: u16,
   pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat: Sat,
   pub(crate) satpoint: Option<SatPoint>,
@@ -27,7 +26,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
-        charms: 0,
       },
       "
         <h1>Sat 0</h1>
@@ -41,8 +39,13 @@ mod tests {
           <dt>period</dt><dd>0</dd>
           <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=coin>🪙</span>
+            <span title=mythic>🎃</span>
+          </dd>
         </dl>
         .*
         prev
@@ -61,7 +64,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
-        charms: 0,
       },
       "
         <h1>Sat 2099999997689999</h1>
@@ -75,8 +77,12 @@ mod tests {
           <dt>period</dt><dd>3437</dd>
           <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=uncommon>🌱</span>
+          </dd>
         </dl>
         .*
         <a class=prev href=/sat/2099999997689998>prev</a>
@@ -95,7 +101,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
-        charms: 0,
       },
       r"<h1>Sat 1</h1>.*<a class=prev href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>.*",
     );
@@ -109,7 +114,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: vec![inscription_id(1)],
-        charms: 0,
       },
       "
         <h1>Sat 0</h1>
@@ -131,7 +135,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: vec![inscription_id(1), inscription_id(2)],
-        charms: 0,
       },
       "
         <h1>Sat 0</h1>
@@ -154,7 +157,6 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
-        charms: 0,
       },
       r"<h1>Sat 2099999997689999</h1>.*<a class=prev href=/sat/2099999997689998>prev</a>\nnext.*",
     );
@@ -168,7 +170,6 @@ mod tests {
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
-        charms: 0,
       },
       "<h1>Sat 0</h1>.*<dt>location</dt><dd class=monospace>1{64}:1:0</dd>.*",
     );
