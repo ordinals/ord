@@ -227,9 +227,7 @@ impl Wallet {
     )
   }
 
-  fn get_locked_utxos(
-    bitcoin_client: &Client,
-  ) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_locked_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
       txid: Txid,
