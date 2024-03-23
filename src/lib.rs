@@ -21,7 +21,7 @@ use {
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
-      teleburn, Charm, ParsedEnvelope,
+      teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
     representation::Representation,
@@ -53,7 +53,7 @@ use {
   html_escaper::{Escape, Trusted},
   http::HeaderMap,
   lazy_static::lazy_static,
-  ordinals::{Epoch, Height, Rarity, Sat, SatPoint},
+  ordinals::{Charm, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
   reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize},

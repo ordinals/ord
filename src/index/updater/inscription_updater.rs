@@ -462,21 +462,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         }
 
         if let Some(sat) = sat {
-          if sat.nineball() {
-            Charm::Nineball.set(&mut charms);
-          }
-
-          if sat.coin() {
-            Charm::Coin.set(&mut charms);
-          }
-
-          match sat.rarity() {
-            Rarity::Common | Rarity::Mythic => {}
-            Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
-            Rarity::Rare => Charm::Rare.set(&mut charms),
-            Rarity::Epic => Charm::Epic.set(&mut charms),
-            Rarity::Legendary => Charm::Legendary.set(&mut charms),
-          }
+          charms |= sat.charms();
         }
 
         if new_satpoint.outpoint == OutPoint::null() {
