@@ -201,7 +201,7 @@ mod tests {
 
   #[test]
   fn batchfile_not_sat_and_satpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -227,7 +227,7 @@ inscriptions:
 
   #[test]
   fn batchfile_wrong_mode_for_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -254,7 +254,7 @@ inscriptions:
 
   #[test]
   fn batchfile_missing_satpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -280,7 +280,7 @@ inscriptions:
 
   #[test]
   fn batchfile_only_first_sat_of_outpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -307,7 +307,7 @@ inscriptions:
 
   #[test]
   fn batchfile_no_postage_if_mode_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -335,7 +335,7 @@ inscriptions:
 
   #[test]
   fn batchfile_no_duplicate_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
