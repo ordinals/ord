@@ -109,10 +109,11 @@ fn send_uninscribed_sat() {
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  let sat = 1;
+  let sat = Sat(1);
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {sat}"
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {}",
+    sat.name(),
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
@@ -144,7 +145,7 @@ fn send_inscription_by_sat() {
 
   let address = "bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv";
 
-  let output = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {sat}"))
+  let output = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {}", sat.name()))
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .run_and_deserialize_output::<Send>();
