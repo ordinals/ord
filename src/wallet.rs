@@ -564,7 +564,12 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn initialize(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize(
+    name: String,
+    settings: &Settings,
+    seed: [u8; 64],
+    account: u32,
+  ) -> Result {
     Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
@@ -586,7 +591,7 @@ impl Wallet {
       .child(ChildNumber::Hardened {
         index: u32::from(network != Network::Bitcoin),
       })
-      .child(ChildNumber::Hardened { index: 0 });
+      .child(ChildNumber::Hardened { index: account });
 
     let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 

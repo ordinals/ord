@@ -17,6 +17,8 @@ pub(crate) struct Create {
     help = "Use <PASSPHRASE> to derive wallet seed."
   )]
   pub(crate) passphrase: String,
+  #[arg(long, help = "Derive wallet with <ACCOUNT>", default_value = "0")]
+  pub(crate) account: u32,
 }
 
 impl Create {
@@ -26,7 +28,12 @@ impl Create {
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-    Wallet::initialize(name, settings, mnemonic.to_seed(&self.passphrase))?;
+    Wallet::initialize(
+      name,
+      settings,
+      mnemonic.to_seed(&self.passphrase),
+      self.account,
+    )?;
 
     Ok(Some(Box::new(Output {
       mnemonic,
