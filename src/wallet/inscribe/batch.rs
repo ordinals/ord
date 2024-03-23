@@ -638,9 +638,8 @@ impl Batch {
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     match (Runestone::from_transaction(&reveal_tx), runestone) {
-      (Some(actual), Some(expected)) => pretty_assert_eq!(
-        actual,
-        expected,
+      (Some(actual), Some(expected)) => assert_eq!(
+        actual, expected,
         "commit transaction runestone did not match expected runestone"
       ),
       (Some(_), None) => panic!("commit transaction contained runestone, but none was expected"),
