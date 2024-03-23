@@ -23,10 +23,11 @@ use {
 pub const CYCLE_EPOCHS: u32 = 6;
 
 pub use {
-  decimal_sat::DecimalSat, degree::Degree, epoch::Epoch, height::Height, rarity::Rarity, sat::Sat,
-  sat_point::SatPoint,
+  charm::Charm, decimal_sat::DecimalSat, degree::Degree, epoch::Epoch, height::Height,
+  rarity::Rarity, sat::Sat, sat_point::SatPoint,
 };
 
+mod charm;
 mod decimal_sat;
 mod degree;
 mod epoch;

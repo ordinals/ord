@@ -31,6 +31,7 @@ fn get_sat_without_sat_index() {
       satpoint: None,
       timestamp: 0,
       inscriptions: Vec::new(),
+      charms: vec![Charm::Uncommon],
     }
   )
 }
@@ -69,6 +70,7 @@ fn get_sat_with_inscription_and_sat_index() {
       satpoint: Some(SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap()),
       timestamp: 1,
       inscriptions: vec![inscription_id],
+      charms: vec![Charm::Coin, Charm::Uncommon],
     }
   )
 }
@@ -125,6 +127,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
       satpoint: Some(SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap()),
       timestamp: 3,
       inscriptions: vec![inscription_id],
+      charms: Vec::new(),
     }
   )
 }
@@ -153,7 +156,7 @@ fn get_inscription() {
     inscription_json,
     api::Inscription {
       address: None,
-      charms: vec!["coin".into(), "uncommon".into()],
+      charms: vec![Charm::Coin, Charm::Uncommon],
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
