@@ -70,7 +70,7 @@ fn minting_rune_and_fails_if_after_end() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        output.rune.rune,
+        output.rune,
         vec![(
           OutPoint {
             txid: output.mint,
