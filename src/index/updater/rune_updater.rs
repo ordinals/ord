@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::runes::{varint, Edict, Runestone},
+  crate::runes::{Edict, Runestone},
 };
 
 struct Claim {
@@ -13,8 +13,7 @@ struct Etched {
   divisibility: u8,
   id: RuneId,
   mint: Option<MintEntry>,
-  rune: Rune,
-  spacers: u32,
+  spaced_rune: SpacedRune,
   symbol: Option<char>,
 }
 
@@ -25,29 +24,24 @@ pub(crate) struct RuneUpdate {
   pub(crate) supply: u128,
 }
 
-pub(super) struct RuneUpdater<'a, 'db, 'tx> {
+pub(super) struct RuneUpdater<'a, 'tx, 'client> {
+  pub(super) client: &'client Client,
   pub(super) height: u32,
-  pub(super) id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
-  pub(super) inscription_id_to_sequence_number: &'a Table<'db, 'tx, InscriptionIdValue, u32>,
+  pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
+  pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
-  pub(super) outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) outpoint_to_output: &'a mut Table<'db, 'tx, &'static OutPointValue, OutputValue>,
-  pub(super) rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
-  pub(super) sequence_number_to_rune_id: &'a mut Table<'db, 'tx, u32, RuneIdValue>,
-  pub(super) statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
+  pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
+  pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
   pub(super) block_time: u32,
-  pub(super) transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
+  pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
-impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
-  pub(super) fn index_runes(
-    &mut self,
-    tx_index: usize,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result<()> {
+impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
+  pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     let mut unallocated = self.unallocated(tx)?;
@@ -57,11 +51,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .map(|runestone| runestone.cenotaph)
       .unwrap_or_default();
 
-    let default_output = runestone.as_ref().and_then(|runestone| {
-      runestone
-        .default_output
-        .and_then(|default| usize::try_from(default).ok())
-    });
+    let default_output = runestone
+      .as_ref()
+      .and_then(|runestone| runestone.default_output);
 
     let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
@@ -83,12 +75,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if !cenotaph {
         for Edict { id, amount, output } in runestone.edicts {
-          let Ok(output) = usize::try_from(output) else {
-            continue;
-          };
-
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser
+          let output = usize::try_from(output).unwrap();
           assert!(output <= tx.output.len());
 
           let (balance, id) = if id == RuneId::default() {
@@ -173,6 +162,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       // OP_RETURN output if there is no default, or if the default output is
       // too large
       if let Some(vout) = default_output
+        .map(|vout| vout.into_usize())
         .filter(|vout| *vout < allocated.len())
         .or_else(|| {
           tx.output
@@ -219,8 +209,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       balances.sort();
 
       for (id, balance) in balances {
-        varint::encode_to_vec(id.into(), &mut buffer);
-        varint::encode_to_vec(balance, &mut buffer);
+        id.encode_balance(balance, &mut buffer);
       }
 
       self.outpoint_to_balances.insert(
@@ -230,33 +219,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         }
         .store(),
         buffer.as_slice(),
-      )?;
-    }
-
-    for input in tx.input.iter() {
-      if input.previous_output.is_null() {
-        continue;
-      }
-
-      self
-        .outpoint_to_output
-        .remove(&input.previous_output.store())?
-        .unwrap();
-    }
-
-    for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
-        txid,
-        vout: vout.try_into().unwrap(),
-      };
-
-      self.outpoint_to_output.insert(
-        &outpoint.store(),
-        OutputEntry {
-          height: self.height,
-          taproot: output.script_pubkey.is_v1_p2tr(),
-        }
-        .store(),
       )?;
     }
 
@@ -274,13 +236,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       divisibility,
       id,
       mint,
-      rune,
-      spacers,
+      spaced_rune,
       symbol,
     } = etched;
 
-    self.rune_to_id.insert(rune.0, id.store())?;
-    self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+    self.rune_to_id.insert(spaced_rune.rune.0, id.store())?;
+    self
+      .transaction_id_to_rune
+      .insert(&txid.store(), spaced_rune.rune.0)?;
 
     let number = self.runes;
     self.runes += 1;
@@ -297,12 +260,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         burned: 0,
         divisibility,
         etching: txid,
-        mints: 0,
         mint: mint.and_then(|mint| (!burn).then_some(mint)),
+        mints: 0,
         number,
         premine,
-        rune,
-        spacers,
+        spaced_rune,
         supply: premine,
         symbol,
         timestamp: self.block_time,
@@ -326,7 +288,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
   fn etched(
     &mut self,
-    tx_index: usize,
+    tx_index: u32,
     tx: &Transaction,
     runestone: &Runestone,
   ) -> Result<Option<Etched>> {
@@ -357,23 +319,17 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       Rune::reserved(reserved_runes.into())
     };
 
-    // Nota bene: Because it would require constructing a block
-    // with 2**16 + 1 transactions, there is no test that checks that
-    // an eching in a transaction with an out-of-bounds index is
-    // ignored.
-    let Ok(index) = u16::try_from(tx_index) else {
-      return Ok(None);
-    };
-
     Ok(Some(Etched {
       balance: u128::MAX,
       divisibility: etching.divisibility,
       id: RuneId {
         block: self.height,
-        tx: index,
+        tx: tx_index,
       },
-      rune,
-      spacers: etching.spacers,
+      spaced_rune: SpacedRune {
+        rune,
+        spacers: etching.spacers,
+      },
       symbol: etching.symbol,
       mint: etching.mint.map(|mint| MintEntry {
         deadline: mint.deadline,
@@ -401,6 +357,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     let commitment = rune.commitment();
 
     for input in &tx.input {
+      // extracting a tapscript does not indicate that the input being spent
+      // was actually a taproot output. this is checked below, when we load the
+      // output's entry from the database
       let Some(tapscript) = input.witness.tapscript() else {
         continue;
       };
@@ -416,16 +375,25 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           continue;
         }
 
-        let Some(output) = self
-          .outpoint_to_output
-          .get(&input.previous_output.store())?
+        let Some(tx_info) = self
+          .client
+          .get_raw_transaction_info(&input.previous_output.txid, None)
+          .into_option()?
         else {
           panic!("input not in UTXO set: {}", input.previous_output);
         };
 
-        let output = OutputEntry::load(output.value());
+        let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
+          .script_pub_key
+          .script()?
+          .is_v1_p2tr();
 
-        if output.taproot && self.height >= output.height + RUNE_COMMIT_INTERVAL {
+        let mature = tx_info
+          .confirmations
+          .map(|confirmations| confirmations >= RUNE_COMMIT_INTERVAL)
+          .unwrap_or_default();
+
+        if taproot && mature {
           return Ok(true);
         }
       }
@@ -447,11 +415,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         let buffer = guard.value();
         let mut i = 0;
         while i < buffer.len() {
-          let (id, len) = varint::decode(&buffer[i..]);
+          let ((id, balance), len) = RuneId::decode_balance(&buffer[i..]).unwrap();
           i += len;
-          let (balance, len) = varint::decode(&buffer[i..]);
-          i += len;
-          *unallocated.entry(id.try_into().unwrap()).or_default() += balance;
+          *unallocated.entry(id).or_default() += balance;
         }
       }
     }

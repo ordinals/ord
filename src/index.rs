@@ -2,8 +2,7 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, OutputEntry, OutputValue, RuneEntryValue, RuneIdValue, SatPointValue,
-      SatRange, TxidValue,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
     reorg::*,
@@ -26,8 +25,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, RepairSession, StorageError, Table,
-    TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
+    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,
@@ -48,7 +47,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 21;
+const SCHEMA_VERSION: u64 = 22;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -72,7 +71,6 @@ define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
-define_table! { OUTPOINT_TO_OUTPUT, &OutPointValue, OutputValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
@@ -208,7 +206,7 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 }
 
 pub struct Index {
-  client: Client,
+  pub(crate) client: Client,
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
@@ -834,7 +832,7 @@ impl Index {
         .begin_read()?
         .open_table(RUNE_ID_TO_RUNE_ENTRY)?
         .get(&id.store())?
-        .map(|entry| RuneEntry::load(entry.value()).rune),
+        .map(|entry| RuneEntry::load(entry.value()).spaced_rune.rune),
     )
   }
 
@@ -909,17 +907,13 @@ impl Index {
     let mut balances = Vec::new();
     let mut i = 0;
     while i < balances_buffer.len() {
-      let (id, length) = runes::varint::decode(&balances_buffer[i..]);
+      let ((id, amount), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
       i += length;
-      let (amount, length) = runes::varint::decode(&balances_buffer[i..]);
-      i += length;
-
-      let id = RuneId::try_from(id).unwrap();
 
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
       balances.push((
-        entry.spaced_rune(),
+        entry.spaced_rune,
         Pile {
           amount,
           divisibility: entry.divisibility,
@@ -954,8 +948,8 @@ impl Index {
 
     for (rune_id, balances) in rune_balances_by_id {
       let RuneEntry {
-        rune,
         divisibility,
+        spaced_rune,
         symbol,
         ..
       } = RuneEntry::load(
@@ -966,7 +960,7 @@ impl Index {
       );
 
       rune_balances.insert(
-        rune,
+        spaced_rune.rune,
         balances
           .into_iter()
           .map(|(outpoint, amount)| {
@@ -1002,11 +996,9 @@ impl Index {
       let mut balances = Vec::new();
       let mut i = 0;
       while i < balances_buffer.len() {
-        let (id, length) = runes::varint::decode(&balances_buffer[i..]);
+        let ((id, balance), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
         i += length;
-        let (balance, length) = runes::varint::decode(&balances_buffer[i..]);
-        i += length;
-        balances.push((RuneId::try_from(id)?, balance));
+        balances.push((id, balance));
       }
 
       result.push((outpoint, balances));
@@ -1220,7 +1212,7 @@ impl Index {
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
     let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
 
-    Ok(Some(RuneEntry::load(entry.value()).spaced_rune()))
+    Ok(Some(RuneEntry::load(entry.value()).spaced_rune))
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
@@ -1588,7 +1580,7 @@ impl Index {
       return Ok(false);
     }
 
-    if usize::try_from(outpoint.vout).unwrap() >= info.vout.len() {
+    if outpoint.vout.into_usize() >= info.vout.len() {
       return Ok(false);
     }
 
@@ -1869,7 +1861,7 @@ impl Index {
     {
       let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let entry = rune_id_to_rune_entry.get(&rune_id.value())?.unwrap();
-      Some(RuneEntry::load(entry.value()).spaced_rune())
+      Some(RuneEntry::load(entry.value()).spaced_rune)
     } else {
       None
     };

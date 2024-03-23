@@ -607,8 +607,15 @@ impl Api for Server {
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
+    let state = self.state();
+    let current_height: u32 = (state.hashes.len() - 1).try_into().unwrap();
+    let confirmations = state
+      .txid_to_block_height
+      .get(&txid)
+      .map(|tx_height| current_height - tx_height);
+
     if verbose.unwrap_or(false) {
-      match self.state().transactions.get(&txid) {
+      match state.transactions.get(&txid) {
         Some(transaction) => Ok(
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
@@ -628,8 +635,8 @@ impl Api for Server {
                 n: n.try_into().unwrap(),
                 value: Amount::from_sat(output.value),
                 script_pub_key: GetRawTransactionResultVoutScriptPubKey {
-                  asm: String::new(),
-                  hex: Vec::new(),
+                  asm: output.script_pubkey.to_asm_string(),
+                  hex: output.script_pubkey.clone().into(),
                   req_sigs: None,
                   type_: None,
                   addresses: Vec::new(),
@@ -638,7 +645,7 @@ impl Api for Server {
               })
               .collect(),
             blockhash: None,
-            confirmations: Some(1),
+            confirmations,
             time: None,
             blocktime: None,
           })
@@ -647,7 +654,7 @@ impl Api for Server {
         None => Err(Self::not_found()),
       }
     } else {
-      match self.state().transactions.get(&txid) {
+      match state.transactions.get(&txid) {
         Some(tx) => Ok(Value::String(hex::encode(serialize(tx)))),
         None => Err(Self::not_found()),
       }
@@ -827,7 +834,7 @@ impl Api for Server {
         txid: output.txid,
       };
       assert!(state.utxos.contains_key(&output));
-      state.locked.insert(output);
+      assert!(state.locked.insert(output));
     }
 
     Ok(true)
