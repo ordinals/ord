@@ -41,7 +41,7 @@ impl Api for Server {
     })
   }
 
-  fn get_best_block_hash(&self) -> Result<bitcoin::BlockHash, jsonrpc_core::Error> {
+  fn get_best_block_hash(&self) -> Result<BlockHash, jsonrpc_core::Error> {
     match self.state().hashes.last() {
       Some(block_hash) => Ok(*block_hash),
       None => Err(Self::not_found()),
