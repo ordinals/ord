@@ -446,7 +446,7 @@ impl Batch {
         edicts.push(Edict {
           id: RuneId::default(),
           amount: premine,
-          output: output.into(),
+          output,
         });
 
         vout = Some(output);

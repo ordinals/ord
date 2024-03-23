@@ -9,8 +9,19 @@
   <dt>period</dt><dd>{{ self.sat.period() }}</dd>
   <dt>block</dt><dd><a href=/block/{{self.sat.height()}}>{{ self.sat.height() }}</a></dd>
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
-  <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
+  <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
+%% let charms = self.sat.charms();
+%% if charms != 0 {
+  <dt>charms</dt>
+  <dd>
+%% for charm in Charm::ALL {
+%%   if charm.is_set(charms) {
+    <span title={{charm}}>{{charm.icon()}}</span>
+%%   }
+%% }
+  </dd>
+%% }
 %% if !self.inscriptions.is_empty() {
   <dt>inscriptions</dt>
   <dd class=thumbnails>

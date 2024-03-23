@@ -337,6 +337,35 @@ impl Wallet {
     &self.locked_utxos
   }
 
+  pub(crate) fn lock_non_cardinal_outputs(&self) -> Result {
+    let inscriptions = self
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let locked = self
+      .locked_utxos()
+      .keys()
+      .cloned()
+      .collect::<HashSet<OutPoint>>();
+
+    let outputs = self
+      .utxos()
+      .keys()
+      .filter(|utxo| inscriptions.contains(utxo))
+      .chain(self.get_runic_outputs()?.iter())
+      .cloned()
+      .filter(|utxo| !locked.contains(utxo))
+      .collect::<Vec<OutPoint>>();
+
+    if !self.bitcoin_client().lock_unspent(&outputs)? {
+      bail!("failed to lock UTXOs");
+    }
+
+    Ok(())
+  }
+
   pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
     &self.inscriptions
   }

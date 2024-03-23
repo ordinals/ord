@@ -534,6 +534,9 @@ impl Server {
         })
       });
       let blocktime = index.block_time(sat.height())?;
+
+      let charms = sat.charms();
+
       Ok(if accept_json {
         Json(api::Sat {
           number: sat.0,
@@ -550,6 +553,7 @@ impl Server {
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
           inscriptions,
+          charms: Charm::charms(charms),
         })
         .into_response()
       } else {
@@ -996,11 +1000,7 @@ impl Server {
 
       Ok(
         Json(api::InscriptionRecursive {
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(entry.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
+          charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
           fee: entry.fee,
@@ -1567,11 +1567,7 @@ impl Server {
                 .ok()
             })
             .map(|address| address.to_string()),
-          charms: Charm::ALL
-            .iter()
-            .filter(|charm| charm.is_set(info.charms))
-            .map(|charm| charm.title().into())
-            .collect(),
+          charms: Charm::charms(info.charms),
           children: info.children,
           content_length: info.inscription.content_length(),
           content_type: info.inscription.content_type().map(|s| s.to_string()),
@@ -2733,7 +2729,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -2804,7 +2803,7 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
@@ -2840,11 +2839,11 @@ mod tests {
   <dt>mint</dt>
   <dd>no</dd>
   <dt>supply</dt>
-  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>premine</dt>
-  <dd>340282366920938463463374607431768211455\u{00A0}%</dd>
+  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>burned</dt>
-  <dd>0\u{00A0}%</dd>
+  <dd>0\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>symbol</dt>
@@ -2917,12 +2916,11 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 1 },
           premine: u128::MAX,
           supply: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
-          spacers: 1,
           ..Default::default()
         }
       )]
@@ -2965,7 +2963,7 @@ mod tests {
       StatusCode::OK,
       ".*<tr>
         <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
-        <td>340282366920938463463374607431768211455\u{00A0}%</td>
+        <td>340282366920938463463374607431768211455\u{A0}%</td>
       </tr>.*",
     );
   }
@@ -3008,7 +3006,10 @@ mod tests {
         id,
         RuneEntry {
           etching: txid,
-          rune: Rune(RUNE),
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3070,7 +3071,7 @@ mod tests {
         RuneEntry {
           divisibility: 1,
           etching: txid,
-          rune,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
@@ -3100,7 +3101,7 @@ mod tests {
       </tr>
       <tr>
         <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
-        <td>34028236692093846346337460743176821145.5</td>
+        <td>34028236692093846346337460743176821145.5\u{A0}¤</td>
       </tr>
     </table>
   </dd>

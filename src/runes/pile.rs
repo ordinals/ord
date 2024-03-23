@@ -26,9 +26,7 @@ impl Display for Pile {
       write!(f, "{whole}.{fractional:0>width$}")?;
     }
 
-    if let Some(symbol) = self.symbol {
-      write!(f, "\u{00A0}{symbol}")?;
-    }
+    write!(f, "\u{A0}{}", self.symbol.unwrap_or('¤'))?;
 
     Ok(())
   }
@@ -47,7 +45,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "0"
+      "0\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -56,7 +54,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "25"
+      "25\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -65,7 +63,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "0"
+      "0\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -74,7 +72,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "0.1"
+      "0.1\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -83,7 +81,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "0.01"
+      "0.01\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -92,7 +90,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "0.1"
+      "0.1\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -101,7 +99,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "1.1"
+      "1.1\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -110,7 +108,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "1"
+      "1\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -119,7 +117,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "1.01"
+      "1.01\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -128,7 +126,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "340282366920938463463.374607431768211455"
+      "340282366920938463463.374607431768211455\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -137,7 +135,7 @@ mod tests {
         symbol: None,
       }
       .to_string(),
-      "3.40282366920938463463374607431768211455"
+      "3.40282366920938463463374607431768211455\u{A0}¤"
     );
     assert_eq!(
       Pile {
@@ -146,7 +144,7 @@ mod tests {
         symbol: Some('$'),
       }
       .to_string(),
-      "0\u{00A0}$"
+      "0\u{A0}$"
     );
   }
 }

@@ -23,8 +23,10 @@ mod tests {
     assert_eq!(
       RunesHtml {
         runes: vec![RuneEntry {
-          rune: Rune(26),
-          spacers: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(26),
+            spacers: 1
+          },
           ..Default::default()
         }],
         more: false,
@@ -50,11 +52,17 @@ mod tests {
       RunesHtml {
         runes: vec![
           RuneEntry {
-            rune: Rune(0),
+            spaced_rune: SpacedRune {
+              rune: Rune(0),
+              spacers: 0
+            },
             ..Default::default()
           },
           RuneEntry {
-            rune: Rune(2),
+            spaced_rune: SpacedRune {
+              rune: Rune(2),
+              spacers: 0
+            },
             ..Default::default()
           }
         ],

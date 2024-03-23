@@ -175,7 +175,7 @@ rpcport={bitcoind_port}
 {}
 bitcoin-cli -datadir={datadir} getblockchaininfo
 {}
-{} --datadir '{datadir}' wallet balance",
+{} --datadir {datadir} wallet balance",
       "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),

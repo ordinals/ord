@@ -11,24 +11,19 @@ pub struct RawOutput {
 }
 
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
+#[serde_with::skip_serializing_none]
 pub struct CompactInscription {
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub body: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_encoding: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_type: Option<String>,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub duplicate_field: bool,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub incomplete_field: bool,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metadata: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metaprotocol: Option<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub parents: Vec<InscriptionId>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub pointer: Option<u64>,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub unrecognized_even_field: bool,

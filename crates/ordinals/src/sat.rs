@@ -84,6 +84,29 @@ impl Sat {
     name.chars().rev().collect()
   }
 
+  pub fn charms(self) -> u16 {
+    let mut charms = 0;
+
+    if self.nineball() {
+      Charm::Nineball.set(&mut charms);
+    }
+
+    if self.coin() {
+      Charm::Coin.set(&mut charms);
+    }
+
+    match self.rarity() {
+      Rarity::Common => {}
+      Rarity::Epic => Charm::Epic.set(&mut charms),
+      Rarity::Legendary => Charm::Legendary.set(&mut charms),
+      Rarity::Mythic => Charm::Mythic.set(&mut charms),
+      Rarity::Rare => Charm::Rare.set(&mut charms),
+      Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
+    }
+
+    charms
+  }
+
   fn from_name(s: &str) -> Result<Self, Error> {
     let mut x = 0;
     for c in s.chars() {

@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq, Default)]
+#[derive(
+  Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq, Default, DeserializeFromStr, SerializeDisplay,
+)]
 pub struct SpacedRune {
   pub rune: Rune,
   pub spacers: u32,
@@ -51,24 +53,6 @@ impl Display for SpacedRune {
     }
 
     Ok(())
-  }
-}
-
-impl Serialize for SpacedRune {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for SpacedRune {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 

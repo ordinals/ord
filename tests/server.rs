@@ -311,7 +311,7 @@ fn recursive_inscription_endpoint() {
   pretty_assert_eq!(
     inscription_recursive_json,
     api::InscriptionRecursive {
-      charms: vec!["coin".into(), "uncommon".into()],
+      charms: vec![Charm::Coin, Charm::Uncommon],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
       fee: 138,
