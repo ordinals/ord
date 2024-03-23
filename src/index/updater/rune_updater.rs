@@ -375,19 +375,25 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           continue;
         }
 
-        let tx_info = self
+        let Some(tx_info) = self
           .client
           .get_raw_transaction_info(&input.previous_output.txid, None)
-          .unwrap_or_else(|_| panic!("input not in UTXO set: {}", input.previous_output));
+          .into_option()?
+        else {
+          panic!("input not in UTXO set: {}", input.previous_output);
+        };
 
-        let is_taproot = tx_info.vout[input.previous_output.vout as usize]
+        let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
           .script_pub_key
           .script()?
           .is_v1_p2tr();
 
-        let confirmations = tx_info.confirmations.unwrap_or_default();
+        let mature = tx_info
+          .confirmations
+          .map(|confirmations| confirmations >= RUNE_COMMIT_INTERVAL)
+          .unwrap_or_default();
 
-        if is_taproot && confirmations >= RUNE_COMMIT_INTERVAL {
+        if taproot && mature {
           return Ok(true);
         }
       }
