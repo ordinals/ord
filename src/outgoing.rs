@@ -4,9 +4,9 @@ use super::*;
 pub enum Outgoing {
   Amount(Amount),
   InscriptionId(InscriptionId),
-  SatPoint(SatPoint),
-  Sat(Sat),
   Rune { decimal: Decimal, rune: SpacedRune },
+  Sat(Sat),
+  SatPoint(SatPoint),
 }
 
 impl Display for Outgoing {
@@ -14,9 +14,9 @@ impl Display for Outgoing {
     match self {
       Self::Amount(amount) => write!(f, "{}", amount.to_string().to_lowercase()),
       Self::InscriptionId(inscription_id) => inscription_id.fmt(f),
-      Self::Sat(sat) => sat.fmt(f),
-      Self::SatPoint(satpoint) => satpoint.fmt(f),
       Self::Rune { decimal, rune } => write!(f, "{decimal} {rune}"),
+      Self::Sat(sat) => write!(f, "{}", sat.name()),
+      Self::SatPoint(satpoint) => satpoint.fmt(f),
     }
   }
 }
@@ -63,7 +63,7 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if s.parse::<Sat>().is_ok() {
+    Ok(if re::SAT_NAME.is_match(s) {
       Self::Sat(s.parse()?)
     } else if re::SATPOINT.is_match(s) {
       Self::SatPoint(s.parse()?)
@@ -93,11 +93,8 @@ mod tests {
       assert_eq!(s.parse::<Outgoing>().unwrap(), outgoing);
     }
 
-    case("0", Outgoing::Sat("0".parse().unwrap()));
-    case(
-      "2099999997689999",
-      Outgoing::Sat("2099999997689999".parse().unwrap()),
-    );
+    case("nvtdijuwxlp", Outgoing::Sat("nvtdijuwxlp".parse().unwrap()));
+    case("a", Outgoing::Sat("a".parse().unwrap()));
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -179,11 +176,8 @@ mod tests {
       assert_eq!(s, outgoing.to_string());
     }
 
-    case("0", Outgoing::Sat("0".parse().unwrap()));
-    case(
-      "2099999997689999",
-      Outgoing::Sat("2099999997689999".parse().unwrap()),
-    );
+    case("nvtdijuwxlp", Outgoing::Sat("nvtdijuwxlp".parse().unwrap()));
+    case("a", Outgoing::Sat("a".parse().unwrap()));
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -232,12 +226,12 @@ mod tests {
       assert_eq!(serde_json::from_str::<Outgoing>(j).unwrap(), o);
     }
 
-    case("0", "\"0\"", Outgoing::Sat("0".parse().unwrap()));
     case(
-      "2099999997689999",
-      "\"2099999997689999\"",
-      Outgoing::Sat("2099999997689999".parse().unwrap()),
+      "nvtdijuwxlp",
+      "\"nvtdijuwxlp\"",
+      Outgoing::Sat("nvtdijuwxlp".parse().unwrap()),
     );
+    case("a", "\"a\"", Outgoing::Sat("a".parse().unwrap()));
 
     case(
       "0000000000000000000000000000000000000000000000000000000000000000i0",
