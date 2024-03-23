@@ -5276,7 +5276,7 @@ mod tests {
       ..Default::default()
     });
 
-    context.mine_blocks((RUNE_COMMIT_INTERVAL).into());
+    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 
