@@ -1,10 +1,10 @@
-use crate::{InscriptionId, SatPoint};
+use crate::{Charms, InscriptionId, SatPoint};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
   InscriptionCreated {
     block_height: u32,
-    charms: u16,
+    charms: Charms,
     inscription_id: InscriptionId,
     location: Option<SatPoint>,
     parent_inscription_ids: Vec<InscriptionId>,

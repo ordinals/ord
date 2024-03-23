@@ -41,13 +41,11 @@
 %% }
   <dt>id</dt>
   <dd class=monospace>{{ self.id }}</dd>
-%% if self.charms != 0 {
+%% if !self.charms.is_empty() {
   <dt>charms</dt>
   <dd>
-%% for charm in Charm::ALL {
-%%   if charm.is_set(self.charms) {
+%% for charm in self.charms.active_charms() {
     <span title={{charm}}>{{charm.icon()}}</span>
-%%   }
 %% }
   </dd>
 %% }

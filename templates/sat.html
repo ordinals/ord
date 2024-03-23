@@ -12,13 +12,11 @@
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
 %% let charms = self.sat.charms();
-%% if charms != 0 {
+%% if !charms.is_empty() {
   <dt>charms</dt>
   <dd>
-%% for charm in Charm::ALL {
-%%   if charm.is_set(charms) {
+%% for charm in charms.active_charms() {
     <span title={{charm}}>{{charm.icon()}}</span>
-%%   }
 %% }
   </dd>
 %% }

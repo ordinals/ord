@@ -534,8 +534,6 @@ impl Server {
       });
       let blocktime = index.block_time(sat.height())?;
 
-      let charms = sat.charms();
-
       Ok(if accept_json {
         Json(api::Sat {
           number: sat.0,
@@ -552,7 +550,7 @@ impl Server {
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
           inscriptions,
-          charms: Charm::charms(charms),
+          charms: sat.charms().active_charms(),
         })
         .into_response()
       } else {
@@ -972,7 +970,7 @@ impl Server {
 
       Ok(
         Json(api::InscriptionRecursive {
-          charms: Charm::charms(entry.charms),
+          charms: entry.charms.active_charms(),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
           fee: entry.fee,
@@ -1539,7 +1537,7 @@ impl Server {
                 .ok()
             })
             .map(|address| address.to_string()),
-          charms: Charm::charms(info.charms),
+          charms: info.charms.active_charms(),
           children: info.children,
           content_length: info.inscription.content_length(),
           content_type: info.inscription.content_type().map(|s| s.to_string()),
@@ -1560,7 +1558,7 @@ impl Server {
       } else {
         InscriptionHtml {
           chain: server_config.chain,
-          charms: Charm::Vindicated.unset(info.charms),
+          charms: info.charms.unset(Charm::Vindicated),
           children: info.children,
           fee: info.entry.fee,
           height: info.entry.height,

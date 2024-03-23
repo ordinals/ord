@@ -176,7 +176,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             );
 
             let initial_inscription_was_cursed_or_vindicated =
-              entry.inscription_number < 0 || Charm::Vindicated.is_set(entry.charms);
+              entry.inscription_number < 0 || entry.charms.is_set(Charm::Vindicated);
 
             if initial_inscription_was_cursed_or_vindicated {
               None
@@ -451,30 +451,30 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           Self::calculate_sat(input_sat_ranges, flotsam.offset)
         };
 
-        let mut charms = 0;
+        let mut charms = Charms::new();
 
         if cursed {
-          Charm::Cursed.set(&mut charms);
+          charms.set(Charm::Cursed);
         }
 
         if reinscription {
-          Charm::Reinscription.set(&mut charms);
+          charms.set(Charm::Reinscription);
         }
 
         if let Some(sat) = sat {
-          charms |= sat.charms();
+          charms.union(sat.charms());
         }
 
         if new_satpoint.outpoint == OutPoint::null() {
-          Charm::Lost.set(&mut charms);
+          charms.set(Charm::Lost);
         }
 
         if unbound {
-          Charm::Unbound.set(&mut charms);
+          charms.set(Charm::Unbound);
         }
 
         if vindicated {
-          Charm::Vindicated.set(&mut charms);
+          charms.set(Charm::Vindicated);
         }
 
         if let Some(Sat(n)) = sat {
@@ -501,7 +501,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
             block_height: self.height,
-            charms,
+            charms: charms.clone(),
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
             parent_inscription_ids: parents,
