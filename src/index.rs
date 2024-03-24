@@ -981,7 +981,9 @@ impl Index {
     Ok(balances)
   }
 
-  pub(crate) fn get_rune_balance_map(&self) -> Result<BTreeMap<Rune, BTreeMap<OutPoint, Pile>>> {
+  pub(crate) fn get_rune_balance_map(
+    &self,
+  ) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
     let outpoint_balances = self.get_rune_balances()?;
 
     let rtx = self.database.begin_read()?;
@@ -1016,7 +1018,7 @@ impl Index {
       } = RuneEntry::load(rune_number_rune_entry.get(&number)?.unwrap().value());
 
       rune_balances.insert(
-        spaced_rune.rune,
+        spaced_rune,
         balances
           .into_iter()
           .map(|(outpoint, amount)| {

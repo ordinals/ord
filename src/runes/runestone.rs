@@ -2,7 +2,7 @@ use super::*;
 
 const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
   pub cenotaph: bool,
   pub claim: Option<RuneId>,
@@ -484,8 +484,8 @@ mod tests {
               .push_opcode(MAGIC_NUMBER)
               .push_opcode(opcodes::all::OP_VERIFY)
               .push_slice([0])
-              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
-              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
               .push_slice([2, 0])
               .into_script(),
             value: 0,
@@ -495,8 +495,8 @@ mod tests {
               .push_opcode(opcodes::all::OP_RETURN)
               .push_opcode(MAGIC_NUMBER)
               .push_slice([0])
-              .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
-              .push_slice::<&script::PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
               .push_slice([3, 0])
               .into_script(),
             value: 0,
@@ -1276,8 +1276,8 @@ mod tests {
                 .try_into()
                 .unwrap()
             )
-            .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
-            .push_slice::<&script::PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+            .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+            .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(0).as_slice().try_into().unwrap())
             .into_script(),

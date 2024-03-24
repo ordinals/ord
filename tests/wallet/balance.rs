@@ -98,7 +98,26 @@ fn runic_utxos_are_deducted_from_cardinal() {
     }
   );
 
-  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let rune = Rune(RUNE);
+
+  batch(
+    &bitcoin_rpc_server,
+    &ord_rpc_server,
+    Batchfile {
+      etch: Some(Etch {
+        divisibility: 0,
+        mint: None,
+        premine: "1000".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        symbol: '¢',
+      }),
+      inscriptions: vec![BatchEntry {
+        file: "inscription.jpeg".into(),
+        ..Default::default()
+      }],
+      ..Default::default()
+    },
+  );
 
   pretty_assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
@@ -109,7 +128,11 @@ fn runic_utxos_are_deducted_from_cardinal() {
       cardinal: 50 * COIN_VALUE * 8 - 20_000,
       ordinal: 10000,
       runic: Some(10_000),
-      runes: Some(vec![(Rune(RUNE), 1000)].into_iter().collect()),
+      runes: Some(
+        vec![(SpacedRune { rune, spacers: 1 }, 1000)]
+          .into_iter()
+          .collect()
+      ),
       total: 50 * COIN_VALUE * 8,
     }
   );

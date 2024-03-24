@@ -790,7 +790,7 @@ fn sending_rune_works() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        SpacedRune::new(Rune(RUNE), 0),
         vec![(
           OutPoint {
             txid: output.txid,
@@ -842,7 +842,7 @@ fn sending_spaced_rune_works() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        SpacedRune::new(Rune(RUNE), 0),
         vec![(
           OutPoint {
             txid: output.txid,
@@ -916,7 +916,7 @@ fn sending_rune_with_divisibility_works() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        SpacedRune::new(Rune(RUNE), 0),
         vec![
           (
             OutPoint {
@@ -982,7 +982,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        SpacedRune::new(Rune(RUNE), 0),
         vec![
           (
             OutPoint {
@@ -1064,7 +1064,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
-        Rune(RUNE),
+        SpacedRune::new(Rune(RUNE), 0),
         vec![
           (
             OutPoint {

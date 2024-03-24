@@ -35,8 +35,8 @@ pub enum MintError {
   Unmintable(Rune),
 }
 
-impl fmt::Display for MintError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for MintError {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match self {
       MintError::Deadline((rune, deadline)) => {
         write!(f, "rune {rune} mint ended at {deadline}")
@@ -5276,7 +5276,7 @@ mod tests {
       ..Default::default()
     });
 
-    context.mine_blocks((RUNE_COMMIT_INTERVAL).into());
+    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 
