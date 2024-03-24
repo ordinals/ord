@@ -65,6 +65,10 @@
   <dt>value</dt>
   <dd>{{ output.value }}</dd>
 %% }
+%% if let Some(rune) = self.rune {
+  <dt>rune</dt>
+  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
+%% }
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
@@ -111,8 +115,4 @@
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
   <dd>{{ teleburn::Ethereum::from(self.id) }}</dd>
-%% if let Some(rune) = self.rune {
-  <dt>rune</dt>
-  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
-%% }
 </dl>

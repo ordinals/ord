@@ -411,6 +411,7 @@ mod tests {
           .*
           <dt>rune</dt>
           <dd><a href=/rune/A•A>A•A</a></dd>
+          .*
         </dl>
       "
       .unindent()
