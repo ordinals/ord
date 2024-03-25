@@ -571,7 +571,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     Ok(())
   }
 
-  fn index_address_to_inscription(
+  fn index_address_to_inscription<'address>(
     &mut self,
     flotsam: &Flotsam,
     transaction: &Transaction,
@@ -588,15 +588,15 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       {
         let transaction: Transaction = consensus::encode::deserialize(transaction.value())?;
 
-        let address_entry =
+        let address =
           self.transaction_to_address(&transaction, old_satpoint.outpoint.vout.into_usize())?;
 
-        let mut inscription_ids = self.get_inscription_ids_by_address(&address_entry)?;
+        let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
         inscription_ids.retain(|&id| id != flotsam.inscription_id.store());
 
         self
           .address_to_inscription_ids
-          .insert(&address_entry.as_bytes(), inscription_ids)?;
+          .insert(address.to_string().as_bytes(), inscription_ids)?;
       }
     }
 
@@ -609,23 +609,24 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
     self
       .address_to_inscription_ids
-      .insert(&address.as_bytes(), inscription_ids)?;
+      .insert(address.to_string().as_bytes(), inscription_ids)?;
 
     Ok(())
   }
 
   #[inline]
-  fn transaction_to_address(&self, transaction: &Transaction, vout: usize) -> Result<ScriptBuf> {
+  fn transaction_to_address(&self, transaction: &Transaction, vout: usize) -> Result<Address> {
     let tx_out = transaction.output.get(vout).unwrap();
 
-    let address = self.chain.address_from_script(&tx_out.script_pubkey)?;
-
-    Ok(address.script_pubkey())
+    Ok(self.chain.address_from_script(&tx_out.script_pubkey)?)
   }
 
   #[inline]
-  fn get_inscription_ids_by_address(&self, address: &ScriptBuf) -> Result<Vec<InscriptionIdValue>> {
-    if let Some(entry) = self.address_to_inscription_ids.get(&address.as_bytes())? {
+  fn get_inscription_ids_by_address(&self, address: &Address) -> Result<Vec<InscriptionIdValue>> {
+    if let Some(entry) = self
+      .address_to_inscription_ids
+      .get(address.to_string().as_bytes())?
+    {
       return Ok(entry.value().clone());
     }
 

@@ -2026,18 +2026,23 @@ impl Index {
     &self,
     address: Address,
   ) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(ADDRESS_TO_INSCRIPTION_IDS)?
-        .get(address.to_string().as_bytes())?
-        .unwrap()
-        .value()
-        .iter()
-        .map(|entry| InscriptionId::load(*entry))
-        .collect(),
-    )
+    let entry = self
+      .database
+      .begin_read()?
+      .open_table(ADDRESS_TO_INSCRIPTION_IDS)?
+      .get(address.to_string().as_bytes())?;
+
+    if let Some(entry) = entry {
+      return Ok(
+        entry
+          .value()
+          .iter()
+          .map(|entry| InscriptionId::load(*entry))
+          .collect(),
+      );
+    }
+
+    Ok(vec![])
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
@@ -6211,6 +6216,106 @@ mod tests {
         },
         sequence_number: 0,
       }
+    );
+  }
+
+  #[test]
+  fn inscription_get_attached_to_address() {
+    let context = Context::builder()
+      .arg("--index-sats")
+      .arg("--index-transactions")
+      .arg("--index-addresses")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      []
+    );
+
+    context.mine_blocks(1);
+
+    {
+      let transaction = context.index.get_transaction(txid).unwrap().unwrap();
+
+      let address = context
+        .index
+        .settings
+        .chain()
+        .address_from_script(&transaction.output[0].script_pubkey)
+        .unwrap();
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_ids_by_address(address)
+          .unwrap(),
+        [inscription_id]
+      );
+    }
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      [inscription_id]
+    );
+
+    let send_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    {
+      let transaction = context.index.get_transaction(send_id).unwrap().unwrap();
+
+      let address = context
+        .index
+        .settings
+        .chain()
+        .address_from_script(&transaction.output[0].script_pubkey)
+        .unwrap();
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_ids_by_address(address)
+          .unwrap(),
+        [inscription_id]
+      );
+    }
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      []
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint {
+          txid: send_id,
+          vout: 0,
+        })
+        .unwrap(),
+      [inscription_id]
     );
   }
 }
