@@ -653,7 +653,7 @@ mod tests {
         mints: 1,
         ..default()
       }
-      .mintable(Height(0), 1),
+      .mintable(Height(0), 0),
       Err(MintError::Cap(1)),
     );
 
@@ -667,7 +667,7 @@ mod tests {
         mints: 0,
         ..default()
       }
-      .mintable(Height(0), 1),
+      .mintable(Height(0), 0),
       Err(MintError::Cap(0)),
     );
   }
