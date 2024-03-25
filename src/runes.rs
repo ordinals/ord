@@ -3785,6 +3785,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -3807,6 +3808,7 @@ mod tests {
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -3836,6 +3838,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           mints: 1,
@@ -3867,6 +3870,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
+            cap: Some(100),
             limit: Some(1000),
             ..default()
           }),
@@ -3891,6 +3895,7 @@ mod tests {
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -3925,6 +3930,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           mints: 1,
@@ -3973,6 +3979,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           mints: 2,
@@ -4032,6 +4039,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           mints: 3,
@@ -4073,6 +4081,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             term: Some(2),
             ..default()
           }),
@@ -4095,6 +4104,7 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
+            cap: Some(100),
             ..default()
           }),
           timestamp: id.block,
@@ -4135,6 +4145,7 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
+            cap: Some(100),
             ..default()
           }),
           premine: 0,
@@ -4185,6 +4196,7 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
+            cap: Some(100),
             ..default()
           }),
           mints: 1,
@@ -4565,6 +4577,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             deadline: Some(RUNE_COMMIT_INTERVAL + 4),
             ..default()
           }),
@@ -4588,6 +4601,7 @@ mod tests {
           mint: Some(MintEntry {
             deadline: Some(id.block + 2),
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -4629,6 +4643,7 @@ mod tests {
           mint: Some(MintEntry {
             deadline: Some(id.block + 2),
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -4675,6 +4690,7 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             deadline: Some(id.block + 2),
+            cap: Some(100),
             ..default()
           }),
           mints: 1,
@@ -4701,6 +4717,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -4721,6 +4738,7 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           timestamp: id.block,
@@ -4762,6 +4780,7 @@ mod tests {
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           mints: 1,
@@ -4941,6 +4960,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -4980,6 +5000,7 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           timestamp: id.block,
@@ -5007,6 +5028,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           ..default()
@@ -5027,6 +5049,7 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           timestamp: id.block,
@@ -5078,6 +5101,7 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(100),
             ..default()
           }),
           timestamp: id.block,
