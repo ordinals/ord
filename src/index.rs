@@ -74,8 +74,9 @@ define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
+define_table! { RUNE_ID_TO_RUNE_NUMBER, RuneIdValue, u64 }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
+define_table! { RUNE_NUMBER_TO_RUNE_ENTRY, u64, RuneEntryValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
 define_table! { SEQUENCE_NUMBER_TO_RUNE_ID, u32, RuneIdValue }
@@ -332,7 +333,8 @@ impl Index {
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
-        tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+        tx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
+        tx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
@@ -826,12 +828,22 @@ impl Index {
   }
 
   pub(crate) fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
+    let Some(number) = self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_NUMBER)?
+      .get(&id.store())?
+      .map(|guard| guard.value())
+    else {
+      return Ok(None);
+    };
+
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(&id.store())?
+        .open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?
+        .get(&number)?
         .map(|entry| RuneEntry::load(entry.value()).spaced_rune.rune),
     )
   }
@@ -850,10 +862,18 @@ impl Index {
       return Ok(None);
     };
 
+    let Some(number) = rtx
+      .open_table(RUNE_ID_TO_RUNE_NUMBER)?
+      .get(&id)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(None);
+    };
+
     let entry = RuneEntry::load(
       rtx
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(id)?
+        .open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?
+        .get(&number)?
         .unwrap()
         .value(),
     );
@@ -874,18 +894,52 @@ impl Index {
 
   pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
     let mut entries = Vec::new();
+    let rtx = self.database.begin_read()?;
+    let rune_to_rune_id = rtx.open_table(RUNE_TO_RUNE_ID)?;
 
-    for result in self
-      .database
-      .begin_read()?
-      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-      .iter()?
-    {
-      let (id, entry) = result?;
-      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
+    for result in rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?.iter()? {
+      let (_number, entry) = result?;
+      let entry = RuneEntry::load(entry.value());
+      let id = RuneId::load(
+        rune_to_rune_id
+          .get(&entry.spaced_rune.rune.0)?
+          .unwrap()
+          .value(),
+      );
+      entries.push((id, entry));
     }
 
     Ok(entries)
+  }
+
+  pub(crate) fn runes_paginated(
+    &self,
+    page_size: u64,
+    page_index: u64,
+  ) -> Result<(Vec<RuneEntry>, bool)> {
+    let rtx = self.database.begin_read()?;
+    let number_to_rune_info = rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
+
+    let last = number_to_rune_info
+      .iter()?
+      .next_back()
+      .map(|result| result.map(|(number, _entry)| number.value()))
+      .transpose()?
+      .unwrap_or_default();
+
+    let start = last.saturating_sub(page_size.saturating_mul(page_index));
+
+    let end = start.saturating_sub(page_size);
+
+    let runes_info = number_to_rune_info
+      .range(end..=start)?
+      .rev()
+      .map(|result| result.map(|(_number, entry)| RuneEntry::load(entry.value())))
+      .collect::<Result<Vec<RuneEntry>, StorageError>>()?;
+
+    let more = u64::try_from(runes_info.len()).unwrap_or_default() > page_size;
+
+    Ok((runes_info, more))
   }
 
   pub(crate) fn get_rune_balances_for_outpoint(
@@ -896,7 +950,8 @@ impl Index {
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
 
-    let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+    let id_to_rune_numbers = rtx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
+    let number_to_rune_entries = rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
       return Ok(Vec::new());
@@ -910,7 +965,8 @@ impl Index {
       let ((id, amount), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
       i += length;
 
-      let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
+      let number = id_to_rune_numbers.get(&id.store())?.unwrap().value();
+      let entry = RuneEntry::load(number_to_rune_entries.get(&number)?.unwrap().value());
 
       balances.push((
         entry.spaced_rune,
@@ -932,7 +988,8 @@ impl Index {
 
     let rtx = self.database.begin_read()?;
 
-    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+    let rune_id_to_rune_number = rtx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
+    let rune_number_rune_entry = rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
 
     let mut rune_balances_by_id: BTreeMap<RuneId, BTreeMap<OutPoint, u128>> = BTreeMap::new();
 
@@ -949,17 +1006,16 @@ impl Index {
     let mut rune_balances = BTreeMap::new();
 
     for (rune_id, balances) in rune_balances_by_id {
+      let number = rune_id_to_rune_number
+        .get(&rune_id.store())?
+        .unwrap()
+        .value();
       let RuneEntry {
         divisibility,
         spaced_rune,
         symbol,
         ..
-      } = RuneEntry::load(
-        rune_id_to_rune_entry
-          .get(&rune_id.store())?
-          .unwrap()
-          .value(),
-      );
+      } = RuneEntry::load(rune_number_rune_entry.get(&number)?.unwrap().value());
 
       rune_balances.insert(
         spaced_rune,
@@ -1211,8 +1267,10 @@ impl Index {
     let rune_to_rune_id = rtx.open_table(RUNE_TO_RUNE_ID)?;
     let id = rune_to_rune_id.get(rune.value())?.unwrap();
 
-    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-    let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
+    let rune_id_to_rune_number = rtx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
+    let rune_number_to_rune_entry = rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
+    let number = rune_id_to_rune_number.get(&id.value())?.unwrap();
+    let entry = rune_number_to_rune_entry.get(&number.value())?.unwrap();
 
     Ok(Some(RuneEntry::load(entry.value()).spaced_rune))
   }
@@ -1861,8 +1919,10 @@ impl Index {
       .open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?
       .get(sequence_number)?
     {
-      let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-      let entry = rune_id_to_rune_entry.get(&rune_id.value())?.unwrap();
+      let rune_id_to_rune_number = rtx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
+      let rune_number_to_rune_entry = rtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
+      let number = rune_id_to_rune_number.get(&rune_id.value())?.unwrap();
+      let entry = rune_number_to_rune_entry.get(&number.value())?.unwrap();
       Some(RuneEntry::load(entry.value()).spaced_rune)
     } else {
       None

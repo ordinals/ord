@@ -580,8 +580,9 @@ impl<'index> Updater<'index> {
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-      let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+      let mut rune_id_to_rune_number = wtx.open_table(RUNE_ID_TO_RUNE_NUMBER)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
+      let mut rune_number_to_rune_entry = wtx.open_table(RUNE_NUMBER_TO_RUNE_ENTRY)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
 
@@ -593,13 +594,14 @@ impl<'index> Updater<'index> {
       let mut rune_updater = RuneUpdater {
         client: &self.index.client,
         height: self.height,
-        id_to_entry: &mut rune_id_to_rune_entry,
+        id_to_number: &mut rune_id_to_rune_number,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
         minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
+        number_to_entry: &mut rune_number_to_rune_entry,
         statistic_to_count: &mut statistic_to_count,
         block_time: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,
@@ -611,18 +613,17 @@ impl<'index> Updater<'index> {
       }
 
       for (rune_id, update) in rune_updater.updates {
-        let mut entry = RuneEntry::load(
-          rune_id_to_rune_entry
-            .get(&rune_id.store())?
-            .unwrap()
-            .value(),
-        );
+        let number = rune_id_to_rune_number
+          .get(&rune_id.store())?
+          .map(|x| x.value())
+          .unwrap_or(0);
+        let mut entry = RuneEntry::load(rune_number_to_rune_entry.get(&number)?.unwrap().value());
 
         entry.burned += update.burned;
         entry.mints += update.mints;
         entry.supply += update.supply;
 
-        rune_id_to_rune_entry.insert(&rune_id.store(), entry.store())?;
+        rune_number_to_rune_entry.insert(&number, entry.store())?;
       }
     }
 

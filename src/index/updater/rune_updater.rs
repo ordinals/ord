@@ -27,7 +27,8 @@ pub(crate) struct RuneUpdate {
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) client: &'client Client,
   pub(super) height: u32,
-  pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
+  pub(super) id_to_number: &'a mut Table<'tx, RuneIdValue, u64>,
+  pub(super) number_to_entry: &'a mut Table<'tx, u64, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
@@ -254,8 +255,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       .statistic_to_count
       .insert(&Statistic::Runes.into(), self.runes)?;
 
-    self.id_to_entry.insert(
-      id.store(),
+    self.id_to_number.insert(id.store(), number)?;
+    self.number_to_entry.insert(
+      number,
       RuneEntry {
         burned: 0,
         divisibility,
@@ -340,7 +342,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   }
 
   fn claim(&self, id: RuneId) -> Result<Option<Claim>> {
-    let Some(entry) = self.id_to_entry.get(&id.store())? else {
+    let Some(number) = self.id_to_number.get(&id.store())? else {
+      return Ok(None);
+    };
+    let Some(entry) = self.number_to_entry.get(&number.value())? else {
       return Ok(None);
     };
 
