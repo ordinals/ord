@@ -147,7 +147,7 @@ impl Context {
     for (id, entry) in runes {
       pretty_assert_eq!(
         outstanding.get(id).copied().unwrap_or_default(),
-        entry.supply - entry.burned
+        entry.supply() - entry.burned
       );
     }
   }
