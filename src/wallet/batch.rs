@@ -14,29 +14,28 @@ use {
   wallet::transaction_builder::Target,
 };
 
-pub use {batch::Batch, batch_entry::BatchEntry, batchfile::Batchfile, etch::Etch, mode::Mode};
+pub(crate) use transactions::Transactions;
 
-pub mod batch;
-pub mod batch_entry;
-pub mod batchfile;
-mod etch;
+pub use {entry::Entry, etching::Etching, file::File, mint::Mint, mode::Mode, plan::Plan};
+
+pub mod entry;
+mod etching;
+pub mod file;
+mod mint;
 pub mod mode;
+pub mod plan;
+mod transactions;
 
-#[derive(Debug)]
-pub(crate) struct BatchTransactions {
-  pub(crate) rune: Option<RuneInfo>,
-  pub(crate) commit_tx: Transaction,
-  pub(crate) recovery_key_pair: TweakedKeyPair,
-  pub(crate) reveal_tx: Transaction,
-  pub(crate) total_fees: u64,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone, Default)]
-#[serde(deny_unknown_fields)]
-pub struct BatchMint {
-  pub deadline: Option<u32>,
-  pub limit: Decimal,
-  pub term: Option<u32>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Output {
+  pub commit: Txid,
+  pub commit_psbt: Option<String>,
+  pub inscriptions: Vec<InscriptionInfo>,
+  pub parent: Option<InscriptionId>,
+  pub reveal: Txid,
+  pub reveal_psbt: Option<String>,
+  pub rune: Option<RuneInfo>,
+  pub total_fees: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -51,18 +50,6 @@ pub struct RuneInfo {
   pub destination: Option<Address<NetworkUnchecked>>,
   pub location: Option<OutPoint>,
   pub rune: SpacedRune,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Output {
-  pub commit: Txid,
-  pub commit_psbt: Option<String>,
-  pub inscriptions: Vec<InscriptionInfo>,
-  pub parent: Option<InscriptionId>,
-  pub reveal: Txid,
-  pub reveal_psbt: Option<String>,
-  pub rune: Option<RuneInfo>,
-  pub total_fees: u64,
 }
 
 #[derive(Clone, Debug)]
