@@ -397,6 +397,7 @@ fn get_block() {
       best_height: 1,
       height: 0,
       inscriptions: Vec::new(),
+      runes: Vec::new(),
     }
   );
 }
