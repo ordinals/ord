@@ -192,14 +192,18 @@ impl Inscribe {
 
       let supply = etching.supply.to_amount(etching.divisibility)?;
 
-      let mintable = if let Some(mint) = etching.mint {
-        mint
-          .cap
-          .checked_mul(mint.limit.to_amount(etching.divisibility)?)
-          .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))?
-      } else {
-        0
-      };
+      let mintable = etching
+        .mint
+        .map(|mint| -> Result<u128> {
+          Ok(
+            mint
+              .cap
+              .checked_mul(mint.limit.to_amount(etching.divisibility)?)
+              .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))?,
+          )
+        })
+        .transpose()?
+        .unwrap_or_default();
 
       ensure!(
         supply
