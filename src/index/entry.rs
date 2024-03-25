@@ -60,10 +60,10 @@ impl RuneEntry {
       }
     }
 
-    if let Some(cap) = mint.cap {
-      if self.mints > cap {
-        return Err(MintError::Cap(cap));
-      }
+    let cap = mint.cap.unwrap_or_default();
+
+    if self.mints >= cap {
+      return Err(MintError::Cap(cap));
     }
 
     Ok(mint.limit.unwrap_or_default())
@@ -564,5 +564,111 @@ mod tests {
     let actual = header.store();
 
     assert_eq!(actual, expected);
+  }
+
+  #[test]
+  fn mintable() {
+    assert_eq!(
+      RuneEntry::default().mintable(Height(0), 0),
+      Err(MintError::Unmintable)
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          end: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          end: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(1), 0),
+      Err(MintError::End(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          deadline: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          deadline: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 1),
+      Err(MintError::Deadline(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: Some(1),
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: Some(1),
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        ..default()
+      }
+      .mintable(Height(0), 1),
+      Err(MintError::Cap(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: None,
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .mintable(Height(0), 1),
+      Err(MintError::Cap(0)),
+    );
   }
 }
