@@ -195,12 +195,10 @@ impl Inscribe {
       let mintable = etching
         .mint
         .map(|mint| -> Result<u128> {
-          Ok(
-            mint
-              .cap
-              .checked_mul(mint.limit.to_amount(etching.divisibility)?)
-              .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))?,
-          )
+          mint
+            .cap
+            .checked_mul(mint.limit.to_amount(etching.divisibility)?)
+            .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))
         })
         .transpose()?
         .unwrap_or_default();
