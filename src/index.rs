@@ -2024,7 +2024,7 @@ impl Index {
   #[allow(dead_code)]
   pub(crate) fn get_inscription_ids_by_address(
     &self,
-    address: Address,
+    address: &Address,
   ) -> Result<Vec<InscriptionId>> {
     let entry = self
       .database
@@ -6246,24 +6246,22 @@ mod tests {
 
     context.mine_blocks(1);
 
-    {
-      let transaction = context.index.get_transaction(txid).unwrap().unwrap();
+    let first_transaction = context.index.get_transaction(txid).unwrap().unwrap();
 
-      let address = context
+    let first_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&first_transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context
         .index
-        .settings
-        .chain()
-        .address_from_script(&transaction.output[0].script_pubkey)
-        .unwrap();
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_ids_by_address(address)
-          .unwrap(),
-        [inscription_id]
-      );
-    }
+        .get_inscription_ids_by_address(&first_address)
+        .unwrap(),
+      [inscription_id]
+    );
 
     assert_eq!(
       context
@@ -6275,29 +6273,36 @@ mod tests {
 
     let send_id = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Default::default())],
+      p2tr: true,
       ..Default::default()
     });
 
     context.mine_blocks(1);
 
-    {
-      let transaction = context.index.get_transaction(send_id).unwrap().unwrap();
+    let second_transaction = context.index.get_transaction(send_id).unwrap().unwrap();
 
-      let address = context
+    let second_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&second_transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context
         .index
-        .settings
-        .chain()
-        .address_from_script(&transaction.output[0].script_pubkey)
-        .unwrap();
+        .get_inscription_ids_by_address(&second_address)
+        .unwrap(),
+      [inscription_id]
+    );
 
-      assert_eq!(
-        context
-          .index
-          .get_inscription_ids_by_address(address)
-          .unwrap(),
-        [inscription_id]
-      );
-    }
+    assert_eq!(
+      context
+        .index
+        .get_inscription_ids_by_address(&first_address)
+        .unwrap(),
+      []
+    );
 
     assert_eq!(
       context

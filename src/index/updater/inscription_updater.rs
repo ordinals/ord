@@ -592,7 +592,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           self.transaction_to_address(&transaction, old_satpoint.outpoint.vout.into_usize())?;
 
         let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
-        inscription_ids.retain(|&id| id != flotsam.inscription_id.store());
+        let inscription_id_entry = flotsam.inscription_id.store();
+        inscription_ids.retain(|&id| id != inscription_id_entry);
 
         self
           .address_to_inscription_ids
