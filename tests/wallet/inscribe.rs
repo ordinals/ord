@@ -2646,9 +2646,9 @@ fn batch_inscribe_can_etch_rune() {
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -2714,9 +2714,9 @@ fn etch_existing_rune_error() {
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2757,9 +2757,9 @@ fn etch_reserved_rune_error() {
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2800,9 +2800,9 @@ fn etch_sub_minimum_rune_error() {
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2842,9 +2842,9 @@ fn etch_requires_rune_index() {
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2885,9 +2885,9 @@ fn etch_divisibility_over_maximum_error() {
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )

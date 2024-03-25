@@ -45,7 +45,7 @@ impl Mint {
 
     let runestone = Runestone {
       claim: Some(id),
-      ..Default::default()
+      ..default()
     };
 
     let script_pubkey = runestone.encipher();

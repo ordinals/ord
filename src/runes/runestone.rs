@@ -82,7 +82,7 @@ impl Runestone {
       Some(Payload::Invalid) => {
         return Ok(Some(Self {
           cenotaph: true,
-          ..Default::default()
+          ..default()
         }))
       }
       None => return Ok(None),
@@ -91,7 +91,7 @@ impl Runestone {
     let Some(integers) = Runestone::integers(&payload) else {
       return Ok(Some(Self {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }));
     };
 
@@ -509,7 +509,7 @@ mod tests {
       .unwrap(),
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -578,7 +578,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -602,7 +602,7 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -629,9 +629,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -656,7 +656,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -684,11 +684,11 @@ mod tests {
         etching: Some(Etching {
           mint: Some(Mint {
             term: Some(4),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -716,11 +716,11 @@ mod tests {
         etching: Some(Etching {
           mint: Some(Mint {
             limit: Some(4),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -745,7 +745,7 @@ mod tests {
       .unwrap(),
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -774,10 +774,10 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -807,9 +807,9 @@ mod tests {
         etching: Some(Etching {
           rune: None,
           divisibility: 4,
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -824,7 +824,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -840,7 +840,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -864,7 +864,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -876,7 +876,7 @@ mod tests {
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -888,7 +888,7 @@ mod tests {
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -900,7 +900,7 @@ mod tests {
       Runestone {
         etching: Some(Etching::default()),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -919,7 +919,7 @@ mod tests {
             amount: 2,
             output: 0,
           }],
-          ..Default::default()
+          ..default()
         }
       );
 
@@ -952,9 +952,9 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(4)),
           divisibility: 5,
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -983,9 +983,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1011,7 +1011,7 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1041,9 +1041,9 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(4)),
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1091,7 +1091,7 @@ mod tests {
           symbol: Some('a'),
           spacers: 5,
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1122,7 +1122,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1155,9 +1155,9 @@ mod tests {
           rune: Some(Rune(4)),
           divisibility: 1,
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1183,7 +1183,7 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1205,7 +1205,7 @@ mod tests {
             output: 0,
           },
         ],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1221,7 +1221,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1237,7 +1237,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1294,9 +1294,9 @@ mod tests {
         }],
         etching: Some(Etching {
           divisibility: 5,
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1333,7 +1333,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1373,7 +1373,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1386,7 +1386,7 @@ mod tests {
         Runestone {
           edicts,
           etching,
-          ..Default::default()
+          ..default()
         }
         .encipher()
         .len(),
@@ -1400,7 +1400,7 @@ mod tests {
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
       7,
     );
@@ -1410,7 +1410,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
       9,
     );
@@ -1435,7 +1435,7 @@ mod tests {
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       25,
     );
@@ -1449,7 +1449,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       32,
     );
@@ -1463,7 +1463,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       50,
     );
@@ -1625,7 +1625,7 @@ mod tests {
       Runestone {
         etching: Some(Etching::default()),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1745,7 +1745,7 @@ mod tests {
           spacers: 0,
         }),
         cenotaph: false,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Flags.into(), Flag::Etch.mask(), Tag::Rune.into(), 3],
     );
@@ -1760,7 +1760,7 @@ mod tests {
           spacers: 0,
         }),
         cenotaph: false,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Flags.into(), Flag::Etch.mask()],
     );
@@ -1768,7 +1768,7 @@ mod tests {
     case(
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Cenotaph.into(), 0],
     );
@@ -1785,7 +1785,7 @@ mod tests {
         };
         129
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 
@@ -1800,7 +1800,7 @@ mod tests {
         };
         130
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 

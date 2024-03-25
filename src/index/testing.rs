@@ -160,7 +160,7 @@ impl Context {
     self.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
-      ..Default::default()
+      ..default()
     });
 
     self.mine_blocks(RUNE_COMMIT_INTERVAL.into());
@@ -191,7 +191,7 @@ impl Context {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs,
-      ..Default::default()
+      ..default()
     });
 
     self.mine_blocks(1);
