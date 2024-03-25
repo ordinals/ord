@@ -1922,6 +1922,18 @@ mod tests {
   #[test]
   fn invalid_supply_produces_cenotaph() {
     assert!(
+      !decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
+        Tag::Cap.into(),
+        1,
+        Tag::Limit.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
+
+    assert!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask() | Flag::Mint.mask(),
