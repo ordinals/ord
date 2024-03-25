@@ -2,21 +2,21 @@ use super::*;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
-pub struct Batchfile {
-  pub inscriptions: Vec<BatchEntry>,
+pub struct File {
+  pub inscriptions: Vec<Entry>,
   pub mode: Mode,
   pub parent: Option<InscriptionId>,
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
-  pub etch: Option<Etch>,
+  pub etching: Option<Etching>,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
 }
 
-impl Batchfile {
-  pub(crate) fn load(path: &Path) -> Result<Batchfile> {
-    let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
+impl File {
+  pub(crate) fn load(path: &Path) -> Result<Self> {
+    let batchfile: Self = serde_yaml::from_reader(fs::File::open(path)?)?;
 
     ensure!(
       !batchfile.inscriptions.is_empty(),
@@ -139,7 +139,7 @@ impl Batchfile {
         &entry.file,
         Some(pointer),
         self
-          .etch
+          .etching
           .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
       )?);
 
@@ -218,9 +218,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
-        .unwrap_err()
-        .to_string(),
+      File::load(batch_file.as_path()).unwrap_err().to_string(),
       "batchfile cannot set both `sat` and `satpoint`"
     );
   }
@@ -245,7 +243,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "specifying `satpoint` in an inscription only works in `satpoints` mode"
@@ -271,7 +269,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "if `satpoint` is set for any inscription, then all inscriptions need to specify a satpoint"
@@ -298,7 +296,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "`satpoint` can only be specified for first sat of an output"
@@ -326,7 +324,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "`postage` cannot be set if in `satpoints` mode"
@@ -355,7 +353,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "duplicate satpoint bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0"

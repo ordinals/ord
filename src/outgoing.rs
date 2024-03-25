@@ -14,7 +14,7 @@ impl Display for Outgoing {
     match self {
       Self::Amount(amount) => write!(f, "{}", amount.to_string().to_lowercase()),
       Self::InscriptionId(inscription_id) => inscription_id.fmt(f),
-      Self::Rune { decimal, rune } => write!(f, "{decimal} {rune}"),
+      Self::Rune { decimal, rune } => write!(f, "{decimal}:{rune}"),
       Self::Sat(sat) => write!(f, "{}", sat.name()),
       Self::SatPoint(satpoint) => satpoint.fmt(f),
     }
@@ -36,7 +36,7 @@ impl FromStr for Outgoing {
           |
           \d+\.\d+
         )
-        \ *
+        \ ?
         (bit|btc|cbtc|mbtc|msat|nbtc|pbtc|sat|satoshi|ubtc)
         (s)?
         $
@@ -53,7 +53,7 @@ impl FromStr for Outgoing {
           |
           \d+\.\d+
         )
-        \ *
+        \s*:\s*
         (
           [A-Z•.]+
         )
@@ -120,7 +120,7 @@ mod tests {
     case(".0btc", Outgoing::Amount("0 btc".parse().unwrap()));
 
     case(
-      "0 XYZ",
+      "0  : XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: "0".parse().unwrap(),
@@ -128,7 +128,7 @@ mod tests {
     );
 
     case(
-      "0XYZ",
+      "0:XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: "0".parse().unwrap(),
@@ -136,7 +136,7 @@ mod tests {
     );
 
     case(
-      "0.0XYZ",
+      "0.0:XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: "0.0".parse().unwrap(),
@@ -144,7 +144,7 @@ mod tests {
     );
 
     case(
-      ".0XYZ",
+      ".0:XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: ".0".parse().unwrap(),
@@ -152,7 +152,7 @@ mod tests {
     );
 
     case(
-      "1.1XYZ",
+      "1.1:XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: "1.1".parse().unwrap(),
@@ -160,7 +160,7 @@ mod tests {
     );
 
     case(
-      "1.1X.Y.Z",
+      "1.1:X.Y.Z",
       Outgoing::Rune {
         rune: "X.Y.Z".parse().unwrap(),
         decimal: "1.1".parse().unwrap(),
@@ -201,7 +201,7 @@ mod tests {
     case("1.2 btc", Outgoing::Amount("1.2 btc".parse().unwrap()));
 
     case(
-      "0 XY•Z",
+      "0:XY•Z",
       Outgoing::Rune {
         rune: "XY•Z".parse().unwrap(),
         decimal: "0".parse().unwrap(),
@@ -209,7 +209,7 @@ mod tests {
     );
 
     case(
-      "1.1 XYZ",
+      "1.1:XYZ",
       Outgoing::Rune {
         rune: "XYZ".parse().unwrap(),
         decimal: "1.1".parse().unwrap(),
@@ -260,8 +260,8 @@ mod tests {
     );
 
     case(
-      "6.66 HELL.MONEY",
-      "\"6.66 HELL•MONEY\"",
+      "6.66:HELL.MONEY",
+      "\"6.66:HELL•MONEY\"",
       Outgoing::Rune {
         rune: "HELL•MONEY".parse().unwrap(),
         decimal: "6.66".parse().unwrap(),

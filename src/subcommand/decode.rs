@@ -77,7 +77,7 @@ impl Decode {
         .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {
-      Transaction::consensus_decode(&mut File::open(file)?)?
+      Transaction::consensus_decode(&mut fs::File::open(file)?)?
     } else {
       Transaction::consensus_decode(&mut io::stdin())?
     };

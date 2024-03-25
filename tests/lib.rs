@@ -11,12 +11,8 @@ use {
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
-    api,
-    chain::Chain,
-    outgoing::Outgoing,
-    subcommand::runes::RuneInfo,
-    wallet::inscribe::{BatchEntry, Batchfile, Etch},
-    Edict, InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch, Edict,
+    InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
   },
   ordinals::{Charm, Rarity, Sat, SatPoint},
   pretty_assertions::assert_eq as pretty_assert_eq,
@@ -78,7 +74,7 @@ const RUNE: u128 = 99246114928149462;
 
 type Balance = ord::subcommand::wallet::balance::Output;
 type Create = ord::subcommand::wallet::create::Output;
-type Inscribe = ord::wallet::inscribe::Output;
+type Inscribe = ord::wallet::batch::Output;
 type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Supply = ord::subcommand::supply::Output;
@@ -190,15 +186,15 @@ fn etch(
   batch(
     bitcoin_rpc_server,
     ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 0,
         mint: None,
         premine: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],
@@ -210,7 +206,7 @@ fn etch(
 fn batch(
   bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
   ord_rpc_server: &TestServer,
-  batchfile: Batchfile,
+  batchfile: batch::File,
 ) -> Etched {
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -252,13 +248,13 @@ fn batch(
   let reveal = inscribe.reveal;
   let parent = inscribe.inscriptions[0].id;
 
-  let Etch {
+  let batch::Etching {
     divisibility,
     premine,
     rune,
     symbol,
     mint,
-  } = batchfile.etch.unwrap();
+  } = batchfile.etching.unwrap();
 
   let mut mint_definition = Vec::<String>::new();
 
@@ -344,7 +340,7 @@ fn batch(
     ),
   );
 
-  let ord::wallet::inscribe::RuneInfo {
+  let batch::RuneInfo {
     destination,
     location,
     rune,

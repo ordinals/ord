@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct BatchEntry {
+pub struct Entry {
   pub delegate: Option<InscriptionId>,
   pub destination: Option<Address<NetworkUnchecked>>,
   pub file: PathBuf,
@@ -11,7 +11,7 @@ pub struct BatchEntry {
   pub satpoint: Option<SatPoint>,
 }
 
-impl BatchEntry {
+impl Entry {
   pub(crate) fn metadata(&self) -> Result<Option<Vec<u8>>> {
     Ok(match &self.metadata {
       None => None,
