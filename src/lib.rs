@@ -165,7 +165,7 @@ fn fund_raw_transaction(
           // by 1000.
           fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
           change_position: Some(unfunded_transaction.output.len().try_into()?),
-          ..Default::default()
+          ..default()
         }),
         Some(false),
       )
@@ -202,6 +202,10 @@ fn unbound_outpoint() -> OutPoint {
 
 fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
   address.to_string().parse().unwrap()
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
 }
 
 pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {

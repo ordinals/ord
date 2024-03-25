@@ -327,7 +327,7 @@ mod tests {
         Vec::new()
       ])]),
       vec![ParsedEnvelope {
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -373,9 +373,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           duplicate_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -392,7 +392,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -414,7 +414,7 @@ mod tests {
           content_encoding: Some("br".as_bytes().to_vec()),
           ..inscription("text/plain;charset=utf-8", "ord")
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -433,7 +433,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -449,9 +449,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           content_type: Some(b"text/plain;charset=utf-8".to_vec()),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -463,9 +463,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           body: Some(b"foo".to_vec()),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -483,7 +483,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "foobar"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -499,7 +499,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -520,7 +520,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -543,7 +543,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -566,7 +566,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -597,12 +597,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "foo"),
-          ..Default::default()
+          ..default()
         },
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "bar"),
           offset: 1,
-          ..Default::default()
+          ..default()
         },
       ],
     );
@@ -620,7 +620,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", [0b10000000]),
-        ..Default::default()
+        ..default()
       },],
     );
   }
@@ -675,7 +675,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -687,7 +687,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
         input: 1,
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -706,12 +706,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("foo", [1; 100]),
-          ..Default::default()
+          ..default()
         },
         ParsedEnvelope {
           payload: inscription("bar", [1; 100]),
           offset: 1,
-          ..Default::default()
+          ..default()
         }
       ]
     );
@@ -729,7 +729,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("image/png", [1; 100]),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -746,7 +746,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -763,7 +763,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -774,7 +774,7 @@ mod tests {
       parse(&[envelope(&[&PROTOCOL_ID, &Tag::Nop.bytes(), &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -786,9 +786,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -800,9 +800,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           pointer: Some(vec![1]),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -816,9 +816,9 @@ mod tests {
           pointer: Some(vec![1]),
           duplicate_field: true,
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -830,9 +830,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -844,9 +844,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           incomplete_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -858,9 +858,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           metadata: Some(Vec::new()),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -879,9 +879,9 @@ mod tests {
         payload: Inscription {
           metadata: Some(vec![0, 1]),
           duplicate_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -923,10 +923,10 @@ mod tests {
         vec![ParsedEnvelope {
           payload: Inscription {
             body: Some(vec![value]),
-            ..Default::default()
+            ..default()
           },
           pushnum: true,
-          ..Default::default()
+          ..default()
         }],
       );
     }
@@ -947,7 +947,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -965,7 +965,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -985,7 +985,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -1004,7 +1004,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: false,
-        ..Default::default()
+        ..default()
       }],
     );
   }
