@@ -188,6 +188,27 @@ impl Inscribe {
         "rune `{rune}` has already been etched",
       );
 
+      let premine = etching.premine.to_amount(etching.divisibility)?;
+
+      let supply = etching.supply.to_amount(etching.divisibility)?;
+
+      let mintable = if let Some(mint) = etching.mint {
+        mint
+          .cap
+          .checked_mul(mint.limit.to_amount(etching.divisibility)?)
+          .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))?
+      } else {
+        0
+      };
+
+      ensure!(
+        supply
+          == premine
+            .checked_add(mintable)
+            .ok_or_else(|| anyhow!("`premine` + `mint.count` * `mint.limit` over maximum"))?,
+        "`supply` not equal to `premine` + `mint.count` * `mint.limit`"
+      );
+
       let bitcoin_client = wallet.bitcoin_client();
 
       let count = bitcoin_client.get_block_count()?;

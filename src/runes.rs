@@ -9,7 +9,6 @@ pub use {
 };
 
 pub const MAX_DIVISIBILITY: u8 = 38;
-pub const MAX_LIMIT: u128 = u64::MAX as u128;
 
 const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
 const RESERVED: u128 = 6402364363415443603228541259936211926;
@@ -30,19 +29,19 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug)]
 pub enum MintError {
-  Deadline((Rune, u32)),
-  End((Rune, u32)),
-  Unmintable(Rune),
+  Cap(u128),
+  Deadline(u32),
+  End(u32),
+  Unmintable,
 }
 
 impl Display for MintError {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match self {
-      MintError::Deadline((rune, deadline)) => {
-        write!(f, "rune {rune} mint ended at {deadline}")
-      }
-      MintError::End((rune, end)) => write!(f, "rune {rune} mint ended on block {end}"),
-      MintError::Unmintable(rune) => write!(f, "rune {rune} not mintable"),
+      MintError::Cap(cap) => write!(f, "limited to {cap} mints"),
+      MintError::Deadline(deadline) => write!(f, "mint ended at {deadline}"),
+      MintError::End(end) => write!(f, "mint ended on block {end}"),
+      MintError::Unmintable => write!(f, "not mintable"),
     }
   }
 }
@@ -143,6 +142,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -160,7 +160,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -188,6 +187,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(minimum - 1)),
+            premine: Some(u128::MAX),
             ..default()
           }),
           ..default()
@@ -213,6 +213,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(minimum)),
+            premine: Some(u128::MAX),
             ..default()
           }),
           ..default()
@@ -230,7 +231,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id.block,
             ..default()
           },
@@ -276,6 +276,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(RESERVED - 1)),
+            premine: Some(u128::MAX),
             ..default()
           }),
           ..default()
@@ -293,7 +294,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id.block,
             ..default()
           },
@@ -321,6 +321,7 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: None,
+            premine: Some(u128::MAX),
             ..default()
           }),
           ..default()
@@ -344,7 +345,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: 2,
           ..default()
         },
@@ -370,6 +370,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
+            premine: Some(u128::MAX),
             rune: None,
             ..default()
           }),
@@ -395,7 +396,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: 2,
             ..default()
           },
@@ -409,7 +409,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: 4,
             number: 1,
             ..default()
@@ -447,8 +446,9 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching {
-          divisibility: 1,
+          divisibility: Some(1),
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -469,7 +469,6 @@ mod tests {
           etching: txid,
           divisibility: 1,
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -498,6 +497,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -515,7 +515,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -544,6 +543,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -561,7 +561,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           symbol: None,
           timestamp: id.block,
           ..default()
@@ -586,6 +585,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(100),
           ..default()
         }),
         ..default()
@@ -603,7 +603,6 @@ mod tests {
             spacers: 0,
           },
           premine: 100,
-          supply: 100,
           timestamp: id.block,
           ..default()
         },
@@ -632,6 +631,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(200),
           ..default()
         }),
         ..default()
@@ -650,7 +650,6 @@ mod tests {
             spacers: 0,
           },
           premine: 200,
-          supply: 200,
           timestamp: id.block,
           ..default()
         },
@@ -696,7 +695,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 0,
           timestamp: id.block,
           ..default()
         },
@@ -718,6 +716,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -735,7 +734,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -777,7 +775,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -832,7 +829,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_open_etching_parameters_are_unset_for_cenotaph() {
+  fn etched_rune_open_mint_parameters_are_unset_for_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -843,15 +840,17 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching {
+          premine: Some(u128::MAX),
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
+            cap: Some(1),
             deadline: Some(1),
             limit: Some(1),
             term: Some(1),
           }),
-          divisibility: 1,
+          divisibility: Some(1),
           symbol: Some('$'),
-          spacers: 1,
+          spacers: Some(1),
         }),
         cenotaph: true,
         ..default()
@@ -863,18 +862,17 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: 0,
+          burned: u128::MAX,
           divisibility: 1,
           etching: txid0,
           mint: None,
           mints: 0,
           number: 0,
-          premine: 0,
+          premine: u128::MAX,
           spaced_rune: SpacedRune {
             rune: Rune(RUNE),
             spacers: 1,
           },
-          supply: 0,
           symbol: Some('$'),
           timestamp: id.block,
         },
@@ -941,6 +939,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -958,7 +957,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -997,7 +995,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1019,6 +1016,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1036,7 +1034,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1068,7 +1065,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1096,6 +1092,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1113,7 +1110,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1146,7 +1142,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           burned: u128::MAX,
           ..default()
@@ -1169,6 +1164,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1186,7 +1182,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1225,7 +1220,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1253,6 +1247,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1270,7 +1265,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1309,7 +1303,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           burned: u128::MAX,
           timestamp: id.block,
           ..default()
@@ -1333,6 +1326,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1350,7 +1344,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1382,7 +1375,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1410,6 +1402,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1427,7 +1420,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1463,7 +1455,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -1485,6 +1476,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1502,7 +1494,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id0.block,
           ..default()
         },
@@ -1525,6 +1516,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1543,7 +1535,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1557,7 +1548,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -1603,7 +1593,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1617,7 +1606,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -1647,6 +1635,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1664,7 +1653,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id0.block,
           ..default()
         },
@@ -1687,6 +1675,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1705,7 +1694,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1719,7 +1707,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -1765,7 +1752,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1779,7 +1765,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -1832,7 +1817,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1846,7 +1830,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -1885,6 +1868,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1902,7 +1886,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id0.block,
           ..default()
         },
@@ -1925,6 +1908,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -1943,7 +1927,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -1957,7 +1940,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -2021,7 +2003,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -2035,7 +2016,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -2066,6 +2046,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2083,7 +2064,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2120,7 +2100,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2130,7 +2109,7 @@ mod tests {
   }
 
   #[test]
-  fn rune_rarity_is_assigned_correctly() {
+  fn multiple_runes_may_be_etched_in_one_block() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
@@ -2142,6 +2121,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2158,6 +2138,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2176,7 +2157,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -2190,7 +2170,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -2231,6 +2210,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2248,7 +2228,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2297,7 +2276,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2325,6 +2303,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2342,7 +2321,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id0.block,
           ..default()
         },
@@ -2365,6 +2343,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2383,7 +2362,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -2397,7 +2375,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -2458,7 +2435,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id0.block,
             ..default()
           },
@@ -2472,7 +2448,6 @@ mod tests {
               spacers: 0,
             },
             premine: u128::MAX,
-            supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
             ..default()
@@ -2511,6 +2486,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX / 2),
           ..default()
         }),
         ..default()
@@ -2528,7 +2504,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX / 2,
-          supply: u128::MAX / 2,
           timestamp: id.block,
           ..default()
         },
@@ -2570,7 +2545,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX / 2,
-          supply: u128::MAX / 2,
           timestamp: id.block,
           ..default()
         },
@@ -2598,6 +2572,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2616,7 +2591,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2638,6 +2612,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2655,7 +2630,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2684,6 +2658,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2701,7 +2676,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2723,6 +2697,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2740,7 +2715,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2774,6 +2748,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2791,7 +2766,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2837,6 +2811,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2854,7 +2829,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2881,6 +2855,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(4000),
           ..default()
         }),
         ..default()
@@ -2898,7 +2873,6 @@ mod tests {
             spacers: 0,
           },
           premine: 4000,
-          supply: 4000,
           timestamp: id.block,
           ..default()
         },
@@ -2932,6 +2906,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2949,7 +2924,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -2982,6 +2956,7 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -2999,7 +2974,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3029,6 +3003,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3046,7 +3021,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3089,7 +3063,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3126,6 +3099,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3143,7 +3117,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3193,7 +3166,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3230,6 +3202,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3247,7 +3220,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3297,7 +3269,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3334,6 +3305,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3351,7 +3323,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3394,7 +3365,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3431,6 +3401,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3448,7 +3419,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3498,7 +3468,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3535,6 +3504,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3552,7 +3522,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3602,7 +3571,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3654,6 +3622,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           symbol: Some('$'),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3671,7 +3640,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           symbol: Some('$'),
           timestamp: id.block,
           ..default()
@@ -3694,6 +3662,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3711,7 +3680,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3733,6 +3701,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
           ..default()
         }),
         ..default()
@@ -3750,7 +3719,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3793,7 +3761,6 @@ mod tests {
             spacers: 0,
           },
           premine: u128::MAX,
-          supply: u128::MAX,
           timestamp: id.block,
           ..default()
         },
@@ -3806,13 +3773,6 @@ mod tests {
         vec![(id, u128::MAX)],
       )],
     );
-  }
-
-  #[test]
-  fn max_limit() {
-    MAX_LIMIT
-      .checked_mul(u128::from(u16::MAX) * u128::from(RUNE_COMMIT_INTERVAL) * 365 * 1_000_000_000)
-      .unwrap();
   }
 
   #[test]
@@ -3884,7 +3844,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           ..default()
         },
@@ -3929,7 +3888,6 @@ mod tests {
           },
           timestamp: id.block,
           premine: 0,
-          supply: 0,
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -3975,7 +3933,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           ..default()
         },
@@ -4024,7 +3981,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 2000,
           timestamp: id.block,
           ..default()
         },
@@ -4084,7 +4040,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 3000,
           timestamp: id.block,
           ..default()
         },
@@ -4109,7 +4064,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_can_be_limited_to_term() {
+  fn open_mints_can_be_limited_to_term() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -4183,7 +4138,6 @@ mod tests {
             ..default()
           }),
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           mints: 1,
           ..default()
@@ -4227,7 +4181,6 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -4249,7 +4202,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_term_zero_can_be_premined() {
+  fn open_mints_with_term_zero_can_be_premined() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4261,6 +4214,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(1111),
           mint: Some(Mint {
             limit: Some(1000),
             term: Some(0),
@@ -4289,7 +4243,6 @@ mod tests {
           }),
           timestamp: id.block,
           premine: 1111,
-          supply: 1111,
           ..default()
         },
       )],
@@ -4327,7 +4280,6 @@ mod tests {
             ..default()
           }),
           premine: 1111,
-          supply: 1111,
           ..default()
         },
       )],
@@ -4336,7 +4288,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_end_before_deadline() {
+  fn open_mints_with_end_before_deadline() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -4346,6 +4298,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
+            cap: Some(2),
             limit: Some(1000),
             deadline: Some(12),
             term: Some(2),
@@ -4368,6 +4321,7 @@ mod tests {
           },
           timestamp: 9,
           mint: Some(MintEntry {
+            cap: Some(2),
             deadline: Some(12),
             end: Some(11),
             limit: Some(1000),
@@ -4401,11 +4355,11 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: 9,
           mints: 1,
           etching: txid0,
           mint: Some(MintEntry {
+            cap: Some(2),
             deadline: Some(12),
             end: Some(11),
             limit: Some(1000),
@@ -4446,9 +4400,9 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: 9,
           mint: Some(MintEntry {
+            cap: Some(2),
             limit: Some(1000),
             deadline: Some(12),
             end: Some(11),
@@ -4468,7 +4422,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_with_deadline_before_end() {
+  fn open_mints_with_deadline_before_end() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -4478,6 +4432,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
+            cap: Some(2),
             limit: Some(1000),
             deadline: Some(11),
             term: Some(3),
@@ -4500,6 +4455,7 @@ mod tests {
           },
           timestamp: id.block,
           mint: Some(MintEntry {
+            cap: Some(2),
             deadline: Some(11),
             end: Some(12),
             limit: Some(1000),
@@ -4533,11 +4489,11 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           mints: 1,
           etching: txid0,
           mint: Some(MintEntry {
+            cap: Some(2),
             deadline: Some(11),
             end: Some(12),
             limit: Some(1000),
@@ -4578,9 +4534,9 @@ mod tests {
             spacers: 0,
           },
           premine: 0,
-          supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
+            cap: Some(2),
             limit: Some(1000),
             deadline: Some(11),
             end: Some(12),
@@ -4600,7 +4556,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etchings_can_be_limited_to_deadline() {
+  fn open_mints_can_be_limited_to_deadline() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -4667,7 +4623,6 @@ mod tests {
             rune: Rune(RUNE),
             spacers: 0,
           },
-          supply: 1000,
           timestamp: id.block,
           mints: 1,
           etching: txid0,
@@ -4716,7 +4671,6 @@ mod tests {
             rune: Rune(RUNE),
             spacers: 0,
           },
-          supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -4738,7 +4692,7 @@ mod tests {
   }
 
   #[test]
-  fn open_etching_claims_can_use_split() {
+  fn open_mint_claims_can_use_split() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -4805,7 +4759,6 @@ mod tests {
             rune: Rune(RUNE),
             spacers: 0,
           },
-          supply: 1000,
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
@@ -4842,6 +4795,7 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(2000),
           mint: Some(Mint {
             limit: Some(1000),
             ..default()
@@ -4873,7 +4827,6 @@ mod tests {
           }),
           timestamp: id.block,
           premine: 2000,
-          supply: 2000,
           ..default()
         },
       )],
@@ -4930,8 +4883,10 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
+          premine: Some(2000),
           mint: Some(Mint {
             limit: Some(1000),
+            cap: Some(1),
             ..default()
           }),
           ..default()
@@ -4957,11 +4912,11 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
+            cap: Some(1),
             ..default()
           }),
           timestamp: rune_id.block,
           premine: 2000,
-          supply: 2000,
           mints: 0,
           ..default()
         },
@@ -5028,7 +4983,6 @@ mod tests {
             ..default()
           }),
           timestamp: id.block,
-          supply: 1000,
           mints: 1,
           ..default()
         },
@@ -5044,7 +4998,7 @@ mod tests {
   }
 
   #[test]
-  fn multiple_edicts_in_one_transaction_may_claim_open_etching() {
+  fn multiple_edicts_in_one_transaction_may_claim_open_mint() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -5127,7 +5081,6 @@ mod tests {
             ..default()
           }),
           timestamp: id.block,
-          supply: 1000,
           mints: 1,
           ..default()
         },
