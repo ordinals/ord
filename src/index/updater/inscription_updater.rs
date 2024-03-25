@@ -419,15 +419,13 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           })?;
         }
 
-        self.move_inscription_to_address(flotsam.clone(), transaction, new_satpoint)?;
-
         (false, sequence_number)
       }
       Origin::New {
         cursed,
         fee,
         hidden,
-        parents,
+        ref parents,
         pointer: _,
         reinscription,
         unbound,
@@ -509,7 +507,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             charms,
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
-            parent_inscription_ids: parents,
+            parent_inscription_ids: parents.to_vec(),
             sequence_number,
           })?;
         }
@@ -546,11 +544,11 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           }
         }
 
-        self.move_inscription_to_address(flotsam.clone(), transaction, new_satpoint)?;
-
         (unbound, sequence_number)
       }
     };
+
+    self.index_address_to_inscription(&flotsam, transaction, new_satpoint)?;
 
     let satpoint = if unbound {
       let new_unbound_satpoint = SatPoint {
@@ -573,9 +571,9 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     Ok(())
   }
 
-  fn move_inscription_to_address(
+  fn index_address_to_inscription(
     &mut self,
-    floatsam: Flotsam,
+    flotsam: &Flotsam,
     transaction: &Transaction,
     new_satpoint: SatPoint,
   ) -> Result {
@@ -583,27 +581,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       return Ok(());
     }
 
-    self.remove_inscription_from_address(floatsam.clone())?;
-
-    let address = self.transaction_to_address(transaction, new_satpoint.outpoint.vout.into_usize())?;
-
-    let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
-    inscription_ids.push(floatsam.inscription_id.store());
-    inscription_ids.sort();
-
-    self
-      .address_to_inscription_ids
-      .insert(&address.as_bytes(), inscription_ids)?;
-
-    Ok(())
-  }
-
-  fn remove_inscription_from_address(&mut self, floatsam: Flotsam) -> Result {
-    if !self.index_addresses || !self.index_transactions {
-      return Ok(());
-    }
-
-    if let Origin::Old { old_satpoint } = floatsam.origin {
+    if let Origin::Old { old_satpoint } = flotsam.origin {
       if let Some(transaction) = self
         .transaction_id_to_transaction
         .get(&old_satpoint.outpoint.txid.store())?
@@ -614,7 +592,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           self.transaction_to_address(&transaction, old_satpoint.outpoint.vout.into_usize())?;
 
         let mut inscription_ids = self.get_inscription_ids_by_address(&address_entry)?;
-        inscription_ids.retain(|&id| id != floatsam.inscription_id.store());
+        inscription_ids.retain(|&id| id != flotsam.inscription_id.store());
 
         self
           .address_to_inscription_ids
@@ -622,21 +600,23 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       }
     }
 
+    let address =
+      self.transaction_to_address(transaction, new_satpoint.outpoint.vout.into_usize())?;
+
+    let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
+    inscription_ids.push(flotsam.inscription_id.store());
+    inscription_ids.sort();
+
+    self
+      .address_to_inscription_ids
+      .insert(&address.as_bytes(), inscription_ids)?;
+
     Ok(())
-  }
-
-  fn get_transaction(&self, txid: &Txid) -> Result<Transaction> {
-    let transaction = self
-      .transaction_id_to_transaction
-      .get(&txid.store())?
-      .unwrap();
-
-    Ok(consensus::encode::deserialize(transaction.value())?)
   }
 
   #[inline]
   fn transaction_to_address(&self, transaction: &Transaction, vout: usize) -> Result<ScriptBuf> {
-    let tx_out = transaction.output.iter().nth(vout).unwrap();
+    let tx_out = transaction.output.get(vout).unwrap();
 
     let address = self.chain.address_from_script(&tx_out.script_pubkey)?;
 

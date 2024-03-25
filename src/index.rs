@@ -2021,6 +2021,7 @@ impl Index {
     }
   }
 
+  #[allow(dead_code)]
   pub(crate) fn get_inscription_ids_by_address(
     &self,
     address: Address,

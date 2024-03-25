@@ -25,6 +25,7 @@ fn default() {
   "index_sats": false,
   "index_spent_sats": false,
   "index_transactions": false,
+  "index_addresses": false,
   "integration_test": false,
   "no_index_inscriptions": false,
   "server_password": null,
