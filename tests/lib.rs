@@ -196,9 +196,9 @@ fn etch(
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   )
 }
@@ -416,4 +416,8 @@ fn envelope(payload: &[&[u8]]) -> Witness {
     .into_script();
 
   Witness::from_slice(&[script.into_bytes(), Vec::new()])
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
 }

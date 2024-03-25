@@ -891,9 +891,9 @@ fn sending_rune_with_divisibility_works() {
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 

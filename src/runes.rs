@@ -69,9 +69,9 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -90,7 +90,7 @@ mod tests {
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -106,9 +106,9 @@ mod tests {
       Runestone {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -123,7 +123,7 @@ mod tests {
             spacers: 0,
           },
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -143,9 +143,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -162,7 +162,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -188,9 +188,9 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(minimum - 1)),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
         1,
       );
@@ -213,9 +213,9 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(minimum)),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
         1,
       );
@@ -232,7 +232,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
-            ..Default::default()
+            ..default()
           },
         )],
         [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -254,9 +254,9 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(RESERVED)),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
         1,
       );
@@ -276,9 +276,9 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: Some(Rune(RESERVED - 1)),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
         1,
       );
@@ -295,7 +295,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id.block,
-            ..Default::default()
+            ..default()
           },
         )],
         [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -321,13 +321,13 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: None,
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     let id0 = RuneId { block: 2, tx: 1 };
@@ -346,7 +346,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: 2,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -371,13 +371,13 @@ mod tests {
           }],
           etching: Some(Etching {
             rune: None,
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -397,7 +397,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: 2,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -412,7 +412,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: 4,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -449,9 +449,9 @@ mod tests {
         etching: Some(Etching {
           divisibility: 1,
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -471,7 +471,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -498,9 +498,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -517,7 +517,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -544,9 +544,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -564,7 +564,7 @@ mod tests {
           supply: u128::MAX,
           symbol: None,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -586,9 +586,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -605,7 +605,7 @@ mod tests {
           premine: 100,
           supply: 100,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
@@ -632,9 +632,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -652,7 +652,7 @@ mod tests {
           premine: 200,
           supply: 200,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
@@ -679,9 +679,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -698,7 +698,7 @@ mod tests {
           premine: 0,
           supply: 0,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -718,9 +718,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -737,7 +737,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -758,11 +758,11 @@ mod tests {
             amount: u128::MAX,
             output: 0,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -779,7 +779,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -805,11 +805,11 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
         default_output: None,
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -824,7 +824,7 @@ mod tests {
             spacers: 0,
           },
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -854,7 +854,7 @@ mod tests {
           spacers: 1,
         }),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -900,11 +900,11 @@ mod tests {
           }],
           etching: Some(Etching::default()),
           cenotaph: true,
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -921,7 +921,7 @@ mod tests {
             spacers: 0,
           },
           timestamp: 2,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -941,9 +941,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -960,7 +960,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -977,11 +977,11 @@ mod tests {
       op_return: Some(
         Runestone {
           cenotaph: true,
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -999,7 +999,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -1019,9 +1019,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1038,7 +1038,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1053,7 +1053,7 @@ mod tests {
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1070,7 +1070,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1096,9 +1096,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1115,7 +1115,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1131,7 +1131,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
       outputs: 0,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1149,7 +1149,7 @@ mod tests {
           supply: u128::MAX,
           timestamp: id.block,
           burned: u128::MAX,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -1169,9 +1169,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1188,7 +1188,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1206,11 +1206,11 @@ mod tests {
       op_return: Some(
         Runestone {
           default_output: Some(1),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1227,7 +1227,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1253,9 +1253,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1272,7 +1272,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1290,11 +1290,11 @@ mod tests {
       op_return: Some(
         Runestone {
           default_output: Some(2),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1312,7 +1312,7 @@ mod tests {
           supply: u128::MAX,
           burned: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -1333,9 +1333,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1352,7 +1352,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1367,7 +1367,7 @@ mod tests {
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: None,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1384,7 +1384,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1410,9 +1410,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1429,7 +1429,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -1444,9 +1444,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1465,7 +1465,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -1485,9 +1485,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1504,7 +1504,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1525,9 +1525,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1545,7 +1545,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1560,7 +1560,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -1587,7 +1587,7 @@ mod tests {
         (id0.block.try_into().unwrap(), 1, 0, Witness::new()),
         (id1.block.try_into().unwrap(), 1, 0, Witness::new()),
       ],
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1605,7 +1605,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1620,7 +1620,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -1647,9 +1647,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1666,7 +1666,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1687,9 +1687,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1707,7 +1707,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1722,7 +1722,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -1749,7 +1749,7 @@ mod tests {
         (id0.block.try_into().unwrap(), 1, 0, Witness::new()),
         (id1.block.try_into().unwrap(), 1, 0, Witness::new()),
       ],
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1767,7 +1767,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1782,7 +1782,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -1812,11 +1812,11 @@ mod tests {
               output: 1,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -1834,7 +1834,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1849,7 +1849,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -1885,9 +1885,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1904,7 +1904,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -1925,9 +1925,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -1945,7 +1945,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -1960,7 +1960,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -2001,11 +2001,11 @@ mod tests {
               output: 0,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -2023,7 +2023,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -2038,7 +2038,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -2066,9 +2066,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2085,7 +2085,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2105,7 +2105,7 @@ mod tests {
           .into_script(),
       ),
       op_return_index: Some(0),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -2122,7 +2122,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 1 }, vec![(id, u128::MAX)])],
@@ -2142,9 +2142,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2158,9 +2158,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2178,7 +2178,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -2193,7 +2193,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -2231,9 +2231,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2250,7 +2250,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2278,11 +2278,11 @@ mod tests {
               output: 0,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -2299,7 +2299,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2325,9 +2325,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2344,7 +2344,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id0.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2365,9 +2365,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE + 1)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2385,7 +2385,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -2400,7 +2400,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -2438,11 +2438,11 @@ mod tests {
               output: 0,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -2460,7 +2460,7 @@ mod tests {
             premine: u128::MAX,
             supply: u128::MAX,
             timestamp: id0.block,
-            ..Default::default()
+            ..default()
           },
         ),
         (
@@ -2475,7 +2475,7 @@ mod tests {
             supply: u128::MAX,
             timestamp: id1.block,
             number: 1,
-            ..Default::default()
+            ..default()
           },
         ),
       ],
@@ -2511,9 +2511,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2530,7 +2530,7 @@ mod tests {
           premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2551,11 +2551,11 @@ mod tests {
             amount: u128::MAX,
             output: 0,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -2572,7 +2572,7 @@ mod tests {
           premine: u128::MAX / 2,
           supply: u128::MAX / 2,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -2598,9 +2598,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2618,7 +2618,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -2638,9 +2638,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2657,7 +2657,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -2684,9 +2684,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -2703,7 +2703,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -2723,9 +2723,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -2742,7 +2742,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -2774,9 +2774,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -2793,7 +2793,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -2837,9 +2837,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -2856,7 +2856,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -2881,9 +2881,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -2900,7 +2900,7 @@ mod tests {
           premine: 4000,
           supply: 4000,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -2932,9 +2932,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -2951,7 +2951,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -2982,9 +2982,9 @@ mod tests {
         ],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       4,
     );
@@ -3001,7 +3001,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3029,9 +3029,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3048,7 +3048,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3070,11 +3070,11 @@ mod tests {
             amount: 0,
             output: 3,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3091,7 +3091,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3126,9 +3126,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3145,7 +3145,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3174,11 +3174,11 @@ mod tests {
               output: 3,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3195,7 +3195,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3230,9 +3230,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3249,7 +3249,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3278,11 +3278,11 @@ mod tests {
               output: 1,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3299,7 +3299,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3334,9 +3334,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3353,7 +3353,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3375,11 +3375,11 @@ mod tests {
             amount: 1000,
             output: 3,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3396,7 +3396,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3431,9 +3431,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3450,7 +3450,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3479,11 +3479,11 @@ mod tests {
               output: 5,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3500,7 +3500,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3535,9 +3535,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3554,7 +3554,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3583,11 +3583,11 @@ mod tests {
               output: 0,
             },
           ],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3604,7 +3604,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -3654,9 +3654,9 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           symbol: Some('$'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3674,7 +3674,7 @@ mod tests {
           supply: u128::MAX,
           symbol: Some('$'),
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -3694,9 +3694,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3713,7 +3713,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])],
@@ -3733,9 +3733,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3752,7 +3752,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3774,11 +3774,11 @@ mod tests {
             amount: 0,
             output: 1,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3795,7 +3795,7 @@ mod tests {
           premine: u128::MAX,
           supply: u128::MAX,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3825,11 +3825,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3847,9 +3847,9 @@ mod tests {
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -3860,11 +3860,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3876,7 +3876,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           mints: 1,
           spaced_rune: SpacedRune {
@@ -3886,7 +3886,7 @@ mod tests {
           premine: 0,
           supply: 1000,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -3909,11 +3909,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -3933,9 +3933,9 @@ mod tests {
           mints: 0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -3951,11 +3951,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -3967,7 +3967,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           mints: 1,
           spaced_rune: SpacedRune {
@@ -3977,7 +3977,7 @@ mod tests {
           premine: 0,
           supply: 1000,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4000,11 +4000,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4016,7 +4016,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           mints: 2,
           spaced_rune: SpacedRune {
@@ -4026,7 +4026,7 @@ mod tests {
           premine: 0,
           supply: 2000,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -4059,11 +4059,11 @@ mod tests {
             amount: 1000,
             output: 0,
           }],
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4076,7 +4076,7 @@ mod tests {
           etching: txid0,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           mints: 3,
           spaced_rune: SpacedRune {
@@ -4086,7 +4086,7 @@ mod tests {
           premine: 0,
           supply: 3000,
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -4119,11 +4119,11 @@ mod tests {
           mint: Some(Mint {
             limit: Some(1000),
             term: Some(2),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4140,10 +4140,10 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4159,11 +4159,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4180,13 +4180,13 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
-            ..Default::default()
+            ..default()
           }),
           premine: 0,
           supply: 1000,
           timestamp: id.block,
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4208,11 +4208,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4232,10 +4232,10 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block + 2),
-            ..Default::default()
+            ..default()
           }),
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4264,11 +4264,11 @@ mod tests {
           mint: Some(Mint {
             limit: Some(1000),
             term: Some(0),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4285,12 +4285,12 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
           premine: 1111,
           supply: 1111,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
@@ -4302,11 +4302,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4324,11 +4324,11 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             end: Some(id.block),
-            ..Default::default()
+            ..default()
           }),
           premine: 1111,
           supply: 1111,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
@@ -4350,9 +4350,9 @@ mod tests {
             deadline: Some(12),
             term: Some(2),
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4372,7 +4372,7 @@ mod tests {
             end: Some(11),
             limit: Some(1000),
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4383,11 +4383,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4410,7 +4410,7 @@ mod tests {
             end: Some(11),
             limit: Some(1000),
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4427,11 +4427,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4454,7 +4454,7 @@ mod tests {
             end: Some(11),
           }),
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4482,9 +4482,9 @@ mod tests {
             deadline: Some(11),
             term: Some(3),
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4504,7 +4504,7 @@ mod tests {
             end: Some(12),
             limit: Some(1000),
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4515,11 +4515,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4542,7 +4542,7 @@ mod tests {
             end: Some(12),
             limit: Some(1000),
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4559,11 +4559,11 @@ mod tests {
       op_return: Some(
         Runestone {
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4586,7 +4586,7 @@ mod tests {
             end: Some(12),
           }),
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4610,11 +4610,11 @@ mod tests {
           mint: Some(Mint {
             limit: Some(1000),
             deadline: Some(RUNE_COMMIT_INTERVAL + 4),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4632,9 +4632,9 @@ mod tests {
           mint: Some(MintEntry {
             deadline: Some(id.block + 2),
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4650,11 +4650,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4674,9 +4674,9 @@ mod tests {
           mint: Some(MintEntry {
             deadline: Some(id.block + 2),
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4698,11 +4698,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4721,10 +4721,10 @@ mod tests {
           mint: Some(MintEntry {
             limit: Some(1000),
             deadline: Some(id.block + 2),
-            ..Default::default()
+            ..default()
           }),
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4747,11 +4747,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4767,10 +4767,10 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4787,11 +4787,11 @@ mod tests {
             output: 3,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -4809,10 +4809,10 @@ mod tests {
           timestamp: id.block,
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [
@@ -4844,16 +4844,16 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
         edicts: vec![Edict {
           id: RuneId::default(),
           amount: 2000,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4869,12 +4869,12 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
           premine: 2000,
           supply: 2000,
-          ..Default::default()
+          ..default()
         },
       )],
       [(OutPoint { txid, vout: 0 }, vec![(id, 2000)])],
@@ -4891,11 +4891,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             term: Some(1),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4912,10 +4912,10 @@ mod tests {
           mint: Some(MintEntry {
             limit: None,
             end: Some(id.block + 1),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -4932,16 +4932,16 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
         edicts: vec![Edict {
           id: RuneId::default(),
           amount: 2000,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -4957,13 +4957,13 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: rune_id.block,
           premine: 2000,
           supply: 2000,
           mints: 0,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -4986,11 +4986,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -5005,11 +5005,11 @@ mod tests {
             output: 0,
           }],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -5025,12 +5025,12 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
           supply: 1000,
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -5053,11 +5053,11 @@ mod tests {
           rune: Some(Rune(RUNE)),
           mint: Some(Mint {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
       1,
     );
@@ -5073,10 +5073,10 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
-          ..Default::default()
+          ..default()
         },
       )],
       [],
@@ -5104,11 +5104,11 @@ mod tests {
             },
           ],
           claim: Some(id),
-          ..Default::default()
+          ..default()
         }
         .encipher(),
       ),
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -5124,12 +5124,12 @@ mod tests {
           },
           mint: Some(MintEntry {
             limit: Some(1000),
-            ..Default::default()
+            ..default()
           }),
           timestamp: id.block,
           supply: 1000,
           mints: 1,
-          ..Default::default()
+          ..default()
         },
       )],
       [(
@@ -5153,7 +5153,7 @@ mod tests {
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: false,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
@@ -5165,11 +5165,11 @@ mod tests {
         rune: Some(Rune(RUNE)),
         mint: Some(Mint {
           limit: Some(1000),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }),
-      ..Default::default()
+      ..default()
     };
 
     let tapscript = script::Builder::new()
@@ -5194,7 +5194,7 @@ mod tests {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -5213,7 +5213,7 @@ mod tests {
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks((RUNE_COMMIT_INTERVAL - 1).into());
@@ -5225,11 +5225,11 @@ mod tests {
         rune: Some(Rune(RUNE)),
         mint: Some(Mint {
           limit: Some(1000),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }),
-      ..Default::default()
+      ..default()
     };
 
     let tapscript = script::Builder::new()
@@ -5254,7 +5254,7 @@ mod tests {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
@@ -5273,7 +5273,7 @@ mod tests {
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
@@ -5285,11 +5285,11 @@ mod tests {
         rune: Some(Rune(RUNE)),
         mint: Some(Mint {
           limit: Some(1000),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }),
-      ..Default::default()
+      ..default()
     };
 
     let tapscript = script::Builder::new()
@@ -5304,7 +5304,7 @@ mod tests {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
-      ..Default::default()
+      ..default()
     });
 
     context.mine_blocks(1);
