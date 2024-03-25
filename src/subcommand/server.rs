@@ -1341,11 +1341,14 @@ impl Server {
         };
       };
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      // return the first inscription where the delegate exists
+      // probably worth considering some sort of limitation to mitigate "DoSability"
+      let inscription_override = inscription
+        .delegates()
+        .iter()
+        .find_map(|delegate| index.get_inscription_by_id(*delegate).unwrap_or(None));
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       Ok(
         Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1441,11 +1444,12 @@ impl Server {
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      let inscription_override = inscription
+        .delegates()
+        .iter()
+        .find_map(|delegate| index.get_inscription_by_id(*delegate).unwrap_or(None));
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       let media = inscription.media();
 
@@ -5894,7 +5898,7 @@ next
     server.mine_blocks(1);
 
     let inscription = Inscription {
-      delegate: Some(delegate.value()),
+      delegates: vec![delegate.value()],
       ..Default::default()
     };
 

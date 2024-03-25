@@ -107,7 +107,7 @@ impl Inscribe {
         inscriptions = vec![Inscription::from_file(
           chain,
           self.compress,
-          self.delegate,
+          self.delegate.into_iter().collect(),
           metadata,
           self.metaprotocol,
           self.parent.into_iter().collect(),

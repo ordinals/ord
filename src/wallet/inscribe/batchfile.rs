@@ -132,7 +132,7 @@ impl Batchfile {
       inscriptions.push(Inscription::from_file(
         wallet.chain(),
         compress,
-        entry.delegate,
+        entry.delegate.into_iter().collect(),
         entry.metadata()?,
         entry.metaprotocol.clone(),
         self.parent.into_iter().collect(),
