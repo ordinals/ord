@@ -326,9 +326,7 @@ mod tests {
           .into_bytes(),
         Vec::new()
       ])]),
-      vec![ParsedEnvelope {
-        ..default()
-      }]
+      vec![ParsedEnvelope { ..default() }]
     );
   }
 
