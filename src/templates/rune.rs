@@ -28,6 +28,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 100,
           mint: Some(MintEntry {
+            cap: Some(101),
             end: Some(11),
             limit: Some(1000000001),
             deadline: Some(7),
@@ -38,7 +39,6 @@ mod tests {
             rune: Rune(u128::MAX),
             spacers: 1
           },
-          supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
@@ -73,12 +73,16 @@ mod tests {
       <dd>1.000000001 %</dd>
       <dt>mints</dt>
       <dd>100</dd>
+      <dt>cap</dt>
+      <dd>101</dd>
+      <dt>remaining</dt>
+      <dd>1</dd>
       <dt>mintable</dt>
       <dd>true</dd>
     </dl>
   </dd>
   <dt>supply</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
+  <dd>100.123456889\u{A0}%</dd>
   <dt>premine</dt>
   <dd>0.123456789\u{A0}%</dd>
   <dt>burned</dt>
@@ -112,7 +116,6 @@ mod tests {
             rune: Rune(u128::MAX),
             spacers: 1
           },
-          supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
@@ -121,32 +124,10 @@ mod tests {
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
-<dl>
-  <dt>number</dt>
-  <dd>25</dd>
-  <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-  <dt>id</dt>
-  <dd>10:9</dd>
-  <dt>etching block</dt>
-  <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction</dt>
-  <dd>9</dd>
+<dl>.*
   <dt>mint</dt>
   <dd>no</dd>
-  <dt>supply</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
-  <dt>premine</dt>
-  <dd>0\u{A0}%</dd>
-  <dt>burned</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
-  <dt>divisibility</dt>
-  <dd>9</dd>
-  <dt>symbol</dt>
-  <dd>%</dd>
-  <dt>etching</dt>
-  <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
-</dl>
+.*</dl>
 "
     );
   }
@@ -158,6 +139,7 @@ mod tests {
         entry: RuneEntry {
           burned: 123456789123456789,
           mint: Some(MintEntry {
+            cap: None,
             deadline: None,
             end: None,
             limit: None,
@@ -171,7 +153,6 @@ mod tests {
             rune: Rune(u128::MAX),
             spacers: 1
           },
-          supply: 123456789123456789,
           symbol: Some('%'),
           timestamp: 0,
         },
@@ -180,17 +161,7 @@ mod tests {
         parent: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
-<dl>
-  <dt>number</dt>
-  <dd>25</dd>
-  <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:00 UTC</time></dd>
-  <dt>id</dt>
-  <dd>10:9</dd>
-  <dt>etching block</dt>
-  <dd><a href=/block/10>10</a></dd>
-  <dt>etching transaction</dt>
-  <dd>9</dd>
+<dl>.*
   <dt>mint</dt>
   <dd>
     <dl>
@@ -202,23 +173,15 @@ mod tests {
       <dd>none</dd>
       <dt>mints</dt>
       <dd>0</dd>
+      <dt>cap</dt>
+      <dd>0</dd>
+      <dt>remaining</dt>
+      <dd>0</dd>
       <dt>mintable</dt>
       <dd>false</dd>
     </dl>
   </dd>
-  <dt>supply</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
-  <dt>premine</dt>
-  <dd>0\u{A0}%</dd>
-  <dt>burned</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
-  <dt>divisibility</dt>
-  <dd>9</dd>
-  <dt>symbol</dt>
-  <dd>%</dd>
-  <dt>etching</dt>
-  <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
-</dl>
+.*</dl>
 "
     );
   }

@@ -34,11 +34,10 @@ pub struct RuneEntry {
   pub divisibility: u8,
   pub etching: Txid,
   pub mint: Option<MintEntry>,
-  pub mints: u64,
+  pub mints: u128,
   pub number: u64,
   pub premine: u128,
   pub spaced_rune: SpacedRune,
-  pub supply: u128,
   pub symbol: Option<char>,
   pub timestamp: u32,
 }
@@ -46,22 +45,40 @@ pub struct RuneEntry {
 impl RuneEntry {
   pub fn mintable(&self, block_height: Height, block_time: u32) -> Result<u128, MintError> {
     let Some(mint) = self.mint else {
-      return Err(MintError::Unmintable(self.spaced_rune.rune));
+      return Err(MintError::Unmintable);
     };
 
     if let Some(end) = mint.end {
       if block_height.0 >= end {
-        return Err(MintError::End((self.spaced_rune.rune, end)));
+        return Err(MintError::End(end));
       }
     }
 
     if let Some(deadline) = mint.deadline {
       if block_time >= deadline {
-        return Err(MintError::Deadline((self.spaced_rune.rune, deadline)));
+        return Err(MintError::Deadline(deadline));
       }
     }
 
-    Ok(mint.limit.unwrap_or(runes::MAX_LIMIT))
+    let cap = mint.cap.unwrap_or_default();
+
+    if self.mints >= cap {
+      return Err(MintError::Cap(cap));
+    }
+
+    Ok(mint.limit.unwrap_or_default())
+  }
+
+  pub fn supply(&self) -> u128 {
+    self.premine + self.mints * self.mint.and_then(|mint| mint.limit).unwrap_or_default()
+  }
+
+  pub fn pile(&self, amount: u128) -> Pile {
+    Pile {
+      amount,
+      divisibility: self.divisibility,
+      symbol: self.symbol,
+    }
   }
 }
 
@@ -70,23 +87,24 @@ pub(super) type RuneEntryValue = (
   u8,                     // divisibility
   (u128, u128),           // etching
   Option<MintEntryValue>, // mint parameters
-  u64,                    // mints
+  u128,                   // mints
   u64,                    // number
   u128,                   // premine
   (u128, u32),            // spaced rune
-  u128,                   // supply
   Option<char>,           // symbol
   u32,                    // timestamp
 );
 
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize, Default)]
 pub struct MintEntry {
+  pub cap: Option<u128>,     // mint cap
   pub deadline: Option<u32>, // unix timestamp
   pub end: Option<u32>,      // block height
   pub limit: Option<u128>,   // claim amount
 }
 
 type MintEntryValue = (
+  Option<u128>, // cap
   Option<u32>,  // deadline
   Option<u32>,  // end
   Option<u128>, // limit
@@ -103,7 +121,6 @@ impl Default for RuneEntry {
       number: 0,
       premine: 0,
       spaced_rune: SpacedRune::default(),
-      supply: 0,
       symbol: None,
       timestamp: 0,
     }
@@ -123,7 +140,6 @@ impl Entry for RuneEntry {
       number,
       premine,
       (rune, spacers),
-      supply,
       symbol,
       timestamp,
     ): RuneEntryValue,
@@ -141,7 +157,8 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
-      mint: mint.map(|(deadline, end, limit)| MintEntry {
+      mint: mint.map(|(cap, deadline, end, limit)| MintEntry {
+        cap,
         deadline,
         end,
         limit,
@@ -153,7 +170,6 @@ impl Entry for RuneEntry {
         rune: Rune(rune),
         spacers,
       },
-      supply,
       symbol,
       timestamp,
     }
@@ -178,16 +194,16 @@ impl Entry for RuneEntry {
       },
       self.mint.map(
         |MintEntry {
+           cap,
            deadline,
            end,
            limit,
-         }| (deadline, end, limit),
+         }| (cap, deadline, end, limit),
       ),
       self.mints,
       self.number,
       self.premine,
       (self.spaced_rune.rune.0, self.spaced_rune.spacers),
-      self.supply,
       self.symbol,
       self.timestamp,
     )
@@ -492,6 +508,7 @@ mod tests {
         0x1E, 0x1F,
       ]),
       mint: Some(MintEntry {
+        cap: Some(1),
         deadline: Some(2),
         end: Some(4),
         limit: Some(5),
@@ -503,7 +520,6 @@ mod tests {
         rune: Rune(7),
         spacers: 8,
       },
-      supply: 9,
       symbol: Some('a'),
       timestamp: 10,
     };
@@ -515,12 +531,11 @@ mod tests {
         0x0F0E0D0C0B0A09080706050403020100,
         0x1F1E1D1C1B1A19181716151413121110,
       ),
-      Some((Some(2), Some(4), Some(5))),
+      Some((Some(1), Some(2), Some(4), Some(5))),
       11,
       6,
       12,
       (7, 8),
-      9,
       Some('a'),
       10,
     );
@@ -549,5 +564,168 @@ mod tests {
     let actual = header.store();
 
     assert_eq!(actual, expected);
+  }
+
+  #[test]
+  fn mintable() {
+    assert_eq!(
+      RuneEntry::default().mintable(Height(0), 0),
+      Err(MintError::Unmintable)
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          end: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          end: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(1), 0),
+      Err(MintError::End(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          deadline: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          deadline: Some(1),
+          limit: Some(1000),
+          cap: Some(1),
+          ..default()
+        }),
+        ..default()
+      }
+      .mintable(Height(0), 1),
+      Err(MintError::Deadline(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: Some(1),
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Ok(1000),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: Some(1),
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Err(MintError::Cap(1)),
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          cap: None,
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .mintable(Height(0), 0),
+      Err(MintError::Cap(0)),
+    );
+  }
+
+  #[test]
+  fn supply() {
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .supply(),
+      0
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        ..default()
+      }
+      .supply(),
+      1000
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        premine: 1,
+        ..default()
+      }
+      .supply(),
+      1
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        premine: 1,
+        ..default()
+      }
+      .supply(),
+      1001
+    );
   }
 }

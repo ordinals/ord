@@ -128,9 +128,11 @@ fn mint_does_not_select_inscription() {
           spacers: 0,
         },
         premine: "1000".parse().unwrap(),
+        supply: "2000".parse().unwrap(),
         symbol: '¢',
         mint: Some(batch::Mint {
           deadline: None,
+          cap: 1,
           limit: "1000".parse().unwrap(),
           term: None,
         }),
