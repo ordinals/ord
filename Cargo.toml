@@ -8,7 +8,6 @@ autotests = false
 homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 autobins = false
-rust-version = "1.67"
 
 [package.metadata.deb]
 copyright = "The Ord Maintainers"
@@ -67,8 +66,14 @@ sysinfo = "0.30.3"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
-tokio-util = {version = "0.7.3", features = ["compat"] }
-tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header"] }
+tokio-util = { version = "0.7.3", features = ["compat"] }
+tower-http = { version = "0.4.0", features = [
+  "auth",
+  "compression-br",
+  "compression-gzip",
+  "cors",
+  "set-header",
+] }
 urlencoding = "2.1.3"
 
 [dev-dependencies]
