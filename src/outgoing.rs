@@ -36,7 +36,7 @@ impl FromStr for Outgoing {
           |
           \d+\.\d+
         )
-        \ *
+        \ ?
         (bit|btc|cbtc|mbtc|msat|nbtc|pbtc|sat|satoshi|ubtc)
         (s)?
         $
@@ -53,7 +53,7 @@ impl FromStr for Outgoing {
           |
           \d+\.\d+
         )
-        \ *:\ *
+        \s*:\s*
         (
           [A-Z•.]+
         )
@@ -118,6 +118,14 @@ mod tests {
     case("0btc", Outgoing::Amount("0 btc".parse().unwrap()));
     case("0.0btc", Outgoing::Amount("0 btc".parse().unwrap()));
     case(".0btc", Outgoing::Amount("0 btc".parse().unwrap()));
+
+    case(
+      "0  : XYZ",
+      Outgoing::Rune {
+        rune: "XYZ".parse().unwrap(),
+        decimal: "0".parse().unwrap(),
+      },
+    );
 
     case(
       "0:XYZ",
