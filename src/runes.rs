@@ -4708,6 +4708,207 @@ mod tests {
   }
 
   #[test]
+  fn open_mints_can_be_limited_to_cap() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          mint: Some(Mint {
+            limit: Some(1000),
+            cap: Some(2),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            cap: Some(2),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          claim: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 1,
+          etching: txid0,
+          mint: Some(MintEntry {
+            cap: Some(2),
+            limit: Some(1000),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          claim: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            cap: Some(2),
+            ..default()
+          }),
+          mints: 2,
+          ..default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+        (
+          OutPoint {
+            txid: txid2,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+      ],
+    );
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(4, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          claim: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mint: Some(MintEntry {
+            limit: Some(1000),
+            cap: Some(2),
+            ..default()
+          }),
+          mints: 2,
+          ..default()
+        },
+      )],
+      [
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+        (
+          OutPoint {
+            txid: txid2,
+            vout: 0,
+          },
+          vec![(id, 1000)],
+        ),
+      ],
+    );
+  }
+
+  #[test]
   fn open_mint_claims_can_use_split() {
     let context = Context::builder().arg("--index-runes").build();
 
