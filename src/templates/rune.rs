@@ -50,7 +50,7 @@ mod tests {
         }),
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
-<iframe .* src=/preview/0{64}i0></iframe>
+.*<a href=/inscription/.*<iframe .* src=/preview/0{64}i0></iframe></a>.*
 <dl>
   <dt>number</dt>
   <dd>25</dd>
