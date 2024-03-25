@@ -2903,3 +2903,101 @@ fn etch_divisibility_over_maximum_error() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn etch_mintable_overflow_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: default(),
+          premine: default(),
+          symbol: '¢',
+          mint: Some(batch::Mint {
+            cap: 2,
+            term: Some(2),
+            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            deadline: None,
+          }),
+        }),
+        inscriptions: vec![batch::Entry {
+          file: "inscription.txt".into(),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: `mint.count` * `mint.limit` over maximum\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_mintable_plus_premine_overflow_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: default(),
+          premine: "1".parse().unwrap(),
+          symbol: '¢',
+          mint: Some(batch::Mint {
+            cap: 1,
+            term: Some(2),
+            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            deadline: None,
+          }),
+        }),
+        inscriptions: vec![batch::Entry {
+          file: "inscription.txt".into(),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: `premine` + `mint.count` * `mint.limit` over maximum\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
