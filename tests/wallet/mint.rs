@@ -19,8 +19,8 @@ fn minting_rune_and_fails_if_after_end() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 1,
         rune: SpacedRune {
           rune: Rune(RUNE),
@@ -28,13 +28,13 @@ fn minting_rune_and_fails_if_after_end() {
         },
         premine: "0".parse().unwrap(),
         symbol: '¢',
-        mint: Some(ord::wallet::inscribe::BatchMint {
+        mint: Some(batch::Mint {
           term: Some(2),
           limit: "111.1".parse().unwrap(),
           deadline: None,
         }),
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],
@@ -113,8 +113,8 @@ fn minting_rune_fails_if_not_mintable() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 1,
         rune: SpacedRune {
           rune: Rune(RUNE),
@@ -124,7 +124,7 @@ fn minting_rune_fails_if_not_mintable() {
         symbol: '¢',
         mint: None,
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],
@@ -160,19 +160,19 @@ fn minting_rune_fails_if_after_deadline() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 1,
         rune: SpacedRune { rune, spacers: 0 },
         premine: "0".parse().unwrap(),
         symbol: '¢',
-        mint: Some(ord::wallet::inscribe::BatchMint {
+        mint: Some(batch::Mint {
           term: Some(2),
           limit: "111.1".parse().unwrap(),
           deadline: Some(deadline),
         }),
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],
@@ -238,8 +238,8 @@ fn minting_rune_and_then_sending_works() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 0,
         rune: SpacedRune {
           rune: Rune(RUNE),
@@ -247,13 +247,13 @@ fn minting_rune_and_then_sending_works() {
         },
         premine: "111".parse().unwrap(),
         symbol: '¢',
-        mint: Some(ord::wallet::inscribe::BatchMint {
+        mint: Some(batch::Mint {
           term: Some(10),
           limit: "21".parse().unwrap(),
           deadline: None,
         }),
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],

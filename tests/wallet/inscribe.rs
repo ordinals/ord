@@ -2633,8 +2633,8 @@ fn batch_inscribe_can_etch_rune() {
   let batch = batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 0,
         rune: SpacedRune {
           rune: Rune(RUNE),
@@ -2644,7 +2644,7 @@ fn batch_inscribe_can_etch_rune() {
         symbol: '¢',
         mint: None,
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
         ..Default::default()
       }],
@@ -2701,8 +2701,8 @@ fn etch_existing_rune_error() {
     .write("inscription.txt", "foo")
     .write(
       "batch.yaml",
-      serde_yaml::to_string(&Batchfile {
-        etch: Some(Etch {
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
           divisibility: 0,
           rune: SpacedRune {
             rune: Rune(RUNE),
@@ -2712,7 +2712,7 @@ fn etch_existing_rune_error() {
           symbol: '¢',
           mint: None,
         }),
-        inscriptions: vec![BatchEntry {
+        inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
           ..Default::default()
         }],
@@ -2744,8 +2744,8 @@ fn etch_reserved_rune_error() {
     .write("inscription.txt", "foo")
     .write(
       "batch.yaml",
-      serde_yaml::to_string(&Batchfile {
-        etch: Some(Etch {
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
           divisibility: 0,
           rune: SpacedRune {
             rune: Rune::reserved(0),
@@ -2755,7 +2755,7 @@ fn etch_reserved_rune_error() {
           symbol: '¢',
           mint: None,
         }),
-        inscriptions: vec![BatchEntry {
+        inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
           ..Default::default()
         }],
@@ -2787,8 +2787,8 @@ fn etch_sub_minimum_rune_error() {
     .write("inscription.txt", "foo")
     .write(
       "batch.yaml",
-      serde_yaml::to_string(&Batchfile {
-        etch: Some(Etch {
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
           divisibility: 0,
           rune: SpacedRune {
             rune: Rune(0),
@@ -2798,7 +2798,7 @@ fn etch_sub_minimum_rune_error() {
           symbol: '¢',
           mint: None,
         }),
-        inscriptions: vec![BatchEntry {
+        inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
           ..Default::default()
         }],
@@ -2829,8 +2829,8 @@ fn etch_requires_rune_index() {
     .write("inscription.txt", "foo")
     .write(
       "batch.yaml",
-      serde_yaml::to_string(&Batchfile {
-        etch: Some(Etch {
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
           divisibility: 0,
           rune: SpacedRune {
             rune: Rune(RUNE),
@@ -2840,7 +2840,7 @@ fn etch_requires_rune_index() {
           symbol: '¢',
           mint: None,
         }),
-        inscriptions: vec![BatchEntry {
+        inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
           ..Default::default()
         }],
@@ -2872,8 +2872,8 @@ fn etch_divisibility_over_maximum_error() {
     .write("inscription.txt", "foo")
     .write(
       "batch.yaml",
-      serde_yaml::to_string(&Batchfile {
-        etch: Some(Etch {
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
           divisibility: 39,
           rune: SpacedRune {
             rune: Rune(RUNE),
@@ -2883,7 +2883,7 @@ fn etch_divisibility_over_maximum_error() {
           symbol: '¢',
           mint: None,
         }),
-        inscriptions: vec![BatchEntry {
+        inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
           ..Default::default()
         }],
