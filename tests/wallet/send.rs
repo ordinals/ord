@@ -1,12 +1,41 @@
-use {super::*, base64::Engine, bitcoin::psbt::Psbt};
+use {super::*, base64::Engine, bitcoin::psbt::Psbt, rstest::*};
 
-#[test]
-fn inscriptions_can_be_sent() {
+#[fixture]
+pub fn index_sats_fixture() -> (test_bitcoincore_rpc::Handle, test_server::TestServer) {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  (bitcoin_rpc_server, ord_rpc_server)
+}
+
+#[fixture]
+pub fn not_index_sats_fixture() -> (test_bitcoincore_rpc::Handle, test_server::TestServer) {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  (bitcoin_rpc_server, ord_rpc_server)
+}
+
+#[fixture]
+pub fn regtest_index_runes_fixture() -> (test_bitcoincore_rpc::Handle, test_server::TestServer) {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  (bitcoin_rpc_server, ord_rpc_server)
+}
+
+#[rstest]
+fn inscriptions_can_be_sent(
+  index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -47,13 +76,11 @@ fn inscriptions_can_be_sent() {
   );
 }
 
-#[test]
-fn send_unknown_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_unknown_inscription(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -67,13 +94,11 @@ fn send_unknown_inscription() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn send_inscribed_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_inscribed_inscription(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -100,14 +125,11 @@ fn send_inscribed_inscription() {
   );
 }
 
-#[test]
-fn send_uninscribed_sat() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_uninscribed_sat(
+  index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = index_sats_fixture;
 
   let sat = Sat(1);
 
@@ -124,14 +146,11 @@ fn send_uninscribed_sat() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn send_inscription_by_sat() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_inscription_by_sat(
+  index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -183,13 +202,11 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
   .run_and_deserialize_output::<Send>();
 }
 
-#[test]
-fn send_addresses_must_be_valid_for_network() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder().build();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_addresses_must_be_valid_for_network(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let txid = bitcoin_rpc_server.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].txid();
 
@@ -205,13 +222,11 @@ fn send_addresses_must_be_valid_for_network() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn send_on_mainnnet_works_with_wallet_named_ord() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder().build();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_on_mainnnet_works_with_wallet_named_ord(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let txid = bitcoin_rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
@@ -225,13 +240,11 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   assert_eq!(bitcoin_rpc_server.mempool()[0].txid(), output.txid);
 }
 
-#[test]
-fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_does_not_use_inscribed_sats_as_cardinal_utxos(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let txid = bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -253,13 +266,11 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn do_not_send_within_dust_limit_of_an_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn do_not_send_within_dust_limit_of_an_inscription(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -282,13 +293,11 @@ fn do_not_send_within_dust_limit_of_an_inscription() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn can_send_after_dust_limit_from_an_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn can_send_after_dust_limit_from_an_inscription(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -307,14 +316,11 @@ fn can_send_after_dust_limit_from_an_inscription() {
   .run_and_deserialize_output::<Send>();
 }
 
-#[test]
-fn splitting_merged_inscriptions_is_possible() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn splitting_merged_inscriptions_is_possible(
+  index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -419,13 +425,11 @@ inscriptions:
   .run_and_deserialize_output::<Send>();
 }
 
-#[test]
-fn inscriptions_cannot_be_sent_by_satpoint() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn inscriptions_cannot_be_sent_by_satpoint(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -441,13 +445,11 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn send_btc_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_btc_with_fee_rate(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -487,13 +489,11 @@ fn send_btc_with_fee_rate() {
   assert_eq!(tx.output[0].value, 2 * COIN_VALUE);
 }
 
-#[test]
-fn send_btc_locks_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_btc_locks_inscriptions(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -530,13 +530,11 @@ fn send_btc_fails_if_lock_unspent_fails() {
     .run_and_extract_stdout();
 }
 
-#[test]
-fn wallet_send_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn wallet_send_with_fee_rate(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -566,13 +564,11 @@ fn wallet_send_with_fee_rate() {
   pretty_assert_eq!(fee_rate, 2.0);
 }
 
-#[test]
-fn user_must_provide_fee_rate_to_send() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn user_must_provide_fee_rate_to_send(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -591,13 +587,11 @@ fn user_must_provide_fee_rate_to_send() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn wallet_send_with_fee_rate_and_target_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn wallet_send_with_fee_rate_and_target_postage(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -628,13 +622,11 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   pretty_assert_eq!(tx.output[0].value, 77_000);
 }
 
-#[test]
-fn send_btc_does_not_send_locked_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_btc_does_not_send_locked_utxos(
+  not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks(1)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -649,13 +641,9 @@ fn send_btc_does_not_send_locked_utxos() {
     .run_and_extract_stdout();
 }
 
-#[test]
-fn send_dry_run() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn send_dry_run(not_index_sats_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer)) {
+  let (bitcoin_rpc_server, ord_rpc_server) = not_index_sats_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -686,16 +674,11 @@ fn send_dry_run() {
   assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
 }
 
-#[test]
-fn sending_rune_that_has_not_been_etched_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_that_has_not_been_etched_is_an_error(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   let coinbase_tx = &bitcoin_rpc_server.mine_blocks(1)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -710,16 +693,11 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
     .run_and_extract_stdout();
 }
 
-#[test]
-fn sending_rune_with_excessive_precision_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_with_excessive_precision_is_an_error(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -734,16 +712,11 @@ fn sending_rune_with_excessive_precision_is_an_error() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn sending_rune_with_insufficient_balance_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_with_insufficient_balance_is_an_error(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -758,16 +731,11 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
   .run_and_extract_stdout();
 }
 
-#[test]
-fn sending_rune_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_works(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -811,16 +779,11 @@ fn sending_rune_works() {
   );
 }
 
-#[test]
-fn sending_spaced_rune_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_spaced_rune_works(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -863,16 +826,11 @@ fn sending_spaced_rune_works() {
   );
 }
 
-#[test]
-fn sending_rune_with_divisibility_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_with_divisibility_works(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -950,16 +908,11 @@ fn sending_rune_with_divisibility_works() {
   );
 }
 
-#[test]
-fn sending_rune_leaves_unspent_runes_in_wallet() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_leaves_unspent_runes_in_wallet(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -1025,16 +978,11 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
     .contains(&address));
 }
 
-#[test]
-fn sending_rune_creates_transaction_with_expected_runestone() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn sending_rune_creates_transaction_with_expected_runestone(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
@@ -1115,16 +1063,11 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   );
 }
 
-#[test]
-fn error_messages_use_spaced_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+#[rstest]
+fn error_messages_use_spaced_runes(
+  regtest_index_runes_fixture: (test_bitcoincore_rpc::Handle, test_server::TestServer),
+) {
+  let (bitcoin_rpc_server, ord_rpc_server) = regtest_index_runes_fixture;
 
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
