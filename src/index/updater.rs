@@ -386,6 +386,7 @@ impl<'index> Updater<'index> {
     let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
+    let mut address_to_inscription_ids = wtx.open_table(ADDRESS_TO_INSCRIPTION_IDS)?;
 
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
@@ -441,6 +442,8 @@ impl<'index> Updater<'index> {
       timestamp: block.header.time,
       transaction_buffer: Vec::new(),
       transaction_id_to_transaction: &mut transaction_id_to_transaction,
+      address_to_inscription_ids: &mut address_to_inscription_ids,
+      index_addresses: self.index.index_addresses,
       unbound_inscriptions,
       value_cache,
       value_receiver,
