@@ -671,4 +671,61 @@ mod tests {
       Err(MintError::Cap(0)),
     );
   }
+
+  #[test]
+  fn supply() {
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        ..default()
+      }
+      .supply(),
+      0
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        ..default()
+      }
+      .supply(),
+      1000
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 0,
+        premine: 1,
+        ..default()
+      }
+      .supply(),
+      1
+    );
+
+    assert_eq!(
+      RuneEntry {
+        mint: Some(MintEntry {
+          limit: Some(1000),
+          ..default()
+        }),
+        mints: 1,
+        premine: 1,
+        ..default()
+      }
+      .supply(),
+      1001
+    );
+  }
 }
