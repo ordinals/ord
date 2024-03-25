@@ -301,7 +301,7 @@ fn minting_rune_and_then_sending_works() {
   );
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet send bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 5{} --fee-rate 1",
+    "--regtest --index-runes wallet send bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 5:{} --fee-rate 1",
     Rune(RUNE)
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)

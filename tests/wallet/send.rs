@@ -702,7 +702,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
 
   bitcoin_rpc_server.lock(outpoint);
 
-  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1FOO")
+  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1:FOO")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
@@ -724,7 +724,7 @@ fn sending_rune_with_excessive_precision_is_an_error() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1.1{}",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1.1:{}",
     Rune(RUNE)
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -748,7 +748,7 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001{}",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001:{}",
     Rune(RUNE)
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -772,7 +772,7 @@ fn sending_rune_works() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000{}",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:{}",
     Rune(RUNE)
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -825,7 +825,7 @@ fn sending_spaced_rune_works() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000A•AAAAAAAAAAAA",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:A•AAAAAAAAAAAA",
   )
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
@@ -898,7 +898,7 @@ fn sending_rune_with_divisibility_works() {
   );
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 10.1{}",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 10.1:{}",
     rune
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -964,7 +964,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750:{}",
     Rune(RUNE)
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -1045,7 +1045,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
       wallet
       send
       --fee-rate 1
-      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750{}
+      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750:{}
     ",
     Rune(RUNE),
   ))
@@ -1129,7 +1129,7 @@ fn error_messages_use_spaced_runes() {
   etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
   CommandBuilder::new(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001A•AAAAAAAAAAAA",
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1001:A•AAAAAAAAAAAA",
   )
   .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
@@ -1137,7 +1137,7 @@ fn error_messages_use_spaced_runes() {
   .expected_stderr("error: insufficient `A•AAAAAAAAAAAA` balance, only 1000\u{A0}¢ in wallet\n")
   .run_and_extract_stdout();
 
-  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1F•OO")
+  CommandBuilder::new("--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1:F•OO")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
