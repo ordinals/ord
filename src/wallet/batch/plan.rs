@@ -1,10 +1,10 @@
 use super::*;
 
-pub struct Batch {
+pub struct Plan {
   pub(crate) commit_fee_rate: FeeRate,
   pub(crate) destinations: Vec<Address>,
   pub(crate) dry_run: bool,
-  pub(crate) etch: Option<Etch>,
+  pub(crate) etching: Option<Etching>,
   pub(crate) inscriptions: Vec<Inscription>,
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
@@ -17,13 +17,13 @@ pub struct Batch {
   pub(crate) satpoint: Option<SatPoint>,
 }
 
-impl Default for Batch {
+impl Default for Plan {
   fn default() -> Self {
     Self {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
-      etch: None,
+      etching: None,
       inscriptions: Vec::new(),
       mode: Mode::SharedOutput,
       no_backup: false,
@@ -38,7 +38,7 @@ impl Default for Batch {
   }
 }
 
-impl Batch {
+impl Plan {
   pub(crate) fn inscribe(
     &self,
     locked_utxos: &BTreeSet<OutPoint>,
@@ -46,7 +46,7 @@ impl Batch {
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
-    let BatchTransactions {
+    let Transactions {
       commit_tx,
       reveal_tx,
       recovery_key_pair,
@@ -126,7 +126,7 @@ impl Batch {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    if self.etch.is_some() {
+    if self.etching.is_some() {
       eprintln!("Waiting for rune commitment to mature…");
 
       loop {
@@ -266,7 +266,7 @@ impl Batch {
     mut utxos: BTreeMap<OutPoint, TxOut>,
     commit_change: [Address; 2],
     reveal_change: Address,
-  ) -> Result<BatchTransactions> {
+  ) -> Result<Transactions> {
     if let Some(parent_info) = &self.parent_info {
       for inscription in &self.inscriptions {
         assert_eq!(inscription.parents(), vec![parent_info.id]);
@@ -428,12 +428,12 @@ impl Batch {
     let premine;
     let runestone;
 
-    if let Some(etch) = self.etch {
+    if let Some(etching) = self.etching {
       let mut edicts = Vec::new();
 
       let vout;
       let destination;
-      premine = etch.premine.to_amount(etch.divisibility)?;
+      premine = etching.premine.to_amount(etching.divisibility)?;
 
       if premine > 0 {
         let output = u32::try_from(reveal_outputs.len()).unwrap();
@@ -461,21 +461,21 @@ impl Batch {
         claim: None,
         default_output: None,
         edicts,
-        etching: Some(Etching {
-          divisibility: etch.divisibility,
-          mint: etch
+        etching: Some(runes::Etching {
+          divisibility: etching.divisibility,
+          mint: etching
             .mint
             .map(|mint| -> Result<runes::Mint> {
               Ok(runes::Mint {
                 deadline: mint.deadline,
                 term: mint.term,
-                limit: Some(mint.limit.to_amount(etch.divisibility)?),
+                limit: Some(mint.limit.to_amount(etching.divisibility)?),
               })
             })
             .transpose()?,
-          rune: Some(etch.rune.rune),
-          spacers: etch.rune.spacers,
-          symbol: Some(etch.symbol),
+          rune: Some(etching.rune.rune),
+          spacers: etching.rune.spacers,
+          symbol: Some(etching.symbol),
         }),
       };
 
@@ -494,7 +494,7 @@ impl Batch {
         value: 0,
       });
 
-      rune = Some((destination, etch.rune, vout));
+      rune = Some((destination, etching.rune, vout));
     } else {
       premine = 0;
       rune = None;
@@ -658,7 +658,7 @@ impl Batch {
       rune,
     });
 
-    Ok(BatchTransactions {
+    Ok(Transactions {
       commit_tx: unsigned_commit_tx,
       recovery_key_pair,
       reveal_tx,
