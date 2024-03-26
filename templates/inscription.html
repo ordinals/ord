@@ -58,9 +58,9 @@
   </dd>
 %% }
 %% if let Some(output) = &self.output {
-%% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
+%% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
   <dt>address</dt>
-  <dd class=monospace>{{ address }}</dd>
+  <dd><a class=monospace href=/address/{{ address }}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
   <dd>{{ output.value }}</dd>
