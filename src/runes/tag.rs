@@ -10,6 +10,8 @@ pub(super) enum Tag {
   Deadline = 10,
   DefaultOutput = 12,
   Claim = 14,
+  Cap = 16,
+  Premine = 18,
   #[allow(unused)]
   Cenotaph = 126,
 

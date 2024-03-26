@@ -82,7 +82,7 @@ impl Runestone {
       Some(Payload::Invalid) => {
         return Ok(Some(Self {
           cenotaph: true,
-          ..Default::default()
+          ..default()
         }))
       }
       None => return Ok(None),
@@ -91,7 +91,7 @@ impl Runestone {
     let Some(integers) = Runestone::integers(&payload) else {
       return Ok(Some(Self {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }));
     };
 
@@ -112,23 +112,23 @@ impl Runestone {
       (default_output.into_usize() < transaction.output.len()).then_some(default_output)
     });
 
-    let divisibility = Tag::Divisibility
-      .take(&mut fields, |[divisibility]| {
-        let divisibility = u8::try_from(divisibility).ok()?;
-        (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
-      })
-      .unwrap_or_default();
+    let divisibility = Tag::Divisibility.take(&mut fields, |[divisibility]| {
+      let divisibility = u8::try_from(divisibility).ok()?;
+      (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
+    });
 
-    let limit = Tag::Limit.take(&mut fields, |[limit]| (limit <= MAX_LIMIT).then_some(limit));
+    let limit = Tag::Limit.take(&mut fields, |[limit]| Some(limit));
 
     let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
 
-    let spacers = Tag::Spacers
-      .take(&mut fields, |[spacers]| {
-        let spacers = u32::try_from(spacers).ok()?;
-        (spacers <= MAX_SPACERS).then_some(spacers)
-      })
-      .unwrap_or_default();
+    let cap = Tag::Cap.take(&mut fields, |[cap]| Some(cap));
+
+    let premine = Tag::Premine.take(&mut fields, |[premine]| Some(premine));
+
+    let spacers = Tag::Spacers.take(&mut fields, |[spacers]| {
+      let spacers = u32::try_from(spacers).ok()?;
+      (spacers <= MAX_SPACERS).then_some(spacers)
+    });
 
     let symbol = Tag::Symbol.take(&mut fields, |[symbol]| {
       char::from_u32(u32::try_from(symbol).ok()?)
@@ -144,24 +144,34 @@ impl Runestone {
 
     let mint = Flag::Mint.take(&mut flags);
 
+    let overflow = (|| {
+      let premine = premine.unwrap_or_default();
+      let cap = cap.unwrap_or_default();
+      let limit = limit.unwrap_or_default();
+      premine.checked_add(cap.checked_mul(limit)?)
+    })()
+    .is_none();
+
     let etching = if etch {
       Some(Etching {
         divisibility,
-        rune,
-        spacers,
-        symbol,
         mint: mint.then_some(Mint {
+          cap,
           deadline,
           limit,
           term,
         }),
+        premine,
+        rune,
+        spacers,
+        symbol,
       })
     } else {
       None
     };
 
     Ok(Some(Self {
-      cenotaph: cenotaph || flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
+      cenotaph: cenotaph || overflow || flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
       claim,
       default_output,
       edicts,
@@ -186,16 +196,20 @@ impl Runestone {
         Tag::Rune.encode([rune.0], &mut payload);
       }
 
-      if etching.divisibility != 0 {
-        Tag::Divisibility.encode([etching.divisibility.into()], &mut payload);
+      if let Some(divisibility) = etching.divisibility {
+        Tag::Divisibility.encode([divisibility.into()], &mut payload);
       }
 
-      if etching.spacers != 0 {
-        Tag::Spacers.encode([etching.spacers.into()], &mut payload);
+      if let Some(spacers) = etching.spacers {
+        Tag::Spacers.encode([spacers.into()], &mut payload);
       }
 
       if let Some(symbol) = etching.symbol {
         Tag::Symbol.encode([symbol.into()], &mut payload);
+      }
+
+      if let Some(premine) = etching.premine {
+        Tag::Premine.encode([premine], &mut payload);
       }
 
       if let Some(mint) = etching.mint {
@@ -209,6 +223,10 @@ impl Runestone {
 
         if let Some(term) = mint.term {
           Tag::Term.encode([term.into()], &mut payload);
+        }
+
+        if let Some(cap) = mint.cap {
+          Tag::Cap.encode([cap], &mut payload);
         }
       }
     }
@@ -509,7 +527,7 @@ mod tests {
       .unwrap(),
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -578,7 +596,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -602,7 +620,7 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -629,9 +647,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -656,7 +674,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -684,11 +702,11 @@ mod tests {
         etching: Some(Etching {
           mint: Some(Mint {
             term: Some(4),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -716,11 +734,11 @@ mod tests {
         etching: Some(Etching {
           mint: Some(Mint {
             limit: Some(4),
-            ..Default::default()
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -745,7 +763,7 @@ mod tests {
       .unwrap(),
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -774,10 +792,10 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -806,10 +824,10 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: None,
-          divisibility: 4,
-          ..Default::default()
+          divisibility: Some(4),
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -824,7 +842,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -840,7 +858,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -864,7 +882,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -876,7 +894,7 @@ mod tests {
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -888,7 +906,7 @@ mod tests {
       Runestone {
         edicts: Vec::new(),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -900,7 +918,7 @@ mod tests {
       Runestone {
         etching: Some(Etching::default()),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -919,7 +937,7 @@ mod tests {
             amount: 2,
             output: 0,
           }],
-          ..Default::default()
+          ..default()
         }
       );
 
@@ -951,10 +969,10 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          divisibility: 5,
-          ..Default::default()
+          divisibility: Some(5),
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -983,9 +1001,9 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1011,7 +1029,7 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1041,16 +1059,16 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(4)),
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn decipher_etching_with_all_etching_tags() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etch.mask() | Flag::Mint.mask(),
@@ -1068,6 +1086,16 @@ mod tests {
         2,
         Tag::Limit.into(),
         3,
+        Tag::Premine.into(),
+        8,
+        Tag::Cap.into(),
+        9,
+        Tag::DefaultOutput.into(),
+        0,
+        Tag::Claim.into(),
+        1,
+        Tag::Claim.into(),
+        1,
         Tag::Body.into(),
         1,
         1,
@@ -1083,15 +1111,19 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(4)),
           mint: Some(Mint {
+            cap: Some(9),
             deadline: Some(7),
             term: Some(2),
             limit: Some(3),
           }),
-          divisibility: 1,
+          premine: Some(8),
+          divisibility: Some(1),
           symbol: Some('a'),
-          spacers: 5,
+          spacers: Some(5),
         }),
-        ..Default::default()
+        cenotaph: false,
+        default_output: Some(0),
+        claim: Some(RuneId::new(1, 1).unwrap()),
       },
     );
   }
@@ -1122,7 +1154,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1153,11 +1185,11 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          divisibility: 1,
+          divisibility: Some(1),
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1182,8 +1214,11 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        etching: Some(Etching::default()),
-        ..Default::default()
+        etching: Some(Etching {
+          divisibility: Some(0),
+          ..default()
+        }),
+        ..default()
       },
     );
   }
@@ -1205,7 +1240,7 @@ mod tests {
             output: 0,
           },
         ],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1221,7 +1256,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1237,7 +1272,7 @@ mod tests {
           output: 0,
         }],
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1293,10 +1328,10 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching {
-          divisibility: 5,
-          ..Default::default()
+          divisibility: Some(5),
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1333,7 +1368,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1373,7 +1408,7 @@ mod tests {
           amount: 2,
           output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1386,7 +1421,7 @@ mod tests {
         Runestone {
           edicts,
           etching,
-          ..Default::default()
+          ..default()
         }
         .encipher()
         .len(),
@@ -1400,7 +1435,7 @@ mod tests {
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
       7,
     );
@@ -1408,9 +1443,9 @@ mod tests {
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
       9,
     );
@@ -1418,15 +1453,17 @@ mod tests {
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         mint: Some(Mint {
+          cap: None,
           deadline: Some(10000),
           limit: Some(1),
           term: Some(1),
         }),
+        premine: None,
         rune: Some(Rune(0)),
         symbol: Some('$'),
-        spacers: 1,
+        spacers: Some(1),
       }),
       20,
     );
@@ -1435,7 +1472,7 @@ mod tests {
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       25,
     );
@@ -1447,9 +1484,9 @@ mod tests {
         output: 0,
       }],
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       32,
     );
@@ -1461,9 +1498,9 @@ mod tests {
         output: 0,
       }],
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
       50,
     );
@@ -1625,7 +1662,7 @@ mod tests {
       Runestone {
         etching: Some(Etching::default()),
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -1672,15 +1709,17 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          divisibility: 1,
+          premine: Some(1),
+          divisibility: Some(1),
           mint: Some(Mint {
+            cap: Some(1),
             deadline: Some(2),
             limit: Some(3),
             term: Some(5),
           }),
           symbol: Some('@'),
           rune: Some(Rune(4)),
-          spacers: 6,
+          spacers: Some(6),
         }),
         edicts: vec![
           Edict {
@@ -1709,12 +1748,16 @@ mod tests {
         6,
         Tag::Symbol.into(),
         '@'.into(),
+        Tag::Premine.into(),
+        1,
         Tag::Deadline.into(),
         2,
         Tag::Limit.into(),
         3,
         Tag::Term.into(),
         5,
+        Tag::Cap.into(),
+        1,
         Tag::Claim.into(),
         1,
         Tag::Claim.into(),
@@ -1738,14 +1781,15 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          divisibility: 0,
+          premine: None,
+          divisibility: None,
           mint: None,
           symbol: None,
           rune: Some(Rune(3)),
-          spacers: 0,
+          spacers: None,
         }),
         cenotaph: false,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Flags.into(), Flag::Etch.mask(), Tag::Rune.into(), 3],
     );
@@ -1753,14 +1797,15 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          divisibility: 0,
+          premine: None,
+          divisibility: None,
           mint: None,
           symbol: None,
           rune: None,
-          spacers: 0,
+          spacers: None,
         }),
         cenotaph: false,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Flags.into(), Flag::Etch.mask()],
     );
@@ -1768,7 +1813,7 @@ mod tests {
     case(
       Runestone {
         cenotaph: true,
-        ..Default::default()
+        ..default()
       },
       &[Tag::Cenotaph.into(), 0],
     );
@@ -1785,7 +1830,7 @@ mod tests {
         };
         129
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 
@@ -1800,7 +1845,7 @@ mod tests {
         };
         130
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 
@@ -1854,12 +1899,6 @@ mod tests {
   }
 
   #[test]
-  fn invalid_limit_produces_cenotaph() {
-    assert!(decipher(&[Tag::Limit.into(), u128::MAX]).cenotaph);
-    assert!(decipher(&[Tag::Limit.into(), u128::from(u64::MAX) + 1]).cenotaph);
-  }
-
-  #[test]
   fn min_and_max_runes_are_not_cenotaphs() {
     assert!(!decipher(&[Tag::Rune.into(), 0]).cenotaph);
     assert!(!decipher(&[Tag::Rune.into(), u128::MAX]).cenotaph);
@@ -1878,5 +1917,58 @@ mod tests {
   #[test]
   fn invalid_term_produces_cenotaph() {
     assert!(decipher(&[Tag::Term.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_supply_produces_cenotaph() {
+    assert!(
+      !decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
+        Tag::Cap.into(),
+        1,
+        Tag::Limit.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
+        Tag::Cap.into(),
+        2,
+        Tag::Limit.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
+        Tag::Cap.into(),
+        2,
+        Tag::Limit.into(),
+        u128::MAX / 2 + 1
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etch.mask() | Flag::Mint.mask(),
+        Tag::Premine.into(),
+        1,
+        Tag::Cap.into(),
+        1,
+        Tag::Limit.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
   }
 }

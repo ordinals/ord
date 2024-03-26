@@ -39,13 +39,13 @@ impl Mint {
 
     let limit = rune_entry
       .mintable(Height(block_height), block_time)
-      .map_err(|e| anyhow!(e))?;
+      .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
     let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
       claim: Some(id),
-      ..Default::default()
+      ..default()
     };
 
     let script_pubkey = runestone.encipher();

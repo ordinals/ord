@@ -120,26 +120,28 @@ fn mint_does_not_select_inscription() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 1,
         rune: SpacedRune {
           rune: Rune(RUNE),
           spacers: 0,
         },
         premine: "1000".parse().unwrap(),
+        supply: "2000".parse().unwrap(),
         symbol: '¢',
-        mint: Some(ord::wallet::inscribe::BatchMint {
+        mint: Some(batch::Mint {
           deadline: None,
+          cap: 1,
           limit: "1000".parse().unwrap(),
           term: None,
         }),
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -204,7 +206,7 @@ fn sending_rune_does_not_send_inscription() {
        wallet send
        --fee-rate 0
        bcrt1pyrmadgg78e38ewfv0an8c6eppk2fttv5vnuvz04yza60qau5va0saknu8k
-       1000{rune}
+       1000:{rune}
      ",
   ))
   .bitcoin_rpc_server(&bitcoin_rpc_server)

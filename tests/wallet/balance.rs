@@ -103,19 +103,20 @@ fn runic_utxos_are_deducted_from_cardinal() {
   batch(
     &bitcoin_rpc_server,
     &ord_rpc_server,
-    Batchfile {
-      etch: Some(Etch {
+    batch::File {
+      etching: Some(batch::Etching {
         divisibility: 0,
         mint: None,
         premine: "1000".parse().unwrap(),
+        supply: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 1 },
         symbol: '¢',
       }),
-      inscriptions: vec![BatchEntry {
+      inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 

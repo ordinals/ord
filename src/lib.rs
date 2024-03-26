@@ -25,7 +25,6 @@ use {
     },
     into_usize::IntoUsize,
     representation::Representation,
-    runes::Etching,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -63,7 +62,7 @@ use {
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
-    fs::{self, File},
+    fs,
     io::{self, Cursor, Read},
     mem,
     net::ToSocketAddrs,
@@ -166,7 +165,7 @@ fn fund_raw_transaction(
           // by 1000.
           fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
           change_position: Some(unfunded_transaction.output.len().try_into()?),
-          ..Default::default()
+          ..default()
         }),
         Some(false),
       )
@@ -203,6 +202,10 @@ fn unbound_outpoint() -> OutPoint {
 
 fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
   address.to_string().parse().unwrap()
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
 }
 
 pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {

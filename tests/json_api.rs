@@ -201,7 +201,7 @@ fn get_inscriptions() {
         (i * 3 + 2, 0, 0, witness.clone()),
         (i * 3 + 3, 0, 0, witness.clone()),
       ],
-      ..Default::default()
+      ..default()
     });
 
     inscriptions.push(InscriptionId { txid, index: 0 });
@@ -252,21 +252,21 @@ fn get_inscriptions_in_block() {
       (2, 0, 0, envelope.clone()),
       (3, 0, 0, envelope.clone()),
     ],
-    ..Default::default()
+    ..default()
   });
 
   bitcoin_rpc_server.mine_blocks(1);
 
   let _ = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[(4, 0, 0, envelope.clone()), (5, 0, 0, envelope.clone())],
-    ..Default::default()
+    ..default()
   });
 
   bitcoin_rpc_server.mine_blocks(1);
 
   let _ = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
     inputs: &[(6, 0, 0, envelope.clone())],
-    ..Default::default()
+    ..default()
   });
 
   bitcoin_rpc_server.mine_blocks(1);
@@ -304,7 +304,7 @@ fn get_output() {
       (2, 0, 0, envelope.clone()),
       (3, 0, 0, envelope.clone()),
     ],
-    ..Default::default()
+    ..default()
   });
 
   bitcoin_rpc_server.mine_blocks(1);
@@ -558,7 +558,6 @@ fn get_runes() {
           rune: Rune(RUNE),
           spacers: 0
         },
-        supply: 1000,
         symbol: Some('¢'),
         timestamp: 11,
       },
@@ -595,7 +594,6 @@ fn get_runes() {
               rune: Rune(RUNE),
               spacers: 0
             },
-            supply: 1000,
             symbol: Some('¢'),
             timestamp: 11,
           }
@@ -614,7 +612,6 @@ fn get_runes() {
               rune: Rune(RUNE + 1),
               spacers: 0
             },
-            supply: 1000,
             symbol: Some('¢'),
             timestamp: 19,
           }
@@ -633,7 +630,6 @@ fn get_runes() {
               rune: Rune(RUNE + 2),
               spacers: 0
             },
-            supply: 1000,
             symbol: Some('¢'),
             timestamp: 27,
           }

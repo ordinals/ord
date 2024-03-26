@@ -60,7 +60,7 @@ fn from_file() {
         payload: Inscription {
           body: Some(vec![0, 1, 2, 3]),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
@@ -83,7 +83,7 @@ fn from_stdin() {
         payload: Inscription {
           body: Some(vec![0, 1, 2, 3]),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
@@ -115,7 +115,7 @@ fn from_core() {
         payload: Inscription {
           body: Some(b"FOO".into()),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
