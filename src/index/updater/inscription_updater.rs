@@ -571,7 +571,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     Ok(())
   }
 
-  fn index_address_to_inscription<'address>(
+  fn index_address_to_inscription(
     &mut self,
     flotsam: &Flotsam,
     transaction: &Transaction,

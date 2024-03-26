@@ -261,6 +261,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
+        .route("/address/:address", get(Self::address))
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -892,6 +893,42 @@ impl Server {
           txid,
         }
         .page(server_config)
+        .into_response()
+      })
+    })
+  }
+
+  async fn address(
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<String>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !settings.index_addresses() {
+        return Ok(StatusCode::OK.into_response());
+      }
+
+      let address = Address::from_str(&address)
+        .unwrap()
+        .require_network(settings.chain().network())
+        .unwrap();
+
+      let inscriptions = index.get_inscription_ids_by_address(&address)?;
+
+      Ok(if accept_json {
+        Json(api::Inscriptions {
+          ids: inscriptions,
+          page_index: 0,
+          more: false,
+        })
+        .into_response()
+      } else {
+        InscriptionsHtml {
+          inscriptions,
+          prev: None,
+          next: None,
+        }
         .into_response()
       })
     })
