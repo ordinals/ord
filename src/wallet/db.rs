@@ -17,8 +17,7 @@ macro_rules! define_table {
   };
 }
 
-define_table! { RUNE_TO_COMMIT, u128, &[u8] }
-define_table! { RUNE_TO_REVEAL, u128, &[u8] }
+define_table! { RUNE_TO_INFO, u128, (&[u8], &[u8]) }
 define_table! { STATISTICS, u64, u64 }
 
 #[derive(Copy, Clone)]
@@ -121,8 +120,7 @@ impl Db {
 
         tx.set_durability(durability);
 
-        tx.open_table(RUNE_TO_COMMIT)?;
-        tx.open_table(RUNE_TO_REVEAL)?;
+        tx.open_table(RUNE_TO_INFO)?;
 
         {
           let mut statistics = tx.open_table(STATISTICS)?;
@@ -156,12 +154,8 @@ impl Db {
     let wtx = self.begin_write()?;
 
     wtx
-      .open_table(RUNE_TO_COMMIT)?
-      .insert(rune.0, commit.as_slice())?;
-
-    wtx
-      .open_table(RUNE_TO_REVEAL)?
-      .insert(rune.0, reveal.as_slice())?;
+      .open_table(RUNE_TO_INFO)?
+      .insert(rune.0, (commit.as_slice(), reveal.as_slice()))?;
 
     wtx.commit()?;
 
@@ -171,31 +165,19 @@ impl Db {
   pub(crate) fn retrieve(&self, rune: Rune) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
     let rtx = self.begin_read()?;
 
-    let commit = rtx
-      .open_table(RUNE_TO_COMMIT)?
-      .get(rune.0)?
-      .map(|x| x.value().to_owned());
-
-    let reveal = rtx
-      .open_table(RUNE_TO_REVEAL)?
-      .get(rune.0)?
-      .map(|x| x.value().to_owned());
-
-    match (commit, reveal) {
-      (Some(commit), Some(reveal)) => Ok(Some((commit, reveal))),
-      (None, None) => Ok(None),
-      (None, Some(_)) => bail!("cannot find commit tx for rune {rune}"),
-      (Some(_), None) => bail!("cannot find reveal tx for rune {rune}"),
-    }
+    Ok(
+      rtx
+        .open_table(RUNE_TO_INFO)?
+        .get(rune.0)?
+        .map(|result| result.value())
+        .map(|(commit, reveal)| (commit.to_owned(), reveal.to_owned())),
+    )
   }
 
   pub(crate) fn clear(&self, rune: Rune) -> Result {
     let wtx = self.begin_write()?;
 
-    wtx.open_table(RUNE_TO_COMMIT)?.remove(rune.0)?;
-
-    wtx.open_table(RUNE_TO_REVEAL)?.remove(rune.0)?;
-
+    wtx.open_table(RUNE_TO_INFO)?.remove(rune.0)?;
     wtx.commit()?;
 
     Ok(())

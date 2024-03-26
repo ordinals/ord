@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::{self, Engine},
-  batch::ParentInfo,
+  batch::{ParentInfo, RuneInfo},
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
@@ -517,6 +517,66 @@ impl Wallet {
 
   pub(crate) fn integration_test(&self) -> bool {
     self.settings.integration_test()
+  }
+
+  pub(crate) fn wait_for_maturation(
+    &self,
+    rune: Rune,
+    signed_commit_tx: Vec<u8>,
+    signed_reveal_tx: Vec<u8>,
+  ) -> Result<Txid> {
+    eprintln!("Waiting for rune commitment to mature…");
+
+    let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?.txid();
+
+    self
+      .db()
+      .store(rune, &signed_commit_tx, &signed_reveal_tx)?;
+
+    loop {
+      let transaction = self
+        .bitcoin_client()
+        .get_transaction(&commit, Some(true))
+        .into_option()?;
+
+      if let Some(transaction) = transaction {
+        if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+          continue;
+        }
+      }
+
+      let tx_out = self.bitcoin_client().get_tx_out(&commit, 0, Some(true))?;
+
+      if let Some(tx_out) = tx_out {
+        if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+          break;
+        }
+      }
+
+      if !self.integration_test() {
+        thread::sleep(Duration::from_secs(5));
+      }
+
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+    }
+
+    let reveal = match self
+      .bitcoin_client()
+      .send_raw_transaction(&signed_reveal_tx)
+    {
+      Ok(txid) => txid,
+      Err(err) => {
+        return Err(anyhow!(
+        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
+      ))
+      }
+    };
+
+    self.db().clear(rune)?;
+
+    Ok(reveal)
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {

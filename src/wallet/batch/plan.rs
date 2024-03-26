@@ -126,58 +126,23 @@ impl Plan {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    if let Some(ref rune_info) = rune {
-      eprintln!("Waiting for rune commitment to mature…");
-
-      let rune = rune_info.clone().rune.rune;
-
-      wallet
-        .db()
-        .store(rune, &signed_commit_tx, &signed_reveal_tx)?;
-
-      loop {
-        let transaction = wallet
-          .bitcoin_client()
-          .get_transaction(&commit_tx.txid(), Some(true))
-          .into_option()?;
-
-        if let Some(transaction) = transaction {
-          if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
-            continue;
-          }
-        }
-
-        let tx_out = wallet
-          .bitcoin_client()
-          .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
-
-        if let Some(tx_out) = tx_out {
-          if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
-            break;
-          }
-        }
-
-        if !wallet.integration_test() {
-          thread::sleep(Duration::from_secs(5));
-        }
-      }
-    }
-
-    let reveal = match wallet
-      .bitcoin_client()
-      .send_raw_transaction(&signed_reveal_tx)
-    {
-      Ok(txid) => txid,
-      Err(err) => {
-        return Err(anyhow!(
+    let reveal = if let Some(ref rune_info) = rune {
+      wallet.wait_for_maturation(rune_info.rune.rune, signed_commit_tx, signed_reveal_tx)?
+    } else {
+      let reveal = match wallet
+        .bitcoin_client()
+        .send_raw_transaction(&signed_reveal_tx)
+      {
+        Ok(txid) => txid,
+        Err(err) => {
+          return Err(anyhow!(
         "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
       ))
-      }
-    };
+        }
+      };
 
-    if let Some(ref rune_info) = rune {
-      wallet.db().clear(rune_info.rune.rune)?;
-    }
+      reveal
+    };
 
     Ok(Some(Box::new(self.output(
       commit,
