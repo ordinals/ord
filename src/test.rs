@@ -112,7 +112,7 @@ impl From<InscriptionTemplate> for Inscription {
     Self {
       parents: template.parents.into_iter().map(|id| id.value()).collect(),
       pointer: template.pointer.map(Inscription::pointer_value),
-      ..Default::default()
+      ..default()
     }
   }
 }

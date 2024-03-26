@@ -26,7 +26,7 @@ mod tests {
               rune: Rune(26),
               spacers: 1
             },
-            ..Default::default()
+            ..default()
           }
         )],
       }
