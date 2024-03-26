@@ -173,7 +173,7 @@ impl Settings {
       integration_test: options.integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
       server_password: options.server_password,
-      server_url: None,
+      server_url: options.server_url,
       server_username: options.server_username,
     }
   }
