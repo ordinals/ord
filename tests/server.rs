@@ -60,7 +60,7 @@ fn inscription_page() {
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
-  <dd class=monospace>bc1.*</dd>
+  <dd><a class=monospace href=/address/bc1.*>bc1.*</a></dd>
   <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
@@ -190,7 +190,7 @@ fn inscription_page_after_send() {
   ord_rpc_server.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd><a class=monospace href=/address/.*</a>.*</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
     ),
   )
 }
