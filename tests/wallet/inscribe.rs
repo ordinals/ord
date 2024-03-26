@@ -2640,15 +2640,16 @@ fn batch_inscribe_can_etch_rune() {
           rune: Rune(RUNE),
           spacers: 0,
         },
+        supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
         symbol: '¢',
         mint: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -2708,15 +2709,16 @@ fn etch_existing_rune_error() {
             rune: Rune(RUNE),
             spacers: 1,
           },
+          supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           mint: None,
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2752,14 +2754,15 @@ fn etch_reserved_rune_error() {
             spacers: 0,
           },
           premine: "1000".parse().unwrap(),
+          supply: "1000".parse().unwrap(),
           symbol: '¢',
           mint: None,
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2794,15 +2797,16 @@ fn etch_sub_minimum_rune_error() {
             rune: Rune(0),
             spacers: 0,
           },
+          supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           mint: None,
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2836,15 +2840,16 @@ fn etch_requires_rune_index() {
             rune: Rune(RUNE),
             spacers: 0,
           },
+          supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           mint: None,
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
@@ -2879,21 +2884,169 @@ fn etch_divisibility_over_maximum_error() {
             rune: Rune(RUNE),
             spacers: 0,
           },
+          supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           mint: None,
         }),
         inscriptions: vec![batch::Entry {
           file: "inscription.txt".into(),
-          ..Default::default()
+          ..default()
         }],
-        ..Default::default()
+        ..default()
       })
       .unwrap(),
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_stderr("error: <DIVISIBILITY> must be less than or equal 38\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_mintable_overflow_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: default(),
+          premine: default(),
+          symbol: '¢',
+          mint: Some(batch::Mint {
+            cap: 2,
+            term: Some(2),
+            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            deadline: None,
+          }),
+        }),
+        inscriptions: vec![batch::Entry {
+          file: "inscription.txt".into(),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: `mint.count` * `mint.limit` over maximum\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn etch_mintable_plus_premine_overflow_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: default(),
+          premine: "1".parse().unwrap(),
+          symbol: '¢',
+          mint: Some(batch::Mint {
+            cap: 1,
+            term: Some(2),
+            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            deadline: None,
+          }),
+        }),
+        inscriptions: vec![batch::Entry {
+          file: "inscription.txt".into(),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: `premine` + `mint.count` * `mint.limit` over maximum\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn incorrect_supply_error() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: "1".parse().unwrap(),
+          premine: "1".parse().unwrap(),
+          symbol: '¢',
+          mint: Some(batch::Mint {
+            cap: 1,
+            term: Some(2),
+            limit: "1".parse().unwrap(),
+            deadline: None,
+          }),
+        }),
+        inscriptions: vec![batch::Entry {
+          file: "inscription.txt".into(),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_stderr("error: `supply` not equal to `premine` + `mint.count` * `mint.limit`\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

@@ -192,6 +192,29 @@ impl Inscribe {
         "rune `{rune}` has already been etched",
       );
 
+      let premine = etching.premine.to_amount(etching.divisibility)?;
+
+      let supply = etching.supply.to_amount(etching.divisibility)?;
+
+      let mintable = etching
+        .mint
+        .map(|mint| -> Result<u128> {
+          mint
+            .cap
+            .checked_mul(mint.limit.to_amount(etching.divisibility)?)
+            .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))
+        })
+        .transpose()?
+        .unwrap_or_default();
+
+      ensure!(
+        supply
+          == premine
+            .checked_add(mintable)
+            .ok_or_else(|| anyhow!("`premine` + `mint.count` * `mint.limit` over maximum"))?,
+        "`supply` not equal to `premine` + `mint.count` * `mint.limit`"
+      );
+
       let bitcoin_client = wallet.bitcoin_client();
 
       let count = bitcoin_client.get_block_count()?;
@@ -282,7 +305,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       BTreeMap::new(),
@@ -328,7 +351,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       BTreeMap::new(),
@@ -373,7 +396,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       inscriptions,
@@ -425,7 +448,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       inscriptions,
@@ -475,7 +498,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       inscriptions,
@@ -540,7 +563,7 @@ mod tests {
 
     let child_inscription = InscriptionTemplate {
       parents: vec![parent_inscription],
-      ..Default::default()
+      ..default()
     }
     .into();
 
@@ -563,7 +586,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       inscriptions,
@@ -608,7 +631,7 @@ mod tests {
       TxIn {
         previous_output: parent_info.location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -650,7 +673,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       inscriptions,
@@ -709,7 +732,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       BTreeMap::new(),
@@ -750,7 +773,7 @@ mod tests {
       reinscribe: false,
       postages: vec![TARGET_POSTAGE],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       BTreeMap::new(),
@@ -833,16 +856,16 @@ inscriptions:
           batch::Entry {
             file: inscription_path,
             metadata: Some(Value::Mapping(metadata)),
-            ..Default::default()
+            ..default()
           },
           batch::Entry {
             file: brc20_path,
             metaprotocol: Some("brc-20".to_string()),
-            ..Default::default()
+            ..default()
           }
         ],
         parent: Some(parent),
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -894,17 +917,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
     ];
@@ -928,7 +951,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(10_000); 3],
       mode,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -967,7 +990,7 @@ inscriptions:
       TxIn {
         previous_output: parent_info.location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -1057,7 +1080,7 @@ inscriptions:
         Amount::from_sat(3_333),
       ],
       mode,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1095,7 +1118,7 @@ inscriptions:
       TxIn {
         previous_output: parent_info.location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -1128,17 +1151,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
     ];
@@ -1157,7 +1180,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(10_000); 3],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1205,17 +1228,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
     ];
@@ -1234,7 +1257,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(10_000)],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1273,7 +1296,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(30_000); 3],
       mode: batch::Mode::SharedOutput,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1327,7 +1350,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(10_000); 3],
       mode,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1378,17 +1401,17 @@ inscriptions:
     let inscriptions = vec![
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
       InscriptionTemplate {
         parents: vec![parent],
-        ..Default::default()
+        ..default()
       }
       .into(),
     ];
@@ -1412,7 +1435,7 @@ inscriptions:
       reinscribe: false,
       postages: vec![Amount::from_sat(10_000); 3],
       mode,
-      ..Default::default()
+      ..default()
     }
     .create_batch_transactions(
       wallet_inscriptions,
@@ -1460,7 +1483,7 @@ inscriptions:
       TxIn {
         previous_output: parent_info.location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        ..Default::default()
+        ..default()
       }
     );
   }

@@ -886,14 +886,15 @@ fn sending_rune_with_divisibility_works() {
         divisibility: 1,
         rune: SpacedRune { rune, spacers: 0 },
         premine: "1000".parse().unwrap(),
+        supply: "1000".parse().unwrap(),
         symbol: '¢',
         mint: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 

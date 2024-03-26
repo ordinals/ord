@@ -13,7 +13,7 @@ pub struct RuneInfo {
   pub etching: Txid,
   pub id: RuneId,
   pub mint: Option<MintEntry>,
-  pub mints: u64,
+  pub mints: u128,
   pub number: u64,
   pub premine: u128,
   pub rune: SpacedRune,
@@ -40,7 +40,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
       .map(
         |(
           id,
-          RuneEntry {
+          entry @ RuneEntry {
             burned,
             divisibility,
             etching,
@@ -49,7 +49,6 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
             number,
             premine,
             spaced_rune,
-            supply,
             symbol,
             timestamp,
           },
@@ -67,7 +66,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
               number,
               premine,
               rune: spaced_rune,
-              supply,
+              supply: entry.supply(),
               symbol,
               timestamp: crate::timestamp(timestamp),
               tx: id.tx,

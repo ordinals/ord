@@ -28,7 +28,9 @@ fn minting_rune_and_fails_if_after_end() {
         },
         premine: "0".parse().unwrap(),
         symbol: '¢',
+        supply: "111.1".parse().unwrap(),
         mint: Some(batch::Mint {
+          cap: 1,
           term: Some(2),
           limit: "111.1".parse().unwrap(),
           deadline: None,
@@ -36,9 +38,9 @@ fn minting_rune_and_fails_if_after_end() {
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -120,15 +122,16 @@ fn minting_rune_fails_if_not_mintable() {
           rune: Rune(RUNE),
           spacers: 0,
         },
+        supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
         symbol: '¢',
         mint: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -165,8 +168,10 @@ fn minting_rune_fails_if_after_deadline() {
         divisibility: 1,
         rune: SpacedRune { rune, spacers: 0 },
         premine: "0".parse().unwrap(),
+        supply: "222.2".parse().unwrap(),
         symbol: '¢',
         mint: Some(batch::Mint {
+          cap: 2,
           term: Some(2),
           limit: "111.1".parse().unwrap(),
           deadline: Some(deadline),
@@ -174,9 +179,9 @@ fn minting_rune_fails_if_after_deadline() {
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 
@@ -246,8 +251,10 @@ fn minting_rune_and_then_sending_works() {
           spacers: 0,
         },
         premine: "111".parse().unwrap(),
+        supply: "132".parse().unwrap(),
         symbol: '¢',
         mint: Some(batch::Mint {
+          cap: 1,
           term: Some(10),
           limit: "21".parse().unwrap(),
           deadline: None,
@@ -255,9 +262,9 @@ fn minting_rune_and_then_sending_works() {
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   );
 

@@ -188,6 +188,7 @@ fn etch(
     ord_rpc_server,
     batch::File {
       etching: Some(batch::Etching {
+        supply: "1000".parse().unwrap(),
         divisibility: 0,
         mint: None,
         premine: "1000".parse().unwrap(),
@@ -196,9 +197,9 @@ fn etch(
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
-        ..Default::default()
+        ..default()
       }],
-      ..Default::default()
+      ..default()
     },
   )
 }
@@ -250,11 +251,23 @@ fn batch(
 
   let batch::Etching {
     divisibility,
+    mint,
     premine,
     rune,
+    supply,
     symbol,
-    mint,
   } = batchfile.etching.unwrap();
+
+  {
+    let supply = supply.to_amount(divisibility).unwrap();
+    let premine = premine.to_amount(divisibility).unwrap();
+
+    let mintable = mint
+      .map(|mint| mint.cap * mint.limit.to_amount(divisibility).unwrap())
+      .unwrap_or_default();
+
+    assert_eq!(supply, premine + mintable);
+  }
 
   let mut mint_definition = Vec::<String>::new();
 
@@ -298,6 +311,10 @@ fn batch(
 
     mint_definition.push("<dt>mints</dt>".into());
     mint_definition.push("<dd>0</dd>".into());
+    mint_definition.push("<dt>cap</dt>".into());
+    mint_definition.push(format!("<dd>{}</dd>", mint.cap));
+    mint_definition.push("<dt>remaining</dt>".into());
+    mint_definition.push(format!("<dd>{}</dd>", mint.cap));
 
     mint_definition.push("<dt>mintable</dt>".into());
     mint_definition.push(format!("<dd>{mintable}</dd>"));
@@ -416,4 +433,8 @@ fn envelope(payload: &[&[u8]]) -> Witness {
     .into_script();
 
   Witness::from_slice(&[script.into_bytes(), Vec::new()])
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
 }
