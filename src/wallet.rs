@@ -9,6 +9,7 @@ use {
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
+  db::Db,
   fee_rate::FeeRate,
   futures::{
     future::{self, FutureExt},
@@ -20,6 +21,7 @@ use {
 };
 
 pub mod batch;
+pub mod db;
 pub mod transaction_builder;
 
 #[derive(Clone)]
@@ -30,10 +32,9 @@ struct OrdClient {
 
 impl OrdClient {
   pub async fn get(&self, path: &str) -> Result<reqwest::Response> {
-    let url = self.url.join(path)?;
     self
       .client
-      .get(url)
+      .get(self.url.join(path)?)
       .send()
       .map_err(|err| anyhow!(err))
       .await
@@ -42,6 +43,7 @@ impl OrdClient {
 
 pub(crate) struct Wallet {
   bitcoin_client: Client,
+  db: Db,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -76,6 +78,8 @@ impl Wallet {
         header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
       );
     }
+
+    let db = Db::open(&name, &settings)?;
 
     let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())
@@ -179,6 +183,7 @@ impl Wallet {
 
         Ok(Wallet {
           bitcoin_client,
+          db,
           has_rune_index: status.rune_index,
           has_sat_index: status.sat_index,
           inscription_info,
@@ -504,6 +509,10 @@ impl Wallet {
 
   pub(crate) fn chain(&self) -> Chain {
     self.settings.chain()
+  }
+
+  pub(crate) fn db(&self) -> &Db {
+    &self.db
   }
 
   pub(crate) fn integration_test(&self) -> bool {

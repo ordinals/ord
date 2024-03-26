@@ -171,6 +171,10 @@ impl Inscribe {
     if let Some(etching) = etching {
       let rune = etching.rune.rune;
 
+      if wallet.db().retrieve(rune)?.is_some() {
+        bail!("rune {rune} already has a pending commit tx, use `ord wallet resume` to continue etching it");
+      }
+
       ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
 
       ensure!(

@@ -126,8 +126,14 @@ impl Plan {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    if self.etching.is_some() {
+    if let Some(ref rune_info) = rune {
       eprintln!("Waiting for rune commitment to mature…");
+
+      let rune = rune_info.clone().rune.rune;
+
+      wallet
+        .db()
+        .store(rune, &signed_commit_tx, &signed_reveal_tx)?;
 
       loop {
         let transaction = wallet
@@ -168,6 +174,10 @@ impl Plan {
       ))
       }
     };
+
+    if let Some(ref rune_info) = rune {
+      wallet.db().clear(rune_info.rune.rune)?;
+    }
 
     Ok(Some(Box::new(self.output(
       commit,
