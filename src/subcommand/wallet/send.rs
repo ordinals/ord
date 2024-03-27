@@ -309,6 +309,13 @@ impl Send {
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
-    Ok(consensus::encode::deserialize(&unsigned_transaction)?)
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    assert_eq!(
+      Runestone::from_transaction(&unsigned_transaction).unwrap(),
+      runestone,
+    );
+
+    Ok(unsigned_transaction)
   }
 }
