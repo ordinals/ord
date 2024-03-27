@@ -2,8 +2,9 @@ Delegate
 ========
 
 Inscriptions may nominate a delegate inscription. Requests for the content of
-an inscription with a delegate will instead return the content and content type
-of the delegate. This can be used to cheaply create copies of an inscription.
+an inscription with a delegate will instead return the content, content type 
+and content encoding of the delegate. This can be used to cheaply create copies 
+of an inscription.
 
 ### Specification
 
