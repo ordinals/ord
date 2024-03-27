@@ -80,7 +80,7 @@ struct RuneId {
 }
 ```
 
-Runes names encoded as modified base-26 integers:
+Rune names are encoded as modified base-26 integers:
 
 ```rust
 struct Rune(u128);
