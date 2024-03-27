@@ -111,8 +111,8 @@ offset plus the height of the block in which the rune was etched.
 Minting
 -------
 
-While rune's mint is open, anyone may create a mint transaction that creates a
-fixed amount of new units of that rune, subject to the terms of the mint.
+While a rune's mint is open, anyone may create a mint transaction that creates
+a fixed amount of new units of that rune, subject to the terms of the mint.
 
 Transferring
 ------------
