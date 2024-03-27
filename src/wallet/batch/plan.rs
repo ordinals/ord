@@ -122,55 +122,36 @@ impl Plan {
       Self::backup_recovery_key(wallet, recovery_key_pair)?;
     }
 
-    let commit = wallet
+    let commit_txid = wallet
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    if self.etching.is_some() {
-      eprintln!("Waiting for rune commitment to mature…");
-
-      loop {
-        let transaction = wallet
-          .bitcoin_client()
-          .get_transaction(&commit_tx.txid(), Some(true))
-          .into_option()?;
-
-        if let Some(transaction) = transaction {
-          if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
-            continue;
-          }
-        }
-
-        let tx_out = wallet
-          .bitcoin_client()
-          .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
-
-        if let Some(tx_out) = tx_out {
-          if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
-            break;
-          }
-        }
-
-        if !wallet.integration_test() {
-          thread::sleep(Duration::from_secs(5));
-        }
-      }
-    }
-
-    let reveal = match wallet
-      .bitcoin_client()
-      .send_raw_transaction(&signed_reveal_tx)
-    {
-      Ok(txid) => txid,
-      Err(err) => {
-        return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
+    let reveal = if let Some(ref rune_info) = rune {
+      wallet.wait_for_maturation(
+        rune_info,
+        consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?,
+        consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?,
+        self.inscriptions.clone(),
+        total_fees,
+      )?
+    } else {
+      let reveal = match wallet
+        .bitcoin_client()
+        .send_raw_transaction(&signed_reveal_tx)
+      {
+        Ok(txid) => txid,
+        Err(err) => {
+          return Err(anyhow!(
+        "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
       ))
-      }
+        }
+      };
+
+      reveal
     };
 
     Ok(Some(Box::new(self.output(
-      commit,
+      commit_txid,
       None,
       reveal,
       None,

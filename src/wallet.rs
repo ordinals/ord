@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::{self, Engine},
-  batch::ParentInfo,
+  batch::{ParentInfo, RuneInfo},
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
@@ -9,6 +9,7 @@ use {
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
+  db::Db,
   fee_rate::FeeRate,
   futures::{
     future::{self, FutureExt},
@@ -20,6 +21,7 @@ use {
 };
 
 pub mod batch;
+pub mod db;
 pub mod transaction_builder;
 
 #[derive(Clone)]
@@ -30,10 +32,9 @@ struct OrdClient {
 
 impl OrdClient {
   pub async fn get(&self, path: &str) -> Result<reqwest::Response> {
-    let url = self.url.join(path)?;
     self
       .client
-      .get(url)
+      .get(self.url.join(path)?)
       .send()
       .map_err(|err| anyhow!(err))
       .await
@@ -42,6 +43,7 @@ impl OrdClient {
 
 pub(crate) struct Wallet {
   bitcoin_client: Client,
+  db: Db,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -76,6 +78,8 @@ impl Wallet {
         header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
       );
     }
+
+    let db = Db::open(&name, &settings)?;
 
     let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())
@@ -179,6 +183,7 @@ impl Wallet {
 
         Ok(Wallet {
           bitcoin_client,
+          db,
           has_rune_index: status.rune_index,
           has_sat_index: status.sat_index,
           inscription_info,
@@ -506,8 +511,72 @@ impl Wallet {
     self.settings.chain()
   }
 
+  pub(crate) fn db(&self) -> &Db {
+    &self.db
+  }
+
   pub(crate) fn integration_test(&self) -> bool {
     self.settings.integration_test()
+  }
+
+  pub(crate) fn wait_for_maturation(
+    &self,
+    rune_info: &RuneInfo,
+    commit_tx: Transaction,
+    reveal_tx: Transaction,
+    _inscriptions: Vec<Inscription>,
+    _total_fees: u64,
+  ) -> Result<Txid> {
+    eprintln!("Waiting for rune commitment to mature…");
+
+    let rune = rune_info.rune.rune;
+
+    self.db().store(rune, &commit_tx, &reveal_tx)?;
+
+    loop {
+      let transaction = self
+        .bitcoin_client()
+        .get_transaction(&commit_tx.txid(), Some(true))
+        .into_option()?;
+
+      if let Some(transaction) = transaction {
+        if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+          continue;
+        }
+      }
+
+      let tx_out = self
+        .bitcoin_client()
+        .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
+
+      if let Some(tx_out) = tx_out {
+        if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+          break;
+        }
+      }
+
+      if !self.integration_test() {
+        thread::sleep(Duration::from_secs(5));
+      }
+
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        return Err(anyhow!("canceled"));
+      }
+    }
+
+    let reveal = match self.bitcoin_client().send_raw_transaction(&reveal_tx) {
+      Ok(txid) => txid,
+      Err(err) => {
+        return Err(anyhow!(
+          "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
+          commit_tx.txid()
+        ))
+      }
+    };
+
+    self.db().clear(rune)?;
+
+    Ok(reveal)
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
