@@ -52,7 +52,7 @@ A rune's divisibility is how finely it may be divided into its atomic units.
 Divisibility is expressed as the number of digits permissible after the decimal
 point in an amount of runes. A rune with divisibility 0 may not be divided. A
 unit of a rune with divisibility 1 may be divided into ten sub-units, a rune
-with divisibility of 2 may be divided into a hundred, and so on.
+with divisibility 2 may be divided into a hundred, and so on.
 
 ### Symbol
 
