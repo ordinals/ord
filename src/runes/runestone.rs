@@ -114,7 +114,7 @@ impl Runestone {
       (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
     });
 
-    let limit = Tag::Limit.take(&mut fields, |[limit]| Some(limit));
+    let amount = Tag::Amount.take(&mut fields, |[amount]| Some(amount));
 
     let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
 
@@ -158,8 +158,8 @@ impl Runestone {
     let overflow = (|| {
       let premine = premine.unwrap_or_default();
       let cap = cap.unwrap_or_default();
-      let limit = limit.unwrap_or_default();
-      premine.checked_add(cap.checked_mul(limit)?)
+      let amount = amount.unwrap_or_default();
+      premine.checked_add(cap.checked_mul(amount)?)
     })()
     .is_none();
 
@@ -172,7 +172,7 @@ impl Runestone {
       terms: terms.then_some(Terms {
         cap,
         height,
-        limit,
+        amount,
         offset,
       }),
     });
@@ -206,7 +206,7 @@ impl Runestone {
       Tag::Premine.encode_option(etching.premine, &mut payload);
 
       if let Some(terms) = etching.terms {
-        Tag::Limit.encode_option(terms.limit, &mut payload);
+        Tag::Amount.encode_option(terms.amount, &mut payload);
         Tag::Cap.encode_option(terms.cap, &mut payload);
         Tag::HeightStart.encode_option(terms.height.0, &mut payload);
         Tag::HeightEnd.encode_option(terms.height.1, &mut payload);
@@ -694,12 +694,12 @@ mod tests {
   }
 
   #[test]
-  fn decipher_etching_with_limit() {
+  fn decipher_etching_with_amount() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Etching.mask() | Flag::Terms.mask(),
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         4,
         Tag::Body.into(),
         1,
@@ -715,7 +715,7 @@ mod tests {
         }],
         etching: Some(Etching {
           terms: Some(Terms {
-            limit: Some(4),
+            amount: Some(4),
             ..default()
           }),
           ..default()
@@ -1064,7 +1064,7 @@ mod tests {
         'a'.into(),
         Tag::OffsetEnd.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         3,
         Tag::Premine.into(),
         8,
@@ -1093,7 +1093,7 @@ mod tests {
           terms: Some(Terms {
             cap: Some(9),
             offset: (None, Some(2)),
-            limit: Some(3),
+            amount: Some(3),
             height: (None, None),
           }),
           premine: Some(8),
@@ -1120,7 +1120,7 @@ mod tests {
         'a'.into(),
         Tag::OffsetEnd.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         3,
         Tag::Body.into(),
         1,
@@ -1436,7 +1436,7 @@ mod tests {
         divisibility: Some(MAX_DIVISIBILITY),
         terms: Some(Terms {
           cap: Some(u32::MAX.into()),
-          limit: Some(u64::MAX.into()),
+          amount: Some(u64::MAX.into()),
           offset: (Some(u32::MAX.into()), Some(u32::MAX.into())),
           height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
@@ -1710,7 +1710,7 @@ mod tests {
           terms: Some(Terms {
             cap: Some(11),
             height: (Some(12), Some(13)),
-            limit: Some(14),
+            amount: Some(14),
             offset: (Some(15), Some(16)),
           }),
         }),
@@ -1730,7 +1730,7 @@ mod tests {
         '@'.into(),
         Tag::Premine.into(),
         8,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         14,
         Tag::Cap.into(),
         11,
@@ -1911,7 +1911,7 @@ mod tests {
         Flag::Etching.mask() | Flag::Terms.mask(),
         Tag::Cap.into(),
         1,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         u128::MAX
       ])
       .cenotaph
@@ -1923,7 +1923,7 @@ mod tests {
         Flag::Etching.mask() | Flag::Terms.mask(),
         Tag::Cap.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         u128::MAX
       ])
       .cenotaph
@@ -1935,7 +1935,7 @@ mod tests {
         Flag::Etching.mask() | Flag::Terms.mask(),
         Tag::Cap.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         u128::MAX / 2 + 1
       ])
       .cenotaph
@@ -1949,7 +1949,7 @@ mod tests {
         1,
         Tag::Cap.into(),
         1,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         u128::MAX
       ])
       .cenotaph
