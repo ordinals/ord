@@ -123,7 +123,7 @@ A sequence of 128-bit integers are decoded from the payload as LEB128 varints.
 LEB128 varints are encoded as sequence of bytes, each of which has the
 most-significant bit set, except for the last.
 
-If an LEB128 varint contains more than 18 bytes, would overflow a u128, or is
+If a LEB128 varint contains more than 18 bytes, would overflow a u128, or is
 truncated, meaning that the end of the payload buffer is reached before
 encountering a byte with the continuation bit not set, the decoded runestone is
 a cenotaph with no etching, mint, or edicts.
