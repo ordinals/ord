@@ -836,6 +836,7 @@ impl Server {
         }
       };
 
+      let runes = index.get_runes_in_block(height)?;
       Ok(if accept_json {
         let inscriptions = index.get_inscriptions_in_block(height)?;
         Json(api::Block::new(
@@ -843,6 +844,7 @@ impl Server {
           Height(height),
           Self::index_height(&index)?,
           inscriptions,
+          runes,
         ))
         .into_response()
       } else {
@@ -854,6 +856,7 @@ impl Server {
           Self::index_height(&index)?,
           total_num,
           featured_inscriptions,
+          runes,
         )
         .page(server_config)
         .into_response()

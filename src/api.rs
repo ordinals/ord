@@ -15,6 +15,7 @@ pub struct Block {
   pub best_height: u32,
   pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
+  pub runes: Vec<RuneEntry>,
 }
 
 impl Block {
@@ -23,6 +24,7 @@ impl Block {
     height: Height,
     best_height: Height,
     inscriptions: Vec<InscriptionId>,
+    runes: Vec<RuneEntry>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -30,6 +32,7 @@ impl Block {
       height: height.0,
       best_height: best_height.0,
       inscriptions,
+      runes,
     }
   }
 }
