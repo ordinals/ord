@@ -61,7 +61,10 @@ pub struct Options {
   pub(crate) index_spent_sats: bool,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
-  #[arg(long, help = "Store addresses inscriptions in index.")]
+  #[arg(
+    long,
+    help = "Store addresses inscriptions in index. Relies on transactions index."
+  )]
   pub(crate) index_addresses: bool,
   #[arg(long, help = "Run in integration test mode.")]
   pub(crate) integration_test: bool,

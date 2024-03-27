@@ -235,6 +235,12 @@ impl Index {
     settings: &Settings,
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
+    if settings.index_addresses() && !settings.index_transactions() {
+      bail!(
+        "cannot index addresses without transactions, consider adding --index-transactions flag"
+      );
+    }
+
     let client = settings.bitcoin_rpc_client(None)?;
 
     let path = settings.index().to_owned();
@@ -511,6 +517,7 @@ impl Index {
       sat_index: statistic(Statistic::IndexSats)? != 0,
       started: self.started,
       transaction_index: statistic(Statistic::IndexTransactions)? != 0,
+      address_index: statistic(Statistic::IndexAddresses)? != 0,
       unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
       uptime: (Utc::now() - self.started).to_std()?,
     })

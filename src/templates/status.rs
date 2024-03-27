@@ -16,6 +16,7 @@ pub struct StatusHtml {
   pub sat_index: bool,
   pub started: DateTime<Utc>,
   pub transaction_index: bool,
+  pub address_index: bool,
   pub unrecoverably_reorged: bool,
   pub uptime: Duration,
 }

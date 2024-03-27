@@ -577,7 +577,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     transaction: &Transaction,
     new_satpoint: SatPoint,
   ) -> Result {
-    if !self.index_addresses || !self.index_transactions {
+    if !self.index_addresses {
       return Ok(());
     }
 

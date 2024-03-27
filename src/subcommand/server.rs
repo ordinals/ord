@@ -3240,6 +3240,8 @@ mod tests {
   <dd>false</dd>
   <dt>transaction index</dt>
   <dd>false</dd>
+  <dt>address index</dt>
+  <dd>false</dd>
   <dt>git branch</dt>
   <dd>.*</dd>
   <dt>git commit</dt>
