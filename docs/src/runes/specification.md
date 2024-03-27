@@ -228,7 +228,7 @@ The `Etching` flag marks this transaction as containing an etching.
 
 The `Terms` flag marks this transaction's etching as having open mint terms.
 
-The `Cenotaph` flag is treated as unrecognized.
+The `Cenotaph` flag is unrecognized.
 
 If the value of the flags field after removing recognized flags is nonzero, the
 runestone is a cenotaph.
