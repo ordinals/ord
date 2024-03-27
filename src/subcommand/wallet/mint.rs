@@ -32,7 +32,7 @@ impl Mint {
       bail!("rune {rune} has not been etched");
     };
 
-    let limit = rune_entry
+    let amount = rune_entry
       .mintable(block_height)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
@@ -81,7 +81,7 @@ impl Mint {
     Ok(Some(Box::new(Output {
       rune: self.rune,
       pile: Pile {
-        amount: limit,
+        amount,
         divisibility: rune_entry.divisibility,
         symbol: rune_entry.symbol,
       },

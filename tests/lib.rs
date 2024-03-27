@@ -261,7 +261,7 @@ fn batch(
     let premine = premine.to_amount(divisibility).unwrap();
 
     let mintable = terms
-      .map(|terms| terms.cap * terms.limit.to_amount(divisibility).unwrap())
+      .map(|terms| terms.cap * terms.amount.to_amount(divisibility).unwrap())
       .unwrap_or_default();
 
     assert_eq!(supply, premine + mintable);
@@ -319,12 +319,12 @@ fn batch(
       }
     }
 
-    mint_definition.push("<dt>limit</dt>".into());
+    mint_definition.push("<dt>amount</dt>".into());
 
     mint_definition.push(format!(
       "<dd>{}</dd>",
       Pile {
-        amount: terms.limit.to_amount(divisibility).unwrap(),
+        amount: terms.amount.to_amount(divisibility).unwrap(),
         divisibility,
         symbol: Some(symbol),
       }

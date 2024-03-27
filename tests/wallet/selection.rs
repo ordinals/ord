@@ -132,7 +132,7 @@ fn mint_does_not_select_inscription() {
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 1,
-          limit: "1000".parse().unwrap(),
+          amount: "1000".parse().unwrap(),
           offset: None,
           height: None,
         }),
