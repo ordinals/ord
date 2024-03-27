@@ -60,7 +60,7 @@ struct Terms {
 }
 ```
 
-Runes are transferred by edicts:
+Runes are transferred by edict:
 
 ```rust
 struct Edict {
