@@ -899,6 +899,7 @@ impl Server {
   }
 
   async fn address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(settings): Extension<Arc<Settings>>,
     Extension(index): Extension<Arc<Index>>,
     Path(address): Path<String>,
