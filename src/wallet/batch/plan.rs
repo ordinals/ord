@@ -433,7 +433,7 @@ impl Plan {
 
       let vout;
       let destination;
-      premine = etching.premine.to_amount(etching.divisibility)?;
+      premine = etching.premine.to_integer(etching.divisibility)?;
 
       if premine > 0 {
         let output = u32::try_from(reveal_outputs.len()).unwrap();
@@ -470,7 +470,7 @@ impl Plan {
                   terms.height.and_then(|range| (range.start)),
                   terms.height.and_then(|range| (range.end)),
                 ),
-                limit: Some(terms.limit.to_amount(etching.divisibility)?),
+                limit: Some(terms.limit.to_integer(etching.divisibility)?),
                 offset: (
                   terms.offset.and_then(|range| (range.start)),
                   terms.offset.and_then(|range| (range.end)),

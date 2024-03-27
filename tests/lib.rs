@@ -257,11 +257,11 @@ fn batch(
   } = batchfile.etching.unwrap();
 
   {
-    let supply = supply.to_amount(divisibility).unwrap();
-    let premine = premine.to_amount(divisibility).unwrap();
+    let supply = supply.to_integer(divisibility).unwrap();
+    let premine = premine.to_integer(divisibility).unwrap();
 
     let mintable = terms
-      .map(|terms| terms.cap * terms.limit.to_amount(divisibility).unwrap())
+      .map(|terms| terms.cap * terms.limit.to_integer(divisibility).unwrap())
       .unwrap_or_default();
 
     assert_eq!(supply, premine + mintable);
@@ -324,7 +324,7 @@ fn batch(
     mint_definition.push(format!(
       "<dd>{}</dd>",
       Pile {
-        amount: terms.limit.to_amount(divisibility).unwrap(),
+        amount: terms.limit.to_integer(divisibility).unwrap(),
         divisibility,
         symbol: Some(symbol),
       }
@@ -384,7 +384,7 @@ fn batch(
     rune,
   } = inscribe.rune.clone().unwrap();
 
-  if premine.to_amount(divisibility).unwrap() > 0 {
+  if premine.to_integer(divisibility).unwrap() > 0 {
     let destination = destination
       .unwrap()
       .clone()
