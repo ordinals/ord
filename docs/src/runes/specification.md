@@ -261,10 +261,9 @@ with height `HeightStart`, and closes in the block with height `HeightEnd`.
 ##### OffsetStart and OffsetEnd
 
 The `OffsetStart` and `OffsetEnd` fields contain the mint's starting and ending
-relative block heights, relative to the block in which the etching is mined.
-The mint is open starting in the block with height `OffsetStart` +
-`ETCHING_HEIGHT`, and closes in the block with height `OffsetEnd` +
-`ETCHING_HEIGHT`.
+block heights, relative to the block in which the etching is mined. The mint is
+open starting in the block with height `OffsetStart` + `ETCHING_HEIGHT`, and
+closes in the block with height `OffsetEnd` + `ETCHING_HEIGHT`.
 
 ##### Mint
 
