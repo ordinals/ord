@@ -1,0 +1,6 @@
+<h1>Address {{ self.address }}</h1>
+<div class=thumbnails>
+%% for id in &self.inscriptions {
+  {{Iframe::thumbnail(*id)}}
+%% }
+</div>
