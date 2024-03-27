@@ -1,5 +1,46 @@
 use super::*;
 
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Charms(pub u16);
+
+impl Charms {
+  pub fn new() -> Self {
+    Self(0)
+  }
+
+  pub fn set(&mut self, charm: Charm) -> Self {
+    self.0 |= 1 << charm as u16;
+
+    self.clone()
+  }
+
+  pub fn unset(&self, charm: Charm) -> Self {
+    Self(self.0 & !(1 << charm as u16))
+  }
+
+  pub fn union(&mut self, other: Self) -> Self {
+    self.0 |= other.0;
+
+    self.clone()
+  }
+
+  pub fn is_set(&self, charm: Charm) -> bool {
+    self.0 & (1 << charm as u16) != 0
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.0 == 0
+  }
+
+  pub fn active_charms(&self) -> Vec<Charm> {
+    Charm::ALL
+      .iter()
+      .copied()
+      .filter(|&c| self.is_set(c))
+      .collect()
+  }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, DeserializeFromStr, SerializeDisplay)]
 pub enum Charm {
   Coin = 0,
@@ -32,22 +73,6 @@ impl Charm {
     Self::Vindicated,
   ];
 
-  fn flag(self) -> u16 {
-    1 << self as u16
-  }
-
-  pub fn set(self, charms: &mut u16) {
-    *charms |= self.flag();
-  }
-
-  pub fn is_set(self, charms: u16) -> bool {
-    charms & self.flag() != 0
-  }
-
-  pub fn unset(self, charms: u16) -> u16 {
-    charms & !self.flag()
-  }
-
   pub fn icon(self) -> &'static str {
     match self {
       Self::Coin => "🪙",
@@ -63,14 +88,6 @@ impl Charm {
       Self::Uncommon => "🌱",
       Self::Vindicated => "❤️‍🔥",
     }
-  }
-
-  pub fn charms(charms: u16) -> Vec<Charm> {
-    Self::ALL
-      .iter()
-      .filter(|charm| charm.is_set(charms))
-      .copied()
-      .collect()
   }
 }
 
@@ -124,25 +141,19 @@ mod tests {
   use super::*;
 
   #[test]
-  fn flag() {
-    assert_eq!(Charm::Coin.flag(), 0b1);
-    assert_eq!(Charm::Cursed.flag(), 0b10);
-  }
-
-  #[test]
   fn set() {
-    let mut flags = 0;
-    assert!(!Charm::Coin.is_set(flags));
-    Charm::Coin.set(&mut flags);
-    assert!(Charm::Coin.is_set(flags));
+    let mut charms = Charms::new();
+    assert!(!charms.is_set(Charm::Coin));
+    charms.set(Charm::Coin);
+    assert!(charms.is_set(Charm::Coin));
   }
 
   #[test]
   fn unset() {
-    let mut flags = 0;
-    Charm::Coin.set(&mut flags);
-    assert!(Charm::Coin.is_set(flags));
-    let flags = Charm::Coin.unset(flags);
-    assert!(!Charm::Coin.is_set(flags));
+    let mut charms = Charms::new();
+    charms.set(Charm::Coin);
+    assert!(charms.is_set(Charm::Coin));
+    let charms = charms.unset(Charm::Coin);
+    assert!(!charms.is_set(Charm::Coin));
   }
 }

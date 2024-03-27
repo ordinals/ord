@@ -258,7 +258,7 @@ impl Entry for RuneId {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub(crate) struct InscriptionEntry {
-  pub(crate) charms: u16,
+  pub(crate) charms: Charms,
   pub(crate) fee: u64,
   pub(crate) height: u32,
   pub(crate) id: InscriptionId,
@@ -299,7 +299,7 @@ impl Entry for InscriptionEntry {
     ): InscriptionEntryValue,
   ) -> Self {
     Self {
-      charms,
+      charms: Charms(charms),
       fee,
       height,
       id: InscriptionId::load(id),
@@ -313,7 +313,7 @@ impl Entry for InscriptionEntry {
 
   fn store(self) -> Self::Value {
     (
-      self.charms,
+      self.charms.0,
       self.fee,
       self.height,
       self.id.store(),
@@ -468,7 +468,7 @@ mod tests {
       .unwrap();
 
     let entry = InscriptionEntry {
-      charms: 0,
+      charms: Charms::new(),
       fee: 1,
       height: 2,
       id,

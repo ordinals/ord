@@ -178,7 +178,7 @@ pub(crate) struct InscriptionInfo {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) rune: Option<SpacedRune>,
-  pub(crate) charms: u16,
+  pub(crate) charms: Charms,
 }
 
 pub(crate) trait BitcoinCoreRpcResultExt<T> {
@@ -1884,10 +1884,10 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let mut charms = entry.charms;
+    let mut charms = entry.charms.clone();
 
     if satpoint.outpoint == OutPoint::null() {
-      Charm::Lost.set(&mut charms);
+      charms.set(Charm::Lost);
     }
 
     Ok(Some(InscriptionInfo {
@@ -5707,13 +5707,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(entry.charms.is_set(Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!entry.charms.is_set(Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -5741,13 +5737,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!entry.charms.is_set(Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!entry.charms.is_set(Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
 
@@ -5771,13 +5763,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(entry.charms.is_set(Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!entry.charms.is_set(Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, -2);
 
@@ -5818,13 +5806,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!entry.charms.is_set(Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(entry.charms.is_set(Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -5850,13 +5834,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!entry.charms.is_set(Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!entry.charms.is_set(Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 1);
 
@@ -5882,13 +5862,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!entry.charms.is_set(Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(entry.charms.is_set(Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 2);
 
@@ -6128,7 +6104,11 @@ mod tests {
       index: 0,
     };
     let create_event = event_receiver.blocking_recv().unwrap();
-    let expected_charms = if context.index.index_sats { 513 } else { 0 };
+    let expected_charms = if context.index.index_sats {
+      Charms(513)
+    } else {
+      Charms::new()
+    };
     assert_eq!(
       create_event,
       Event::InscriptionCreated {
