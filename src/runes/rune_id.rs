@@ -14,12 +14,12 @@ use super::*;
   SerializeDisplay,
 )]
 pub struct RuneId {
-  pub block: u32,
+  pub block: u64,
   pub tx: u32,
 }
 
 impl RuneId {
-  pub(crate) fn new(block: u32, tx: u32) -> Option<RuneId> {
+  pub(crate) fn new(block: u64, tx: u32) -> Option<RuneId> {
     let id = RuneId { block, tx };
 
     if id.block == 0 && id.tx > 0 {

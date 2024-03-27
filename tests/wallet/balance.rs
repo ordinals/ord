@@ -106,11 +106,11 @@ fn runic_utxos_are_deducted_from_cardinal() {
     batch::File {
       etching: Some(batch::Etching {
         divisibility: 0,
-        mint: None,
         premine: "1000".parse().unwrap(),
-        supply: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 1 },
+        supply: "1000".parse().unwrap(),
         symbol: '¢',
+        terms: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),

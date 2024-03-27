@@ -16,14 +16,17 @@ use {
 
 pub(crate) use transactions::Transactions;
 
-pub use {entry::Entry, etching::Etching, file::File, mint::Mint, mode::Mode, plan::Plan};
+pub use {
+  entry::Entry, etching::Etching, file::File, mode::Mode, plan::Plan, range::Range, terms::Terms,
+};
 
 pub mod entry;
 mod etching;
 pub mod file;
-mod mint;
 pub mod mode;
 pub mod plan;
+mod range;
+mod terms;
 mod transactions;
 
 #[derive(Debug, Serialize, Deserialize)]

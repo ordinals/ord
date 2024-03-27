@@ -5,13 +5,15 @@ pub(super) enum Tag {
   Body = 0,
   Flags = 2,
   Rune = 4,
-  Limit = 6,
-  Term = 8,
-  Deadline = 10,
-  DefaultOutput = 12,
-  Claim = 14,
-  Cap = 16,
-  Premine = 18,
+  Premine = 6,
+  Cap = 8,
+  Limit = 10,
+  HeightStart = 12,
+  HeightEnd = 14,
+  OffsetStart = 16,
+  OffsetEnd = 18,
+  Mint = 20,
+  Pointer = 22,
   #[allow(unused)]
   Cenotaph = 126,
 
@@ -51,6 +53,12 @@ impl Tag {
     for value in values {
       varint::encode_to_vec(self.into(), payload);
       varint::encode_to_vec(value, payload);
+    }
+  }
+
+  pub(super) fn encode_option<T: Into<u128>>(self, value: Option<T>, payload: &mut Vec<u8>) {
+    if let Some(value) = value {
+      self.encode([value.into()], payload)
     }
   }
 }
