@@ -458,19 +458,23 @@ impl Plan {
 
       let inner = Runestone {
         cenotaph: false,
-        claim: None,
-        default_output: None,
         edicts,
         etching: Some(runes::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
-          mint: etching
-            .mint
-            .map(|mint| -> Result<runes::Mint> {
-              Ok(runes::Mint {
-                cap: (mint.cap > 0).then_some(mint.cap),
-                deadline: mint.deadline,
-                limit: Some(mint.limit.to_amount(etching.divisibility)?),
-                term: mint.term,
+          terms: etching
+            .terms
+            .map(|terms| -> Result<runes::Terms> {
+              Ok(runes::Terms {
+                cap: (terms.cap > 0).then_some(terms.cap),
+                height: (
+                  terms.height.and_then(|range| (range.start)),
+                  terms.height.and_then(|range| (range.end)),
+                ),
+                limit: Some(terms.limit.to_amount(etching.divisibility)?),
+                offset: (
+                  terms.offset.and_then(|range| (range.start)),
+                  terms.offset.and_then(|range| (range.end)),
+                ),
               })
             })
             .transpose()?,
@@ -479,6 +483,8 @@ impl Plan {
           spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
           symbol: Some(etching.symbol),
         }),
+        mint: None,
+        pointer: None,
       };
 
       let script_pubkey = inner.encipher();

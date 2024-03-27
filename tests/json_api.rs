@@ -547,8 +547,9 @@ fn get_runes() {
     rune_json,
     api::Rune {
       entry: RuneEntry {
+        block: a.id.block,
         burned: 0,
-        mint: None,
+        terms: None,
         divisibility: 0,
         etching: a.inscribe.reveal,
         mints: 0,
@@ -583,8 +584,9 @@ fn get_runes() {
         (
           RuneId { block: 11, tx: 1 },
           RuneEntry {
+            block: a.id.block,
             burned: 0,
-            mint: None,
+            terms: None,
             divisibility: 0,
             etching: a.inscribe.reveal,
             mints: 0,
@@ -601,8 +603,9 @@ fn get_runes() {
         (
           RuneId { block: 19, tx: 1 },
           RuneEntry {
+            block: b.id.block,
             burned: 0,
-            mint: None,
+            terms: None,
             divisibility: 0,
             etching: b.inscribe.reveal,
             mints: 0,
@@ -619,8 +622,9 @@ fn get_runes() {
         (
           RuneId { block: 27, tx: 1 },
           RuneEntry {
+            block: c.id.block,
             burned: 0,
-            mint: None,
+            terms: None,
             divisibility: 0,
             etching: c.inscribe.reveal,
             mints: 0,

@@ -130,11 +130,11 @@ fn mint_does_not_select_inscription() {
         premine: "1000".parse().unwrap(),
         supply: "2000".parse().unwrap(),
         symbol: '¢',
-        mint: Some(batch::Mint {
-          deadline: None,
+        terms: Some(batch::Terms {
           cap: 1,
           limit: "1000".parse().unwrap(),
-          term: None,
+          offset: None,
+          height: None,
         }),
       }),
       inscriptions: vec![batch::Entry {

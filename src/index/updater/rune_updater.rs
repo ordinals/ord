@@ -3,7 +3,7 @@ use {
   crate::runes::{Edict, Runestone},
 };
 
-struct Claim {
+struct Mint {
   id: RuneId,
   limit: u128,
 }
@@ -11,10 +11,10 @@ struct Claim {
 struct Etched {
   divisibility: u8,
   id: RuneId,
-  mint: Option<MintEntry>,
   premine: u128,
   spaced_rune: SpacedRune,
   symbol: Option<char>,
+  terms: Option<Terms>,
 }
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
@@ -44,19 +44,17 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       .map(|runestone| runestone.cenotaph)
       .unwrap_or_default();
 
-    let default_output = runestone
-      .as_ref()
-      .and_then(|runestone| runestone.default_output);
+    let pointer = runestone.as_ref().and_then(|runestone| runestone.pointer);
 
     let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(runestone) = runestone {
-      if let Some(claim) = runestone
-        .claim
-        .and_then(|id| self.claim(id).transpose())
+      if let Some(mint) = runestone
+        .mint
+        .and_then(|id| self.mint(id).transpose())
         .transpose()?
       {
-        *unallocated.entry(claim.id).or_default() += claim.limit;
+        *unallocated.entry(mint.id).or_default() += mint.limit;
       }
 
       let etched = self.etched(tx_index, tx, &runestone)?;
@@ -150,9 +148,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       // assign all un-allocated runes to the default output, or the first non
       // OP_RETURN output if there is no default, or if the default output is
       // too large
-      if let Some(vout) = default_output
-        .map(|vout| vout.into_usize())
-        .filter(|vout| *vout < allocated.len())
+      if let Some(vout) = pointer
+        .map(|pointer| pointer.into_usize())
+        .inspect(|&pointer| assert!(pointer < allocated.len()))
         .or_else(|| {
           tx.output
             .iter()
@@ -233,10 +231,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     let Etched {
       divisibility,
       id,
-      mint,
       premine,
       spaced_rune,
       symbol,
+      terms,
     } = etched;
 
     self.rune_to_id.insert(spaced_rune.rune.0, id.store())?;
@@ -254,16 +252,17 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     self.id_to_entry.insert(
       id.store(),
       RuneEntry {
+        block: id.block,
         burned: 0,
         divisibility,
         etching: txid,
-        mint: mint.and_then(|mint| (!burn).then_some(mint)),
+        terms: terms.and_then(|terms| (!burn).then_some(terms)),
         mints: 0,
         number,
         premine,
         spaced_rune,
         symbol,
-        timestamp: self.block_time,
+        timestamp: self.block_time.into(),
       }
       .store(),
     )?;
@@ -318,32 +317,27 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     Ok(Some(Etched {
       divisibility: etching.divisibility.unwrap_or_default(),
       id: RuneId {
-        block: self.height,
+        block: self.height.into(),
         tx: tx_index,
       },
-      mint: etching.mint.map(|mint| MintEntry {
-        cap: mint.cap,
-        deadline: mint.deadline,
-        end: mint.term.map(|term| term + self.height),
-        limit: mint.limit,
-      }),
       premine: etching.premine.unwrap_or_default(),
       spaced_rune: SpacedRune {
         rune,
         spacers: etching.spacers.unwrap_or_default(),
       },
       symbol: etching.symbol,
+      terms: etching.terms,
     }))
   }
 
-  fn claim(&mut self, id: RuneId) -> Result<Option<Claim>> {
+  fn mint(&mut self, id: RuneId) -> Result<Option<Mint>> {
     let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
 
     let mut rune_entry = RuneEntry::load(entry.value());
 
-    let Ok(limit) = rune_entry.mintable(Height(self.height), self.block_time) else {
+    let Ok(limit) = rune_entry.mintable(self.height.into()) else {
       return Ok(None);
     };
 
@@ -353,7 +347,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     self.id_to_entry.insert(&id.store(), rune_entry.store())?;
 
-    Ok(Some(Claim { id, limit }))
+    Ok(Some(Mint { id, limit }))
   }
 
   fn tx_commits_to_rune(&self, tx: &Transaction, rune: Rune) -> Result<bool> {

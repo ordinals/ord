@@ -6,7 +6,6 @@ use {
     },
     event::Event,
     reorg::*,
-    runes::{Rune, RuneId},
     updater::Updater,
   },
   super::*,
@@ -35,7 +34,7 @@ use {
   },
 };
 
-pub use {self::entry::RuneEntry, entry::MintEntry};
+pub use self::entry::RuneEntry;
 
 pub(crate) mod entry;
 pub mod event;
@@ -47,7 +46,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 23;
+const SCHEMA_VERSION: u64 = 24;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {

@@ -690,15 +690,7 @@ impl Server {
 
       let block_height = index.block_height()?.unwrap_or(Height(0));
 
-      let block_time: u32 = index
-        .block_time(block_height)?
-        .unix_timestamp()
-        .try_into()
-        .unwrap_or_default();
-
-      let mintable = entry
-        .mintable(Height(block_height.n() + 1), block_time)
-        .is_ok();
+      let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
 
       Ok(if accept_json {
         Json(api::Rune {
@@ -986,7 +978,7 @@ impl Server {
           value: output.as_ref().map(|o| o.value),
           sat: entry.sat,
           satpoint,
-          timestamp: timestamp(entry.timestamp).timestamp(),
+          timestamp: timestamp(entry.timestamp.into()).timestamp(),
         })
         .into_response(),
       )
@@ -1556,7 +1548,7 @@ impl Server {
           rune: info.rune,
           sat: info.entry.sat,
           satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp).timestamp(),
+          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
           value: info.output.as_ref().map(|o| o.value),
         })
         .into_response()
@@ -1577,7 +1569,7 @@ impl Server {
           rune: info.rune,
           sat: info.entry.sat,
           satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp),
+          timestamp: timestamp(info.entry.timestamp.into()),
         }
         .page(server_config)
         .into_response()
@@ -2155,7 +2147,7 @@ mod tests {
       (
         txid,
         RuneId {
-          block: self.index.block_count().unwrap() - 1,
+          block: (self.index.block_count().unwrap() - 1).into(),
           tx: 1,
         },
       )
@@ -2704,6 +2696,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          block: id.block,
           etching: txid,
           spaced_rune: SpacedRune {
             rune: Rune(RUNE),
@@ -2778,6 +2771,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          block: id.block,
           etching: txid,
           spaced_rune: SpacedRune { rune, spacers: 0 },
           premine: u128::MAX,
@@ -2891,6 +2885,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          block: id.block,
           etching: txid,
           spaced_rune: SpacedRune { rune, spacers: 1 },
           premine: u128::MAX,
@@ -2981,6 +2976,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          block: id.block,
           etching: txid,
           spaced_rune: SpacedRune {
             rune: Rune(RUNE),
@@ -3045,6 +3041,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          block: id.block,
           divisibility: 1,
           etching: txid,
           spaced_rune: SpacedRune { rune, spacers: 0 },
