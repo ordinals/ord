@@ -117,8 +117,8 @@ a fixed amount of new units of that rune, subject to the terms of the mint.
 Transferring
 ------------
 
-When transaction inputs contains runes, or new runes are created by a premine
-or mint, those runes are transferred to that transaction's outputs. A
+When transaction inputs contain runes, or new runes are created by a premine or
+mint, those runes are transferred to that transaction's outputs. A
 transaction's runestone may change how input runes transfer to outputs.
 
 ### Edicts
