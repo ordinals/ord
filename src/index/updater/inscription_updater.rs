@@ -49,6 +49,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'tx, InscriptionIdValue, u32>,
   pub(super) index_transactions: bool,
+  pub(super) index_addresses: bool,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
@@ -65,6 +66,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) unbound_inscriptions: u64,
   pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
   pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) address_to_inscription_ids: &'a mut Table<'tx, &'static [u8], Vec<InscriptionIdValue>>,
 }
 
 impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
@@ -345,7 +347,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, tx)?;
     }
 
     if is_coinbase {
@@ -354,7 +356,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, tx)?;
       }
       self.lost_sats += self.reward - output_value;
       Ok(())
@@ -392,6 +394,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
+    transaction: &Transaction,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
@@ -422,7 +425,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         cursed,
         fee,
         hidden,
-        parents,
+        ref parents,
         pointer: _,
         reinscription,
         unbound,
@@ -504,7 +507,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             charms,
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
-            parent_inscription_ids: parents,
+            parent_inscription_ids: parents.to_vec(),
             sequence_number,
           })?;
         }
@@ -545,6 +548,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       }
     };
 
+    self.index_address_to_inscription(&flotsam, transaction, new_satpoint)?;
+
     let satpoint = if unbound {
       let new_unbound_satpoint = SatPoint {
         outpoint: unbound_outpoint(),
@@ -564,5 +569,68 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       .insert(sequence_number, &satpoint)?;
 
     Ok(())
+  }
+
+  fn index_address_to_inscription(
+    &mut self,
+    flotsam: &Flotsam,
+    transaction: &Transaction,
+    new_satpoint: SatPoint,
+  ) -> Result {
+    if !self.index_addresses {
+      return Ok(());
+    }
+
+    if let Origin::Old { old_satpoint } = flotsam.origin {
+      if let Some(transaction) = self
+        .transaction_id_to_transaction
+        .get(&old_satpoint.outpoint.txid.store())?
+      {
+        let transaction: Transaction = consensus::encode::deserialize(transaction.value())?;
+
+        let address =
+          self.transaction_to_address(&transaction, old_satpoint.outpoint.vout.into_usize())?;
+
+        let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
+        let inscription_id_entry = flotsam.inscription_id.store();
+        inscription_ids.retain(|&id| id != inscription_id_entry);
+
+        self
+          .address_to_inscription_ids
+          .insert(address.to_string().as_bytes(), inscription_ids)?;
+      }
+    }
+
+    let address =
+      self.transaction_to_address(transaction, new_satpoint.outpoint.vout.into_usize())?;
+
+    let mut inscription_ids = self.get_inscription_ids_by_address(&address)?;
+    inscription_ids.push(flotsam.inscription_id.store());
+    inscription_ids.sort();
+
+    self
+      .address_to_inscription_ids
+      .insert(address.to_string().as_bytes(), inscription_ids)?;
+
+    Ok(())
+  }
+
+  #[inline]
+  fn transaction_to_address(&self, transaction: &Transaction, vout: usize) -> Result<Address> {
+    let tx_out = transaction.output.get(vout).unwrap();
+
+    Ok(self.chain.address_from_script(&tx_out.script_pubkey)?)
+  }
+
+  #[inline]
+  fn get_inscription_ids_by_address(&self, address: &Address) -> Result<Vec<InscriptionIdValue>> {
+    if let Some(entry) = self
+      .address_to_inscription_ids
+      .get(address.to_string().as_bytes())?
+    {
+      return Ok(entry.value().clone());
+    }
+
+    Ok(Vec::new())
   }
 }

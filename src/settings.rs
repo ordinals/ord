@@ -22,6 +22,7 @@ pub struct Settings {
   index_sats: bool,
   index_spent_sats: bool,
   index_transactions: bool,
+  index_addresses: bool,
   integration_test: bool,
   no_index_inscriptions: bool,
   server_password: Option<String>,
@@ -136,6 +137,7 @@ impl Settings {
       index_sats: self.index_sats || source.index_sats,
       index_spent_sats: self.index_spent_sats || source.index_spent_sats,
       index_transactions: self.index_transactions || source.index_transactions,
+      index_addresses: self.index_addresses || source.index_addresses,
       integration_test: self.integration_test || source.integration_test,
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
       server_password: self.server_password.or(source.server_password),
@@ -170,6 +172,7 @@ impl Settings {
       index_sats: options.index_sats,
       index_spent_sats: options.index_spent_sats,
       index_transactions: options.index_transactions,
+      index_addresses: options.index_addresses,
       integration_test: options.integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
       server_password: options.server_password,
@@ -248,6 +251,7 @@ impl Settings {
       index_sats: get_bool("INDEX_SATS"),
       index_spent_sats: get_bool("INDEX_SPENT_SATS"),
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
+      index_addresses: get_bool("INDEX_ADDRESSES"),
       integration_test: get_bool("INTEGRATION_TEST"),
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
       server_password: get_string("SERVER_PASSWORD"),
@@ -277,6 +281,7 @@ impl Settings {
       index_sats: true,
       index_spent_sats: false,
       index_transactions: false,
+      index_addresses: false,
       integration_test: false,
       no_index_inscriptions: false,
       server_password: None,
@@ -356,6 +361,7 @@ impl Settings {
       index_sats: self.index_sats,
       index_spent_sats: self.index_spent_sats,
       index_transactions: self.index_transactions,
+      index_addresses: self.index_addresses,
       integration_test: self.integration_test,
       no_index_inscriptions: self.no_index_inscriptions,
       server_password: self.server_password,
@@ -528,6 +534,10 @@ impl Settings {
 
   pub(crate) fn index_transactions(&self) -> bool {
     self.index_transactions
+  }
+
+  pub(crate) fn index_addresses(&self) -> bool {
+    self.index_addresses
   }
 
   pub(crate) fn integration_test(&self) -> bool {
@@ -998,6 +1008,7 @@ mod tests {
       ("INDEX_SATS", "1"),
       ("INDEX_SPENT_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
+      ("INDEX_ADDRESSES", "1"),
       ("INTEGRATION_TEST", "1"),
       ("NO_INDEX_INSCRIPTIONS", "1"),
       ("SERVER_PASSWORD", "server password"),
@@ -1041,6 +1052,7 @@ mod tests {
         index_sats: true,
         index_spent_sats: true,
         index_transactions: true,
+        index_addresses: true,
         integration_test: true,
         no_index_inscriptions: true,
         server_password: Some("server password".into()),
@@ -1073,6 +1085,7 @@ mod tests {
           "--index-sats",
           "--index-spent-sats",
           "--index-transactions",
+          "--index-addresses",
           "--index=index",
           "--integration-test",
           "--no-index-inscriptions",
@@ -1101,6 +1114,7 @@ mod tests {
         index_sats: true,
         index_spent_sats: true,
         index_transactions: true,
+        index_addresses: true,
         integration_test: true,
         no_index_inscriptions: true,
         server_password: Some("server password".into()),

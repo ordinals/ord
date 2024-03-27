@@ -6,9 +6,9 @@ use {
   },
   super::*,
   crate::templates::{
-    BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
-    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
     PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml,
     TransactionHtml,
@@ -261,6 +261,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
+        .route("/address/:address", get(Self::address))
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -890,6 +891,45 @@ impl Server {
           inscription_count,
           transaction,
           txid,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
+  }
+
+  async fn address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<String>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !settings.index_addresses() {
+        return Ok(StatusCode::OK.into_response());
+      }
+
+      let address_unchecked =
+        Address::from_str(&address).map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let address = address_unchecked
+        .clone()
+        .require_network(settings.chain().network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let inscriptions = index.get_inscription_ids_by_address(&address)?;
+
+      Ok(if accept_json {
+        Json(api::Address {
+          inscriptions,
+          address: address_unchecked,
+        })
+        .into_response()
+      } else {
+        AddressHtml {
+          inscriptions,
+          address,
         }
         .page(server_config)
         .into_response()
@@ -3199,6 +3239,8 @@ mod tests {
   <dt>sat index</dt>
   <dd>false</dd>
   <dt>transaction index</dt>
+  <dd>false</dd>
+  <dt>address index</dt>
   <dd>false</dd>
   <dt>git branch</dt>
   <dd>.*</dd>

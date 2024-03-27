@@ -512,6 +512,7 @@ fn get_status() {
       sat_index: true,
       started: dummy_started,
       transaction_index: false,
+      address_index: false,
       unrecoverably_reorged: false,
       uptime: dummy_duration,
     }

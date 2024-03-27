@@ -46,7 +46,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 24;
+const SCHEMA_VERSION: u64 = 25;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -83,6 +83,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { ADDRESS_TO_INSCRIPTION_IDS, &[u8], Vec<InscriptionIdValue> }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -101,6 +102,7 @@ pub(crate) enum Statistic {
   IndexTransactions = 12,
   IndexSpentSats = 13,
   InitialSyncTime = 14,
+  IndexAddresses = 15,
 }
 
 impl Statistic {
@@ -217,6 +219,7 @@ pub struct Index {
   index_sats: bool,
   index_spent_sats: bool,
   index_transactions: bool,
+  index_addresses: bool,
   settings: Settings,
   path: PathBuf,
   started: DateTime<Utc>,
@@ -232,6 +235,12 @@ impl Index {
     settings: &Settings,
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
+    if settings.index_addresses() && !settings.index_transactions() {
+      bail!(
+        "cannot index addresses without transactions, consider adding --index-transactions flag"
+      );
+    }
+
     let client = settings.bitcoin_rpc_client(None)?;
 
     let path = settings.index().to_owned();
@@ -339,6 +348,7 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+        tx.open_table(ADDRESS_TO_INSCRIPTION_IDS)?;
 
         {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
@@ -372,6 +382,12 @@ impl Index {
             u64::from(settings.index_transactions()),
           )?;
 
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexAddresses,
+            u64::from(settings.index_addresses()),
+          )?;
+
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
@@ -386,6 +402,7 @@ impl Index {
     let index_sats;
     let index_spent_sats;
     let index_transactions;
+    let index_addresses;
 
     {
       let tx = database.begin_read()?;
@@ -394,6 +411,7 @@ impl Index {
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
       index_spent_sats = Self::is_statistic_set(&statistics, Statistic::IndexSpentSats)?;
       index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
+      index_addresses = Self::is_statistic_set(&statistics, Statistic::IndexAddresses)?;
     }
 
     let genesis_block_coinbase_transaction =
@@ -412,6 +430,7 @@ impl Index {
       index_sats,
       index_spent_sats,
       index_transactions,
+      index_addresses,
       settings: settings.clone(),
       path,
       started: Utc::now(),
@@ -498,6 +517,7 @@ impl Index {
       sat_index: statistic(Statistic::IndexSats)? != 0,
       started: self.started,
       transaction_index: statistic(Statistic::IndexTransactions)? != 0,
+      address_index: statistic(Statistic::IndexAddresses)? != 0,
       unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
       uptime: (Utc::now() - self.started).to_std()?,
     })
@@ -2006,6 +2026,30 @@ impl Index {
         }
       }
     }
+  }
+
+  #[allow(dead_code)]
+  pub(crate) fn get_inscription_ids_by_address(
+    &self,
+    address: &Address,
+  ) -> Result<Vec<InscriptionId>> {
+    let entry = self
+      .database
+      .begin_read()?
+      .open_table(ADDRESS_TO_INSCRIPTION_IDS)?
+      .get(address.to_string().as_bytes())?;
+
+    if let Some(entry) = entry {
+      return Ok(
+        entry
+          .value()
+          .iter()
+          .map(|entry| InscriptionId::load(*entry))
+          .collect(),
+      );
+    }
+
+    Ok(vec![])
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
@@ -6179,6 +6223,111 @@ mod tests {
         },
         sequence_number: 0,
       }
+    );
+  }
+
+  #[test]
+  fn inscription_get_attached_to_address() {
+    let context = Context::builder()
+      .arg("--index-sats")
+      .arg("--index-transactions")
+      .arg("--index-addresses")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      []
+    );
+
+    context.mine_blocks(1);
+
+    let first_transaction = context.index.get_transaction(txid).unwrap().unwrap();
+
+    let first_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&first_transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_ids_by_address(&first_address)
+        .unwrap(),
+      [inscription_id]
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      [inscription_id]
+    );
+
+    let send_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      p2tr: true,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let second_transaction = context.index.get_transaction(send_id).unwrap().unwrap();
+
+    let second_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&second_transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_ids_by_address(&second_address)
+        .unwrap(),
+      [inscription_id]
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_ids_by_address(&first_address)
+        .unwrap(),
+      []
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+        .unwrap(),
+      []
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscriptions_on_output(OutPoint {
+          txid: send_id,
+          vout: 0,
+        })
+        .unwrap(),
+      [inscription_id]
     );
   }
 }
