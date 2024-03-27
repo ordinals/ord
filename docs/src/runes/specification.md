@@ -319,11 +319,11 @@ which should be displayed after amounts of that rune. If a rune does not have a
 currency symbol, the generic currency character `¤` should be used.
 
 For example, if the `Symbol` is `#` and the divisibility is 2, the amount of
-`1234` units should be displayed as `12.24 #`.
+`1234` units should be displayed as `12.34 #`.
 
 ##### Nop
 
-The `Cenotaph` field is unrecognized.
+The `Nop` field is unrecognized.
 
 #### Cenotaphs
 
