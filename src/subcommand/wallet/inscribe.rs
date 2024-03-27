@@ -169,63 +169,7 @@ impl Inscribe {
     };
 
     if let Some(etching) = etching {
-      let rune = etching.rune.rune;
-
-      if wallet.db().retrieve(rune)?.is_some() {
-        bail!("rune {rune} already has a pending commit tx, use `ord wallet resume` to continue etching it");
-      }
-
-      ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
-
-      ensure!(
-        etching.divisibility <= crate::runes::MAX_DIVISIBILITY,
-        "<DIVISIBILITY> must be less than or equal 38"
-      );
-
-      ensure!(
-        wallet.has_rune_index(),
-        "etching runes requires index created with `--index-runes`",
-      );
-
-      ensure!(
-        wallet.get_rune(rune)?.is_none(),
-        "rune `{rune}` has already been etched",
-      );
-
-      let premine = etching.premine.to_amount(etching.divisibility)?;
-
-      let supply = etching.supply.to_amount(etching.divisibility)?;
-
-      let mintable = etching
-        .mint
-        .map(|mint| -> Result<u128> {
-          mint
-            .cap
-            .checked_mul(mint.limit.to_amount(etching.divisibility)?)
-            .ok_or_else(|| anyhow!("`mint.count` * `mint.limit` over maximum"))
-        })
-        .transpose()?
-        .unwrap_or_default();
-
-      ensure!(
-        supply
-          == premine
-            .checked_add(mintable)
-            .ok_or_else(|| anyhow!("`premine` + `mint.count` * `mint.limit` over maximum"))?,
-        "`supply` not equal to `premine` + `mint.count` * `mint.limit`"
-      );
-
-      let bitcoin_client = wallet.bitcoin_client();
-
-      let count = bitcoin_client.get_block_count()?;
-
-      let minimum =
-        Rune::minimum_at_height(wallet.chain(), Height(u32::try_from(count).unwrap() + 1));
-
-      ensure!(
-        rune >= minimum,
-        "rune is less than minimum for next block: {rune} < {minimum}",
-      );
+      Self::check_etching(&wallet, &etching)?;
     }
 
     batch::Plan {
@@ -269,6 +213,104 @@ impl Inscribe {
     } else {
       Ok(None)
     }
+  }
+
+  fn check_etching(wallet: &Wallet, etching: &batch::Etching) -> Result {
+    let rune = etching.rune.rune;
+
+    ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
+
+    ensure!(
+      etching.divisibility <= crate::runes::MAX_DIVISIBILITY,
+      "<DIVISIBILITY> must be less than or equal 38"
+    );
+
+    ensure!(
+      wallet.has_rune_index(),
+      "etching runes requires index created with `--index-runes`",
+    );
+
+    ensure!(
+      wallet.get_rune(rune)?.is_none(),
+      "rune `{rune}` has already been etched",
+    );
+
+    let premine = etching.premine.to_amount(etching.divisibility)?;
+
+    let supply = etching.supply.to_amount(etching.divisibility)?;
+
+    let mintable = etching
+      .terms
+      .map(|terms| -> Result<u128> {
+        terms
+          .cap
+          .checked_mul(terms.limit.to_amount(etching.divisibility)?)
+          .ok_or_else(|| anyhow!("`terms.count` * `terms.limit` over maximum"))
+      })
+      .transpose()?
+      .unwrap_or_default();
+
+    ensure!(
+      supply
+        == premine
+          .checked_add(mintable)
+          .ok_or_else(|| anyhow!("`premine` + `terms.count` * `terms.limit` over maximum"))?,
+      "`supply` not equal to `premine` + `terms.count` * `terms.limit`"
+    );
+
+    ensure!(supply > 0, "`supply` must be greater than zero");
+
+    let bitcoin_client = wallet.bitcoin_client();
+
+    let current_height = u32::try_from(bitcoin_client.get_block_count()?).unwrap();
+
+    let reveal_height = current_height + 1 + RUNE_COMMIT_INTERVAL;
+
+    if let Some(terms) = etching.terms {
+      if let Some((start, end)) = terms.offset.and_then(|range| range.start.zip(range.end)) {
+        ensure!(
+          end > start,
+          "`terms.offset.end` must be greater than `terms.offset.start`"
+        );
+      }
+
+      if let Some((start, end)) = terms.height.and_then(|range| range.start.zip(range.end)) {
+        ensure!(
+          end > start,
+          "`terms.height.end` must be greater than `terms.height.start`"
+        );
+      }
+
+      if let Some(end) = terms.height.and_then(|range| range.end) {
+        ensure!(
+          end > reveal_height.into(),
+          "`terms.height.end` must be greater than the reveal transaction block height of {reveal_height}"
+        );
+      }
+
+      if let Some(start) = terms.height.and_then(|range| range.start) {
+        ensure!(
+            start > reveal_height.into(),
+            "`terms.height.start` must be greater than the reveal transaction block height of {reveal_height}"
+          );
+      }
+
+      ensure!(terms.cap > 0, "`terms.cap` must be greater than zero",);
+
+      ensure!(
+        terms.limit.to_amount(etching.divisibility)? > 0,
+        "`terms.limit` must be greater than zero",
+      );
+    }
+
+    let minimum = Rune::minimum_at_height(wallet.chain(), Height(reveal_height));
+
+    ensure!(
+      rune >= minimum,
+      "rune is less than minimum for next block: {rune} < {minimum}",
+    );
+
+    Ok(())
   }
 }
 

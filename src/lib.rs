@@ -25,6 +25,7 @@ use {
     },
     into_usize::IntoUsize,
     representation::Representation,
+    runes::Terms,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -83,7 +84,7 @@ use {
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, MintEntry, RuneEntry},
+  index::{Index, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
@@ -185,8 +186,10 @@ fn fund_raw_transaction(
   )
 }
 
-pub fn timestamp(seconds: u32) -> DateTime<Utc> {
-  Utc.timestamp_opt(seconds.into(), 0).unwrap()
+pub fn timestamp(seconds: u64) -> DateTime<Utc> {
+  Utc
+    .timestamp_opt(seconds.try_into().unwrap_or(i64::MAX), 0)
+    .unwrap()
 }
 
 fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {

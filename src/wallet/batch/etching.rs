@@ -4,9 +4,9 @@ use super::*;
 #[serde(deny_unknown_fields)]
 pub struct Etching {
   pub divisibility: u8,
-  pub mint: Option<Mint>,
   pub premine: Decimal,
   pub rune: SpacedRune,
   pub supply: Decimal,
   pub symbol: char,
+  pub terms: Option<Terms>,
 }
