@@ -29,11 +29,14 @@ fn minting_rune_and_fails_if_after_end() {
         premine: "0".parse().unwrap(),
         symbol: '¢',
         supply: "111.1".parse().unwrap(),
-        mint: Some(batch::Mint {
+        terms: Some(batch::Terms {
           cap: 1,
-          term: Some(2),
+          offset: Some(batch::Range {
+            end: Some(2),
+            start: None,
+          }),
           limit: "111.1".parse().unwrap(),
-          deadline: None,
+          height: None,
         }),
       }),
       inscriptions: vec![batch::Entry {
@@ -125,7 +128,7 @@ fn minting_rune_fails_if_not_mintable() {
         supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
         symbol: '¢',
-        mint: None,
+        terms: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
@@ -143,64 +146,6 @@ fn minting_rune_fails_if_not_mintable() {
   .ord_rpc_server(&ord_rpc_server)
   .expected_exit_code(1)
   .expected_stderr("error: rune AAAAAAAAAAAAA not mintable\n")
-  .run_and_extract_stdout();
-}
-
-#[test]
-fn minting_rune_fails_if_after_deadline() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
-
-  let rune = Rune(RUNE);
-  let deadline = 9;
-
-  batch(
-    &bitcoin_rpc_server,
-    &ord_rpc_server,
-    batch::File {
-      etching: Some(batch::Etching {
-        divisibility: 1,
-        rune: SpacedRune { rune, spacers: 0 },
-        premine: "0".parse().unwrap(),
-        supply: "222.2".parse().unwrap(),
-        symbol: '¢',
-        mint: Some(batch::Mint {
-          cap: 2,
-          term: Some(2),
-          limit: "111.1".parse().unwrap(),
-          deadline: Some(deadline),
-        }),
-      }),
-      inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
-        ..default()
-      }],
-      ..default()
-    },
-  );
-
-  CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {rune}",
-  ))
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<mint::Output>();
-
-  bitcoin_rpc_server.mine_blocks(1);
-
-  CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {rune}",
-  ))
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr(format!("error: rune {rune} mint ended at {deadline}\n"))
   .run_and_extract_stdout();
 }
 
@@ -253,11 +198,14 @@ fn minting_rune_and_then_sending_works() {
         premine: "111".parse().unwrap(),
         supply: "132".parse().unwrap(),
         symbol: '¢',
-        mint: Some(batch::Mint {
+        terms: Some(batch::Terms {
           cap: 1,
-          term: Some(10),
+          offset: Some(batch::Range {
+            end: Some(10),
+            start: None,
+          }),
           limit: "21".parse().unwrap(),
-          deadline: None,
+          height: None,
         }),
       }),
       inscriptions: vec![batch::Entry {

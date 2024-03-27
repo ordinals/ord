@@ -199,7 +199,7 @@ impl Context {
     (
       txid,
       RuneId {
-        block: u32::try_from(block_count + usize::try_from(RUNE_COMMIT_INTERVAL).unwrap() + 1)
+        block: u64::try_from(block_count + usize::try_from(RUNE_COMMIT_INTERVAL).unwrap() + 1)
           .unwrap(),
         tx: 1,
       },
