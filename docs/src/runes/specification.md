@@ -404,8 +404,9 @@ twelve-character rune names are unlocked, between block 857,500 and block
 until the one-character rune names are unlocked between block 1,032,500 and
 block 1,050,000. See the `ord` codebase for the precise unlocking schedule.
 
-If a non-reserved rune name is being etched, the etching transaction must
-contain a valid commitment to the name being etched.
+To prevent front running an etching that has been broadcast but not mined, if a
+non-reserved rune name is being etched, the etching transaction must contain a
+valid commitment to the name being etched.
 
 A commitment consists of a data push of the rune name, encoded as a
 little-endian integer with trailing zero bytes elided, present in an input
