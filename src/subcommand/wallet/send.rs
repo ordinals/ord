@@ -231,7 +231,7 @@ impl Send {
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let amount = decimal.to_amount(entry.divisibility)?;
+    let amount = decimal.to_integer(entry.divisibility)?;
 
     let inscribed_outputs = inscriptions
       .keys()
