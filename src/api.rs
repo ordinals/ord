@@ -83,7 +83,6 @@ pub struct Inscription {
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
-  /// Exposes the "real" content type, applicable to delegating inscriptions
   pub effective_content_type: Option<String>,
   pub fee: u64,
   pub height: u32,
