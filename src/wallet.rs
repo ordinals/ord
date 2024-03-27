@@ -521,22 +521,22 @@ impl Wallet {
 
   pub(crate) fn wait_for_maturation(
     &self,
-    rune: Rune,
-    signed_commit_tx: Vec<u8>,
-    signed_reveal_tx: Vec<u8>,
+    rune_info: &RuneInfo,
+    commit_tx: Transaction,
+    reveal_tx: Transaction,
+    _inscriptions: Vec<Inscription>,
+    _total_fees: u64,
   ) -> Result<Txid> {
     eprintln!("Waiting for rune commitment to mature…");
 
-    let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?.txid();
+    let rune = rune_info.rune.rune;
 
-    self
-      .db()
-      .store(rune, &signed_commit_tx, &signed_reveal_tx)?;
+    self.db().store(rune, &commit_tx, &reveal_tx)?;
 
     loop {
       let transaction = self
         .bitcoin_client()
-        .get_transaction(&commit, Some(true))
+        .get_transaction(&commit_tx.txid(), Some(true))
         .into_option()?;
 
       if let Some(transaction) = transaction {
@@ -545,7 +545,9 @@ impl Wallet {
         }
       }
 
-      let tx_out = self.bitcoin_client().get_tx_out(&commit, 0, Some(true))?;
+      let tx_out = self
+        .bitcoin_client()
+        .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
 
       if let Some(tx_out) = tx_out {
         if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
@@ -558,19 +560,17 @@ impl Wallet {
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        break;
+        return Err(anyhow!("canceled"));
       }
     }
 
-    let reveal = match self
-      .bitcoin_client()
-      .send_raw_transaction(&signed_reveal_tx)
-    {
+    let reveal = match self.bitcoin_client().send_raw_transaction(&reveal_tx) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
-      ))
+          "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
+          commit_tx.txid()
+        ))
       }
     };
 

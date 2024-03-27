@@ -122,12 +122,18 @@ impl Plan {
       Self::backup_recovery_key(wallet, recovery_key_pair)?;
     }
 
-    let commit = wallet
+    let commit_txid = wallet
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
     let reveal = if let Some(ref rune_info) = rune {
-      wallet.wait_for_maturation(rune_info.rune.rune, signed_commit_tx, signed_reveal_tx)?
+      wallet.wait_for_maturation(
+        rune_info,
+        consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?,
+        consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?,
+        self.inscriptions.clone(),
+        total_fees,
+      )?
     } else {
       let reveal = match wallet
         .bitcoin_client()
@@ -136,7 +142,7 @@ impl Plan {
         Ok(txid) => txid,
         Err(err) => {
           return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
+        "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
       ))
         }
       };
@@ -145,7 +151,7 @@ impl Plan {
     };
 
     Ok(Some(Box::new(self.output(
-      commit,
+      commit_txid,
       None,
       reveal,
       None,

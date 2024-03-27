@@ -1,5 +1,6 @@
 use {
   super::*,
+  index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
@@ -17,7 +18,7 @@ macro_rules! define_table {
   };
 }
 
-define_table! { RUNE_TO_INFO, u128, (&[u8], &[u8]) }
+define_table! { RUNE_TO_INFO, u128, ResumeEntryValue }
 define_table! { STATISTICS, u64, u64 }
 
 #[derive(Copy, Clone)]
@@ -37,6 +38,32 @@ impl From<Statistic> for u64 {
   }
 }
 
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct ResumeEntry {
+  pub commit: Transaction,
+  pub reveal: Transaction,
+}
+
+pub(super) type ResumeEntryValue = (Vec<u8>, Vec<u8>);
+
+impl Entry for ResumeEntry {
+  type Value = ResumeEntryValue;
+
+  fn load((commit, reveal): ResumeEntryValue) -> Self {
+    Self {
+      commit: consensus::encode::deserialize::<Transaction>(&commit).unwrap(),
+      reveal: consensus::encode::deserialize::<Transaction>(&reveal).unwrap(),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (
+      consensus::encode::serialize(&self.commit),
+      consensus::encode::serialize(&self.reveal),
+    )
+  }
+}
+
 pub(crate) struct Db {
   database: Database,
   durability: redb::Durability,
@@ -50,7 +77,7 @@ impl Db {
       redb::Durability::Immediate
     };
 
-    let path = settings.data_dir().join(wallet_name);
+    let path = settings.data_dir().join(format!("{wallet_name}.redb"));
     let path_clone = path.clone().to_owned();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
@@ -150,27 +177,31 @@ impl Db {
     Ok(wtx)
   }
 
-  pub(crate) fn store(&self, rune: Rune, commit: &Vec<u8>, reveal: &Vec<u8>) -> Result {
+  pub(crate) fn store(&self, rune: Rune, commit: &Transaction, reveal: &Transaction) -> Result {
     let wtx = self.begin_write()?;
 
-    wtx
-      .open_table(RUNE_TO_INFO)?
-      .insert(rune.0, (commit.as_slice(), reveal.as_slice()))?;
+    wtx.open_table(RUNE_TO_INFO)?.insert(
+      rune.0,
+      ResumeEntry {
+        commit: commit.clone(),
+        reveal: reveal.clone(),
+      }
+      .store(),
+    )?;
 
     wtx.commit()?;
 
     Ok(())
   }
 
-  pub(crate) fn retrieve(&self, rune: Rune) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
+  pub(crate) fn retrieve(&self, rune: Rune) -> Result<Option<ResumeEntry>> {
     let rtx = self.begin_read()?;
 
     Ok(
       rtx
         .open_table(RUNE_TO_INFO)?
         .get(rune.0)?
-        .map(|result| result.value())
-        .map(|(commit, reveal)| (commit.to_owned(), reveal.to_owned())),
+        .map(|result| ResumeEntry::load(result.value())),
     )
   }
 
