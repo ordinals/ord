@@ -3644,7 +3644,7 @@ fn batch_inscribe_errors_if_pending_etchings() {
       supply: "1000".parse().unwrap(),
       premine: "1000".parse().unwrap(),
       symbol: '¢',
-      mint: None,
+      ..default()
     }),
     inscriptions: vec![batch::Entry {
       file: "inscription.jpeg".into(),
