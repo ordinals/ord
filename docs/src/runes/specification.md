@@ -312,6 +312,8 @@ For example, the rune name `AAAA` rendered with different spacers:
 | 0b10    | AA•AA   |
 | 0b111   | A•A•A•A |
 
+Trailing spacers are ignored.
+
 ##### Symbol
 
 The `Symbol` field is the Unicode codepoint of the Rune's currency symbol,
