@@ -2186,6 +2186,39 @@ fn file_inscribe_with_delegate_inscription() {
 }
 
 #[test]
+fn inscription_with_delegate_returns_effective_content_type() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+  let (delegate, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {delegate} --file meow.wav"
+  ))
+  .write("meow.wav", [0; 2048])
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let inscription_id = inscribe.inscriptions[0].id;
+  let json_response = ord_rpc_server.json_request(format!("/inscription/{}", inscription_id));
+
+  let inscription_json: api::Inscription =
+    serde_json::from_str(&json_response.text().unwrap()).unwrap();
+  assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
+
+  assert_eq!(inscription_json.content_type, Some("audio/wav".to_string()));
+  assert_eq!(
+    inscription_json.effective_content_type,
+    Some("text/plain;charset=utf-8".to_string())
+  );
+}
+
+#[test]
 fn file_inscribe_with_non_existent_delegate_inscription() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -2713,7 +2746,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 9,
-          limit: "1000".parse().unwrap(),
+          amount: "1000".parse().unwrap(),
           offset: Some(batch::Range {
             start: Some(10),
             end: Some(20),
@@ -2789,7 +2822,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 9,
-          limit: "1000".parse().unwrap(),
+          amount: "1000".parse().unwrap(),
           height: Some(batch::Range {
             start: Some(10),
             end: Some(20),
@@ -3089,7 +3122,7 @@ fn etch_mintable_overflow_error() {
               end: Some(2),
               start: None,
             }),
-            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            amount: "340282366920938463463374607431768211455".parse().unwrap(),
             height: None,
           }),
         }),
@@ -3103,7 +3136,7 @@ fn etch_mintable_overflow_error() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .expected_stderr("error: `terms.count` * `terms.limit` over maximum\n")
+    .expected_stderr("error: `terms.count` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -3141,7 +3174,7 @@ fn etch_mintable_plus_premine_overflow_error() {
               end: Some(2),
               start: None,
             }),
-            limit: "340282366920938463463374607431768211455".parse().unwrap(),
+            amount: "340282366920938463463374607431768211455".parse().unwrap(),
             height: None,
           }),
         }),
@@ -3155,7 +3188,7 @@ fn etch_mintable_plus_premine_overflow_error() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .expected_stderr("error: `premine` + `terms.count` * `terms.limit` over maximum\n")
+    .expected_stderr("error: `premine` + `terms.count` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -3193,7 +3226,7 @@ fn incorrect_supply_error() {
               end: Some(2),
               start: None,
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             height: None,
           }),
         }),
@@ -3207,7 +3240,7 @@ fn incorrect_supply_error() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .expected_stderr("error: `supply` not equal to `premine` + `terms.count` * `terms.limit`\n")
+    .expected_stderr("error: `supply` not equal to `premine` + `terms.count` * `terms.amount`\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -3245,7 +3278,7 @@ fn zero_offset_interval_error() {
               end: Some(2),
               start: Some(2),
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             height: None,
           }),
         }),
@@ -3297,7 +3330,7 @@ fn zero_height_interval_error() {
               end: Some(2),
               start: Some(2),
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             offset: None,
           }),
         }),
@@ -3349,7 +3382,7 @@ fn invalid_start_height_error() {
               end: None,
               start: Some(0),
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             offset: None,
           }),
         }),
@@ -3403,7 +3436,7 @@ fn invalid_end_height_error() {
               start: None,
               end: Some(0),
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             offset: None,
           }),
         }),
@@ -3498,7 +3531,7 @@ fn zero_cap_error() {
           terms: Some(batch::Terms {
             cap: 0,
             height: None,
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
             offset: None,
           }),
         }),
@@ -3518,7 +3551,7 @@ fn zero_cap_error() {
 }
 
 #[test]
-fn zero_limit_error() {
+fn zero_amount_error() {
   let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -3547,7 +3580,7 @@ fn zero_limit_error() {
           terms: Some(batch::Terms {
             cap: 1,
             height: None,
-            limit: "0".parse().unwrap(),
+            amount: "0".parse().unwrap(),
             offset: None,
           }),
         }),
@@ -3561,7 +3594,7 @@ fn zero_limit_error() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .expected_stderr("error: `terms.limit` must be greater than zero\n")
+    .expected_stderr("error: `terms.amount` must be greater than zero\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -3603,7 +3636,7 @@ fn oversize_runestone_error() {
               start: Some(u64::MAX - 1),
               end: Some(u64::MAX),
             }),
-            limit: "1".parse().unwrap(),
+            amount: "1".parse().unwrap(),
           }),
         }),
         inscriptions: vec![batch::Entry {

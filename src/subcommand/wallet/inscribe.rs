@@ -235,17 +235,17 @@ impl Inscribe {
       "rune `{rune}` has already been etched",
     );
 
-    let premine = etching.premine.to_amount(etching.divisibility)?;
+    let premine = etching.premine.to_integer(etching.divisibility)?;
 
-    let supply = etching.supply.to_amount(etching.divisibility)?;
+    let supply = etching.supply.to_integer(etching.divisibility)?;
 
     let mintable = etching
       .terms
       .map(|terms| -> Result<u128> {
         terms
           .cap
-          .checked_mul(terms.limit.to_amount(etching.divisibility)?)
-          .ok_or_else(|| anyhow!("`terms.count` * `terms.limit` over maximum"))
+          .checked_mul(terms.amount.to_integer(etching.divisibility)?)
+          .ok_or_else(|| anyhow!("`terms.count` * `terms.amount` over maximum"))
       })
       .transpose()?
       .unwrap_or_default();
@@ -254,8 +254,8 @@ impl Inscribe {
       supply
         == premine
           .checked_add(mintable)
-          .ok_or_else(|| anyhow!("`premine` + `terms.count` * `terms.limit` over maximum"))?,
-      "`supply` not equal to `premine` + `terms.count` * `terms.limit`"
+          .ok_or_else(|| anyhow!("`premine` + `terms.count` * `terms.amount` over maximum"))?,
+      "`supply` not equal to `premine` + `terms.count` * `terms.amount`"
     );
 
     ensure!(supply > 0, "`supply` must be greater than zero");
@@ -295,11 +295,11 @@ impl Inscribe {
           );
       }
 
-      ensure!(terms.cap > 0, "`terms.cap` must be greater than zero",);
+      ensure!(terms.cap > 0, "`terms.cap` must be greater than zero");
 
       ensure!(
-        terms.limit.to_amount(etching.divisibility)? > 0,
-        "`terms.limit` must be greater than zero",
+        terms.amount.to_integer(etching.divisibility)? > 0,
+        "`terms.amount` must be greater than zero",
       );
     }
 

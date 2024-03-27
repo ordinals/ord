@@ -32,7 +32,7 @@ impl Mint {
       bail!("rune {rune} has not been etched");
     };
 
-    let limit = rune_entry
+    let amount = rune_entry
       .mintable(block_height)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
@@ -76,12 +76,19 @@ impl Mint {
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
 
+    let signed_transaction = consensus::encode::deserialize(&signed_transaction)?;
+
+    assert_eq!(
+      Runestone::from_transaction(&signed_transaction).unwrap(),
+      runestone,
+    );
+
     let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;
 
     Ok(Some(Box::new(Output {
       rune: self.rune,
       pile: Pile {
-        amount: limit,
+        amount,
         divisibility: rune_entry.divisibility,
         symbol: rune_entry.symbol,
       },
