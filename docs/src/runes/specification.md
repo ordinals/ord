@@ -400,7 +400,7 @@ activates.
 Thereafter, every 17,500 block period, the next shortest length of rune names
 is continously unlocked. So, between block 840,000 and block 857,500, the
 twelve-character rune names are unlocked, between block 857,500 and block
-875,000 the eleven character rune names are unlocked, and so forth and so on,
+875,000 the eleven character rune names are unlocked, and so on and so on,
 until the one-character rune names are unlocked between block 1,032,500 and
 block 1,050,000. See the `ord` codebase for the precise unlocking schedule.
 
