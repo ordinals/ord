@@ -1,6 +1,6 @@
 pub(super) enum Flag {
-  Etch = 0,
-  Mint = 1,
+  Etching = 0,
+  Terms = 1,
   #[allow(unused)]
   Cenotaph = 127,
 }
@@ -28,25 +28,25 @@ mod tests {
 
   #[test]
   fn mask() {
-    assert_eq!(Flag::Etch.mask(), 0b1);
+    assert_eq!(Flag::Etching.mask(), 0b1);
     assert_eq!(Flag::Cenotaph.mask(), 1 << 127);
   }
 
   #[test]
   fn take() {
     let mut flags = 1;
-    assert!(Flag::Etch.take(&mut flags));
+    assert!(Flag::Etching.take(&mut flags));
     assert_eq!(flags, 0);
 
     let mut flags = 0;
-    assert!(!Flag::Etch.take(&mut flags));
+    assert!(!Flag::Etching.take(&mut flags));
     assert_eq!(flags, 0);
   }
 
   #[test]
   fn set() {
     let mut flags = 0;
-    Flag::Etch.set(&mut flags);
+    Flag::Etching.set(&mut flags);
     assert_eq!(flags, 1);
   }
 }
