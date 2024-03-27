@@ -32,7 +32,7 @@ mod tests {
             cap: Some(101),
             offset: (None, None),
             height: (Some(10), Some(11)),
-            limit: Some(1000000001),
+            amount: Some(1000000001),
           }),
           number: 25,
           premine: 123456789,
@@ -70,7 +70,7 @@ mod tests {
       <dd><a href=/block/10>10</a></dd>
       <dt>end</dt>
       <dd><a href=/block/11>11</a></dd>
-      <dt>limit</dt>
+      <dt>amount</dt>
       <dd>1.000000001 %</dd>
       <dt>mints</dt>
       <dd>100</dd>
@@ -145,7 +145,7 @@ mod tests {
             cap: None,
             offset: (None, None),
             height: (None, None),
-            limit: None,
+            amount: None,
           }),
           divisibility: 9,
           etching: Txid::all_zeros(),
@@ -172,7 +172,7 @@ mod tests {
       <dd>none</dd>
       <dt>end</dt>
       <dd>none</dd>
-      <dt>limit</dt>
+      <dt>amount</dt>
       <dd>none</dd>
       <dt>mints</dt>
       <dd>0</dd>

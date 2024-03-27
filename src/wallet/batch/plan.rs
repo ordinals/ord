@@ -470,7 +470,7 @@ impl Plan {
                   terms.height.and_then(|range| (range.start)),
                   terms.height.and_then(|range| (range.end)),
                 ),
-                limit: Some(terms.limit.to_amount(etching.divisibility)?),
+                amount: Some(terms.amount.to_amount(etching.divisibility)?),
                 offset: (
                   terms.offset.and_then(|range| (range.start)),
                   terms.offset.and_then(|range| (range.end)),
