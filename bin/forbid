@@ -2,7 +2,10 @@
 
 set -euo pipefail
 
-which rg > /dev/null
+if ! which rg > /dev/null; then
+  echo "error: ripgrep (rg) not found"
+  exit 1
+fi
 
 ! rg \
   --glob '!bin/forbid' \

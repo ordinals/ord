@@ -26,26 +26,21 @@ impl Mint {
 
     let bitcoin_client = wallet.bitcoin_client();
 
-    let block_height: u32 = bitcoin_client.get_block_count()?.try_into().unwrap();
-
-    let block_time = bitcoin_client
-      .get_block(&bitcoin_client.get_best_block_hash()?)?
-      .header
-      .time;
+    let block_height = bitcoin_client.get_block_count()?;
 
     let Some((id, rune_entry, _)) = wallet.get_rune(rune)? else {
       bail!("rune {rune} has not been etched");
     };
 
-    let limit = rune_entry
-      .mintable(Height(block_height), block_time)
-      .map_err(|e| anyhow!(e))?;
+    let amount = rune_entry
+      .mintable(block_height)
+      .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
     let destination = wallet.get_change_address()?;
 
     let runestone = Runestone {
-      claim: Some(id),
-      ..Default::default()
+      mint: Some(id),
+      ..default()
     };
 
     let script_pubkey = runestone.encipher();
@@ -72,15 +67,7 @@ impl Mint {
       ],
     };
 
-    let inscriptions = wallet
-      .inscriptions()
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<Vec<OutPoint>>();
-
-    if !bitcoin_client.lock_unspent(&inscriptions)? {
-      bail!("failed to lock UTXOs");
-    }
+    wallet.lock_non_cardinal_outputs()?;
 
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, self.fee_rate, &unfunded_transaction)?;
@@ -94,7 +81,7 @@ impl Mint {
     Ok(Some(Box::new(Output {
       rune: self.rune,
       pile: Pile {
-        amount: limit,
+        amount,
         divisibility: rune_entry.divisibility,
         symbol: rune_entry.symbol,
       },

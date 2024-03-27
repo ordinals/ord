@@ -84,7 +84,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
@@ -98,19 +98,43 @@ fn runic_utxos_are_deducted_from_cardinal() {
     }
   );
 
-  etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let rune = Rune(RUNE);
 
-  assert_eq!(
+  batch(
+    &bitcoin_rpc_server,
+    &ord_rpc_server,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        premine: "1000".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        supply: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: "inscription.jpeg".into(),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  pretty_assert_eq!(
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
       .run_and_deserialize_output::<Output>(),
     Output {
-      cardinal: 100 * COIN_VALUE - 10_000,
-      ordinal: 0,
+      cardinal: 50 * COIN_VALUE * 8 - 20_000,
+      ordinal: 10000,
       runic: Some(10_000),
-      runes: Some(vec![(Rune(RUNE), 1000)].into_iter().collect()),
-      total: 100 * COIN_VALUE,
+      runes: Some(
+        vec![(SpacedRune { rune, spacers: 1 }, 1000)]
+          .into_iter()
+          .collect()
+      ),
+      total: 50 * COIN_VALUE * 8,
     }
   );
 }

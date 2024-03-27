@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::{
     absolute::LockTime, consensus::Encodable, opcodes, script, ScriptBuf, Sequence, Transaction,
-    TxIn, Witness,
+    TxIn, TxOut, Witness,
   },
   ord::{
     subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
@@ -36,7 +36,10 @@ fn transaction() -> Vec<u8> {
       sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
       witness,
     }],
-    output: Vec::new(),
+    output: vec![TxOut {
+      script_pubkey: Runestone::default().encipher(),
+      value: 0,
+    }],
   };
 
   let mut buffer = Vec::new();
@@ -48,7 +51,7 @@ fn transaction() -> Vec<u8> {
 
 #[test]
 fn from_file() {
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("decode --file transaction.bin")
       .write("transaction.bin", transaction())
       .run_and_deserialize_output::<RawOutput>(),
@@ -57,20 +60,21 @@ fn from_file() {
         payload: Inscription {
           body: Some(vec![0, 1, 2, 3]),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
         pushnum: false,
         stutter: false,
       }],
+      runestone: Some(Runestone::default()),
     },
   );
 }
 
 #[test]
 fn from_stdin() {
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("decode")
       .stdin(transaction())
       .run_and_deserialize_output::<RawOutput>(),
@@ -79,13 +83,14 @@ fn from_stdin() {
         payload: Inscription {
           body: Some(vec![0, 1, 2, 3]),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
         pushnum: false,
         stutter: false,
       }],
+      runestone: Some(Runestone::default()),
     },
   );
 }
@@ -101,7 +106,7 @@ fn from_core() {
 
   let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
 
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new(format!("decode --txid {reveal}"))
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<RawOutput>(),
@@ -110,20 +115,21 @@ fn from_core() {
         payload: Inscription {
           body: Some(b"FOO".into()),
           content_type: Some(b"text/plain;charset=utf-8".into()),
-          ..Default::default()
+          ..default()
         },
         input: 0,
         offset: 0,
         pushnum: false,
         stutter: false,
       }],
+      runestone: None,
     },
   );
 }
 
 #[test]
 fn compact() {
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("decode --compact --file transaction.bin")
       .write("transaction.bin", transaction())
       .run_and_deserialize_output::<CompactOutput>(),
@@ -140,6 +146,7 @@ fn compact() {
         pointer: None,
         unrecognized_even_field: false,
       }],
+      runestone: Some(Runestone::default()),
     },
   );
 }

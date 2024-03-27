@@ -207,7 +207,7 @@ mod tests {
               </tr>
               <tr>
                 <td><a href=/rune/A•A>A•A</a></td>
-                <td>1.1</td>
+                <td>1.1\u{A0}¤</td>
               </tr>
             </table>
           </dd>

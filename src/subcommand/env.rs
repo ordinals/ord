@@ -124,8 +124,7 @@ rpcport={bitcoind_port}
         "failed to generate receive address: {status}"
       );
 
-      let receive =
-        serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
+      let receive = serde_json::from_slice::<wallet::receive::Output>(&output.stdout)?;
 
       let status = Command::new("bitcoin-cli")
         .arg(format!("-datadir={relative}"))
@@ -146,7 +145,7 @@ rpcport={bitcoind_port}
     }
 
     serde_json::to_writer_pretty(
-      File::create(self.directory.join("env.json"))?,
+      fs::File::create(self.directory.join("env.json"))?,
       &Info {
         bitcoind_port,
         ord_port,
@@ -160,13 +159,22 @@ rpcport={bitcoind_port}
       },
     )?;
 
+    let datadir = if relative
+      .chars()
+      .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+    {
+      relative
+    } else {
+      format!("'{relative}'")
+    };
+
     eprintln!(
       "{}
 {server_url}
 {}
-bitcoin-cli -datadir='{relative}' getblockchaininfo
+bitcoin-cli -datadir={datadir} getblockchaininfo
 {}
-{} --datadir '{relative}' wallet balance",
+{} --datadir {datadir} wallet balance",
       "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),

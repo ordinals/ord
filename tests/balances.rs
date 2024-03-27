@@ -54,25 +54,33 @@ fn with_runes() {
     Output {
       runes: vec![
         (
-          Rune(RUNE),
+          SpacedRune::new(Rune(RUNE), 0),
           vec![(
             OutPoint {
-              txid: a.transaction,
+              txid: a.inscribe.reveal,
               vout: 1
             },
-            1000
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
           )]
           .into_iter()
           .collect()
         ),
         (
-          Rune(RUNE + 1),
+          SpacedRune::new(Rune(RUNE + 1), 0),
           vec![(
             OutPoint {
-              txid: b.transaction,
+              txid: b.inscribe.reveal,
               vout: 1
             },
-            1000
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
           )]
           .into_iter()
           .collect()

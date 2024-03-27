@@ -2,49 +2,72 @@ use super::*;
 
 const MAX_SPACERS: u32 = 0b00000111_11111111_11111111_11111111;
 
-#[derive(Default, Serialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
-  pub burn: bool,
-  pub claim: Option<RuneId>,
-  pub default_output: Option<u32>,
+  pub cenotaph: bool,
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
+  pub mint: Option<RuneId>,
+  pub pointer: Option<u32>,
 }
 
 struct Message {
-  fields: HashMap<u128, u128>,
+  cenotaph: bool,
   edicts: Vec<Edict>,
+  fields: HashMap<u128, VecDeque<u128>>,
+}
+
+enum Payload {
+  Valid(Vec<u8>),
+  Invalid,
 }
 
 impl Message {
-  fn from_integers(payload: &[u128]) -> Self {
+  fn from_integers(tx: &Transaction, payload: &[u128]) -> Self {
     let mut edicts = Vec::new();
-    let mut fields = HashMap::new();
+    let mut fields = HashMap::<u128, VecDeque<u128>>::new();
+    let mut cenotaph = false;
 
     for i in (0..payload.len()).step_by(2) {
       let tag = payload[i];
 
       if Tag::Body == tag {
-        let mut id = 0u128;
-        for chunk in payload[i + 1..].chunks_exact(3) {
-          id = id.saturating_add(chunk[0]);
-          edicts.push(Edict {
-            id,
-            amount: chunk[1],
-            output: chunk[2],
-          });
+        let mut id = RuneId::default();
+        for chunk in payload[i + 1..].chunks(4) {
+          if chunk.len() != 4 {
+            cenotaph = true;
+            break;
+          }
+
+          let Some(next) = id.next(chunk[0], chunk[1]) else {
+            cenotaph = true;
+            break;
+          };
+
+          let Some(edict) = Edict::from_integers(tx, next, chunk[2], chunk[3]) else {
+            cenotaph = true;
+            break;
+          };
+
+          id = next;
+          edicts.push(edict);
         }
         break;
       }
 
       let Some(&value) = payload.get(i + 1) else {
+        cenotaph = true;
         break;
       };
 
-      fields.entry(tag).or_insert(value);
+      fields.entry(tag).or_default().push_back(value);
     }
 
-    Self { fields, edicts }
+    Self {
+      cenotaph,
+      edicts,
+      fields,
+    }
   }
 }
 
@@ -53,80 +76,113 @@ impl Runestone {
     Self::decipher(transaction).ok().flatten()
   }
 
+  fn cenotaph() -> Self {
+    Self {
+      cenotaph: true,
+      ..default()
+    }
+  }
+
   fn decipher(transaction: &Transaction) -> Result<Option<Self>, script::Error> {
-    let Some(payload) = Runestone::payload(transaction)? else {
-      return Ok(None);
+    let payload = match Runestone::payload(transaction)? {
+      Some(Payload::Valid(payload)) => payload,
+      Some(Payload::Invalid) => return Ok(Some(Self::cenotaph())),
+      None => return Ok(None),
     };
 
-    let integers = Runestone::integers(&payload);
-
-    let Message { mut fields, edicts } = Message::from_integers(&integers);
-
-    let claim = Tag::Claim.take(&mut fields);
-
-    let deadline = Tag::Deadline
-      .take(&mut fields)
-      .and_then(|deadline| u32::try_from(deadline).ok());
-
-    let default_output = Tag::DefaultOutput
-      .take(&mut fields)
-      .and_then(|default| u32::try_from(default).ok());
-
-    let divisibility = Tag::Divisibility
-      .take(&mut fields)
-      .and_then(|divisibility| u8::try_from(divisibility).ok())
-      .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
-      .unwrap_or_default();
-
-    let limit = Tag::Limit
-      .take(&mut fields)
-      .map(|limit| limit.min(MAX_LIMIT));
-
-    let rune = Tag::Rune.take(&mut fields).map(Rune);
-
-    let spacers = Tag::Spacers
-      .take(&mut fields)
-      .and_then(|spacers| u32::try_from(spacers).ok())
-      .and_then(|spacers| (spacers <= MAX_SPACERS).then_some(spacers))
-      .unwrap_or_default();
-
-    let symbol = Tag::Symbol
-      .take(&mut fields)
-      .and_then(|symbol| u32::try_from(symbol).ok())
-      .and_then(char::from_u32);
-
-    let term = Tag::Term
-      .take(&mut fields)
-      .and_then(|term| u32::try_from(term).ok());
-
-    let mut flags = Tag::Flags.take(&mut fields).unwrap_or_default();
-
-    let etch = Flag::Etch.take(&mut flags);
-
-    let mint = Flag::Mint.take(&mut flags);
-
-    let etching = if etch {
-      Some(Etching {
-        divisibility,
-        rune,
-        spacers,
-        symbol,
-        mint: mint.then_some(Mint {
-          deadline,
-          limit,
-          term,
-        }),
-      })
-    } else {
-      None
+    let Some(integers) = Runestone::integers(&payload) else {
+      return Ok(Some(Self::cenotaph()));
     };
+
+    let Message {
+      cenotaph,
+      edicts,
+      mut fields,
+    } = Message::from_integers(transaction, &integers);
+
+    let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
+      RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
+    });
+
+    let pointer = Tag::Pointer.take(&mut fields, |[pointer]| {
+      let pointer = u32::try_from(pointer).ok()?;
+      (pointer.into_usize() < transaction.output.len()).then_some(pointer)
+    });
+
+    let divisibility = Tag::Divisibility.take(&mut fields, |[divisibility]| {
+      let divisibility = u8::try_from(divisibility).ok()?;
+      (divisibility <= MAX_DIVISIBILITY).then_some(divisibility)
+    });
+
+    let amount = Tag::Amount.take(&mut fields, |[amount]| Some(amount));
+
+    let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
+
+    let cap = Tag::Cap.take(&mut fields, |[cap]| Some(cap));
+
+    let premine = Tag::Premine.take(&mut fields, |[premine]| Some(premine));
+
+    let spacers = Tag::Spacers.take(&mut fields, |[spacers]| {
+      let spacers = u32::try_from(spacers).ok()?;
+      (spacers <= MAX_SPACERS).then_some(spacers)
+    });
+
+    let symbol = Tag::Symbol.take(&mut fields, |[symbol]| {
+      char::from_u32(u32::try_from(symbol).ok()?)
+    });
+
+    let offset = (
+      Tag::OffsetStart.take(&mut fields, |[start_offset]| {
+        u64::try_from(start_offset).ok()
+      }),
+      Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
+    );
+
+    let height = (
+      Tag::HeightStart.take(&mut fields, |[start_height]| {
+        u64::try_from(start_height).ok()
+      }),
+      Tag::HeightEnd.take(&mut fields, |[start_height]| {
+        u64::try_from(start_height).ok()
+      }),
+    );
+
+    let mut flags = Tag::Flags
+      .take(&mut fields, |[flags]| Some(flags))
+      .unwrap_or_default();
+
+    let etching = Flag::Etching.take(&mut flags);
+
+    let terms = Flag::Terms.take(&mut flags);
+
+    let overflow = (|| {
+      let premine = premine.unwrap_or_default();
+      let cap = cap.unwrap_or_default();
+      let amount = amount.unwrap_or_default();
+      premine.checked_add(cap.checked_mul(amount)?)
+    })()
+    .is_none();
+
+    let etching = etching.then_some(Etching {
+      divisibility,
+      premine,
+      rune,
+      spacers,
+      symbol,
+      terms: terms.then_some(Terms {
+        cap,
+        height,
+        amount,
+        offset,
+      }),
+    });
 
     Ok(Some(Self {
-      burn: flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
-      claim: claim.and_then(|claim| claim.try_into().ok()),
-      default_output,
+      cenotaph: cenotaph || overflow || flags != 0 || fields.keys().any(|tag| tag % 2 == 0),
       edicts,
       etching,
+      mint,
+      pointer,
     }))
   }
 
@@ -135,55 +191,38 @@ impl Runestone {
 
     if let Some(etching) = self.etching {
       let mut flags = 0;
-      Flag::Etch.set(&mut flags);
+      Flag::Etching.set(&mut flags);
 
-      if etching.mint.is_some() {
-        Flag::Mint.set(&mut flags);
+      if etching.terms.is_some() {
+        Flag::Terms.set(&mut flags);
       }
 
-      Tag::Flags.encode(flags, &mut payload);
+      Tag::Flags.encode([flags], &mut payload);
 
-      if let Some(rune) = etching.rune {
-        Tag::Rune.encode(rune.0, &mut payload);
-      }
+      Tag::Rune.encode_option(etching.rune.map(|rune| rune.0), &mut payload);
+      Tag::Divisibility.encode_option(etching.divisibility, &mut payload);
+      Tag::Spacers.encode_option(etching.spacers, &mut payload);
+      Tag::Symbol.encode_option(etching.symbol, &mut payload);
+      Tag::Premine.encode_option(etching.premine, &mut payload);
 
-      if etching.divisibility != 0 {
-        Tag::Divisibility.encode(etching.divisibility.into(), &mut payload);
-      }
-
-      if etching.spacers != 0 {
-        Tag::Spacers.encode(etching.spacers.into(), &mut payload);
-      }
-
-      if let Some(symbol) = etching.symbol {
-        Tag::Symbol.encode(symbol.into(), &mut payload);
-      }
-
-      if let Some(mint) = etching.mint {
-        if let Some(deadline) = mint.deadline {
-          Tag::Deadline.encode(deadline.into(), &mut payload);
-        }
-
-        if let Some(limit) = mint.limit {
-          Tag::Limit.encode(limit, &mut payload);
-        }
-
-        if let Some(term) = mint.term {
-          Tag::Term.encode(term.into(), &mut payload);
-        }
+      if let Some(terms) = etching.terms {
+        Tag::Amount.encode_option(terms.amount, &mut payload);
+        Tag::Cap.encode_option(terms.cap, &mut payload);
+        Tag::HeightStart.encode_option(terms.height.0, &mut payload);
+        Tag::HeightEnd.encode_option(terms.height.1, &mut payload);
+        Tag::OffsetStart.encode_option(terms.offset.0, &mut payload);
+        Tag::OffsetEnd.encode_option(terms.offset.1, &mut payload);
       }
     }
 
-    if let Some(claim) = self.claim {
-      Tag::Claim.encode(claim.into(), &mut payload);
+    if let Some(RuneId { block, tx }) = self.mint {
+      Tag::Mint.encode([block.into(), tx.into()], &mut payload);
     }
 
-    if let Some(default_output) = self.default_output {
-      Tag::DefaultOutput.encode(default_output.into(), &mut payload);
-    }
+    Tag::Pointer.encode_option(self.pointer, &mut payload);
 
-    if self.burn {
-      Tag::Burn.encode(0, &mut payload);
+    if self.cenotaph {
+      Tag::Cenotaph.encode([0], &mut payload);
     }
 
     if !self.edicts.is_empty() {
@@ -192,18 +231,20 @@ impl Runestone {
       let mut edicts = self.edicts.clone();
       edicts.sort_by_key(|edict| edict.id);
 
-      let mut id = 0;
+      let mut previous = RuneId::default();
       for edict in edicts {
-        varint::encode_to_vec(edict.id - id, &mut payload);
+        let (block, tx) = previous.delta(edict.id).unwrap();
+        varint::encode_to_vec(block, &mut payload);
+        varint::encode_to_vec(tx, &mut payload);
         varint::encode_to_vec(edict.amount, &mut payload);
-        varint::encode_to_vec(edict.output, &mut payload);
-        id = edict.id;
+        varint::encode_to_vec(edict.output.into(), &mut payload);
+        previous = edict.id;
       }
     }
 
     let mut builder = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
-      .push_slice(b"RUNE_TEST");
+      .push_opcode(MAGIC_NUMBER);
 
     for chunk in payload.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
       let push: &script::PushBytes = chunk.try_into().unwrap();
@@ -213,43 +254,49 @@ impl Runestone {
     builder.into_script()
   }
 
-  fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>, script::Error> {
+  fn payload(transaction: &Transaction) -> Result<Option<Payload>, script::Error> {
+    // search transaction outputs for payload
     for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
 
+      // payload starts with OP_RETURN
       if instructions.next().transpose()? != Some(Instruction::Op(opcodes::all::OP_RETURN)) {
         continue;
       }
 
-      if instructions.next().transpose()? != Some(Instruction::PushBytes(b"RUNE_TEST".into())) {
+      // followed by the protocol identifier
+      if instructions.next().transpose()? != Some(Instruction::Op(MAGIC_NUMBER)) {
         continue;
       }
 
+      // construct the payload by concatinating remaining data pushes
       let mut payload = Vec::new();
 
       for result in instructions {
         if let Instruction::PushBytes(push) = result? {
           payload.extend_from_slice(push.as_bytes());
+        } else {
+          return Ok(Some(Payload::Invalid));
         }
       }
 
-      return Ok(Some(payload));
+      return Ok(Some(Payload::Valid(payload)));
     }
 
     Ok(None)
   }
 
-  fn integers(payload: &[u8]) -> Vec<u128> {
+  fn integers(payload: &[u8]) -> Option<Vec<u128>> {
     let mut integers = Vec::new();
     let mut i = 0;
 
     while i < payload.len() {
-      let (integer, length) = varint::decode(&payload[i..]);
+      let (integer, length) = varint::decode(&payload[i..])?;
       integers.push(integer);
       i += length;
     }
 
-    integers
+    Some(integers)
   }
 }
 
@@ -267,7 +314,7 @@ mod tests {
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
           .push_opcode(opcodes::all::OP_RETURN)
-          .push_slice(b"RUNE_TEST")
+          .push_opcode(MAGIC_NUMBER)
           .push_slice(payload)
           .into_script(),
         value: 0,
@@ -389,7 +436,7 @@ mod tests {
   fn deciphering_valid_runestone_with_invalid_script_postfix_returns_script_error() {
     let mut script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
-      .push_slice(b"RUNE_TEST")
+      .push_opcode(MAGIC_NUMBER)
       .into_script()
       .into_bytes();
 
@@ -414,7 +461,7 @@ mod tests {
       output: vec![TxOut {
         script_pubkey: script::Builder::new()
           .push_opcode(opcodes::all::OP_RETURN)
-          .push_slice(b"RUNE_TEST")
+          .push_opcode(MAGIC_NUMBER)
           .push_slice([128])
           .into_script(),
         value: 0,
@@ -426,33 +473,44 @@ mod tests {
   }
 
   #[test]
-  fn non_push_opcodes_in_runestone_are_ignored() {
+  fn outputs_with_non_pushdata_opcodes_are_cenotaph() {
     assert_eq!(
       Runestone::decipher(&Transaction {
         input: Vec::new(),
-        output: vec![TxOut {
-          script_pubkey: script::Builder::new()
-            .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
-            .push_slice([0, 1])
-            .push_opcode(opcodes::all::OP_VERIFY)
-            .push_slice([2, 3])
-            .into_script(),
-          value: 0,
-        }],
+        output: vec![
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_opcode(MAGIC_NUMBER)
+              .push_opcode(opcodes::all::OP_VERIFY)
+              .push_slice([0])
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice([2, 0])
+              .into_script(),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_opcode(MAGIC_NUMBER)
+              .push_slice([0])
+              .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+              .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
+              .push_slice([3, 0])
+              .into_script(),
+            value: 0,
+          },
+        ],
         lock_time: LockTime::ZERO,
         version: 2,
       })
       .unwrap()
       .unwrap(),
       Runestone {
-        edicts: vec![Edict {
-          id: 1,
-          amount: 2,
-          output: 3,
-        }],
-        ..Default::default()
-      },
+        cenotaph: true,
+        ..default()
+      }
     );
   }
 
@@ -464,7 +522,7 @@ mod tests {
         output: vec![TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .into_script(),
           value: 0
         }],
@@ -481,11 +539,12 @@ mod tests {
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
-    let mut script_pubkey = Vec::new();
-    script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
-    script_pubkey.push(opcodes::all::OP_PUSHBYTES_9.to_u8());
-    script_pubkey.extend_from_slice(b"RUNE_TEST");
-    script_pubkey.push(opcodes::all::OP_PUSHBYTES_4.to_u8());
+    let script_pubkey = vec![
+      opcodes::all::OP_RETURN.to_u8(),
+      opcodes::all::OP_PUSHBYTES_9.to_u8(),
+      MAGIC_NUMBER.to_u8(),
+      opcodes::all::OP_PUSHBYTES_4.to_u8(),
+    ];
 
     Runestone::decipher(&Transaction {
       input: Vec::new(),
@@ -497,7 +556,7 @@ mod tests {
         TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .push_slice(payload)
             .into_script(),
           value: 0,
@@ -512,14 +571,14 @@ mod tests {
   #[test]
   fn deciphering_non_empty_runestone_is_successful() {
     assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 3]),
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       }
     );
   }
@@ -529,164 +588,228 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       }
     );
   }
 
   #[test]
   fn decipher_etching_with_rune() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Mint.mask(),
-        Tag::Term.into(),
+        Flag::Terms.mask(),
+        Tag::OffsetEnd.into(),
         4,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn decipher_etching_with_term() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask() | Flag::Mint.mask(),
-        Tag::Term.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::OffsetEnd.into(),
         4,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
-          mint: Some(Mint {
-            term: Some(4),
-            ..Default::default()
+          terms: Some(Terms {
+            offset: (None, Some(4)),
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
-  fn decipher_etching_with_limit() {
+  fn decipher_etching_with_amount() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask() | Flag::Mint.mask(),
-        Tag::Limit.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::Amount.into(),
         4,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
-          mint: Some(Mint {
-            limit: Some(4),
-            ..Default::default()
+          terms: Some(Terms {
+            amount: Some(4),
+            ..default()
           }),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
-  fn duplicate_tags_are_ignored() {
-    assert_eq!(
+  fn invalid_varint_produces_cenotaph() {
+    pretty_assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_opcode(MAGIC_NUMBER)
+            .push_slice([128])
+            .into_script(),
+          value: 0,
+        }],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      })
+      .unwrap()
+      .unwrap(),
+      Runestone {
+        cenotaph: true,
+        ..default()
+      }
+    );
+  }
+
+  #[test]
+  fn duplicate_even_tags_produce_cenotaph() {
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Rune.into(),
         5,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        cenotaph: true,
+        ..default()
+      }
+    );
+  }
+
+  #[test]
+  fn duplicate_odd_tags_are_ignored() {
+    pretty_assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask(),
+        Tag::Divisibility.into(),
+        4,
+        Tag::Divisibility.into(),
+        5,
+        Tag::Body.into(),
+        1,
+        1,
+        2,
+        0,
+      ]),
+      Runestone {
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: None,
+          divisibility: Some(4),
+          ..default()
+        }),
+        ..default()
       }
     );
   }
@@ -694,96 +817,114 @@ mod tests {
   #[test]
   fn unrecognized_odd_tag_is_ignored() {
     assert_eq!(
-      decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 2, 3]),
+      decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
-  fn unrecognized_even_tag_is_burn() {
+  fn runestone_with_unrecognized_even_tag_is_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::Burn.into(), 0, Tag::Body.into(), 1, 2, 3]),
+      decipher(&[Tag::Cenotaph.into(), 0, Tag::Body.into(), 1, 1, 2, 0]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        burn: true,
-        ..Default::default()
+        cenotaph: true,
+        ..default()
       },
     );
   }
 
   #[test]
-  fn unrecognized_flag_is_burn() {
+  fn runestone_with_unrecognized_flag_is_cenotaph() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Burn.mask(),
+        Flag::Cenotaph.mask(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3
+        0
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        burn: true,
-        ..Default::default()
+        cenotaph: true,
+        ..default()
       },
     );
   }
 
   #[test]
-  fn tag_with_no_value_is_ignored() {
+  fn runestone_with_edict_id_with_zero_block_and_nonzero_tx_is_cenotaph() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 0, 1, 2, 0]),
+      Runestone {
+        edicts: Vec::new(),
+        cenotaph: true,
+        ..default()
+      },
+    );
+  }
+
+  #[test]
+  fn runestone_with_output_over_max_is_cenotaph() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 1, 2, 2]),
+      Runestone {
+        edicts: Vec::new(),
+        cenotaph: true,
+        ..default()
+      },
+    );
+  }
+
+  #[test]
+  fn tag_with_no_value_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Flags.into(), 1, Tag::Flags.into()]),
       Runestone {
         etching: Some(Etching::default()),
-        ..Default::default()
+        cenotaph: true,
+        ..default()
       },
     );
   }
 
   #[test]
-  fn additional_integers_in_body_are_ignored() {
-    assert_eq!(
-      decipher(&[
-        Tag::Flags.into(),
-        Flag::Etch.mask(),
-        Tag::Rune.into(),
-        4,
-        Tag::Body.into(),
-        1,
-        2,
-        3,
-        4,
-        5
-      ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: 1,
-          amount: 2,
-          output: 3,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(4)),
-          ..Default::default()
-        }),
-        ..Default::default()
-      },
-    );
+  fn trailing_integers_in_body_is_cenotaph() {
+    let mut integers = vec![Tag::Body.into(), 1, 1, 2, 0];
+
+    for i in 0..4 {
+      pretty_assert_eq!(
+        decipher(&integers),
+        Runestone {
+          cenotaph: i > 0,
+          edicts: vec![Edict {
+            id: rune_id(1),
+            amount: 2,
+            output: 0,
+          }],
+          ..default()
+        }
+      );
+
+      integers.push(0);
+    }
   }
 
   #[test]
@@ -791,28 +932,29 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
         5,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          divisibility: 5,
-          ..Default::default()
+          divisibility: Some(5),
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -822,27 +964,28 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
         (MAX_DIVISIBILITY + 1).into(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -852,100 +995,115 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Symbol.into(),
         u128::from(u32::from(char::MAX) + 1),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching::default()),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn decipher_etching_with_symbol() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Symbol.into(),
         'a'.into(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn decipher_etching_with_all_etching_tags() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask() | Flag::Mint.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
         Tag::Rune.into(),
         4,
-        Tag::Deadline.into(),
-        7,
         Tag::Divisibility.into(),
         1,
         Tag::Spacers.into(),
         5,
         Tag::Symbol.into(),
         'a'.into(),
-        Tag::Term.into(),
+        Tag::OffsetEnd.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         3,
+        Tag::Premine.into(),
+        8,
+        Tag::Cap.into(),
+        9,
+        Tag::Pointer.into(),
+        0,
+        Tag::Mint.into(),
+        1,
+        Tag::Mint.into(),
+        1,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          mint: Some(Mint {
-            deadline: Some(7),
-            term: Some(2),
-            limit: Some(3),
+          terms: Some(Terms {
+            cap: Some(9),
+            offset: (None, Some(2)),
+            amount: Some(3),
+            height: (None, None),
           }),
-          divisibility: 1,
+          premine: Some(8),
+          divisibility: Some(1),
           symbol: Some('a'),
-          spacers: 5,
+          spacers: Some(5),
         }),
-        ..Default::default()
+        cenotaph: false,
+        pointer: Some(0),
+        mint: Some(RuneId::new(1, 1).unwrap()),
       },
     );
   }
@@ -960,22 +1118,23 @@ mod tests {
         1,
         Tag::Symbol.into(),
         'a'.into(),
-        Tag::Term.into(),
+        Tag::OffsetEnd.into(),
         2,
-        Tag::Limit.into(),
+        Tag::Amount.into(),
         3,
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       },
     );
   }
@@ -985,7 +1144,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
@@ -994,91 +1153,106 @@ mod tests {
         'a'.into(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
           rune: Some(Rune(4)),
-          divisibility: 1,
+          divisibility: Some(1),
           symbol: Some('a'),
-          ..Default::default()
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
   fn tag_values_are_not_parsed_as_tags() {
-    assert_eq!(
+    pretty_assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
+        Flag::Etching.mask(),
         Tag::Divisibility.into(),
         Tag::Body.into(),
         Tag::Body.into(),
         1,
+        1,
         2,
-        3,
+        0,
       ]),
       Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        etching: Some(Etching::default()),
-        ..Default::default()
+        etching: Some(Etching {
+          divisibility: Some(0),
+          ..default()
+        }),
+        ..default()
       },
     );
   }
 
   #[test]
   fn runestone_may_contain_multiple_edicts() {
-    assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 3, 3, 5, 6]),
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, 0, 3, 5, 0]),
       Runestone {
         edicts: vec![
           Edict {
-            id: 1,
+            id: rune_id(1),
             amount: 2,
-            output: 3,
+            output: 0,
           },
           Edict {
-            id: 4,
+            id: rune_id(4),
             amount: 5,
-            output: 6,
+            output: 0,
           },
         ],
-        ..Default::default()
+        ..default()
       },
     );
   }
 
   #[test]
-  fn id_deltas_saturate_to_max() {
-    assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 2, 3, u128::MAX, 5, 6]),
+  fn runestones_with_invalid_rune_id_blocks_are_cenotaph() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, u128::MAX, 1, 0, 0,]),
       Runestone {
-        edicts: vec![
-          Edict {
-            id: 1,
-            amount: 2,
-            output: 3,
-          },
-          Edict {
-            id: u128::MAX,
-            amount: 5,
-            output: 6,
-          },
-        ],
-        ..Default::default()
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        cenotaph: true,
+        ..default()
+      },
+    );
+  }
+
+  #[test]
+  fn runestones_with_invalid_rune_id_txs_are_cenotaph() {
+    pretty_assert_eq!(
+      decipher(&[Tag::Body.into(), 1, 1, 2, 0, 1, u128::MAX, 0, 0,]),
+      Runestone {
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        cenotaph: true,
+        ..default()
       },
     );
   }
@@ -1091,7 +1265,7 @@ mod tests {
         output: vec![TxOut {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
-            .push_slice(b"RUNE_TEST")
+            .push_opcode(MAGIC_NUMBER)
             .push_slice::<&PushBytes>(
               varint::encode(Tag::Flags.into())
                 .as_slice()
@@ -1099,7 +1273,7 @@ mod tests {
                 .unwrap()
             )
             .push_slice::<&PushBytes>(
-              varint::encode(Flag::Etch.mask())
+              varint::encode(Flag::Etching.mask())
                 .as_slice()
                 .try_into()
                 .unwrap()
@@ -1118,8 +1292,9 @@ mod tests {
                 .unwrap()
             )
             .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
+            .push_slice::<&PushBytes>(varint::encode(1).as_slice().try_into().unwrap())
             .push_slice::<&PushBytes>(varint::encode(2).as_slice().try_into().unwrap())
-            .push_slice::<&PushBytes>(varint::encode(3).as_slice().try_into().unwrap())
+            .push_slice::<&PushBytes>(varint::encode(0).as_slice().try_into().unwrap())
             .into_script(),
           value: 0
         }],
@@ -1128,22 +1303,22 @@ mod tests {
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
         etching: Some(Etching {
-          divisibility: 5,
-          ..Default::default()
+          divisibility: Some(5),
+          ..default()
         }),
-        ..Default::default()
+        ..default()
       }))
     );
   }
 
   #[test]
   fn runestone_may_be_in_second_output() {
-    let payload = payload(&[0, 1, 2, 3]);
+    let payload = payload(&[0, 1, 1, 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1158,7 +1333,7 @@ mod tests {
           TxOut {
             script_pubkey: script::Builder::new()
               .push_opcode(opcodes::all::OP_RETURN)
-              .push_slice(b"RUNE_TEST")
+              .push_opcode(MAGIC_NUMBER)
               .push_slice(payload)
               .into_script(),
             value: 0
@@ -1169,18 +1344,18 @@ mod tests {
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
 
   #[test]
   fn runestone_may_be_after_non_matching_op_return() {
-    let payload = payload(&[0, 1, 2, 3]);
+    let payload = payload(&[0, 1, 1, 2, 0]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -1198,7 +1373,7 @@ mod tests {
           TxOut {
             script_pubkey: script::Builder::new()
               .push_opcode(opcodes::all::OP_RETURN)
-              .push_slice(b"RUNE_TEST")
+              .push_opcode(MAGIC_NUMBER)
               .push_slice(payload)
               .into_script(),
             value: 0
@@ -1209,11 +1384,11 @@ mod tests {
       }),
       Ok(Some(Runestone {
         edicts: vec![Edict {
-          id: 1,
+          id: rune_id(1),
           amount: 2,
-          output: 3,
+          output: 0,
         }],
-        ..Default::default()
+        ..default()
       }))
     );
   }
@@ -1226,183 +1401,168 @@ mod tests {
         Runestone {
           edicts,
           etching,
-          ..Default::default()
+          ..default()
         }
         .encipher()
-        .len()
-          - 1
-          - b"RUNE_TEST".len(),
+        .len(),
         size
       );
     }
 
-    case(Vec::new(), None, 1);
+    case(Vec::new(), None, 2);
 
     case(
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
-      6,
+      7,
     );
 
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(0)),
-        ..Default::default()
+        ..default()
       }),
-      8,
+      9,
     );
 
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
-        mint: Some(Mint {
-          deadline: Some(10000),
-          limit: Some(1),
-          term: Some(1),
+        divisibility: Some(MAX_DIVISIBILITY),
+        terms: Some(Terms {
+          cap: Some(u32::MAX.into()),
+          amount: Some(u64::MAX.into()),
+          offset: (Some(u32::MAX.into()), Some(u32::MAX.into())),
+          height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
-        rune: Some(Rune(0)),
-        symbol: Some('$'),
-        spacers: 1,
+        premine: Some(u64::MAX.into()),
+        rune: Some(Rune(u128::MAX)),
+        symbol: Some('\u{10FFFF}'),
+        spacers: Some(MAX_SPACERS),
       }),
-      19,
+      89,
     );
 
     case(
       Vec::new(),
       Some(Etching {
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
-      24,
+      25,
     );
 
     case(
       vec![Edict {
         amount: 0,
-        id: RuneId {
-          height: 0,
-          index: 0,
-        }
-        .into(),
+        id: RuneId { block: 0, tx: 0 },
         output: 0,
       }],
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
-      30,
+      32,
     );
 
     case(
       vec![Edict {
         amount: u128::MAX,
-        id: RuneId {
-          height: 0,
-          index: 0,
-        }
-        .into(),
+        id: RuneId { block: 0, tx: 0 },
         output: 0,
       }],
       Some(Etching {
-        divisibility: MAX_DIVISIBILITY,
+        divisibility: Some(MAX_DIVISIBILITY),
         rune: Some(Rune(u128::MAX)),
-        ..Default::default()
+        ..default()
       }),
-      48,
-    );
-
-    case(
-      vec![Edict {
-        amount: 0,
-        id: RuneId {
-          height: 1_000_000,
-          index: u16::MAX,
-        }
-        .into(),
-        output: 0,
-      }],
-      None,
-      11,
-    );
-
-    case(
-      vec![Edict {
-        amount: u128::MAX,
-        id: RuneId {
-          height: 1_000_000,
-          index: u16::MAX,
-        }
-        .into(),
-        output: 0,
-      }],
-      None,
-      29,
-    );
-
-    case(
-      vec![
-        Edict {
-          amount: u128::MAX,
-          id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
-          output: 0,
-        },
-        Edict {
-          amount: u128::MAX,
-          id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
-          output: 0,
-        },
-      ],
-      None,
       50,
     );
 
     case(
+      vec![Edict {
+        amount: 0,
+        id: RuneId {
+          block: 1_000_000,
+          tx: u32::MAX,
+        },
+        output: 0,
+      }],
+      None,
+      14,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::MAX,
+        id: RuneId {
+          block: 1_000_000,
+          tx: u32::MAX,
+        },
+        output: 0,
+      }],
+      None,
+      32,
+    );
+
+    case(
       vec![
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
           output: 0,
         },
         Edict {
           amount: u128::MAX,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
-          output: 0,
-        },
-        Edict {
-          amount: u128::MAX,
-          id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
           output: 0,
         },
       ],
       None,
-      71,
+      54,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u128::MAX,
+          id: RuneId {
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
+          output: 0,
+        },
+        Edict {
+          amount: u128::MAX,
+          id: RuneId {
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
+          output: 0,
+        },
+        Edict {
+          amount: u128::MAX,
+          id: RuneId {
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
+          output: 0,
+        },
+      ],
+      None,
+      76,
     );
 
     case(
@@ -1410,16 +1570,15 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
           output: 0,
         };
         4
       ],
       None,
-      56,
+      62,
     );
 
     case(
@@ -1427,16 +1586,15 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
           output: 0,
         };
         5
       ],
       None,
-      68,
+      75,
     );
 
     case(
@@ -1444,16 +1602,15 @@ mod tests {
         Edict {
           amount: u64::MAX.into(),
           id: RuneId {
-            height: 0,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 0,
+            tx: u32::MAX,
+          },
           output: 0,
         };
         5
       ],
       None,
-      65,
+      73,
     );
 
     case(
@@ -1461,31 +1618,31 @@ mod tests {
         Edict {
           amount: 1_000_000_000_000_000_000,
           id: RuneId {
-            height: 1_000_000,
-            index: u16::MAX,
-          }
-          .into(),
+            block: 1_000_000,
+            tx: u32::MAX,
+          },
           output: 0,
         };
         5
       ],
       None,
-      63,
+      70,
     );
   }
 
   #[test]
-  fn etching_with_term_greater_than_maximum_is_ignored() {
+  fn etching_with_term_greater_than_maximum_is_still_an_etching() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etch.mask(),
-        Tag::Term.into(),
+        Flag::Etching.mask(),
+        Tag::OffsetEnd.into(),
         u128::from(u64::MAX) + 1,
       ]),
       Runestone {
         etching: Some(Etching::default()),
-        ..Default::default()
+        cenotaph: true,
+        ..default()
       },
     );
   }
@@ -1506,9 +1663,11 @@ mod tests {
         version: 2,
       };
 
-      let payload = Runestone::payload(&transaction).unwrap().unwrap();
+      let Payload::Valid(payload) = Runestone::payload(&transaction).unwrap().unwrap() else {
+        panic!("invalid payload")
+      };
 
-      assert_eq!(Runestone::integers(&payload), expected);
+      pretty_assert_eq!(Runestone::integers(&payload).unwrap(), expected);
 
       let runestone = {
         let mut edicts = runestone.edicts;
@@ -1519,7 +1678,7 @@ mod tests {
         }
       };
 
-      assert_eq!(
+      pretty_assert_eq!(
         Runestone::from_transaction(&transaction).unwrap(),
         runestone
       );
@@ -1529,102 +1688,118 @@ mod tests {
 
     case(
       Runestone {
-        etching: Some(Etching {
-          divisibility: 1,
-          mint: Some(Mint {
-            deadline: Some(2),
-            limit: Some(3),
-            term: Some(5),
-          }),
-          symbol: Some('@'),
-          rune: Some(Rune(4)),
-          spacers: 6,
-        }),
+        cenotaph: true,
         edicts: vec![
           Edict {
-            amount: 8,
-            id: 9,
-            output: 10,
+            id: RuneId::new(2, 3).unwrap(),
+            amount: 1,
+            output: 0,
           },
           Edict {
-            amount: 5,
-            id: 6,
-            output: 7,
+            id: RuneId::new(5, 6).unwrap(),
+            amount: 4,
+            output: 1,
           },
         ],
-        default_output: Some(11),
-        burn: true,
-        claim: Some(RuneId::try_from(12).unwrap()),
+        etching: Some(Etching {
+          divisibility: Some(7),
+          premine: Some(8),
+          rune: Some(Rune(9)),
+          spacers: Some(10),
+          symbol: Some('@'),
+          terms: Some(Terms {
+            cap: Some(11),
+            height: (Some(12), Some(13)),
+            amount: Some(14),
+            offset: (Some(15), Some(16)),
+          }),
+        }),
+        mint: Some(RuneId::new(17, 18).unwrap()),
+        pointer: Some(0),
       },
       &[
         Tag::Flags.into(),
-        Flag::Etch.mask() | Flag::Mint.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
         Tag::Rune.into(),
-        4,
+        9,
         Tag::Divisibility.into(),
-        1,
+        7,
         Tag::Spacers.into(),
-        6,
+        10,
         Tag::Symbol.into(),
         '@'.into(),
-        Tag::Deadline.into(),
-        2,
-        Tag::Limit.into(),
-        3,
-        Tag::Term.into(),
-        5,
-        Tag::Claim.into(),
-        12,
-        Tag::DefaultOutput.into(),
+        Tag::Premine.into(),
+        8,
+        Tag::Amount.into(),
+        14,
+        Tag::Cap.into(),
         11,
-        Tag::Burn.into(),
+        Tag::HeightStart.into(),
+        12,
+        Tag::HeightEnd.into(),
+        13,
+        Tag::OffsetStart.into(),
+        15,
+        Tag::OffsetEnd.into(),
+        16,
+        Tag::Mint.into(),
+        17,
+        Tag::Mint.into(),
+        18,
+        Tag::Pointer.into(),
+        0,
+        Tag::Cenotaph.into(),
         0,
         Tag::Body.into(),
-        6,
-        5,
-        7,
+        2,
         3,
-        8,
-        10,
+        1,
+        0,
+        3,
+        6,
+        4,
+        1,
       ],
     );
 
     case(
       Runestone {
         etching: Some(Etching {
-          divisibility: 0,
-          mint: None,
+          premine: None,
+          divisibility: None,
+          terms: None,
           symbol: None,
           rune: Some(Rune(3)),
-          spacers: 0,
+          spacers: None,
         }),
-        burn: false,
-        ..Default::default()
+        cenotaph: false,
+        ..default()
       },
-      &[Tag::Flags.into(), Flag::Etch.mask(), Tag::Rune.into(), 3],
+      &[Tag::Flags.into(), Flag::Etching.mask(), Tag::Rune.into(), 3],
     );
 
     case(
       Runestone {
         etching: Some(Etching {
-          divisibility: 0,
-          mint: None,
+          premine: None,
+          divisibility: None,
+          terms: None,
           symbol: None,
           rune: None,
-          spacers: 0,
+          spacers: None,
         }),
-        burn: false,
-        ..Default::default()
+        cenotaph: false,
+        ..default()
       },
-      &[Tag::Flags.into(), Flag::Etch.mask()],
+      &[Tag::Flags.into(), Flag::Etching.mask()],
     );
 
     case(
       Runestone {
-        burn: true,
-        ..Default::default()
+        cenotaph: true,
+        ..default()
       },
-      &[Tag::Burn.into(), 0],
+      &[Tag::Cenotaph.into(), 0],
     );
   }
 
@@ -1633,13 +1808,13 @@ mod tests {
     let script = Runestone {
       edicts: vec![
         Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 0,
           output: 0
         };
-        173
+        129
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 
@@ -1648,13 +1823,13 @@ mod tests {
     let script = Runestone {
       edicts: vec![
         Edict {
-          id: 0,
+          id: RuneId::default(),
           amount: 0,
           output: 0
         };
-        174
+        130
       ],
-      ..Default::default()
+      ..default()
     }
     .encipher();
 
@@ -1674,5 +1849,110 @@ mod tests {
     }
 
     assert_eq!(MAX_SPACERS, rune.parse::<SpacedRune>().unwrap().spacers);
+  }
+
+  #[test]
+  fn edict_output_greater_than_32_max_produces_cenotaph() {
+    assert!(decipher(&[Tag::Body.into(), 1, 1, 1, u128::from(u32::MAX) + 1]).cenotaph);
+  }
+
+  #[test]
+  fn partial_mint_produces_cenotaph() {
+    assert!(decipher(&[Tag::Mint.into(), 1]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_mint_produces_cenotaph() {
+    assert!(decipher(&[Tag::Mint.into(), 0, Tag::Mint.into(), 1]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_deadline_produces_cenotaph() {
+    assert!(decipher(&[Tag::OffsetEnd.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_default_output_produces_cenotaph() {
+    assert!(decipher(&[Tag::Pointer.into(), 1]).cenotaph);
+    assert!(decipher(&[Tag::Pointer.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_divisibility_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Divisibility.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn min_and_max_runes_are_not_cenotaphs() {
+    assert!(!decipher(&[Tag::Rune.into(), 0]).cenotaph);
+    assert!(!decipher(&[Tag::Rune.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_spacers_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Spacers.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_symbol_does_not_produce_cenotaph() {
+    assert!(!decipher(&[Tag::Symbol.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_term_produces_cenotaph() {
+    assert!(decipher(&[Tag::OffsetEnd.into(), u128::MAX]).cenotaph);
+  }
+
+  #[test]
+  fn invalid_supply_produces_cenotaph() {
+    assert!(
+      !decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::Cap.into(),
+        1,
+        Tag::Amount.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::Cap.into(),
+        2,
+        Tag::Amount.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::Cap.into(),
+        2,
+        Tag::Amount.into(),
+        u128::MAX / 2 + 1
+      ])
+      .cenotaph
+    );
+
+    assert!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask() | Flag::Terms.mask(),
+        Tag::Premine.into(),
+        1,
+        Tag::Cap.into(),
+        1,
+        Tag::Amount.into(),
+        u128::MAX
+      ])
+      .cenotaph
+    );
   }
 }

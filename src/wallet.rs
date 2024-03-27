@@ -1,6 +1,7 @@
 use {
   super::*,
   base64::{self, Engine},
+  batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
@@ -13,13 +14,12 @@ use {
     future::{self, FutureExt},
     try_join, TryFutureExt,
   },
-  inscribe::ParentInfo,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   reqwest::{header, Url},
   transaction_builder::TransactionBuilder,
 };
 
-pub mod inscribe;
+pub mod batch;
 pub mod transaction_builder;
 
 #[derive(Clone)]
@@ -41,7 +41,7 @@ impl OrdClient {
 }
 
 pub(crate) struct Wallet {
-  bitcoin_client: bitcoincore_rpc::Client,
+  bitcoin_client: Client,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -61,7 +61,7 @@ impl Wallet {
     settings: Settings,
     rpc_url: Url,
   ) -> Result<Self> {
-    let mut headers = header::HeaderMap::new();
+    let mut headers = HeaderMap::new();
 
     headers.insert(
       header::ACCEPT,
@@ -209,7 +209,7 @@ impl Wallet {
     Ok(output_json)
   }
 
-  fn get_utxos(bitcoin_client: &bitcoincore_rpc::Client) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     Ok(
       bitcoin_client
         .list_unspent(None, None, None, None, None)?
@@ -227,12 +227,10 @@ impl Wallet {
     )
   }
 
-  fn get_locked_utxos(
-    bitcoin_client: &bitcoincore_rpc::Client,
-  ) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_locked_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
+      txid: Txid,
       vout: u32,
     }
 
@@ -325,7 +323,7 @@ impl Wallet {
     )))
   }
 
-  pub(crate) fn bitcoin_client(&self) -> &bitcoincore_rpc::Client {
+  pub(crate) fn bitcoin_client(&self) -> &Client {
     &self.bitcoin_client
   }
 
@@ -335,6 +333,35 @@ impl Wallet {
 
   pub(crate) fn locked_utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
     &self.locked_utxos
+  }
+
+  pub(crate) fn lock_non_cardinal_outputs(&self) -> Result {
+    let inscriptions = self
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let locked = self
+      .locked_utxos()
+      .keys()
+      .cloned()
+      .collect::<HashSet<OutPoint>>();
+
+    let outputs = self
+      .utxos()
+      .keys()
+      .filter(|utxo| inscriptions.contains(utxo))
+      .chain(self.get_runic_outputs()?.iter())
+      .cloned()
+      .filter(|utxo| !locked.contains(utxo))
+      .collect::<Vec<OutPoint>>();
+
+    if !self.bitcoin_client().lock_unspent(&outputs)? {
+      bail!("failed to lock UTXOs");
+    }
+
+    Ok(())
   }
 
   pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
@@ -479,6 +506,10 @@ impl Wallet {
     self.settings.chain()
   }
 
+  pub(crate) fn integration_test(&self) -> bool {
+    self.settings.integration_test()
+  }
+
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
     let tr = descriptors
       .iter()
@@ -592,7 +623,7 @@ impl Wallet {
 
     let public_key = secret_key.to_public(secp)?;
 
-    let mut key_map = std::collections::HashMap::new();
+    let mut key_map = HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;

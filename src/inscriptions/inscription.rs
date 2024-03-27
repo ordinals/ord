@@ -23,6 +23,7 @@ pub struct Inscription {
   pub metaprotocol: Option<Vec<u8>>,
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
+  pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -32,7 +33,7 @@ impl Inscription {
     Self {
       content_type,
       body,
-      ..Default::default()
+      ..default()
     }
   }
 
@@ -45,6 +46,7 @@ impl Inscription {
     parents: Vec<InscriptionId>,
     path: impl AsRef<Path>,
     pointer: Option<u64>,
+    rune: Option<Rune>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -65,7 +67,7 @@ impl Inscription {
             mode: compression_mode,
             quality: 11,
             size_hint: body.len(),
-            ..Default::default()
+            ..default()
           },
         )
         .write_all(&body)?;
@@ -104,7 +106,8 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
-      ..Default::default()
+      rune: rune.map(|rune| rune.commitment()),
+      ..default()
     })
   }
 
@@ -134,6 +137,7 @@ impl Inscription {
     Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
+    Tag::Rune.append(&mut builder, &self.rune);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -369,7 +373,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: None,
-        ..Default::default()
+        ..default()
       }
       .append_reveal_script(script::Builder::new())
       .instructions()
@@ -380,7 +384,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(Vec::new()),
-        ..Default::default()
+        ..default()
       }
       .append_reveal_script(script::Builder::new())
       .instructions()
@@ -391,7 +395,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0; 1]),
-        ..Default::default()
+        ..default()
       }
       .append_reveal_script(script::Builder::new())
       .instructions()
@@ -402,7 +406,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0; 520]),
-        ..Default::default()
+        ..default()
       }
       .append_reveal_script(script::Builder::new())
       .instructions()
@@ -413,7 +417,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0; 521]),
-        ..Default::default()
+        ..default()
       }
       .append_reveal_script(script::Builder::new())
       .instructions()
@@ -426,7 +430,7 @@ mod tests {
   fn inscription_with_no_parent_field_has_no_parent() {
     assert!(Inscription {
       parents: Vec::new(),
-      ..Default::default()
+      ..default()
     }
     .parents()
     .is_empty());
@@ -436,7 +440,7 @@ mod tests {
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
     assert!(Inscription {
       parents: vec![Vec::new()],
-      ..Default::default()
+      ..default()
     }
     .parents()
     .is_empty());
@@ -446,7 +450,7 @@ mod tests {
   fn inscription_with_parent_field_longer_than_txid_and_index_has_no_parent() {
     assert!(Inscription {
       parents: vec![vec![1; 37]],
-      ..Default::default()
+      ..default()
     }
     .parents()
     .is_empty());
@@ -460,7 +464,7 @@ mod tests {
 
     assert!(!Inscription {
       parents: vec![parent],
-      ..Default::default()
+      ..default()
     }
     .parents()
     .is_empty());
@@ -474,7 +478,7 @@ mod tests {
 
     assert!(Inscription {
       parents: vec![parent],
-      ..Default::default()
+      ..default()
     }
     .parents()
     .is_empty());
@@ -489,7 +493,7 @@ mod tests {
           0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
           0x1e, 0x1f,
         ]),
-        ..Default::default()
+        ..default()
       }
       .delegate()
       .unwrap()
@@ -509,7 +513,7 @@ mod tests {
           0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
           0x1e, 0x1f,
         ]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -525,7 +529,7 @@ mod tests {
     assert_eq!(
       Inscription {
         parents: vec![vec![1; 32]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -545,7 +549,7 @@ mod tests {
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01
         ]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -565,7 +569,7 @@ mod tests {
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02
         ]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -585,7 +589,7 @@ mod tests {
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02, 0x03
         ]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -605,7 +609,7 @@ mod tests {
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0x01, 0x02, 0x03, 0x04,
         ]],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -632,7 +636,7 @@ mod tests {
             0xff, 0xff, 0xff, 0xff, 0x00, 0x02, 0x03, 0x04,
           ]
         ],
-        ..Default::default()
+        ..default()
       }
       .parents(),
       [
@@ -651,7 +655,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0x44, 0, 1, 2, 3]),
-        ..Default::default()
+        ..default()
       }
       .metadata()
       .unwrap(),
@@ -664,7 +668,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: None,
-        ..Default::default()
+        ..default()
       }
       .metadata(),
       None,
@@ -676,7 +680,7 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0x44]),
-        ..Default::default()
+        ..default()
       }
       .metadata(),
       None,
@@ -688,7 +692,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: None,
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       None
@@ -696,7 +700,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![0]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       Some(0),
@@ -704,7 +708,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       Some(0x0807060504030201),
@@ -712,7 +716,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3, 4, 5, 6]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       Some(0x0000060504030201),
@@ -720,7 +724,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       Some(0x0807060504030201),
@@ -728,7 +732,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 1]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       None,
@@ -736,7 +740,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 1]),
-        ..Default::default()
+        ..default()
       }
       .pointer(),
       None,
@@ -748,7 +752,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: None,
-        ..Default::default()
+        ..default()
       }
       .to_witness(),
       envelope(&[b"ord"]),
@@ -757,7 +761,7 @@ mod tests {
     assert_eq!(
       Inscription {
         pointer: Some(vec![1, 2, 3]),
-        ..Default::default()
+        ..default()
       }
       .to_witness(),
       envelope(&[b"ord", &[2], &[1, 2, 3]]),
@@ -779,6 +783,7 @@ mod tests {
       Vec::new(),
       file.path(),
       None,
+      None,
     )
     .unwrap();
 
@@ -793,6 +798,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(0),
+      None,
     )
     .unwrap();
 
@@ -807,6 +813,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(1),
+      None,
     )
     .unwrap();
 
@@ -821,6 +828,7 @@ mod tests {
       Vec::new(),
       file.path(),
       Some(256),
+      None,
     )
     .unwrap();
 
@@ -835,7 +843,7 @@ mod tests {
         Inscription {
           content_type: content_type.map(|content_type| content_type.as_bytes().into()),
           body: body.map(|content_type| content_type.as_bytes().into()),
-          ..Default::default()
+          ..default()
         }
         .hidden(),
         expected
@@ -892,7 +900,7 @@ mod tests {
     assert!(Inscription {
       content_type: Some("text/plain".as_bytes().into()),
       body: Some(b"{\xc3\x28}".as_slice().into()),
-      ..Default::default()
+      ..default()
     }
     .hidden());
 
@@ -900,7 +908,7 @@ mod tests {
       content_type: Some("text/html".as_bytes().into()),
       body: Some("hello".as_bytes().into()),
       metaprotocol: Some(Vec::new()),
-      ..Default::default()
+      ..default()
     }
     .hidden());
   }
