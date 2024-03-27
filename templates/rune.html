@@ -16,23 +16,23 @@
   <dt>etching transaction</dt>
   <dd>{{ self.id.tx }}</dd>
   <dt>mint</dt>
-%% if let Some(mint) = self.entry.mint {
+%% if let Some(terms) = self.entry.terms {
   <dd>
     <dl>
-      <dt>deadline</dt>
-%% if let Some(deadline) = mint.deadline {
-      <dd><time>{{ timestamp(deadline) }}</time></dd>
+      <dt>start</dt>
+%% if let Some(start) = self.entry.start() {
+      <dd><a href=/block/{{ start }}>{{ start }}</a></dd>
 %% } else {
       <dd>none</dd>
 %% }
       <dt>end</dt>
-%% if let Some(end) = mint.end {
+%% if let Some(end) = self.entry.end() {
       <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
 %% } else {
       <dd>none</dd>
 %% }
       <dt>limit</dt>
-%% if let Some(limit) = mint.limit {
+%% if let Some(limit) = terms.limit {
       <dd>{{ self.entry.pile(limit) }}</dd>
 %% } else {
       <dd>none</dd>
@@ -40,9 +40,9 @@
       <dt>mints</dt>
       <dd>{{ self.entry.mints }}</dd>
       <dt>cap</dt>
-      <dd>{{ mint.cap.unwrap_or_default() }}</dd>
+      <dd>{{ terms.cap.unwrap_or_default() }}</dd>
       <dt>remaining</dt>
-      <dd>{{ mint.cap.unwrap_or_default() - self.entry.mints }}</dd>
+      <dd>{{ terms.cap.unwrap_or_default() - self.entry.mints }}</dd>
       <dt>mintable</dt>
       <dd>{{ self.mintable }}</dd>
     </dl>

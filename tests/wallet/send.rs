@@ -888,7 +888,7 @@ fn sending_rune_with_divisibility_works() {
         premine: "1000".parse().unwrap(),
         supply: "1000".parse().unwrap(),
         symbol: '¢',
-        mint: None,
+        terms: None,
       }),
       inscriptions: vec![batch::Entry {
         file: "inscription.jpeg".into(),
@@ -1103,7 +1103,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   pretty_assert_eq!(
     Runestone::from_transaction(&tx).unwrap(),
     Runestone {
-      default_output: None,
+      pointer: None,
       etching: None,
       edicts: vec![Edict {
         id: etch.id,
@@ -1111,7 +1111,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         output: 2
       }],
       cenotaph: false,
-      claim: None,
+      mint: None,
     },
   );
 }

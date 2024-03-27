@@ -190,7 +190,7 @@ fn etch(
       etching: Some(batch::Etching {
         supply: "1000".parse().unwrap(),
         divisibility: 0,
-        mint: None,
+        terms: None,
         premine: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
@@ -238,11 +238,9 @@ fn batch(
   bitcoin_rpc_server.mine_blocks(1);
 
   let block_height = bitcoin_rpc_server.height();
-  let block_hash = *bitcoin_rpc_server.state().hashes.last().unwrap();
-  let block_time = bitcoin_rpc_server.state().blocks[&block_hash].header.time;
 
   let id = RuneId {
-    block: u32::try_from(block_height).unwrap(),
+    block: block_height,
     tx: 1,
   };
 
@@ -251,19 +249,19 @@ fn batch(
 
   let batch::Etching {
     divisibility,
-    mint,
     premine,
     rune,
     supply,
     symbol,
+    terms,
   } = batchfile.etching.unwrap();
 
   {
     let supply = supply.to_amount(divisibility).unwrap();
     let premine = premine.to_amount(divisibility).unwrap();
 
-    let mintable = mint
-      .map(|mint| mint.cap * mint.limit.to_amount(divisibility).unwrap())
+    let mintable = terms
+      .map(|terms| terms.cap * terms.limit.to_amount(divisibility).unwrap())
       .unwrap_or_default();
 
     assert_eq!(supply, premine + mintable);
@@ -271,31 +269,54 @@ fn batch(
 
   let mut mint_definition = Vec::<String>::new();
 
-  if let Some(mint) = mint {
+  if let Some(terms) = terms {
     mint_definition.push("<dd>".into());
     mint_definition.push("<dl>".into());
 
     let mut mintable = true;
 
-    mint_definition.push("<dt>deadline</dt>".into());
-    if let Some(deadline) = mint.deadline {
-      mintable &= block_time < deadline;
-      mint_definition.push(format!(
-        "<dd><time>{}</time></dd>",
-        ord::timestamp(deadline)
-      ));
-    } else {
-      mint_definition.push("<dd>none</dd>".into());
+    mint_definition.push("<dt>start</dt>".into());
+    {
+      let relative = terms
+        .offset
+        .and_then(|range| range.start)
+        .map(|start| start + block_height);
+      let absolute = terms.height.and_then(|range| range.start);
+
+      let start = relative
+        .zip(absolute)
+        .map(|(relative, absolute)| relative.max(absolute))
+        .or(relative)
+        .or(absolute);
+
+      if let Some(start) = start {
+        mintable &= block_height + 1 >= start;
+        mint_definition.push(format!("<dd><a href=/block/{start}>{start}</a></dd>"));
+      } else {
+        mint_definition.push("<dd>none</dd>".into());
+      }
     }
 
     mint_definition.push("<dt>end</dt>".into());
+    {
+      let relative = terms
+        .offset
+        .and_then(|range| range.end)
+        .map(|end| end + block_height);
+      let absolute = terms.height.and_then(|range| range.end);
 
-    if let Some(term) = mint.term {
-      let end = block_height + u64::from(term);
-      mintable &= block_height + 1 < end;
-      mint_definition.push(format!("<dd><a href=/block/{end}>{end}</a></dd>"));
-    } else {
-      mint_definition.push("<dd>none</dd>".into());
+      let end = relative
+        .zip(absolute)
+        .map(|(relative, absolute)| relative.min(absolute))
+        .or(relative)
+        .or(absolute);
+
+      if let Some(end) = end {
+        mintable &= block_height + 1 < end;
+        mint_definition.push(format!("<dd><a href=/block/{end}>{end}</a></dd>"));
+      } else {
+        mint_definition.push("<dd>none</dd>".into());
+      }
     }
 
     mint_definition.push("<dt>limit</dt>".into());
@@ -303,7 +324,7 @@ fn batch(
     mint_definition.push(format!(
       "<dd>{}</dd>",
       Pile {
-        amount: mint.limit.to_amount(divisibility).unwrap(),
+        amount: terms.limit.to_amount(divisibility).unwrap(),
         divisibility,
         symbol: Some(symbol),
       }
@@ -312,9 +333,9 @@ fn batch(
     mint_definition.push("<dt>mints</dt>".into());
     mint_definition.push("<dd>0</dd>".into());
     mint_definition.push("<dt>cap</dt>".into());
-    mint_definition.push(format!("<dd>{}</dd>", mint.cap));
+    mint_definition.push(format!("<dd>{}</dd>", terms.cap));
     mint_definition.push("<dt>remaining</dt>".into());
-    mint_definition.push(format!("<dd>{}</dd>", mint.cap));
+    mint_definition.push(format!("<dd>{}</dd>", terms.cap));
 
     mint_definition.push("<dt>mintable</dt>".into());
     mint_definition.push(format!("<dd>{mintable}</dd>"));
