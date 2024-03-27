@@ -6,9 +6,9 @@ use {
   },
   super::*,
   crate::templates::{
-    BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
-    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
     PreviewVideoHtml, RangeHtml, RareTxt, RuneBalancesHtml, RuneHtml, RunesHtml, SatHtml,
     TransactionHtml,
@@ -909,25 +909,26 @@ impl Server {
         return Ok(StatusCode::OK.into_response());
       }
 
-      let address = Address::from_str(&address)
-        .unwrap()
+      let address_unchecked =
+        Address::from_str(&address).map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let address = address_unchecked
+        .clone()
         .require_network(settings.chain().network())
-        .unwrap();
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
       let inscriptions = index.get_inscription_ids_by_address(&address)?;
 
       Ok(if accept_json {
-        Json(api::Inscriptions {
-          ids: inscriptions,
-          page_index: 0,
-          more: false,
+        Json(api::Address {
+          inscriptions,
+          address: address_unchecked,
         })
         .into_response()
       } else {
-        InscriptionsHtml {
+        AddressHtml {
           inscriptions,
-          prev: None,
-          next: None,
+          address,
         }
         .into_response()
       })

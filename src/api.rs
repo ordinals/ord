@@ -9,6 +9,12 @@ pub use crate::templates::{
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Address {
+  pub address: bitcoin::Address<NetworkUnchecked>,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
   pub hash: BlockHash,
   pub target: BlockHash,
@@ -119,7 +125,7 @@ pub struct Inscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub address: Option<Address<NetworkUnchecked>>,
+  pub address: Option<bitcoin::Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<(SpacedRune, Pile)>,
