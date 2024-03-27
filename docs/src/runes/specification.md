@@ -411,4 +411,4 @@ A commitment consists of a data push of the rune name, encoded as a
 little-endian integer with trailing zero bytes elided, present in an input
 witness tapscript where the output being spent has at least six confirmations.
 
-If a valid witness is not present, the etching is ignored.
+If a valid commitment is not present, the etching is ignored.
