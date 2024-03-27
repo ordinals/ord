@@ -282,11 +282,11 @@ The `Cenotaph` field is unrecognized.
 
 ##### Divisibility
 
-The `Divisibility` field, raised to the power of ten, is the number of units in
-a displayed whole number denomination of runes.
+The `Divisibility` field, raised to the power of ten, is the number of subunits
+in a super unit of runes.
 
 For example, the amount `1234` of different runes with divisibility 0 through 3
-as follows:
+is displayed as follows:
 
 | Divisibility | Display |
 |--------------|---------|
