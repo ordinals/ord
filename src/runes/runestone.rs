@@ -76,23 +76,22 @@ impl Runestone {
     Self::decipher(transaction).ok().flatten()
   }
 
+  fn cenotaph() -> Self {
+    Self {
+      cenotaph: true,
+      ..default()
+    }
+  }
+
   fn decipher(transaction: &Transaction) -> Result<Option<Self>, script::Error> {
     let payload = match Runestone::payload(transaction)? {
       Some(Payload::Valid(payload)) => payload,
-      Some(Payload::Invalid) => {
-        return Ok(Some(Self {
-          cenotaph: true,
-          ..default()
-        }))
-      }
+      Some(Payload::Invalid) => return Ok(Some(Self::cenotaph())),
       None => return Ok(None),
     };
 
     let Some(integers) = Runestone::integers(&payload) else {
-      return Ok(Some(Self {
-        cenotaph: true,
-        ..default()
-      }));
+      return Ok(Some(Self::cenotaph()));
     };
 
     let Message {
