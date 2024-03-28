@@ -860,7 +860,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
             cap: Some(1),
-            limit: Some(1),
+            amount: Some(1),
             offset: (Some(1), Some(1)),
             height: (None, None),
           }),
@@ -3869,7 +3869,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3893,7 +3893,7 @@ mod tests {
           timestamp: id.block,
           mints: 0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3924,7 +3924,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3949,7 +3949,7 @@ mod tests {
   }
 
   #[test]
-  fn etching_with_limit_can_be_minted() {
+  fn etching_with_amount_can_be_minted() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -3958,7 +3958,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
             cap: Some(100),
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -3982,7 +3982,7 @@ mod tests {
           premine: 0,
           mints: 0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4018,7 +4018,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4068,7 +4068,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4129,7 +4129,7 @@ mod tests {
           burned: 1000,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4171,7 +4171,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             offset: (None, Some(2)),
             ..default()
@@ -4191,7 +4191,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         offset: (None, Some(2)),
         cap: Some(100),
         ..default()
@@ -4264,7 +4264,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             offset: (Some(2), None),
             ..default()
@@ -4284,7 +4284,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         offset: (Some(2), None),
         cap: Some(100),
         ..default()
@@ -4348,7 +4348,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             height: (Some(10), None),
             ..default()
@@ -4368,7 +4368,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         height: (Some(10), None),
         cap: Some(100),
         ..default()
@@ -4432,7 +4432,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             height: (None, Some(10)),
             ..default()
@@ -4452,7 +4452,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         height: (None, Some(10)),
         cap: Some(100),
         ..default()
@@ -4531,7 +4531,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(1111),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4553,7 +4553,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4592,7 +4592,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4613,7 +4613,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4636,7 +4636,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4679,7 +4679,7 @@ mod tests {
           etching: txid0,
           terms: Some(Terms {
             cap: Some(2),
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -4725,7 +4725,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4782,7 +4782,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4818,7 +4818,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4840,7 +4840,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4883,7 +4883,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4920,7 +4920,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(2000),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -4946,7 +4946,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           timestamp: id.block,
@@ -4959,7 +4959,7 @@ mod tests {
   }
 
   #[test]
-  fn omitted_limit_defaults_to_max_limit() {
+  fn omitted_edicts_defaults_to_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4988,7 +4988,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: None,
+            amount: None,
             offset: (None, Some(1)),
             ..default()
           }),
@@ -5001,7 +5001,7 @@ mod tests {
   }
 
   #[test]
-  fn premines_can_claim_over_the_max_limit() {
+  fn premines_can_claim_over_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -5010,7 +5010,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(2000),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(1),
             ..default()
           }),
@@ -5037,7 +5037,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(1),
             ..default()
           }),
@@ -5052,7 +5052,7 @@ mod tests {
   }
 
   #[test]
-  fn transactions_cannot_claim_more_than_limit() {
+  fn transactions_cannot_claim_more_than_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -5060,7 +5060,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5101,7 +5101,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5129,7 +5129,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5151,7 +5151,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5204,7 +5204,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5245,7 +5245,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
@@ -5305,7 +5305,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
@@ -5365,7 +5365,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
