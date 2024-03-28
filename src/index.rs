@@ -1693,11 +1693,11 @@ impl Index {
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
     let id_min = RuneId {
-      block: block_height,
+      block: u64::from(block_height),
       tx: 0,
     };
     let id_max = RuneId {
-      block: block_height + 1,
+      block: u64::from(block_height + 1),
       tx: 0,
     };
 
