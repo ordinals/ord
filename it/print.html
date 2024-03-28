@@ -1122,7 +1122,13 @@ OP_ENDIF
 <p>The <code>Spacers</code> field is a bitfield of <code>•</code> spacers that should be displayed between the letters of the rune's name.</p>
 <p>The Nth field of the bitfield, starting from the least significant, determines whether or not a spacer should be displayed between the Nth and N+1th character, starting from the left of the rune's name.</p>
 <p>For example, the rune name <code>AAAA</code> rendered with different spacers:</p>
-<p>| Spacers | Display | | 0b1     | A•AAA   | | 0b11    | A•A•AA  | | 0b10    | AA•AA   | | 0b111   | A•A•A•A |</p>
+<div class="table-wrapper"><table><thead><tr><th>Spacers</th><th>Display</th></tr></thead><tbody>
+<tr><td>0b1</td><td>A•AAA</td></tr>
+<tr><td>0b11</td><td>A•A•AA</td></tr>
+<tr><td>0b10</td><td>AA•AA</td></tr>
+<tr><td>0b111</td><td>A•A•A•A</td></tr>
+</tbody></table>
+</div>
 <p>Trailing spacers are ignored.</p>
 <h5 id="symbol-1"><a class="header" href="#symbol-1">Symbol</a></h5>
 <p>The <code>Symbol</code> field is the Unicode codepoint of the Rune's currency symbol, which should be displayed after amounts of that rune. If a rune does not have a currency symbol, the generic currency character <code>¤</code> should be used.</p>
