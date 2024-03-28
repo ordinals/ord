@@ -189,10 +189,10 @@ And then delta encoded as:
 
 | block delta | TX delta | amount | output |
 |-------------|----------|--------|--------|
-| 10          | 5        | 100    | 1      |
-| 0           | 0        | 100    | 1      |
-| 0           | 2        | 100    | 1      |
-| 40          | 1        | 100    | 1      |
+| 10          | 5        | 5      | 1      |
+| 0           | 0        | 10     | 3      |
+| 0           | 2        | 1      | 8      |
+| 40          | 1        | 25     | 4      |
 
 If an edict output is greater than the number of outputs of the transaction, an
 edict rune ID is encountered with block zero and nonzero transaction index, or
