@@ -5,7 +5,7 @@ The Runes reference implementation, `ord`, is the normative specification of
 the Runes protocol.
 
 Nothing you read here or elsewhere, aside from the code of `ord`, is a
-specification. This prose description of the runes protocol is provided as an
+specification. This prose description of the runes protocol is provided as a
 guide to the behavior of `ord`, and the code of `ord` itself should always be
 consulted to confirm the correctness of any prose description.
 
@@ -462,7 +462,7 @@ If a valid commitment is not present, the etching is ignored.
 A runestone may mint a rune by including the rune's ID in the `Mint` field.
 
 If the mint is open, the mint amount is added to the unallocated runes in the
-transactions inputs. These runes may be transferred using edicts, and will
+transaction's inputs. These runes may be transferred using edicts, and will
 otherwise be transferred to the first non-`OP_RETURN` output, or the output
 designated by the `Pointer` field.
 
