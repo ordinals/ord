@@ -59,7 +59,7 @@ mod tests {
       &Arc::new(ServerConfig {
         json_api_enabled: false,
         decompress: false,
-        ..Default::default()
+        ..default()
       }),
     )
     .await
@@ -80,7 +80,7 @@ mod tests {
       &Arc::new(ServerConfig {
         json_api_enabled: false,
         decompress: false,
-        ..Default::default()
+        ..default()
       }),
     )
     .await
@@ -109,7 +109,7 @@ mod tests {
       &Arc::new(ServerConfig {
         json_api_enabled: false,
         decompress: false,
-        ..Default::default()
+        ..default()
       }),
     )
     .await

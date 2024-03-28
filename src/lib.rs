@@ -16,13 +16,16 @@ use {
     arguments::Arguments,
     blocktime::Blocktime,
     decimal::Decimal,
+    deserialize_from_str::DeserializeFromStr,
+    index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
-      teleburn, Charm, ParsedEnvelope,
+      teleburn, ParsedEnvelope,
     },
+    into_usize::IntoUsize,
     representation::Representation,
-    runes::{Etching, Pile, SpacedRune},
+    runes::Terms,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -48,17 +51,19 @@ use {
   ciborium::Value,
   clap::{ArgGroup, Parser},
   html_escaper::{Escape, Trusted},
+  http::HeaderMap,
   lazy_static::lazy_static,
-  ordinals::{DeserializeFromStr, Epoch, Height, Rarity, Sat, SatPoint},
+  ordinals::{Charm, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
   reqwest::Url,
-  serde::{Deserialize, Deserializer, Serialize, Serializer},
+  serde::{Deserialize, Deserializer, Serialize},
+  serde_with::{DeserializeFromStr, SerializeDisplay},
   std::{
     cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
-    fs::{self, File},
+    fs,
     io::{self, Cursor, Read},
     mem,
     net::ToSocketAddrs,
@@ -79,11 +84,11 @@ use {
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, MintEntry, RuneEntry},
+  index::{Index, RuneEntry},
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  runes::{Edict, Rune, RuneId, Runestone},
+  runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -108,15 +113,17 @@ pub mod arguments;
 mod blocktime;
 pub mod chain;
 mod decimal;
+mod deserialize_from_str;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod into_usize;
 mod object;
 pub mod options;
 pub mod outgoing;
+mod re;
 mod representation;
 pub mod runes;
-mod server_config;
 mod settings;
 pub mod subcommand;
 mod tally;
@@ -125,11 +132,12 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+const RUNE_COMMIT_INTERVAL: u32 = 6;
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
-
-const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
@@ -158,16 +166,30 @@ fn fund_raw_transaction(
           // by 1000.
           fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
           change_position: Some(unfunded_transaction.output.len().try_into()?),
-          ..Default::default()
+          ..default()
         }),
         Some(false),
-      )?
+      )
+      .map_err(|err| {
+        if matches!(
+          err,
+          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          ))
+        ) {
+          anyhow!("not enough cardinal utxos")
+        } else {
+          err.into()
+        }
+      })?
       .hex,
   )
 }
 
-pub fn timestamp(seconds: u32) -> DateTime<Utc> {
-  Utc.timestamp_opt(seconds.into(), 0).unwrap()
+pub fn timestamp(seconds: u64) -> DateTime<Utc> {
+  Utc
+    .timestamp_opt(seconds.try_into().unwrap_or(i64::MAX), 0)
+    .unwrap()
 }
 
 fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
@@ -179,6 +201,14 @@ fn unbound_outpoint() -> OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
   }
+}
+
+fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
+  address.to_string().parse().unwrap()
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
 }
 
 pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {

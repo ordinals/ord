@@ -1,21 +1,22 @@
 use super::*;
 
-#[derive(Deserialize, PartialEq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 #[serde(deny_unknown_fields)]
-pub struct Batchfile {
-  pub(crate) inscriptions: Vec<BatchEntry>,
-  pub(crate) mode: Mode,
-  pub(crate) parent: Option<InscriptionId>,
-  pub(crate) postage: Option<u64>,
+pub struct File {
+  pub inscriptions: Vec<Entry>,
+  pub mode: Mode,
+  pub parent: Option<InscriptionId>,
+  pub postage: Option<u64>,
   #[serde(default)]
-  pub(crate) reinscribe: bool,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: Option<SatPoint>,
+  pub reinscribe: bool,
+  pub etching: Option<Etching>,
+  pub sat: Option<Sat>,
+  pub satpoint: Option<SatPoint>,
 }
 
-impl Batchfile {
-  pub(crate) fn load(path: &Path) -> Result<Batchfile> {
-    let batchfile: Batchfile = serde_yaml::from_reader(File::open(path)?)?;
+impl File {
+  pub(crate) fn load(path: &Path) -> Result<Self> {
+    let batchfile: Self = serde_yaml::from_reader(fs::File::open(path)?)?;
 
     ensure!(
       !batchfile.inscriptions.is_empty(),
@@ -134,9 +135,12 @@ impl Batchfile {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent,
+        self.parent.into_iter().collect(),
         &entry.file,
         Some(pointer),
+        self
+          .etching
+          .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
       )?);
 
       let postage = if self.mode == Mode::SatPoints {
@@ -197,7 +201,7 @@ mod tests {
 
   #[test]
   fn batchfile_not_sat_and_satpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -214,16 +218,14 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
-        .unwrap_err()
-        .to_string(),
+      File::load(batch_file.as_path()).unwrap_err().to_string(),
       "batchfile cannot set both `sat` and `satpoint`"
     );
   }
 
   #[test]
   fn batchfile_wrong_mode_for_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -241,7 +243,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "specifying `satpoint` in an inscription only works in `satpoints` mode"
@@ -250,7 +252,7 @@ inscriptions:
 
   #[test]
   fn batchfile_missing_satpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -267,7 +269,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "if `satpoint` is set for any inscription, then all inscriptions need to specify a satpoint"
@@ -276,7 +278,7 @@ inscriptions:
 
   #[test]
   fn batchfile_only_first_sat_of_outpoint() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -294,7 +296,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "`satpoint` can only be specified for first sat of an output"
@@ -303,7 +305,7 @@ inscriptions:
 
   #[test]
   fn batchfile_no_postage_if_mode_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -322,7 +324,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "`postage` cannot be set if in `satpoints` mode"
@@ -331,7 +333,7 @@ inscriptions:
 
   #[test]
   fn batchfile_no_duplicate_satpoints() {
-    let tempdir = tempfile::TempDir::new().unwrap();
+    let tempdir = TempDir::new().unwrap();
     let batch_file = tempdir.path().join("batch.yaml");
     fs::write(
       batch_file.clone(),
@@ -351,7 +353,7 @@ inscriptions:
     .unwrap();
 
     assert_eq!(
-      Batchfile::load(batch_file.as_path())
+      batch::File::load(batch_file.as_path())
         .unwrap_err()
         .to_string(),
       "duplicate satpoint bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0"

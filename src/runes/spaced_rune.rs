@@ -1,9 +1,17 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq)]
+#[derive(
+  Copy, Clone, Debug, PartialEq, Ord, PartialOrd, Eq, Default, DeserializeFromStr, SerializeDisplay,
+)]
 pub struct SpacedRune {
-  pub(crate) rune: Rune,
-  pub(crate) spacers: u32,
+  pub rune: Rune,
+  pub spacers: u32,
+}
+
+impl SpacedRune {
+  pub fn new(rune: Rune, spacers: u32) -> Self {
+    Self { rune, spacers }
+  }
 }
 
 impl FromStr for SpacedRune {
@@ -51,24 +59,6 @@ impl Display for SpacedRune {
     }
 
     Ok(())
-  }
-}
-
-impl Serialize for SpacedRune {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for SpacedRune {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 
@@ -127,6 +117,7 @@ mod tests {
     case("A.B.C", "ABC", 0b11);
     case("A•B", "AB", 0b1);
     case("A•B•C", "ABC", 0b11);
+    case("A•BC", "ABC", 0b1);
   }
 
   #[test]

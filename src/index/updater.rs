@@ -41,8 +41,10 @@ pub(crate) struct Updater<'index> {
 }
 
 impl<'index> Updater<'index> {
-  pub(crate) fn update_index<'a>(&'a mut self, mut wtx: WriteTransaction<'a>) -> Result {
+  pub(crate) fn update_index(&mut self, mut wtx: WriteTransaction) -> Result {
+    let start = Instant::now();
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
+    let starting_index_height = self.height;
 
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
@@ -120,15 +122,21 @@ impl<'index> Updater<'index> {
           .insert(
             &self.height,
             &SystemTime::now()
-              .duration_since(SystemTime::UNIX_EPOCH)
-              .map(|duration| duration.as_millis())
-              .unwrap_or(0),
+              .duration_since(SystemTime::UNIX_EPOCH)?
+              .as_millis(),
           )?;
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
+    }
+
+    if starting_index_height == 0 && self.height > 0 {
+      wtx.open_table(STATISTIC_TO_COUNT)?.insert(
+        Statistic::InitialSyncTime.key(),
+        &u64::try_from(start.elapsed().as_micros())?,
+      )?;
     }
 
     if uncommitted > 0 {
@@ -313,7 +321,7 @@ impl<'index> Updater<'index> {
     log::info!(
       "Block {} at {} with {} transactions…",
       self.height,
-      timestamp(block.header.time),
+      timestamp(block.header.time.into()),
       block.txdata.len()
     );
 
@@ -583,6 +591,9 @@ impl<'index> Updater<'index> {
         .unwrap_or(0);
 
       let mut rune_updater = RuneUpdater {
+        block_time: block.header.time,
+        burned: HashMap::new(),
+        client: &self.index.client,
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
@@ -592,29 +603,14 @@ impl<'index> Updater<'index> {
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
         statistic_to_count: &mut statistic_to_count,
-        timestamp: block.header.time,
         transaction_id_to_rune: &mut transaction_id_to_rune,
-        updates: HashMap::new(),
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(i, tx, *txid)?;
+        rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
-      for (rune_id, update) in rune_updater.updates {
-        let mut entry = RuneEntry::load(
-          rune_id_to_rune_entry
-            .get(&rune_id.store())?
-            .unwrap()
-            .value(),
-        );
-
-        entry.burned += update.burned;
-        entry.mints += update.mints;
-        entry.supply += update.supply;
-
-        rune_id_to_rune_entry.insert(&rune_id.store(), entry.store())?;
-      }
+      rune_updater.update()?;
     }
 
     height_to_block_header.insert(&self.height, &block.header.store())?;

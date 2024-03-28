@@ -23,57 +23,61 @@ msgstr "概述"
 msgid "Digital Artifacts"
 msgstr "数字文物"
 
-#: src/SUMMARY.md:7 src/SUMMARY.md:17 src/overview.md:221 src/inscriptions.md:1
+#: src/SUMMARY.md:7 src/overview.md:221 src/inscriptions.md:1
 msgid "Inscriptions"
 msgstr "铭文"
 
-#: src/SUMMARY.md:8 src/inscriptions/metadata.md:1
+#: src/SUMMARY.md:8 src/inscriptions/delegate.md:1
+msgid "Delegate"
+msgstr "委托"
+
+#: src/SUMMARY.md:9 src/inscriptions/metadata.md:1
 msgid "Metadata"
 msgstr "元数据"
 
-#: src/SUMMARY.md:9 src/inscriptions/provenance.md:1
-msgid "Provenance"
-msgstr "溯源"
-
-#: src/SUMMARY.md:10 src/inscriptions/recursion.md:1
-msgid "Recursion"
-msgstr "递归"
-
-#: src/SUMMARY.md:11 src/inscriptions/pointer.md:1
+#: src/SUMMARY.md:10 src/inscriptions/pointer.md:1
 msgid "Pointer"
 msgstr "指针"
 
-#: src/SUMMARY.md:12
+#: src/SUMMARY.md:11 src/inscriptions/provenance.md:1
+msgid "Provenance"
+msgstr "溯源"
+
+#: src/SUMMARY.md:12 src/inscriptions/recursion.md:1
+msgid "Recursion"
+msgstr "递归"
+
+#: src/SUMMARY.md:13 src/inscriptions/rendering.md:1
+msgid "Rendering"
+msgstr "渲染"
+
+#: src/SUMMARY.md:14
 msgid "FAQ"
 msgstr "常见问题"
 
-#: src/SUMMARY.md:13
+#: src/SUMMARY.md:15
 msgid "Contributing"
 msgstr "贡献"
 
-#: src/SUMMARY.md:14 src/donate.md:1
+#: src/SUMMARY.md:16 src/donate.md:1
 msgid "Donate"
 msgstr "捐赠"
 
-#: src/SUMMARY.md:15
+#: src/SUMMARY.md:17
 msgid "Guides"
 msgstr "指引"
 
-#: src/SUMMARY.md:16
+#: src/SUMMARY.md:18
 msgid "Explorer"
 msgstr "浏览器"
 
-#: src/SUMMARY.md:18 src/guides/batch-inscribing.md:1
+#: src/SUMMARY.md:19 src/guides/wallet.md:1
+msgid "Wallet"
+msgstr "麻雀钱包"
+
+#: src/SUMMARY.md:20 src/guides/batch-inscribing.md:1
 msgid "Batch Inscribing"
 msgstr "批量铸造"
-
-#: src/SUMMARY.md:19 src/guides/sat-hunting.md:1
-msgid "Sat Hunting"
-msgstr "猎聪"
-
-#: src/SUMMARY.md:20 src/guides/teleburning.md:1
-msgid "Teleburning"
-msgstr "燃烧传送"
 
 #: src/SUMMARY.md:21 src/guides/collecting.md:1
 msgid "Collecting"
@@ -83,35 +87,47 @@ msgstr "收藏"
 msgid "Sparrow Wallet"
 msgstr "麻雀钱包"
 
-#: src/SUMMARY.md:23 src/guides/testing.md:1
-msgid "Testing"
-msgstr "调试"
-
-#: src/SUMMARY.md:24 src/guides/moderation.md:1
+#: src/SUMMARY.md:23 src/guides/moderation.md:1
 msgid "Moderation"
 msgstr "调节"
 
-#: src/SUMMARY.md:25 src/guides/reindexing.md:1
+#: src/SUMMARY.md:24 src/guides/reindexing.md:1
 msgid "Reindexing"
 msgstr "重新索引"
 
-#: src/SUMMARY.md:26
+#: src/SUMMARY.md:25 src/guides/sat-hunting.md:1
+msgid "Sat Hunting"
+msgstr "猎聪"
+
+#: src/SUMMARY.md:26 src/guides/settings.md:1
+msgid "Settings"
+msgstr "调试"
+
+#: src/SUMMARY.md:27 src/guides/teleburning.md:1
+msgid "Teleburning"
+msgstr "燃烧传送"
+
+#: src/SUMMARY.md:28 src/guides/testing.md:1
+msgid "Testing"
+msgstr "调试"
+
+#: src/SUMMARY.md:29
 msgid "Bounties"
 msgstr "赏金"
 
-#: src/SUMMARY.md:27
+#: src/SUMMARY.md:30
 msgid "Bounty 0: 100,000 sats Claimed!"
 msgstr "任务 0: 100,000 sats 完成!"
 
-#: src/SUMMARY.md:28
+#: src/SUMMARY.md:31
 msgid "Bounty 1: 200,000 sats Claimed!"
 msgstr "任务 1: 200,000 sats 完成!"
 
-#: src/SUMMARY.md:29
+#: src/SUMMARY.md:32
 msgid "Bounty 2: 300,000 sats Claimed!"
 msgstr "任务 2: 300,000 sats 完成!"
 
-#: src/SUMMARY.md:30
+#: src/SUMMARY.md:33
 msgid "Bounty 3: 400,000 sats"
 msgstr "任务 3: 400,000 sats"
 
@@ -180,10 +196,10 @@ msgstr "有关铭文的更多详细信息，请参阅[铭文](inscriptions.md)."
 #: src/introduction.md:31
 msgid ""
 "When you're ready to get your hands dirty, a good place to start is with "
-"[inscriptions](guides/inscriptions.md), a curious species of digital "
-"artifact enabled by ordinal theory."
+"[inscriptions](guides/wallet.md), a curious species of digital artifact "
+"enabled by ordinal theory."
 msgstr ""
-"当您准备好亲自动手时，一个好的起点是[铭文](guides/inscriptions.md)这是一种由"
+"当您准备好亲自动手时，一个好的起点是[铭文](inscriptions.md)这是一种由"
 "序数理论支持的独特的数字文物。"
 
 #: src/introduction.md:35
@@ -227,8 +243,7 @@ msgid ""
 "[Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin]"
 "(https://www.youtube.com/watch?v=rSS0O2KQpsI)"
 msgstr ""
-"[解释序数理论: 聪的序列号和比特币上的NFT](https://www.youtube.com/watch?"
-"v=rSS0O2KQpsI)"
+"[解释序数理论: 聪的序列号和比特币上的NFT](https://www.youtube.com/watch?v=rSS0O2KQpsI)"
 
 #: src/introduction.md:50
 msgid ""
@@ -236,14 +251,6 @@ msgid ""
 "v=MC_haVa6N3I)"
 msgstr ""
 "[CaseyRodarmor的序数理论工作坊 ](https://www.youtube.com/watch?v=MC_haVa6N3I)"
-
-#: src/introduction.md:51
-msgid ""
-"[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www."
-"youtube.com/watch?v=j5V33kV3iqo)"
-msgstr ""
-"[序数艺术：在比特币上铸造你自己的NFT w/ @rodarmor](https://www.youtube.com/"
-"watch?v=j5V33kV3iqo)"
 
 #: src/overview.md:1
 msgid "Ordinal Theory Overview"
@@ -665,7 +672,6 @@ msgid "`common`: 1.9 quadrillion"
 msgstr "`普通`: 1千900万亿"
 
 #: src/overview.md:186
-#, fuzzy
 msgid "`uncommon`: 808,262"
 msgstr "`非普通`: 808,262"
 
@@ -1032,7 +1038,6 @@ msgid ""
 msgstr "首先字符串`ord`被推送，以消除铭文与信封其他用途的歧义。"
 
 #: src/inscriptions.md:56
-#, fuzzy
 msgid ""
 "`OP_PUSH 1` indicates that the next push contains the content type, and "
 "`OP_PUSH 0`indicates that subsequent data pushes contain the content itself. "
@@ -1047,9 +1052,10 @@ msgstr ""
 #: src/inscriptions.md:62
 msgid ""
 "The inscription content is contained within the input of a reveal "
-"transaction, and the inscription is made on the first sat of its input. This "
-"sat can then be tracked using the familiar rules of ordinal theory, allowing "
-"it to be transferred, bought, sold, lost to fees, and recovered."
+"transaction, and the inscription is made on the first sat of its input if it "
+"has no pointer field. This sat can then be tracked using the familiar rules "
+"of ordinal  theory, allowing it to be transferred, bought, sold, lost to "
+"fees, and recovered."
 msgstr ""
 "铭文内容包含在reveal交易的输入中，并且铭文是铭刻在其第一个输出的第一个聪"
 "（Satoshi）上。我们可以使用熟悉的序数理论规则来跟踪这个聪 sat，允许它被转移、"
@@ -1080,19 +1086,55 @@ msgstr ""
 "值。"
 
 #: src/inscriptions.md:79
+msgid "Currently, there are six defined fields:"
+msgstr ""
+
+#: src/inscriptions.md:81
 msgid ""
-"Currently, the only defined field is `content-type`, with a tag of `1`, "
-"whose value is the MIME type of the body."
+"`content_type`, with a tag of `1`, whose value is the MIME type of the body."
 msgstr ""
 "目前，唯一定义的字段是‘content-type’，标签为‘1’，其值是正文的 MIME 类型。"
 
 #: src/inscriptions.md:82
 msgid ""
+"`pointer`, with a tag of `2`, see [pointer docs](inscriptions/pointer.md)."
+msgstr ""
+
+#: src/inscriptions.md:83
+msgid ""
+"`parent`, with a tag of `3`, see [provenance](inscriptions/provenance.md)."
+msgstr ""
+
+#: src/inscriptions.md:84
+msgid ""
+"`metadata`, with a tag of `5`, see [metadata](inscriptions/metadata.md)."
+msgstr ""
+
+#: src/inscriptions.md:85
+msgid ""
+"`metaprotocol`, with a tag of `7`, whose value is the metaprotocol "
+"identifier."
+msgstr ""
+
+#: src/inscriptions.md:86
+msgid ""
+"`content_encoding`, with a tag of `9`, whose value is the encoding of the "
+"body."
+msgstr ""
+"目前，唯一定义的字段是‘content-type’，标签为‘1’，其值是正文的 MIME 类型。"
+
+#: src/inscriptions.md:87
+msgid ""
+"`delegate`, with a tag of `11`, see [delegate](inscriptions/delegate.md)."
+msgstr ""
+
+#: src/inscriptions.md:89
+msgid ""
 "The beginning of the body and end of fields is indicated with an empty data "
 "push."
 msgstr "正文的开头和字段的结尾用'空数据'指示推送。"
 
-#: src/inscriptions.md:85
+#: src/inscriptions.md:92
 msgid ""
 "Unrecognized tags are interpreted differently depending on whether they are "
 "even or odd, following the \"it's okay to be odd\" rule used by the "
@@ -1101,7 +1143,7 @@ msgstr ""
 "无法识别的标签的解释不同，取决于它们是否是偶数或奇数，遵循闪电网络\"可以是奇"
 "数\"的规则。"
 
-#: src/inscriptions.md:89
+#: src/inscriptions.md:96
 msgid ""
 "Even tags are used for fields which may affect creation, initial assignment, "
 "or transfer of an inscription. Thus, inscriptions with unrecognized even "
@@ -1110,7 +1152,7 @@ msgstr ""
 "甚至标签也用于可能影响创建、初始分配的字段，或铭文的转移。因此，即使无法识别"
 "的铭文，字段也必须显示为\"未绑定\"，即没有位置。"
 
-#: src/inscriptions.md:93
+#: src/inscriptions.md:100
 msgid ""
 "Odd tags are used for fields which do not affect creation, initial "
 "assignment, or transfer, such as additional metadata, and thus are safe to "
@@ -1119,11 +1161,11 @@ msgstr ""
 "奇数标签用于不影响创建、初始的字段,分配或转移，例如附加元数据，因此是选择忽略"
 "是安全的。"
 
-#: src/inscriptions.md:96
+#: src/inscriptions.md:103
 msgid "Inscription IDs"
 msgstr "铭文身份ID"
 
-#: src/inscriptions.md:99
+#: src/inscriptions.md:106
 msgid ""
 "The inscriptions are contained within the inputs of a reveal transaction. In "
 "order to uniquely identify them they are assigned an ID of the form:"
@@ -1131,11 +1173,11 @@ msgstr ""
 "铭文包含在揭示交易的输入中。为了唯一地识别他们，他们被分配了一个以下形式的 "
 "ID："
 
-#: src/inscriptions.md:102
+#: src/inscriptions.md:109
 msgid "`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`"
 msgstr ""
 
-#: src/inscriptions.md:104
+#: src/inscriptions.md:111
 msgid ""
 "The part in front of the `i` is the transaction ID (`txid`) of the reveal "
 "transaction. The number after the `i` defines the index (starting at 0) of "
@@ -1144,7 +1186,7 @@ msgstr ""
 " `i` 的前面部分是交易ID (`txid`)，在`i`之后的数字定义了新的铭文在交易总被铭刻"
 "的索引的位置 (从 0 开始)"
 
-#: src/inscriptions.md:108
+#: src/inscriptions.md:115
 msgid ""
 "Inscriptions can either be located in different inputs, within the same "
 "input or a combination of both. In any case the ordering is clear, since a "
@@ -1154,59 +1196,90 @@ msgstr ""
 "铭文可以位于同一输入中的不同输入中,可以是同一个输入或两者的组合。在任何情况"
 "下，顺序都是明确的，因为解析器将连续检查输入并查找所有铭文`信封`"
 
-#: src/inscriptions.md:112
+#: src/inscriptions.md:119
 msgid "Input"
-msgstr ""
+msgstr "输入"
 
-#: src/inscriptions.md:112
+#: src/inscriptions.md:119
 msgid "Inscription Count"
-msgstr ""
+msgstr "铭文数量"
 
-#: src/inscriptions.md:112
+#: src/inscriptions.md:119
 msgid "Indices"
-msgstr ""
+msgstr "指数"
 
-#: src/inscriptions.md:114 src/inscriptions.md:117
+#: src/inscriptions.md:121 src/inscriptions.md:124
 msgid "0"
 msgstr ""
 
-#: src/inscriptions.md:114 src/inscriptions.md:116
+#: src/inscriptions.md:121 src/inscriptions.md:123
 msgid "2"
 msgstr ""
 
-#: src/inscriptions.md:114
+#: src/inscriptions.md:121
 msgid "i0, i1"
 msgstr ""
 
-#: src/inscriptions.md:115 src/inscriptions.md:118
+#: src/inscriptions.md:122 src/inscriptions.md:125
 msgid "1"
 msgstr ""
 
-#: src/inscriptions.md:115
+#: src/inscriptions.md:122
 msgid "i2"
 msgstr ""
 
-#: src/inscriptions.md:116 src/inscriptions.md:117
+#: src/inscriptions.md:123 src/inscriptions.md:124
 msgid "3"
 msgstr ""
 
-#: src/inscriptions.md:116
+#: src/inscriptions.md:123
 msgid "i3, i4, i5"
 msgstr ""
 
-#: src/inscriptions.md:118
+#: src/inscriptions.md:125
 msgid "4"
 msgstr ""
 
-#: src/inscriptions.md:118
+#: src/inscriptions.md:125
 msgid "i6"
 msgstr ""
 
-#: src/inscriptions.md:120
+#: src/inscriptions.md:127
+msgid "Inscription Numbers"
+msgstr "铭文"
+
+#: src/inscriptions.md:130
+msgid ""
+"Inscriptions are assigned inscription numbers starting at zero, first by the "
+"order reveal transactions appear in blocks, and the order that reveal "
+"envelopes appear in those transactions."
+msgstr ""
+"铭文被分配的铭文编号从零开始，首先按照揭示交易在区块中出现的顺序，以及揭示信封在这些交易中出现的顺序。"
+
+#: src/inscriptions.md:134
+msgid ""
+"Due to a historical bug in `ord` which cannot be fixed without changing a "
+"great many inscription numbers, inscriptions which are revealed and then "
+"immediately spent to fees are numbered as if they appear last in the block "
+"in which they are revealed."
+msgstr ""
+"由于在`ord`中的一个过往的错误，如果不改变大量的铭文编号就无法修复 "
+"因此，那些被揭示出来然后立即用于支付费用的铭文，其编号就好像它们是在被揭示出来的区块中最后出现的一样。"
+
+#: src/inscriptions.md:139
+msgid ""
+"Inscriptions which are cursed are numbered starting at negative one, "
+"counting down. Cursed inscriptions on and after the jubilee at block 824544 "
+"are vindicated, and are assigned positive inscription numbers."
+msgstr ""
+"被诅咒的铭文从负一开始编号，依次递减。在区块824544及之后的朱比利（Jubilee）事件中，"
+"被诅咒的铭文得到了宽恕，并被分配了正数的铭文编号。"
+
+#: src/inscriptions.md:143
 msgid "Sandboxing"
 msgstr "沙盒化"
 
-#: src/inscriptions.md:123
+#: src/inscriptions.md:146
 msgid ""
 "HTML and SVG inscriptions are sandboxed in order to prevent references to "
 "off-chain content, thus keeping inscriptions immutable and self-contained."
@@ -1214,7 +1287,7 @@ msgstr ""
 "HTML 和 SVG 铭文被沙箱化，以防止引用链下内容，从而保持铭文的不可变性和独立"
 "性。"
 
-#: src/inscriptions.md:126
+#: src/inscriptions.md:149
 msgid ""
 "This is accomplished by loading HTML and SVG inscriptions inside `iframes` "
 "with the `sandbox` attribute, as well as serving inscription content with "
@@ -1223,6 +1296,116 @@ msgstr ""
 "这是通过在“iframes”中加载 HTML 和 SVG 铭文来完成的`sandbox` 属性，以及提供铭"
 "文内容Content-Security-Policy”标头。"
 
+#: src/inscriptions.md:153
+msgid "Reinscriptions"
+msgstr "再刻铭文"
+
+#: src/inscriptions.md:156
+msgid ""
+"Previously inscribed sats can be reinscribed with the `--reinscribe` command "
+"if the inscription is present in the wallet. This will only append an "
+"inscription to a sat, not change the initial inscription."
+msgstr ""
+
+#: src/inscriptions.md:160
+msgid ""
+"Reinscribe with satpoint: `ord wallet inscribe --fee-rate <FEE_RATE> --"
+"reinscribe --file <FILE> --satpoint <SATPOINT>`"
+msgstr ""
+"如果铭文存在于钱包中，之前铭刻的sats可以使用--reinscribe命令进行重新铭刻。"
+"这将只会在一个sat上追加一个铭文，而不会改变最初的铭文。"
+
+#: src/inscriptions.md:163
+msgid ""
+"Reinscribe on a sat (requires sat index): `ord --index-sats wallet inscribe "
+"--fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`"
+msgstr ""
+"在一个聪上再刻录铭文 (需要聪索引): `ord --index-sats wallet inscribe "
+"--fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`"
+
+#: src/inscriptions/delegate.md:4
+msgid ""
+"Inscriptions may nominate a delegate inscription. Requests for the content "
+"of an inscription with a delegate will instead return the content and "
+"content type of the delegate. This can be used to cheaply create copies of "
+"an inscription."
+msgstr ""
+"铭文可以指定一个代理铭文。对带有代理的铭文内容的请求，将返回代理的内容和内容类型。"
+"这可以用来低成本地创建铭文的副本。"
+
+#: src/inscriptions/delegate.md:8 src/inscriptions/provenance.md:14
+msgid "Specification"
+msgstr "规范"
+
+#: src/inscriptions/delegate.md:10
+msgid "To create an inscription I with delegate inscription D:"
+msgstr "为父系铭文P创建一个子铭文C:"
+
+#: src/inscriptions/delegate.md:12
+msgid ""
+"Create an inscription D. Note that inscription D does not have to exist when "
+"making inscription I. It may be inscribed later. Before inscription D is "
+"inscribed, requests for the content of inscription I will return a 404."
+msgstr ""
+"创建一个铭文D。请注意，在创建铭文I时，铭文D不必已经存在。它可以稍后被铭刻。"
+"在铭文D被铭刻之前，对铭文I内容的请求将返回404错误"
+
+#: src/inscriptions/delegate.md:15
+msgid ""
+"Include tag `11`, i.e. `OP_PUSH 11`, in I, with the value of the serialized "
+"binary inscription ID of D, serialized as the 32-byte `TXID`, followed by "
+"the four-byte little-endian `INDEX`, with trailing zeroes omitted."
+msgstr ""
+"在C中包含标签`3`，即`OP_PUSH 3`，其值为P的序列化二进制铭文ID序列化为32字节的"
+"`TXID`，后跟四字节的小端`INDEX`，不含末尾的零。"
+
+#: src/inscriptions/delegate.md:19 src/inscriptions/provenance.md:24
+msgid ""
+"_NB_ The bytes of a bitcoin transaction ID are reversed in their text "
+"representation, so the serialized transaction ID will be in the opposite "
+"order."
+msgstr ""
+"_请注意_，比特币交易ID的字节在文本中的表现形式是反向的，所以序列化的交易ID会"
+"以相反的顺序呈现。"
+
+#: src/inscriptions/delegate.md:22 src/inscriptions/metadata.md:30
+#: src/inscriptions/provenance.md:27 src/guides/reindexing.md:15
+#: src/guides/teleburning.md:23 src/guides/testing.md:62
+msgid "Example"
+msgstr "示例"
+
+#: src/inscriptions/delegate.md:24
+msgid ""
+"An example of an inscription which delegates to "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
+msgstr ""
+"子铭文的一个示例 "
+"`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
+
+#: src/inscriptions/delegate.md:27
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 11\n"
+"  OP_PUSH "
+"0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/delegate.md:36
+msgid "Note that the value of tag `11` is decimal, not hex."
+msgstr "请注意，标签`11`的值是十进制的，而不是十六进制的。"
+
+#: src/inscriptions/delegate.md:38
+msgid ""
+"The delegate field value uses the same encoding as the parent field. See "
+"[provenance](provenance.md) for more examples of inscrpition ID encodings;"
+msgstr ""
+"代理字段的值使用与父字段相同的编码方式。有关铭文ID编码的更多示例，请参见[provenance](provenance.md) "
+
 #: src/inscriptions/metadata.md:4
 msgid ""
 "Inscriptions may include [CBOR](https://cbor.io/) metadata, stored as data "
@@ -1230,10 +1413,9 @@ msgid ""
 "metadata longer than 520 bytes must be split into multiple tag `5` fields, "
 "which will then be concatenated before decoding."
 msgstr ""
-"铭文可能包含[CBOR](https://cbor.io/) 元数据, 将以数据推送的形式储存在"
-"带有标签 `5`的字段中. 由于数据推送的限制为520 字节 "
-"因此超过520字节的元数据必须拆分到多个标签为 `5` 的字段中, "
-"然后在解码前进行连接。"
+"铭文可能包含[CBOR](https://cbor.io/) 元数据, 将以数据推送的形式储存在带有标"
+"签 `5`的字段中. 由于数据推送的限制为520 字节 因此超过520字节的元数据必须拆分"
+"到多个标签为 `5` 的字段中, 然后在解码前进行连接。"
 
 #: src/inscriptions/metadata.md:9
 msgid ""
@@ -1241,8 +1423,8 @@ msgid ""
 "with its inscription. Inscribers are encouraged to consider how metadata "
 "will be displayed, and make metadata concise and attractive."
 msgstr ""
-"元数据是人类可读的数据，并且所有元数据都将与其铭文一起展示给用户"
-"建议铭文铸造者考虑元数据展示的方式，使元数据简洁且吸引人。"
+"元数据是人类可读的数据，并且所有元数据都将与其铭文一起展示给用户建议铭文铸造"
+"者考虑元数据展示的方式，使元数据简洁且吸引人。"
 
 #: src/inscriptions/metadata.md:13
 msgid "Metadata is rendered to HTML for display as follows:"
@@ -1262,22 +1444,21 @@ msgstr "字节字符串将呈现为大写十六进制。"
 msgid ""
 "Arrays are rendered as `<ul>` tags, with every element wrapped in `<li>` "
 "tags."
-msgstr ""
-"数组将以 `<ul>` 标签的形式呈现，每个元素都会被`<li>`标签包裹。 "
+msgstr "数组将以 `<ul>` 标签的形式呈现，每个元素都会被`<li>`标签包裹。 "
 
 #: src/inscriptions/metadata.md:20
 msgid ""
 "Maps are rendered as `<dl>` tags, with every key wrapped in `<dt>` tags, and "
 "every value wrapped in `<dd>` tags."
 msgstr ""
-"映射将以 `<dl>` 标签的形式呈现，每一个键被 `<dt>` 标签包裹，每一个值被 `<dd>` 标签包裹。"
+"映射将以 `<dl>` 标签的形式呈现，每一个键被 `<dt>` 标签包裹，每一个值被 "
+"`<dd>` 标签包裹。"
 
 #: src/inscriptions/metadata.md:22
 msgid ""
 "Tags are rendered as the tag , enclosed in a `<sup>` tag, followed by the "
 "value."
-msgstr ""
-"标签将以 `<sup>` 标签包裹的标签的形式呈现，紧接着是值。 "
+msgstr "标签将以 `<sup>` 标签包裹的标签的形式呈现，紧接着是值。 "
 
 #: src/inscriptions/metadata.md:25
 msgid ""
@@ -1286,15 +1467,9 @@ msgid ""
 "bignums, and encoding such as indefinite values, may fail to display "
 "correctly or at all. Contributions to `ord` to remedy this are welcome."
 msgstr ""
-"CBOR是一个包含许多不同数据类型和多种表达相同数据方式的复杂规格。"
-"一些特殊的数据类型，如标签、浮点数和大数字，以及某些编码方式，如不定值，可能无法正确或完全显示。"
-"欢迎为ord做出贡献来改善这个问题。"
-
-#: src/inscriptions/metadata.md:30 src/inscriptions/provenance.md:27
-#: src/guides/teleburning.md:23 src/guides/testing.md:18
-#: src/guides/reindexing.md:15
-msgid "Example"
-msgstr "示例"
+"CBOR是一个包含许多不同数据类型和多种表达相同数据方式的复杂规格。一些特殊的数"
+"据类型，如标签、浮点数和大数字，以及某些编码方式，如不定值，可能无法正确或完"
+"全显示。欢迎为ord做出贡献来改善这个问题。"
 
 #: src/inscriptions/metadata.md:33
 msgid ""
@@ -1302,15 +1477,14 @@ msgid ""
 "JSON. Keep in mind that this is _only_ for these examples, and JSON metadata "
 "will _not_ be displayed correctly."
 msgstr ""
-"由于CBOR不属于人类可读的，在这些示例中，它将用JSON格式来表示。但请注意，这只适用于这些示例，JSON元数据将无法正确显示。"
+"由于CBOR不属于人类可读的，在这些示例中，它将用JSON格式来表示。但请注意，这只"
+"适用于这些示例，JSON元数据将无法正确显示。"
 
 #: src/inscriptions/metadata.md:37
 msgid ""
 "The metadata `{\"foo\":\"bar\",\"baz\":[null,true,false,0]}` would be "
 "included in an inscription as:"
-msgstr ""
-"铭文中包含的元数据 `{\"foo\":\"bar\",\"baz\":[null,true,false,0]}` "
-
+msgstr "铭文中包含的元数据 `{\"foo\":\"bar\",\"baz\":[null,true,false,0]}` "
 
 #: src/inscriptions/metadata.md:39
 msgid ""
@@ -1376,8 +1550,103 @@ msgid ""
 "Which would then be concatenated into `{\"very\":\"long\",\"metadata\":"
 "\"is\",\"finally\":\"done\"}`."
 msgstr ""
-"然后，可以被连接成 `{\"very\":\"long\",\"metadata\":"
-"\"is\",\"finally\":\"done\"}`."
+"然后，可以被连接成 `{\"very\":\"long\",\"metadata\":\"is\",\"finally\":"
+"\"done\"}`."
+
+#: src/inscriptions/pointer.md:4
+msgid ""
+"In order to make an inscription on a sat other than the first of its input, "
+"a zero-based integer, called the \"pointer\", can be provided with tag `2`, "
+"causing the inscription to be made on the sat at the given position in the "
+"outputs. If the pointer is equal to or greater than the number of total sats "
+"in the outputs of the inscribe transaction, it is ignored, and the "
+"inscription is made as usual. The value of the pointer field is a little "
+"endian integer, with trailing zeroes ignored."
+msgstr ""
+"为了在输入的第一个以外的sat上进行铭刻，可以提供一个以0为基础的整数，称作 \"指"
+"针\",并配以标签 `2`, 这将导致铭文被做在给定位置的输出的sat上。 如果指针等于或"
+"大于铭文交易输出中的总sat数，那么它将被忽略， 而铭文将像往常一样被铭刻。指针"
+"字段的值是一个小端整数，尾随零将被忽略。 "
+
+#: src/inscriptions/pointer.md:12
+msgid ""
+"An even tag is used, so that old versions of `ord` consider the inscription "
+"to be unbound, instead of assigning it, incorrectly, to the first sat."
+msgstr ""
+"使用了偶数标签，所以旧版本的 `ord` 会把铭文视为无约束，而不是错误地将其分配到"
+"第一个sat。"
+
+#: src/inscriptions/pointer.md:15
+msgid ""
+"This can be used to create multiple inscriptions in a single transaction on "
+"different sats, when otherwise they would be made on the same sat."
+msgstr ""
+"这可以用于一次性在不同的sat上创建多个铭文，否则它们将被制成在同一个sat上"
+
+#: src/inscriptions/pointer.md:18 src/inscriptions/recursion.md:62
+msgid "Examples"
+msgstr "示例"
+
+#: src/inscriptions/pointer.md:21
+msgid "An inscription with pointer 255:"
+msgstr "一个带有255指针的铭文"
+
+#: src/inscriptions/pointer.md:23
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 2\n"
+"  OP_PUSH 0xff\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/pointer.md:36
+msgid "An inscription with pointer 256:"
+msgstr "一个带有256指针的铭文"
+
+#: src/inscriptions/pointer.md:38
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 2\n"
+"  OP_PUSH 0x0001\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/pointer.md:51
+msgid ""
+"An inscription with pointer 256, with trailing zeroes, which are ignored:"
+msgstr "带有指针256的铭文，尾随零被忽略："
+
+#: src/inscriptions/pointer.md:53
+msgid ""
+"```\n"
+"OP_FALSE\n"
+"OP_IF\n"
+"  OP_PUSH \"ord\"\n"
+"  OP_PUSH 1\n"
+"  OP_PUSH \"text/plain;charset=utf-8\"\n"
+"  OP_PUSH 2\n"
+"  OP_PUSH 0x000100\n"
+"  OP_PUSH 0\n"
+"  OP_PUSH \"Hello, world!\"\n"
+"OP_ENDIF\n"
+"```"
+msgstr ""
 
 #: src/inscriptions/provenance.md:4
 msgid ""
@@ -1387,8 +1656,8 @@ msgid ""
 "collections, with the children of a parent inscription being members of the "
 "same collection."
 msgstr ""
-"铭文的所有者可以创建子铭文，在链上信任地建立这些子铭文的源头，"
-"证明它们是由父铭文的所有者创建的。这可以用于收藏品，父铭文的子铭文属于同一收藏系列。"
+"铭文的所有者可以创建子铭文，在链上信任地建立这些子铭文的源头，证明它们是由父"
+"铭文的所有者创建的。这可以用于收藏品，父铭文的子铭文属于同一收藏系列。"
 
 #: src/inscriptions/provenance.md:9
 msgid ""
@@ -1397,12 +1666,9 @@ msgid ""
 "sub inscriptions representing collections that they create, with the "
 "children of those sub inscriptions being items in those collections."
 msgstr ""
-"子铭文自己也可以有子铭文，从而形成复杂的层级结构。例如，一位艺术家可能创建一个代表自己的铭文，"
-"子铭文代表他们创建的合辑，而那些子铭文的子项就是合辑中的项目。"
-
-#: src/inscriptions/provenance.md:14
-msgid "Specification"
-msgstr "规范"
+"子铭文自己也可以有子铭文，从而形成复杂的层级结构。例如，一位艺术家可能创建一"
+"个代表自己的铭文，子铭文代表他们创建的合辑，而那些子铭文的子项就是合辑中的项"
+"目。"
 
 #: src/inscriptions/provenance.md:16
 msgid "To create a child inscription C with parent inscription P:"
@@ -1424,15 +1690,6 @@ msgid ""
 msgstr ""
 "在C中包含标签`3`，即`OP_PUSH 3`，其值为P的序列化二进制铭文ID序列化为32字节的"
 "`TXID`，后跟四字节的小端`INDEX`，不含末尾的零。"
-
-#: src/inscriptions/provenance.md:24
-msgid ""
-"_NB_ The bytes of a bitcoin transaction ID are reversed in their text "
-"representation, so the serialized transaction ID will be in the opposite "
-"order."
-msgstr ""
-"_请注意_，比特币交易ID的字节在文本中的表现形式是反向的，"
-"所以序列化的交易ID会以相反的顺序呈现。"
 
 #: src/inscriptions/provenance.md:29
 msgid ""
@@ -1533,34 +1790,61 @@ msgid ""
 "A collection can be closed by burning the collection's parent inscription, "
 "which guarantees that no more items in the collection can be issued."
 msgstr ""
-"通过销毁集合的父铭文，可以关闭一个集合，这保证了该集合中不能再发行更多的项目。 "
+"通过销毁集合的父铭文，可以关闭一个集合，这保证了该集合中不能再发行更多的项"
+"目。 "
 
 #: src/inscriptions/recursion.md:4
 msgid ""
 "An important exception to [sandboxing](../inscriptions.md#sandboxing) is "
-"recursion: access to `ord`'s `/content` endpoint is permitted, allowing "
-"inscriptions to access the content of other inscriptions by requesting `/"
-"content/<INSCRIPTION_ID>`."
+"recursion. Recursive endpoints are whitelisted endpoints that allow access "
+"to on-chain data, including the content of other inscriptions."
 msgstr ""
 "[沙盒化](../inscriptions.md#sandboxing)的一个重要例外是递归：访问“ord”的“/"
 "content”允许端点，允许铭文访问其他端点的内容通过请求 `/content/"
 "<INSCRIPTION_ID>` 来获取铭文。"
 
-#: src/inscriptions/recursion.md:9
-msgid "This has a number of interesting use-cases:"
+#: src/inscriptions/recursion.md:8
+msgid ""
+"Since changes to recursive endpoints might break inscriptions that rely on "
+"them, recursive endpoints have backwards-compatibility guarantees not shared "
+"by `ord server`'s other endpoints. In particular:"
+msgstr ""
+"由于对递归端点的更改可能会破坏依赖它们的铭文，递归端点具有向后兼容性保证，"
+"这是`ord server`的其他端点所不具备的。具体来说："
+
+#: src/inscriptions/recursion.md:12
+msgid "Recursive endpoints will not be removed"
+msgstr "递归端点将不会被移除。"
+
+#: src/inscriptions/recursion.md:13
+msgid ""
+"Object fields returned by recursive endpoints will not be renamed or change "
+"types"
+msgstr ""
+
+#: src/inscriptions/recursion.md:15
+msgid ""
+"However, additional object fields may be added or reordered, so inscriptions "
+"must handle additional, unexpected fields, and must not expect fields to be "
+"returned in a specific order."
+msgstr ""
+"递归端点返回的对象字段将不会被重命名或更改类型。"
+
+#: src/inscriptions/recursion.md:19
+msgid "Recursion has a number of interesting use-cases:"
 msgstr "这有许多有趣的用例："
 
-#: src/inscriptions/recursion.md:11
+#: src/inscriptions/recursion.md:21
 msgid "Remixing the content of existing inscriptions."
 msgstr "重新混合现有铭文的内容。"
 
-#: src/inscriptions/recursion.md:13
+#: src/inscriptions/recursion.md:23
 msgid ""
 "Publishing snippets of code, images, audio, or stylesheets as shared public "
 "resources."
 msgstr "将代码、图像、音频或样式表片段发布为公共的共享资源。"
 
-#: src/inscriptions/recursion.md:16
+#: src/inscriptions/recursion.md:26
 msgid ""
 "Generative art collections where an algorithm is inscribed as JavaScript, "
 "and instantiated from multiple inscriptions with unique seeds."
@@ -1568,7 +1852,7 @@ msgstr ""
 "生成艺术收藏，其中算法使用JavaScript刻写，并从具有独特种子的多个铭文中实例"
 "化。"
 
-#: src/inscriptions/recursion.md:19
+#: src/inscriptions/recursion.md:29
 msgid ""
 "Generative profile picture collections where accessories and attributes are "
 "inscribed as individual images, or in a shared texture atlas, and then "
@@ -1577,124 +1861,354 @@ msgstr ""
 "生成个人资料图片集，其中包含配件和属性刻录为单独的图像，或刻录在共享纹理图集"
 "中，然后组合，拼贴风格，在多个铭文中以独特的组合。"
 
-#: src/inscriptions/recursion.md:23
-msgid "A few other endpoints that inscriptions may access are the following:"
-msgstr "铭文可以访问的其他几个端点如下："
+#: src/inscriptions/recursion.md:33
+msgid "The recursive endpoints are:"
+msgstr "递归端点是"
 
-#: src/inscriptions/recursion.md:25
+#: src/inscriptions/recursion.md:35
+msgid ""
+"`/content/<INSCRIPTION_ID>`:  the content of the inscription with "
+"`<INSCRIPTION_ID>`"
+msgstr ""
+"`/content/<INSCRIPTION_ID>`:  铭文的内容 "
+"`<INSCRIPTION_ID>`"
+
+#: src/inscriptions/recursion.md:36
+msgid "`/r/blockhash/<HEIGHT>`: block hash at given block height."
+msgstr "`/blockhash/<HEIGHT>`：给定块高度的块哈希。"
+
+#: src/inscriptions/recursion.md:37
+msgid "`/r/blockhash`: latest block hash."
+msgstr "`/blockhash`：最新的块哈希。"
+
+#: src/inscriptions/recursion.md:38
+msgid "`/r/blockheight`: latest block height."
+msgstr "`/blockheight`：最新区块高度。"
+
+#: src/inscriptions/recursion.md:39
+msgid ""
+"`/r/blockinfo/<QUERY>`: block info. `<QUERY>` may be a block height or block "
+"hash."
+msgstr ""
+"`/r/blockinfo/<QUERY>`: 区块信息. `<QUERY>` 可能是区块高度或者区块哈希"
+
+#: src/inscriptions/recursion.md:40
+msgid "`/r/blocktime`: UNIX time stamp of latest block."
+msgstr "`/blocktime`：最新块的 UNIX 时间戳。"
+
+#: src/inscriptions/recursion.md:41
+msgid "`/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids."
+msgstr "`/r/children/<INSCRIPTION_ID>`: 前100个子铭文的ID."
+
+#: src/inscriptions/recursion.md:42
+msgid ""
+"`/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids "
+"on `<PAGE>`."
+msgstr ""
+"`/r/children/<INSCRIPTION_ID>/<PAGE>`: 100个子铭文ID的合集 "
+"on `<PAGE>`."
+
+#: src/inscriptions/recursion.md:43
+msgid "`/r/inscription/:inscription_id`: information about an inscription"
+msgstr "`/r/inscription/:inscription_id`: 关于一个铭文的信息"
+
+#: src/inscriptions/recursion.md:44
+msgid ""
+"`/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR "
+"metadata."
+msgstr ""
+"`/r/metadata/<INSCRIPTION_ID>`: 包含十六进制编码的 CBOR 元数据 的 JSON 字符串"
+
+#: src/inscriptions/recursion.md:45
+msgid "`/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat."
+msgstr "`/r/sat/<SAT_NUMBER>`: 在一个Sats上的头100个铭文ID.
+
+#: src/inscriptions/recursion.md:46
+msgid ""
+"`/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`."
+msgstr ""
+"`/r/sat/<SAT_NUMBER>/<PAGE>`: 在 `<PAGE>`上的100个铭文ID合集."
+
+#: src/inscriptions/recursion.md:47
+msgid ""
+"`/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all "
+"inscriptions on a sat. `<INDEX>` may be a negative number to index from the "
+"back. `0` being the first and `-1` being the most recent for example."
+msgstr ""
+"`/r/sat/<SAT_NUMBER>/at/<INDEX>`: 所有`<INDEX>` 处在一个聪上的铭文ID "
+"`<INDEX>`可能是从索引往后的负数"
+"比如`0` 是第一个而 `-1` 是最近的."
+
+#: src/inscriptions/recursion.md:49
+msgid ""
+"Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat "
+"notations like degree, percentile or decimal. We may expand to allow those "
+"in the future."
+msgstr ""
+"注意： `<SAT_NUMBER>` 仅允许使用sat的实际数字，不允许使用度数、"
+"百分位数或小数等其他sat表示法。我们可能会在将来考虑支持这些表示法。"
+
+#: src/inscriptions/recursion.md:53
+msgid ""
+"Responses from the above recursive endpoints are JSON. For backwards "
+"compatibility additional endpoints are supported, some of which return plain-"
+"text responses."
+msgstr ""
+"来自上述递归端点的响应是 JSON。为了向后兼容，支持其他端点，其中一些返回纯文本响应。 "
+
+#: src/inscriptions/recursion.md:57
 msgid "`/blockheight`: latest block height."
 msgstr "`/blockheight`：最新区块高度。"
 
-#: src/inscriptions/recursion.md:26
+#: src/inscriptions/recursion.md:58
 msgid "`/blockhash`: latest block hash."
 msgstr "`/blockhash`：最新的块哈希。"
 
-#: src/inscriptions/recursion.md:27
+#: src/inscriptions/recursion.md:59
 msgid "`/blockhash/<HEIGHT>`: block hash at given block height."
 msgstr "`/blockhash/<HEIGHT>`：给定块高度的块哈希。"
 
-#: src/inscriptions/recursion.md:28
+#: src/inscriptions/recursion.md:60
 msgid "`/blocktime`: UNIX time stamp of latest block."
 msgstr "`/blocktime`：最新块的 UNIX 时间戳。"
 
-#: src/inscriptions/pointer.md:4
-msgid ""
-"In order to make an inscription on a sat other than the first of its input, "
-"a zero-based integer, called the \"pointer\", can be provided with tag `2`, "
-"causing the inscription to be made on the sat at the given position in the "
-"outputs. If the pointer is equal to or greater than the number of total sats "
-"in the outputs of the inscribe transaction, it is ignored, and the "
-"inscription is made as usual. The value of the pointer field is a little "
-"endian integer, with trailing zeroes ignored."
+#: src/inscriptions/recursion.md:65
+msgid "`/r/blockhash/0`:"
 msgstr ""
-"为了在输入的第一个以外的sat上进行铭刻，"
-"可以提供一个以0为基础的整数，称作 \"指针\",并配以标签 `2`, "
-"这将导致铭文被做在给定位置的输出的sat上。 "
-"如果指针等于或大于铭文交易输出中的总sat数，那么它将被忽略， "
-"而铭文将像往常一样被铭刻。指针字段的值是一个小端整数，尾随零将被忽略。 "
 
-#: src/inscriptions/pointer.md:12
+#: src/inscriptions/recursion.md:67
 msgid ""
-"An even tag is used, so that old versions of `ord` consider the inscription "
-"to be unbound, instead of assigning it, incorrectly, to the first sat."
-msgstr ""
-"使用了偶数标签，所以旧版本的 `ord` 会把铭文视为无约束，而不是错误地将其分配到第一个sat。"
-
-#: src/inscriptions/pointer.md:15
-msgid ""
-"This can be used to create multiple inscriptions in a single transaction on "
-"different sats, when otherwise they would be made on the same sat."
-msgstr ""
-"这可以用于一次性在不同的sat上创建多个铭文，否则它们将被制成在同一个sat上"
-
-#: src/inscriptions/pointer.md:18
-#, fuzzy
-msgid "Examples"
-msgstr "示例"
-
-#: src/inscriptions/pointer.md:21
-#, fuzzy
-msgid "An inscription with pointer 255:"
-msgstr "一个带有255指针的铭文"
-
-#: src/inscriptions/pointer.md:23
-msgid ""
-"```\n"
-"OP_FALSE\n"
-"OP_IF\n"
-"  OP_PUSH \"ord\"\n"
-"  OP_PUSH 1\n"
-"  OP_PUSH \"text/plain;charset=utf-8\"\n"
-"  OP_PUSH 2\n"
-"  OP_PUSH 0xff\n"
-"  OP_PUSH 0\n"
-"  OP_PUSH \"Hello, world!\"\n"
-"OP_ENDIF\n"
+"```json\n"
+"\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\"\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/pointer.md:36
-#, fuzzy
-msgid "An inscription with pointer 256:"
-msgstr "一个带有256指针的铭文"
+#: src/inscriptions/recursion.md:71
+msgid "`/r/blockheight`:"
+msgstr ""
 
-#: src/inscriptions/pointer.md:38
+#: src/inscriptions/recursion.md:73
 msgid ""
-"```\n"
-"OP_FALSE\n"
-"OP_IF\n"
-"  OP_PUSH \"ord\"\n"
-"  OP_PUSH 1\n"
-"  OP_PUSH \"text/plain;charset=utf-8\"\n"
-"  OP_PUSH 2\n"
-"  OP_PUSH 0x0001\n"
-"  OP_PUSH 0\n"
-"  OP_PUSH \"Hello, world!\"\n"
-"OP_ENDIF\n"
+"```json\n"
+"777000\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/pointer.md:51
-msgid ""
-"An inscription with pointer 256, with trailing zeroes, which are ignored:"
+#: src/inscriptions/recursion.md:77
+msgid "`/r/blockinfo/0`:"
 msgstr ""
-"带有指针256的铭文，尾随零被忽略："
 
-#: src/inscriptions/pointer.md:53
+#: src/inscriptions/recursion.md:79
 msgid ""
-"```\n"
-"OP_FALSE\n"
-"OP_IF\n"
-"  OP_PUSH \"ord\"\n"
-"  OP_PUSH 1\n"
-"  OP_PUSH \"text/plain;charset=utf-8\"\n"
-"  OP_PUSH 2\n"
-"  OP_PUSH 0x000100\n"
-"  OP_PUSH 0\n"
-"  OP_PUSH \"Hello, world!\"\n"
-"OP_ENDIF\n"
+"```json\n"
+"{\n"
+"  \"average_fee\": 0,\n"
+"  \"average_fee_rate\": 0,\n"
+"  \"bits\": 486604799,\n"
+"  \"chainwork\": "
+"\"0000000000000000000000000000000000000000000000000000000100010001\",\n"
+"  \"confirmations\": 0,\n"
+"  \"difficulty\": 0.0,\n"
+"  \"hash\": "
+"\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\",\n"
+"  \"height\": 0,\n"
+"  \"max_fee\": 0,\n"
+"  \"max_fee_rate\": 0,\n"
+"  \"max_tx_size\": 0,\n"
+"  \"median_fee\": 0,\n"
+"  \"median_time\": 1231006505,\n"
+"  \"merkle_root\": "
+"\"0000000000000000000000000000000000000000000000000000000000000000\",\n"
+"  \"min_fee\": 0,\n"
+"  \"min_fee_rate\": 0,\n"
+"  \"next_block\": null,\n"
+"  \"nonce\": 0,\n"
+"  \"previous_block\": null,\n"
+"  \"subsidy\": 5000000000,\n"
+"  \"target\": "
+"\"00000000ffff0000000000000000000000000000000000000000000000000000\",\n"
+"  \"timestamp\": 1231006505,\n"
+"  \"total_fee\": 0,\n"
+"  \"total_size\": 0,\n"
+"  \"total_weight\": 0,\n"
+"  \"transaction_count\": 1,\n"
+"  \"version\": 1\n"
+"}\n"
 "```"
 msgstr ""
+
+#: src/inscriptions/recursion.md:111
+msgid "`/r/blocktime`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:113
+msgid ""
+"```json\n"
+"1700770905\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:117 src/inscriptions/recursion.md:178
+msgid ""
+"`/r/"
+"children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:119 src/inscriptions/recursion.md:180
+msgid ""
+"```json\n"
+"{\n"
+"   \"ids\":[\n"
+"      \"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900\",\n"
+"      \"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901\",\n"
+"      ...\n"
+"      \"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935\",\n"
+"      \"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936\"\n"
+"   ],\n"
+"   \"more\":false,\n"
+"   \"page\":49\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:133
+msgid ""
+"`r/"
+"inscription/3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0`"
+msgstr ""
+
+#: src/inscriptions/recursion.md:135
+msgid ""
+"```json\n"
+"{\n"
+"  \"charms\": [],\n"
+"  \"content_type\": \"image/png\",\n"
+"  \"content_length\": 144037,\n"
+"  \"fee\": 36352,\n"
+"  \"height\": 209,\n"
+"  \"id\": "
+"\"3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0\",\n"
+"  \"number\": 2,\n"
+"  \"output\": "
+"\"3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0\",\n"
+"  \"sat\": null,\n"
+"  \"satpoint\": "
+"\"3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0:0\",\n"
+"  \"timestamp\": 1708312562,\n"
+"  \"value\": 10000\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:152
+msgid ""
+"`/r/"
+"metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:154
+msgid ""
+"```json\n"
+"\"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74\"\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:158
+msgid "`/r/sat/1023795949035695`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:160
+msgid ""
+"```json\n"
+"{\n"
+"   \"ids\":[\n"
+"      \"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0\"\n"
+"   ],\n"
+"   \"more\":false,\n"
+"   \"page\":0\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:170
+msgid "`/r/sat/1023795949035695/at/-1`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:172
+msgid ""
+"```json\n"
+"{\n"
+"   \"id\":"
+"\"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0\"\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/rendering.md:4
+msgid "Aspect Ratio"
+msgstr "纵横比"
+
+#: src/inscriptions/rendering.md:7
+msgid ""
+"Inscriptions should be rendered with a square aspect ratio. Non-square "
+"aspect ratio inscriptions should not be cropped, and should instead be "
+"centered and resized to fit within their container."
+msgstr ""
+"铭文应以正方形的纵横比进行渲染。非正方形纵横比的铭文不应被裁剪，而应该居中并调整大小以适应其容器。"
+
+#: src/inscriptions/rendering.md:11
+msgid "Maximum Size"
+msgstr "最大尺寸"
+
+#: src/inscriptions/rendering.md:14
+msgid ""
+"The `ord` explorer, used by [ordinals.com](https://ordinals.com/), displays "
+"inscription previews with a maximum size of 576 by 576 pixels, making it a "
+"reasonable choice when choosing a maximum display size."
+msgstr ""
+"由[ordinals.com](https://ordinals.com/)使用的`ord` 浏览器，"
+"展示的铭文预览的最大尺寸为576乘以576像素，这使得它在选择最大显示尺寸时是一个合理的选择。"
+
+#: src/inscriptions/rendering.md:18
+msgid "Image Rendering"
+msgstr "图片渲染"
+
+#: src/inscriptions/rendering.md:21
+msgid ""
+"The CSS `image-rendering` property controls how images are resampled when "
+"upscaled and downscaled."
+msgstr ""
+"CSS中的`image-rendering` 属性控制了在图片放大和缩小时如何重新采样图片。"
+
+#: src/inscriptions/rendering.md:24
+msgid ""
+"When downscaling image inscriptions, `image-rendering: auto`, should be "
+"used. This is desirable even when downscaling pixel art."
+msgstr ""
+"在缩小图片铭文时，应使用`image-rendering: auto`,即使在缩小像素艺术图片时，这也是可取的。"
+
+#: src/inscriptions/rendering.md:27
+msgid ""
+"When upscaling image inscriptions other than AVIF, `image-rendering: "
+"pixelated` should be used. This is desirable when upscaling pixel art, since "
+"it preserves the sharp edges of pixels. It is undesirable when upscaling non-"
+"pixel art, but should still be used for visual compatibility with the `ord` "
+"explorer."
+msgstr ""
+"在放大非AVIF格式的图片铭文时，应使用`image-rendering: pixelated`。"
+"这在放大像素艺术图片时是可取的，因为它保留了像素的锐利边缘。"
+"虽然在放大非像素艺术图片时这可能不太理想，但为了与ord浏览器的视觉兼容性，仍应使用此设置。"
+
+#: src/inscriptions/rendering.md:32
+msgid ""
+"When upscaling AVIF and JPEG XL inscriptions, `image-rendering: auto` should "
+"be used. This allows inscribers to opt-in to non-pixelated upscaling for non-"
+"pixel art inscriptions. Until such time as JPEG XL is widely supported by "
+"browsers, it is not a recommended image format."
+msgstr ""
+"在放大AVIF和JPEG XL格式的图片铭文时，应使用`image-rendering: auto`。"
+"这允许铭文者选择非像素化的放大方式，适用于非像素艺术的铭文。"
+"直到JPEG XL格式被浏览器广泛支持之前，它并不是一个推荐的图片格式。"
 
 #: src/faq.md:1
 msgid "Ordinal Theory FAQ"
@@ -2712,134 +3226,129 @@ msgstr "序数浏览器"
 
 #: src/guides/explorer.md:4
 msgid ""
-"The `ord` binary includes a block explorer. We host a instance of the block "
-"explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet "
-"at [signet.ordinals.com](https://signet.ordinals.com)."
+"The `ord` binary includes a block explorer. We host an instance of the block "
+"explorer on mainnet at [ordinals.com](https://ordinals.com), on signet at "
+"[signet.ordinals.com](https://signet.ordinals.com), and on testnet at "
+"[testnet.ordinals.com](https://testnet.ordinals.com). As of version 0.16.0 "
+"the wallet needs `ord server` running in the background. This is analogous "
+"to how `bitcoin-cli` needs `bitcoind` running in the background."
 msgstr ""
 "`ord` 文件包含一个区块浏览器。我们的主网区块链器部署在 [ordinals.com]"
 "(https://ordinals.com), signet部署在[signet.ordinals.com](https://signet."
 "ordinals.com)."
 
-#: src/guides/explorer.md:8
+#: src/guides/explorer.md:11
 msgid "Running The Explorer"
 msgstr "运行浏览器"
 
-#: src/guides/explorer.md:9
+#: src/guides/explorer.md:12
 msgid "The server can be run locally with:"
 msgstr "服务器可以使用本地运行："
 
-#: src/guides/explorer.md:11
+#: src/guides/explorer.md:14
 msgid "`ord server`"
 msgstr ""
 
-#: src/guides/explorer.md:13
+#: src/guides/explorer.md:16
 msgid "To specify a port add the `--http-port` flag:"
 msgstr "指定端口使用`--http-port`标记"
 
-#: src/guides/explorer.md:15
+#: src/guides/explorer.md:18
 msgid "`ord server --http-port 8080`"
 msgstr ""
 
-#: src/guides/explorer.md:17
-msgid ""
-"To enable the JSON-API endpoints add the `--enable-json-api` or `-j` flag "
-"(see [here](#json-api) for more info):"
-msgstr ""
-"要启动JSON-API 端点 添加 `--enable-json-api` 或者 `-j` 标志 "
-"(更多信息参考 [这里](#json-api) :"
-
 #: src/guides/explorer.md:20
-msgid "`ord --enable-json-api server`"
+msgid ""
+"The JSON-API endpoints are enabled by default, to disable them add the `--"
+"disable-json-api` flag (see [here](#json-api) for more info):"
+msgstr ""
+"要启动JSON-API 端点 添加 `--enable-json-api` 或者 `-j` 标志 (更多信息参考 [这"
+"里](#json-api) :"
+
+#: src/guides/explorer.md:23
+msgid "`ord server --disable-json-api`"
 msgstr ""
 
-#: src/guides/explorer.md:22
-msgid "To test how your inscriptions will look you can run:"
-msgstr "测试你的铭文你可以运行："
-
-#: src/guides/explorer.md:24
-msgid "`ord preview <FILE1> <FILE2> ...`"
-msgstr ""
-
-#: src/guides/explorer.md:26
+#: src/guides/explorer.md:25
 msgid "Search"
 msgstr "搜索"
 
-#: src/guides/explorer.md:29
+#: src/guides/explorer.md:28
 msgid "The search box accepts a variety of object representations."
 msgstr "搜索框可以使用各种对象："
 
-#: src/guides/explorer.md:31
+#: src/guides/explorer.md:30
 msgid "Blocks"
 msgstr "区块"
 
-#: src/guides/explorer.md:33
+#: src/guides/explorer.md:32
 msgid "Blocks can be searched by hash, for example, the genesis block:"
 msgstr "区块可以通过哈希来查找，例如创世区块："
 
-#: src/guides/explorer.md:35
+#: src/guides/explorer.md:34
 msgid ""
 "[000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f](https://"
 "ordinals.com/"
 "search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f)"
 msgstr ""
 
-#: src/guides/explorer.md:37
+#: src/guides/explorer.md:36
 msgid "Transactions"
 msgstr "交易"
 
-#: src/guides/explorer.md:39
+#: src/guides/explorer.md:38
 msgid ""
 "Transactions can be searched by hash, for example, the genesis block "
 "coinbase transaction:"
 msgstr "可以通过哈希查找交易，例如创世区块的coinbase交易："
 
-#: src/guides/explorer.md:42
+#: src/guides/explorer.md:41
 msgid ""
 "[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b](https://"
 "ordinals.com/"
 "search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b)"
 msgstr ""
 
-#: src/guides/explorer.md:44
+#: src/guides/explorer.md:43
 msgid "Outputs"
 msgstr "输出"
 
-#: src/guides/explorer.md:46
+#: src/guides/explorer.md:45
 msgid ""
-"Transaction outputs can searched by outpoint, for example, the only output "
-"of the genesis block coinbase transaction:"
+"Transaction outputs can be searched by outpoint, for example, the only "
+"output of the genesis block coinbase transaction:"
 msgstr "可以通过outpoint搜索交易输出，例如创世块coinbase交易的唯一输出："
 
-#: src/guides/explorer.md:49
+#: src/guides/explorer.md:48
 msgid ""
 "[4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0](https://"
 "ordinals.com/"
 "search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0)"
 msgstr ""
 
-#: src/guides/explorer.md:51
+#: src/guides/explorer.md:50
 msgid "Sats"
 msgstr "聪"
 
-#: src/guides/explorer.md:53
+#: src/guides/explorer.md:52
 msgid ""
 "Sats can be searched by integer, their position within the entire bitcoin "
 "supply:"
 msgstr "聪 可以按整数搜索，它们在整个比特币供应中的位置："
 
-#: src/guides/explorer.md:56
+#: src/guides/explorer.md:55
 msgid "[2099994106992659](https://ordinals.com/search/2099994106992659)"
 msgstr ""
 
-#: src/guides/explorer.md:58
+#: src/guides/explorer.md:57
 msgid "By decimal, their block and offset within that block:"
 msgstr "按十进制，它们的块和该块内的偏移量："
 
-#: src/guides/explorer.md:60
+#: src/guides/explorer.md:59
 msgid "[481824.0](https://ordinals.com/search/481824.0)"
 msgstr ""
 
-#: src/guides/explorer.md:62
+#: src/guides/explorer.md:61
 msgid ""
 "By degree, their cycle, blocks since the last halving, blocks since the last "
 "difficulty adjustment, and offset within their block:"
@@ -2847,96 +3356,93 @@ msgstr ""
 "按度数，他们的周期，自上次减半以来的区块，自上次难度调整以来的区块，以及区块"
 "内的偏移量："
 
-#: src/guides/explorer.md:65
+#: src/guides/explorer.md:64
 msgid "[1°0′0″0‴](https://ordinals.com/search/1°0′0″0‴)"
 msgstr ""
 
-#: src/guides/explorer.md:67
+#: src/guides/explorer.md:66
 msgid ""
 "By name, their base 26 representation using the letters \"a\" through \"z\":"
 msgstr "按照名称，它们使用字母\"a\"到\"z\"的 26个字母组合表示："
 
-#: src/guides/explorer.md:69
+#: src/guides/explorer.md:68
 msgid "[ahistorical](https://ordinals.com/search/ahistorical)"
 msgstr ""
 
-#: src/guides/explorer.md:71
+#: src/guides/explorer.md:70
 msgid ""
 "Or by percentile, the percentage of bitcoin's supply that has been or will "
 "have been issued when they are mined:"
 msgstr "或者按百分位数，在开采时已经或将要发行的比特币供应量的百分比："
 
-#: src/guides/explorer.md:74
+#: src/guides/explorer.md:73
 msgid "[100%](https://ordinals.com/search/100%)"
 msgstr ""
 
-#: src/guides/explorer.md:76
+#: src/guides/explorer.md:75
 msgid "JSON-API"
 msgstr ""
 
-#: src/guides/explorer.md:79
+#: src/guides/explorer.md:78
 msgid ""
-"You can run `ord` with the `--enable-json-api` flag to access endpoints that "
-"return JSON instead of HTML if you set the HTTP `Accept: application/json` "
-"header. The structure of theses objects closely follows what is shown in the "
-"HTML. These endpoints are:"
+"By default the `ord server` gives access to endpoints that return JSON "
+"instead of HTML if you set the HTTP `Accept: application/json` header. The "
+"structure of these objects closely follows what is shown in the HTML. These "
+"endpoints are:"
 msgstr ""
-"你可以运行 `ord` 和 `--enable-json-api` 标签访问返回JSON而非HTML的端点，"
-"只需要设置HTTP的header `Accept: application/json` "
-"这些对象的结构紧贴HTML所展示的内容。这些端点包括： "
+"你可以运行 `ord` 和 `--enable-json-api` 标签访问返回JSON而非HTML的端点，只需"
+"要设置HTTP的header `Accept: application/json` 这些对象的结构紧贴HTML所展示的"
+"内容。这些端点包括： "
 
-#: src/guides/explorer.md:84
+#: src/guides/explorer.md:83
 msgid "`/inscription/<INSCRIPTION_ID>`"
 msgstr ""
 
-#: src/guides/explorer.md:85
-#, fuzzy
+#: src/guides/explorer.md:84
 msgid "`/inscriptions`"
 msgstr ""
 
-#: src/guides/explorer.md:86
+#: src/guides/explorer.md:85
 msgid "`/inscriptions/block/<BLOCK_HEIGHT>`"
 msgstr ""
 
-#: src/guides/explorer.md:87
+#: src/guides/explorer.md:86
 msgid "`/inscriptions/block/<BLOCK_HEIGHT>/<PAGE_INDEX>`"
 msgstr ""
 
-#: src/guides/explorer.md:88
-#, fuzzy
+#: src/guides/explorer.md:87
 msgid "`/inscriptions/<FROM>`"
 msgstr ""
 
-#: src/guides/explorer.md:89
+#: src/guides/explorer.md:88
 msgid "`/inscriptions/<FROM>/<N>`"
 msgstr ""
 
-#: src/guides/explorer.md:90 src/guides/explorer.md:91
+#: src/guides/explorer.md:89 src/guides/explorer.md:90
 msgid "`/output/<OUTPOINT>`"
 msgstr ""
 
-#: src/guides/explorer.md:92
+#: src/guides/explorer.md:91
 msgid "`/sat/<SAT>`"
 msgstr ""
 
-#: src/guides/explorer.md:94
+#: src/guides/explorer.md:93
 msgid "To get a list of the latest 100 inscriptions you would do:"
 msgstr "你可以运行以下命令来得到最近的100个铭文的清单"
 
-#: src/guides/explorer.md:96
+#: src/guides/explorer.md:95
 msgid ""
 "```\n"
 "curl -s -H \"Accept: application/json\" 'http://0.0.0.0:80/inscriptions'\n"
 "```"
 msgstr ""
 
-#: src/guides/explorer.md:100
+#: src/guides/explorer.md:99
 msgid ""
 "To see information about a UTXO, which includes inscriptions inside it, do:"
-msgstr ""
-"要看到一个UTXO包含的铭文信息，运行:"
+msgstr "要看到一个UTXO包含的铭文信息，运行:"
 
-#: src/guides/explorer.md:102
+#: src/guides/explorer.md:101
 msgid ""
 "```\n"
 "curl -s -H \"Accept: application/json\" 'http://0.0.0.0:80/output/"
@@ -2944,11 +3450,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/explorer.md:106
+#: src/guides/explorer.md:105
 msgid "Which returns:"
 msgstr "返回"
 
-#: src/guides/explorer.md:108
+#: src/guides/explorer.md:107
 msgid ""
 "```\n"
 "{\n"
@@ -2967,11 +3473,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:1
-msgid "Ordinal Inscription Guide"
-msgstr "铭文指引"
-
-#: src/guides/inscriptions.md:4
+#: src/guides/wallet.md:4
 msgid ""
 "Individual sats can be inscribed with arbitrary content, creating Bitcoin-"
 "native digital artifacts that can be held in a Bitcoin wallet and "
@@ -2981,7 +3483,7 @@ msgstr ""
 "单个 聪 可以刻有任意内容，创建可以保存在比特币钱包中并使用比特币交易传输的比"
 "特币原生数字人工制品。铭文与比特币本身一样持久、不变、安全和去中心化。"
 
-#: src/guides/inscriptions.md:9
+#: src/guides/wallet.md:9
 msgid ""
 "Working with inscriptions requires a Bitcoin full node, to give you a view "
 "of the current state of the Bitcoin blockchain, and a wallet that can create "
@@ -2991,7 +3493,7 @@ msgstr ""
 "使用铭文需要一个比特币完整节点，让您了解比特币区块链的当前状态，以及一个可以"
 "创建铭文并在构建交易以将铭文发送到另一个钱包时执行 聪 控制的钱包。"
 
-#: src/guides/inscriptions.md:14
+#: src/guides/wallet.md:14
 msgid ""
 "Bitcoin Core provides both a Bitcoin full node and wallet. However, the "
 "Bitcoin Core wallet cannot create inscriptions and does not perform sat "
@@ -3000,7 +3502,7 @@ msgstr ""
 "Bitcoin Core 提供比特币全节点和钱包。 但是，Bitcoin Core 钱包不能创建铭文，不"
 "执行 聪 控制。"
 
-#: src/guides/inscriptions.md:17
+#: src/guides/wallet.md:17
 msgid ""
 "This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. "
 "`ord` doesn't implement its own wallet, so `ord wallet` subcommands interact "
@@ -3009,48 +3511,47 @@ msgstr ""
 "这需要[`ord`](https://github.com/ordinals/ord)，序数实用程序。 `ord` 没有自己"
 "的钱包，因此  `ord wallet`子命令与 Bitcoin Core 钱包交互。"
 
-#: src/guides/inscriptions.md:21
+#: src/guides/wallet.md:21
 msgid "This guide covers:"
 msgstr "本指南涵盖："
 
-#: src/guides/inscriptions.md:23 src/guides/inscriptions.md:40
+#: src/guides/wallet.md:23 src/guides/wallet.md:40
 msgid "Installing Bitcoin Core"
 msgstr "安装 Bitcoin Core"
 
-#: src/guides/inscriptions.md:24
+#: src/guides/wallet.md:24
 msgid "Syncing the Bitcoin blockchain"
 msgstr "同步比特币区块链"
 
-#: src/guides/inscriptions.md:25
+#: src/guides/wallet.md:25
 msgid "Creating a Bitcoin Core wallet"
 msgstr "创建 Bitcoin Core 钱包"
 
-#: src/guides/inscriptions.md:26
+#: src/guides/wallet.md:26
 msgid "Using `ord wallet receive` to receive sats"
 msgstr "使用 `ord wallet receive`收取聪"
 
-#: src/guides/inscriptions.md:27
+#: src/guides/wallet.md:27
 msgid "Creating inscriptions with `ord wallet inscribe`"
 msgstr "使用`ord wallet inscribe`创建铭文"
 
-#: src/guides/inscriptions.md:28
+#: src/guides/wallet.md:28
 msgid "Sending inscriptions with `ord wallet send`"
 msgstr "使用 `ord wallet send`发送铭文"
 
-#: src/guides/inscriptions.md:29
+#: src/guides/wallet.md:29
 msgid "Receiving inscriptions with `ord wallet receive`"
 msgstr "使用`ord wallet receive`收取铭文"
 
-#: src/guides/inscriptions.md:30
-#, fuzzy
+#: src/guides/wallet.md:30
 msgid "Batch inscribing with `ord wallet inscribe --batch`"
 msgstr "使用`ord wallet inscribe`创建铭文"
 
-#: src/guides/inscriptions.md:32
+#: src/guides/wallet.md:32
 msgid "Getting Help"
 msgstr "寻求帮助"
 
-#: src/guides/inscriptions.md:35
+#: src/guides/wallet.md:35
 msgid ""
 "If you get stuck, try asking for help on the [Ordinals Discord Server]"
 "(https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant "
@@ -3061,7 +3562,7 @@ msgstr ""
 "invite/87cjuz4FYg),或者检查Github上的相关内容[问题](https://github.com/"
 "ordinals/ord/issues) 和[讨论](https://github.com/ordinals/ord/discussions)."
 
-#: src/guides/inscriptions.md:43
+#: src/guides/wallet.md:43
 msgid ""
 "Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) "
 "on the [download page](https://bitcoincore.org/en/download/)."
@@ -3069,12 +3570,11 @@ msgstr ""
 "Bitcoin Core 可以在 [bitcoincore.org](https://bitcoincore.org/) 上的[下载页"
 "面](https://bitcoincore.org/en/download/)."
 
-#: src/guides/inscriptions.md:46
+#: src/guides/wallet.md:46
 msgid "Making inscriptions requires Bitcoin Core 24 or newer."
 msgstr "制作铭文需要Bitcoin Core 24 或者更新版本。"
 
-#: src/guides/inscriptions.md:48
-#, fuzzy
+#: src/guides/wallet.md:48
 msgid ""
 "This guide does not cover installing Bitcoin Core in detail. Once Bitcoin "
 "Core is installed, you should be able to run `bitcoind -version` "
@@ -3083,68 +3583,67 @@ msgstr ""
 "本指南不包括如何详细安装 Bitcoin Core；当你成功安装Bitcoin Core以后，你应该可"
 "以在命令行使用 `bitcoind -version`命令。"
 
-#: src/guides/inscriptions.md:52
+#: src/guides/wallet.md:52
 msgid "Configuring Bitcoin Core"
 msgstr "配置 Bitcoin Core"
 
-#: src/guides/inscriptions.md:55
-#, fuzzy
+#: src/guides/wallet.md:55
 msgid "`ord` requires Bitcoin Core's transaction index and rest interface."
 msgstr "`ord` 需要Bitcoin Core 的交易索引"
 
-#: src/guides/inscriptions.md:57
+#: src/guides/wallet.md:57
 msgid ""
 "To configure your Bitcoin Core node to maintain a transaction index, add the "
 "following to your `bitcoin.conf`:"
 msgstr ""
 "配置你的Bitcoin Core阶段去维护一个交易索引，需要在`bitcoin.conf`里面添加:"
 
-#: src/guides/inscriptions.md:60 src/guides/sat-hunting.md:30
+#: src/guides/wallet.md:60 src/guides/sat-hunting.md:30
 msgid ""
 "```\n"
 "txindex=1\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:64
+#: src/guides/wallet.md:64
 msgid "Or, run `bitcoind` with `-txindex`:"
 msgstr "或者, 运行 `bitcoind` 和 `-txindex`:"
 
-#: src/guides/inscriptions.md:66 src/guides/inscriptions.md:78
+#: src/guides/wallet.md:66 src/guides/wallet.md:78 src/guides/wallet.md:169
 msgid ""
 "```\n"
 "bitcoind -txindex\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:70
+#: src/guides/wallet.md:70
 msgid ""
 "Details on creating or modifying your `bitcoin.conf` file can be found [here]"
 "(https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md)."
 msgstr ""
-"关于创建或者修改你的 `bitcoin.conf`文件，可以参考 [这里]"
-"(https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md)."
+"关于创建或者修改你的 `bitcoin.conf`文件，可以参考 [这里](https://github.com/"
+"bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md)."
 
-#: src/guides/inscriptions.md:73
+#: src/guides/wallet.md:73
 msgid "Syncing the Bitcoin Blockchain"
 msgstr "比特币区块同步"
 
-#: src/guides/inscriptions.md:76
+#: src/guides/wallet.md:76
 msgid "To sync the chain, run:"
 msgstr "区块同步，运行："
 
-#: src/guides/inscriptions.md:82
+#: src/guides/wallet.md:82
 msgid "…and leave it running until `getblockcount`:"
 msgstr "…直到运行 `getblockcount`:"
 
-#: src/guides/inscriptions.md:84
+#: src/guides/wallet.md:84
 msgid ""
 "```\n"
 "bitcoin-cli getblockcount\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:88
+#: src/guides/wallet.md:88
 msgid ""
 "agrees with the block count on a block explorer like [the mempool.space "
 "block explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so "
@@ -3155,7 +3654,7 @@ msgstr ""
 "对区块进行记述. `ord`同`bitcoind`进行交互, 所以你在使用`ord`时候需要让"
 "`bitcoind` 在后台运行。"
 
-#: src/guides/inscriptions.md:92
+#: src/guides/wallet.md:92
 msgid ""
 "The blockchain takes about 600GB of disk space. If you have an external "
 "drive you want to store blocks on, use the configuration option "
@@ -3163,40 +3662,40 @@ msgid ""
 "`datadir` option because the cookie file will still be in the default "
 "location for `bitcoin-cli` and `ord` to find."
 msgstr ""
-"T区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项"
-"`blocksdir=<external_drive_path>`. 这比使用`datadir` 选项更简单， "
-"`bitcoin-cli` 和 `ord` 可以在默认的位置找到cookie文件"
+"T区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选"
+"项`blocksdir=<external_drive_path>`. 这比使用`datadir` 选项更简单， `bitcoin-"
+"cli` 和 `ord` 可以在默认的位置找到cookie文件"
 
-#: src/guides/inscriptions.md:98 src/guides/collecting/sparrow-wallet.md:173
+#: src/guides/wallet.md:98 src/guides/collecting/sparrow-wallet.md:173
 msgid "Troubleshooting"
 msgstr "故障排除"
 
-#: src/guides/inscriptions.md:101
+#: src/guides/wallet.md:101
 msgid ""
 "Make sure you can access `bitcoind` with `bitcoin-cli -getinfo` and that it "
 "is fully synced."
 msgstr ""
 "确保你可以通过 `bitcoin-cli -getinfo` 来访问`bitcoind` ，并且它已经完全同步 "
 
-#: src/guides/inscriptions.md:104
+#: src/guides/wallet.md:104
 msgid ""
 "If `bitcoin-cli -getinfo` returns `Could not connect to the server`, "
 "`bitcoind` is not running."
 msgstr ""
-"假如 `bitcoin-cli -getinfo` 返回的是 `Could not connect to the server`, "
-"这可能是`bitcoind` 没有运行"
+"假如 `bitcoin-cli -getinfo` 返回的是 `Could not connect to the server`, 这可"
+"能是`bitcoind` 没有运行"
 
-#: src/guides/inscriptions.md:107
+#: src/guides/wallet.md:107
 msgid ""
 "Make sure `rpcuser`, `rpcpassword`, or `rpcauth` are _NOT_ set in your "
 "`bitcoin.conf` file. `ord` requires using cookie authentication. Make sure "
 "there is a file `.cookie` in your bitcoin data directory."
 msgstr ""
-"确保 `rpcuser`, `rpcpassword`, 或者 `rpcauth` _没有_ 在你的 "
-"`bitcoin.conf` 文件里进行设置。 `ord` 需要使用 cookie 认证。因此需要确保 "
-"你的bitcoin data的文件夹里有 `.cookie`文件。"
+"确保 `rpcuser`, `rpcpassword`, 或者 `rpcauth` _没有_ 在你的 `bitcoin.conf` 文"
+"件里进行设置。 `ord` 需要使用 cookie 认证。因此需要确保 你的bitcoin data的文"
+"件夹里有 `.cookie`文件。"
 
-#: src/guides/inscriptions.md:111
+#: src/guides/wallet.md:111
 msgid ""
 "If `bitcoin-cli -getinfo` returns `Could not locate RPC credentials`, then "
 "you must specify the cookie file location. If you are using a custom data "
@@ -3205,31 +3704,32 @@ msgid ""
 "cookie -getinfo`. When running `ord` you must specify the cookie file "
 "location with `--cookie-file=<your_bitcoin_datadir>/.cookie`."
 msgstr ""
-"如果 `bitcoin-cli -getinfo` 返回`Could not locate RPC credentials`, 那么 "
-"你必须指定 cookie 文件的位置。如果你正在使用自定义的数据目录 (指定 `datadir` 的选项),"
-"那么你必须指定cookie文件的位置. `bitcoin-cli -rpccookiefile=<your_bitcoin_datadir>/ "
-"cookie -getinfo`.当你运行 `ord` 命令时，你必须指定 cookie 文件的位置 "
-"`--cookie-file=<your_bitcoin_datadir>/.cookie`."
+"如果 `bitcoin-cli -getinfo` 返回`Could not locate RPC credentials`, 那么 你必"
+"须指定 cookie 文件的位置。如果你正在使用自定义的数据目录 (指定 `datadir` 的选"
+"项),那么你必须指定cookie文件的位置. `bitcoin-cli -"
+"rpccookiefile=<your_bitcoin_datadir>/ cookie -getinfo`.当你运行 `ord` 命令"
+"时，你必须指定 cookie 文件的位置 `--cookie-file=<your_bitcoin_datadir>/."
+"cookie`."
 
-
-#: src/guides/inscriptions.md:119
+#: src/guides/wallet.md:119
 msgid ""
 "Make sure you do _NOT_ have `disablewallet=1` in your `bitcoin.conf` file. "
 "If `bitcoin-cli listwallets` returns `Method not found` then the wallet is "
 "disabled and you won't be able to use `ord`."
 msgstr ""
-"确保你在`bitcoin.conf` 文件中 _没有_ 配置 `disablewallet=1` "
-"如果 `bitcoin-cli listwallets` 返回 `Method not found` 那么钱包就会被禁用"
-"你将要无法使用 `ord`."
+"确保你在`bitcoin.conf` 文件中 _没有_ 配置 `disablewallet=1` 如果 `bitcoin-"
+"cli listwallets` 返回 `Method not found` 那么钱包就会被禁用你将要无法使用 "
+"`ord`."
 
-#: src/guides/inscriptions.md:123
+#: src/guides/wallet.md:123
 msgid ""
 "Make sure `txindex=1` is set. Run `bitcoin-cli getindexinfo` and it should "
 "return something like"
 msgstr ""
-"确保设置 `txindex=1` 。运行 `bitcoin-cli getindexinfo` 将会返回一些这样的结果 "
+"确保设置 `txindex=1` 。运行 `bitcoin-cli getindexinfo` 将会返回一些这样的结"
+"果 "
 
-#: src/guides/inscriptions.md:125
+#: src/guides/wallet.md:125
 msgid ""
 "```json\n"
 "{\n"
@@ -3241,29 +3741,29 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:133
+#: src/guides/wallet.md:133
 msgid ""
 "If it only returns `{}`, `txindex` is not set. If it returns `\"synced\": "
 "false`, `bitcoind` is still creating the `txindex`. Wait until `\"synced\": "
 "true` before using `ord`."
 msgstr ""
-"假如仅仅返回 `{}`, `txindex` 没有被设置。如果返回 `\"synced\": "
-"false`, `bitcoind` 仍然在创建 `txindex`。那就需要等到`\"synced\": "
-"true` ，`ord`命令方可以使用."
+"假如仅仅返回 `{}`, `txindex` 没有被设置。如果返回 `\"synced\": false`, "
+"`bitcoind` 仍然在创建 `txindex`。那就需要等到`\"synced\": true` ，`ord`命令方"
+"可以使用."
 
-#: src/guides/inscriptions.md:137
+#: src/guides/wallet.md:137
 msgid ""
 "If you have `maxuploadtarget` set it can interfere with fetching blocks for "
 "`ord` index. Either remove it or set `whitebind=127.0.0.1:8333`."
 msgstr ""
-"如果你设置了`maxuploadtarget` ，他将干扰 `ord` 的索引获取区块， "
-"你可以选择移除或者设置`whitebind=127.0.0.1:8333`."
+"如果你设置了`maxuploadtarget` ，他将干扰 `ord` 的索引获取区块， 你可以选择移"
+"除或者设置`whitebind=127.0.0.1:8333`."
 
-#: src/guides/inscriptions.md:140
+#: src/guides/wallet.md:140
 msgid "Installing `ord`"
 msgstr "安装 `ord`"
 
-#: src/guides/inscriptions.md:143
+#: src/guides/wallet.md:143
 msgid ""
 "The `ord` utility is written in Rust and can be built from [source](https://"
 "github.com/ordinals/ord). Pre-built binaries are available on the [releases "
@@ -3273,11 +3773,11 @@ msgstr ""
 "装. 预制文件可以从[版本发布页](https://github.com/ordinals/ord/releases)下"
 "载。"
 
-#: src/guides/inscriptions.md:147
+#: src/guides/wallet.md:147
 msgid "You can install the latest pre-built binary from the command line with:"
 msgstr "你也可以在命令行中使用下面命令来安装最新的文件："
 
-#: src/guides/inscriptions.md:149
+#: src/guides/wallet.md:149
 msgid ""
 "```sh\n"
 "curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash "
@@ -3285,47 +3785,237 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:153
+#: src/guides/wallet.md:153
 msgid "Once `ord` is installed, you should be able to run:"
 msgstr "当 `ord` 成功安装以后,你可以运行 :"
 
-#: src/guides/inscriptions.md:155
+#: src/guides/wallet.md:155
 msgid ""
 "```\n"
 "ord --version\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:159
+#: src/guides/wallet.md:159
 msgid "Which prints out `ord`'s version number."
 msgstr "这会返回 `ord`的版本信息."
 
-#: src/guides/inscriptions.md:161
-msgid "Creating a Bitcoin Core Wallet"
+#: src/guides/wallet.md:161
+msgid "Creating a Wallet"
 msgstr "创建一个Bitcoin Core钱包"
 
-#: src/guides/inscriptions.md:164
+#: src/guides/wallet.md:164
 msgid ""
-"`ord` uses Bitcoin Core to manage private keys, sign transactions, and "
-"broadcast transactions to the Bitcoin network."
-msgstr "`ord` 使用Bitcoin Core来管理私钥，签署交易以及向比特币网络广播交易。"
+"`ord` uses `bitcoind` to manage private keys, sign transactions, and "
+"broadcast transactions to the Bitcoin network. Additionally the `ord wallet` "
+"requires [`ord server`](explorer.md) running in the background. Make sure "
+"these programs are running:"
+msgstr ""
+"`ord` 使用Bitcoin Core来管理私钥，签署交易以及向比特币网络广播交易。"
+"此外，`ord` 钱包需要在后台运行[`ord server`](explorer.md)，请确保这些程序运行"
 
-#: src/guides/inscriptions.md:167
-msgid "To create a Bitcoin Core wallet named `ord` for use with `ord`, run:"
+#: src/guides/wallet.md:173
+msgid ""
+"```\n"
+"ord server\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:177
+msgid ""
+"To create a wallet named `ord`, the default, for use with `ord wallet`, run:"
 msgstr "创建一个名为`ord` 的Bitcoin Core 钱包，运行:"
 
-#: src/guides/inscriptions.md:169
+#: src/guides/wallet.md:179
 msgid ""
 "```\n"
 "ord wallet create\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:173
+#: src/guides/wallet.md:183
+msgid "This will print out your seed phrase mnemonic, store it somewhere safe."
+msgstr "这将打印出您的助记词，并将其存储在安全的地方。"
+
+#: src/guides/wallet.md:185
+msgid ""
+"```\n"
+"{\n"
+"  \"mnemonic\": \"dignity buddy actor toast talk crisp city annual tourist "
+"orient similar federal\",\n"
+"  \"passphrase\": \"\"\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:192
+msgid ""
+"If you want to specify a different name or use an `ord server` running on a "
+"non-default URL you can set these options:"
+msgstr ""
+"如果你想指定不同的名称或者在非默认的URL上运行 `ord server`"
+"你可以设置以下选项:"
+
+#: src/guides/wallet.md:195
+msgid ""
+"```\n"
+"ord wallet --name foo --server-url http://127.0.0.1:8080 create\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:199
+msgid "To see all available wallet options you can run:"
+msgstr "查看所有可用的钱包选项，你可以运行"
+
+#: src/guides/wallet.md:201
+msgid ""
+"```\n"
+"ord wallet help\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:205
+msgid "Restoring and Dumping Wallet"
+msgstr "恢复和转存钱包"
+
+#: src/guides/wallet.md:208
+msgid ""
+"The `ord` wallet uses descriptors, so you can export the output descriptors "
+"and import them into another descriptor-based wallet. To export the wallet "
+"descriptors, which include your private keys:"
+msgstr ""
+"`ord`钱包使用描述符descriptors,你可以导出输出描述符并将它们导入另外一个基于描述符的钱包"
+"导出钱包描述符，其中包含你的私钥:"
+
+#: src/guides/wallet.md:212
+msgid ""
+"```\n"
+"$ ord wallet dump\n"
+"==========================================\n"
+"= THIS STRING CONTAINS YOUR PRIVATE KEYS =\n"
+"=        DO NOT SHARE WITH ANYONE        =\n"
+"==========================================\n"
+"{\n"
+"  \"wallet_name\": \"ord\",\n"
+"  \"descriptors\": [\n"
+"    {\n"
+"      \"desc\": "
+"\"tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/"
+"*)#uxn94yt5\",\n"
+"      \"timestamp\": 1296688602,\n"
+"      \"active\": true,\n"
+"      \"internal\": false,\n"
+"      \"range\": [\n"
+"        0,\n"
+"        999\n"
+"      ],\n"
+"      \"next\": 0\n"
+"    },\n"
+"    {\n"
+"      \"desc\": "
+"\"tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/"
+"*)#djkyg3mv\",\n"
+"      \"timestamp\": 1296688602,\n"
+"      \"active\": true,\n"
+"      \"internal\": true,\n"
+"      \"range\": [\n"
+"        0,\n"
+"        999\n"
+"      ],\n"
+"      \"next\": 0\n"
+"    }\n"
+"  ]\n"
+"}\n"
+"```"
+msgstr ""
+"```\n"
+"$ ord wallet dump\n"
+"==========================================\n"
+"= 这个字节包含你的私钥信息 =\n"
+"=   不要和任何人分享 =\n"
+"==========================================\n"
+"{\n"
+"  \"wallet_name\": \"ord\",\n"
+"  \"descriptors\": [\n"
+"    {\n"
+"      \"desc\": "
+"\"tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/"
+"*)#uxn94yt5\",\n"
+"      \"timestamp\": 1296688602,\n"
+"      \"active\": true,\n"
+"      \"internal\": false,\n"
+"      \"range\": [\n"
+"        0,\n"
+"        999\n"
+"      ],\n"
+"      \"next\": 0\n"
+"    },\n"
+"    {\n"
+"      \"desc\": "
+"\"tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/"
+"*)#djkyg3mv\",\n"
+"      \"timestamp\": 1296688602,\n"
+"      \"active\": true,\n"
+"      \"internal\": true,\n"
+"      \"range\": [\n"
+"        0,\n"
+"        999\n"
+"      ],\n"
+"      \"next\": 0\n"
+"    }\n"
+"  ]\n"
+"}\n"
+"```"
+
+#: src/guides/wallet.md:247
+msgid "An `ord` wallet can be restored from a mnemonic:"
+msgstr "`ord` 钱包可以从助记词恢复:"
+
+#: src/guides/wallet.md:249
+msgid ""
+"```\n"
+"ord wallet restore --from mnemonic\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:253
+msgid "Type your mnemonic and press return."
+msgstr "输入你的助记词并按回车"
+
+#: src/guides/wallet.md:255
+msgid "To restore from a descriptor in `descriptor.json`:"
+msgstr "从`descriptor.json`恢复描述符:"
+
+#: src/guides/wallet.md:257
+msgid ""
+"```\n"
+"cat descriptor.json | ord wallet restore --from descriptor\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:261
+msgid "To restore from a descriptor in the clipboard:"
+msgstr "要从剪贴板中的描述符恢复："
+
+#: src/guides/wallet.md:263
+msgid ""
+"```\n"
+"ord wallet restore --from descriptor\n"
+"```"
+msgstr ""
+
+#: src/guides/wallet.md:267
+msgid ""
+"Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z "
+"on Windows."
+msgstr ""
+"将描述符粘贴到终端中，UNIX里按CTRL-D 或 Windows里按 CTRL-Z "
+
+#: src/guides/wallet.md:270
 msgid "Receiving Sats"
 msgstr "接收聪"
 
-#: src/guides/inscriptions.md:176
+#: src/guides/wallet.md:273
 msgid ""
 "Inscriptions are made on individual sats, using normal Bitcoin transactions "
 "that pay fees in sats, so your wallet will need some sats."
@@ -3333,45 +4023,43 @@ msgstr ""
 "铭文是在单个聪上制作的，使用聪来支付费用的普通比特币交易，因此你的钱包将需要"
 "一些 聪（比特币）。"
 
-#: src/guides/inscriptions.md:179
+#: src/guides/wallet.md:276
 msgid "Get a new address from your `ord` wallet by running:"
 msgstr "为你的 `ord` 钱包创建一个新地址，运行:"
 
-#: src/guides/inscriptions.md:181 src/guides/inscriptions.md:269
-#: src/guides/inscriptions.md:297
+#: src/guides/wallet.md:278 src/guides/wallet.md:366 src/guides/wallet.md:394
 msgid ""
 "```\n"
 "ord wallet receive\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:185
+#: src/guides/wallet.md:282
 msgid "And send it some funds."
 msgstr "向上面地址发送一些资金。"
 
-#: src/guides/inscriptions.md:187
+#: src/guides/wallet.md:284
 msgid "You can see pending transactions with:"
 msgstr "你可以使用以下命令看到交易情况："
 
-#: src/guides/inscriptions.md:189 src/guides/inscriptions.md:281
-#: src/guides/inscriptions.md:308
+#: src/guides/wallet.md:286 src/guides/wallet.md:378 src/guides/wallet.md:405
 msgid ""
 "```\n"
 "ord wallet transactions\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:193
+#: src/guides/wallet.md:290
 msgid ""
 "Once the transaction confirms, you should be able to see the transactions "
 "outputs with `ord wallet outputs`."
 msgstr "一旦交易确认，你应该可以使用 `ord wallet outputs`看到交易的输出；"
 
-#: src/guides/inscriptions.md:196
+#: src/guides/wallet.md:293
 msgid "Creating Inscription Content"
 msgstr "创建铭文内容"
 
-#: src/guides/inscriptions.md:199
+#: src/guides/wallet.md:296
 msgid ""
 "Sats can be inscribed with any kind of content, but the `ord` wallet only "
 "supports content types that can be displayed by the `ord` block explorer."
@@ -3379,14 +4067,14 @@ msgstr ""
 "聪上可以刻录任何类型的内容，但`ord`钱包只支持`ord`区块浏览器可以显示的内容类"
 "型。"
 
-#: src/guides/inscriptions.md:202
+#: src/guides/wallet.md:299
 msgid ""
 "Additionally, inscriptions are included in transactions, so the larger the "
 "content, the higher the fee that the inscription transaction must pay."
 msgstr ""
 "另外，铭文是包含在交易中的，所以内容越大，铭文交易需要支付的费用就越高。"
 
-#: src/guides/inscriptions.md:205
+#: src/guides/wallet.md:302
 msgid ""
 "Inscription content is included in transaction witnesses, which receive the "
 "witness discount. To calculate the approximate fee that an inscribe "
@@ -3396,7 +4084,7 @@ msgstr ""
 "铭文内容包含在交易见证中，获得见证折扣。要计算写入交易将支付的大概费用，请将"
 "内容大小除以四，然后乘以费率。"
 
-#: src/guides/inscriptions.md:209
+#: src/guides/wallet.md:306
 msgid ""
 "Inscription transactions must be less than 400,000 weight units, or they "
 "will not be relayed by Bitcoin Core. One byte of inscription content costs "
@@ -3408,22 +4096,22 @@ msgstr ""
 "节的铭文内容需要一个权重计量单位。 由于铭文交易不只是铭文内容，铭文内容限制在"
 "400,000权重计量单位以内。390,000 个权重计量单位应该是安全的。"
 
-#: src/guides/inscriptions.md:215
+#: src/guides/wallet.md:312
 msgid "Creating Inscriptions"
 msgstr "创建铭文"
 
-#: src/guides/inscriptions.md:218
+#: src/guides/wallet.md:315
 msgid "To create an inscription with the contents of `FILE`, run:"
 msgstr "以`FILE`的内容创建一个铭文，需要运行:"
 
-#: src/guides/inscriptions.md:220
+#: src/guides/wallet.md:317
 msgid ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --file FILE\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:224
+#: src/guides/wallet.md:321
 msgid ""
 "Ord will output two transactions IDs, one for the commit transaction, and "
 "one for the reveal transaction, and the inscription ID. Inscription IDs are "
@@ -3435,7 +4123,7 @@ msgstr ""
 "的格式为`TXIDiN`，其中`TXID` 是揭示交易的交易 ID，`N` 是揭示交易中铭文的索"
 "引。"
 
-#: src/guides/inscriptions.md:229
+#: src/guides/wallet.md:326
 msgid ""
 "The commit transaction commits to a tapscript containing the content of the "
 "inscription, and the reveal transaction spends from that tapscript, "
@@ -3445,7 +4133,7 @@ msgstr ""
 "Commit交易提交到包含铭文内容的 tapscript，reveal交易则从该 tapscript 中花费，"
 "显示链上的内容并将它们铭刻在reveal交易的第一个输出的第一个 sat 上。"
 
-#: src/guides/inscriptions.md:234
+#: src/guides/wallet.md:331
 msgid ""
 "Wait for the reveal transaction to be mined. You can check the status of the "
 "commit and reveal transactions using  [the mempool.space block explorer]"
@@ -3454,108 +4142,109 @@ msgstr ""
 "在等待reveal交易被记录的同时，你可以使用[the mempool.space block explorer]"
 "(https://mempool.space/)来检查交易的状态。"
 
-#: src/guides/inscriptions.md:238
+#: src/guides/wallet.md:335
 msgid ""
 "Once the reveal transaction has been mined, the inscription ID should be "
 "printed when you run:"
 msgstr "一旦reveal交易完成记账，你可以使用以下命令查询铭文ID："
 
-#: src/guides/inscriptions.md:241 src/guides/inscriptions.md:288
-#: src/guides/inscriptions.md:314
+#: src/guides/wallet.md:338 src/guides/wallet.md:385 src/guides/wallet.md:411
 msgid ""
 "```\n"
 "ord wallet inscriptions\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:245
-#, fuzzy
+#: src/guides/wallet.md:342
 msgid "Parent-Child Inscriptions"
-msgstr "创建铭文"
+msgstr "父-子铭文"
 
-#: src/guides/inscriptions.md:248
+#: src/guides/wallet.md:345
 msgid ""
 "Parent-child inscriptions enable what is colloquially known as collections, "
 "see [provenance](../inscriptions/provenance.md) for more information."
 msgstr ""
+"父子铭文使得人们通常所说的收藏成为可能，有关更多信息，"
+"请参见[provenance](../inscriptions/provenance.md)。"
 
-#: src/guides/inscriptions.md:251
+#: src/guides/wallet.md:348
 msgid ""
 "To make an inscription a child of another, the parent inscription has to be "
 "inscribed and present in the wallet. To choose a parent run `ord wallet "
 "inscriptions` and copy the inscription id (`<PARENT_INSCRIPTION_ID>`)."
 msgstr ""
+"要使一个铭文成为另一个铭文的子项，父铭文必须已经被铭刻并且存在于钱包中。"
+"要选择一个父铭文，请运行`ord wallet inscriptions`并复制铭文ID（`<PARENT_INSCRIPTION_ID>`）。"
 
-#: src/guides/inscriptions.md:255
-#, fuzzy
+#: src/guides/wallet.md:352
 msgid "Now inscribe the child inscription and specify the parent like so:"
 msgstr "为父系铭文P创建一个子铭文C:"
 
-#: src/guides/inscriptions.md:257
+#: src/guides/wallet.md:354
 msgid ""
 "```\n"
-"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> "
-"CHILD_FILE\n"
+"ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> --"
+"file CHILD_FILE\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:261
+#: src/guides/wallet.md:358
 msgid ""
 "This relationship cannot be added retroactively, the parent has to be "
 "present at inception of the child."
 msgstr ""
+"这种父子关系不能事后添加，父铭文必须在子铭文创建之初就存在。"
 
-#: src/guides/inscriptions.md:264
+#: src/guides/wallet.md:361
 msgid "Sending Inscriptions"
 msgstr "发送铭文"
 
-#: src/guides/inscriptions.md:267
+#: src/guides/wallet.md:364
 msgid "Ask the recipient to generate a new address by running:"
 msgstr "铭文接收方使用一下命令生成地址"
 
-#: src/guides/inscriptions.md:273
+#: src/guides/wallet.md:370
 msgid "Send the inscription by running:"
 msgstr "使用命令格式发送铭文："
 
-#: src/guides/inscriptions.md:275
+#: src/guides/wallet.md:372
 msgid ""
 "```\n"
 "ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:279 src/guides/inscriptions.md:307
+#: src/guides/wallet.md:376 src/guides/wallet.md:404
 msgid "See the pending transaction with:"
 msgstr "检查未完成交易情况："
 
-#: src/guides/inscriptions.md:285
+#: src/guides/wallet.md:382
 msgid ""
 "Once the send transaction confirms, the recipient can confirm receipt by "
 "running:"
 msgstr "一旦交易确认，接收方可以使用一下命令查看接收到的铭文"
 
-#: src/guides/inscriptions.md:292
+#: src/guides/wallet.md:389
 msgid "Receiving Inscriptions"
 msgstr "接收铭文"
 
-#: src/guides/inscriptions.md:295
+#: src/guides/wallet.md:392
 msgid "Generate a new receive address using:"
 msgstr "使用以下命令生成一个新的接收地址"
 
-#: src/guides/inscriptions.md:301
+#: src/guides/wallet.md:398
 msgid "The sender can transfer the inscription to your address using:"
 msgstr "发送方使用命令发送铭文到你的地址"
 
-#: src/guides/inscriptions.md:303
+#: src/guides/wallet.md:400
 msgid ""
 "```\n"
-"ord wallet send ADDRESS INSCRIPTION_ID\n"
+"ord wallet send --fee-rate <FEE_RATE> ADDRESS INSCRIPTION_ID\n"
 "```"
 msgstr ""
 
-#: src/guides/inscriptions.md:312
-msgid ""
-"Once the send transaction confirms, you can can confirm receipt by running:"
+#: src/guides/wallet.md:409
+msgid "Once the send transaction confirms, you can confirm receipt by running:"
 msgstr "一旦交易确认，你可以使用以下命令确认收到"
 
 #: src/guides/batch-inscribing.md:4
@@ -3566,15 +4255,15 @@ msgid ""
 "same parent, since the parent can passed into a reveal transaction that "
 "creates multiple children."
 msgstr ""
-"可以使用[指针字段](./../inscriptions/pointer.md)来批量创建多个铭文. "
-"这在创建需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多个子铭文的揭示交易中。"
+"可以使用[指针字段](./../inscriptions/pointer.md)来批量创建多个铭文. 这在创建"
+"需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多"
+"个子铭文的揭示交易中。"
 
 #: src/guides/batch-inscribing.md:10
 msgid ""
 "To create a batch inscription using a batchfile in `batch.yaml`, run the "
 "following command:"
-msgstr ""
-"创建批量铭文，使用批处理文件`batch.yaml`, 运行"
+msgstr "创建批量铭文，使用批处理文件`batch.yaml`, 运行"
 
 #: src/guides/batch-inscribing.md:13
 msgid ""
@@ -3592,548 +4281,59 @@ msgid ""
 "```yaml\n"
 "# example batch file\n"
 "\n"
-"# there are two modes:\n"
-"# - `separate-outputs`: place all inscriptions in separate postage-sized "
-"outputs\n"
-"# - `shared-output`: place inscriptions in a single output separated by "
-"postage\n"
+"# inscription modes:\n"
+"# - `same-sat`: inscribe on the same sat\n"
+"# - `satpoints`: inscribe on the first sat of specified satpoint's output\n"
+"# - `separate-outputs`: inscribe on separate postage-sized outputs\n"
+"# - `shared-output`: inscribe on a single output separated by postage\n"
 "mode: separate-outputs\n"
 "\n"
 "# parent inscription:\n"
 "parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0\n"
 "\n"
+"# postage for each inscription:\n"
+"postage: 12345\n"
+"\n"
+"# allow reinscribing\n"
+"reinscribe: true\n"
+"\n"
+"# sat to inscribe on, can only be used with `same-sat`:\n"
+"# sat: 5000000000\n"
+"\n"
 "# inscriptions to inscribe\n"
-"#\n"
-"# each inscription has the following fields:\n"
-"#\n"
-"# `inscription`: path to inscription contents\n"
-"# `metadata`: inscription metadata (optional)\n"
-"# `metaprotocol`: inscription metaprotocol (optional)\n"
 "inscriptions:\n"
-"  - file: mango.avif\n"
-"    metadata:\n"
-"      title: Delicious Mangos\n"
-"      description: >\n"
-"        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam "
+"  # path to inscription content\n"
+"- file: mango.avif\n"
+"  # inscription to delegate content to (optional)\n"
+"  delegate: "
+"6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0\n"
+"  # destination (optional, if no destination is specified a new wallet "
+"change address will be used)\n"
+"  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4\n"
+"  # inscription metadata (optional)\n"
+"  metadata:\n"
+"    title: Delicious Mangos\n"
+"    description: >\n"
+"      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam "
 "semper,\n"
-"        ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel "
+"      ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel "
 "blandit\n"
-"        metus est et odio. Nullam venenatis, urna et molestie vestibulum, "
+"      metus est et odio. Nullam venenatis, urna et molestie vestibulum, "
 "orci\n"
-"        mi efficitur risus, eu malesuada diam lorem sed velit. Nam "
-"fermentum\n"
-"        dolor et luctus euismod.\n"
+"      mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum\n"
+"      dolor et luctus euismod.\n"
+"    # inscription metaprotocol (optional)\n"
+"    metaprotocol: DOPEPROTOCOL-42069\n"
 "\n"
-"  - file: token.json\n"
-"    metaprotocol: brc-20\n"
+"- file: token.json\n"
 "\n"
-"  - file: tulip.png\n"
-"    metadata:\n"
-"      author: Satoshi Nakamoto\n"
+"- file: tulip.png\n"
+"  destination: "
+"bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6\n"
+"  metadata:\n"
+"    author: Satoshi Nakamoto\n"
 "```"
 msgstr ""
-
-#: src/guides/sat-hunting.md:4
-msgid ""
-"_This guide is out of date. Since it was written, the `ord` binary was "
-"changed to only build the full satoshi index when the `--index-sats` flag is "
-"supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin "
-"Core wallet. See `ord wallet --help`._"
-msgstr ""
-"_本指南已过时。自编写以来，“ord”安装文件已更改仅当提供“--index-sats”标志时才"
-"构建完整的聪索引。此外，“ord”现在有一个内置钱包，其中包含比特币核心钱包。请参"
-"阅`ord wallet --help`。_"
-
-#: src/guides/sat-hunting.md:9
-msgid ""
-"Ordinal hunting is difficult but rewarding. The feeling of owning a wallet "
-"full of UTXOs, redolent with the scent of rare and exotic sats, is beyond "
-"compare."
-msgstr ""
-
-#: src/guides/sat-hunting.md:12
-msgid ""
-"Ordinals are numbers for satoshis. Every satoshi has an ordinal number and "
-"every ordinal number has a satoshi."
-msgstr ""
-
-#: src/guides/sat-hunting.md:15
-msgid "Preparation"
-msgstr ""
-
-#: src/guides/sat-hunting.md:18
-msgid "There are a few things you'll need before you start."
-msgstr ""
-
-#: src/guides/sat-hunting.md:20
-msgid ""
-"First, you'll need a synced Bitcoin Core node with a transaction index. To "
-"turn on transaction indexing, pass `-txindex` on the command-line:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:23
-msgid ""
-"```sh\n"
-"bitcoind -txindex\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:27
-msgid ""
-"Or put the following in your [Bitcoin configuration file](https://github.com/"
-"bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
-msgstr ""
-
-#: src/guides/sat-hunting.md:34
-msgid ""
-"Launch it and wait for it to catch up to the chain tip, at which point the "
-"following command should print out the current block height:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:37
-msgid ""
-"```sh\n"
-"bitcoin-cli getblockcount\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:41
-msgid "Second, you'll need a synced `ord` index."
-msgstr ""
-
-#: src/guides/sat-hunting.md:43
-msgid "Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/)."
-msgstr ""
-
-#: src/guides/sat-hunting.md:45
-msgid ""
-"Run `RUST_LOG=info ord index`. It should connect to your bitcoin core node "
-"and start indexing."
-msgstr ""
-
-#: src/guides/sat-hunting.md:48
-msgid "Wait for it to finish indexing."
-msgstr ""
-
-#: src/guides/sat-hunting.md:50
-msgid "Third, you'll need a wallet with UTXOs that you want to search."
-msgstr ""
-
-#: src/guides/sat-hunting.md:52
-msgid "Searching for Rare Ordinals"
-msgstr ""
-
-#: src/guides/sat-hunting.md:55
-msgid "Searching for Rare Ordinals in a Bitcoin Core Wallet"
-msgstr ""
-
-#: src/guides/sat-hunting.md:57
-msgid ""
-"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
-"searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your "
-"wallet is named `foo`:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:61
-msgid "Load your wallet:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:63
-msgid ""
-"```sh\n"
-"bitcoin-cli loadwallet foo\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:67
-msgid "Display any rare ordinals wallet `foo`'s UTXOs:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:69 src/guides/sat-hunting.md:132
-#: src/guides/sat-hunting.md:233
-msgid ""
-"```sh\n"
-"ord wallet sats\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:73
-msgid "Searching for Rare Ordinals in a Non-Bitcoin Core Wallet"
-msgstr ""
-
-#: src/guides/sat-hunting.md:75
-msgid ""
-"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
-"to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to "
-"import your wallet's descriptors into Bitcoin Core."
-msgstr ""
-
-#: src/guides/sat-hunting.md:79
-msgid ""
-"[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors."
-"md) describe the ways that wallets generate private keys and public keys."
-msgstr ""
-
-#: src/guides/sat-hunting.md:82
-msgid ""
-"You should only import descriptors into Bitcoin Core for your wallet's "
-"public keys, not its private keys."
-msgstr ""
-
-#: src/guides/sat-hunting.md:85
-msgid ""
-"If your wallet's public key descriptor is compromised, an attacker will be "
-"able to see your wallet's addresses, but your funds will be safe."
-msgstr ""
-
-#: src/guides/sat-hunting.md:88
-msgid ""
-"If your wallet's private key descriptor is compromised, an attacker can "
-"drain your wallet of funds."
-msgstr ""
-
-#: src/guides/sat-hunting.md:91
-msgid ""
-"Get the wallet descriptor from the wallet whose UTXOs you want to search for "
-"rare ordinals. It will look something like this:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:94
-msgid ""
-"```\n"
-"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)#csvefu29\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:98
-msgid "Create a watch-only wallet named `foo-watch-only`:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:100
-msgid ""
-"```sh\n"
-"bitcoin-cli createwallet foo-watch-only true true\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:104
-msgid "Feel free to give it a better name than `foo-watch-only`!"
-msgstr ""
-
-#: src/guides/sat-hunting.md:106
-msgid "Load the `foo-watch-only` wallet:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:108 src/guides/sat-hunting.md:199
-msgid ""
-"```sh\n"
-"bitcoin-cli loadwallet foo-watch-only\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:112
-msgid "Import your wallet descriptors into `foo-watch-only`:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:114
-msgid ""
-"```sh\n"
-"bitcoin-cli importdescriptors \\\n"
-"  '[{ \"desc\": "
-"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)#tpnxnxax\", \"timestamp\":0 }]'\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:119
-msgid ""
-"If you know the Unix timestamp when your wallet first started receive "
-"transactions, you may use it for the value of `\"timestamp\"` instead of "
-"`0`. This will reduce the time it takes for Bitcoin Core to search for your "
-"wallet's UTXOs."
-msgstr ""
-
-#: src/guides/sat-hunting.md:124 src/guides/sat-hunting.md:225
-msgid "Check that everything worked:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:126 src/guides/sat-hunting.md:227
-msgid ""
-"```sh\n"
-"bitcoin-cli getwalletinfo\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:130 src/guides/sat-hunting.md:231
-msgid "Display your wallet's rare ordinals:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:136
-msgid ""
-"Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors"
-msgstr ""
-
-#: src/guides/sat-hunting.md:138
-msgid ""
-"Some descriptors describe multiple paths in one descriptor using angle "
-"brackets, e.g., `<0;1>`. Multi-path descriptors are not yet supported by "
-"Bitcoin Core, so you'll first need to convert them into multiple "
-"descriptors, and then import those multiple descriptors into Bitcoin Core."
-msgstr ""
-
-#: src/guides/sat-hunting.md:143
-msgid ""
-"First get the multi-path descriptor from your wallet. It will look something "
-"like this:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:146
-msgid ""
-"```\n"
-"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/"
-"<0;1>/*)#fw76ulgt\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:150
-msgid "Create a descriptor for the receive address path:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:152
-msgid ""
-"```\n"
-"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:156
-msgid "And the change address path:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:158
-msgid ""
-"```\n"
-"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
-"*)\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:162
-msgid ""
-"Get and note the checksum for the receive address descriptor, in this case "
-"`tpnxnxax`:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:165
-msgid ""
-"```sh\n"
-"bitcoin-cli getdescriptorinfo \\\n"
-"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)'\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:170
-msgid ""
-"```json\n"
-"{\n"
-"  \"descriptor\": "
-"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)#csvefu29\",\n"
-"  \"checksum\": \"tpnxnxax\",\n"
-"  \"isrange\": true,\n"
-"  \"issolvable\": true,\n"
-"  \"hasprivatekeys\": false\n"
-"}\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:180
-msgid "And for the change address descriptor, in this case `64k8wnd7`:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:182
-msgid ""
-"```sh\n"
-"bitcoin-cli getdescriptorinfo \\\n"
-"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
-"*)'\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:187
-msgid ""
-"```json\n"
-"{\n"
-"  \"descriptor\": "
-"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
-"*)#fyfc5f6a\",\n"
-"  \"checksum\": \"64k8wnd7\",\n"
-"  \"isrange\": true,\n"
-"  \"issolvable\": true,\n"
-"  \"hasprivatekeys\": false\n"
-"}\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:197
-msgid "Load the wallet you want to import the descriptors into:"
-msgstr ""
-
-#: src/guides/sat-hunting.md:203
-msgid ""
-"Now import the descriptors, with the correct checksums, into Bitcoin Core."
-msgstr ""
-
-#: src/guides/sat-hunting.md:205
-msgid ""
-"```sh\n"
-"bitcoin-cli \\\n"
-" importdescriptors \\\n"
-" '[\n"
-"   {\n"
-"     \"desc\": "
-"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
-"*)#tpnxnxax\"\n"
-"     \"timestamp\":0\n"
-"   },\n"
-"   {\n"
-"     \"desc\": "
-"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
-"*)#64k8wnd7\",\n"
-"     \"timestamp\":0\n"
-"   }\n"
-" ]'\n"
-"```"
-msgstr ""
-
-#: src/guides/sat-hunting.md:220
-msgid ""
-"If you know the Unix timestamp when your wallet first started receive "
-"transactions, you may use it for the value of the `\"timestamp\"` fields "
-"instead of `0`. This will reduce the time it takes for Bitcoin Core to "
-"search for your wallet's UTXOs."
-msgstr ""
-
-#: src/guides/sat-hunting.md:237
-msgid "Exporting Descriptors"
-msgstr ""
-
-#: src/guides/sat-hunting.md:241
-msgid ""
-"Navigate to the `Settings` tab, then to `Script Policy`, and press the edit "
-"button to display the descriptor."
-msgstr ""
-
-#: src/guides/sat-hunting.md:244
-msgid "Transferring Ordinals"
-msgstr ""
-
-#: src/guides/sat-hunting.md:246
-msgid ""
-"The `ord` wallet supports transferring specific satoshis. You can also use "
-"`bitcoin-cli` commands `createrawtransaction`, "
-"`signrawtransactionwithwallet`, and `sendrawtransaction`, how to do so is "
-"complex and outside the scope of this guide."
-msgstr ""
-
-#: src/guides/teleburning.md:4
-msgid ""
-"Teleburn addresses can be used to burn assets on other blockchains, leaving "
-"behind in the smoking rubble a sort of forwarding address pointing to an "
-"inscription on Bitcoin."
-msgstr ""
-"燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个比特币上的铭文"
-"这些地址就像是烟熏弹火后的废墟。 "
-
-#: src/guides/teleburning.md:8
-msgid ""
-"Teleburning an asset means something like, \"I'm out. Find me on Bitcoin.\""
-msgstr ""
-"燃烧传送一个资产似乎意味着 \"我走了，在比特币链上找我。\""
-
-#: src/guides/teleburning.md:10
-msgid ""
-"Teleburn addresses are derived from inscription IDs. They have no "
-"corresponding private key, so assets sent to a teleburn address are burned. "
-"Currently, only Ethereum teleburn addresses are supported. Pull requests "
-"adding teleburn addresses for other chains are welcome."
-msgstr ""
-"Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 "
-"当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求 "
-
-#: src/guides/teleburning.md:15
-#, fuzzy
-msgid "Ethereum"
-msgstr "以太坊"
-
-#: src/guides/teleburning.md:18
-msgid ""
-"Ethereum teleburn addresses are derived by taking the first 20 bytes of the "
-"SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first "
-"32 bytes containing the transaction ID, and the last four bytes containing "
-"big-endian inscription index, and interpreting it as an Ethereum address."
-msgstr ""
-"以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 "
-"这个哈希被序列化为36字节，其中前32字节包含交易ID， "
-"最后四个字节包含大端序的铭文索引，并将其解释为一个Ethereum地址。"
-
-#: src/guides/teleburning.md:26
-msgid ""
-"The ENS domain name [rodarmor.eth](https://app.ens.domains/rodarmor.eth), "
-"was teleburned to [inscription zero](https://ordinals.com/"
-"inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
-msgstr ""
-"ENS 域名 [rodarmor.eth](https://app.ens.domains/rodarmor.eth), "
-"被燃烧传输teleburned 到 [inscription zero](https://ordinals.com/"
-"inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
-
-#: src/guides/teleburning.md:30
-msgid ""
-"Running the inscription ID of inscription zero is "
-"`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`."
-msgstr ""
-"零号铭文的铭文ID是"
-"`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`."
-
-#: src/guides/teleburning.md:33
-msgid ""
-"Passing `6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0` "
-"to the teleburn command:"
-msgstr ""
-"使用teleburn命令 `6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0` "
-
-#: src/guides/teleburning.md:36
-msgid ""
-"```bash\n"
-"$ ord teleburn "
-"6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0\n"
-"```"
-msgstr ""
-
-#: src/guides/teleburning.md:40
-msgid "Returns:"
-msgstr "返回"
-
-#: src/guides/teleburning.md:42
-msgid ""
-"```json\n"
-"{\n"
-"  \"ethereum\": \"0xe43A06530BdF8A4e067581f48Fae3b535559dA9e\"\n"
-"}\n"
-"```"
-msgstr ""
-
-#: src/guides/teleburning.md:48
-msgid ""
-"Indicating that `0xe43A06530BdF8A4e067581f48Fae3b535559dA9e` is the Ethereum "
-"teleburn address for inscription zero, which is, indeed, the current owner, "
-"on Ethereum, of `rodarmor.eth`."
-msgstr ""
-"显示出 `0xe43A06530BdF8A4e067581f48Fae3b535559dA9e` 是零号铭文的 teleburn地址 ，"
-"事实上，它是在Ethereum上的`rodarmor.eth`的当前所有者"
 
 #: src/guides/collecting.md:4
 msgid ""
@@ -4434,10 +4634,9 @@ msgstr "导入 `ord` 钱包"
 #: src/guides/collecting/sparrow-wallet.md:81
 msgid ""
 "For details on setting up Bitcoin Core and the `ord` wallet check out the "
-"[Inscriptions Guide](../inscriptions.md)"
+"[Wallet Guide](../wallet.md)"
 msgstr ""
-"关于设置比特币核心和 `ord` 钱包的详细信息，请查看[铭文指南](../inscriptions."
-"md)"
+"关于设置比特币核心和 `ord` 钱包的详细信息，请查看[钱包指南](../wallet.md）"
 
 #: src/guides/collecting/sparrow-wallet.md:83
 msgid ""
@@ -4827,199 +5026,11 @@ msgstr ""
 msgid "![](images/troubleshooting_02.png)"
 msgstr ""
 
-#: src/guides/testing.md:4
-msgid ""
-"Ord can be tested using the following flags to specify the test network. For "
-"more information on running Bitcoin Core for testing, see [Bitcoin's "
-"developer documentation](https://developer.bitcoin.org/examples/testing."
-"html)."
-msgstr ""
-"使用以下标志来指定测试网络，可以测试 Ord。有关运行比特币核心进行测试的更多信"
-"息，请参见[比特币的开发者文档](https://developer.bitcoin.org/examples/"
-"testing。"
-
-#: src/guides/testing.md:7
-msgid ""
-"Most `ord` commands in [inscriptions](inscriptions.md) and [explorer]"
-"(explorer.md) can be run with the following network flags:"
-msgstr ""
-"大多数在[铭文](inscriptions.md) 和 [浏览器](explorer.md) 中的 `ord`命令可以使"
-"用以下网络标志运行："
-
-#: src/guides/testing.md:10
-msgid "Network"
-msgstr ""
-
-#: src/guides/testing.md:10
-msgid "Flag"
-msgstr ""
-
-#: src/guides/testing.md:12
-msgid "Testnet"
-msgstr ""
-
-#: src/guides/testing.md:12
-msgid "`--testnet` or `-t`"
-msgstr ""
-
-#: src/guides/testing.md:13
-msgid "Signet"
-msgstr ""
-
-#: src/guides/testing.md:13
-msgid "`--signet` or `-s`"
-msgstr ""
-
-#: src/guides/testing.md:14
-msgid "Regtest"
-msgstr ""
-
-#: src/guides/testing.md:14
-msgid "`--regtest` or `-r`"
-msgstr ""
-
-#: src/guides/testing.md:16
-msgid "Regtest doesn't require downloading the blockchain or indexing ord."
-msgstr "Regtest不需要下载区块链或者建立ord索引"
-
-#: src/guides/testing.md:21
-msgid "Run bitcoind in regtest with:"
-msgstr "在regtest里运行bitcoind，使用："
-
-#: src/guides/testing.md:22
-msgid ""
-"```\n"
-"bitcoind -regtest -txindex\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:25
-msgid "Create a wallet in regtest with:"
-msgstr "在regtest里创建钱包"
-
-#: src/guides/testing.md:26
-msgid ""
-"```\n"
-"ord -r wallet create\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:29
-msgid "Get a regtest receive address with:"
-msgstr "创建一个regtest接收地址"
-
-#: src/guides/testing.md:30
-msgid ""
-"```\n"
-"ord -r wallet receive\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:33
-msgid "Mine 101 blocks (to unlock the coinbase) with:"
-msgstr "挖取101个区块（解锁coinbase）使用："
-
-#: src/guides/testing.md:34
-msgid ""
-"```\n"
-"bitcoin-cli -regtest generatetoaddress 101 <receive address>\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:37
-msgid "Inscribe in regtest with:"
-msgstr "在regtest上铭刻"
-
-#: src/guides/testing.md:38
-msgid ""
-"```\n"
-"ord -r wallet inscribe --fee-rate 1 --file <file>\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:41
-msgid "Mine the inscription with:"
-msgstr "挖取铭文"
-
-#: src/guides/testing.md:42
-msgid ""
-"```\n"
-"bitcoin-cli -regtest generatetoaddress 1 <receive address>\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:45
-msgid "View the inscription in the regtest explorer:"
-msgstr "在regtest浏览器里查看铭文"
-
-#: src/guides/testing.md:46
-msgid ""
-"```\n"
-"ord -r server\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:50
-msgid "Testing Recursion"
-msgstr "测试递归"
-
-#: src/guides/testing.md:53
-#, fuzzy
-msgid ""
-"When testing out [recursion](../inscriptions/recursion.md), inscribe the "
-"dependencies first (example with [p5.js](https://p5js.org)):"
-msgstr ""
-"测试 [recursion](../inscriptions/recursion.md) 时，首先记下依赖项（以 [p5.js]"
-"(https://p5js.org) 为例："
-
-#: src/guides/testing.md:55
-msgid ""
-"```\n"
-"ord -r wallet inscribe --fee-rate 1 --file p5.js\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:58
-msgid ""
-"This should return a `inscription_id` which you can then reference in your "
-"recursive inscription."
-msgstr "这应该返回一个`inscription_id`，然后您可以在递归铭文中引用它。"
-
-#: src/guides/testing.md:61
-msgid ""
-"ATTENTION: These ids will be different when inscribing on mainnet or signet, "
-"so be sure to change those in your recursive inscription for each chain."
-msgstr ""
-"请注意，在主网和signet上铭刻的时候这些id有所不同，因此请务必更改每个链的递归"
-"铭文中的内容。"
-
-#: src/guides/testing.md:65
-msgid "Then you can inscribe your recursive inscription with:"
-msgstr "现在你可以使用以下命令来铭刻你的递归铭文："
-
-#: src/guides/testing.md:66
-msgid ""
-"```\n"
-"ord -r wallet inscribe --fee-rate 1 --file recursive-inscription.html\n"
-"```"
-msgstr ""
-
-#: src/guides/testing.md:69
-msgid "Finally you will have to mine some blocks and start the server:"
-msgstr "最终你可以挖取一些区块来开始服务器："
-
-#: src/guides/testing.md:70
-msgid ""
-"```\n"
-"bitcoin-cli generatetoaddress 6 <receive address>\n"
-"ord -r server\n"
-"```"
-msgstr ""
-
 #: src/guides/moderation.md:4
 msgid ""
 "`ord` includes a block explorer, which you can run locally with `ord server`."
-msgstr "`ord` 包含了一个区块浏览器，你可以在本地运行`ord server`."
+msgstr ""
+"`ord` 包含了一个区块浏览器，你可以在本地运行`ord server`."
 
 #: src/guides/moderation.md:6
 msgid ""
@@ -5211,11 +5222,979 @@ msgstr ""
 #: src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"`ord --datadir <DIR> index update` or give it a specific filename and path "
 "with `ord --index <FILENAME> index update`."
 msgstr ""
-"您当然也可以自己设置数据目录的位置,`ord --data-dir <DIR> index update` 或为其"
+"您当然也可以自己设置数据目录的位置,`ord --datadir <DIR> index update` 或为其"
 "指定特定的文件名和路径,使用‘ord --index <FILENAME>索引运行’。"
+
+#: src/guides/sat-hunting.md:4
+msgid ""
+"_This guide is out of date. Since it was written, the `ord` binary was "
+"changed to only build the full satoshi index when the `--index-sats` flag is "
+"supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin "
+"Core wallet. See `ord wallet --help`._"
+msgstr ""
+"_本指南已过时。自编写以来，“ord”安装文件已更改仅当提供“--index-sats”标志时才"
+"构建完整的聪索引。此外，“ord”现在有一个内置钱包，其中包含比特币核心钱包。请参"
+"阅`ord wallet --help`。_"
+
+#: src/guides/sat-hunting.md:9
+msgid ""
+"Ordinal hunting is difficult but rewarding. The feeling of owning a wallet "
+"full of UTXOs, redolent with the scent of rare and exotic sats, is beyond "
+"compare."
+msgstr ""
+
+#: src/guides/sat-hunting.md:12
+msgid ""
+"Ordinals are numbers for satoshis. Every satoshi has an ordinal number and "
+"every ordinal number has a satoshi."
+msgstr ""
+
+#: src/guides/sat-hunting.md:15
+msgid "Preparation"
+msgstr ""
+
+#: src/guides/sat-hunting.md:18
+msgid "There are a few things you'll need before you start."
+msgstr ""
+
+#: src/guides/sat-hunting.md:20
+msgid ""
+"First, you'll need a synced Bitcoin Core node with a transaction index. To "
+"turn on transaction indexing, pass `-txindex` on the command-line:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:23
+msgid ""
+"```sh\n"
+"bitcoind -txindex\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:27
+msgid ""
+"Or put the following in your [Bitcoin configuration file](https://github.com/"
+"bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
+msgstr ""
+
+#: src/guides/sat-hunting.md:34
+msgid ""
+"Launch it and wait for it to catch up to the chain tip, at which point the "
+"following command should print out the current block height:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:37
+msgid ""
+"```sh\n"
+"bitcoin-cli getblockcount\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:41
+msgid "Second, you'll need a synced `ord` index."
+msgstr ""
+
+#: src/guides/sat-hunting.md:43
+msgid "Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/)."
+msgstr ""
+
+#: src/guides/sat-hunting.md:45
+msgid ""
+"Run `RUST_LOG=info ord index`. It should connect to your bitcoin core node "
+"and start indexing."
+msgstr ""
+
+#: src/guides/sat-hunting.md:48
+msgid "Wait for it to finish indexing."
+msgstr ""
+
+#: src/guides/sat-hunting.md:50
+msgid "Third, you'll need a wallet with UTXOs that you want to search."
+msgstr ""
+
+#: src/guides/sat-hunting.md:52
+msgid "Searching for Rare Ordinals"
+msgstr ""
+
+#: src/guides/sat-hunting.md:55
+msgid "Searching for Rare Ordinals in a Bitcoin Core Wallet"
+msgstr ""
+
+#: src/guides/sat-hunting.md:57
+msgid ""
+"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
+"searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your "
+"wallet is named `foo`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:61
+msgid "Load your wallet:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:63
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:67
+msgid "Display any rare ordinals wallet `foo`'s UTXOs:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:69
+msgid ""
+"```sh\n"
+"ord --index-sats wallet --name foo sats\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:73
+msgid "Searching for Rare Ordinals in a Non-Bitcoin Core Wallet"
+msgstr ""
+
+#: src/guides/sat-hunting.md:75
+msgid ""
+"The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
+"to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to "
+"import your wallet's descriptors into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:79
+msgid ""
+"[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors."
+"md) describe the ways that wallets generate private keys and public keys."
+msgstr ""
+
+#: src/guides/sat-hunting.md:82
+msgid ""
+"You should only import descriptors into Bitcoin Core for your wallet's "
+"public keys, not its private keys."
+msgstr ""
+
+#: src/guides/sat-hunting.md:85
+msgid ""
+"If your wallet's public key descriptor is compromised, an attacker will be "
+"able to see your wallet's addresses, but your funds will be safe."
+msgstr ""
+
+#: src/guides/sat-hunting.md:88
+msgid ""
+"If your wallet's private key descriptor is compromised, an attacker can "
+"drain your wallet of funds."
+msgstr ""
+
+#: src/guides/sat-hunting.md:91
+msgid ""
+"Get the wallet descriptor from the wallet whose UTXOs you want to search for "
+"rare ordinals. It will look something like this:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:94
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#csvefu29\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:98
+msgid "Create a watch-only wallet named `foo-watch-only`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:100
+msgid ""
+"```sh\n"
+"bitcoin-cli createwallet foo-watch-only true true\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:104
+msgid "Feel free to give it a better name than `foo-watch-only`!"
+msgstr ""
+
+#: src/guides/sat-hunting.md:106
+msgid "Load the `foo-watch-only` wallet:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:108 src/guides/sat-hunting.md:199
+msgid ""
+"```sh\n"
+"bitcoin-cli loadwallet foo-watch-only\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:112
+msgid "Import your wallet descriptors into `foo-watch-only`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:114
+msgid ""
+"```sh\n"
+"bitcoin-cli importdescriptors \\\n"
+"  '[{ \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#tpnxnxax\", \"timestamp\":0 }]'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:119
+msgid ""
+"If you know the Unix timestamp when your wallet first started receive "
+"transactions, you may use it for the value of `\"timestamp\"` instead of "
+"`0`. This will reduce the time it takes for Bitcoin Core to search for your "
+"wallet's UTXOs."
+msgstr ""
+
+#: src/guides/sat-hunting.md:124 src/guides/sat-hunting.md:225
+msgid "Check that everything worked:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:126 src/guides/sat-hunting.md:227
+msgid ""
+"```sh\n"
+"bitcoin-cli getwalletinfo\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:130 src/guides/sat-hunting.md:231
+msgid "Display your wallet's rare ordinals:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:132 src/guides/sat-hunting.md:233
+msgid ""
+"```sh\n"
+"ord wallet sats\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:136
+msgid ""
+"Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors"
+msgstr ""
+
+#: src/guides/sat-hunting.md:138
+msgid ""
+"Some descriptors describe multiple paths in one descriptor using angle "
+"brackets, e.g., `<0;1>`. Multi-path descriptors are not yet supported by "
+"Bitcoin Core, so you'll first need to convert them into multiple "
+"descriptors, and then import those multiple descriptors into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:143
+msgid ""
+"First get the multi-path descriptor from your wallet. It will look something "
+"like this:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:146
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/"
+"<0;1>/*)#fw76ulgt\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:150
+msgid "Create a descriptor for the receive address path:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:152
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:156
+msgid "And the change address path:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:158
+msgid ""
+"```\n"
+"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:162
+msgid ""
+"Get and note the checksum for the receive address descriptor, in this case "
+"`tpnxnxax`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:165
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:170
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": "
+"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#csvefu29\",\n"
+"  \"checksum\": \"tpnxnxax\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:180
+msgid "And for the change address descriptor, in this case `64k8wnd7`:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:182
+msgid ""
+"```sh\n"
+"bitcoin-cli getdescriptorinfo \\\n"
+"  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:187
+msgid ""
+"```json\n"
+"{\n"
+"  \"descriptor\": "
+"\"wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)#fyfc5f6a\",\n"
+"  \"checksum\": \"64k8wnd7\",\n"
+"  \"isrange\": true,\n"
+"  \"issolvable\": true,\n"
+"  \"hasprivatekeys\": false\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:197
+msgid "Load the wallet you want to import the descriptors into:"
+msgstr ""
+
+#: src/guides/sat-hunting.md:203
+msgid ""
+"Now import the descriptors, with the correct checksums, into Bitcoin Core."
+msgstr ""
+
+#: src/guides/sat-hunting.md:205
+msgid ""
+"```sh\n"
+"bitcoin-cli \\\n"
+" importdescriptors \\\n"
+" '[\n"
+"   {\n"
+"     \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
+"*)#tpnxnxax\"\n"
+"     \"timestamp\":0\n"
+"   },\n"
+"   {\n"
+"     \"desc\": "
+"\"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
+"*)#64k8wnd7\",\n"
+"     \"timestamp\":0\n"
+"   }\n"
+" ]'\n"
+"```"
+msgstr ""
+
+#: src/guides/sat-hunting.md:220
+msgid ""
+"If you know the Unix timestamp when your wallet first started receive "
+"transactions, you may use it for the value of the `\"timestamp\"` fields "
+"instead of `0`. This will reduce the time it takes for Bitcoin Core to "
+"search for your wallet's UTXOs."
+msgstr ""
+
+#: src/guides/sat-hunting.md:237
+msgid "Exporting Descriptors"
+msgstr ""
+
+#: src/guides/sat-hunting.md:241
+msgid ""
+"Navigate to the `Settings` tab, then to `Script Policy`, and press the edit "
+"button to display the descriptor."
+msgstr ""
+
+#: src/guides/sat-hunting.md:244
+msgid "Transferring Ordinals"
+msgstr ""
+
+#: src/guides/sat-hunting.md:246
+msgid ""
+"The `ord` wallet supports transferring specific satoshis. You can also use "
+"`bitcoin-cli` commands `createrawtransaction`, "
+"`signrawtransactionwithwallet`, and `sendrawtransaction`, how to do so is "
+"complex and outside the scope of this guide."
+msgstr ""
+
+#: src/guides/settings.md:4
+msgid ""
+"`ord` can be configured with the command line, environment variables, a "
+"configuration file, and default values."
+msgstr ""
+"`ord`可以通过命令行、环境变量、配置文件以及默认值进行配置。"
+
+#: src/guides/settings.md:7
+msgid ""
+"The command line takes precedence over environment variables, which take "
+"precedence over the configuration file, which takes precedence over defaults."
+msgstr ""
+"命令行的优先级高于环境变量，环境变量的优先级又高于配置文件，配置文件的优先级高于默认值。"
+
+#: src/guides/settings.md:10
+msgid ""
+"The path to the configuration file can be given with `--config "
+"<CONFIG_PATH>`. `ord` will error if `<CONFIG_PATH>` doesn't exist."
+msgstr ""
+"配置文件的路径可以通过 `--config <CONFIG_PATH>`给出."
+" 如果 `<CONFIG_PATH>` 不存在则`ord` 会显示错误 ."
+
+#: src/guides/settings.md:13
+msgid ""
+"The path to a directory containing a configuration file name named `ord."
+"yaml` can be given with `--config-dir <CONFIG_DIR_PATH>` or `--datadir "
+"<DATA_DIR_PATH>` in which case the config path is `<CONFIG_DIR_PATH>/ord."
+"yaml` or `<DATA_DIR_PATH>/ord.yaml`. It is not an error if it does not exist."
+msgstr ""
+"可以使用`--config-dir <CONFIG_DIR_PATH>` 或 `--datadir <DATA_DIR_PATH>` 指定包含名为ord.yaml的配置文件的目录路径。"
+"在这种情况下，配置路径为`<CONFIG_DIR_PATH>/ord.yaml`或`<DATA_DIR_PATH>/ord.yaml`。如果它不存在，这不是一个错误。"
+
+#: src/guides/settings.md:18
+msgid ""
+"If none of `--config`, `--config-dir`, or `--datadir` are given, and a file "
+"named `ord.yaml` exists in the default data directory, it will be loaded."
+msgstr ""
+"如果没有给出`--config`、`--config-dir`或`--datadir`中的任何一个，"
+"并且在默认数据目录中存在一个名为ord.yaml的文件，它将会被加载。"
+
+#: src/guides/settings.md:21
+msgid ""
+"For a setting named `--setting-name` on the command line, the environment "
+"variable will be named `ORD_SETTING_NAME`, and the config file field will be "
+"named `setting_name`. For example, the data directory can be configured with "
+"`--datadir` on the command line, the `ORD_DATA_DIR` environment variable, or "
+"`data_dir` in the config file."
+msgstr ""
+"对于命令行中名为`--setting-name`的设置，环境变量将被命名为`ORD_SETTING_NAME`，"
+"配置文件中的字段将被命名为`setting_name`。例如，数据目录可以通过命令行中的`--datadir`、"
+"环境变量`ORD_DATA_DIR`或配置文件中的`data_dir`来配置。"
+
+#: src/guides/settings.md:27
+msgid "See `ord --help` for documentation of all the settings."
+msgstr "查看`ord --help`可以获取所有设置的文档。"
+
+#: src/guides/settings.md:29
+msgid ""
+"`ord`'s current configuration can be viewed as JSON with the `ord settings` "
+"command."
+msgstr ""
+"`ord`当前的配置可以通过`ord settings`命令以JSON格式查看。"
+
+#: src/guides/settings.md:32
+msgid "Example Configuration"
+msgstr "示例配置"
+
+#: src/guides/settings.md:35
+msgid ""
+"```yaml\n"
+"# example config\n"
+"\n"
+"# see `ord --help` for setting documentation\n"
+"\n"
+"bitcoin_data_dir: /var/lib/bitcoin\n"
+"bitcoin_rpc_password: bar\n"
+"bitcoin_rpc_url: https://localhost:8000\n"
+"bitcoin_rpc_username: foo\n"
+"chain: mainnet\n"
+"commit_interval: 10000\n"
+"config: /var/lib/ord/ord.yaml\n"
+"config_dir: /var/lib/ord\n"
+"cookie_file: /var/lib/bitcoin/.cookie\n"
+"data_dir: /var/lib/ord\n"
+"first_inscription_height: 100\n"
+"height_limit: 1000\n"
+"hidden:\n"
+"- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0\n"
+"- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0\n"
+"index: /var/lib/ord/index.redb\n"
+"index_cache_size: 1000000000\n"
+"index_runes: true\n"
+"index_sats: true\n"
+"index_spent_sats: true\n"
+"index_transactions: true\n"
+"integration_test: true\n"
+"no_index_inscriptions: true\n"
+"server_password: bar\n"
+"server_url: http://localhost:8888\n"
+"server_username: foo\n"
+"```"
+msgstr ""
+
+#: src/guides/settings.md:68
+msgid "Hiding Inscription Content"
+msgstr "隐藏铭文内容"
+
+#: src/guides/settings.md:71
+msgid ""
+"Inscription content can be selectively prevented from being served by `ord "
+"server`."
+msgstr ""
+"铭文内容可以被选择性地阻止由`ord server`提供服务。"
+
+#: src/guides/settings.md:74
+msgid ""
+"Unlike other settings, this can only be configured with the configuration "
+"file or environment variables."
+msgstr ""
+"与其他设置不同，这只能通过配置文件或环境变量来配置。"
+
+#: src/guides/settings.md:77
+msgid "To hide inscriptions with an environment variable:"
+msgstr "要在 ordinals.com 上隐藏铭文:"
+
+#: src/guides/settings.md:79
+msgid ""
+"```\n"
+"export "
+"ORD_HIDDEN='6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 "
+"703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0'\n"
+"```"
+msgstr ""
+
+#: src/guides/settings.md:83
+msgid "Or with the configuration file:"
+msgstr "或者使用配置文件"
+
+#: src/guides/settings.md:85
+msgid ""
+"```yaml\n"
+"hidden:\n"
+"- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0\n"
+"- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0\n"
+"```"
+msgstr ""
+
+#: src/guides/teleburning.md:4
+msgid ""
+"Teleburn addresses can be used to burn assets on other blockchains, leaving "
+"behind in the smoking rubble a sort of forwarding address pointing to an "
+"inscription on Bitcoin."
+msgstr ""
+"燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个"
+"比特币上的铭文这些地址就像是烟熏弹火后的废墟。 "
+
+#: src/guides/teleburning.md:8
+msgid ""
+"Teleburning an asset means something like, \"I'm out. Find me on Bitcoin.\""
+msgstr "燃烧传送一个资产似乎意味着 \"我走了，在比特币链上找我。\""
+
+#: src/guides/teleburning.md:10
+msgid ""
+"Teleburn addresses are derived from inscription IDs. They have no "
+"corresponding private key, so assets sent to a teleburn address are burned. "
+"Currently, only Ethereum teleburn addresses are supported. Pull requests "
+"adding teleburn addresses for other chains are welcome."
+msgstr ""
+"Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 "
+"当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求 "
+
+#: src/guides/teleburning.md:15
+msgid "Ethereum"
+msgstr "以太坊"
+
+#: src/guides/teleburning.md:18
+msgid ""
+"Ethereum teleburn addresses are derived by taking the first 20 bytes of the "
+"SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first "
+"32 bytes containing the transaction ID, and the last four bytes containing "
+"big-endian inscription index, and interpreting it as an Ethereum address."
+msgstr ""
+"以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这"
+"个哈希被序列化为36字节，其中前32字节包含交易ID， 最后四个字节包含大端序的铭文"
+"索引，并将其解释为一个Ethereum地址。"
+
+#: src/guides/teleburning.md:26
+msgid ""
+"The ENS domain name [rodarmor.eth](https://app.ens.domains/rodarmor.eth), "
+"was teleburned to [inscription zero](https://ordinals.com/"
+"inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
+msgstr ""
+"ENS 域名 [rodarmor.eth](https://app.ens.domains/rodarmor.eth), 被燃烧传输"
+"teleburned 到 [inscription zero](https://ordinals.com/"
+"inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
+
+#: src/guides/teleburning.md:30
+msgid ""
+"Running the inscription ID of inscription zero is "
+"`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`."
+msgstr ""
+"零号铭文的铭文ID是"
+"`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`."
+
+#: src/guides/teleburning.md:33
+msgid ""
+"Passing `6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0` "
+"to the teleburn command:"
+msgstr ""
+"使用teleburn命令 "
+"`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0` "
+
+#: src/guides/teleburning.md:36
+msgid ""
+"```bash\n"
+"$ ord teleburn "
+"6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0\n"
+"```"
+msgstr ""
+
+#: src/guides/teleburning.md:40
+msgid "Returns:"
+msgstr "返回"
+
+#: src/guides/teleburning.md:42
+msgid ""
+"```json\n"
+"{\n"
+"  \"ethereum\": \"0xe43A06530BdF8A4e067581f48Fae3b535559dA9e\"\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/guides/teleburning.md:48
+msgid ""
+"Indicating that `0xe43A06530BdF8A4e067581f48Fae3b535559dA9e` is the Ethereum "
+"teleburn address for inscription zero, which is, indeed, the current owner, "
+"on Ethereum, of `rodarmor.eth`."
+msgstr ""
+"显示出 `0xe43A06530BdF8A4e067581f48Fae3b535559dA9e` 是零号铭文的 teleburn地"
+"址 ，事实上，它是在Ethereum上的`rodarmor.eth`的当前所有者"
+
+#: src/guides/testing.md:4
+msgid "Test Environment"
+msgstr "测试环境"
+
+#: src/guides/testing.md:7
+msgid ""
+"`ord env <DIRECTORY>` creates a test environment in `<DIRECTORY>`, spins up "
+"`bitcoind` and `ord server` instances, prints example commands for "
+"interacting with the test `bitcoind` and `ord server` instances, waits for "
+"`CTRL-C`, and then shuts down `bitcoind` and `ord server`."
+msgstr ""
+"`ord env <DIRECTORY>`在`<DIRECTORY>`中创建一个测试环境，启动`bitcoind`和`ord server`实例，"
+"打印与测试`bitcoind`和`ord server`实例交互的示例命令，等待`CTRL-C`，然后关闭`bitcoind`和`ord server`。"
+
+#: src/guides/testing.md:12
+msgid ""
+"`ord env` tries to use port 9000 for `bitcoind`'s RPC interface, and port "
+"`9001` for `ord`'s RPC interface, but will fall back to random unused ports."
+msgstr ""
+"`ord env`尝试使用端口9000作为`bitcoind`的RPC接口，以及端口`9001`作为`ord`的RPC接口，"
+"但如果这些端口被占用，它将回退到随机的未使用端口。"
+
+#: src/guides/testing.md:15
+msgid ""
+"Inside of the env directory, `ord env` will write `bitcoind`'s configuration "
+"to `bitcoin.conf`, `ord`'s configuration to `ord.yaml`, and the env "
+"configuration to `env.json`."
+msgstr ""
+"在env目录内部，`ord env`将会将`bitcoind`的配置写入`bitcoin.conf`，"
+"`ord`的配置写入`ord.yaml`，以及环境配置写入`env.json`。"
+
+#: src/guides/testing.md:19
+msgid ""
+"`env.json` contains the commands needed to invoke `bitcoin-cli` and `ord "
+"wallet`, as well as the ports `bitcoind` and `ord server` are listening on."
+msgstr ""
+"`env.json`包含了调用`bitcoin-cli`和`ord wallet`所需的命令，"
+"以及`bitcoind`和`ord server`正在监听的端口信息。"
+
+#: src/guides/testing.md:22
+msgid "These can be extracted into shell commands using `jq`:"
+msgstr "这些可以使用`jq`提取成shell命令："
+
+#: src/guides/testing.md:24
+msgid ""
+"```shell\n"
+"bitcoin=`jq -r '.bitcoin_cli_command | join(\" \")' env/env.json`\n"
+"$bitcoin listunspent\n"
+"\n"
+"ord=`jq -r '.ord_wallet_command | join(\" \")' env/env.json`\n"
+"$ord outputs\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:32
+msgid ""
+"If `ord` is in the `$PATH` and the env directory is `env`, the `bitcoin-cli` "
+"command will be:"
+msgstr ""
+"如果`ord`在`$PATH`中，并且环境目录是`env`，那么`bitcoin-cli`命令将会是："
+
+#: src/guides/testing.md:35
+msgid ""
+"```\n"
+"bitcoin-cli -datadir=env`\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:39
+msgid "And the `ord` will be:"
+msgstr "`ord`将是"
+
+#: src/guides/testing.md:41
+msgid ""
+"```\n"
+"ord --datadir env\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:45
+msgid "Test Networks"
+msgstr "测试网络"
+
+#: src/guides/testing.md:48
+msgid ""
+"Ord can be tested using the following flags to specify the test network. For "
+"more information on running Bitcoin Core for testing, see [Bitcoin's "
+"developer documentation](https://developer.bitcoin.org/examples/testing."
+"html)."
+msgstr ""
+"使用以下标志来指定测试网络，可以测试 Ord。有关运行比特币核心进行测试的更多信"
+"息，请参见[比特币的开发者文档](https://developer.bitcoin.org/examples/"
+"testing。"
+
+#: src/guides/testing.md:51
+msgid ""
+"Most `ord` commands in [wallet](wallet.md) and [explorer](explorer.md) can "
+"be run with the following network flags:"
+msgstr ""
+"大多数在[钱包](wallet.md) 和 [浏览器](explorer.md) 中的 `ord`命令可以使"
+"用以下网络标志运行："
+
+#: src/guides/testing.md:54
+msgid "Network"
+msgstr "网络"
+
+#: src/guides/testing.md:54
+msgid "Flag"
+msgstr "标记"
+
+#: src/guides/testing.md:56
+msgid "Testnet"
+msgstr "测试网"
+
+#: src/guides/testing.md:56
+msgid "`--testnet` or `-t`"
+msgstr ""
+
+#: src/guides/testing.md:57
+msgid "Signet"
+msgstr ""
+
+#: src/guides/testing.md:57
+msgid "`--signet` or `-s`"
+msgstr ""
+
+#: src/guides/testing.md:58
+msgid "Regtest"
+msgstr ""
+
+#: src/guides/testing.md:58
+msgid "`--regtest` or `-r`"
+msgstr ""
+
+#: src/guides/testing.md:60
+msgid "Regtest doesn't require downloading the blockchain or indexing ord."
+msgstr "Regtest不需要下载区块链或者建立ord索引"
+
+#: src/guides/testing.md:65
+msgid "Run `bitcoind` in regtest with:"
+msgstr "在regtest里运行bitcoind，使用："
+
+#: src/guides/testing.md:67
+msgid ""
+"```\n"
+"bitcoind -regtest -txindex\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:71
+msgid "Run `ord server` in regtest with:"
+msgstr "在regtest里运行bitcoind，使用："
+
+#: src/guides/testing.md:73
+msgid ""
+"```\n"
+"ord --regtest server\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:77
+msgid "Create a wallet in regtest with:"
+msgstr "在regtest里创建钱包"
+
+#: src/guides/testing.md:79
+msgid ""
+"```\n"
+"ord --regtest wallet create\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:83
+msgid "Get a regtest receive address with:"
+msgstr "创建一个regtest接收地址"
+
+#: src/guides/testing.md:85
+msgid ""
+"```\n"
+"ord --regtest wallet receive\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:89
+msgid "Mine 101 blocks (to unlock the coinbase) with:"
+msgstr "挖取101个区块（解锁coinbase）使用："
+
+#: src/guides/testing.md:91
+msgid ""
+"```\n"
+"bitcoin-cli -regtest generatetoaddress 101 <receive address>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:95
+msgid "Inscribe in regtest with:"
+msgstr "在regtest上铭刻"
+
+#: src/guides/testing.md:97
+msgid ""
+"```\n"
+"ord --regtest wallet inscribe --fee-rate 1 --file <file>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:101
+msgid "Mine the inscription with:"
+msgstr "挖取铭文"
+
+#: src/guides/testing.md:103
+msgid ""
+"```\n"
+"bitcoin-cli -regtest generatetoaddress 1 <receive address>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:107
+msgid ""
+"By default, browsers don't support compression over HTTP. To test compressed "
+"content over HTTP, use the `--decompress` flag:"
+msgstr ""
+
+#: src/guides/testing.md:110
+msgid ""
+"```\n"
+"ord --regtest server --decompress\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:114
+msgid "Testing Recursion"
+msgstr "测试递归"
+
+#: src/guides/testing.md:117
+msgid ""
+"When testing out [recursion](../inscriptions/recursion.md), inscribe the "
+"dependencies first (example with [p5.js](https://p5js.org)):"
+msgstr ""
+"测试 [recursion](../inscriptions/recursion.md) 时，首先记下依赖项（以 [p5.js]"
+"(https://p5js.org) 为例："
+
+#: src/guides/testing.md:120
+msgid ""
+"```\n"
+"ord --regtest wallet inscribe --fee-rate 1 --file p5.js\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:124
+msgid ""
+"This will return the inscription ID of the dependency which you can then "
+"reference in your inscription."
+msgstr "这应该返回一个`inscription_id`，然后您可以在递归铭文中引用它。"
+
+#: src/guides/testing.md:127
+msgid ""
+"However, inscription IDs differ between mainnet and test chains, so you must "
+"change the inscription IDs in your inscription to the mainnet inscription "
+"IDs of your dependencies before making the final inscription on mainnet."
+msgstr ""
+"然而，铭文ID在主网和测试链之间是不同的，因此在在主网上进行最终铭文之前，"
+"你必须将你铭文中的铭文ID更改为你依赖项的主网铭文ID。"
+
+#: src/guides/testing.md:131
+msgid "Then you can inscribe your recursive inscription with:"
+msgstr "现在你可以使用以下命令来铭刻你的递归铭文："
+
+#: src/guides/testing.md:133
+msgid ""
+"```\n"
+"ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription."
+"html\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:137
+msgid "Finally you will have to mine some blocks and start the server:"
+msgstr "最终你可以挖取一些区块来开始服务器："
+
+#: src/guides/testing.md:139
+msgid ""
+"```\n"
+"bitcoin-cli generatetoaddress 6 <receive address>\n"
+"```"
+msgstr ""
+
+#: src/guides/testing.md:143
+msgid "Mainnet Dependencies"
+msgstr "主网依赖"
+
+#: src/guides/testing.md:145
+msgid ""
+"To avoid having to change dependency inscription IDs to mainnet inscription "
+"IDs, you may utilize a content proxy when testing. `ord server` accepts a `--"
+"content-proxy` option, which takes the URL of a another `ord server` "
+"instance. When making a request to `/content/<INSCRIPTION_ID>` when a "
+"content proxy is set and the inscription is not found, `ord server` will "
+"forward the request to the content proxy. This allows you to run a test `ord "
+"server` instance with a mainnet content proxy. You can then use mainnet "
+"inscription IDs in your test inscription, which will then return the content "
+"of the mainnet inscriptions."
+msgstr ""
+"为了避免在测试时必须将依赖铭文ID更改为主网铭文ID，你可以在测试时使用内容代理。"
+"`ord server`接受一个`--content-proxy`选项，它需要另一个`ord server`实例的URL。"
+"当设置了内容代理并且铭文未找到时，向`/content/<INSCRIPTION_ID>`发出请求，"
+"`ord server`将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的测试`ord server`实例。"
+"然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文的内容。"
+
+#: src/guides/testing.md:155
+msgid ""
+"```\n"
+"ord --regtest server --content-proxy https://ordinals.com\n"
+"```"
+msgstr ""
 
 #: src/bounties.md:1
 msgid "Ordinal Bounty Hunting Hints"
@@ -5420,7 +6399,7 @@ msgstr ""
 #: src/bounty/3.md:14
 msgid ""
 "The bounty is open for submissions until block 840000—the first block after "
-"the fourth halvening. Submissions included in block 840000 or later will not "
+"the fourth halving. Submissions included in block 840000 or later will not "
 "be considered."
 msgstr ""
 "赏金计划开放到区块高度840000-第四次减半后的第一个区块。区块高度840000以及以后"
@@ -5544,6 +6523,34 @@ msgstr ""
 #: src/bounty/3.md:78
 msgid "Unclaimed!"
 msgstr "仍然有效！"
+
+#~ msgid ""
+#~ "[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www."
+#~ "youtube.com/watch?v=j5V33kV3iqo)"
+#~ msgstr ""
+#~ "[序数艺术：在比特币上铸造你自己的NFT w/ @rodarmor](https://www.youtube."
+#~ "com/watch?v=j5V33kV3iqo)"
+
+#~ msgid ""
+#~ "A few other endpoints that inscriptions may access are the following:"
+#~ msgstr "铭文可以访问的其他几个端点如下："
+
+#~ msgid "To test how your inscriptions will look you can run:"
+#~ msgstr "测试你的铭文你可以运行："
+
+#~ msgid "Ordinal Inscription Guide"
+#~ msgstr "铭文指引"
+
+#~ msgid "View the inscription in the regtest explorer:"
+#~ msgstr "在regtest浏览器里查看铭文"
+
+#~ msgid ""
+#~ "ATTENTION: These ids will be different when inscribing on mainnet or "
+#~ "signet, so be sure to change those in your recursive inscription for each "
+#~ "chain."
+#~ msgstr ""
+#~ "请注意，在主网和signet上铭刻的时候这些id有所不同，因此请务必更改每个链的递"
+#~ "归铭文中的内容。"
 
 #~ msgid "`uncommon`: 745,855"
 #~ msgstr "`非普通`: 745,855"

@@ -2,11 +2,21 @@ Recursion
 =========
 
 An important exception to [sandboxing](../inscriptions.md#sandboxing) is
-recursion: access to `ord`'s `/content` endpoint is permitted, allowing
-inscriptions to access the content of other inscriptions by requesting
-`/content/<INSCRIPTION_ID>`.
+recursion. Recursive endpoints are whitelisted endpoints that allow access to
+on-chain data, including the content of other inscriptions.
 
-This has a number of interesting use-cases:
+Since changes to recursive endpoints might break inscriptions that rely on
+them, recursive endpoints have backwards-compatibility guarantees not shared by
+`ord server`'s other endpoints. In particular:
+
+- Recursive endpoints will not be removed
+- Object fields returned by recursive endpoints will not be renamed or change types
+
+However, additional object fields may be added or reordered, so inscriptions
+must handle additional, unexpected fields, and must not expect fields to be
+returned in a specific order.
+
+Recursion has a number of interesting use-cases:
 
 - Remixing the content of existing inscriptions.
 
@@ -22,6 +32,7 @@ This has a number of interesting use-cases:
 
 The recursive endpoints are:
 
+- `/content/<INSCRIPTION_ID>`:  the content of the inscription with `<INSCRIPTION_ID>`
 - `/r/blockhash/<HEIGHT>`: block hash at given block height.
 - `/r/blockhash`: latest block hash.
 - `/r/blockheight`: latest block height.
@@ -67,20 +78,32 @@ Examples
 
 ```json
 {
+  "average_fee": 0,
+  "average_fee_rate": 0,
   "bits": 486604799,
-  "chainwork": 0,
+  "chainwork": "0000000000000000000000000000000000000000000000000000000100010001",
   "confirmations": 0,
   "difficulty": 0.0,
   "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
   "height": 0,
-  "median_time": null,
+  "max_fee": 0,
+  "max_fee_rate": 0,
+  "max_tx_size": 0,
+  "median_fee": 0,
+  "median_time": 1231006505,
   "merkle_root": "0000000000000000000000000000000000000000000000000000000000000000",
+  "min_fee": 0,
+  "min_fee_rate": 0,
   "next_block": null,
   "nonce": 0,
   "previous_block": null,
+  "subsidy": 5000000000,
   "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
-  "timestamp": 0,
-  "transaction_count": 0,
+  "timestamp": 1231006505,
+  "total_fee": 0,
+  "total_size": 0,
+  "total_weight": 0,
+  "transaction_count": 1,
   "version": 1
 }
 ```
@@ -116,6 +139,7 @@ Examples
   "content_length": 144037,
   "fee": 36352,
   "height": 209,
+  "id": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0",
   "number": 2,
   "output": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0",
   "sat": null,

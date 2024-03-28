@@ -61,7 +61,7 @@ fn inscription_page() {
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
-  <dt>output value</dt>
+  <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
   <dd><a href=/preview/{inscription}>link</a></dd>
@@ -73,11 +73,11 @@ fn inscription_page() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>genesis height</dt>
+  <dt>height</dt>
   <dd><a href=/block/2>2</a></dd>
-  <dt>genesis fee</dt>
+  <dt>fee</dt>
   <dd>138</dd>
-  <dt>genesis transaction</dt>
+  <dt>reveal transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{reveal}:0:0</dd>
@@ -311,11 +311,12 @@ fn recursive_inscription_endpoint() {
   pretty_assert_eq!(
     inscription_recursive_json,
     api::InscriptionRecursive {
-      charms: vec!["coin".into(), "uncommon".into()],
+      charms: vec![Charm::Coin, Charm::Uncommon],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
       fee: 138,
       height: 2,
+      id: inscription.id,
       number: 0,
       output: inscription.location.outpoint,
       sat: Some(Sat(50 * COIN_VALUE)),

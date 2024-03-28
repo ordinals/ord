@@ -45,7 +45,7 @@ fn one_rune() {
 
   let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
-  assert_eq!(
+  pretty_assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .run_and_deserialize_output::<Output>(),
@@ -53,23 +53,23 @@ fn one_rune() {
       runes: vec![(
         Rune(RUNE),
         RuneInfo {
+          block: 8,
           burned: 0,
-          mint: None,
           divisibility: 0,
-          etching: etch.transaction,
-          height: 2,
-          id: RuneId {
-            height: 2,
-            index: 1
-          },
-          index: 1,
+          etching: etch.inscribe.reveal,
+          id: RuneId { block: 8, tx: 1 },
+          terms: None,
           mints: 0,
           number: 0,
-          rune: Rune(RUNE),
-          spacers: 0,
+          premine: 1000,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0
+          },
           supply: 1000,
           symbol: Some('¢'),
-          timestamp: ord::timestamp(2),
+          timestamp: ord::timestamp(8),
+          tx: 1,
         }
       )]
       .into_iter()
@@ -101,45 +101,45 @@ fn two_runes() {
         (
           Rune(RUNE),
           RuneInfo {
+            block: 8,
             burned: 0,
-            mint: None,
             divisibility: 0,
-            etching: a.transaction,
-            height: 2,
-            id: RuneId {
-              height: 2,
-              index: 1
-            },
-            index: 1,
+            etching: a.inscribe.reveal,
+            id: RuneId { block: 8, tx: 1 },
+            terms: None,
             mints: 0,
             number: 0,
-            rune: Rune(RUNE),
-            spacers: 0,
+            premine: 1000,
+            rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(2),
+            timestamp: ord::timestamp(8),
+            tx: 1,
           }
         ),
         (
           Rune(RUNE + 1),
           RuneInfo {
+            block: 16,
             burned: 0,
-            mint: None,
             divisibility: 0,
-            etching: b.transaction,
-            height: 4,
-            id: RuneId {
-              height: 4,
-              index: 1
-            },
-            index: 1,
+            etching: b.inscribe.reveal,
+            id: RuneId { block: 16, tx: 1 },
+            terms: None,
             mints: 0,
             number: 1,
-            rune: Rune(RUNE + 1),
-            spacers: 0,
+            premine: 1000,
+            rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(4),
+            timestamp: ord::timestamp(16),
+            tx: 1,
           }
         )
       ]

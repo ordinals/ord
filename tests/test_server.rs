@@ -44,7 +44,7 @@ impl TestServer {
       .port();
 
     let (settings, server) = parse_ord_server_args(&format!(
-      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
       bitcoin_rpc_server.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),
@@ -87,14 +87,18 @@ impl TestServer {
     format!("http://127.0.0.1:{}", self.port).parse().unwrap()
   }
 
+  #[track_caller]
   pub(crate) fn assert_response_regex(&self, path: impl AsRef<str>, regex: impl AsRef<str>) {
     self.sync_server();
-
+    let path = path.as_ref();
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_regex_match!(response.text().unwrap(), regex.as_ref());
+    let status = response.status();
+    assert_eq!(status, StatusCode::OK, "bad status for {path}: {status}");
+    let text = response.text().unwrap();
+    assert_regex_match!(text, regex.as_ref());
   }
 
+  #[track_caller]
   pub(crate) fn assert_response(&self, path: impl AsRef<str>, expected_response: &str) {
     self.sync_server();
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
@@ -128,21 +132,9 @@ impl TestServer {
   pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
-
-    for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
-
-      assert_eq!(response.status(), StatusCode::OK);
-
-      let ord_height = response.text().unwrap().parse::<u64>().unwrap();
-
-      if ord_height >= chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("index failed to synchronize with chain");
-      }
-      thread::sleep(Duration::from_millis(50));
-    }
+    let response = reqwest::blocking::get(self.url().join("/update").unwrap()).unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count);
   }
 }
 

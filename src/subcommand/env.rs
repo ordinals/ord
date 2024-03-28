@@ -91,7 +91,7 @@ rpcport={bitcoind_port}
 
     let _ord = KillOnDrop(
       Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("server")
         .arg("--polling-interval=100ms")
@@ -104,7 +104,7 @@ rpcport={bitcoind_port}
 
     if !absolute.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("wallet")
         .arg("create")
@@ -113,7 +113,7 @@ rpcport={bitcoind_port}
       ensure!(status.success(), "failed to create wallet: {status}");
 
       let output = Command::new(&ord)
-        .arg("--data-dir")
+        .arg("--datadir")
         .arg(&absolute)
         .arg("wallet")
         .arg("receive")
@@ -124,41 +124,58 @@ rpcport={bitcoind_port}
         "failed to generate receive address: {status}"
       );
 
-      let receive =
-        serde_json::from_slice::<crate::subcommand::wallet::receive::Output>(&output.stdout)?;
-
-      let address = receive.address.require_network(Network::Regtest)?;
+      let receive = serde_json::from_slice::<wallet::receive::Output>(&output.stdout)?;
 
       let status = Command::new("bitcoin-cli")
         .arg(format!("-datadir={relative}"))
         .arg("generatetoaddress")
         .arg("200")
-        .arg(address.to_string())
+        .arg(
+          receive
+            .addresses
+            .first()
+            .cloned()
+            .unwrap()
+            .require_network(Network::Regtest)?
+            .to_string(),
+        )
         .status()?;
 
       ensure!(status.success(), "failed to create wallet: {status}");
     }
 
     serde_json::to_writer_pretty(
-      File::create(self.directory.join("env.json"))?,
+      fs::File::create(self.directory.join("env.json"))?,
       &Info {
         bitcoind_port,
         ord_port,
         bitcoin_cli_command: vec!["bitcoin-cli".into(), format!("-datadir={relative}")],
         ord_wallet_command: vec![
           ord.to_str().unwrap().into(),
-          "--data-dir".into(),
+          "--datadir".into(),
           absolute.to_str().unwrap().into(),
           "wallet".into(),
         ],
       },
     )?;
 
+    let datadir = if relative
+      .chars()
+      .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+    {
+      relative
+    } else {
+      format!("'{relative}'")
+    };
+
     eprintln!(
       "{}
-bitcoin-cli -datadir='{relative}' getblockchaininfo
+{server_url}
 {}
-{} --data-dir '{relative}' wallet balance",
+bitcoin-cli -datadir={datadir} getblockchaininfo
+{}
+{} --datadir {datadir} wallet balance",
+      "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
       ord.display(),
