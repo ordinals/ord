@@ -437,7 +437,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(Some(Payload::Invalid(Cenotaph::Opcode)))
+      Ok(Some(Payload::Invalid(Cenotaph::InvalidScript)))
     );
   }
 
