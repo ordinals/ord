@@ -5366,4 +5366,39 @@ mod tests {
 
     context.assert_runes([], []);
   }
+
+  #[test]
+  fn tx_commits_to_rune_ignores_invalid_script() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let runestone = Runestone {
+      etching: Some(Etching {
+        rune: Some(Rune(RUNE)),
+        terms: Some(Terms {
+          amount: Some(1000),
+          ..default()
+        }),
+        ..default()
+      }),
+      ..default()
+    };
+
+    let mut witness = Witness::new();
+
+    witness.push([opcodes::all::OP_PUSHDATA4.to_u8()]);
+    witness.push([]);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, witness)],
+      op_return: Some(runestone.encipher()),
+      outputs: 1,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes([], []);
+  }
 }
