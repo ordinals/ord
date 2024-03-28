@@ -117,6 +117,7 @@ mod tests {
     case("A.B.C", "ABC", 0b11);
     case("A•B", "AB", 0b1);
     case("A•B•C", "ABC", 0b11);
+    case("A•BC", "ABC", 0b1);
   }
 
   #[test]

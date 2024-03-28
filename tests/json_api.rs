@@ -160,6 +160,7 @@ fn get_inscription() {
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
+      effective_content_type: Some("text/plain;charset=utf-8".to_string()),
       fee: 138,
       height: 2,
       id: inscription_id,
