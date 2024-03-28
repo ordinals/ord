@@ -80,6 +80,8 @@ struct RuneId {
 }
 ```
 
+Rune IDs are represented in text as `BLOCK:TX`.
+
 Rune names are encoded as modified base-26 integers:
 
 ```rust
@@ -153,6 +155,44 @@ struct Edict {
   output: u32,
 }
 ```
+
+Rune ID block heights and transaction indices in edicts are delta encoded.
+
+Edict rune ID decoding starts with a base block height and transaction index of
+zero. When decoding each rune ID, first the encoded block height delta is added
+to the base block height. If the block height delta is zero, the next integer
+is a transaction index delta. If the block height delta is greater than zero,
+the next integer is instead an absolute transaction index.
+
+This implies that edicts must first be sorted by rune ID before being encoded
+in a runestone.
+
+For example, to encode the following edicts:
+
+| block | TX | amount | output |
+|-------|----|--------|--------|
+| 10    | 5  | 5      | 1      |
+| 50    | 1  | 25     | 4      |
+| 10    | 7  | 1      | 8      |
+| 10    | 5  | 10     | 3      |
+
+They are first sorted by block height and transaction index:
+
+| block | TX | amount | output |
+|-------|----|--------|--------|
+| 10    | 5  | 5      | 1      |
+| 10    | 5  | 10     | 3      |
+| 10    | 7  | 1      | 8      |
+| 50    | 1  | 25     | 4      |
+
+And then delta encoded as:
+
+| block delta | TX delta | amount | output |
+|-------------|----------|--------|--------|
+| 10          | 5        | 100    | 1      |
+| 0           | 0        | 100    | 1      |
+| 0           | 2        | 100    | 1      |
+| 40          | 1        | 100    | 1      |
 
 If an edict output is greater than the number of outputs of the transaction, an
 edict rune ID is encountered with block zero and nonzero transaction index, or
@@ -400,7 +440,7 @@ Runes begin unlocking in block 840,000, the block in which the runes protocol
 activates.
 
 Thereafter, every 17,500 block period, the next shortest length of rune names
-is continously unlocked. So, between block 840,000 and block 857,500, the
+is continuously unlocked. So, between block 840,000 and block 857,500, the
 twelve-character rune names are unlocked, between block 857,500 and block
 875,000 the eleven character rune names are unlocked, and so on and so on,
 until the one-character rune names are unlocked between block 1,032,500 and
@@ -415,3 +455,58 @@ little-endian integer with trailing zero bytes elided, present in an input
 witness tapscript where the output being spent has at least six confirmations.
 
 If a valid commitment is not present, the etching is ignored.
+
+#### Minting
+
+A runestone may mint a rune by including the rune's ID in the `Mint` field.
+
+If the mint is open, the mint amount is added to the unallocated runes in the
+transactions inputs. These runes may be transferred using edicts, and will
+otherwise be transferred to the first non-`OP_RETURN` output, or the output
+designated by the `Pointer` field.
+
+#### Transferring
+
+Runes are transferred by edict:
+
+```rust
+struct Edict {
+  id: RuneId,
+  amount: u128,
+  output: u32,
+}
+```
+
+A runestone may contain any number of edicts, which are processed in sequence.
+
+Before edicts are processed, input runes, as well as minted or premined runes,
+if any, are unallocated.
+
+Each edict decrements the unallocated balance of rune `id` and increments the
+balance allocated to transaction outputs of rune `id`.
+
+If an edict would allocate more runes than are currently unallocated, the
+`amount` is reduced to the number of currently unallocated runes. In other
+words, the edict allocates all remaining unallocated units of rune `id`.
+
+Because the ID of an etched rune is not known before it is included in a block,
+ID `0:0` is used to mean the rune being etched in this transaction, if any.
+
+An edict with `amount` zero allocates all remaining units of rune `id`.
+
+An edict with `output` equal to the number of transaction outputs allocates
+`amount` runes to each non-`OP_RETURN` output.
+
+An edict with `amount` zero and `output` equal to the number of transaction
+outputs divides all unallocated units of rune `id` between each non-`OP_RETURN`
+output. If the number of unallocated runes is not divisible by the number of
+non-`OP_RETURN` outputs, 1 additional rune is assigned to the first `R`
+non-`OP_RETURN` outputs, where `R` is the remainder after dividing the balance
+of unallocated units of rune `id` by the number of non-`OP_RETURN` outputs.
+
+If any edict in a runestone has a rune ID with `block` zero and `tx` greater
+than zero, or `output` greater than the number of transaction outputs, the
+runestone is a cenotaph.
+
+Note that edicts in cenotaphs are not processed, and all input runes are
+burned.

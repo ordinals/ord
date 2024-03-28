@@ -26,7 +26,9 @@ a transaction's inputs to its outputs.
 A transaction output may hold balances of any number of runes.
 
 Runes are identified by IDs, which consist of the block in which a rune was
-etched and the index of the etching transaction within that block.
+etched and the index of the etching transaction within that block, represented
+in text as `BLOCK:TX`. For example, the ID of the rune minted the 20th
+transaction of the 500th block is `500:20`.
 
 Etching
 -------
