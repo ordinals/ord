@@ -3,7 +3,7 @@ pub(crate) use {
   bitcoin::{
     blockdata::script::{PushBytes, PushBytesBuf},
     constants::COIN_VALUE,
-    WPubkeyHash,
+    opcodes, WPubkeyHash,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
@@ -129,10 +129,6 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   }
 
   format!("{}i{n}", hex.repeat(64)).parse().unwrap()
-}
-
-pub(crate) fn rune_id(tx: u32) -> RuneId {
-  RuneId { block: 1, tx }
 }
 
 pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {

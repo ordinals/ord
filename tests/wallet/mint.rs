@@ -1,7 +1,4 @@
-use {
-  super::*,
-  ord::{runes::Pile, subcommand::wallet::mint},
-};
+use {super::*, ord::subcommand::wallet::mint};
 
 #[test]
 fn minting_rune_and_fails_if_after_end() {

@@ -2935,7 +2935,7 @@ fn etch_reserved_rune_error() {
         etching: Some(batch::Etching {
           divisibility: 0,
           rune: SpacedRune {
-            rune: Rune::reserved(0),
+            rune: Rune::reserved(0).unwrap(),
             spacers: 0,
           },
           premine: "1000".parse().unwrap(),

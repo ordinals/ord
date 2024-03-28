@@ -1893,12 +1893,7 @@ impl Server {
 #[cfg(test)]
 mod tests {
   use {
-    super::*,
-    crate::runes::{Edict, Etching, Rune, Runestone},
-    reqwest::Url,
-    serde::de::DeserializeOwned,
-    std::net::TcpListener,
-    tempfile::TempDir,
+    super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener, tempfile::TempDir,
   };
 
   const RUNE: u128 = 99246114928149462;

@@ -11,10 +11,10 @@ use {
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
-    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch, Edict,
-    InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
+    InscriptionId, RuneEntry,
   },
-  ordinals::{Charm, Rarity, Sat, SatPoint},
+  ordinals::{Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},

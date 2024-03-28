@@ -16,7 +16,7 @@ impl PageContent for RuneHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, crate::runes::Rune};
+  use super::*;
 
   #[test]
   fn display() {
