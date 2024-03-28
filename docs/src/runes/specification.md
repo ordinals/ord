@@ -347,6 +347,7 @@ character, starting from the left of the rune's name.
 For example, the rune name `AAAA` rendered with different spacers:
 
 | Spacers | Display |
+|---------|---------|
 | 0b1     | A•AAA   |
 | 0b11    | A•A•AA  |
 | 0b10    | AA•AA   |
