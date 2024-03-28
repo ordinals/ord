@@ -62,6 +62,7 @@ impl Wallet {
     no_sync: bool,
     settings: Settings,
     rpc_url: Url,
+    wallet_db: Option<PathBuf>,
   ) -> Result<Self> {
     let mut headers = HeaderMap::new();
 
@@ -79,7 +80,7 @@ impl Wallet {
       );
     }
 
-    let db = Db::open(&name, &settings)?;
+    let db = Db::open(&name, &settings, wallet_db)?;
 
     let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())

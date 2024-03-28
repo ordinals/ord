@@ -1,5 +1,6 @@
 use {
   super::*,
+  entry::{ResumeEntry, ResumeEntryValue},
   index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -9,6 +10,8 @@ use {
   },
   std::sync::Once,
 };
+
+mod entry;
 
 const SCHEMA_VERSION: u64 = 1;
 
@@ -38,46 +41,24 @@ impl From<Statistic> for u64 {
   }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct ResumeEntry {
-  pub commit: Transaction,
-  pub reveal: Transaction,
-}
-
-pub(super) type ResumeEntryValue = (Vec<u8>, Vec<u8>);
-
-impl Entry for ResumeEntry {
-  type Value = ResumeEntryValue;
-
-  fn load((commit, reveal): ResumeEntryValue) -> Self {
-    Self {
-      commit: consensus::encode::deserialize::<Transaction>(&commit).unwrap(),
-      reveal: consensus::encode::deserialize::<Transaction>(&reveal).unwrap(),
-    }
-  }
-
-  fn store(self) -> Self::Value {
-    (
-      consensus::encode::serialize(&self.commit),
-      consensus::encode::serialize(&self.reveal),
-    )
-  }
-}
-
 pub(crate) struct Db {
   database: Database,
   durability: redb::Durability,
 }
 
 impl Db {
-  pub(crate) fn open(wallet_name: &String, settings: &Settings) -> Result<Self> {
+  pub(crate) fn open(
+    wallet_name: &String,
+    settings: &Settings,
+    wallet_db: Option<PathBuf>,
+  ) -> Result<Self> {
     let durability = if cfg!(test) {
       redb::Durability::None
     } else {
       redb::Durability::Immediate
     };
 
-    let path = settings.data_dir().join(format!("{wallet_name}.redb"));
+    let path = wallet_db.unwrap_or_else(|| settings.data_dir().join(format!("{wallet_name}.redb")));
     let path_clone = path.clone().to_owned();
     let once = Once::new();
     let progress_bar = Mutex::new(None);

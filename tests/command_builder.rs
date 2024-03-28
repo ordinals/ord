@@ -200,6 +200,16 @@ impl CommandBuilder {
     for arg in self.args.iter() {
       args.push(arg.clone());
       if arg == "wallet" {
+        args.push("--wallet-db".to_string());
+        args.push(
+          self
+            .tempdir
+            .path()
+            .join("wallet.redb")
+            .as_path()
+            .display()
+            .to_string(),
+        );
         if let Some(ord_server_url) = &self.ord_rpc_server_url {
           args.push("--server-url".to_string());
           args.push(ord_server_url.to_string());

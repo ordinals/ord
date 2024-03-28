@@ -3686,8 +3686,11 @@ fn batch_inscribe_errors_if_pending_etchings() {
     ..default()
   };
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   let mut builder =
     CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+      .temp_dir(tempdir.clone())
       .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
       .write("inscription.jpeg", "inscription")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -3697,19 +3700,22 @@ fn batch_inscribe_errors_if_pending_etchings() {
 
   let mut buffer = String::new();
 
+  dbg!();
+
   BufReader::new(spawn.child.stderr.as_mut().unwrap())
     .read_line(&mut buffer)
     .unwrap();
 
   assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
 
+  dbg!();
   bitcoin_rpc_server.mine_blocks(1);
 
   spawn.child.kill().unwrap();
 
+  dbg!();
   CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
-    .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
-    .write("inscription.jpeg", "inscription")
+    .temp_dir(tempdir)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
