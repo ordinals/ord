@@ -462,7 +462,7 @@ If a valid commitment is not present, the etching is ignored.
 A runestone may mint a rune by including the rune's ID in the `Mint` field.
 
 If the mint is open, the mint amount is added to the unallocated runes in the
-transactions inputs. These runes may be transferred using edicts, and will
+transaction's inputs. These runes may be transferred using edicts, and will
 otherwise be transferred to the first non-`OP_RETURN` output, or the output
 designated by the `Pointer` field.
 
