@@ -118,7 +118,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
+  let output = CommandBuilder::new("wallet batch --batch batch.yaml --fee-rate 55")
     .write("inscription.txt", "Hello World")
     .write("meow.wav", [0; 2048])
     .write(

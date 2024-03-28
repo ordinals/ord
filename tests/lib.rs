@@ -89,24 +89,6 @@ fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_serv
   .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 }
 
-fn receive(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-  ord_rpc_server: &TestServer,
-) -> Address {
-  let address = CommandBuilder::new("wallet receive")
-    .bitcoin_rpc_server(bitcoin_rpc_server)
-    .ord_rpc_server(ord_rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
-    .addresses
-    .into_iter()
-    .next()
-    .unwrap();
-
-  address
-    .require_network(bitcoin_rpc_server.state().network)
-    .unwrap()
-}
-
 fn sats(
   bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
   ord_rpc_server: &TestServer,
@@ -212,7 +194,7 @@ fn batch(
   bitcoin_rpc_server.mine_blocks(1);
 
   let mut builder =
-    CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
       .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
       .bitcoin_rpc_server(bitcoin_rpc_server)
       .ord_rpc_server(ord_rpc_server);
