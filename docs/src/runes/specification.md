@@ -465,6 +465,9 @@ transactions inputs. These runes may be transferred using edicts, and will
 otherwise be transferred to the first non-`OP_RETURN` output, or the output
 designated by the `Pointer` field.
 
+Mints may be made in any transaction after an etching, including in the same
+block.
+
 #### Transferring
 
 Runes are transferred by edict:
