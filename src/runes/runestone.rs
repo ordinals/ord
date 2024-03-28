@@ -17,6 +17,7 @@ struct Message {
   fields: HashMap<u128, VecDeque<u128>>,
 }
 
+#[derive(Debug, PartialEq)]
 enum Payload {
   Valid(Vec<u8>),
   Invalid,
@@ -264,8 +265,9 @@ impl Runestone {
         continue;
       }
 
-      // followed by the protocol identifier
-      if instructions.next().transpose()? != Some(Instruction::Op(MAGIC_NUMBER)) {
+      // followed by the protocol identifier, ignoring errors, since OP_RETURN
+      // scripts may be invalid
+      if instructions.next().transpose().ok().flatten() != Some(Instruction::Op(MAGIC_NUMBER)) {
         continue;
       }
 
@@ -273,7 +275,7 @@ impl Runestone {
       let mut payload = Vec::new();
 
       for result in instructions {
-        if let Instruction::PushBytes(push) = result? {
+        if let Ok(Instruction::PushBytes(push)) = result {
           payload.extend_from_slice(push.as_bytes());
         } else {
           return Ok(Some(Payload::Invalid));
@@ -433,7 +435,7 @@ mod tests {
   }
 
   #[test]
-  fn deciphering_valid_runestone_with_invalid_script_postfix_returns_script_error() {
+  fn deciphering_valid_runestone_with_invalid_script_postfix_returns_invalid_payload() {
     let mut script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
       .push_opcode(MAGIC_NUMBER)
@@ -442,16 +444,18 @@ mod tests {
 
     script_pubkey.push(opcodes::all::OP_PUSHBYTES_4.to_u8());
 
-    Runestone::decipher(&Transaction {
-      input: Vec::new(),
-      output: vec![TxOut {
-        script_pubkey: ScriptBuf::from_bytes(script_pubkey),
-        value: 0,
-      }],
-      lock_time: LockTime::ZERO,
-      version: 2,
-    })
-    .unwrap_err();
+    assert_eq!(
+      Runestone::payload(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from_bytes(script_pubkey),
+          value: 0,
+        }],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      }),
+      Ok(Some(Payload::Invalid))
+    );
   }
 
   #[test]
@@ -1954,5 +1958,49 @@ mod tests {
       ])
       .cenotaph
     );
+  }
+
+  #[test]
+  fn invalid_scripts_in_op_returns_are_ignored() {
+    let transaction = Transaction {
+      version: 2,
+      lock_time: LockTime::ZERO,
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::new(),
+      }],
+      output: vec![TxOut {
+        script_pubkey: ScriptBuf::from(vec![
+          opcodes::all::OP_RETURN.to_u8(),
+          opcodes::all::OP_PUSHBYTES_4.to_u8(),
+        ]),
+        value: 0,
+      }],
+    };
+
+    Runestone::decipher(&transaction).unwrap();
+
+    let transaction = Transaction {
+      version: 2,
+      lock_time: LockTime::ZERO,
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::new(),
+      }],
+      output: vec![TxOut {
+        script_pubkey: ScriptBuf::from(vec![
+          opcodes::all::OP_RETURN.to_u8(),
+          MAGIC_NUMBER.to_u8(),
+          opcodes::all::OP_PUSHBYTES_4.to_u8(),
+        ]),
+        value: 0,
+      }],
+    };
+
+    Runestone::decipher(&transaction).unwrap();
   }
 }
