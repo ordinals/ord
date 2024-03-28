@@ -1987,7 +1987,7 @@ mod tests {
       }],
     };
 
-    Runestone::decipher(&transaction).unwrap();
+    assert_eq!(Runestone::decipher(&transaction).unwrap(), None);
 
     let transaction = Transaction {
       version: 2,
@@ -2008,6 +2008,12 @@ mod tests {
       }],
     };
 
-    Runestone::decipher(&transaction).unwrap();
+    assert_eq!(
+      Runestone::decipher(&transaction).unwrap(),
+      Some(Runestone {
+        cenotaph: true,
+        ..default()
+      })
+    );
   }
 }
