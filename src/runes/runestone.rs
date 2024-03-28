@@ -538,8 +538,8 @@ mod tests {
   }
 
   #[test]
-  fn error_in_input_aborts_search_for_runestone() {
-    let payload = payload(&[0, 1, 2, 3]);
+  fn invalid_input_scripts_are_skipped_when_searching_for_runestone() {
+    let payload = payload(&[Tag::Mint.into(), 1, Tag::Mint.into(), 1]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -550,26 +550,33 @@ mod tests {
       opcodes::all::OP_PUSHBYTES_4.to_u8(),
     ];
 
-    Runestone::decipher(&Transaction {
-      input: Vec::new(),
-      output: vec![
-        TxOut {
-          script_pubkey: ScriptBuf::from_bytes(script_pubkey),
-          value: 0,
-        },
-        TxOut {
-          script_pubkey: script::Builder::new()
-            .push_opcode(opcodes::all::OP_RETURN)
-            .push_opcode(MAGIC_NUMBER)
-            .push_slice(payload)
-            .into_script(),
-          value: 0,
-        },
-      ],
-      lock_time: LockTime::ZERO,
-      version: 2,
-    })
-    .unwrap_err();
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![
+          TxOut {
+            script_pubkey: ScriptBuf::from_bytes(script_pubkey),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_opcode(MAGIC_NUMBER)
+              .push_slice(payload)
+              .into_script(),
+            value: 0,
+          },
+        ],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      })
+      .unwrap()
+      .unwrap(),
+      Runestone {
+        mint: Some(RuneId::new(1, 1).unwrap()),
+        ..default()
+      },
+    );
   }
 
   #[test]
