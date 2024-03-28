@@ -4,6 +4,7 @@ use super::*;
 pub enum Cenotaph {
   EdictOutput,
   EdictRuneId,
+  InvalidScript,
   Opcode,
   SupplyOverflow,
   TrailingIntegers,
@@ -14,9 +15,10 @@ pub enum Cenotaph {
 }
 
 impl Cenotaph {
-  pub const ALL: [Self; 9] = [
+  pub const ALL: [Self; 10] = [
     Self::EdictOutput,
     Self::EdictRuneId,
+    Self::InvalidScript,
     Self::Opcode,
     Self::SupplyOverflow,
     Self::TrailingIntegers,
@@ -36,6 +38,7 @@ impl Display for Cenotaph {
     match self {
       Self::EdictOutput => write!(f, "edict output greater than transaction output count"),
       Self::EdictRuneId => write!(f, "invalid rune ID in edict"),
+      Self::InvalidScript => write!(f, "invalid script in OP_RETURN"),
       Self::Opcode => write!(f, "non-pushdata opcode in OP_RETURN"),
       Self::SupplyOverflow => write!(f, "supply overflows u128"),
       Self::TrailingIntegers => write!(f, "trailing integers in body"),

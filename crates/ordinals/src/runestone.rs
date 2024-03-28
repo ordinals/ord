@@ -242,10 +242,16 @@ impl Runestone {
       let mut payload = Vec::new();
 
       for result in instructions {
-        if let Ok(Instruction::PushBytes(push)) = result {
-          payload.extend_from_slice(push.as_bytes());
-        } else {
-          return Ok(Some(Payload::Invalid(Cenotaph::Opcode)));
+        match result {
+          Ok(Instruction::PushBytes(push)) => {
+            payload.extend_from_slice(push.as_bytes());
+          }
+          Ok(Instruction::Op(_)) => {
+            return Ok(Some(Payload::Invalid(Cenotaph::Opcode)));
+          }
+          Err(_) => {
+            return Ok(Some(Payload::Invalid(Cenotaph::InvalidScript)));
+          }
         }
       }
 
@@ -431,7 +437,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(Some(Payload::Invalid(Cenotaph::Opcode)))
+      Ok(Some(Payload::Invalid(Cenotaph::InvalidScript)))
     );
   }
 
@@ -1982,50 +1988,82 @@ mod tests {
   }
 
   #[test]
-  fn invalid_scripts_in_op_returns_are_ignored() {
-    let transaction = Transaction {
-      version: 2,
-      lock_time: LockTime::ZERO,
-      input: vec![TxIn {
-        previous_output: OutPoint::null(),
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::new(),
-      }],
-      output: vec![TxOut {
-        script_pubkey: ScriptBuf::from(vec![
-          opcodes::all::OP_RETURN.to_u8(),
-          opcodes::all::OP_PUSHBYTES_4.to_u8(),
-        ]),
-        value: 0,
-      }],
-    };
-
-    assert_eq!(Runestone::decipher(&transaction).unwrap(), None);
-
-    let transaction = Transaction {
-      version: 2,
-      lock_time: LockTime::ZERO,
-      input: vec![TxIn {
-        previous_output: OutPoint::null(),
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::new(),
-      }],
-      output: vec![TxOut {
-        script_pubkey: ScriptBuf::from(vec![
-          opcodes::all::OP_RETURN.to_u8(),
-          Runestone::MAGIC_NUMBER.to_u8(),
-          opcodes::all::OP_PUSHBYTES_4.to_u8(),
-        ]),
-        value: 0,
-      }],
-    };
+  fn invalid_scripts_in_op_returns_without_magic_number_are_ignored() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        version: 2,
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }],
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from(vec![
+            opcodes::all::OP_RETURN.to_u8(),
+            opcodes::all::OP_PUSHBYTES_4.to_u8(),
+          ]),
+          value: 0,
+        }],
+      })
+      .unwrap(),
+      None
+    );
 
     assert_eq!(
-      Runestone::decipher(&transaction).unwrap(),
+      Runestone::decipher(&Transaction {
+        version: 2,
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            script_pubkey: ScriptBuf::from(vec![
+              opcodes::all::OP_RETURN.to_u8(),
+              opcodes::all::OP_PUSHBYTES_4.to_u8(),
+            ]),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: Runestone::default().encipher(),
+            value: 0,
+          }
+        ],
+      })
+      .unwrap(),
+      Some(Runestone::default())
+    );
+  }
+
+  #[test]
+  fn invalid_scripts_in_op_returns_with_magic_number_produce_cenotaph() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        version: 2,
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }],
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from(vec![
+            opcodes::all::OP_RETURN.to_u8(),
+            Runestone::MAGIC_NUMBER.to_u8(),
+            opcodes::all::OP_PUSHBYTES_4.to_u8(),
+          ]),
+          value: 0,
+        }],
+      })
+      .unwrap(),
       Some(Runestone {
-        cenotaph: Cenotaph::Opcode.into(),
+        cenotaph: Cenotaph::InvalidScript.into(),
         ..default()
       })
     );
