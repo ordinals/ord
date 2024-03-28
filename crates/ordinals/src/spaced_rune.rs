@@ -25,22 +25,22 @@ impl FromStr for SpacedRune {
       match c {
         'A'..='Z' => rune.push(c),
         '.' | '•' => {
-          let flag = 1 << rune.len().checked_sub(1).context("leading spacer")?;
+          let flag = 1 << rune.len().checked_sub(1).ok_or(Error::LeadingSpacer)?;
           if spacers & flag != 0 {
-            bail!("double spacer");
+            return Err(Error::DoubleSpacer);
           }
           spacers |= flag;
         }
-        _ => bail!("invalid character"),
+        _ => return Err(Error::Character(c)),
       }
     }
 
     if 32 - spacers.leading_zeros() >= rune.len().try_into().unwrap() {
-      bail!("trailing spacer")
+      return Err(Error::TrailingSpacer);
     }
 
     Ok(SpacedRune {
-      rune: rune.parse()?,
+      rune: rune.parse().map_err(Error::Rune)?,
       spacers,
     })
   }
@@ -61,6 +61,29 @@ impl Display for SpacedRune {
     Ok(())
   }
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+  LeadingSpacer,
+  TrailingSpacer,
+  DoubleSpacer,
+  Character(char),
+  Rune(rune::Error),
+}
+
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Character(c) => write!(f, "invalid character `{c}`"),
+      Self::DoubleSpacer => write!(f, "double spacer"),
+      Self::LeadingSpacer => write!(f, "leading spacer"),
+      Self::TrailingSpacer => write!(f, "trailing spacer"),
+      Self::Rune(err) => write!(f, "{err}"),
+    }
+  }
+}
+
+impl std::error::Error for Error {}
 
 #[cfg(test)]
 mod tests {
@@ -94,23 +117,23 @@ mod tests {
     }
 
     assert_eq!(
-      ".A".parse::<SpacedRune>().unwrap_err().to_string(),
-      "leading spacer",
+      ".A".parse::<SpacedRune>().unwrap_err(),
+      Error::LeadingSpacer,
     );
 
     assert_eq!(
-      "A..B".parse::<SpacedRune>().unwrap_err().to_string(),
-      "double spacer",
+      "A..B".parse::<SpacedRune>().unwrap_err(),
+      Error::DoubleSpacer,
     );
 
     assert_eq!(
-      "A.".parse::<SpacedRune>().unwrap_err().to_string(),
-      "trailing spacer",
+      "A.".parse::<SpacedRune>().unwrap_err(),
+      Error::TrailingSpacer,
     );
 
     assert_eq!(
-      "Ax".parse::<SpacedRune>().unwrap_err().to_string(),
-      "invalid character",
+      "Ax".parse::<SpacedRune>().unwrap_err(),
+      Error::Character('x')
     );
 
     case("A.B", "AB", 0b1);

@@ -457,14 +457,14 @@ impl Plan {
       }
 
       let inner = Runestone {
-        cenotaph: false,
+        cenotaph: 0,
         edicts,
-        etching: Some(runes::Etching {
+        etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
           terms: etching
             .terms
-            .map(|terms| -> Result<runes::Terms> {
-              Ok(runes::Terms {
+            .map(|terms| -> Result<ordinals::Terms> {
+              Ok(ordinals::Terms {
                 cap: (terms.cap > 0).then_some(terms.cap),
                 height: (
                   terms.height.and_then(|range| (range.start)),
