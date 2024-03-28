@@ -275,7 +275,7 @@ runestone is a cenotaph.
 
 ##### Rune
 
-The `Rune` field contains the name of the rune being etched. If the `Eching`
+The `Rune` field contains the name of the rune being etched. If the `Etching`
 flag is set, but the `Rune` field is omitted, a reserved rune name is
 allocated, starting with `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one
 with each such reserved rune allocated.
