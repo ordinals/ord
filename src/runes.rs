@@ -1,31 +1,4 @@
-use {
-  self::{flag::Flag, tag::Tag},
-  super::*,
-};
-
-pub use {
-  edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId, runestone::Runestone,
-  spaced_rune::SpacedRune, terms::Terms,
-};
-
-pub const MAX_DIVISIBILITY: u8 = 38;
-
-const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
-const RESERVED: u128 = 6402364363415443603228541259936211926;
-
-mod edict;
-mod etching;
-mod flag;
-mod pile;
-mod rune;
-mod rune_id;
-mod runestone;
-mod spaced_rune;
-mod tag;
-mod terms;
-pub mod varint;
-
-type Result<T, E = Error> = std::result::Result<T, E>;
+use super::*;
 
 #[derive(Debug, PartialEq)]
 pub enum MintError {
@@ -172,7 +145,8 @@ mod tests {
 
   #[test]
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
-    let minimum = Rune::minimum_at_height(Chain::Regtest, Height(RUNE_COMMIT_INTERVAL + 2)).0;
+    let minimum =
+      Rune::minimum_at_height(Chain::Regtest.network(), Height(RUNE_COMMIT_INTERVAL + 2)).0;
 
     {
       let context = Context::builder()
@@ -256,7 +230,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune(RESERVED)),
+            rune: Some(Rune::reserved(0).unwrap()),
             ..default()
           }),
           ..default()
@@ -278,7 +252,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune(RESERVED - 1)),
+            rune: Some(Rune(Rune::reserved(0).unwrap().n() - 1)),
             premine: Some(u128::MAX),
             ..default()
           }),
@@ -294,7 +268,7 @@ mod tests {
             block: id.block,
             etching: txid,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED - 1),
+              rune: Rune(Rune::reserved(0).unwrap().n() - 1),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -346,7 +320,7 @@ mod tests {
           block: id0.block,
           etching: txid0,
           spaced_rune: SpacedRune {
-            rune: Rune(RESERVED),
+            rune: Rune::reserved(0).unwrap(),
             spacers: 0,
           },
           premine: u128::MAX,
@@ -398,7 +372,7 @@ mod tests {
             block: id0.block,
             etching: txid0,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED),
+              rune: Rune::reserved(0).unwrap(),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -412,7 +386,7 @@ mod tests {
             block: id1.block,
             etching: txid1,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED + 1),
+              rune: Rune::reserved(1).unwrap(),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -820,7 +794,7 @@ mod tests {
           ..default()
         }),
         pointer: None,
-        cenotaph: true,
+        cenotaph: 1,
         ..default()
       },
       1,
@@ -868,7 +842,7 @@ mod tests {
           symbol: Some('$'),
           spacers: Some(1),
         }),
-        cenotaph: true,
+        cenotaph: 1,
         ..default()
       },
       1,
@@ -914,7 +888,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          cenotaph: true,
+          cenotaph: 1,
           ..default()
         }
         .encipher(),
@@ -933,7 +907,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           spaced_rune: SpacedRune {
-            rune: Rune(RESERVED),
+            rune: Rune::reserved(0).unwrap(),
             spacers: 0,
           },
           timestamp: id.block,
@@ -993,7 +967,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: true,
+          cenotaph: 1,
           ..default()
         }
         .encipher(),
@@ -4105,7 +4079,7 @@ mod tests {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: true,
+          cenotaph: 1,
           mint: Some(id),
           edicts: vec![Edict {
             id,

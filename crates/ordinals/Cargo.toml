@@ -17,3 +17,4 @@ thiserror = "1.0.56"
 
 [dev-dependencies]
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
+pretty_assertions = "1.2.1"

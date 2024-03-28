@@ -221,7 +221,7 @@ impl Inscribe {
     ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
 
     ensure!(
-      etching.divisibility <= crate::runes::MAX_DIVISIBILITY,
+      etching.divisibility <= Etching::MAX_DIVISIBILITY,
       "<DIVISIBILITY> must be less than or equal 38"
     );
 
@@ -303,7 +303,7 @@ impl Inscribe {
       );
     }
 
-    let minimum = Rune::minimum_at_height(wallet.chain(), Height(reveal_height));
+    let minimum = Rune::minimum_at_height(wallet.chain().into(), Height(reveal_height));
 
     ensure!(
       rune >= minimum,
