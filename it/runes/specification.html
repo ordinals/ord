@@ -380,10 +380,10 @@
 </div>
 <p>And then delta encoded as:</p>
 <div class="table-wrapper"><table><thead><tr><th>block delta</th><th>TX delta</th><th>amount</th><th>output</th></tr></thead><tbody>
-<tr><td>10</td><td>5</td><td>100</td><td>1</td></tr>
-<tr><td>0</td><td>0</td><td>100</td><td>1</td></tr>
-<tr><td>0</td><td>2</td><td>100</td><td>1</td></tr>
-<tr><td>40</td><td>1</td><td>100</td><td>1</td></tr>
+<tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
+<tr><td>0</td><td>0</td><td>10</td><td>3</td></tr>
+<tr><td>0</td><td>2</td><td>1</td><td>8</td></tr>
+<tr><td>40</td><td>1</td><td>25</td><td>4</td></tr>
 </tbody></table>
 </div>
 <p>If an edict output is greater than the number of outputs of the transaction, an edict rune ID is encountered with block zero and nonzero transaction index, or a field is truncated, meaning a tag is encountered without a value, the decoded runestone is a cenotaph.</p>
