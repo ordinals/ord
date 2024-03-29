@@ -477,9 +477,8 @@ integers to be interpreted as edicts.</p>
 runestone is a cenotaph.</p>
 <h5 id="rune"><a class="header" href="#rune">Rune</a></h5>
 <p>The <code>Rune</code> field contains the name of the rune being etched. If the <code>Etching</code>
-flag is set, but the <code>Rune</code> field is omitted, a reserved rune name is
-allocated, starting with <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> and increasing by one
-with each such reserved rune allocated.</p>
+flag is set but the <code>Rune</code> field is omitted, a reserved rune name is
+allocated.</p>
 <h5 id="premine"><a class="header" href="#premine">Premine</a></h5>
 <p>The <code>Premine</code> field contains the amount of premined runes.</p>
 <h5 id="cap"><a class="header" href="#cap">Cap</a></h5>
@@ -593,8 +592,18 @@ integer.</p>
 </div>
 <p>And so on and so on.</p>
 <p>Rune names <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> and above are reserved.</p>
-<p><code>rune</code> may be omitted, in which case the first unallocated rune name, starting
-at <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> and increasing by one each time, is etched.</p>
+<p>If <code>rune</code> is omitted a reserved rune name is allocated as follows:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn reserve(block: u64, tx: u32) -&gt; Rune {
+  Rune(
+    6402364363415443603228541259936211926
+    + (u128::from(block) &lt;&lt; 32 | u128::from(tx))
+  )
+}
+<span class="boring">}</span></code></pre></pre>
+<p><code>6402364363415443603228541259936211926</code> corresponds to the rune name
+<code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code>.</p>
 <p>If <code>rune</code> is present, it must be unlocked as of the block in which the etching
 appears.</p>
 <p>Initially, all rune names of length thirteen and longer, up until the first
