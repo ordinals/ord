@@ -1,12 +1,13 @@
-use {
-  super::*,
-  ciborium::value::Integer,
-  nix::{
-    sys::signal::{self, Signal},
-    unistd::Pid,
-  },
-  ord::subcommand::wallet::send::Output,
+use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
+
+#[cfg(unix)]
+use nix::{
+  sys::signal::{self, Signal},
+  unistd::Pid,
 };
+
+#[cfg(not(unix))]
+use winapi::um::wincon::{GenerateConsoleCtrlEvent, CTRL_C_EVENT};
 
 #[test]
 fn run() {
@@ -657,7 +658,20 @@ fn ctrl_c() {
   }
 
   let pid = Pid::from_raw(spawn.child.id() as i32);
-  signal::kill(pid, Signal::SIGINT).unwrap();
+
+  #[cfg(unix)]
+  {
+    signal::kill(pid, Signal::SIGINT).unwrap();
+  }
+
+  #[cfg(windows)]
+  unsafe {
+    if GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid) == 0 {
+      Err(std::io::Error::last_os_error())
+    } else {
+      Ok(())
+    }
+  }
 
   let mut buffer = String::new();
   BufReader::new(spawn.child.stdout.as_mut().unwrap())
