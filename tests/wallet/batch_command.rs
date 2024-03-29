@@ -56,7 +56,7 @@ fn batch_inscribe_can_create_one_inscription() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -97,7 +97,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -134,7 +134,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -152,7 +152,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -189,7 +189,7 @@ fn batch_inscribe_respects_dry_run_flag() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -220,7 +220,7 @@ fn batch_in_same_output_but_different_satpoints() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let outpoint = output.inscriptions[0].location.outpoint;
   for (i, inscription) in output.inscriptions.iter().enumerate() {
@@ -287,7 +287,7 @@ fn batch_in_same_output_with_non_default_postage() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let outpoint = output.inscriptions[0].location.outpoint;
 
@@ -349,7 +349,7 @@ fn batch_in_separate_outputs_with_parent() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -367,7 +367,7 @@ fn batch_in_separate_outputs_with_parent() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   for inscription in &output.inscriptions {
     assert_eq!(inscription.location.offset, 0);
@@ -426,7 +426,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -444,7 +444,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   for inscription in &output.inscriptions {
     assert_eq!(inscription.location.offset, 0);
@@ -571,7 +571,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -622,7 +622,7 @@ fn batch_same_sat() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(
     output.inscriptions[0].location,
@@ -681,7 +681,7 @@ fn batch_same_sat_with_parent() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -697,7 +697,7 @@ fn batch_same_sat_with_parent() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(
     output.inscriptions[0].location,
@@ -764,7 +764,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -795,7 +795,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(
     output.inscriptions[0].location,
@@ -864,7 +864,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
       .write("parent.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>();
+      .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -882,7 +882,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -941,7 +941,7 @@ fn batch_inscribe_with_satpoint() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -977,7 +977,7 @@ fn batch_inscribe_with_fee_rate() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let commit_tx = &bitcoin_rpc_server.mempool()[0];
   let mut fee = 0;
@@ -1039,7 +1039,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1098,7 +1098,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
       .write("parent.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>();
+      .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1190,7 +1190,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1371,7 +1371,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -2478,5 +2478,5 @@ fn oversize_runestones_are_allowed_with_no_limit() {
   )
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 }

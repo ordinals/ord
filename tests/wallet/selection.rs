@@ -177,7 +177,7 @@ fn sending_rune_does_not_send_inscription() {
     .write("foo.txt", "FOO")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks_with_subsidy(1, 10000);
 
