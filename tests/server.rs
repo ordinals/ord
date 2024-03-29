@@ -1,11 +1,5 @@
 use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
-#[cfg(unix)]
-use nix::{
-  sys::signal::{self, Signal},
-  unistd::Pid,
-};
-
 #[test]
 fn run() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -629,6 +623,11 @@ fn authentication() {
 #[cfg(unix)]
 #[test]
 fn ctrl_c() {
+  use nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  };
+
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
@@ -637,13 +636,18 @@ fn ctrl_c() {
     .unwrap()
     .port();
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
+  rpc_server.mine_blocks(3);
+
   let mut spawn = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
+    .temp_dir(tempdir.clone())
     .bitcoin_rpc_server(&rpc_server)
     .spawn();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
-      if response.status() == 200 {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
+      if response.status() == 200 || response.text().unwrap() == "3".to_string() {
         break;
       }
     }
@@ -668,4 +672,25 @@ fn ctrl_c() {
   );
 
   spawn.child.wait().unwrap();
+
+  CommandBuilder::new(format!(
+    "server --no-sync --address 127.0.0.1 --http-port {port}"
+  ))
+  .temp_dir(tempdir)
+  .bitcoin_rpc_server(&rpc_server)
+  .spawn();
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
+      if response.status() == 200 || response.text().unwrap() == "3".to_string() {
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
 }

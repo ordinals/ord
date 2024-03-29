@@ -2294,7 +2294,6 @@ dependencies = [
  "tower-http",
  "unindent",
  "urlencoding",
- "winapi",
 ]
 
 [[package]]
