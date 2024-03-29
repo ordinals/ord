@@ -664,7 +664,7 @@ fn ctrl_c() {
 
   #[cfg(windows)]
   unsafe {
-    let result = if GenerateConsoleCtrlEvent(CTRL_C_EVENT, child.id()) == 0 {
+    let result = if GenerateConsoleCtrlEvent(CTRL_C_EVENT, spawn.child.id()) == 0 {
       Err(std::io::Error::last_os_error())
     } else {
       Ok(())
