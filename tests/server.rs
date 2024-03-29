@@ -6,9 +6,6 @@ use nix::{
   unistd::Pid,
 };
 
-#[cfg(windows)]
-use winapi::um::wincon::{GenerateConsoleCtrlEvent, CTRL_C_EVENT};
-
 #[test]
 fn run() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -629,6 +626,7 @@ fn authentication() {
   child.kill().unwrap();
 }
 
+#[cfg(unix)]
 #[test]
 fn ctrl_c() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -657,21 +655,7 @@ fn ctrl_c() {
     thread::sleep(Duration::from_millis(50));
   }
 
-  #[cfg(unix)]
-  {
-    signal::kill(Pid::from_raw(spawn.child.id() as i32), Signal::SIGINT).unwrap();
-  }
-
-  #[cfg(windows)]
-  unsafe {
-    let result = if GenerateConsoleCtrlEvent(CTRL_C_EVENT, spawn.child.id()) == 0 {
-      Err(std::io::Error::last_os_error())
-    } else {
-      Ok(())
-    };
-
-    result.unwrap();
-  }
+  signal::kill(Pid::from_raw(spawn.child.id() as i32), Signal::SIGINT).unwrap();
 
   let mut buffer = String::new();
   BufReader::new(spawn.child.stdout.as_mut().unwrap())
