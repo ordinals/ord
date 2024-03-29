@@ -318,7 +318,7 @@ fn splitting_merged_inscriptions_is_possible() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let inscribe = CommandBuilder::new("wallet inscribe --fee-rate 0 --batch batch.yaml")
+  let inscribe = CommandBuilder::new("wallet batch --fee-rate 0 --batch batch.yaml")
     .write("inscription.txt", "INSCRIPTION")
     .write(
       "batch.yaml",
