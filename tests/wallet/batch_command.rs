@@ -2545,19 +2545,19 @@ fn batch_inscribe_errors_if_pending_etchings() {
 
     spawn.child.kill().unwrap();
 
-//    let pid = Pid::from_raw(spawn.child.id() as i32);
-//    signal::kill(pid, Signal::SIGINT).unwrap();
-//
-//    buffer.clear();
-//
-//    BufReader::new(spawn.child.stdout.as_mut().unwrap())
-//      .read_line(&mut buffer)
-//      .unwrap();
-//
-//    assert_eq!(
-//      buffer,
-//      "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
-//    );
+    //    let pid = Pid::from_raw(spawn.child.id() as i32);
+    //    signal::kill(pid, Signal::SIGINT).unwrap();
+    //
+    //    buffer.clear();
+    //
+    //    BufReader::new(spawn.child.stdout.as_mut().unwrap())
+    //      .read_line(&mut buffer)
+    //      .unwrap();
+    //
+    //    assert_eq!(
+    //      buffer,
+    //      "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
+    //    );
 
     spawn.child.wait().unwrap();
   }
