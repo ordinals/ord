@@ -88,7 +88,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let Inscribe { reveal, .. } = CommandBuilder::new(format!(
+  let Batch { reveal, .. } = CommandBuilder::new(format!(
     "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
     txid
   ))
