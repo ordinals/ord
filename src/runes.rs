@@ -230,7 +230,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune::reserved(0).unwrap()),
+            rune: Some(Rune::reserved(0, 0)),
             ..default()
           }),
           ..default()
@@ -252,7 +252,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune(Rune::reserved(0).unwrap().n() - 1)),
+            rune: Some(Rune(Rune::reserved(0, 0).n() - 1)),
             premine: Some(u128::MAX),
             ..default()
           }),
@@ -268,7 +268,7 @@ mod tests {
             block: id.block,
             etching: txid,
             spaced_rune: SpacedRune {
-              rune: Rune(Rune::reserved(0).unwrap().n() - 1),
+              rune: Rune(Rune::reserved(0, 0).n() - 1),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -320,7 +320,7 @@ mod tests {
           block: id0.block,
           etching: txid0,
           spaced_rune: SpacedRune {
-            rune: Rune::reserved(0).unwrap(),
+            rune: Rune::reserved(id0.block, id0.tx),
             spacers: 0,
           },
           premine: u128::MAX,
@@ -372,7 +372,7 @@ mod tests {
             block: id0.block,
             etching: txid0,
             spaced_rune: SpacedRune {
-              rune: Rune::reserved(0).unwrap(),
+              rune: Rune::reserved(id0.block, id0.tx),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -386,7 +386,7 @@ mod tests {
             block: id1.block,
             etching: txid1,
             spaced_rune: SpacedRune {
-              rune: Rune::reserved(1).unwrap(),
+              rune: Rune::reserved(id1.block, id0.tx),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -907,7 +907,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           spaced_rune: SpacedRune {
-            rune: Rune::reserved(0).unwrap(),
+            rune: Rune::reserved(2, 1),
             spacers: 0,
           },
           timestamp: id.block,
