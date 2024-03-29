@@ -240,7 +240,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .write("degenerate.png", [1; 100])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   let txid = bitcoin_rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -318,7 +318,7 @@ fn splitting_merged_inscriptions_is_possible() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let inscribe = CommandBuilder::new("wallet inscribe --fee-rate 0 --batch batch.yaml")
+  let inscribe = CommandBuilder::new("wallet batch --fee-rate 0 --batch batch.yaml")
     .write("inscription.txt", "INSCRIPTION")
     .write(
       "batch.yaml",
@@ -333,7 +333,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let reveal_txid = inscribe.reveal;
 
@@ -1110,7 +1110,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         amount: 750,
         output: 2
       }],
-      cenotaph: false,
+      cenotaph: 0,
       mint: None,
     },
   );

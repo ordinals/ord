@@ -490,7 +490,7 @@ impl Index {
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
-        self.settings.chain(),
+        self.settings.chain().network(),
         Height(next_height),
       ),
       rune_index: statistic(Statistic::IndexRunes)? != 0,
@@ -887,6 +887,27 @@ impl Index {
     Ok(entries)
   }
 
+  pub(crate) fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
+    varint::encode_to_vec(id.block.into(), buffer);
+    varint::encode_to_vec(id.tx.into(), buffer);
+    varint::encode_to_vec(balance, buffer);
+  }
+
+  pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Option<((RuneId, u128), usize)> {
+    let mut len = 0;
+    let (block, block_len) = varint::decode(&buffer[len..])?;
+    len += block_len;
+    let (tx, tx_len) = varint::decode(&buffer[len..])?;
+    len += tx_len;
+    let id = RuneId {
+      block: block.try_into().ok()?,
+      tx: tx.try_into().ok()?,
+    };
+    let (balance, balance_len) = varint::decode(&buffer[len..])?;
+    len += balance_len;
+    Some(((id, balance), len))
+  }
+
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
@@ -906,7 +927,7 @@ impl Index {
     let mut balances = Vec::new();
     let mut i = 0;
     while i < balances_buffer.len() {
-      let ((id, amount), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
+      let ((id, amount), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
       i += length;
 
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
@@ -997,7 +1018,7 @@ impl Index {
       let mut balances = Vec::new();
       let mut i = 0;
       while i < balances_buffer.len() {
-        let ((id, balance), length) = RuneId::decode_balance(&balances_buffer[i..]).unwrap();
+        let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
         i += length;
         balances.push((id, balance));
       }

@@ -11,10 +11,10 @@ use {
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   ord::{
-    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch, Edict,
-    InscriptionId, Pile, Rune, RuneEntry, RuneId, Runestone, SpacedRune,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
+    InscriptionId, RuneEntry,
   },
-  ordinals::{Charm, Rarity, Sat, SatPoint},
+  ordinals::{Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -73,8 +73,8 @@ mod wallet;
 const RUNE: u128 = 99246114928149462;
 
 type Balance = ord::subcommand::wallet::balance::Output;
+type Batch = ord::wallet::batch::Output;
 type Create = ord::subcommand::wallet::create::Output;
-type Inscribe = ord::wallet::batch::Output;
 type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Supply = ord::subcommand::supply::Output;
@@ -87,24 +87,6 @@ fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_serv
   .bitcoin_rpc_server(bitcoin_rpc_server)
   .ord_rpc_server(ord_rpc_server)
   .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
-}
-
-fn receive(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-  ord_rpc_server: &TestServer,
-) -> Address {
-  let address = CommandBuilder::new("wallet receive")
-    .bitcoin_rpc_server(bitcoin_rpc_server)
-    .ord_rpc_server(ord_rpc_server)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
-    .addresses
-    .into_iter()
-    .next()
-    .unwrap();
-
-  address
-    .require_network(bitcoin_rpc_server.state().network)
-    .unwrap()
 }
 
 fn sats(
@@ -133,7 +115,7 @@ fn inscribe(
   .write("foo.txt", "FOO")
   .bitcoin_rpc_server(bitcoin_rpc_server)
   .ord_rpc_server(ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -175,7 +157,7 @@ fn drain(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &Tes
 
 struct Etched {
   id: RuneId,
-  inscribe: Inscribe,
+  inscribe: Batch,
 }
 
 fn etch(
@@ -212,7 +194,7 @@ fn batch(
   bitcoin_rpc_server.mine_blocks(1);
 
   let mut builder =
-    CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+    CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
       .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
       .bitcoin_rpc_server(bitcoin_rpc_server)
       .ord_rpc_server(ord_rpc_server);
@@ -233,7 +215,7 @@ fn batch(
 
   bitcoin_rpc_server.mine_blocks(6);
 
-  let inscribe = spawn.run_and_deserialize_output::<Inscribe>();
+  let inscribe = spawn.run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 

@@ -3,9 +3,11 @@ use {
   crate::wallet::{batch, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   reqwest::Url,
+  shared_args::SharedArgs,
 };
 
 pub mod balance;
+mod batch_command;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -18,6 +20,7 @@ pub mod restore;
 pub mod resume;
 pub mod sats;
 pub mod send;
+mod shared_args;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -42,6 +45,8 @@ pub(crate) struct WalletCommand {
 pub(crate) enum Subcommand {
   #[command(about = "Get wallet balance")]
   Balance,
+  #[command(about = "Create inscriptions and runes")]
+  Batch(batch_command::Batch),
   #[command(about = "Create new wallet")]
   Create(create::Create),
   #[command(about = "Dump wallet descriptors")]
@@ -95,6 +100,7 @@ impl WalletCommand {
 
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
+      Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Dump => dump::run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
