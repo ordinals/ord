@@ -619,3 +619,78 @@ fn authentication() {
 
   child.kill().unwrap();
 }
+
+#[cfg(unix)]
+#[test]
+fn ctrl_c() {
+  use nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  };
+
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
+  rpc_server.mine_blocks(3);
+
+  let mut spawn = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
+    .temp_dir(tempdir.clone())
+    .bitcoin_rpc_server(&rpc_server)
+    .spawn();
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
+      if response.status() == 200 || response.text().unwrap() == *"3" {
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  signal::kill(Pid::from_raw(spawn.child.id() as i32), Signal::SIGINT).unwrap();
+
+  let mut buffer = String::new();
+  BufReader::new(spawn.child.stdout.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
+
+  assert_eq!(
+    buffer,
+    "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
+  );
+
+  spawn.child.wait().unwrap();
+
+  CommandBuilder::new(format!(
+    "server --no-sync --address 127.0.0.1 --http-port {port}"
+  ))
+  .temp_dir(tempdir)
+  .bitcoin_rpc_server(&rpc_server)
+  .spawn();
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
+      if response.status() == 200 || response.text().unwrap() == *"3" {
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+}

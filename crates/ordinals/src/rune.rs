@@ -88,8 +88,12 @@ impl Rune {
     self.0 >= Self::RESERVED
   }
 
-  pub fn reserved(n: u128) -> Option<Self> {
-    Some(Rune(Self::RESERVED.checked_add(n)?))
+  pub fn reserved(block: u64, tx: u32) -> Self {
+    Self(
+      Self::RESERVED
+        .checked_add(u128::from(block) << 32 | u128::from(tx))
+        .unwrap(),
+    )
   }
 
   pub fn commitment(self) -> Vec<u8> {
@@ -360,13 +364,14 @@ mod tests {
       "AAAAAAAAAAAAAAAAAAAAAAAAAAA".parse::<Rune>().unwrap().0,
     );
 
-    assert_eq!(Rune::reserved(0), Some(Rune(Rune::RESERVED)));
-    assert_eq!(Rune::reserved(1), Some(Rune(Rune::RESERVED + 1)));
+    assert_eq!(Rune::reserved(0, 0), Rune(Rune::RESERVED));
+    assert_eq!(Rune::reserved(0, 1), Rune(Rune::RESERVED + 1));
+    assert_eq!(Rune::reserved(1, 0), Rune(Rune::RESERVED + (1 << 32)));
+    assert_eq!(Rune::reserved(1, 1), Rune(Rune::RESERVED + (1 << 32) + 1));
     assert_eq!(
-      Rune::reserved(u128::MAX - Rune::RESERVED),
-      Some(Rune(u128::MAX))
+      Rune::reserved(u64::MAX, u32::MAX),
+      Rune(Rune::RESERVED + (u128::from(u64::MAX) << 32 | u128::from(u32::MAX))),
     );
-    assert_eq!(Rune::reserved(u128::MAX - Rune::RESERVED + 1), None);
   }
 
   #[test]
