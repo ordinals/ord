@@ -492,7 +492,7 @@ impl Plan {
       runestone = Some(inner);
 
       ensure!(
-        script_pubkey.len() <= 82,
+        self.no_limit || script_pubkey.len() <= 82,
         "runestone greater than maximum OP_RETURN size: {} > 82",
         script_pubkey.len()
       );
