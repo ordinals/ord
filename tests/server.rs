@@ -1,4 +1,12 @@
-use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
+use {
+  super::*,
+  ciborium::value::Integer,
+  nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  },
+  ord::subcommand::wallet::send::Output,
+};
 
 #[test]
 fn run() {
@@ -618,4 +626,48 @@ fn authentication() {
   assert_eq!(response.status(), 200);
 
   child.kill().unwrap();
+}
+
+#[test]
+fn ctrl_c() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let mut spawn = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
+    .bitcoin_rpc_server(&rpc_server)
+    .spawn();
+
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
+      if response.status() == 200 {
+        break;
+      }
+    }
+
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
+
+    thread::sleep(Duration::from_millis(50));
+  }
+
+  let pid = Pid::from_raw(spawn.child.id() as i32);
+  signal::kill(pid, Signal::SIGINT).unwrap();
+
+  let mut buffer = String::new();
+  BufReader::new(spawn.child.stdout.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
+
+  assert_eq!(
+    buffer,
+    "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
+  );
+
+  spawn.child.wait().unwrap();
 }
