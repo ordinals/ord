@@ -252,7 +252,7 @@
                         <h1 id="iscrivere-in-batch"><a class="header" href="#iscrivere-in-batch">Iscrivere in Batch</a></h1>
 <p>È possibile creare più iscrizioni contemporaneamente utilizzando il <a href="./../inscriptions/pointer.html">campo puntatore</a>. Questo è particolarmente utile per le collezioni o per altri casi in cui più iscrizioni devono condividere lo stesso genitore, poiché il genitore può essere passato in una transazione di rivelazione che crea più figli.</p>
 <p>Per creare un'iscrizione batch usando un batchfile in <code>batch.yaml</code>, eseguire il seguente comando:</p>
-<pre><code class="language-bash">ord wallet inscribe --fee-rate 21 --batch batch.yaml
+<pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>
 <h2 id="esempio-batchyaml"><a class="header" href="#esempio-batchyaml">Esempio <code>batch.yaml</code></a></h2>
 <pre><code class="language-yaml"># example batch file
