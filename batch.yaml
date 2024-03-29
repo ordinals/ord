@@ -37,11 +37,11 @@ etching:
     amount: 100.00
     # maximum number of mints
     cap: 90
-    # mint start and end absoltue block height
+    # mint start and end absolute block height (optional)
     height:
       start: 840000
       end: 850000
-    # mint start and end block height relative to etching height
+    # mint start and end block height relative to etching height (optional)
     offset:
       start: 1000
       end: 9000
