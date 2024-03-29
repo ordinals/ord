@@ -2425,3 +2425,58 @@ fn oversize_runestone_error() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn oversize_runestones_are_allowed_with_no_limit() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let ord_rpc_server =
+    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--regtest --index-runes wallet batch --fee-rate 0 --dry-run --no-limit --batch batch.yaml",
+  )
+  .write("inscription.txt", "foo")
+  .write(
+    "batch.yaml",
+    serde_yaml::to_string(&batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(6402364363415443603228541259936211926 - 1),
+          spacers: 0b00000111_11111111_11111111_11111111,
+        },
+        supply: u128::MAX.to_string().parse().unwrap(),
+        premine: (u128::MAX - 1).to_string().parse().unwrap(),
+        symbol: '\u{10FFFF}',
+        terms: Some(batch::Terms {
+          cap: 1,
+          height: Some(batch::Range {
+            start: Some(u64::MAX - 1),
+            end: Some(u64::MAX),
+          }),
+          offset: Some(batch::Range {
+            start: Some(u64::MAX - 1),
+            end: Some(u64::MAX),
+          }),
+          amount: "1".parse().unwrap(),
+        }),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: "inscription.txt".into(),
+        ..default()
+      }],
+      ..default()
+    })
+    .unwrap(),
+  )
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+}
