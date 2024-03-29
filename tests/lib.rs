@@ -73,8 +73,8 @@ mod wallet;
 const RUNE: u128 = 99246114928149462;
 
 type Balance = ord::subcommand::wallet::balance::Output;
+type Batch = ord::wallet::batch::Output;
 type Create = ord::subcommand::wallet::create::Output;
-type Inscribe = ord::wallet::batch::Output;
 type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Supply = ord::subcommand::supply::Output;
@@ -115,7 +115,7 @@ fn inscribe(
   .write("foo.txt", "FOO")
   .bitcoin_rpc_server(bitcoin_rpc_server)
   .ord_rpc_server(ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -157,7 +157,7 @@ fn drain(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &Tes
 
 struct Etched {
   id: RuneId,
-  inscribe: Inscribe,
+  inscribe: Batch,
 }
 
 fn etch(
@@ -215,7 +215,7 @@ fn batch(
 
   bitcoin_rpc_server.mine_blocks(6);
 
-  let inscribe = spawn.run_and_deserialize_output::<Inscribe>();
+  let inscribe = spawn.run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 

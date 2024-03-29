@@ -44,7 +44,7 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
   .write("foo.txt", [0; 350_000])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn metaprotocol_appears_on_inscription_page() {
   .write("foo.txt", [0; 350_000])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -101,7 +101,7 @@ fn inscribe_no_backup() {
     .write("hello.txt", "HELLOWORLD")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 2);
 }
@@ -266,7 +266,7 @@ fn inscribe_with_optional_satpoint_arg() {
 
   let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(format!(
+  let Batch { inscriptions, .. } = CommandBuilder::new(format!(
     "wallet inscribe --file foo.txt --satpoint {txid}:0:10000 --fee-rate 1"
   ))
   .write("foo.txt", "FOO")
@@ -306,7 +306,7 @@ fn inscribe_with_fee_rate() {
       .write("degenerate.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>();
+      .run_and_deserialize_output::<Batch>();
 
   let tx1 = &bitcoin_rpc_server.mempool()[0];
   let mut fee = 0;
@@ -361,7 +361,7 @@ fn inscribe_with_commit_fee_rate() {
   .write("degenerate.png", [1; 520])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   let tx1 = &bitcoin_rpc_server.mempool()[0];
   let mut fee = 0;
@@ -409,7 +409,7 @@ fn inscribe_with_wallet_named_foo() {
     .write("degenerate.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 }
 
 #[test]
@@ -426,7 +426,7 @@ fn inscribe_with_dry_run_flag() {
       .write("degenerate.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>();
+      .run_and_deserialize_output::<Batch>();
 
   assert!(inscribe.commit_psbt.is_some());
   assert!(inscribe.reveal_psbt.is_some());
@@ -437,7 +437,7 @@ fn inscribe_with_dry_run_flag() {
     .write("degenerate.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert!(inscribe.commit_psbt.is_none());
   assert!(inscribe.reveal_psbt.is_none());
@@ -459,7 +459,7 @@ fn inscribe_with_dry_run_flag_fees_increase() {
       .write("degenerate.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>()
+      .run_and_deserialize_output::<Batch>()
       .total_fees;
 
   let total_fee_normal =
@@ -467,7 +467,7 @@ fn inscribe_with_dry_run_flag_fees_increase() {
       .write("degenerate.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
       .ord_rpc_server(&ord_rpc_server)
-      .run_and_deserialize_output::<Inscribe>()
+      .run_and_deserialize_output::<Batch>()
       .total_fees;
 
   assert!(total_fee_dry_run < total_fee_normal);
@@ -497,7 +497,7 @@ fn inscribe_to_specific_destination() {
   .write("degenerate.png", [1; 520])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>()
+  .run_and_deserialize_output::<Batch>()
   .reveal;
 
   let reveal_tx = &bitcoin_rpc_server.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
@@ -556,7 +556,7 @@ fn inscribe_works_with_postage() {
     .write("foo.txt", [0; 350])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -604,7 +604,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     .write("parent.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
   let parent_id = parent_output.inscriptions[0].id;
@@ -628,7 +628,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   .write("child.png", [1; 520])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 4);
   assert_eq!(parent_id, child_output.parent.unwrap());
@@ -679,7 +679,7 @@ fn reinscribe_with_flag() {
     .write("tulip.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
 
@@ -695,7 +695,7 @@ fn reinscribe_with_flag() {
   .write("orchid.png", [1; 520])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -733,7 +733,7 @@ fn with_reinscribe_flag_but_not_actually_a_reinscription() {
     .write("tulip.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let coinbase = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -762,7 +762,7 @@ fn try_reinscribe_without_flag() {
     .write("tulip.png", [1; 520])
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>()
+    .run_and_deserialize_output::<Batch>()
     .reveal;
 
   assert_eq!(bitcoin_rpc_server.descriptors().len(), 3);
@@ -792,7 +792,7 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } =
+  let Batch { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --fee-rate 1 --file content.png")
       .write("content.png", [1; 520])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -820,7 +820,7 @@ fn json_metadata_appears_on_inscription_page() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(
+  let Batch { inscriptions, .. } = CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file content.png",
   )
   .write("content.png", [1; 520])
@@ -848,7 +848,7 @@ fn cbor_metadata_appears_on_inscription_page() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(
+  let Batch { inscriptions, .. } = CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor --file content.png",
   )
   .write("content.png", [1; 520])
@@ -942,7 +942,7 @@ fn inscribe_can_compress() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } =
+  let Batch { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
       .write("foo.txt", [0; 350_000])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -1005,7 +1005,7 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } =
+  let Batch { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
       .write("foo.txt", "foo")
       .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -1048,7 +1048,7 @@ fn inscribe_with_sat_arg() {
 
   bitcoin_rpc_server.mine_blocks(2);
 
-  let Inscribe { inscriptions, .. } = CommandBuilder::new(
+  let Batch { inscriptions, .. } = CommandBuilder::new(
     "--index-sats wallet inscribe --file foo.txt --sat 5010000000 --fee-rate 1",
   )
   .write("foo.txt", "FOO")
@@ -1107,7 +1107,7 @@ fn server_can_decompress_brotli() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let Inscribe { inscriptions, .. } =
+  let Batch { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --compress --file foo.txt --fee-rate 1".to_string())
       .write("foo.txt", [0; 350_000])
       .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -1178,7 +1178,7 @@ fn file_inscribe_with_delegate_inscription() {
   .write("inscription.txt", "INSCRIPTION")
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -1205,7 +1205,7 @@ fn inscription_with_delegate_returns_effective_content_type() {
   .write("meow.wav", [0; 2048])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
