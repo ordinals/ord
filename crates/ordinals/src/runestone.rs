@@ -21,6 +21,7 @@ enum Payload {
 
 impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
+  pub const COMMIT_INTERVAL: u16 = 6;
 
   pub fn from_transaction(transaction: &Transaction) -> Option<Self> {
     Self::decipher(transaction).ok().flatten()

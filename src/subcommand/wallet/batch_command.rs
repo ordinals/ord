@@ -115,7 +115,7 @@ impl Batch {
 
     let current_height = u32::try_from(bitcoin_client.get_block_count()?).unwrap();
 
-    let reveal_height = current_height + 1 + RUNE_COMMIT_INTERVAL;
+    let reveal_height = current_height + 1 + u32::from(Runestone::COMMIT_INTERVAL);
 
     if let Some(terms) = etching.terms {
       if let Some((start, end)) = terms.offset.and_then(|range| range.start.zip(range.end)) {
