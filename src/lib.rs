@@ -234,13 +234,12 @@ fn gracefully_shutdown_indexer() {
 
 pub fn main() {
   env_logger::init();
-
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
     }
 
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+    eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
       .lock()

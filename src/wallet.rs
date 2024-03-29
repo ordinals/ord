@@ -560,9 +560,7 @@ impl Wallet {
         thread::sleep(Duration::from_secs(5));
       }
 
-      // SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed);
-
-      if dbg!(SHUTTING_DOWN.load(atomic::Ordering::Relaxed)) {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         return Err(anyhow!("cancelled"));
       }
     }

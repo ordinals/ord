@@ -659,10 +659,14 @@ fn ctrl_c() {
     thread::sleep(Duration::from_millis(50));
   }
 
-  signal::kill(Pid::from_raw(spawn.child.id() as i32), Signal::SIGINT).unwrap();
+  signal::kill(
+    Pid::from_raw(spawn.child.id().try_into().unwrap()),
+    Signal::SIGINT,
+  )
+  .unwrap();
 
   let mut buffer = String::new();
-  BufReader::new(spawn.child.stdout.as_mut().unwrap())
+  BufReader::new(spawn.child.stderr.as_mut().unwrap())
     .read_line(&mut buffer)
     .unwrap();
 

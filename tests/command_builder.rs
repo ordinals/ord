@@ -86,7 +86,9 @@ pub(crate) struct CommandBuilder {
   expected_stdout: Expected,
   integration_test: bool,
   ord_rpc_server_url: Option<Url>,
+  stderr: bool,
   stdin: Vec<u8>,
+  stdout: bool,
   tempdir: Arc<TempDir>,
 }
 
@@ -102,7 +104,9 @@ impl CommandBuilder {
       expected_stdout: Expected::String(String::new()),
       integration_test: true,
       ord_rpc_server_url: None,
+      stderr: true,
       stdin: Vec::new(),
+      stdout: true,
       tempdir: Arc::new(TempDir::new().unwrap()),
     }
   }
@@ -142,8 +146,16 @@ impl CommandBuilder {
     }
   }
 
+  // pub(crate) fn stderr(self, stderr: bool) -> Self {
+  // Self { stderr, ..self }
+  // }
+
   pub(crate) fn stdin(self, stdin: Vec<u8>) -> Self {
     Self { stdin, ..self }
+  }
+
+  pub(crate) fn stdout(self, stdout: bool) -> Self {
+    Self { stdout, ..self }
   }
 
   pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
@@ -227,8 +239,16 @@ impl CommandBuilder {
 
     command
       .stdin(Stdio::piped())
-      .stdout(Stdio::piped())
-      .stderr(Stdio::piped())
+      .stdout(if self.stdout {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
+      .stderr(if self.stderr {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
       .current_dir(&*self.tempdir)
       .arg("--datadir")
       .arg(self.tempdir.path())
