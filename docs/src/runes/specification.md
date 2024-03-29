@@ -5,7 +5,7 @@ The Runes reference implementation, `ord`, is the normative specification of
 the Runes protocol.
 
 Nothing you read here or elsewhere, aside from the code of `ord`, is a
-specification. This prose description of the runes protocol is provided as an
+specification. This prose description of the runes protocol is provided as a
 guide to the behavior of `ord`, and the code of `ord` itself should always be
 consulted to confirm the correctness of any prose description.
 
@@ -189,10 +189,10 @@ And then delta encoded as:
 
 | block delta | TX delta | amount | output |
 |-------------|----------|--------|--------|
-| 10          | 5        | 100    | 1      |
-| 0           | 0        | 100    | 1      |
-| 0           | 2        | 100    | 1      |
-| 40          | 1        | 100    | 1      |
+| 10          | 5        | 5      | 1      |
+| 0           | 0        | 10     | 3      |
+| 0           | 2        | 1      | 8      |
+| 40          | 1        | 25     | 4      |
 
 If an edict output is greater than the number of outputs of the transaction, an
 edict rune ID is encountered with block zero and nonzero transaction index, or
@@ -275,7 +275,7 @@ runestone is a cenotaph.
 
 ##### Rune
 
-The `Rune` field contains the name of the rune being etched. If the `Eching`
+The `Rune` field contains the name of the rune being etched. If the `Etching`
 flag is set, but the `Rune` field is omitted, a reserved rune name is
 allocated, starting with `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one
 with each such reserved rune allocated.
@@ -462,7 +462,7 @@ If a valid commitment is not present, the etching is ignored.
 A runestone may mint a rune by including the rune's ID in the `Mint` field.
 
 If the mint is open, the mint amount is added to the unallocated runes in the
-transactions inputs. These runes may be transferred using edicts, and will
+transaction's inputs. These runes may be transferred using edicts, and will
 otherwise be transferred to the first non-`OP_RETURN` output, or the output
 designated by the `Pointer` field.
 

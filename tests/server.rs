@@ -118,7 +118,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
+  let output = CommandBuilder::new("wallet batch --batch batch.yaml --fee-rate 55")
     .write("inscription.txt", "Hello World")
     .write("meow.wav", [0; 2048])
     .write(
@@ -127,7 +127,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -257,7 +257,7 @@ fn inscription_metadata() {
   .write("metadata.json", metadata)
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>()
+  .run_and_deserialize_output::<Batch>()
   .inscriptions
   .first()
   .unwrap()
@@ -292,7 +292,7 @@ fn recursive_inscription_endpoint() {
     .write("foo.txt", "FOO")
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
