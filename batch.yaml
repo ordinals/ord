@@ -27,7 +27,7 @@ etching:
   divisibility: 2
   # premine
   premine: 1000.00
-  # total supply, must be equal to `premine + terms.cap + terms.amount`
+  # total supply, must be equal to `premine + terms.cap * terms.amount`
   supply: 10000.00
   # currency symbol
   symbol: $
