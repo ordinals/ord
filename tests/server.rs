@@ -647,7 +647,7 @@ fn ctrl_c() {
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
-      if response.status() == 200 || response.text().unwrap() == "3".to_string() {
+      if response.status() == 200 || response.text().unwrap() == *"3" {
         break;
       }
     }
@@ -682,7 +682,7 @@ fn ctrl_c() {
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
-      if response.status() == 200 || response.text().unwrap() == "3".to_string() {
+      if response.status() == 200 || response.text().unwrap() == *"3" {
         break;
       }
     }
