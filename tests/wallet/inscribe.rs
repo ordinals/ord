@@ -542,7 +542,7 @@ fn inscribe_with_no_limit() {
     .write("degenerate.png", one_megger)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 }
 
 #[test]
