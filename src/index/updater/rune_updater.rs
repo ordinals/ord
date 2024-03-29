@@ -28,6 +28,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
   pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
   pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
+  pub(super) extension: Option<IndexExtension>,
 }
 
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
@@ -192,6 +193,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       // Sort balances by id so tests can assert balances in a fixed order
       balances.sort();
 
+      if let Some(extension) = &self.extension {
+        let _res = extension.index_outpoint_balances(&txid, vout as i32, &balances);
+      }
+
       for (id, balance) in balances {
         Index::encode_rune_balance(id, balance, &mut buffer);
       }
@@ -263,7 +268,28 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       }
       .store(),
     )?;
-
+    /*
+     * Taivv March 20, index data to postgres
+     */
+    if let Some(extension) = &self.extension {
+      let _ = extension.index_transaction_rune_entry(
+        &txid,
+        &id,
+        &RuneEntry {
+          block: id.block,
+          burned: 0,
+          divisibility,
+          etching: txid,
+          terms: terms.and_then(|terms| (!burn).then_some(terms)),
+          mints: 0,
+          number,
+          premine,
+          spaced_rune,
+          symbol,
+          timestamp: self.block_time.into(),
+        },
+      );
+    }
     let inscription_id = InscriptionId { txid, index: 0 };
 
     if let Some(sequence_number) = self

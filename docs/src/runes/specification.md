@@ -1,5 +1,4 @@
-Runes Does Not Have a Specification
-===================================
+# Runes Does Not Have a Specification
 
 The Runes reference implementation, `ord`, is the normative specification of
 the Runes protocol.
@@ -17,8 +16,7 @@ Users of alternative implementations do so at their own risk, and services
 wishing to integrate Runes are strongly encouraged to use `ord` itself to make
 Runes transactions, and to determine the state of runes, mints, and balances.
 
-Runestones
-----------
+## Runestones
 
 Rune protocol messages are termed "runestones".
 
@@ -93,7 +91,7 @@ struct Rune(u128);
 Runestones are deciphered from transactions with the following steps:
 
 1. Find the first transaction output whose script pubkey begins with `OP_RETURN
-   OP_13`.
+OP_13`.
 
 2. Concatenate all following data pushes into a payload buffer.
 
@@ -169,26 +167,26 @@ in a runestone.
 
 For example, to encode the following edicts:
 
-| block | TX | amount | output |
-|-------|----|--------|--------|
-| 10    | 5  | 5      | 1      |
-| 50    | 1  | 25     | 4      |
-| 10    | 7  | 1      | 8      |
-| 10    | 5  | 10     | 3      |
+| block | TX  | amount | output |
+| ----- | --- | ------ | ------ |
+| 10    | 5   | 5      | 1      |
+| 50    | 1   | 25     | 4      |
+| 10    | 7   | 1      | 8      |
+| 10    | 5   | 10     | 3      |
 
 They are first sorted by block height and transaction index:
 
-| block | TX | amount | output |
-|-------|----|--------|--------|
-| 10    | 5  | 5      | 1      |
-| 10    | 5  | 10     | 3      |
-| 10    | 7  | 1      | 8      |
-| 50    | 1  | 25     | 4      |
+| block | TX  | amount | output |
+| ----- | --- | ------ | ------ |
+| 10    | 5   | 5      | 1      |
+| 10    | 5   | 10     | 3      |
+| 10    | 7   | 1      | 8      |
+| 50    | 1   | 25     | 4      |
 
 And then delta encoded as:
 
 | block delta | TX delta | amount | output |
-|-------------|----------|--------|--------|
+| ----------- | -------- | ------ | ------ |
 | 10          | 5        | 5      | 1      |
 | 0           | 0        | 10     | 3      |
 | 0           | 2        | 1      | 8      |
@@ -329,7 +327,7 @@ For example, the amount `1234` of different runes with divisibility 0 through 3
 is displayed as follows:
 
 | Divisibility | Display |
-|--------------|---------|
+| ------------ | ------- |
 | 0            | 1234    |
 | 1            | 123.4   |
 | 2            | 12.34   |
@@ -347,7 +345,7 @@ character, starting from the left of the rune's name.
 For example, the rune name `AAAA` rendered with different spacers:
 
 | Spacers | Display |
-|---------|---------|
+| ------- | ------- |
 | 0b1     | A•AAA   |
 | 0b11    | A•A•AA  |
 | 0b10    | AA•AA   |
@@ -411,7 +409,7 @@ integer.
 Rune names consist of the letters A through Z, with the following encoding:
 
 | Name | Encoding |
-|------|----------|
+| ---- | -------- |
 | A    | 0        |
 | B    | 1        |
 | …    | …        |

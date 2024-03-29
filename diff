@@ -1,0 +1,2293 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 81414c69..82c2635f 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -981,6 +981,48 @@ version = "2.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
+ 
++[[package]]
++name = "deadpool"
++version = "0.9.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "421fe0f90f2ab22016f32a9881be5134fdd71c65298917084b0c7477cbc3856e"
++dependencies = [
++ "async-trait",
++ "deadpool-runtime",
++ "num_cpus",
++ "retain_mut",
++ "tokio",
++]
++
++[[package]]
++name = "deadpool-diesel"
++version = "0.4.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f9ce884fff09b610fd0bbd9e9447327fda9f613d5bd1fa114f57905cbcfd8d27"
++dependencies = [
++ "deadpool",
++ "deadpool-sync",
++ "diesel",
++]
++
++[[package]]
++name = "deadpool-runtime"
++version = "0.1.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "63dfa964fe2a66f3fde91fc70b267fe193d822c7e603e2a675a49a7f46ad3f49"
++dependencies = [
++ "tokio",
++]
++
++[[package]]
++name = "deadpool-sync"
++version = "0.1.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f8db70494c13cae4ce67b4b4dafdaf828cf0df7237ab5b9e2fcabee4965d0a0a"
++dependencies = [
++ "deadpool-runtime",
++]
++
+ [[package]]
+ name = "der-parser"
+ version = "7.0.0"
+@@ -1049,6 +1091,42 @@ dependencies = [
+  "syn 1.0.109",
+ ]
+ 
++[[package]]
++name = "diesel"
++version = "2.1.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "03fc05c17098f21b89bc7d98fe1dd3cce2c11c2ad8e145f2a44fe08ed28eb559"
++dependencies = [
++ "bitflags 2.4.2",
++ "byteorder",
++ "diesel_derives",
++ "itoa",
++ "pq-sys",
++ "serde_json",
++ "uuid",
++]
++
++[[package]]
++name = "diesel_derives"
++version = "2.1.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "5d02eecb814ae714ffe61ddc2db2dd03e6c49a42e269b5001355500d431cce0c"
++dependencies = [
++ "diesel_table_macro_syntax",
++ "proc-macro2",
++ "quote",
++ "syn 2.0.52",
++]
++
++[[package]]
++name = "diesel_table_macro_syntax"
++version = "0.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "fc5557efc453706fed5e4fa85006fe9817c224c3f480a34c7e5959fd700921c5"
++dependencies = [
++ "syn 2.0.52",
++]
++
+ [[package]]
+ name = "diff"
+ version = "0.1.13"
+@@ -1106,6 +1184,12 @@ dependencies = [
+  "syn 2.0.52",
+ ]
+ 
++[[package]]
++name = "dotenvy"
++version = "0.15.7"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
++
+ [[package]]
+ name = "either"
+ version = "1.10.0"
+@@ -2251,7 +2335,10 @@ dependencies = [
+  "colored",
+  "criterion",
+  "ctrlc",
++ "deadpool-diesel",
++ "diesel",
+  "dirs",
++ "dotenvy",
+  "env_logger",
+  "executable-path",
+  "futures",
+@@ -2491,6 +2578,15 @@ version = "0.2.17"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
+ 
++[[package]]
++name = "pq-sys"
++version = "0.4.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "31c0052426df997c0cbd30789eb44ca097e3541717a7b8fa36b1c464ee7edebd"
++dependencies = [
++ "vcpkg",
++]
++
+ [[package]]
+ name = "pretty_assertions"
+ version = "1.4.0"
+@@ -2728,6 +2824,12 @@ dependencies = [
+  "winreg",
+ ]
+ 
++[[package]]
++name = "retain_mut"
++version = "0.1.9"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4389f1d5789befaf6029ebd9f7dac4af7f7e3d61b69d4f30e2ac02b57e7712b0"
++
+ [[package]]
+ name = "ring"
+ version = "0.16.20"
+@@ -3730,6 +3832,12 @@ version = "0.2.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+ 
++[[package]]
++name = "uuid"
++version = "1.8.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
++
+ [[package]]
+ name = "vcpkg"
+ version = "0.2.15"
+diff --git a/Cargo.toml b/Cargo.toml
+index 926638fc..7d60dd7d 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -33,6 +33,9 @@ ciborium = "0.2.1"
+ clap = { version = "4.4.2", features = ["derive"] }
+ colored = "2.0.4"
+ ctrlc = { version = "3.2.1", features = ["termination"] }
++diesel = { version = "2.1", features = ["postgres", "uuid", "serde_json"] }
++deadpool-diesel = { version = "0.4", features = ["postgres"] }
++dotenvy = "0.15"
+ dirs = "5.0.0"
+ env_logger = "0.11.0"
+ futures = "0.3.21"
+diff --git a/Dockerfile b/Dockerfile
+index 779e5f79..5ff0b3c1 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -9,7 +9,7 @@ RUN cargo build --bin ord --release
+ FROM debian:bookworm-slim
+ 
+ COPY --from=builder /usr/src/ord/target/release/ord /usr/local/bin
+-RUN apt-get update && apt-get install -y openssl
++RUN apt-get update && apt-get install -y openssl libpq-dev
+ 
+ ENV RUST_BACKTRACE=1
+ ENV RUST_LOG=info
+diff --git a/Runebeta.md b/Runebeta.md
+new file mode 100644
+index 00000000..0c6705a0
+--- /dev/null
++++ b/Runebeta.md
+@@ -0,0 +1,107 @@
++# Runebeta code
++1. runebeta folder
++2. migrations folder
++3. src/index/updater.rs
++
++```
++    // If value_receiver still has values something went wrong with the last block
++    // Could be an assert, shouldn't recover from this and commit the last block
++    let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
++      return Err(anyhow!("Previous block did not consume all input values"));
++    };
++
++    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
++
++    let index_inscriptions = self.height >= self.index.first_inscription_height
++      && self.index.settings.index_inscriptions();
++    
++    # End add extension here
++    let extension = IndexExtension::new(
++      self.index.settings.chain(),
++      self.height as i64,
++      block.header.clone(),
++    );
++    if block.txdata.len() > 0 && index_inscriptions {
++      //Index block with data only
++      let _res = extension.index_block(&block.txdata);
++    }
++
++    # End of extension 
++    
++    
++```
++```
++    let mut rune_updater = RuneUpdater {
++        client: &self.index.client,
++        height: self.height,
++        id_to_entry: &mut rune_id_to_rune_entry,
++        inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
++        minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
++        outpoint_to_balances: &mut outpoint_to_rune_balances,
++        rune_to_id: &mut rune_to_rune_id,
++        runes,
++        sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
++        statistic_to_count: &mut statistic_to_count,
++        block_time: block.header.time,
++        transaction_id_to_rune: &mut transaction_id_to_rune,
++        updates: HashMap::new(),
++        extension: Some(extension), # Add externsion here
++      };
++```
++
++4. src/index/updater/rune_updater.rs
++
++```
++  // Sort balances by id so tests can assert balances in a fixed order
++  balances.sort();
++
++  if let Some(extension) = &self.extension {
++    let _res = extension.index_outpoint_balances(&txid, vout as i32, &balances);
++  }
++```
++
++```
++self
++      .statistic_to_count
++      .insert(&Statistic::Runes.into(), self.runes)?;
++
++    let rune_entry = RuneEntry {
++      burned: 0,
++      divisibility,
++      etching: txid,
++      mint: mint.and_then(|mint| (!burn).then_some(mint)),
++      mints: 0,
++      number,
++      premine,
++      spaced_rune,
++      supply: premine,
++      symbol,
++      timestamp: self.block_time,
++    };
++    /*
++     * Taivv March 20, index data to postgres
++     */
++    if let Some(extension) = &self.extension {
++      if let Some(extension) = &self.extension {
++      let _ = extension.index_transaction_rune_entry(
++        &txid,
++        &id,
++        &RuneEntry {
++          block: id.block,
++          burned: 0,
++          divisibility,
++          etching: txid,
++          terms: terms.and_then(|terms| (!burn).then_some(terms)),
++          mints: 0,
++          number,
++          premine,
++          spaced_rune,
++          symbol,
++          timestamp: self.block_time.into(),
++        },
++      );
++    }
++    }
++
++    self.id_to_entry.insert(id.store(), rune_entry.store())?;
++```
+diff --git a/diesel.toml b/diesel.toml
+new file mode 100644
+index 00000000..c028f4a6
+--- /dev/null
++++ b/diesel.toml
+@@ -0,0 +1,9 @@
++# For documentation on how to configure this file,
++# see https://diesel.rs/guides/configuring-diesel-cli
++
++[print_schema]
++file = "src/schema.rs"
++custom_type_derives = ["diesel::query_builder::QueryId"]
++
++[migrations_directory]
++dir = "migrations"
+diff --git a/docker-compose.yml b/docker-compose.yml
+new file mode 100644
+index 00000000..a50672ba
+--- /dev/null
++++ b/docker-compose.yml
+@@ -0,0 +1,46 @@
++version: "3.9"
++
++services:
++  ord_runebeta_mainnet:
++    build:
++      context: ./
++      dockerfile: Dockerfile
++    image: ord_runebeta
++    container_name: ord_runebeta_mainnet
++    restart: always
++    volumes:
++      - ${ORD_INDEX_DIR}:/opt/data
++      - ./run.sh:/opt/run.sh
++      - ../ord_logs:/opt/logs
++    working_dir: /opt
++    command: sleep infinity
++    #command: /opt/run.sh mainnet
++    env_file:
++      - ./.env.mainnet
++    extra_hosts:
++      - "host.docker.internal:host-gateway"  
++    ports:
++      - "${ORD_MAINNET_RPC_PORT}:8088"
++    tty: true
++
++  ord_runebeta_testnet:
++    build:
++      context: ./
++      dockerfile: Dockerfile
++    image: ord_runebeta
++    container_name: ord_runebeta_testnet
++    restart: always
++    volumes:
++      - ${ORD_INDEX_DIR}:/opt/data
++      - ./run.sh:/opt/run.sh
++      - ../ord_logs:/opt/logs
++    working_dir: /opt
++    #command: sleep infinity
++    command: /opt/run.sh testnet
++    env_file:
++      - ./.env.testnet
++    extra_hosts:
++      - "host.docker.internal:host-gateway"  
++    ports:
++      - "${ORD_TESTNET_RPC_PORT}:8088"
++    tty: true  
+\ No newline at end of file
+diff --git a/docs/src/runes/specification.md b/docs/src/runes/specification.md
+index 2875e30b..e8b62153 100644
+--- a/docs/src/runes/specification.md
++++ b/docs/src/runes/specification.md
+@@ -1,5 +1,4 @@
+-Runes Does Not Have a Specification
+-===================================
++# Runes Does Not Have a Specification
+ 
+ The Runes reference implementation, `ord`, is the normative specification of
+ the Runes protocol.
+@@ -17,8 +16,7 @@ Users of alternative implementations do so at their own risk, and services
+ wishing to integrate Runes are strongly encouraged to use `ord` itself to make
+ Runes transactions, and to determine the state of runes, mints, and balances.
+ 
+-Runestones
+-----------
++## Runestones
+ 
+ Rune protocol messages are termed "runestones".
+ 
+@@ -93,7 +91,7 @@ struct Rune(u128);
+ Runestones are deciphered from transactions with the following steps:
+ 
+ 1. Find the first transaction output whose script pubkey begins with `OP_RETURN
+-   OP_13`.
++OP_13`.
+ 
+ 2. Concatenate all following data pushes into a payload buffer.
+ 
+@@ -169,26 +167,26 @@ in a runestone.
+ 
+ For example, to encode the following edicts:
+ 
+-| block | TX | amount | output |
+-|-------|----|--------|--------|
+-| 10    | 5  | 5      | 1      |
+-| 50    | 1  | 25     | 4      |
+-| 10    | 7  | 1      | 8      |
+-| 10    | 5  | 10     | 3      |
++| block | TX  | amount | output |
++| ----- | --- | ------ | ------ |
++| 10    | 5   | 5      | 1      |
++| 50    | 1   | 25     | 4      |
++| 10    | 7   | 1      | 8      |
++| 10    | 5   | 10     | 3      |
+ 
+ They are first sorted by block height and transaction index:
+ 
+-| block | TX | amount | output |
+-|-------|----|--------|--------|
+-| 10    | 5  | 5      | 1      |
+-| 10    | 5  | 10     | 3      |
+-| 10    | 7  | 1      | 8      |
+-| 50    | 1  | 25     | 4      |
++| block | TX  | amount | output |
++| ----- | --- | ------ | ------ |
++| 10    | 5   | 5      | 1      |
++| 10    | 5   | 10     | 3      |
++| 10    | 7   | 1      | 8      |
++| 50    | 1   | 25     | 4      |
+ 
+ And then delta encoded as:
+ 
+ | block delta | TX delta | amount | output |
+-|-------------|----------|--------|--------|
++| ----------- | -------- | ------ | ------ |
+ | 10          | 5        | 5      | 1      |
+ | 0           | 0        | 10     | 3      |
+ | 0           | 2        | 1      | 8      |
+@@ -329,7 +327,7 @@ For example, the amount `1234` of different runes with divisibility 0 through 3
+ is displayed as follows:
+ 
+ | Divisibility | Display |
+-|--------------|---------|
++| ------------ | ------- |
+ | 0            | 1234    |
+ | 1            | 123.4   |
+ | 2            | 12.34   |
+@@ -347,7 +345,7 @@ character, starting from the left of the rune's name.
+ For example, the rune name `AAAA` rendered with different spacers:
+ 
+ | Spacers | Display |
+-|---------|---------|
++| ------- | ------- |
+ | 0b1     | A•AAA   |
+ | 0b11    | A•A•AA  |
+ | 0b10    | AA•AA   |
+@@ -411,7 +409,7 @@ integer.
+ Rune names consist of the letters A through Z, with the following encoding:
+ 
+ | Name | Encoding |
+-|------|----------|
++| ---- | -------- |
+ | A    | 0        |
+ | B    | 1        |
+ | …    | …        |
+diff --git a/migrations/.keep b/migrations/.keep
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/migrations/00000000000000_diesel_initial_setup/down.sql b/migrations/00000000000000_diesel_initial_setup/down.sql
+new file mode 100644
+index 00000000..a9f52609
+--- /dev/null
++++ b/migrations/00000000000000_diesel_initial_setup/down.sql
+@@ -0,0 +1,6 @@
++-- This file was automatically created by Diesel to setup helper functions
++-- and other internal bookkeeping. This file is safe to edit, any future
++-- changes will be added to existing projects as new migrations.
++
++DROP FUNCTION IF EXISTS diesel_manage_updated_at(_tbl regclass);
++DROP FUNCTION IF EXISTS diesel_set_updated_at();
+diff --git a/migrations/00000000000000_diesel_initial_setup/up.sql b/migrations/00000000000000_diesel_initial_setup/up.sql
+new file mode 100644
+index 00000000..d68895b1
+--- /dev/null
++++ b/migrations/00000000000000_diesel_initial_setup/up.sql
+@@ -0,0 +1,36 @@
++-- This file was automatically created by Diesel to setup helper functions
++-- and other internal bookkeeping. This file is safe to edit, any future
++-- changes will be added to existing projects as new migrations.
++
++
++
++
++-- Sets up a trigger for the given table to automatically set a column called
++-- `updated_at` whenever the row is modified (unless `updated_at` was included
++-- in the modified columns)
++--
++-- # Example
++--
++-- ```sql
++-- CREATE TABLE users (id SERIAL PRIMARY KEY, updated_at TIMESTAMP NOT NULL DEFAULT NOW());
++--
++-- SELECT diesel_manage_updated_at('users');
++-- ```
++CREATE OR REPLACE FUNCTION diesel_manage_updated_at(_tbl regclass) RETURNS VOID AS $$
++BEGIN
++    EXECUTE format('CREATE TRIGGER set_updated_at BEFORE UPDATE ON %s
++                    FOR EACH ROW EXECUTE PROCEDURE diesel_set_updated_at()', _tbl);
++END;
++$$ LANGUAGE plpgsql;
++
++CREATE OR REPLACE FUNCTION diesel_set_updated_at() RETURNS trigger AS $$
++BEGIN
++    IF (
++        NEW IS DISTINCT FROM OLD AND
++        NEW.updated_at IS NOT DISTINCT FROM OLD.updated_at
++    ) THEN
++        NEW.updated_at := current_timestamp;
++    END IF;
++    RETURN NEW;
++END;
++$$ LANGUAGE plpgsql;
+diff --git a/migrations/2024-03-20-035101_runebeta/down.sql b/migrations/2024-03-20-035101_runebeta/down.sql
+new file mode 100644
+index 00000000..f8c4712f
+--- /dev/null
++++ b/migrations/2024-03-20-035101_runebeta/down.sql
+@@ -0,0 +1,10 @@
++-- This file should undo anything in `up.sql`
++DROP TABLE blocks;
++DROP TABLE transactions;
++DROP TABLE transaction_ins;
++DROP INDEX transaction_outs_tx_hash_idx;
++DROP TABLE transaction_outs;
++DROP TABLE transaction_rune_entries;
++DROP TABLE txid_runes;
++DROP TABLE txid_rune_addresss;
++
+diff --git a/migrations/2024-03-20-035101_runebeta/up.sql b/migrations/2024-03-20-035101_runebeta/up.sql
+new file mode 100644
+index 00000000..9982f72d
+--- /dev/null
++++ b/migrations/2024-03-20-035101_runebeta/up.sql
+@@ -0,0 +1,83 @@
++-- Your SQL goes here
++CREATE TABLE blocks (
++  id BIGSERIAL PRIMARY KEY,
++  previous_hash VARCHAR NOT NULL,
++  block_hash VARCHAR NOT NULL,
++  block_height BIGINT NOT NULL UNIQUE,
++  block_time BIGINT NOT NULL
++);
++
++CREATE TABLE transactions (
++  id BIGSERIAL PRIMARY KEY,
++  block_height BIGINT NOT NULL,
++  version INTEGER NOT NULL,
++  lock_time INTEGER NOT NULL,
++  tx_hash VARCHAR NOT NULL UNIQUE
++);
++
++CREATE TABLE transaction_ins (
++  id BIGSERIAL PRIMARY KEY,
++  tx_hash VARCHAR NOT NULL,
++  previous_output_hash VARCHAR NOT NULL,
++  previous_output_vout INTEGER NOT NULL,
++  script_sig TEXT NOT NULL,
++  sequence_number BIGINT NOT NULL,
++  -- witness_content TEXT NOT NULL,
++  -- witness_elements BIGINT NOT NULL,
++  -- witness_indices_start BIGINT NOT NULL
++  witness TEXT NOT NULL
++);
++
++CREATE TABLE transaction_outs (
++  id BIGSERIAL PRIMARY KEY,
++  tx_hash VARCHAR NOT NULL,
++  vout BIGINT NOT NULL,
++  value BIGINT NOT NULL,
++  asm VARCHAR NOT NULL,
++  dust_value BIGINT NOT NULL,
++  address VARCHAR NULL, --Parse from script_pubkey
++  script_pubkey TEXT NOT NULL,
++  spent BOOLEAN NOT NULL DEFAULT false
++);
++
++CREATE UNIQUE INDEX transaction_outs_tx_hash_idx ON public.transaction_outs USING btree (tx_hash, vout);
++
++CREATE TABLE transaction_rune_entries (
++  id BIGSERIAL PRIMARY KEY,
++  tx_hash VARCHAR NOT NULL,
++  --RuneId
++  -- rune_height INTEGER NOT NULL,
++  -- rune_index SMALLINT NOT NULL DEFAULT 0,
++  rune_id VARCHAR NOT NULL,
++  --End RuneId
++  burned TEXT NOT NULL,
++  divisibility SMALLINT NOT NULL,
++  etching VARCHAR NOT NULL,
++  mints BIGINT NOT NULL,
++  number BIGINT NOT NULL,
++  -- Mint entry
++  mint_entry jsonb DEFAULT '{}'::jsonb NOT NULL,
++  --U128
++  rune TEXT NOT NULL,
++  spacers INTEGER NOT NULL,
++  premine BIGINT NOT NULL DEFAULT 0,
++  spaced_rune VARCHAR NOT NULL DEFAULT '',
++  --U128
++  supply TEXT NOT NULL,
++  symbol CHAR NULL,
++  timestamp INTEGER NOT NULL
++);
++-- Map transaction and runeid (block and tx)
++CREATE TABLE txid_runes (
++  id BIGSERIAL PRIMARY KEY,
++  tx_hash VARCHAR NOT NULL,
++  rune_id VARCHAR NOT NULL
++);
++
++CREATE TABLE txid_rune_addresss (
++  id BIGSERIAL PRIMARY KEY,
++  tx_hash VARCHAR NOT NULL,
++  rune_id VARCHAR NOT NULL,
++  address VARCHAR NOT NULL,
++  spent BOOLEAN NOT NULL
++);
+diff --git a/migrations/2024-03-22-052744_balances/down.sql b/migrations/2024-03-22-052744_balances/down.sql
+new file mode 100644
+index 00000000..807851d6
+--- /dev/null
++++ b/migrations/2024-03-22-052744_balances/down.sql
+@@ -0,0 +1,2 @@
++-- This file should undo anything in `up.sql`
++DROP TABLE outpoint_rune_balances;
+\ No newline at end of file
+diff --git a/migrations/2024-03-22-052744_balances/up.sql b/migrations/2024-03-22-052744_balances/up.sql
+new file mode 100644
+index 00000000..50ad3b2c
+--- /dev/null
++++ b/migrations/2024-03-22-052744_balances/up.sql
+@@ -0,0 +1,13 @@
++-- Your SQL goes here
++-- In the ordinals rune balances are stored as a Vec<(u128,u128)>
++-- We try store as multiple record with seperated fields: (id: u128; balance: u128)
++--
++CREATE TABLE outpoint_rune_balances (
++    id BIGSERIAL PRIMARY KEY,
++    tx_hash VARCHAR NOT NULL,
++    vout INTEGER NOT NULL,
++    rune_id VARCHAR NOT NULL,
++    -- rune_block INTEGER NOT NULL,
++    -- rune_tx SMALLINT NOT NULL,
++    balance_value VARCHAR NOT NULL
++);
+\ No newline at end of file
+diff --git a/run.sh b/run.sh
+new file mode 100755
+index 00000000..90281b3a
+--- /dev/null
++++ b/run.sh
+@@ -0,0 +1,21 @@
++#!/bin/bash
++SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
++mainnet() {
++    RUST_LOG=info /usr/local/bin/ord \
++    --bitcoin-rpc-url ${ORD_BITCOIN_RPC_URL} \
++    --index-runes --index-transactions \
++    --commit-interval ${ORD_COMMIT_INTERVAL} \
++    --index /opt/data/${ORD_INDEX_FILE} \
++    server --address 0.0.0.0 --http-port 8088 > /opt/logs/${ORD_LOGFILE} 2>&1
++}
++#For docker
++testnet() {
++    RUST_LOG=info /usr/local/bin/ord -t \
++    --bitcoin-rpc-url ${ORD_BITCOIN_RPC_URL} \
++    --index-runes --index-transactions \
++    --commit-interval ${ORD_COMMIT_INTERVAL} \
++    --index /opt/data/runebeta_index_docker.redb \
++    server --address 0.0.0.0 --http-port 8088 > /opt/logs/${ORD_LOGFILE} 2>&1
++}
++
++$@
+\ No newline at end of file
+diff --git a/src/index/updater.rs b/src/index/updater.rs
+index 694934b0..0f8a7b95 100644
+--- a/src/index/updater.rs
++++ b/src/index/updater.rs
+@@ -336,6 +336,18 @@ impl<'index> Updater<'index> {
+     let index_inscriptions = self.height >= self.index.first_inscription_height
+       && self.index.settings.index_inscriptions();
+ 
++    // Start extension
++    let extension = IndexExtension::new(
++      self.index.settings.chain(),
++      self.height as i64,
++      block.header.clone(),
++    );
++    if block.txdata.len() > 0 && index_inscriptions {
++      //Index block with data only
++      let _res = extension.index_block(&block.txdata);
++    }
++    // Finish extension
++
+     if index_inscriptions {
+       // Send all missing input outpoints to be fetched right away
+       let txids = block
+@@ -607,6 +619,7 @@ impl<'index> Updater<'index> {
+         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
+         statistic_to_count: &mut statistic_to_count,
+         transaction_id_to_rune: &mut transaction_id_to_rune,
++        extension: Some(extension),
+       };
+ 
+       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
+diff --git a/src/index/updater/rune_updater.rs b/src/index/updater/rune_updater.rs
+index a1eff1e6..f8f0f57a 100644
+--- a/src/index/updater/rune_updater.rs
++++ b/src/index/updater/rune_updater.rs
+@@ -28,6 +28,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
+   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
+   pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
+   pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
++  pub(super) extension: Option<IndexExtension>,
+ }
+ 
+ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
+@@ -192,6 +193,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
+       // Sort balances by id so tests can assert balances in a fixed order
+       balances.sort();
+ 
++      if let Some(extension) = &self.extension {
++        let _res = extension.index_outpoint_balances(&txid, vout as i32, &balances);
++      }
++
+       for (id, balance) in balances {
+         Index::encode_rune_balance(id, balance, &mut buffer);
+       }
+@@ -263,7 +268,28 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
+       }
+       .store(),
+     )?;
+-
++    /*
++     * Taivv March 20, index data to postgres
++     */
++    if let Some(extension) = &self.extension {
++      let _ = extension.index_transaction_rune_entry(
++        &txid,
++        &id,
++        &RuneEntry {
++          block: id.block,
++          burned: 0,
++          divisibility,
++          etching: txid,
++          terms: terms.and_then(|terms| (!burn).then_some(terms)),
++          mints: 0,
++          number,
++          premine,
++          spaced_rune,
++          symbol,
++          timestamp: self.block_time.into(),
++        },
++      );
++    }
+     let inscription_id = InscriptionId { txid, index: 0 };
+ 
+     if let Some(sequence_number) = self
+diff --git a/src/lib.rs b/src/lib.rs
+index b741df41..69a496ab 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -88,6 +88,7 @@ pub use self::{
+   inscriptions::{Envelope, Inscription, InscriptionId},
+   object::Object,
+   options::Options,
++  runebeta::IndexExtension,
+   wallet::transaction_builder::{Target, TransactionBuilder},
+ };
+ 
+@@ -122,7 +123,9 @@ pub mod options;
+ pub mod outgoing;
+ mod re;
+ mod representation;
++pub mod runebeta;
+ pub mod runes;
++pub mod schema;
+ mod settings;
+ pub mod subcommand;
+ mod tally;
+diff --git a/src/runebeta/connection.rs b/src/runebeta/connection.rs
+new file mode 100644
+index 00000000..9594189e
+--- /dev/null
++++ b/src/runebeta/connection.rs
+@@ -0,0 +1,12 @@
++use diesel::pg::PgConnection;
++use diesel::prelude::*;
++use dotenvy::dotenv;
++use std::env;
++
++pub fn establish_pgconnection() -> PgConnection {
++  dotenv().ok();
++
++  let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
++  PgConnection::establish(&database_url)
++    .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
++}
+diff --git a/src/runebeta/extension.rs b/src/runebeta/extension.rs
+new file mode 100644
+index 00000000..27904cc7
+--- /dev/null
++++ b/src/runebeta/extension.rs
+@@ -0,0 +1,266 @@
++use crate::{
++  runebeta::{
++    models::{NewOutpointRuneBalance, U128},
++    OutpointRuneBalanceTable,
++  },
++  Chain, RuneEntry, RuneId,
++};
++
++use super::{
++  models::{NewBlock, NewTransaction, NewTransactionIn, NewTransactionOut},
++  table_transaction::TransactionTable,
++  BlockTable, TransactionInTable, TransactionOutTable, TransactionRuneEntryTable,
++};
++use bitcoin::{block::Header, consensus::Encodable, Address, Transaction, TxIn, Txid};
++use diesel::pg::PgConnection;
++use diesel::prelude::*;
++use dotenvy::dotenv;
++use std::env;
++use std::fmt::Write;
++
++#[derive(Clone, Debug)]
++pub struct IndexExtension {
++  chain: Chain,
++  block_height: i64,
++  block_header: Header,
++  database_url: String,
++}
++impl IndexExtension {
++  pub fn new(chain: Chain, block_height: i64, block_header: Header) -> Self {
++    dotenv().ok();
++
++    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
++    // let connection = PgConnection::establish(&database_url)
++    //   .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
++    Self {
++      chain,
++      block_height,
++      block_header,
++      database_url,
++    }
++  }
++  pub fn connect(&self) -> Result<PgConnection, ConnectionError> {
++    PgConnection::establish(&self.database_url)
++  }
++  pub fn index_block(
++    &self,
++    block_data: &Vec<(Transaction, Txid)>,
++  ) -> Result<usize, diesel::result::Error> {
++    let new_block = NewBlock {
++      block_time: self.block_header.time as i64,
++      block_height: self.block_height,
++      previous_hash: self.block_header.prev_blockhash.to_string(),
++      block_hash: self.block_header.merkle_root.to_string(),
++    };
++    let mut vec_transactions = Vec::new();
++    let mut vec_transaction_ins = Vec::new();
++    let mut vec_transaction_outs = Vec::new();
++    let mut vec_tx_ins: Vec<&TxIn> = Vec::new();
++    for (tx, txid) in block_data.iter() {
++      let Transaction {
++        version,
++        lock_time,
++        input,
++        output,
++      } = tx;
++      let new_transaction = NewTransaction {
++        version: *version,
++        block_height: self.block_height,
++        lock_time: lock_time.to_consensus_u32() as i32,
++        tx_hash: txid.to_string(),
++      };
++      vec_transactions.push(new_transaction);
++      input.iter().for_each(|tx_in| vec_tx_ins.push(tx_in));
++      let mut new_transaction_ins = input
++        .iter()
++        .map(|txin| {
++          let mut witness_buffer = Vec::new();
++          let _ = txin.witness.consensus_encode(&mut witness_buffer);
++          let mut witness = String::with_capacity(witness_buffer.len() * 2);
++          for byte in witness_buffer.into_iter() {
++            let _ = write!(&mut witness, "{:02X}", byte);
++          }
++          NewTransactionIn {
++            tx_hash: txid.to_string(),
++            previous_output_hash: txin.previous_output.txid.to_string(),
++            previous_output_vout: txin.previous_output.vout as i32,
++            script_sig: txin.script_sig.to_hex_string(),
++            sequence_number: txin.sequence.0 as i64,
++            witness,
++          }
++        })
++        .collect();
++      vec_transaction_ins.append(&mut new_transaction_ins);
++      //Create transaction out for each transaction then push to common vector for whole block
++      let mut new_transaction_outs = output
++        .iter()
++        .enumerate()
++        .map(|(index, tx_out)| {
++          let address = Address::from_script(&tx_out.script_pubkey, self.chain.network()).ok();
++          let address = address.map(|addr| addr.to_string());
++
++          let asm = tx_out.script_pubkey.to_asm_string();
++          let dust_value = tx_out.script_pubkey.dust_value().to_sat() as i64;
++
++          NewTransactionOut {
++            tx_hash: txid.to_string(),
++            vout: index as i64,
++            value: tx_out.value as i64,
++            address,
++            asm,
++            dust_value,
++            script_pubkey: tx_out.script_pubkey.to_hex_string(),
++            spent: false,
++          }
++        })
++        .collect();
++      vec_transaction_outs.append(&mut new_transaction_outs);
++    }
++    let table_block = BlockTable::new();
++    let table_tranction = TransactionTable::new();
++    let table_transaction_in = TransactionInTable::new();
++    let table_transaction_out = TransactionOutTable::new();
++    let connection = self.connect();
++    assert!(connection.is_ok());
++
++    //must be safe to unwrap;
++    let mut connection = connection.unwrap();
++    let res = connection.build_transaction().read_write().run(|conn| {
++      table_block.insert(&new_block, conn)?;
++      table_tranction.inserts(&vec_transactions, conn)?;
++      table_transaction_in.inserts(&vec_transaction_ins, conn)?;
++      table_transaction_out.spends(&vec_tx_ins, conn)?;
++      table_transaction_out.inserts(&vec_transaction_outs, conn)
++    });
++    if res.is_err() {
++      log::debug!("Block index result {:?}", &res);
++    }
++    res
++  }
++  pub fn _index_transaction(
++    &self,
++    txid: &Txid,
++    tx: &Transaction,
++  ) -> Result<usize, diesel::result::Error> {
++    let Transaction {
++      version,
++      lock_time,
++      input,
++      output,
++    } = tx;
++    let new_transaction = NewTransaction {
++      version: *version,
++      block_height: self.block_height,
++      lock_time: lock_time.to_consensus_u32() as i32,
++      tx_hash: txid.to_string(),
++    };
++    let new_transaction_outs = output
++      .iter()
++      .enumerate()
++      .map(|(index, tx_out)| {
++        let address = tx_out
++          .script_pubkey
++          .p2pk_public_key()
++          .map(|pk| pk.pubkey_hash().to_string());
++        let asm = tx_out.script_pubkey.to_asm_string();
++        let dust_value = tx_out.script_pubkey.dust_value().to_sat() as i64;
++
++        NewTransactionOut {
++          tx_hash: txid.to_string(),
++          vout: index as i64,
++          value: tx_out.value as i64,
++          address,
++          asm,
++          dust_value,
++          script_pubkey: tx_out.script_pubkey.to_hex_string(),
++          spent: false,
++        }
++      })
++      .collect();
++    let new_transaction_ins = input
++      .iter()
++      .map(|txin| {
++        let mut witness_buffer = Vec::new();
++        let _ = txin.witness.consensus_encode(&mut witness_buffer);
++        let mut witness = String::with_capacity(witness_buffer.len() * 2);
++        for byte in witness_buffer.into_iter() {
++          let _ = write!(&mut witness, "{:02X}", byte);
++        }
++        NewTransactionIn {
++          tx_hash: txid.to_string(),
++          previous_output_hash: txin.previous_output.txid.to_string(),
++          previous_output_vout: txin.previous_output.vout as i32,
++          script_sig: txin.script_sig.to_hex_string(),
++          sequence_number: txin.sequence.0 as i64,
++          witness,
++        }
++      })
++      .collect();
++    let connection = self.connect();
++    assert!(connection.is_ok());
++    let mut connection = connection.unwrap();
++    let table_tranction = TransactionTable::new();
++    let table_transaction_in = TransactionInTable::new();
++    let table_transaction_out = TransactionOutTable::new();
++    let res = connection.build_transaction().read_write().run(|conn| {
++      table_tranction.insert(&new_transaction, conn)?;
++      table_transaction_in.inserts(&new_transaction_ins, conn)?;
++      table_transaction_out.spend(input, conn)?;
++      table_transaction_out.inserts(&new_transaction_outs, conn)
++    });
++    if res.is_err() {
++      log::debug!("Transaction index result {:?}", &res);
++    }
++    res
++  }
++  pub fn index_transaction_rune_entry(
++    &self,
++    txid: &Txid,
++    rune_id: &RuneId,
++    rune_entry: &RuneEntry,
++  ) -> Result<usize, diesel::result::Error> {
++    log::debug!("Runebeta index transaction rune {}, rune {}", txid, rune_id);
++    let table_tranction_rune = TransactionRuneEntryTable::new();
++    let connection = self.connect();
++    assert!(connection.is_ok());
++    //Must be safe to unwrap;
++    let mut connection = connection.unwrap();
++    let res = connection
++      .build_transaction()
++      .read_write()
++      .run(|conn| table_tranction_rune.create(txid, rune_id, rune_entry, conn));
++    log::debug!("Transaction rune index result {:?}", &res);
++    res
++  }
++
++  pub fn index_outpoint_balances(
++    &self,
++    txid: &Txid,
++    vout: i32,
++    balances: &Vec<(RuneId, u128)>,
++  ) -> Result<usize, diesel::result::Error> {
++    log::debug!("Runebeta index outpoint balances of transaction {}", txid);
++    let table_outpoint_balance = OutpointRuneBalanceTable::new();
++    let outpoint_balances = balances
++      .iter()
++      .map(|(rune_id, balance)| NewOutpointRuneBalance {
++        tx_hash: txid.to_string(),
++        vout,
++        rune_id: rune_id.to_string(),
++        balance_value: U128(balance.clone()),
++      })
++      .collect();
++    let connection = self.connect();
++    assert!(connection.is_ok());
++    //Must be safe to unwrap;
++    let mut connection = connection.unwrap();
++    let res = connection
++      .build_transaction()
++      .read_write()
++      .run(|conn| table_outpoint_balance.insert(&outpoint_balances, conn));
++    if res.is_err() {
++      log::debug!("Transaction rune index result {:?}", &res);
++    }
++    res
++  }
++}
+diff --git a/src/runebeta/mod.rs b/src/runebeta/mod.rs
+new file mode 100644
+index 00000000..02492ddd
+--- /dev/null
++++ b/src/runebeta/mod.rs
+@@ -0,0 +1,15 @@
++pub mod extension;
++mod models;
++mod table_block;
++mod table_outpoint_rune_balance;
++mod table_transaction;
++mod table_transaction_in;
++mod table_transaction_out;
++mod table_transaction_rune_entry;
++
++pub use extension::IndexExtension;
++pub use table_block::BlockTable;
++pub use table_outpoint_rune_balance::OutpointRuneBalanceTable;
++pub use table_transaction_in::TransactionInTable;
++pub use table_transaction_out::TransactionOutTable;
++pub use table_transaction_rune_entry::TransactionRuneEntryTable;
+diff --git a/src/runebeta/models.rs b/src/runebeta/models.rs
+new file mode 100644
+index 00000000..ebf27467
+--- /dev/null
++++ b/src/runebeta/models.rs
+@@ -0,0 +1,349 @@
++use crate::Terms;
++use diesel::{
++  deserialize::{FromSql, FromSqlRow},
++  pg::Pg,
++  prelude::*,
++  serialize::{IsNull, Output, ToSql},
++  sql_types::{Jsonb, Text},
++  AsExpression,
++};
++use std::io::Write;
++
++//https://stackoverflow.com/questions/77629993/error-extending-diesel-with-wrapper-type-for-u128
++#[derive(
++  Copy,
++  Clone,
++  FromSqlRow,
++  AsExpression,
++  serde::Serialize,
++  serde::Deserialize,
++  Debug,
++  PartialEq,
++  Eq,
++  PartialOrd,
++  Default,
++)]
++#[diesel(sql_type = Text)]
++pub struct U128(pub u128);
++
++impl From<u128> for U128 {
++  fn from(v: u128) -> U128 {
++    U128(v)
++  }
++}
++
++impl From<U128> for u128 {
++  fn from(v: U128) -> u128 {
++    v.0
++  }
++}
++
++impl ToSql<Text, Pg> for U128 {
++  fn to_sql<'b>(&self, out: &mut Output<'b, '_, Pg>) -> diesel::serialize::Result {
++    write!(out, "{}", self.0.to_string())?;
++    Ok(IsNull::No)
++  }
++}
++impl FromSql<Text, Pg> for U128 {
++  fn from_sql(
++    bytes: <Pg as diesel::backend::Backend>::RawValue<'_>,
++  ) -> diesel::deserialize::Result<Self> {
++    let s = String::from_utf8_lossy(bytes.as_bytes());
++    Ok(U128(s.parse()?))
++  }
++}
++
++// impl ToSql<Binary, Pg> for U128 {
++//   fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> diesel::serialize::Result {
++//     write!(out, "{}", self.0.to_ne_bytes())?;
++//     Ok(IsNull::No)
++//   }
++// }
++
++// impl FromSql<Binary, Pg> for U128 {
++//   fn from_sql(
++//     bytes: <Pg as diesel::backend::Backend>::RawValue<'_>,
++//   ) -> diesel::deserialize::Result<Self> {
++//     let value = u128::from_ne_bytes(*(bytes.as_bytes()));
++//     Ok(U128(value))
++//   }
++// }
++
++// https://vasilakisfil.social/blog/2020/05/09/rust-diesel-jsonb/
++
++#[derive(
++  Copy,
++  Clone,
++  FromSqlRow,
++  AsExpression,
++  serde::Serialize,
++  serde::Deserialize,
++  Debug,
++  Default,
++  PartialEq,
++  Eq,
++  PartialOrd,
++)]
++#[diesel(sql_type = Jsonb)]
++pub struct MintEntryType {
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub amount: Option<U128>,
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub cap: Option<U128>,
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub height1: Option<i64>,
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub height2: Option<i64>,
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub offset1: Option<i64>,
++  #[serde(skip_serializing_if = "Option::is_none")]
++  pub offset2: Option<i64>,
++}
++
++impl ToSql<Jsonb, Pg> for MintEntryType {
++  fn to_sql(&self, out: &mut Output<Pg>) -> diesel::serialize::Result {
++    let value = serde_json::to_value(self)?;
++    // <serde_json::Value as ToSql<Jsonb, Pg>>::to_sql(&value, out)
++    out.write_all(&[1])?;
++    serde_json::to_writer(out, &value)
++      .map(|_| IsNull::No)
++      .map_err(Into::into)
++  }
++}
++impl FromSql<Jsonb, Pg> for MintEntryType {
++  fn from_sql(
++    bytes: <Pg as diesel::backend::Backend>::RawValue<'_>,
++  ) -> diesel::deserialize::Result<Self> {
++    let value = <serde_json::Value as FromSql<Jsonb, Pg>>::from_sql(bytes)?;
++    Ok(serde_json::from_value(value)?)
++  }
++}
++
++impl From<&Terms> for MintEntryType {
++  fn from(value: &Terms) -> Self {
++    let (height1, height2) = value.height.clone();
++    let (offset1, offset2) = value.offset.clone();
++    MintEntryType {
++      amount: value.amount.map(|v| U128(v)),
++      cap: value.cap.map(|v| U128(v)),
++      height1: height1.map(|v| v as i64),
++      height2: height2.map(|v| v as i64),
++      offset1: offset1.map(|v| v as i64),
++      offset2: offset2.map(|v| v as i64),
++    }
++  }
++}
++
++//Block
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::blocks)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct Block {
++  pub id: i64,
++  pub block_time: i64,
++  pub block_height: i64,
++  pub previous_hash: String,
++  pub block_hash: String,
++}
++
++#[derive(AsChangeset, Insertable)]
++#[diesel(table_name = crate::schema::blocks)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewBlock {
++  pub block_time: i64,
++  pub block_height: i64,
++  pub previous_hash: String,
++  pub block_hash: String,
++}
++
++//Transaction
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::transactions)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct Transaction {
++  pub id: i64,
++  pub block_height: i64,
++  pub version: i32,
++  pub lock_time: i32,
++  pub tx_hash: String,
++}
++
++#[derive(AsChangeset, Insertable)]
++#[diesel(table_name = crate::schema::transactions)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTransaction {
++  pub version: i32,
++  pub block_height: i64,
++  pub lock_time: i32,
++  pub tx_hash: String,
++}
++
++//TransactionIn
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::transaction_ins)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct TransactionIn {
++  pub id: i64,
++  pub tx_hash: String,
++  pub previous_output_hash: String,
++  pub previous_output_vout: i32,
++  pub script_sig: String,
++  pub sequence_number: i64,
++  pub witness: String,
++}
++
++#[derive(Insertable, AsChangeset)]
++#[diesel(table_name = crate::schema::transaction_ins)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTransactionIn {
++  pub tx_hash: String,
++  pub previous_output_hash: String,
++  pub previous_output_vout: i32,
++  pub script_sig: String,
++  pub sequence_number: i64,
++  pub witness: String,
++}
++
++//TransactionOut
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::transaction_outs)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct TransactionOut {
++  pub id: i64,
++  pub tx_hash: String,
++  pub vout: i64,
++  pub value: i64,
++  pub asm: String,
++  pub dust_value: i64,
++  pub address: Option<String>,
++  pub script_pubkey: String,
++  pub spent: bool,
++}
++
++#[derive(Insertable, AsChangeset)]
++#[diesel(table_name = crate::schema::transaction_outs)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTransactionOut {
++  pub tx_hash: String,
++  pub vout: i64,
++  pub value: i64,
++  pub asm: String,
++  pub dust_value: i64,
++  pub address: Option<String>,
++  pub script_pubkey: String,
++  pub spent: bool,
++}
++
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::transaction_rune_entries)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct TxRuneEntry {
++  pub id: i64,
++  pub tx_hash: String,
++  // pub rune_height: i32,
++  // pub rune_index: i16,
++  pub rune_id: String,
++  #[diesel(deserialize_as = U128)]
++  pub burned: u128,
++  pub divisibility: i16,
++  pub etching: String,
++  pub mint_entry: MintEntryType,
++  pub mints: i64,
++  pub number: i64,
++  pub rune: U128,
++  pub spacers: i32,
++  pub premine: i64,
++  pub spaced_rune: String,
++  pub supply: U128,
++  pub symbol: Option<String>,
++  pub timestamp: i32,
++}
++
++#[derive(Insertable, PartialEq, Debug, AsChangeset)]
++#[diesel(table_name = crate::schema::transaction_rune_entries)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTxRuneEntry<'a> {
++  pub tx_hash: String,
++  // pub rune_height: i32,
++  // pub rune_index: i16,
++  pub rune_id: String,
++  #[diesel(serialize_as = U128)]
++  pub burned: U128,
++  pub divisibility: i16,
++  pub etching: &'a str,
++  pub mint_entry: MintEntryType,
++  pub mints: i64,
++  pub number: i64, //Block
++  pub rune: U128,
++  pub spacers: i32,
++  pub premine: i64,
++  pub spaced_rune: String,
++  pub supply: U128,
++  pub symbol: Option<&'a str>,
++  pub timestamp: i32,
++}
++
++//TransactionRune
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::txid_runes)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct TransactionRune {
++  pub id: i64,
++  pub tx_hash: String,
++  pub rune_id: String,
++}
++
++#[derive(Insertable, AsChangeset)]
++#[diesel(table_name = crate::schema::txid_runes)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTransactionRune {
++  pub tx_hash: String,
++  pub rune_id: String,
++}
++
++//TransactionRuneIdAddress
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::txid_rune_addresss)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct TransactionRuneAddress {
++  pub id: i64,
++  pub tx_hash: String,
++  pub rune_id: String,
++  pub address: String,
++  pub spent: bool,
++}
++
++#[derive(Insertable, AsChangeset)]
++#[diesel(table_name = crate::schema::txid_rune_addresss)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct NewTransactionRuneAddress {
++  pub tx_hash: String,
++  pub rune_id: String,
++  pub address: String,
++  pub spent: bool,
++}
++
++#[derive(Queryable, Selectable)]
++#[diesel(table_name = crate::schema::outpoint_rune_balances)]
++#[diesel(check_for_backend(diesel::pg::Pg))]
++pub struct OutpointRuneBalance {
++  pub id: i64,
++  pub tx_hash: String,
++  pub vout: i32,
++  pub rune_id: String,
++  // pub rune_block: i32,
++  // pub rune_tx: i16,
++  #[diesel(serialize_as = U128, deserialize_as = U128)]
++  pub balance_value: u128,
++}
++
++#[derive(Insertable)]
++#[diesel(table_name = crate::schema::outpoint_rune_balances)]
++pub struct NewOutpointRuneBalance {
++  pub tx_hash: String,
++  pub vout: i32,
++  pub rune_id: String,
++  // pub rune_block: i32,
++  // pub rune_tx: i16,
++  pub balance_value: U128,
++}
+diff --git a/src/runebeta/storage/block_header.rs b/src/runebeta/storage/block_header.rs
+new file mode 100644
+index 00000000..d4d25bf0
+--- /dev/null
++++ b/src/runebeta/storage/block_header.rs
+@@ -0,0 +1,38 @@
++use bitcoin::{block::Header, Block};
++use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper};
++
++use crate::{
++  runebeta::models::{BlockHeader, NewBlockHeader},
++  schema::block_headers::dsl::*,
++};
++
++pub struct BlockHeaderTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> BlockHeaderTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn insert(&self, payload: &NewBlockHeader) -> Result<BlockHeader, diesel::result::Error> {
++    diesel::insert_into(crate::schema::block_headers::table)
++      .values(payload)
++      .returning(BlockHeader::as_returning())
++      .get_result(self.connection)
++    //.expect("Error saving satpoint")
++  }
++  pub fn get_indexed_block(&mut self) -> Result<i64, diesel::result::Error> {
++    block_headers
++      .order(height.desc())
++      .select(height)
++      .first::<i64>(self.connection)
++      .map(|value| value + 1)
++  }
++
++  //   pub fn set_block_header(
++  //     &mut self,
++  //     heigh: i32,
++  //     header: &Header,
++  //   ) -> Result<BlockHeader, diesel::result::Error> {
++  //   }
++}
+diff --git a/src/runebeta/storage/content_type_count.rs b/src/runebeta/storage/content_type_count.rs
+new file mode 100644
+index 00000000..6369f924
+--- /dev/null
++++ b/src/runebeta/storage/content_type_count.rs
+@@ -0,0 +1,19 @@
++use diesel::{PgConnection, QueryDsl, RunQueryDsl};
++
++use crate::{
++  runebeta::models::{ContentTypeCount, NewContentTypeCount},
++  schema::content_type_counts::dsl::*,
++};
++
++pub struct ContentTypeCountTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> ContentTypeCountTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  // pub fn count(&self) -> Result<ContentTypeCount, diesel::result::Error> {
++  //   inscriptions.count().get_result(self.connection)
++  // }
++}
+diff --git a/src/runebeta/storage/height_sequence_number.rs b/src/runebeta/storage/height_sequence_number.rs
+new file mode 100644
+index 00000000..2960bc94
+--- /dev/null
++++ b/src/runebeta/storage/height_sequence_number.rs
+@@ -0,0 +1,46 @@
++use diesel::{
++  associations::HasTable, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
++};
++
++use crate::{
++  runebeta::models::{HeightSequenceNumber, NewHeightSequenceNumber},
++  schema::height_sequence_numbers::dsl::*,
++};
++
++pub struct HeightSequenceNumberTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> HeightSequenceNumberTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn insert(
++    &self,
++    height_value: i32,
++    sequence_number_value: i32,
++  ) -> Result<HeightSequenceNumber, diesel::result::Error> {
++    match height_sequence_numbers
++      .filter(height.eq(height_value))
++      .limit(1)
++      .load::<HeightSequenceNumber>(self.connection)?
++      .first()
++    {
++      Some(record) => diesel::update(height_sequence_numbers.find(record.id))
++        .set(sequence_number.eq(sequence_number_value))
++        .returning(HeightSequenceNumber::as_returning())
++        .get_result(self.connection),
++      None => {
++        let payload = NewHeightSequenceNumber {
++          height: height_value,
++          sequence_number: sequence_number_value,
++        };
++        diesel::insert_into(height_sequence_numbers::table())
++          .values(payload)
++          .returning(HeightSequenceNumber::as_returning())
++          .get_result(self.connection)
++        //.expect("Error saving satpoint")
++      }
++    }
++  }
++}
+diff --git a/src/runebeta/storage/home_inscription.rs b/src/runebeta/storage/home_inscription.rs
+new file mode 100644
+index 00000000..e32db032
+--- /dev/null
++++ b/src/runebeta/storage/home_inscription.rs
+@@ -0,0 +1,19 @@
++use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
++
++use crate::{
++  runebeta::models::{Inscriptions, NewInscriptions},
++  schema::inscriptions::dsl::*,
++};
++
++pub struct HomeInscriptionTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> HomeInscriptionTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn count(&self) -> Result<i64, diesel::result::Error> {
++    inscriptions.count().get_result(self.connection)
++  }
++}
+diff --git a/src/runebeta/storage/inscription_entry.rs b/src/runebeta/storage/inscription_entry.rs
+new file mode 100644
+index 00000000..a706acf2
+--- /dev/null
++++ b/src/runebeta/storage/inscription_entry.rs
+@@ -0,0 +1,22 @@
++use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
++
++use crate::{
++  runebeta::models::{InscriptionEntry, NewInscriptionEntry},
++  schema::inscription_entries::dsl::*,
++};
++
++pub struct InscriptionEntryTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> InscriptionEntryTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn get_last_sequence_number(&self) -> Result<i32, diesel::result::Error> {
++    inscription_entries
++      .select(sequence_number)
++      .order_by(sequence_number.desc())
++      .first(self.connection)
++  }
++}
+diff --git a/src/runebeta/storage/outpoint_satrange.rs b/src/runebeta/storage/outpoint_satrange.rs
+new file mode 100644
+index 00000000..60f4541b
+--- /dev/null
++++ b/src/runebeta/storage/outpoint_satrange.rs
+@@ -0,0 +1,68 @@
++use bitcoin::OutPoint;
++use diesel::{
++  associations::HasTable, query_dsl::methods::FilterDsl, ExpressionMethods, PgConnection,
++  RunQueryDsl, SelectableHelper,
++};
++
++use crate::{
++  runebeta::models::{NewOutpointSatRange, OutpointSatRange},
++  schema::outpoint_satranges::dsl::*,
++};
++
++pub struct OutPointSatrangeTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> OutPointSatrangeTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn get(&self, outpoint: &OutPoint) -> Result<Option<Vec<u8>>, diesel::result::Error> {
++    let vout_value = outpoint.vout as i16;
++    let res = outpoint_satranges
++      .filter(tx_hash.eq(outpoint.txid.to_string()))
++      .filter(vout.eq(&vout_value))
++      .load::<OutpointSatRange>(self.connection)?
++      .first()
++      .map(|record| record.range);
++    Ok(res)
++    //.expect("Error saving satpoint")
++  }
++
++  pub fn remove(&self, outpoint: &OutPoint) -> Result<usize, diesel::result::Error> {
++    let vout_value = outpoint.vout as i16;
++    diesel::delete(
++      outpoint_satranges
++        .filter(tx_hash.eq(outpoint.txid.to_string()))
++        .filter(vout.eq::<i16>(vout_value)),
++    )
++    .execute(self.connection)
++    //.expect("Error saving satpoint")
++  }
++  pub fn create(
++    &self,
++    outpoint: &OutPoint,
++    sat_range: &Vec<u8>,
++  ) -> Result<OutpointSatRange, diesel::result::Error> {
++    let new_outpoint_sat_range = NewOutpointSatRange {
++      tx_hash: outpoint.txid.to_string().as_str(),
++      vout: outpoint.vout as i16,
++      range: sat_range,
++    };
++    diesel::insert_into(outpoint_satranges::table())
++      .values(&new_outpoint_sat_range)
++      .returning(OutpointSatRange::as_returning())
++      .get_result(self.connection)
++  }
++  pub fn upsert_values(&self, payload: &NewOutpointSatRange) -> Result<(), diesel::result::Error> {
++    diesel::insert_into(outpoint_satranges::table())
++      .values(payload)
++      .on_conflict((tx_hash, vout))
++      .do_update()
++      .set(payload)
++      .returning(OutpointSatRange::as_returning())
++      .execute(self.connection);
++    //.expect("Error saving satpoint")
++    Ok(())
++  }
++}
+diff --git a/src/runebeta/storage/outpoint_value.rs b/src/runebeta/storage/outpoint_value.rs
+new file mode 100644
+index 00000000..2761e6a3
+--- /dev/null
++++ b/src/runebeta/storage/outpoint_value.rs
+@@ -0,0 +1,28 @@
++use bitcoin::OutPoint;
++use diesel::{
++  query_dsl::methods::FilterDsl, ExpressionMethods, PgConnection, RunQueryDsl, SelectableHelper,
++};
++
++use crate::{runebeta::models::OutPointValue, schema::outpoint_values::dsl::*};
++
++pub struct OutPointValueTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> OutPointValueTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++
++  pub fn get(&self, outpoint: &OutPoint) -> Result<Option<i64>, diesel::result::Error> {
++    let vout_value = outpoint.vout as i16;
++    let result = outpoint_values
++      .filter(tx_hash.eq(outpoint.txid.to_string()))
++      .filter(vout.eq(&vout_value))
++      .load::<OutPointValue>(self.connection)?
++      .first()
++      .map(|record| record.value);
++    Ok(result)
++    //.expect("Error saving satpoint")
++  }
++}
+diff --git a/src/runebeta/storage/satpoint.rs b/src/runebeta/storage/satpoint.rs
+new file mode 100644
+index 00000000..71298a07
+--- /dev/null
++++ b/src/runebeta/storage/satpoint.rs
+@@ -0,0 +1,70 @@
++use diesel::{
++  associations::HasTable, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
++};
++use ordinals::SatPoint;
++
++use crate::{
++  runebeta::models::{NewSatpointEntity, SatpointEntity},
++  schema::{block_headers::star, satpoints::dsl::*},
++};
++
++pub struct SatPointTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> SatPointTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn insert(
++    &mut self,
++    sequence: &i32,
++    sat_point: &SatPoint,
++  ) -> Result<SatpointEntity, diesel::result::Error> {
++    let mut stored_entity = satpoints
++      .filter(sequence_number.eq(sequence))
++      .limit(1)
++      .select(SatpointEntity::as_select())
++      .load(self.connection)?
++      .first();
++    match stored_entity {
++      Some(satpoint_entity) => {
++        let vout_value = sat_point.outpoint.vout as i32;
++        let offset = sat_point.offset as i64;
++        diesel::update(satpoints.find(satpoint_entity.id))
++          .set((
++            tx_hash.eq(sat_point.outpoint.txid.to_string().as_str()),
++            vout.eq::<&i32>(&vout_value),
++            sat_offset.eq::<&i64>(&offset),
++          ))
++          .returning(SatpointEntity::as_returning())
++          .get_result(self.connection)
++      }
++      None => {
++        let payload = NewSatpointEntity {
++          sequence_number: sequence.clone(),
++          tx_hash: sat_point.outpoint.txid.to_string(),
++          vout: sat_point.outpoint.vout.clone() as i32,
++          sat_offset: sat_point.offset.clone() as i64,
++        };
++        Ok(
++          diesel::insert_into(satpoints::table())
++            .values(&payload)
++            .returning(SatpointEntity::as_returning())
++            .get_result(self.connection)
++            .expect("Error saving satpoint"),
++        )
++      }
++    }
++  }
++  pub fn create(
++    &self,
++    payload: &NewSatpointEntity,
++  ) -> Result<SatpointEntity, diesel::result::Error> {
++    diesel::insert_into(satpoints::table())
++      .values(payload)
++      .returning(SatpointEntity::as_returning())
++      .get_result(self.connection)
++    //.expect("Error saving satpoint")
++  }
++}
+diff --git a/src/runebeta/storage/transaction.rs b/src/runebeta/storage/transaction.rs
+new file mode 100644
+index 00000000..0f80859c
+--- /dev/null
++++ b/src/runebeta/storage/transaction.rs
+@@ -0,0 +1,25 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl, SelectableHelper};
++
++use crate::{
++  runebeta::models::{NewTransaction, Transaction},
++  schema::transactions::dsl::*,
++};
++
++pub struct TransactionTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> TransactionTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn insert(&mut self, tx: &NewTransaction) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(transactions::table())
++      .values(tx)
++      .on_conflict(tx_hash)
++      .do_update()
++      .set(tx)
++      .returning(Transaction::as_returning())
++      .execute(self.connection)
++  }
++}
+diff --git a/src/runebeta/storage/txid_rune.rs b/src/runebeta/storage/txid_rune.rs
+new file mode 100644
+index 00000000..c2e18097
+--- /dev/null
++++ b/src/runebeta/storage/txid_rune.rs
+@@ -0,0 +1,30 @@
++use bitcoin::Txid;
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl, SelectableHelper};
++
++use crate::{
++  runebeta::models::{NewTxidRune, U128},
++  schema::txid_runes::dsl::*,
++};
++
++pub struct TxidRuneTable<'conn> {
++  pub connection: &'conn mut PgConnection,
++}
++
++impl<'conn> TxidRuneTable<'conn> {
++  pub fn new(connection: &'conn mut PgConnection) -> Self {
++    Self { connection }
++  }
++  pub fn insert(&self, txid: &Txid, rune_value: U128) -> Result<usize, diesel::result::Error> {
++    let new_txid_rune = NewTxidRune {
++      tx_hash: txid.to_raw_hash().to_string().as_str(),
++      rune: rune_value,
++    };
++    diesel::insert_into(txid_runes::table())
++      .values(&new_txid_rune)
++      .on_conflict(tx_hash)
++      .do_update()
++      .set(&new_txid_rune)
++      //.returning(TxidRune::as_returning())
++      .execute(self.connection)
++  }
++}
+diff --git a/src/runebeta/table_block.rs b/src/runebeta/table_block.rs
+new file mode 100644
+index 00000000..dfd7180a
+--- /dev/null
++++ b/src/runebeta/table_block.rs
+@@ -0,0 +1,25 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl, SelectableHelper};
++
++use super::models::{Block, NewBlock};
++use crate::schema::blocks::dsl::*;
++#[derive(Clone)]
++pub struct BlockTable {}
++
++impl<'conn> BlockTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn insert(
++    &self,
++    block: &NewBlock,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(blocks::table())
++      .values(block)
++      .on_conflict(block_height)
++      .do_update()
++      .set(block)
++      .returning(Block::as_returning())
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_outpoint_rune_balance.rs b/src/runebeta/table_outpoint_rune_balance.rs
+new file mode 100644
+index 00000000..0a3cb080
+--- /dev/null
++++ b/src/runebeta/table_outpoint_rune_balance.rs
+@@ -0,0 +1,22 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl, SelectableHelper};
++
++use super::models::{NewOutpointRuneBalance, OutpointRuneBalance};
++use crate::schema::outpoint_rune_balances::dsl::*;
++#[derive(Clone)]
++pub struct OutpointRuneBalanceTable {}
++
++impl<'conn> OutpointRuneBalanceTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn insert(
++    &self,
++    balances: &Vec<NewOutpointRuneBalance>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(outpoint_rune_balances::table())
++      .values(balances)
++      .returning(OutpointRuneBalance::as_returning())
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_transaction.rs b/src/runebeta/table_transaction.rs
+new file mode 100644
+index 00000000..43cf635e
+--- /dev/null
++++ b/src/runebeta/table_transaction.rs
+@@ -0,0 +1,35 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl, SelectableHelper};
++
++use super::models::{NewTransaction, Transaction};
++use crate::schema::transactions::dsl::*;
++#[derive(Clone)]
++pub struct TransactionTable {}
++
++impl<'conn> TransactionTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn insert(
++    &self,
++    tx: &NewTransaction,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(transactions::table())
++      .values(tx)
++      .on_conflict(tx_hash)
++      .do_update()
++      .set(tx)
++      .returning(Transaction::as_returning())
++      .execute(connection)
++  }
++  pub fn inserts(
++    &self,
++    txs: &Vec<NewTransaction>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(transactions::table())
++      .values(txs)
++      .returning(Transaction::as_returning())
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_transaction_in.rs b/src/runebeta/table_transaction_in.rs
+new file mode 100644
+index 00000000..4c9da972
+--- /dev/null
++++ b/src/runebeta/table_transaction_in.rs
+@@ -0,0 +1,21 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl};
++
++use crate::runebeta::models::NewTransactionIn;
++use crate::schema::transaction_ins::dsl::*;
++#[derive(Clone)]
++pub struct TransactionInTable {}
++
++impl<'conn> TransactionInTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn inserts(
++    &self,
++    txs: &Vec<NewTransactionIn>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(transaction_ins::table())
++      .values(txs)
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_transaction_out.rs b/src/runebeta/table_transaction_out.rs
+new file mode 100644
+index 00000000..ec741151
+--- /dev/null
++++ b/src/runebeta/table_transaction_out.rs
+@@ -0,0 +1,53 @@
++use bitcoin::TxIn;
++use diesel::{associations::HasTable, ExpressionMethods, PgConnection, RunQueryDsl};
++
++use super::models::NewTransactionOut;
++use crate::schema::transaction_outs::dsl::*;
++
++#[derive(Clone)]
++pub struct TransactionOutTable {}
++
++impl<'conn> TransactionOutTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn inserts(
++    &self,
++    txs: &Vec<NewTransactionOut>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(transaction_outs::table())
++      .values(txs)
++      .execute(connection)
++  }
++  //Run in the same transaction as txin indexing
++  pub fn spends(
++    &self,
++    txins: &Vec<&TxIn>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    for txin in txins.iter() {
++      diesel::update(transaction_outs)
++        .filter(tx_hash.eq(txin.previous_output.txid.to_string().as_str()))
++        .filter(vout.eq(txin.previous_output.vout as i64))
++        .set(spent.eq(true))
++        .execute(connection)?;
++    }
++    Ok(txins.len())
++  }
++
++  pub fn spend(
++    &self,
++    txins: &Vec<TxIn>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    for txin in txins.iter() {
++      diesel::update(transaction_outs)
++        .filter(tx_hash.eq(txin.previous_output.txid.to_string().as_str()))
++        .filter(vout.eq(txin.previous_output.vout as i64))
++        .set(spent.eq(true))
++        .execute(connection)?;
++    }
++    Ok(txins.len())
++  }
++}
+diff --git a/src/runebeta/table_transaction_rune.rs b/src/runebeta/table_transaction_rune.rs
+new file mode 100644
+index 00000000..15ad8236
+--- /dev/null
++++ b/src/runebeta/table_transaction_rune.rs
+@@ -0,0 +1,21 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl};
++
++use crate::runebeta::models::TransactionRune;
++use crate::schema::txid_runes::dsl::*;
++#[derive(Clone)]
++pub struct TransactionRuneTable {}
++
++impl<'conn> TransactionRuneTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn insert(
++    &self,
++    txs: &Vec<TransactionRune>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(txid_runes::table())
++      .values(txs)
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_transaction_rune_address.rs b/src/runebeta/table_transaction_rune_address.rs
+new file mode 100644
+index 00000000..b8ed9d78
+--- /dev/null
++++ b/src/runebeta/table_transaction_rune_address.rs
+@@ -0,0 +1,21 @@
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl};
++
++use crate::runebeta::models::NewTransactionIn;
++use crate::schema::txid_rune_addresss::dsl::*;
++#[derive(Clone)]
++pub struct TransactionRuneIdAddressTable {}
++
++impl<'conn> TransactionRuneIdAddressTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn insert(
++    &self,
++    txs: &Vec<NewTransactionRuneAddress>,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    diesel::insert_into(txid_rune_addresss::table())
++      .values(txs)
++      .execute(connection)
++  }
++}
+diff --git a/src/runebeta/table_transaction_rune_entry.rs b/src/runebeta/table_transaction_rune_entry.rs
+new file mode 100644
+index 00000000..4185fc63
+--- /dev/null
++++ b/src/runebeta/table_transaction_rune_entry.rs
+@@ -0,0 +1,50 @@
++use bitcoin::Txid;
++use diesel::{associations::HasTable, PgConnection, RunQueryDsl};
++
++use crate::schema::transaction_rune_entries::dsl::*;
++use crate::{RuneEntry, RuneId};
++
++use super::models::{MintEntryType, NewTxRuneEntry, U128};
++#[derive(Clone)]
++pub struct TransactionRuneEntryTable {}
++
++impl<'conn> TransactionRuneEntryTable {
++  pub fn new() -> Self {
++    Self {}
++  }
++  pub fn create(
++    &self,
++    txid: &Txid,
++    rune_id_value: &RuneId,
++    rune_entry: &RuneEntry,
++    connection: &mut PgConnection,
++  ) -> Result<usize, diesel::result::Error> {
++    let etching_value = rune_entry.etching.to_string();
++    let symbol_value = rune_entry.symbol.map(|c| c.to_string());
++    let tx_rune_entry = NewTxRuneEntry {
++      tx_hash: txid.to_string(),
++      // rune_height: rune_id.block as i32,
++      // rune_index: rune_id.tx as i16,
++      rune_id: rune_id_value.to_string(),
++      burned: U128(rune_entry.burned),
++      divisibility: rune_entry.divisibility as i16,
++      etching: etching_value.as_str(),
++      mints: rune_entry.mints as i64,
++      number: rune_entry.block as i64,
++      rune: U128(rune_entry.spaced_rune.rune.0),
++      spacers: rune_entry.spaced_rune.spacers as i32,
++      premine: rune_entry.premine as i64,
++      spaced_rune: rune_entry.spaced_rune.to_string(),
++      supply: U128(0_u128),
++      symbol: symbol_value.as_ref().map(|c| c.as_str()),
++      timestamp: rune_entry.timestamp as i32,
++      mint_entry: rune_entry
++        .terms
++        .map(|entry| MintEntryType::from(&entry))
++        .unwrap_or_default(),
++    };
++    diesel::insert_into(transaction_rune_entries::table())
++      .values(tx_rune_entry)
++      .execute(connection)
++  }
++}
+diff --git a/src/schema.rs b/src/schema.rs
+new file mode 100644
+index 00000000..83a35fff
+--- /dev/null
++++ b/src/schema.rs
+@@ -0,0 +1,108 @@
++// @generated automatically by Diesel CLI.
++
++diesel::table! {
++    blocks (id) {
++        id -> Int8,
++        previous_hash -> Varchar,
++        block_hash -> Varchar,
++        block_height -> Int8,
++        block_time -> Int8,
++    }
++}
++
++diesel::table! {
++    outpoint_rune_balances (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        vout -> Int4,
++        rune_id -> Varchar,
++        balance_value -> Varchar,
++    }
++}
++
++diesel::table! {
++    transaction_ins (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        previous_output_hash -> Varchar,
++        previous_output_vout -> Int4,
++        script_sig -> Text,
++        sequence_number -> Int8,
++        witness -> Text,
++    }
++}
++
++diesel::table! {
++    transaction_outs (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        vout -> Int8,
++        value -> Int8,
++        asm -> Varchar,
++        dust_value -> Int8,
++        address -> Nullable<Varchar>,
++        script_pubkey -> Text,
++        spent -> Bool,
++    }
++}
++
++diesel::table! {
++    transaction_rune_entries (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        rune_id -> Varchar,
++        burned -> Text,
++        divisibility -> Int2,
++        etching -> Varchar,
++        mints -> Int8,
++        number -> Int8,
++        mint_entry -> Jsonb,
++        rune -> Text,
++        spacers -> Int4,
++        premine -> Int8,
++        spaced_rune -> Varchar,
++        supply -> Text,
++        #[max_length = 1]
++        symbol -> Nullable<Bpchar>,
++        timestamp -> Int4,
++    }
++}
++
++diesel::table! {
++    transactions (id) {
++        id -> Int8,
++        block_height -> Int8,
++        version -> Int4,
++        lock_time -> Int4,
++        tx_hash -> Varchar,
++    }
++}
++
++diesel::table! {
++    txid_rune_addresss (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        rune_id -> Varchar,
++        address -> Varchar,
++        spent -> Bool,
++    }
++}
++
++diesel::table! {
++    txid_runes (id) {
++        id -> Int8,
++        tx_hash -> Varchar,
++        rune_id -> Varchar,
++    }
++}
++
++diesel::allow_tables_to_appear_in_same_query!(
++  blocks,
++  outpoint_rune_balances,
++  transaction_ins,
++  transaction_outs,
++  transaction_rune_entries,
++  transactions,
++  txid_rune_addresss,
++  txid_runes,
++);

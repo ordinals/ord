@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  ord_runebeta_mainnet:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: ord_runebeta
+    container_name: ord_runebeta_mainnet
+    restart: always
+    volumes:
+      - ${ORD_INDEX_DIR}:/opt/data
+      - ./run.sh:/opt/run.sh
+      - ../ord_logs:/opt/logs
+    working_dir: /opt
+    command: sleep infinity
+    #command: /opt/run.sh mainnet
+    env_file:
+      - ./.env.mainnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
+    ports:
+      - "${ORD_MAINNET_RPC_PORT}:8088"
+    tty: true
+
+  ord_runebeta_testnet:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: ord_runebeta
+    container_name: ord_runebeta_testnet
+    restart: always
+    volumes:
+      - ${ORD_INDEX_DIR}:/opt/data
+      - ./run.sh:/opt/run.sh
+      - ../ord_logs:/opt/logs
+    working_dir: /opt
+    #command: sleep infinity
+    command: /opt/run.sh testnet
+    env_file:
+      - ./.env.testnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
+    ports:
+      - "${ORD_TESTNET_RPC_PORT}:8088"
+    tty: true  

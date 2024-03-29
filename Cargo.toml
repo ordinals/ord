@@ -33,6 +33,9 @@ ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
 colored = "2.0.4"
 ctrlc = { version = "3.2.1", features = ["termination"] }
+diesel = { version = "2.1", features = ["postgres", "uuid", "serde_json"] }
+deadpool-diesel = { version = "0.4", features = ["postgres"] }
+dotenvy = "0.15"
 dirs = "5.0.0"
 env_logger = "0.11.0"
 futures = "0.3.21"
