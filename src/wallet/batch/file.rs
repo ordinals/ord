@@ -197,7 +197,7 @@ impl File {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, pretty_assertions::assert_eq};
 
   #[test]
   fn batchfile_not_sat_and_satpoint() {
@@ -357,6 +357,93 @@ inscriptions:
         .unwrap_err()
         .to_string(),
       "duplicate satpoint bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0:0"
+    );
+  }
+
+  #[test]
+  fn example_batchfile_deserializes_successfully() {
+    assert_eq!(
+      batch::File::load(Path::new("batch.yaml")).unwrap(),
+      batch::File {
+        mode: batch::Mode::SeparateOutputs,
+        parent: Some(
+          "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
+            .parse()
+            .unwrap()
+        ),
+        postage: Some(12345),
+        reinscribe: true,
+        sat: None,
+        satpoint: None,
+        etching: Some(Etching {
+          rune: "THE•BEST•RUNE".parse().unwrap(),
+          divisibility: 2,
+          premine: "1000.00".parse().unwrap(),
+          supply: "10000.00".parse().unwrap(),
+          symbol: '$',
+          terms: Some(batch::Terms {
+            amount: "100.00".parse().unwrap(),
+            cap: 90,
+            height: Some(batch::Range {
+              start: Some(840000),
+              end: Some(850000),
+            }),
+            offset: Some(batch::Range {
+              start: Some(1000),
+              end: Some(9000),
+            }),
+          }),
+        }),
+        inscriptions: vec![
+          batch::Entry {
+            file: "mango.avif".into(),
+            delegate: Some(
+              "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
+                .parse()
+                .unwrap()
+            ),
+            destination: Some(
+              "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+                .parse()
+                .unwrap()
+            ),
+            metadata: Some(serde_yaml::Value::Mapping({
+              let mut mapping = serde_yaml::Mapping::new();
+              mapping.insert("title".into(), "Delicious Mangos".into());
+              mapping.insert(
+                "description".into(),
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper, \
+                ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit \
+                metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci \
+                mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum \
+                dolor et luctus euismod.\n"
+                  .into(),
+              );
+              mapping
+            })),
+            ..default()
+          },
+          batch::Entry {
+            file: "token.json".into(),
+            metaprotocol: Some("DOPEPROTOCOL-42069".into()),
+            ..default()
+          },
+          batch::Entry {
+            file: "tulip.png".into(),
+            destination: Some(
+              "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
+                .parse()
+                .unwrap()
+            ),
+            metadata: Some(serde_yaml::Value::Mapping({
+              let mut mapping = serde_yaml::Mapping::new();
+              mapping.insert("author".into(), "Satoshi Nakamoto".into());
+              mapping
+            })),
+            ..default()
+          },
+        ],
+      }
     );
   }
 }
