@@ -6,7 +6,7 @@ use nix::{
   unistd::Pid,
 };
 
-#[cfg(not(unix))]
+#[cfg(windows)]
 use winapi::um::wincon::{GenerateConsoleCtrlEvent, CTRL_C_EVENT};
 
 #[test]
