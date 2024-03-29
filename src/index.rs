@@ -48,19 +48,6 @@ pub(crate) mod testing;
 
 const SCHEMA_VERSION: u64 = 24;
 
-macro_rules! define_table {
-  ($name:ident, $key:ty, $value:ty) => {
-    const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
-  };
-}
-
-macro_rules! define_multimap_table {
-  ($name:ident, $key:ty, $value:ty) => {
-    const $name: MultimapTableDefinition<$key, $value> =
-      MultimapTableDefinition::new(stringify!($name));
-  };
-}
-
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }

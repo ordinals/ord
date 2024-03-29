@@ -1,4 +1,11 @@
-use {super::*, ord::subcommand::wallet::send};
+use {
+  super::*,
+  nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  },
+  ord::subcommand::wallet::send,
+};
 
 fn receive(
   bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
@@ -2515,37 +2522,55 @@ fn batch_inscribe_errors_if_pending_etchings() {
 
   let tempdir = Arc::new(TempDir::new().unwrap());
 
-  let mut builder =
-    CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
-      .temp_dir(tempdir.clone())
-      .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
-      .write("inscription.jpeg", "inscription")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
-      .ord_rpc_server(&ord_rpc_server);
+  {
+    let mut spawn =
+      CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
+        .temp_dir(tempdir.clone())
+        .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
+        .write("inscription.jpeg", "inscription")
+        .bitcoin_rpc_server(&bitcoin_rpc_server)
+        .ord_rpc_server(&ord_rpc_server)
+        .expected_exit_code(1)
+        .spawn();
 
-  let mut spawn = builder.spawn();
+    let mut buffer = String::new();
 
-  let mut buffer = String::new();
+    BufReader::new(spawn.child.stderr.as_mut().unwrap())
+      .read_line(&mut buffer)
+      .unwrap();
 
-  dbg!();
+    assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
 
-  BufReader::new(spawn.child.stderr.as_mut().unwrap())
-    .read_line(&mut buffer)
-    .unwrap();
+    bitcoin_rpc_server.mine_blocks(1);
 
-  assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
+    spawn.child.kill().unwrap();
 
-  dbg!();
-  bitcoin_rpc_server.mine_blocks(1);
+//    let pid = Pid::from_raw(spawn.child.id() as i32);
+//    signal::kill(pid, Signal::SIGINT).unwrap();
+//
+//    buffer.clear();
+//
+//    BufReader::new(spawn.child.stdout.as_mut().unwrap())
+//      .read_line(&mut buffer)
+//      .unwrap();
+//
+//    assert_eq!(
+//      buffer,
+//      "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
+//    );
 
-  spawn.child.kill().unwrap();
+    spawn.child.wait().unwrap();
+  }
 
-  dbg!();
-  CommandBuilder::new("--regtest --index-runes wallet inscribe --fee-rate 0 --batch batch.yaml")
+  CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
     .temp_dir(tempdir)
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: ")
+    // .stderr_regex(".*")
+    .stdout_regex(".*")
+    .expected_stderr(
+      "error: rune `AAAAAAAAAAAAA` has a pending etching, resume it with `ord wallet resume`\n",
+    )
     .run_and_extract_stdout();
 }

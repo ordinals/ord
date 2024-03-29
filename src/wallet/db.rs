@@ -15,12 +15,6 @@ mod entry;
 
 const SCHEMA_VERSION: u64 = 1;
 
-macro_rules! define_table {
-  ($name:ident, $key:ty, $value:ty) => {
-    const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
-  };
-}
-
 define_table! { RUNE_TO_INFO, u128, ResumeEntryValue }
 define_table! { STATISTICS, u64, u64 }
 
@@ -52,17 +46,17 @@ impl Db {
     settings: &Settings,
     wallet_db: Option<PathBuf>,
   ) -> Result<Self> {
-    let durability = if cfg!(test) {
-      redb::Durability::None
-    } else {
-      redb::Durability::Immediate
-    };
-
     let path = wallet_db.unwrap_or_else(|| settings.data_dir().join(format!("{wallet_name}.redb")));
     let path_clone = path.clone().to_owned();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
     let integration_test = settings.integration_test();
+
+    let durability = if cfg!(test) {
+      redb::Durability::None
+    } else {
+      redb::Durability::Immediate
+    };
 
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| {

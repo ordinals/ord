@@ -6,6 +6,6 @@ pub struct Output {
   pub reveal: Txid,
 }
 
-pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+pub(crate) fn run(_wallet: Wallet) -> SubcommandResult {
   Ok(None)
 }

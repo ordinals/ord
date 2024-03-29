@@ -69,6 +69,11 @@ impl Batch {
   fn check_etching(wallet: &Wallet, etching: &batch::Etching) -> Result {
     let rune = etching.rune.rune;
 
+    ensure!(
+      wallet.db().retrieve(rune)?.is_none(),
+      "rune `{rune}` has a pending etching, resume it with `ord wallet resume`"
+    );
+
     ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
 
     ensure!(

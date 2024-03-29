@@ -98,15 +98,6 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
-macro_rules! tprintln {
-  ($($arg:tt)*) => {
-    if cfg!(test) {
-      eprint!("==> ");
-      eprintln!($($arg)*);
-    }
-  };
-}
-
 pub mod api;
 pub mod arguments;
 mod blocktime;
@@ -117,6 +108,7 @@ mod fee_rate;
 pub mod index;
 mod inscriptions;
 mod into_usize;
+mod macros;
 mod object;
 pub mod options;
 pub mod outgoing;
