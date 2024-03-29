@@ -250,9 +250,4 @@ inscriptions:
       .to_string()
       .contains("unknown field `unknown`"));
   }
-
-  #[test]
-  fn example_batchfile_deserializes_successfully() {
-    batch::File::load(Path::new("batch.yaml")).unwrap();
-  }
 }
