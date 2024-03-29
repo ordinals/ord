@@ -240,7 +240,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .write("degenerate.png", [1; 100])
   .bitcoin_rpc_server(&bitcoin_rpc_server)
   .ord_rpc_server(&ord_rpc_server)
-  .run_and_deserialize_output::<Inscribe>();
+  .run_and_deserialize_output::<Batch>();
 
   let txid = bitcoin_rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -333,7 +333,7 @@ inscriptions:
     )
     .bitcoin_rpc_server(&bitcoin_rpc_server)
     .ord_rpc_server(&ord_rpc_server)
-    .run_and_deserialize_output::<Inscribe>();
+    .run_and_deserialize_output::<Batch>();
 
   let reveal_txid = inscribe.reveal;
 
