@@ -657,20 +657,20 @@ fn ctrl_c() {
     thread::sleep(Duration::from_millis(50));
   }
 
-  let pid = Pid::from_raw(spawn.child.id() as i32);
-
   #[cfg(unix)]
   {
-    signal::kill(pid, Signal::SIGINT).unwrap();
+    signal::kill(Pid::from_raw(spawn.child.id() as i32), Signal::SIGINT).unwrap();
   }
 
   #[cfg(windows)]
   unsafe {
-    if GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid) == 0 {
+    let result = if GenerateConsoleCtrlEvent(CTRL_C_EVENT, child.id()) == 0 {
       Err(std::io::Error::last_os_error())
     } else {
       Ok(())
-    }
+    };
+
+    result.unwrap();
   }
 
   let mut buffer = String::new();
