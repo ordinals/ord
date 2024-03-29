@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-pub(super) struct Shared {
+pub(super) struct SharedArgs {
   #[arg(
     long,
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."

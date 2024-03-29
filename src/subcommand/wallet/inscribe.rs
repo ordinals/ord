@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[command(flatten)]
-  shared: Shared,
+  shared: SharedArgs,
   #[arg(
     long,
     help = "Include CBOR in file at <METADATA> as inscription metadata",

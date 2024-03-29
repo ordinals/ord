@@ -3,7 +3,7 @@ use {
   crate::wallet::{batch, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   reqwest::Url,
-  shared::Shared,
+  shared_args::SharedArgs,
 };
 
 pub mod balance;
@@ -19,7 +19,7 @@ pub mod receive;
 pub mod restore;
 pub mod sats;
 pub mod send;
-mod shared;
+mod shared_args;
 pub mod transactions;
 
 #[derive(Debug, Parser)]

@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Batch {
   #[command(flatten)]
-  shared: Shared,
+  shared: SharedArgs,
   #[arg(
     long,
     help = "Inscribe multiple inscriptions and rune defined in YAML <BATCH_FILE>."
