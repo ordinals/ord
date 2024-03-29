@@ -276,9 +276,8 @@ runestone is a cenotaph.
 ##### Rune
 
 The `Rune` field contains the name of the rune being etched. If the `Etching`
-flag is set, but the `Rune` field is omitted, a reserved rune name is
-allocated, starting with `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one
-with each such reserved rune allocated.
+flag is set but the `Rune` field is omitted, a reserved rune name is
+allocated.
 
 ##### Premine
 
@@ -428,8 +427,19 @@ And so on and so on.
 
 Rune names `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and above are reserved.
 
-`rune` may be omitted, in which case the first unallocated rune name, starting
-at `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one each time, is etched.
+If `rune` is omitted a reserved rune name is allocated as follows:
+
+```rust
+fn reserve(block: u64, tx: u32) -> Rune {
+  Rune(
+    6402364363415443603228541259936211926
+    + (u128::from(block) << 32 | u128::from(tx))
+  )
+}
+```
+
+`6402364363415443603228541259936211926` corresponds to the rune name
+`AAAAAAAAAAAAAAAAAAAAAAAAAAA`.
 
 If `rune` is present, it must be unlocked as of the block in which the etching
 appears.

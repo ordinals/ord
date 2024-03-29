@@ -308,7 +308,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         .statistic_to_count
         .insert(&Statistic::ReservedRunes.into(), reserved_runes + 1)?;
 
-      Rune::reserved(reserved_runes.into()).unwrap()
+      Rune::reserved(self.height.into(), tx_index)
     };
 
     Ok(Some(Etched {
