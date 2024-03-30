@@ -15,3 +15,20 @@ impl Cenotaph {
       .collect()
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn flaws() {
+    assert_eq!(
+      Cenotaph {
+        flaws: Flaw::Opcode.flag() | Flaw::Varint.flag(),
+        ..default()
+      }
+      .flaws(),
+      vec![Flaw::Opcode, Flaw::Varint],
+    );
+  }
+}
