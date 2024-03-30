@@ -326,7 +326,7 @@ mod tests {
       lock_time: LockTime::ZERO,
       version: 2,
     })
-    .is_err(),);
+    .is_err());
   }
 
   #[test]
