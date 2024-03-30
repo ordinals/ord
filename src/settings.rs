@@ -649,7 +649,7 @@ mod tests {
 
   #[test]
   fn rpc_server_chain_must_match() {
-    let rpc_server = test_bitcoincore_rpc::builder()
+    let rpc_server = mockcore::builder()
       .network(Network::Testnet)
       .build();
 

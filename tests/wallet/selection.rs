@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn inscribe_does_not_select_runic_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -26,7 +26,7 @@ fn inscribe_does_not_select_runic_utxos() {
 
 #[test]
 fn send_amount_does_not_select_runic_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -49,7 +49,7 @@ fn send_amount_does_not_select_runic_utxos() {
 
 #[test]
 fn send_satpoint_does_not_send_runic_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -82,7 +82,7 @@ fn send_satpoint_does_not_send_runic_utxos() {
 
 #[test]
 fn send_inscription_does_not_select_runic_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -118,7 +118,7 @@ fn send_inscription_does_not_select_runic_utxos() {
 
 #[test]
 fn mint_does_not_select_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -170,7 +170,7 @@ fn mint_does_not_select_inscription() {
 
 #[test]
 fn sending_rune_does_not_send_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 

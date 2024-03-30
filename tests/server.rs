@@ -2,7 +2,7 @@ use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -36,7 +36,7 @@ fn run() {
 
 #[test]
 fn inscription_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -94,7 +94,7 @@ fn inscription_page() {
 
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -111,7 +111,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 
 #[test]
 fn multiple_inscriptions_appear_on_reveal_transaction_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -143,7 +143,7 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
 
 #[test]
 fn inscription_appears_on_output_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -160,7 +160,7 @@ fn inscription_appears_on_output_page() {
 
 #[test]
 fn inscription_page_after_send() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -197,7 +197,7 @@ fn inscription_page_after_send() {
 
 #[test]
 fn inscription_content() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -243,7 +243,7 @@ fn inscription_metadata() {
   ]);
   ciborium::ser::into_writer(&cbor_map, &mut encoded_metadata).unwrap();
 
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -280,7 +280,7 @@ fn inscription_metadata() {
 
 #[test]
 fn recursive_inscription_endpoint() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
@@ -332,7 +332,7 @@ fn recursive_inscription_endpoint() {
 
 #[test]
 fn inscriptions_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -353,7 +353,7 @@ fn inscriptions_page() {
 
 #[test]
 fn inscriptions_page_is_sorted() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -370,7 +370,7 @@ fn inscriptions_page_is_sorted() {
 
 #[test]
 fn inscriptions_page_has_next_and_previous() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -394,7 +394,7 @@ fn inscriptions_page_has_next_and_previous() {
 
 #[test]
 fn expected_sat_time_is_rounded() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/sat/2099999997689999",
@@ -404,7 +404,7 @@ fn expected_sat_time_is_rounded() {
 
 #[test]
 fn missing_credentials() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   CommandBuilder::new("--bitcoin-rpc-username foo server")
     .bitcoin_rpc_server(&rpc_server)
@@ -421,7 +421,7 @@ fn missing_credentials() {
 
 #[test]
 fn all_endpoints_in_recursive_directory_return_json() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   bitcoin_rpc_server.mine_blocks(2);
 
@@ -454,7 +454,7 @@ fn all_endpoints_in_recursive_directory_return_json() {
 
 #[test]
 fn sat_recursive_endpoints_without_sat_index_return_404() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -473,7 +473,7 @@ fn sat_recursive_endpoints_without_sat_index_return_404() {
 
 #[test]
 fn inscription_transactions_are_stored_with_transaction_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-transactions"], &[]);
@@ -509,7 +509,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
 
 #[test]
 fn run_no_sync() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -578,7 +578,7 @@ fn run_no_sync() {
 
 #[test]
 fn authentication() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()

@@ -5,7 +5,7 @@ use {
 
 #[test]
 fn find_command_returns_satpoint_for_sat() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   assert_eq!(
     CommandBuilder::new("--index-sats find 0")
       .bitcoin_rpc_server(&rpc_server)
@@ -20,7 +20,7 @@ fn find_command_returns_satpoint_for_sat() {
 
 #[test]
 fn find_range_command_returns_satpoints_and_ranges() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   rpc_server.mine_blocks(1);
 
@@ -57,7 +57,7 @@ fn find_range_command_returns_satpoints_and_ranges() {
 
 #[test]
 fn find_range_command_fails_for_unmined_sat_ranges() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   CommandBuilder::new(format!(
     "--index-sats find {} {}",
@@ -72,7 +72,7 @@ fn find_range_command_fails_for_unmined_sat_ranges() {
 
 #[test]
 fn unmined_sat() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   CommandBuilder::new("--index-sats find 5000000000")
     .bitcoin_rpc_server(&rpc_server)
     .expected_stderr("error: sat has not been mined as of index height\n")
@@ -82,7 +82,7 @@ fn unmined_sat() {
 
 #[test]
 fn no_satoshi_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   CommandBuilder::new("find 0")
     .bitcoin_rpc_server(&rpc_server)
     .expected_stderr("error: find requires index created with `--index-sats` flag\n")

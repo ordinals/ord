@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn dumped_descriptors_match_wallet_descriptors() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -22,7 +22,7 @@ fn dumped_descriptors_match_wallet_descriptors() {
 
 #[test]
 fn dumped_descriptors_restore() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -33,7 +33,7 @@ fn dumped_descriptors_restore() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet restore --from descriptor")
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())
@@ -50,7 +50,7 @@ fn dumped_descriptors_restore() {
 
 #[test]
 fn dump_and_restore_descriptors_with_minify() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -61,7 +61,7 @@ fn dump_and_restore_descriptors_with_minify() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet restore --from descriptor")
     .stdin(serde_json::to_string(&output).unwrap().as_bytes().to_vec())

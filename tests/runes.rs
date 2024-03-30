@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::runes::Output};
 
 #[test]
 fn flag_is_required() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -18,7 +18,7 @@ fn flag_is_required() {
 
 #[test]
 fn no_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -34,7 +34,7 @@ fn no_runes() {
 
 #[test]
 fn one_rune() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -80,7 +80,7 @@ fn one_rune() {
 
 #[test]
 fn two_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 

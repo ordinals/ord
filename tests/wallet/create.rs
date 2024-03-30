@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::create::Output};
 
 #[test]
 fn create() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   assert!(!rpc_server.wallets().contains("ord"));
 
@@ -16,7 +16,7 @@ fn create() {
 #[test]
 fn seed_phrases_are_twelve_words_long() {
   let Output { mnemonic, .. } = CommandBuilder::new("wallet create")
-    .bitcoin_rpc_server(&test_bitcoincore_rpc::spawn())
+    .bitcoin_rpc_server(&mockcore::spawn())
     .run_and_deserialize_output();
 
   assert_eq!(mnemonic.word_count(), 12);
@@ -24,7 +24,7 @@ fn seed_phrases_are_twelve_words_long() {
 
 #[test]
 fn wallet_creates_correct_mainnet_taproot_descriptor() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet create")
     .bitcoin_rpc_server(&rpc_server)
@@ -43,7 +43,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 
 #[test]
 fn wallet_creates_correct_test_network_taproot_descriptor() {
-  let rpc_server = test_bitcoincore_rpc::builder()
+  let rpc_server = mockcore::builder()
     .network(Network::Signet)
     .build();
 
@@ -64,7 +64,7 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
 
 #[test]
 fn detect_wrong_descriptors() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet create")
     .bitcoin_rpc_server(&rpc_server)
@@ -83,7 +83,7 @@ fn detect_wrong_descriptors() {
 
 #[test]
 fn create_with_different_name() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   assert!(!rpc_server.wallets().contains("inscription-wallet"));
 

@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::transactions::Output};
 
 #[test]
 fn transactions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -29,7 +29,7 @@ fn transactions() {
 
 #[test]
 fn transactions_with_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);

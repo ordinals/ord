@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::balance::Output};
 
 #[test]
 fn authentication() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,

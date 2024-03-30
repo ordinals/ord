@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::index::info::TransactionsOutput};
 
 #[test]
 fn json_with_satoshi_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   CommandBuilder::new("--index-sats index info")
     .bitcoin_rpc_server(&rpc_server)
     .stdout_regex(
@@ -36,7 +36,7 @@ fn json_with_satoshi_index() {
 
 #[test]
 fn json_without_satoshi_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   CommandBuilder::new("index info")
     .bitcoin_rpc_server(&rpc_server)
     .stdout_regex(
@@ -70,7 +70,7 @@ fn json_without_satoshi_index() {
 
 #[test]
 fn transactions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
 
   let tempdir = TempDir::new().unwrap();
 

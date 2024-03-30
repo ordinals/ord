@@ -1900,14 +1900,14 @@ mod tests {
 
   #[derive(Default)]
   struct Builder {
-    bitcoin_rpc_server: Option<test_bitcoincore_rpc::Handle>,
+    bitcoin_rpc_server: Option<mockcore::Handle>,
     config: String,
     ord_args: BTreeMap<String, Option<String>>,
     server_args: BTreeMap<String, Option<String>>,
   }
 
   impl Builder {
-    fn bitcoin_rpc_server(self, bitcoin_rpc_server: test_bitcoincore_rpc::Handle) -> Self {
+    fn bitcoin_rpc_server(self, bitcoin_rpc_server: mockcore::Handle) -> Self {
       Self {
         bitcoin_rpc_server: Some(bitcoin_rpc_server),
         ..self
@@ -1947,7 +1947,7 @@ mod tests {
 
     fn build(self) -> TestServer {
       let bitcoin_rpc_server = self.bitcoin_rpc_server.unwrap_or_else(|| {
-        test_bitcoincore_rpc::builder()
+        mockcore::builder()
           .network(
             self
               .ord_args
@@ -2083,7 +2083,7 @@ mod tests {
   }
 
   struct TestServer {
-    bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: mockcore::Handle,
     index: Arc<Index>,
     ord_server_handle: Handle,
     #[allow(unused)]
@@ -6063,7 +6063,7 @@ next
 
   #[test]
   fn inscriptions_can_be_hidden_with_config() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    let bitcoin_rpc_server = mockcore::builder()
       .network(Chain::Regtest.network())
       .build();
 

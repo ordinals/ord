@@ -126,7 +126,7 @@ impl CommandBuilder {
 
   pub(crate) fn bitcoin_rpc_server(
     self,
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+    bitcoin_rpc_server: &mockcore::Handle,
   ) -> Self {
     Self {
       bitcoin_rpc_server_url: Some(bitcoin_rpc_server.url()),

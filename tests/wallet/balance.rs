@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::balance::Output};
 
 #[test]
 fn wallet_balance() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -36,7 +36,7 @@ fn wallet_balance() {
 
 #[test]
 fn inscribed_utxos_are_deducted_from_cardinal() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -75,7 +75,7 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
 
 #[test]
 fn runic_utxos_are_deducted_from_cardinal() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -140,7 +140,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
 }
 #[test]
 fn unsynced_wallet_fails_with_unindexed_output() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);

@@ -1,7 +1,7 @@
 use {super::*, ord::subcommand::wallet::send};
 
 fn receive(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  bitcoin_rpc_server: &mockcore::Handle,
   ord_rpc_server: &TestServer,
 ) -> Address {
   let address = CommandBuilder::new("wallet receive")
@@ -20,7 +20,7 @@ fn receive(
 
 #[test]
 fn batch_inscribe_fails_if_batchfile_has_no_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -40,7 +40,7 @@ fn batch_inscribe_fails_if_batchfile_has_no_inscriptions() {
 
 #[test]
 fn batch_inscribe_can_create_one_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -79,7 +79,7 @@ fn batch_inscribe_can_create_one_inscription() {
 
 #[test]
 fn batch_inscribe_with_multiple_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -122,7 +122,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
 
 #[test]
 fn batch_inscribe_with_multiple_inscriptions_with_parent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -173,7 +173,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 
 #[test]
 fn batch_inscribe_respects_dry_run_flag() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -202,7 +202,7 @@ fn batch_inscribe_respects_dry_run_flag() {
 
 #[test]
 fn batch_in_same_output_but_different_satpoints() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -269,7 +269,7 @@ fn batch_in_same_output_but_different_satpoints() {
 
 #[test]
 fn batch_in_same_output_with_non_default_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -337,7 +337,7 @@ fn batch_in_same_output_with_non_default_postage() {
 
 #[test]
 fn batch_in_separate_outputs_with_parent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -414,7 +414,7 @@ fn batch_in_separate_outputs_with_parent() {
 
 #[test]
 fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -492,7 +492,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
 
 #[test]
 fn batch_inscribe_fails_if_invalid_network_destination_address() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -514,7 +514,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
 
 #[test]
 fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -545,7 +545,7 @@ fn batch_inscribe_fails_with_shared_output_or_same_sat_and_destination_set() {
 
 #[test]
 fn batch_inscribe_works_with_some_destinations_set_and_others_not() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -604,7 +604,7 @@ inscriptions:
 
 #[test]
 fn batch_same_sat() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -669,7 +669,7 @@ fn batch_same_sat() {
 
 #[test]
 fn batch_same_sat_with_parent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -752,7 +752,7 @@ fn batch_same_sat_with_parent() {
 
 #[test]
 fn batch_same_sat_with_satpoint_and_reinscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -850,7 +850,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
 
 #[test]
 fn batch_inscribe_with_sat_argument_with_parent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -897,7 +897,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
 
 #[test]
 fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -922,7 +922,7 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
 
 #[test]
 fn batch_inscribe_with_satpoint() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -956,7 +956,7 @@ fn batch_inscribe_with_satpoint() {
 
 #[test]
 fn batch_inscribe_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -1015,7 +1015,7 @@ fn batch_inscribe_with_fee_rate() {
 
 #[test]
 fn batch_inscribe_with_delegate_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1053,7 +1053,7 @@ inscriptions:
 
 #[test]
 fn batch_inscribe_with_non_existent_delegate_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1084,7 +1084,7 @@ inscriptions:
 
 #[test]
 fn batch_inscribe_with_satpoints_with_parent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -1248,7 +1248,7 @@ inscriptions:
 
 #[test]
 fn batch_inscribe_with_satpoints_with_different_sizes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -1424,7 +1424,7 @@ inscriptions:
 
 #[test]
 fn batch_inscribe_can_etch_rune() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1497,7 +1497,7 @@ fn batch_inscribe_can_etch_rune() {
 
 #[test]
 fn batch_inscribe_can_etch_rune_with_offset() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1573,7 +1573,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
 
 #[test]
 fn batch_inscribe_can_etch_rune_with_height() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1649,7 +1649,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
 
 #[test]
 fn etch_existing_rune_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1693,7 +1693,7 @@ fn etch_existing_rune_error() {
 
 #[test]
 fn etch_reserved_rune_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1737,7 +1737,7 @@ fn etch_reserved_rune_error() {
 
 #[test]
 fn etch_sub_minimum_rune_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1781,7 +1781,7 @@ fn etch_sub_minimum_rune_error() {
 
 #[test]
 fn etch_requires_rune_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1824,7 +1824,7 @@ fn etch_requires_rune_index() {
 
 #[test]
 fn etch_divisibility_over_maximum_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1868,7 +1868,7 @@ fn etch_divisibility_over_maximum_error() {
 
 #[test]
 fn etch_mintable_overflow_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1920,7 +1920,7 @@ fn etch_mintable_overflow_error() {
 
 #[test]
 fn etch_mintable_plus_premine_overflow_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1972,7 +1972,7 @@ fn etch_mintable_plus_premine_overflow_error() {
 
 #[test]
 fn incorrect_supply_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2024,7 +2024,7 @@ fn incorrect_supply_error() {
 
 #[test]
 fn zero_offset_interval_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2076,7 +2076,7 @@ fn zero_offset_interval_error() {
 
 #[test]
 fn zero_height_interval_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2128,7 +2128,7 @@ fn zero_height_interval_error() {
 
 #[test]
 fn invalid_start_height_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2182,7 +2182,7 @@ fn invalid_start_height_error() {
 
 #[test]
 fn invalid_end_height_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2236,7 +2236,7 @@ fn invalid_end_height_error() {
 
 #[test]
 fn zero_supply_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2280,7 +2280,7 @@ fn zero_supply_error() {
 
 #[test]
 fn zero_cap_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2329,7 +2329,7 @@ fn zero_cap_error() {
 
 #[test]
 fn zero_amount_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2378,7 +2378,7 @@ fn zero_amount_error() {
 
 #[test]
 fn oversize_runestone_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -2433,7 +2433,7 @@ fn oversize_runestone_error() {
 
 #[test]
 fn oversize_runestones_are_allowed_with_no_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 

@@ -97,7 +97,7 @@ fn from_stdin() {
 
 #[test]
 fn from_core() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);

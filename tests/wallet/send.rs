@@ -2,7 +2,7 @@ use {super::*, base64::Engine, bitcoin::psbt::Psbt};
 
 #[test]
 fn inscriptions_can_be_sent() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -49,7 +49,7 @@ fn inscriptions_can_be_sent() {
 
 #[test]
 fn send_unknown_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -69,7 +69,7 @@ fn send_unknown_inscription() {
 
 #[test]
 fn send_inscribed_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -102,7 +102,7 @@ fn send_inscribed_inscription() {
 
 #[test]
 fn send_uninscribed_sat() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -126,7 +126,7 @@ fn send_uninscribed_sat() {
 
 #[test]
 fn send_inscription_by_sat() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -164,7 +164,7 @@ fn send_inscription_by_sat() {
 
 #[test]
 fn send_on_mainnnet_works_with_wallet_named_foo() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -185,7 +185,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
 #[test]
 fn send_addresses_must_be_valid_for_network() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder().build();
+  let bitcoin_rpc_server = mockcore::builder().build();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -207,7 +207,7 @@ fn send_addresses_must_be_valid_for_network() {
 
 #[test]
 fn send_on_mainnnet_works_with_wallet_named_ord() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder().build();
+  let bitcoin_rpc_server = mockcore::builder().build();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -227,7 +227,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 
 #[test]
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -255,7 +255,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
 #[test]
 fn do_not_send_within_dust_limit_of_an_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -284,7 +284,7 @@ fn do_not_send_within_dust_limit_of_an_inscription() {
 
 #[test]
 fn can_send_after_dust_limit_from_an_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -309,7 +309,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
 
 #[test]
 fn splitting_merged_inscriptions_is_possible() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -421,7 +421,7 @@ inscriptions:
 
 #[test]
 fn inscriptions_cannot_be_sent_by_satpoint() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -443,7 +443,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
 
 #[test]
 fn send_btc_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -489,7 +489,7 @@ fn send_btc_with_fee_rate() {
 
 #[test]
 fn send_btc_locks_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -512,7 +512,7 @@ fn send_btc_locks_inscriptions() {
 
 #[test]
 fn send_btc_fails_if_lock_unspent_fails() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .fail_lock_unspent(true)
     .build();
 
@@ -532,7 +532,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
 
 #[test]
 fn wallet_send_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -568,7 +568,7 @@ fn wallet_send_with_fee_rate() {
 
 #[test]
 fn user_must_provide_fee_rate_to_send() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -593,7 +593,7 @@ fn user_must_provide_fee_rate_to_send() {
 
 #[test]
 fn wallet_send_with_fee_rate_and_target_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -630,7 +630,7 @@ fn wallet_send_with_fee_rate_and_target_postage() {
 
 #[test]
 fn send_btc_does_not_send_locked_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -651,7 +651,7 @@ fn send_btc_does_not_send_locked_utxos() {
 
 #[test]
 fn send_dry_run() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -688,7 +688,7 @@ fn send_dry_run() {
 
 #[test]
 fn sending_rune_that_has_not_been_etched_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -712,7 +712,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
 
 #[test]
 fn sending_rune_with_excessive_precision_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -736,7 +736,7 @@ fn sending_rune_with_excessive_precision_is_an_error() {
 
 #[test]
 fn sending_rune_with_insufficient_balance_is_an_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -760,7 +760,7 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
 
 #[test]
 fn sending_rune_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -813,7 +813,7 @@ fn sending_rune_works() {
 
 #[test]
 fn sending_spaced_rune_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -865,7 +865,7 @@ fn sending_spaced_rune_works() {
 
 #[test]
 fn sending_rune_with_divisibility_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -953,7 +953,7 @@ fn sending_rune_with_divisibility_works() {
 
 #[test]
 fn sending_rune_leaves_unspent_runes_in_wallet() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1028,7 +1028,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
 
 #[test]
 fn sending_rune_creates_transaction_with_expected_runestone() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -1118,7 +1118,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
 
 #[test]
 fn error_messages_use_spaced_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 

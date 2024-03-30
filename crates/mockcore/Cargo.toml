@@ -1,6 +1,6 @@
 [package]
-name = "test-bitcoincore-rpc"
-description = "Test Bitcoin Core RPC server"
+name = "mockcore"
+description = "Mock Bitcoin Core RPC server"
 version = "0.0.1"
 edition = "2021"
 license = "CC0-1.0"

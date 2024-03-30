@@ -33,7 +33,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
-  test_bitcoincore_rpc::TransactionTemplate,
+  mockcore::TransactionTemplate,
 };
 
 macro_rules! assert_regex_match {
@@ -79,7 +79,7 @@ type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Supply = ord::subcommand::supply::Output;
 
-fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {
+fn create_wallet(bitcoin_rpc_server: &mockcore::Handle, ord_rpc_server: &TestServer) {
   CommandBuilder::new(format!(
     "--chain {} wallet create",
     bitcoin_rpc_server.network()
@@ -90,7 +90,7 @@ fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_serv
 }
 
 fn sats(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  bitcoin_rpc_server: &mockcore::Handle,
   ord_rpc_server: &TestServer,
 ) -> Vec<ord::subcommand::wallet::sats::OutputRare> {
   CommandBuilder::new(format!(
@@ -103,7 +103,7 @@ fn sats(
 }
 
 fn inscribe(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  bitcoin_rpc_server: &mockcore::Handle,
   ord_rpc_server: &TestServer,
 ) -> (InscriptionId, Txid) {
   bitcoin_rpc_server.mine_blocks(1);
@@ -124,7 +124,7 @@ fn inscribe(
   (output.inscriptions[0].id, output.reveal)
 }
 
-fn drain(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &TestServer) {
+fn drain(bitcoin_rpc_server: &mockcore::Handle, ord_rpc_server: &TestServer) {
   let balance = CommandBuilder::new("--regtest --index-runes wallet balance")
     .bitcoin_rpc_server(bitcoin_rpc_server)
     .ord_rpc_server(ord_rpc_server)
@@ -161,7 +161,7 @@ struct Etched {
 }
 
 fn etch(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  bitcoin_rpc_server: &mockcore::Handle,
   ord_rpc_server: &TestServer,
   rune: Rune,
 ) -> Etched {
@@ -187,7 +187,7 @@ fn etch(
 }
 
 fn batch(
-  bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+  bitcoin_rpc_server: &mockcore::Handle,
   ord_rpc_server: &TestServer,
   batchfile: batch::File,
 ) -> Etched {

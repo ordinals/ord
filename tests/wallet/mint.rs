@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::mint};
 
 #[test]
 fn minting_rune_and_fails_if_after_end() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -103,7 +103,7 @@ fn minting_rune_and_fails_if_after_end() {
 
 #[test]
 fn minting_rune_fails_if_not_mintable() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -148,7 +148,7 @@ fn minting_rune_fails_if_not_mintable() {
 
 #[test]
 fn minting_rune_with_no_rune_index_fails() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -171,7 +171,7 @@ fn minting_rune_with_no_rune_index_fails() {
 
 #[test]
 fn minting_rune_and_then_sending_works() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 

@@ -6,7 +6,7 @@ use {
 
 #[test]
 fn inscribe_creates_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
@@ -31,7 +31,7 @@ fn inscribe_creates_inscriptions() {
 
 #[test]
 fn inscribe_works_with_huge_expensive_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -49,7 +49,7 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
 
 #[test]
 fn metaprotocol_appears_on_inscription_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -74,7 +74,7 @@ fn metaprotocol_appears_on_inscription_page() {
 
 #[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder().version(230000).build();
+  let bitcoin_rpc_server = mockcore::builder().version(230000).build();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   CommandBuilder::new("wallet inscribe --file hello.txt --fee-rate 1")
@@ -88,7 +88,7 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
 
 #[test]
 fn inscribe_no_backup() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   bitcoin_rpc_server.mine_blocks(1);
@@ -108,7 +108,7 @@ fn inscribe_no_backup() {
 
 #[test]
 fn inscribe_unknown_file_extension() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -126,7 +126,7 @@ fn inscribe_unknown_file_extension() {
 
 #[test]
 fn inscribe_exceeds_chain_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Signet)
     .build();
 
@@ -147,7 +147,7 @@ fn inscribe_exceeds_chain_limit() {
 
 #[test]
 fn regtest_has_no_content_size_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -167,7 +167,7 @@ fn regtest_has_no_content_size_limit() {
 
 #[test]
 fn mainnet_has_no_content_size_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Bitcoin)
     .build();
 
@@ -187,7 +187,7 @@ fn mainnet_has_no_content_size_limit() {
 
 #[test]
 fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -207,7 +207,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
 #[test]
 fn refuse_to_reinscribe_sats() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -231,7 +231,7 @@ fn refuse_to_reinscribe_sats() {
 
 #[test]
 fn refuse_to_inscribe_already_inscribed_utxo() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -258,7 +258,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 
 #[test]
 fn inscribe_with_optional_satpoint_arg() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
@@ -292,7 +292,7 @@ fn inscribe_with_optional_satpoint_arg() {
 
 #[test]
 fn inscribe_with_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -347,7 +347,7 @@ fn inscribe_with_fee_rate() {
 
 #[test]
 fn inscribe_with_commit_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
@@ -395,7 +395,7 @@ fn inscribe_with_commit_fee_rate() {
 
 #[test]
 fn inscribe_with_wallet_named_foo() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   CommandBuilder::new("wallet --name foo create")
@@ -414,7 +414,7 @@ fn inscribe_with_wallet_named_foo() {
 
 #[test]
 fn inscribe_with_dry_run_flag() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -447,7 +447,7 @@ fn inscribe_with_dry_run_flag() {
 
 #[test]
 fn inscribe_with_dry_run_flag_fees_increase() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -475,7 +475,7 @@ fn inscribe_with_dry_run_flag_fees_increase() {
 
 #[test]
 fn inscribe_to_specific_destination() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -510,7 +510,7 @@ fn inscribe_to_specific_destination() {
 
 #[test]
 fn inscribe_to_address_on_different_network() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -530,7 +530,7 @@ fn inscribe_to_address_on_different_network() {
 
 #[test]
 fn inscribe_with_no_limit() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -547,7 +547,7 @@ fn inscribe_with_no_limit() {
 
 #[test]
 fn inscribe_works_with_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -572,7 +572,7 @@ fn inscribe_works_with_postage() {
 
 #[test]
 fn inscribe_with_non_existent_parent_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -594,7 +594,7 @@ fn inscribe_with_non_existent_parent_inscription() {
 
 #[test]
 fn inscribe_with_parent_inscription_and_fee_rate() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -666,7 +666,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
 
 #[test]
 fn reinscribe_with_flag() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
 
@@ -722,7 +722,7 @@ fn reinscribe_with_flag() {
 
 #[test]
 fn with_reinscribe_flag_but_not_actually_a_reinscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -751,7 +751,7 @@ fn with_reinscribe_flag_but_not_actually_a_reinscription() {
 
 #[test]
 fn try_reinscribe_without_flag() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -785,7 +785,7 @@ fn try_reinscribe_without_flag() {
 
 #[test]
 fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -813,7 +813,7 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
 
 #[test]
 fn json_metadata_appears_on_inscription_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -842,7 +842,7 @@ fn json_metadata_appears_on_inscription_page() {
 
 #[test]
 fn cbor_metadata_appears_on_inscription_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -875,7 +875,7 @@ fn cbor_metadata_appears_on_inscription_page() {
 
 #[test]
 fn error_message_when_parsing_json_metadata_is_reasonable() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -894,7 +894,7 @@ fn error_message_when_parsing_json_metadata_is_reasonable() {
 
 #[test]
 fn error_message_when_parsing_cbor_metadata_is_reasonable() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -913,7 +913,7 @@ fn error_message_when_parsing_cbor_metadata_is_reasonable() {
 
 #[test]
 fn inscribe_does_not_pick_locked_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -935,7 +935,7 @@ fn inscribe_does_not_pick_locked_utxos() {
 
 #[test]
 fn inscribe_can_compress() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -998,7 +998,7 @@ fn inscribe_can_compress() {
 
 #[test]
 fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1040,7 +1040,7 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 
 #[test]
 fn inscribe_with_sat_arg() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -1071,7 +1071,7 @@ fn inscribe_with_sat_arg() {
 
 #[test]
 fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1100,7 +1100,7 @@ fn inscribe_with_sat_arg_fails_if_no_index_or_not_found() {
 
 #[test]
 fn server_can_decompress_brotli() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1163,7 +1163,7 @@ fn server_can_decompress_brotli() {
 
 #[test]
 fn file_inscribe_with_delegate_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -1193,7 +1193,7 @@ fn file_inscribe_with_delegate_inscription() {
 
 #[test]
 fn inscription_with_delegate_returns_effective_content_type() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
 
@@ -1226,7 +1226,7 @@ fn inscription_with_delegate_returns_effective_content_type() {
 
 #[test]
 fn file_inscribe_with_non_existent_delegate_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 

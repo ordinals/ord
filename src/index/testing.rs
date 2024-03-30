@@ -13,9 +13,7 @@ impl ContextBuilder {
   }
 
   pub(crate) fn try_build(self) -> Result<Context> {
-    let rpc_server = test_bitcoincore_rpc::builder()
-      .network(self.chain.network())
-      .build();
+    let rpc_server = mockcore::builder().network(self.chain.network()).build();
 
     let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
     let cookie_file = tempdir.path().join("cookie");
@@ -41,7 +39,7 @@ impl ContextBuilder {
 
     Ok(Context {
       index,
-      rpc_server,
+      core: rpc_server,
       tempdir,
     })
   }
@@ -74,7 +72,7 @@ impl ContextBuilder {
 
 pub(crate) struct Context {
   pub(crate) index: Index,
-  pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
+  pub(crate) core: mockcore::Handle,
   #[allow(unused)]
   pub(crate) tempdir: TempDir,
 }
@@ -96,7 +94,7 @@ impl Context {
 
   #[track_caller]
   pub(crate) fn mine_blocks_with_update(&self, n: u64, update: bool) -> Vec<Block> {
-    let blocks = self.rpc_server.mine_blocks(n);
+    let blocks = self.core.mine_blocks(n);
     if update {
       self.index.update().unwrap();
     }
@@ -104,7 +102,7 @@ impl Context {
   }
 
   pub(crate) fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
-    let blocks = self.rpc_server.mine_blocks_with_subsidy(n, subsidy);
+    let blocks = self.core.mine_blocks_with_subsidy(n, subsidy);
     self.index.update().unwrap();
     blocks
   }
@@ -157,7 +155,7 @@ impl Context {
 
     self.mine_blocks(1);
 
-    self.rpc_server.broadcast_tx(TransactionTemplate {
+    self.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
       ..default()
@@ -187,7 +185,7 @@ impl Context {
 
     witness.push([]);
 
-    let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = self.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs,

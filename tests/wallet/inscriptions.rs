@@ -5,7 +5,7 @@ use {
 
 #[test]
 fn inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -61,7 +61,7 @@ fn inscriptions() {
 
 #[test]
 fn inscriptions_includes_locked_utxos() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -90,7 +90,7 @@ fn inscriptions_includes_locked_utxos() {
 
 #[test]
 fn inscriptions_with_postage() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 

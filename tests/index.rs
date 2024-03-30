@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn run_is_an_alias_for_update() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   rpc_server.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
@@ -18,7 +18,7 @@ fn run_is_an_alias_for_update() {
 
 #[test]
 fn custom_index_path() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   rpc_server.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
@@ -34,7 +34,7 @@ fn custom_index_path() {
 
 #[test]
 fn re_opening_database_does_not_trigger_schema_check() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = mockcore::spawn();
   rpc_server.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
@@ -54,7 +54,7 @@ fn re_opening_database_does_not_trigger_schema_check() {
 
 #[test]
 fn export_inscription_number_to_id_tsv() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);

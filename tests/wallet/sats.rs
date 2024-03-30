@@ -5,7 +5,7 @@ use {
 
 #[test]
 fn requires_sat_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -21,7 +21,7 @@ fn requires_sat_index() {
 
 #[test]
 fn sats() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -41,7 +41,7 @@ fn sats() {
 
 #[test]
 fn sats_from_tsv_success() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -62,7 +62,7 @@ fn sats_from_tsv_success() {
 
 #[test]
 fn sats_from_tsv_parse_error() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -82,7 +82,7 @@ fn sats_from_tsv_parse_error() {
 
 #[test]
 fn sats_from_tsv_file_not_found() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);

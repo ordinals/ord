@@ -2,7 +2,7 @@ use {super::*, ord::subcommand::wallet::outputs::Output};
 
 #[test]
 fn outputs() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -23,7 +23,7 @@ fn outputs() {
 
 #[test]
 fn outputs_includes_locked_outputs() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 
@@ -46,7 +46,7 @@ fn outputs_includes_locked_outputs() {
 
 #[test]
 fn outputs_includes_unbound_outputs() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
 

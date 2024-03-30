@@ -2,7 +2,7 @@ use {super::*, bitcoin::BlockHash};
 
 #[test]
 fn get_sat_without_sat_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let response = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[])
     .json_request("/sat/2099999997689999");
@@ -38,7 +38,7 @@ fn get_sat_without_sat_index() {
 
 #[test]
 fn get_sat_with_inscription_and_sat_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -77,7 +77,7 @@ fn get_sat_with_inscription_and_sat_index() {
 
 #[test]
 fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -134,7 +134,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
 #[test]
 fn get_inscription() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -179,7 +179,7 @@ fn get_inscription() {
 
 #[test]
 fn get_inscriptions() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
@@ -233,7 +233,7 @@ fn get_inscriptions() {
 
 #[test]
 fn get_inscriptions_in_block() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn_with_server_args(
     &bitcoin_rpc_server,
@@ -291,7 +291,7 @@ fn get_inscriptions_in_block() {
 
 #[test]
 fn get_output() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
@@ -364,7 +364,7 @@ fn get_output() {
 
 #[test]
 fn json_request_fails_when_disabled() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let response =
     TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &["--disable-json-api"])
@@ -375,7 +375,7 @@ fn json_request_fails_when_disabled() {
 
 #[test]
 fn get_block() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -404,7 +404,7 @@ fn get_block() {
 
 #[test]
 fn get_blocks() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
   let blocks: Vec<BlockHash> = bitcoin_rpc_server
@@ -439,7 +439,7 @@ fn get_blocks() {
 
 #[test]
 fn get_transaction() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let bitcoin_rpc_server = mockcore::spawn();
 
   let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
 
@@ -465,7 +465,7 @@ fn get_transaction() {
 
 #[test]
 fn get_status() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -521,7 +521,7 @@ fn get_status() {
 
 #[test]
 fn get_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
@@ -644,7 +644,7 @@ fn get_runes() {
 }
 #[test]
 fn get_runes_balances() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+  let bitcoin_rpc_server = mockcore::builder()
     .network(Network::Regtest)
     .build();
 
