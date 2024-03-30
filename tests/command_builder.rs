@@ -78,14 +78,14 @@ impl Spawn {
 
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
-  bitcoin_rpc_server_cookie_file: Option<PathBuf>,
-  bitcoin_rpc_server_url: Option<String>,
+  core_cookie_file: Option<PathBuf>,
+  core_url: Option<String>,
   env: BTreeMap<String, OsString>,
   expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
   integration_test: bool,
-  ord_rpc_server_url: Option<Url>,
+  ord_url: Option<Url>,
   stderr: bool,
   stdin: Vec<u8>,
   stdout: bool,
@@ -96,14 +96,14 @@ impl CommandBuilder {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
-      bitcoin_rpc_server_cookie_file: None,
-      bitcoin_rpc_server_url: None,
+      core_cookie_file: None,
+      core_url: None,
       env: BTreeMap::new(),
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       integration_test: true,
-      ord_rpc_server_url: None,
+      ord_url: None,
       stderr: true,
       stdin: Vec::new(),
       stdout: true,
@@ -128,20 +128,17 @@ impl CommandBuilder {
     self
   }
 
-  pub(crate) fn bitcoin_rpc_server(
-    self,
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-  ) -> Self {
+  pub(crate) fn core(self, core: &mockcore::Handle) -> Self {
     Self {
-      bitcoin_rpc_server_url: Some(bitcoin_rpc_server.url()),
-      bitcoin_rpc_server_cookie_file: Some(bitcoin_rpc_server.cookie_file()),
+      core_url: Some(core.url()),
+      core_cookie_file: Some(core.cookie_file()),
       ..self
     }
   }
 
-  pub(crate) fn ord_rpc_server(self, ord_rpc_server: &TestServer) -> Self {
+  pub(crate) fn ord(self, ord: &TestServer) -> Self {
     Self {
-      ord_rpc_server_url: Some(ord_rpc_server.url()),
+      ord_url: Some(ord.url()),
       ..self
     }
   }
@@ -195,17 +192,12 @@ impl CommandBuilder {
   pub(crate) fn command(&self) -> Command {
     let mut command = Command::new(executable_path("ord"));
 
-    if let Some(rpc_server_url) = &self.bitcoin_rpc_server_url {
+    if let Some(rpc_server_url) = &self.core_url {
       command.args([
         "--bitcoin-rpc-url",
         rpc_server_url,
         "--cookie-file",
-        self
-          .bitcoin_rpc_server_cookie_file
-          .as_ref()
-          .unwrap()
-          .to_str()
-          .unwrap(),
+        self.core_cookie_file.as_ref().unwrap().to_str().unwrap(),
       ]);
     }
 
@@ -224,7 +216,7 @@ impl CommandBuilder {
             .display()
             .to_string(),
         );
-        if let Some(ord_server_url) = &self.ord_rpc_server_url {
+        if let Some(ord_server_url) = &self.ord_url {
           args.push("--server-url".to_string());
           args.push(ord_server_url.to_string());
         }

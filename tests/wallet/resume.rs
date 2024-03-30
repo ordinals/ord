@@ -8,16 +8,13 @@ fn wallet_resume() {
     unistd::Pid,
   };
 
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let batchfile = batch::File {
     etching: Some(batch::Etching {
@@ -46,8 +43,8 @@ fn wallet_resume() {
         .temp_dir(tempdir.clone())
         .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
         .write("inscription.jpeg", "inscription")
-        .bitcoin_rpc_server(&bitcoin_rpc_server)
-        .ord_rpc_server(&ord_rpc_server)
+        .core(&core)
+        .ord(&ord)
         .expected_exit_code(1)
         .spawn();
 
@@ -59,7 +56,7 @@ fn wallet_resume() {
 
     assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
 
-    bitcoin_rpc_server.mine_blocks(1);
+    core.mine_blocks(1);
 
     signal::kill(
       Pid::from_raw(spawn.child.id().try_into().unwrap()),
@@ -95,7 +92,7 @@ fn wallet_resume() {
 
   CommandBuilder::new("--regtest --index-runes wallet resume")
     .temp_dir(tempdir)
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_extract_stdout();
 }

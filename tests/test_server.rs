@@ -15,19 +15,16 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
-  pub(crate) fn spawn(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
-    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &[])
+  pub(crate) fn spawn(core: &mockcore::Handle) -> Self {
+    Self::spawn_with_server_args(core, &[], &[])
   }
 
-  pub(crate) fn spawn_with_args(
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-    ord_args: &[&str],
-  ) -> Self {
-    Self::spawn_with_server_args(bitcoin_rpc_server, ord_args, &[])
+  pub(crate) fn spawn_with_args(core: &mockcore::Handle, ord_args: &[&str]) -> Self {
+    Self::spawn_with_server_args(core, ord_args, &[])
   }
 
   pub(crate) fn spawn_with_server_args(
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+    core: &mockcore::Handle,
     ord_args: &[&str],
     ord_server_args: &[&str],
   ) -> Self {
@@ -45,7 +42,7 @@ impl TestServer {
 
     let (settings, server) = parse_ord_server_args(&format!(
       "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
-      bitcoin_rpc_server.url(),
+      core.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),
       tempdir.path().display(),
@@ -76,7 +73,7 @@ impl TestServer {
     }
 
     Self {
-      bitcoin_rpc_url: bitcoin_rpc_server.url(),
+      bitcoin_rpc_url: core.url(),
       ord_server_handle,
       port,
       tempdir,

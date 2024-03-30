@@ -2,15 +2,13 @@ use {super::*, ord::subcommand::runes::Output};
 
 #[test]
 fn flag_is_required() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
 
   CommandBuilder::new("--regtest runes")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .expected_exit_code(1)
     .expected_stderr("error: `ord runes` requires index created with `--index-runes` flag\n")
     .run_and_extract_stdout();
@@ -18,13 +16,11 @@ fn flag_is_required() {
 
 #[test]
 fn no_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
   assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .core(&core)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: BTreeMap::new(),
@@ -34,20 +30,17 @@ fn no_runes() {
 
 #[test]
 fn one_rune() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let etch = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
+  let etch = etch(&core, &ord, Rune(RUNE));
 
   pretty_assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .core(&core)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: vec![(
@@ -80,21 +73,18 @@ fn one_rune() {
 
 #[test]
 fn two_runes() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--regtest", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let a = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
-  let b = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE + 1));
+  let a = etch(&core, &ord, Rune(RUNE));
+  let b = etch(&core, &ord, Rune(RUNE + 1));
 
   pretty_assert_eq!(
     CommandBuilder::new("--index-runes --regtest runes")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .core(&core)
       .run_and_deserialize_output::<Output>(),
     Output {
       runes: vec![
