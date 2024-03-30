@@ -94,10 +94,6 @@ pub(crate) trait PageContent: Display + 'static {
   {
     PageHtml::new(self, server_config)
   }
-
-  fn preview_image_url(&self) -> Option<Trusted<String>> {
-    None
-  }
 }
 
 #[cfg(test)]
