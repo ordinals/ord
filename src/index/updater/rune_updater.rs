@@ -1,15 +1,5 @@
 use super::*;
 
-struct Mint {
-  id: RuneId,
-  amount: u128,
-}
-
-struct Etched {
-  id: RuneId,
-  rune: Rune,
-}
-
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
   pub(super) burned: HashMap<RuneId, u128>,
@@ -35,18 +25,16 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(artifact) = &artifact {
-      if let Some(mint) = artifact
-        .mint()
-        .and_then(|id| self.mint(id).transpose())
-        .transpose()?
-      {
-        *unallocated.entry(mint.id).or_default() += mint.amount;
+      if let Some(id) = artifact.mint() {
+        if let Some(amount) = self.mint(id)? {
+          *unallocated.entry(id).or_default() += amount;
+        }
       }
 
       let etched = self.etched(tx_index, tx, artifact)?;
 
       if let Artifact::Runestone(runestone) = artifact {
-        if let Some(Etched { id, .. }) = etched {
+        if let Some((id, ..)) = etched {
           *unallocated.entry(id).or_default() +=
             runestone.etching.unwrap().premine.unwrap_or_default();
         }
@@ -58,7 +46,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           assert!(output <= tx.output.len());
 
           let id = if id == RuneId::default() {
-            let Some(Etched { id, .. }) = etched else {
+            let Some((id, ..)) = etched else {
               continue;
             };
 
@@ -120,8 +108,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         }
       }
 
-      if let Some(etched) = etched {
-        self.create_rune_entry(txid, artifact, etched)?;
+      if let Some((id, rune)) = etched {
+        self.create_rune_entry(txid, artifact, id, rune)?;
       }
     }
 
@@ -221,9 +209,13 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     Ok(())
   }
 
-  fn create_rune_entry(&mut self, txid: Txid, artifact: &Artifact, etched: Etched) -> Result {
-    let Etched { id, rune } = etched;
-
+  fn create_rune_entry(
+    &mut self,
+    txid: Txid,
+    artifact: &Artifact,
+    id: RuneId,
+    rune: Rune,
+  ) -> Result {
     self.rune_to_id.insert(rune.store(), id.store())?;
     self
       .transaction_id_to_rune
@@ -301,7 +293,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     tx_index: u32,
     tx: &Transaction,
     artifact: &Artifact,
-  ) -> Result<Option<Etched>> {
+  ) -> Result<Option<(RuneId, Rune)>> {
     let rune = match artifact {
       Artifact::Runestone(runestone) => match runestone.etching {
         Some(etching) => etching.rune,
@@ -336,16 +328,16 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       Rune::reserved(self.height.into(), tx_index)
     };
 
-    Ok(Some(Etched {
-      id: RuneId {
+    Ok(Some((
+      RuneId {
         block: self.height.into(),
         tx: tx_index,
       },
       rune,
-    }))
+    )))
   }
 
-  fn mint(&mut self, id: RuneId) -> Result<Option<Mint>> {
+  fn mint(&mut self, id: RuneId) -> Result<Option<u128>> {
     let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
@@ -362,7 +354,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     self.id_to_entry.insert(&id.store(), rune_entry.store())?;
 
-    Ok(Some(Mint { id, amount }))
+    Ok(Some(amount))
   }
 
   fn tx_commits_to_rune(&self, tx: &Transaction, rune: Rune) -> Result<bool> {
