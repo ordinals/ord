@@ -502,7 +502,7 @@ mod tests {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
             .push_opcode(Runestone::MAGIC_NUMBER)
-            .push_opcode(opcodes::all::OP_PUSHNUM_13)
+            .push_opcode(opcodes::all::OP_PUSHNUM_1)
             .into_script(),
           value: 0,
         },],
