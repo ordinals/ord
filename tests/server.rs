@@ -2,7 +2,7 @@ use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -10,8 +10,8 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
-    .bitcoin_rpc_server(&rpc_server);
+  let builder =
+    CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}")).core(&core);
 
   let mut command = builder.command();
 
@@ -36,19 +36,19 @@ fn run() {
 
 #[test]
 fn inscription_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&core, &ord);
 
   let ethereum_teleburn_address = CommandBuilder::new(format!("teleburn {inscription}"))
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .core(&core)
     .run_and_deserialize_output::<ord::subcommand::teleburn::Output>()
     .ethereum;
 
-  TestServer::spawn_with_args(&bitcoin_rpc_server, &[]).assert_response_regex(
+  TestServer::spawn_with_args(&core, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
       ".*<meta property=og:title content='Inscription 0'>.*
@@ -94,16 +94,16 @@ fn inscription_page() {
 
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (_, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_, reveal) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  TestServer::spawn_with_args(&bitcoin_rpc_server, &[]).assert_response_regex(
+  TestServer::spawn_with_args(&core, &[]).assert_response_regex(
     format!("/tx/{reveal}"),
     format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{reveal}.*"),
   );
@@ -111,12 +111,12 @@ fn inscription_appears_on_reveal_transaction_page() {
 
 #[test]
 fn multiple_inscriptions_appear_on_reveal_transaction_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet batch --batch batch.yaml --fee-rate 55")
     .write("inscription.txt", "Hello World")
@@ -125,17 +125,17 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
       "batch.yaml",
       "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: meow.wav\n",
     )
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Batch>();
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let id0 = output.inscriptions[0].id;
   let id1 = output.inscriptions[1].id;
   let reveal = output.reveal;
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/tx/{reveal}"),
     format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{id0}.*<a href=/inscription/{id1}.*"),
   );
@@ -143,16 +143,16 @@ fn multiple_inscriptions_appear_on_reveal_transaction_page() {
 
 #[test]
 fn inscription_appears_on_output_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/output/{reveal}:0"),
     format!(".*<h1>Output <span class=monospace>{reveal}:0</span></h1>.*<a href=/inscription/{inscription}.*"),
   );
@@ -160,16 +160,16 @@ fn inscription_appears_on_output_page() {
 
 #[test]
 fn inscription_page_after_send() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, reveal) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal}:0:0</dd>.*",
@@ -179,15 +179,15 @@ fn inscription_page_after_send() {
   let txid = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
+  .core(&core)
+  .ord(&ord)
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>()
   .txid;
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
@@ -197,16 +197,16 @@ fn inscription_page_after_send() {
 
 #[test]
 fn inscription_content() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  let response = ord_rpc_server.request(format!("/content/{inscription}"));
+  let response = ord.request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -243,29 +243,29 @@ fn inscription_metadata() {
   ]);
   ciborium::ser::into_writer(&cbor_map, &mut encoded_metadata).unwrap();
 
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let inscription_id = CommandBuilder::new(
     "wallet inscribe --fee-rate 1 --json-metadata metadata.json --file foo.txt",
   )
   .write("foo.txt", "FOO")
   .write("metadata.json", metadata)
-  .bitcoin_rpc_server(&bitcoin_rpc_server)
-  .ord_rpc_server(&ord_rpc_server)
+  .core(&core)
+  .ord(&ord)
   .run_and_deserialize_output::<Batch>()
   .inscriptions
   .first()
   .unwrap()
   .id;
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  let response = ord_rpc_server.request(format!("/r/metadata/{inscription_id}"));
+  let response = ord.request(format!("/r/metadata/{inscription_id}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -280,24 +280,23 @@ fn inscription_metadata() {
 
 #[test]
 fn recursive_inscription_endpoint() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
     .write("foo.txt", "FOO")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Batch>();
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let inscription = output.inscriptions.first().unwrap();
-  let response = ord_rpc_server.request(format!("/r/inscription/{}", inscription.id));
+  let response = ord.request(format!("/r/inscription/{}", inscription.id));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -332,14 +331,14 @@ fn recursive_inscription_endpoint() {
 
 #[test]
 fn inscriptions_page() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&core, &ord);
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     "/inscriptions",
     format!(
       ".*<h1>All Inscriptions</h1>
@@ -353,33 +352,33 @@ fn inscriptions_page() {
 
 #[test]
 fn inscriptions_page_is_sorted() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   let mut regex = String::new();
 
   for _ in 0..8 {
-    let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+    let (inscription, _) = inscribe(&core, &ord);
     regex.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
-  ord_rpc_server.assert_response_regex("/inscriptions", &regex);
+  ord.assert_response_regex("/inscriptions", &regex);
 }
 
 #[test]
 fn inscriptions_page_has_next_and_previous() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (a, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
-  let (b, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
-  let (c, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (a, _) = inscribe(&core, &ord);
+  let (b, _) = inscribe(&core, &ord);
+  let (c, _) = inscribe(&core, &ord);
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/inscription/{b}"),
     format!(
       ".*<h1>Inscription 1</h1>.*
@@ -394,9 +393,9 @@ fn inscriptions_page_has_next_and_previous() {
 
 #[test]
 fn expected_sat_time_is_rounded() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+  TestServer::spawn_with_args(&core, &[]).assert_response_regex(
     "/sat/2099999997689999",
     r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
   );
@@ -404,16 +403,16 @@ fn expected_sat_time_is_rounded() {
 
 #[test]
 fn missing_credentials() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   CommandBuilder::new("--bitcoin-rpc-username foo server")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC password specified\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("--bitcoin-rpc-password bar server")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC username specified\n")
     .run_and_extract_stdout();
@@ -421,11 +420,11 @@ fn missing_credentials() {
 
 #[test]
 fn all_endpoints_in_recursive_directory_return_json() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  bitcoin_rpc_server.mine_blocks(2);
+  core.mine_blocks(2);
 
-  let ord_server = TestServer::spawn_with_args(&bitcoin_rpc_server, &[]);
+  let ord_server = TestServer::spawn_with_args(&core, &[]);
 
   assert_eq!(
     ord_server.request("/r/blockheight").json::<u64>().unwrap(),
@@ -454,11 +453,11 @@ fn all_endpoints_in_recursive_directory_return_json() {
 
 #[test]
 fn sat_recursive_endpoints_without_sat_index_return_404() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(&bitcoin_rpc_server, &[""]);
+  let server = TestServer::spawn_with_args(&core, &[""]);
 
   assert_eq!(
     server.request("/r/sat/5000000000").status(),
@@ -473,43 +472,42 @@ fn sat_recursive_endpoints_without_sat_index_return_404() {
 
 #[test]
 fn inscription_transactions_are_stored_with_transaction_index() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-transactions"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-transactions"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_inscription, reveal) = inscribe(&core, &ord);
 
-  let coinbase = bitcoin_rpc_server.tx(1, 0).txid();
+  let coinbase = core.tx(1, 0).txid();
 
   assert_eq!(
-    ord_rpc_server.request(format!("/tx/{reveal}")).status(),
+    ord.request(format!("/tx/{reveal}")).status(),
     StatusCode::OK,
   );
 
   assert_eq!(
-    ord_rpc_server.request(format!("/tx/{coinbase}")).status(),
+    ord.request(format!("/tx/{coinbase}")).status(),
     StatusCode::OK,
   );
 
-  bitcoin_rpc_server.clear_state();
+  core.clear_state();
 
   assert_eq!(
-    ord_rpc_server.request(format!("/tx/{reveal}")).status(),
+    ord.request(format!("/tx/{reveal}")).status(),
     StatusCode::OK,
   );
 
   assert_eq!(
-    ord_rpc_server.request(format!("/tx/{coinbase}")).status(),
+    ord.request(format!("/tx/{coinbase}")).status(),
     StatusCode::NOT_FOUND,
   );
 }
 
 #[test]
 fn run_no_sync() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -520,14 +518,14 @@ fn run_no_sync() {
   let tempdir = Arc::new(TempDir::new().unwrap());
 
   let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}",))
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .temp_dir(tempdir.clone());
 
   let mut command = builder.command();
 
   let mut child = command.spawn().unwrap();
 
-  rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
@@ -549,14 +547,14 @@ fn run_no_sync() {
   let builder = CommandBuilder::new(format!(
     "server --no-sync --address 127.0.0.1 --http-port {port}",
   ))
-  .bitcoin_rpc_server(&rpc_server)
+  .core(&core)
   .temp_dir(tempdir);
 
   let mut command = builder.command();
 
   let mut child = command.spawn().unwrap();
 
-  rpc_server.mine_blocks(2);
+  core.mine_blocks(2);
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
@@ -578,7 +576,7 @@ fn run_no_sync() {
 
 #[test]
 fn authentication() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -589,7 +587,7 @@ fn authentication() {
   let builder = CommandBuilder::new(format!(
     " --server-username foo --server-password bar server --address 127.0.0.1 --http-port {port}"
   ))
-  .bitcoin_rpc_server(&rpc_server);
+  .core(&core);
 
   let mut command = builder.command();
 
@@ -628,7 +626,7 @@ fn ctrl_c() {
     unistd::Pid,
   };
 
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -638,11 +636,11 @@ fn ctrl_c() {
 
   let tempdir = Arc::new(TempDir::new().unwrap());
 
-  rpc_server.mine_blocks(3);
+  core.mine_blocks(3);
 
   let mut spawn = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
     .temp_dir(tempdir.clone())
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .spawn();
 
   for attempt in 0.. {
@@ -677,7 +675,7 @@ fn ctrl_c() {
     "server --no-sync --address 127.0.0.1 --http-port {port}"
   ))
   .temp_dir(tempdir)
-  .bitcoin_rpc_server(&rpc_server)
+  .core(&core)
   .spawn();
 
   for attempt in 0.. {
