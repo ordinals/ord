@@ -4,10 +4,6 @@ mod flag;
 mod message;
 mod tag;
 
-// todo:
-// - exhume?
-// - avoid flatten, don't return script error
-
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
   pub edicts: Vec<Edict>,
@@ -26,11 +22,7 @@ impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
   pub const COMMIT_INTERVAL: u16 = 6;
 
-  pub fn from_transaction(transaction: &Transaction) -> Option<Artifact> {
-    Self::decipher(transaction).ok().flatten()
-  }
-
-  fn decipher(transaction: &Transaction) -> Result<Option<Artifact>, script::Error> {
+  pub fn decipher(transaction: &Transaction) -> Result<Option<Artifact>, script::Error> {
     let payload = match Runestone::payload(transaction)? {
       Some(Payload::Valid(payload)) => payload,
       Some(Payload::Invalid(flaw)) => {
@@ -236,9 +228,7 @@ impl Runestone {
 
       // followed by the protocol identifier, ignoring errors, since OP_RETURN
       // scripts may be invalid
-      if instructions.next().transpose().ok().flatten()
-        != Some(Instruction::Op(Runestone::MAGIC_NUMBER))
-      {
+      if instructions.next() != Some(Ok(Instruction::Op(Runestone::MAGIC_NUMBER))) {
         continue;
       }
 
@@ -326,19 +316,17 @@ mod tests {
   }
 
   #[test]
-  fn from_transaction_returns_none_if_decipher_returns_error() {
-    assert_eq!(
-      Runestone::from_transaction(&Transaction {
-        input: Vec::new(),
-        output: vec![TxOut {
-          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
-          value: 0,
-        }],
-        lock_time: LockTime::ZERO,
-        version: 2,
-      }),
-      None
-    );
+  fn decipher_returns_an_error_if_first_opcode_is_malformed() {
+    assert!(Runestone::decipher(&Transaction {
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
+        value: 0,
+      }],
+      lock_time: LockTime::ZERO,
+      version: 2,
+    })
+    .is_err(),);
   }
 
   #[test]
@@ -1702,7 +1690,7 @@ mod tests {
       };
 
       assert_eq!(
-        Runestone::from_transaction(&transaction).unwrap(),
+        Runestone::decipher(&transaction).unwrap().unwrap(),
         Artifact::Runestone(runestone),
       );
     }
