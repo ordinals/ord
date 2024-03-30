@@ -19,7 +19,6 @@ impl Display for MintError {
   }
 }
 
-#[cfg(any())]
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};
@@ -797,8 +796,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           ..default()
         }),
-        pointer: None,
-        cenotaph: 1,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -846,7 +844,7 @@ mod tests {
           symbol: Some('$'),
           spacers: Some(1),
         }),
-        cenotaph: 1,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -892,7 +890,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          cenotaph: 1,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -971,7 +969,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: 1,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -4083,7 +4081,7 @@ mod tests {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: 1,
+          pointer: Some(10),
           mint: Some(id),
           edicts: vec![Edict {
             id,
