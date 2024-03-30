@@ -62,12 +62,22 @@ fn send_satpoint_does_not_send_runic_utxos() {
 
   let etched = etch(&bitcoin_rpc_server, &ord_rpc_server, Rune(RUNE));
 
-  CommandBuilder::new(format!("--regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw {}:0", etched.inscribe.rune.unwrap().location.unwrap()))
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
-    .expected_stderr("error: runic outpoints may not be sent by satpoint\n")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
+  CommandBuilder::new(format!(
+    "
+      --regtest
+      --index-runes
+      wallet
+      send
+      --fee-rate 1
+      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
+      {}:0",
+    etched.output.rune.unwrap().location.unwrap()
+  ))
+  .bitcoin_rpc_server(&bitcoin_rpc_server)
+  .ord_rpc_server(&ord_rpc_server)
+  .expected_stderr("error: runic outpoints may not be sent by satpoint\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
 }
 
 #[test]

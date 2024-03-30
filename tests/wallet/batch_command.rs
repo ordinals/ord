@@ -1458,7 +1458,7 @@ fn batch_inscribe_can_etch_rune() {
     },
   );
 
-  let parent = batch.inscribe.inscriptions[0].id;
+  let parent = batch.output.inscriptions[0].id;
 
   let request = ord_rpc_server.request(format!("/content/{parent}"));
 
@@ -1480,7 +1480,7 @@ fn batch_inscribe_can_etch_rune() {
 
   assert!(bitcoin_rpc_server.state().is_wallet_address(
     &batch
-      .inscribe
+      .output
       .rune
       .unwrap()
       .destination
@@ -1488,6 +1488,11 @@ fn batch_inscribe_can_etch_rune() {
       .require_network(Network::Regtest)
       .unwrap()
   ));
+
+  assert_eq!(
+    bitcoin_rpc_server.tx_by_id(batch.output.reveal).input[0].sequence,
+    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+  );
 }
 
 #[test]
@@ -1534,7 +1539,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
     },
   );
 
-  let parent = batch.inscribe.inscriptions[0].id;
+  let parent = batch.output.inscriptions[0].id;
 
   let request = ord_rpc_server.request(format!("/content/{parent}"));
 
@@ -1556,7 +1561,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
 
   assert!(bitcoin_rpc_server.state().is_wallet_address(
     &batch
-      .inscribe
+      .output
       .rune
       .unwrap()
       .destination
@@ -1610,7 +1615,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
     },
   );
 
-  let parent = batch.inscribe.inscriptions[0].id;
+  let parent = batch.output.inscriptions[0].id;
 
   let request = ord_rpc_server.request(format!("/content/{parent}"));
 
@@ -1632,7 +1637,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
 
   assert!(bitcoin_rpc_server.state().is_wallet_address(
     &batch
-      .inscribe
+      .output
       .rune
       .unwrap()
       .destination

@@ -477,7 +477,30 @@ impl Api for Server {
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
 
-    self.state.lock().unwrap().mempool.push(tx.clone());
+    let mut state = self.state.lock().unwrap();
+
+    for tx_in in &tx.input {
+      if let Some(lock_time) = tx_in.sequence.to_relative_lock_time() {
+        match lock_time {
+          bitcoin::relative::LockTime::Blocks(blocks) => {
+            if state
+              .txid_to_block_height
+              .get(&tx_in.previous_output.txid)
+              .expect("input has not been miined")
+              + u32::from(blocks.value())
+              > u32::try_from(state.hashes.len()).unwrap()
+            {
+              panic!("input is locked");
+            }
+          }
+          bitcoin::relative::LockTime::Time(_) => {
+            panic!("time-based relative locktimes are not implemented")
+          }
+        }
+      }
+    }
+
+    state.mempool.push(tx.clone());
 
     Ok(tx.txid().to_string())
   }
