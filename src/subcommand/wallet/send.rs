@@ -1,9 +1,4 @@
-use {
-  super::*,
-  crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
-  base64::Engine,
-  bitcoin::psbt::Psbt,
-};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
