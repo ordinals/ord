@@ -77,8 +77,7 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
 fn runic_utxos_are_deducted_from_cardinal() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
   create_wallet(&core, &ord);
 

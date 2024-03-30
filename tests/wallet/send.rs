@@ -685,8 +685,7 @@ fn send_dry_run() {
 fn sending_rune_that_has_not_been_etched_is_an_error() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -707,8 +706,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
 fn sending_rune_with_excessive_precision_is_an_error() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -729,8 +727,7 @@ fn sending_rune_with_excessive_precision_is_an_error() {
 fn sending_rune_with_insufficient_balance_is_an_error() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -751,8 +748,7 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
 fn sending_rune_works() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -802,8 +798,7 @@ fn sending_rune_works() {
 fn sending_spaced_rune_works() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -852,8 +847,7 @@ fn sending_spaced_rune_works() {
 fn sending_rune_with_divisibility_works() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -938,8 +932,7 @@ fn sending_rune_with_divisibility_works() {
 fn sending_rune_leaves_unspent_runes_in_wallet() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -1008,8 +1001,7 @@ fn sending_rune_leaves_unspent_runes_in_wallet() {
 fn sending_rune_creates_transaction_with_expected_runestone() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -1096,8 +1088,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
 fn error_messages_use_spaced_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 

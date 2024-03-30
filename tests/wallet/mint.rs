@@ -4,8 +4,7 @@ use {super::*, ord::subcommand::wallet::mint};
 fn minting_rune_and_fails_if_after_end() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   core.mine_blocks(1);
 
@@ -103,8 +102,7 @@ fn minting_rune_and_fails_if_after_end() {
 fn minting_rune_fails_if_not_mintable() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -167,8 +165,7 @@ fn minting_rune_with_no_rune_index_fails() {
 fn minting_rune_and_then_sending_works() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   core.mine_blocks(1);
 

@@ -19,10 +19,7 @@ impl TestServer {
     Self::spawn_with_server_args(core, &[], &[])
   }
 
-  pub(crate) fn spawn_with_args(
-    core: &mockcore::Handle,
-    ord_args: &[&str],
-  ) -> Self {
+  pub(crate) fn spawn_with_args(core: &mockcore::Handle, ord_args: &[&str]) -> Self {
     Self::spawn_with_server_args(core, ord_args, &[])
   }
 
