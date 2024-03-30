@@ -232,7 +232,7 @@ impl Runestone {
         continue;
       }
 
-      // construct the payload by concatinating remaining data pushes
+      // construct the payload by concatenating remaining data pushes
       let mut payload = Vec::new();
 
       for result in instructions {
