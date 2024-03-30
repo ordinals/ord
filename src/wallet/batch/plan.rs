@@ -486,7 +486,7 @@ impl Plan {
           symbol: Some(etching.symbol),
         }),
         mint: None,
-        pointer: None,
+        pointer: Some((reveal_outputs.len() - 1).try_into().unwrap()),
       };
 
       let script_pubkey = inner.encipher();

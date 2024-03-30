@@ -1411,7 +1411,7 @@ inscriptions:
 }
 
 #[test]
-fn batch_inscribe_can_etch_rune() {
+fn batch_can_etch_rune() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -1463,20 +1463,33 @@ fn batch_inscribe_can_etch_rune() {
     ),
   );
 
-  assert!(core.state().is_wallet_address(
-    &batch
-      .output
-      .rune
-      .unwrap()
-      .destination
-      .unwrap()
-      .require_network(Network::Regtest)
-      .unwrap()
-  ));
+  let destination = batch
+    .output
+    .rune
+    .unwrap()
+    .destination
+    .unwrap()
+    .require_network(Network::Regtest)
+    .unwrap();
+
+  assert!(core.state().is_wallet_address(&destination));
+
+  let reveal = core.tx_by_id(batch.output.reveal);
 
   assert_eq!(
-    core.tx_by_id(batch.output.reveal).input[0].sequence,
+    reveal.input[0].sequence,
     Sequence::from_height(Runestone::COMMIT_INTERVAL)
+  );
+
+  let runestone = Runestone::from_transaction(&reveal).unwrap();
+
+  let pointer = reveal.output.len() - 2;
+
+  assert_eq!(runestone.pointer, Some(pointer.try_into().unwrap()));
+
+  assert_eq!(
+    reveal.output[pointer].script_pubkey,
+    destination.script_pubkey(),
   );
 }
 
