@@ -3,40 +3,40 @@ use {super::*, ord::subcommand::wallet::create};
 #[test]
 fn restore_generates_same_descriptors() {
   let (mnemonic, descriptors) = {
-    let rpc_server = mockcore::spawn();
+    let core = mockcore::spawn();
 
     let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
-      .core(&rpc_server)
+      .core(&core)
       .run_and_deserialize_output();
 
-    (mnemonic, rpc_server.descriptors())
+    (mnemonic, core.descriptors())
   };
 
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   CommandBuilder::new(["wallet", "restore", "--from", "mnemonic"])
     .stdin(mnemonic.to_string().into())
-    .core(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 
-  assert_eq!(rpc_server.descriptors(), descriptors);
+  assert_eq!(core.descriptors(), descriptors);
 }
 
 #[test]
 fn restore_generates_same_descriptors_with_passphrase() {
   let passphrase = "foo";
   let (mnemonic, descriptors) = {
-    let rpc_server = mockcore::spawn();
+    let core = mockcore::spawn();
 
     let create::Output { mnemonic, .. } =
       CommandBuilder::new(["wallet", "create", "--passphrase", passphrase])
-        .core(&rpc_server)
+        .core(&core)
         .run_and_deserialize_output();
 
-    (mnemonic, rpc_server.descriptors())
+    (mnemonic, core.descriptors())
   };
 
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   CommandBuilder::new([
     "wallet",
@@ -47,10 +47,10 @@ fn restore_generates_same_descriptors_with_passphrase() {
     "mnemonic",
   ])
   .stdin(mnemonic.to_string().into())
-  .core(&rpc_server)
+  .core(&core)
   .run_and_extract_stdout();
 
-  assert_eq!(rpc_server.descriptors(), descriptors);
+  assert_eq!(core.descriptors(), descriptors);
 }
 
 #[test]
@@ -155,23 +155,23 @@ fn restore_with_compact_works() {
 #[test]
 fn restore_with_blank_mnemonic_generates_same_descriptors() {
   let (mnemonic, descriptors) = {
-    let rpc_server = mockcore::spawn();
+    let core = mockcore::spawn();
 
     let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
-      .core(&rpc_server)
+      .core(&core)
       .run_and_deserialize_output();
 
-    (mnemonic, rpc_server.descriptors())
+    (mnemonic, core.descriptors())
   };
 
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   CommandBuilder::new(["wallet", "restore", "--from", "mnemonic"])
     .stdin(mnemonic.to_string().into())
-    .core(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 
-  assert_eq!(rpc_server.descriptors(), descriptors);
+  assert_eq!(core.descriptors(), descriptors);
 }
 
 #[test]

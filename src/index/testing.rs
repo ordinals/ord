@@ -13,7 +13,7 @@ impl ContextBuilder {
   }
 
   pub(crate) fn try_build(self) -> Result<Context> {
-    let rpc_server = mockcore::builder().network(self.chain.network()).build();
+    let core = mockcore::builder().network(self.chain.network()).build();
 
     let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
     let cookie_file = tempdir.path().join("cookie");
@@ -22,7 +22,7 @@ impl ContextBuilder {
     let command: Vec<OsString> = vec![
       "ord".into(),
       "--bitcoin-rpc-url".into(),
-      rpc_server.url().into(),
+      core.url().into(),
       "--datadir".into(),
       tempdir.path().into(),
       "--cookie-file".into(),
@@ -39,7 +39,7 @@ impl ContextBuilder {
 
     Ok(Context {
       index,
-      core: rpc_server,
+      core,
       tempdir,
     })
   }

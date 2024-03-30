@@ -2,7 +2,7 @@ use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -11,7 +11,7 @@ fn run() {
     .port();
 
   let builder =
-    CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}")).core(&rpc_server);
+    CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}")).core(&core);
 
   let mut command = builder.command();
 
@@ -393,9 +393,9 @@ fn inscriptions_page_has_next_and_previous() {
 
 #[test]
 fn expected_sat_time_is_rounded() {
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+  TestServer::spawn_with_args(&core, &[]).assert_response_regex(
     "/sat/2099999997689999",
     r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
   );
@@ -403,16 +403,16 @@ fn expected_sat_time_is_rounded() {
 
 #[test]
 fn missing_credentials() {
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   CommandBuilder::new("--bitcoin-rpc-username foo server")
-    .core(&rpc_server)
+    .core(&core)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC password specified\n")
     .run_and_extract_stdout();
 
   CommandBuilder::new("--bitcoin-rpc-password bar server")
-    .core(&rpc_server)
+    .core(&core)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoin RPC username specified\n")
     .run_and_extract_stdout();
@@ -507,7 +507,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
 
 #[test]
 fn run_no_sync() {
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -518,14 +518,14 @@ fn run_no_sync() {
   let tempdir = Arc::new(TempDir::new().unwrap());
 
   let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}",))
-    .core(&rpc_server)
+    .core(&core)
     .temp_dir(tempdir.clone());
 
   let mut command = builder.command();
 
   let mut child = command.spawn().unwrap();
 
-  rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
@@ -547,14 +547,14 @@ fn run_no_sync() {
   let builder = CommandBuilder::new(format!(
     "server --no-sync --address 127.0.0.1 --http-port {port}",
   ))
-  .core(&rpc_server)
+  .core(&core)
   .temp_dir(tempdir);
 
   let mut command = builder.command();
 
   let mut child = command.spawn().unwrap();
 
-  rpc_server.mine_blocks(2);
+  core.mine_blocks(2);
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
@@ -576,7 +576,7 @@ fn run_no_sync() {
 
 #[test]
 fn authentication() {
-  let rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -587,7 +587,7 @@ fn authentication() {
   let builder = CommandBuilder::new(format!(
     " --server-username foo --server-password bar server --address 127.0.0.1 --http-port {port}"
   ))
-  .core(&rpc_server);
+  .core(&core);
 
   let mut command = builder.command();
 

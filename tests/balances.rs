@@ -2,10 +2,10 @@ use {super::*, ord::subcommand::balances::Output};
 
 #[test]
 fn flag_is_required() {
-  let rpc_server = mockcore::builder().network(Network::Regtest).build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
   CommandBuilder::new("--regtest balances")
-    .core(&rpc_server)
+    .core(&core)
     .expected_exit_code(1)
     .expected_stderr("error: `ord balances` requires index created with `--index-runes` flag\n")
     .run_and_extract_stdout();
@@ -13,10 +13,10 @@ fn flag_is_required() {
 
 #[test]
 fn no_runes() {
-  let rpc_server = mockcore::builder().network(Network::Regtest).build();
+  let core = mockcore::builder().network(Network::Regtest).build();
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
-    .core(&rpc_server)
+    .core(&core)
     .run_and_deserialize_output::<Output>();
 
   assert_eq!(
@@ -31,8 +31,7 @@ fn no_runes() {
 fn with_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord =
-    TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
   create_wallet(&core, &ord);
 
