@@ -264,12 +264,12 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       }) => RuneEntry {
         block: id.block,
         burned: 0,
-        divisibility: divisibility.unwrap(),
+        divisibility: divisibility.unwrap_or_default(),
         etching: txid,
         terms: *terms,
         mints: 0,
         number,
-        premine: premine.unwrap(),
+        premine: premine.unwrap_or_default(),
         spaced_rune: SpacedRune {
           rune,
           spacers: spacers.unwrap_or_default(),
