@@ -79,7 +79,7 @@ impl Spawn {
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
   core_cookie_file: Option<PathBuf>,
-  core_server_url: Option<String>,
+  core_url: Option<String>,
   env: BTreeMap<String, OsString>,
   expected_exit_code: i32,
   expected_stderr: Expected,
@@ -95,7 +95,7 @@ impl CommandBuilder {
     Self {
       args: args.to_args(),
       core_cookie_file: None,
-      core_server_url: None,
+      core_url: None,
       env: BTreeMap::new(),
       expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
@@ -126,7 +126,7 @@ impl CommandBuilder {
 
   pub(crate) fn core(self, core: &mockcore::Handle) -> Self {
     Self {
-      core_server_url: Some(core.url()),
+      core_url: Some(core.url()),
       core_cookie_file: Some(core.cookie_file()),
       ..self
     }
@@ -178,7 +178,7 @@ impl CommandBuilder {
   pub(crate) fn command(&self) -> Command {
     let mut command = Command::new(executable_path("ord"));
 
-    if let Some(rpc_server_url) = &self.core_server_url {
+    if let Some(rpc_server_url) = &self.core_url {
       command.args([
         "--bitcoin-rpc-url",
         rpc_server_url,
