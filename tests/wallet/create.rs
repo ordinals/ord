@@ -7,7 +7,7 @@ fn create() {
   assert!(!rpc_server.wallets().contains("ord"));
 
   CommandBuilder::new("wallet create")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .run_and_deserialize_output::<Output>();
 
   assert!(rpc_server.wallets().contains("ord"));
@@ -16,7 +16,7 @@ fn create() {
 #[test]
 fn seed_phrases_are_twelve_words_long() {
   let Output { mnemonic, .. } = CommandBuilder::new("wallet create")
-    .bitcoin_rpc_server(&mockcore::spawn())
+    .core(&mockcore::spawn())
     .run_and_deserialize_output();
 
   assert_eq!(mnemonic.word_count(), 12);
@@ -27,7 +27,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
   let rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet create")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .run_and_deserialize_output::<Output>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
@@ -43,12 +43,10 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 
 #[test]
 fn wallet_creates_correct_test_network_taproot_descriptor() {
-  let rpc_server = mockcore::builder()
-    .network(Network::Signet)
-    .build();
+  let rpc_server = mockcore::builder().network(Network::Signet).build();
 
   CommandBuilder::new("--chain signet wallet create")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .run_and_deserialize_output::<Output>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
@@ -67,13 +65,13 @@ fn detect_wrong_descriptors() {
   let rpc_server = mockcore::spawn();
 
   CommandBuilder::new("wallet create")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .run_and_deserialize_output::<Output>();
 
   rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
 
   CommandBuilder::new("wallet transactions")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .stderr_regex(
       r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
     )
@@ -88,7 +86,7 @@ fn create_with_different_name() {
   assert!(!rpc_server.wallets().contains("inscription-wallet"));
 
   CommandBuilder::new("wallet --name inscription-wallet create")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&rpc_server)
     .run_and_deserialize_output::<Output>();
 
   assert!(rpc_server.wallets().contains("inscription-wallet"));

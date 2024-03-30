@@ -5,15 +5,15 @@ use {
 
 #[test]
 fn requires_sat_index() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   CommandBuilder::new("wallet sats")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .expected_exit_code(1)
     .expected_stderr("error: sats requires index created with `--index-sats` flag\n")
     .run_and_extract_stdout();
@@ -21,18 +21,17 @@ fn requires_sat_index() {
 
 #[test]
 fn sats() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let second_coinbase = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<OutputRare>>();
 
   assert_eq!(output[0].sat, 50 * COIN_VALUE);
@@ -41,19 +40,18 @@ fn sats() {
 
 #[test]
 fn sats_from_tsv_success() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  let second_coinbase = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<OutputTsv>>();
 
   assert_eq!(output[0].sat, "nvtcsezkbtg");
@@ -62,17 +60,16 @@ fn sats_from_tsv_success() {
 
 #[test]
 fn sats_from_tsv_parse_error() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .expected_exit_code(1)
     .expected_stderr(
       "error: failed to parse sat from string \"===\" on line 1: failed to parse sat `===`: invalid integer: invalid digit found in string\n",
@@ -82,16 +79,15 @@ fn sats_from_tsv_parse_error() {
 
 #[test]
 fn sats_from_tsv_file_not_found() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server =
-    TestServer::spawn_with_server_args(&bitcoin_rpc_server, &["--index-sats"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
     .run_and_extract_stdout();

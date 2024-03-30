@@ -5,22 +5,22 @@ use {
 
 #[test]
 fn cardinals() {
-  let bitcoin_rpc_server = mockcore::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&core, &ord);
 
   let all_outputs = CommandBuilder::new("wallet outputs")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
   let cardinal_outputs = CommandBuilder::new("wallet cardinals")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<CardinalUtxo>>();
 
   assert_eq!(all_outputs.len() - cardinal_outputs.len(), 1);
