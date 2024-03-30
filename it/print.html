@@ -525,7 +525,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Note that the value of tag <code>11</code> is decimal, not hex.</p>
-<p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscrpition ID encodings;</p>
+<p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscription ID encodings;</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="metadati"><a class="header" href="#metadati">Metadati</a></h1>
 <p>Le iscrizioni possono contenere metadati <a href="https://cbor.io/">CBOR</a>, memorizzati come push di dati in campi con tag <code>5</code>. Poiché i data push sono limitati a 520 byte, i metadati più lunghi di 520 byte devono essere suddivisi in più campi con tag <code>5</code>, che saranno poi concatenati prima della decodifica.</p>
 <p>I metadata sono facili da leggere per l'uomo e tutti i metadata saranno visualizzati dall'utente con la loro iscrizione. Coloro che iscrivono sono incoraggiati a considerare il modo in cui i metadati saranno visualizzati e a renderli concisi e attraenti.</p>

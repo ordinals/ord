@@ -525,7 +525,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Note that the value of tag <code>11</code> is decimal, not hex.</p>
-<p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscrpition ID encodings;</p>
+<p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscription ID encodings;</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
 <p>Ang iscriptions ay maaring magkaroon ng <a href="https://cbor.io/">CBOR</a> metadata, na naka-store bilang data pushes sa fields na may tag <code>5</code>. Dahil limitado ang data pushes sa 520 bytes, Ang metadata na mas mahaba sa 520 byte ay dapat hatiin sa maraming tag na <code>5</code> fields, at pagkatapos ay pagsasamahin bago mag-decoding.</p>
 <p>Ang metadata ay madaling basahin, at lahat ng metadata ay ipapakita sa user kasama ang inskripsiyon nito. Hinihikayat ang mga inscriber na isaalang-alang kung paano ang metadata ay ipapakita, at gagawing maigsi at kaakit-akit ang metadata.</p>
