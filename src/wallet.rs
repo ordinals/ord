@@ -535,6 +535,10 @@ impl Wallet {
     self.db().store(rune, &commit_tx, &reveal_tx)?;
 
     loop {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        return Err(anyhow!("cancelled"));
+      }
+
       let transaction = self
         .bitcoin_client()
         .get_transaction(&commit_tx.txid(), Some(true))
@@ -558,10 +562,6 @@ impl Wallet {
 
       if !self.integration_test() {
         thread::sleep(Duration::from_secs(5));
-      }
-
-      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        return Err(anyhow!("cancelled"));
       }
     }
 

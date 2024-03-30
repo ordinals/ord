@@ -146,14 +146,16 @@ impl CommandBuilder {
     }
   }
 
-  // pub(crate) fn stderr(self, stderr: bool) -> Self {
-  // Self { stderr, ..self }
-  // }
+  #[allow(unused)]
+  pub(crate) fn stderr(self, stderr: bool) -> Self {
+    Self { stderr, ..self }
+  }
 
   pub(crate) fn stdin(self, stdin: Vec<u8>) -> Self {
     Self { stdin, ..self }
   }
 
+  #[allow(unused)]
   pub(crate) fn stdout(self, stdout: bool) -> Self {
     Self { stdout, ..self }
   }

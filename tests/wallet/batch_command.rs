@@ -2525,7 +2525,6 @@ fn batch_inscribe_errors_if_pending_etchings() {
     let mut spawn =
       CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
         .temp_dir(tempdir.clone())
-        .stdout(false)
         .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
         .write("inscription.jpeg", "inscription")
         .bitcoin_rpc_server(&bitcoin_rpc_server)
@@ -2560,19 +2559,16 @@ fn batch_inscribe_errors_if_pending_etchings() {
       "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
     );
 
-    spawn.child.kill().unwrap();
     spawn.child.wait().unwrap();
   }
 
   CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
-   .temp_dir(tempdir)
-   .bitcoin_rpc_server(&bitcoin_rpc_server)
-   .ord_rpc_server(&ord_rpc_server)
-   .expected_exit_code(1)
-   // .stderr_regex(".*")
-   .stdout_regex(".*")
-   .expected_stderr(
-     "error: rune `AAAAAAAAAAAAA` has a pending etching, resume it with `ord wallet resume`\n",
-   )
-   .run_and_extract_stdout();
+    .temp_dir(tempdir)
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: rune `AAAAAAAAAAAAA` has a pending etching, resume it with `ord wallet resume`\n",
+    )
+    .run_and_extract_stdout();
 }

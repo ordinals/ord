@@ -86,7 +86,8 @@ fn create_wallet(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_serv
   ))
   .bitcoin_rpc_server(bitcoin_rpc_server)
   .ord_rpc_server(ord_rpc_server)
-  .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+  .stdout_regex(".*")
+  .run_and_extract_stdout();
 }
 
 fn sats(
