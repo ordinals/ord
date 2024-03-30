@@ -136,7 +136,9 @@ impl Plan {
           .into_option()?;
 
         if let Some(transaction) = transaction {
-          if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+          if u32::try_from(transaction.info.confirmations).unwrap()
+            < Runestone::COMMIT_INTERVAL.into()
+          {
             continue;
           }
         }
@@ -146,7 +148,7 @@ impl Plan {
           .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
 
         if let Some(tx_out) = tx_out {
-          if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+          if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
             break;
           }
         }
@@ -518,6 +520,7 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs.clone(),
       &reveal_script,
+      rune.is_some(),
     );
 
     let mut target_value = reveal_fee;
@@ -562,6 +565,7 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs,
       &reveal_script,
+      rune.is_some(),
     );
 
     for output in reveal_tx.output.iter() {
@@ -713,6 +717,7 @@ impl Plan {
     output: Vec<TxOut>,
     input: Vec<OutPoint>,
     script: &Script,
+    etching: bool,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
       input: input
@@ -721,7 +726,11 @@ impl Plan {
           previous_output,
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          sequence: if etching {
+            Sequence::from_height(Runestone::COMMIT_INTERVAL)
+          } else {
+            Sequence::ENABLE_RBF_NO_LOCKTIME
+          },
         })
         .collect(),
       output,

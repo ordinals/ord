@@ -538,7 +538,7 @@ fn get_runes() {
 
   bitcoin_rpc_server.mine_blocks(1);
 
-  let response = ord_rpc_server.json_request(format!("/rune/{}", a.inscribe.rune.unwrap().rune));
+  let response = ord_rpc_server.json_request(format!("/rune/{}", a.output.rune.unwrap().rune));
   assert_eq!(response.status(), StatusCode::OK);
 
   let rune_json: api::Rune = serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -551,7 +551,7 @@ fn get_runes() {
         burned: 0,
         terms: None,
         divisibility: 0,
-        etching: a.inscribe.reveal,
+        etching: a.output.reveal,
         mints: 0,
         number: 0,
         premine: 1000,
@@ -565,7 +565,7 @@ fn get_runes() {
       id: RuneId { block: 11, tx: 1 },
       mintable: false,
       parent: Some(InscriptionId {
-        txid: a.inscribe.reveal,
+        txid: a.output.reveal,
         index: 0,
       }),
     }
@@ -588,7 +588,7 @@ fn get_runes() {
             burned: 0,
             terms: None,
             divisibility: 0,
-            etching: a.inscribe.reveal,
+            etching: a.output.reveal,
             mints: 0,
             number: 0,
             premine: 1000,
@@ -607,7 +607,7 @@ fn get_runes() {
             burned: 0,
             terms: None,
             divisibility: 0,
-            etching: b.inscribe.reveal,
+            etching: b.output.reveal,
             mints: 0,
             number: 1,
             premine: 1000,
@@ -626,7 +626,7 @@ fn get_runes() {
             burned: 0,
             terms: None,
             divisibility: 0,
-            etching: c.inscribe.reveal,
+            etching: c.output.reveal,
             mints: 0,
             number: 2,
             premine: 1000,
@@ -670,7 +670,7 @@ fn get_runes_balances() {
       rune0,
       vec![(
         OutPoint {
-          txid: e0.inscribe.reveal,
+          txid: e0.output.reveal,
           vout: 1,
         },
         1000,
@@ -682,7 +682,7 @@ fn get_runes_balances() {
       rune1,
       vec![(
         OutPoint {
-          txid: e1.inscribe.reveal,
+          txid: e1.output.reveal,
           vout: 1,
         },
         1000,
@@ -694,7 +694,7 @@ fn get_runes_balances() {
       rune2,
       vec![(
         OutPoint {
-          txid: e2.inscribe.reveal,
+          txid: e2.output.reveal,
           vout: 1,
         },
         1000,

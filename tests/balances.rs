@@ -57,7 +57,7 @@ fn with_runes() {
           SpacedRune::new(Rune(RUNE), 0),
           vec![(
             OutPoint {
-              txid: a.inscribe.reveal,
+              txid: a.output.reveal,
               vout: 1
             },
             Pile {
@@ -73,7 +73,7 @@ fn with_runes() {
           SpacedRune::new(Rune(RUNE + 1), 0),
           vec![(
             OutPoint {
-              txid: b.inscribe.reveal,
+              txid: b.output.reveal,
               vout: 1
             },
             Pile {

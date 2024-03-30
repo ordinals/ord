@@ -387,7 +387,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
         let mature = tx_info
           .confirmations
-          .map(|confirmations| confirmations >= RUNE_COMMIT_INTERVAL)
+          .map(|confirmations| confirmations >= Runestone::COMMIT_INTERVAL.into())
           .unwrap_or_default();
 
         if taproot && mature {
