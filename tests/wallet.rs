@@ -12,6 +12,7 @@ mod mint;
 mod outputs;
 mod receive;
 mod restore;
+mod resume;
 mod sats;
 mod selection;
 mod send;

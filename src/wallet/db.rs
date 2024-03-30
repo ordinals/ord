@@ -5,8 +5,8 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, DatabaseError, ReadTransaction, RepairSession, StorageError, TableDefinition,
-    WriteTransaction,
+    Database, DatabaseError, ReadTransaction, ReadableTable, RepairSession, StorageError,
+    TableDefinition, WriteTransaction,
   },
   std::sync::Once,
 };
@@ -188,4 +188,41 @@ impl Db {
 
     Ok(())
   }
+
+  pub(crate) fn pending(&self) -> Result<Vec<(Rune, ResumeEntry)>> {
+    let rtx = self.begin_read()?;
+
+    Ok(
+      rtx
+        .open_table(RUNE_TO_INFO)?
+        .iter()?
+        .map(|result| {
+          result.map(|(key, value)| (Rune(key.value()), ResumeEntry::load(value.value())))
+        })
+        .collect::<Result<Vec<(Rune, ResumeEntry)>, StorageError>>()?,
+    )
+  }
 }
+
+//#[cfg(test)]
+//mod tests {
+//  use super::*;
+//
+//  #[test]
+//  fn resume_entry() {
+//    let commit = Transaction {
+//      ..Default::default()
+//    };
+//
+//    let reveal = Transaction {
+//      ..Default::default()
+//    };
+//
+//    let entry = ResumeEntry { commit, reveal };
+//
+//    let value = (Vec::new(), Vec::new());
+//
+//    assert_eq!(entry.clone().store(), value);
+//    assert_eq!(ResumeEntry::load(value), entry);
+//  }
+//}

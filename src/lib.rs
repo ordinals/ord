@@ -238,8 +238,6 @@ pub fn main() {
       process::exit(1);
     }
 
-    println!("{:?}", SHUTTING_DOWN);
-
     eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
