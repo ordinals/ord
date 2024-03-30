@@ -242,34 +242,33 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         symbol: None,
         timestamp: self.block_time.into(),
       },
-      Artifact::Runestone(Runestone {
-        etching:
-          Some(Etching {
-            divisibility,
-            terms,
-            premine,
-            spacers,
-            symbol,
-            ..
-          }),
-        ..
-      }) => RuneEntry {
-        block: id.block,
-        burned: 0,
-        divisibility: divisibility.unwrap_or_default(),
-        etching: txid,
-        terms: *terms,
-        mints: 0,
-        number,
-        premine: premine.unwrap_or_default(),
-        spaced_rune: SpacedRune {
-          rune,
-          spacers: spacers.unwrap_or_default(),
-        },
-        symbol: *symbol,
-        timestamp: self.block_time.into(),
-      },
-      Artifact::Runestone(Runestone { etching: None, .. }) => unreachable!(),
+      Artifact::Runestone(Runestone { etching, .. }) => {
+        let Etching {
+          divisibility,
+          terms,
+          premine,
+          spacers,
+          symbol,
+          ..
+        } = etching.unwrap();
+
+        RuneEntry {
+          block: id.block,
+          burned: 0,
+          divisibility: divisibility.unwrap_or_default(),
+          etching: txid,
+          terms,
+          mints: 0,
+          number,
+          premine: premine.unwrap_or_default(),
+          spaced_rune: SpacedRune {
+            rune,
+            spacers: spacers.unwrap_or_default(),
+          },
+          symbol,
+          timestamp: self.block_time.into(),
+        }
+      }
     };
 
     self.id_to_entry.insert(id.store(), entry.store())?;
