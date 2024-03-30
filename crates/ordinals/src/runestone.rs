@@ -500,6 +500,28 @@ mod tests {
   }
 
   #[test]
+  fn pushnum_opcodes_in_runestone_produce_cenotaph() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_opcode(Runestone::MAGIC_NUMBER)
+            .push_opcode(opcodes::all::OP_PUSHNUM_13)
+            .into_script(),
+          value: 0,
+        },],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      })
+      .unwrap()
+      .unwrap(),
+      Cenotaph::Opcode.into(),
+    );
+  }
+
+  #[test]
   fn deciphering_empty_runestone_is_successful() {
     assert_eq!(
       Runestone::decipher(&Transaction {
