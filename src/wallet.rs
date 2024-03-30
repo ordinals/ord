@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::{self, Engine},
-  batch::{ParentInfo, RuneInfo},
+  batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
@@ -522,17 +522,16 @@ impl Wallet {
 
   pub(crate) fn wait_for_maturation(
     &self,
-    rune_info: &RuneInfo,
+    rune: &Rune,
     commit_tx: Transaction,
     reveal_tx: Transaction,
-    _inscriptions: Vec<Inscription>,
-    _total_fees: u64,
-  ) -> Result<Txid> {
+    output: batch::Output,
+  ) -> Result<batch::Output> {
     eprintln!("Waiting for rune commitment to mature…");
 
-    let rune = rune_info.rune.rune;
-
-    self.db().store(rune, &commit_tx, &reveal_tx)?;
+    self
+      .db()
+      .store(rune, &commit_tx, &reveal_tx, output.clone())?;
 
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
@@ -567,7 +566,7 @@ impl Wallet {
       }
     }
 
-    let reveal = match self.bitcoin_client().send_raw_transaction(&reveal_tx) {
+    match self.bitcoin_client().send_raw_transaction(&reveal_tx) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
@@ -579,7 +578,7 @@ impl Wallet {
 
     self.db().clear(rune)?;
 
-    Ok(reveal)
+    Ok(output)
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {

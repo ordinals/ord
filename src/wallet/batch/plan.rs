@@ -126,14 +126,24 @@ impl Plan {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    let reveal = if let Some(ref rune_info) = rune {
-      wallet.wait_for_maturation(
-        rune_info,
-        consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?,
-        consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?,
-        self.inscriptions.clone(),
-        total_fees,
-      )?
+    if let Some(ref rune_info) = rune {
+      let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
+      let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
+
+      Ok(Some(Box::new(wallet.wait_for_maturation(
+        &rune_info.rune.rune,
+        reveal.clone(),
+        commit.clone(),
+        self.output(
+          commit.txid(),
+          None,
+          reveal.txid(),
+          None,
+          total_fees,
+          self.inscriptions.clone(),
+          rune.clone(),
+        ),
+      )?)))
     } else {
       let reveal = match wallet
         .bitcoin_client()
@@ -147,18 +157,16 @@ impl Plan {
         }
       };
 
-      reveal
-    };
-
-    Ok(Some(Box::new(self.output(
-      commit_txid,
-      None,
-      reveal,
-      None,
-      total_fees,
-      self.inscriptions.clone(),
-      rune,
-    ))))
+      Ok(Some(Box::new(self.output(
+        commit_txid,
+        None,
+        reveal,
+        None,
+        total_fees,
+        self.inscriptions.clone(),
+        rune,
+      ))))
+    }
   }
 
   fn remove_witnesses(mut transaction: Transaction) -> Transaction {

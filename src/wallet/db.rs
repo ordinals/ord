@@ -152,7 +152,13 @@ impl Db {
     Ok(wtx)
   }
 
-  pub(crate) fn store(&self, rune: Rune, commit: &Transaction, reveal: &Transaction) -> Result {
+  pub(crate) fn store(
+    &self,
+    rune: &Rune,
+    commit: &Transaction,
+    reveal: &Transaction,
+    output: batch::Output,
+  ) -> Result {
     let wtx = self.begin_write()?;
 
     wtx.open_table(RUNE_TO_INFO)?.insert(
@@ -160,6 +166,7 @@ impl Db {
       ResumeEntry {
         commit: commit.clone(),
         reveal: reveal.clone(),
+        output,
       }
       .store(),
     )?;
@@ -180,7 +187,7 @@ impl Db {
     )
   }
 
-  pub(crate) fn clear(&self, rune: Rune) -> Result {
+  pub(crate) fn clear(&self, rune: &Rune) -> Result {
     let wtx = self.begin_write()?;
 
     wtx.open_table(RUNE_TO_INFO)?.remove(rune.0)?;
@@ -203,26 +210,3 @@ impl Db {
     )
   }
 }
-
-//#[cfg(test)]
-//mod tests {
-//  use super::*;
-//
-//  #[test]
-//  fn resume_entry() {
-//    let commit = Transaction {
-//      ..Default::default()
-//    };
-//
-//    let reveal = Transaction {
-//      ..Default::default()
-//    };
-//
-//    let entry = ResumeEntry { commit, reveal };
-//
-//    let value = (Vec::new(), Vec::new());
-//
-//    assert_eq!(entry.clone().store(), value);
-//    assert_eq!(ResumeEntry::load(value), entry);
-//  }
-//}

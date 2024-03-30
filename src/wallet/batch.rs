@@ -29,7 +29,7 @@ mod range;
 mod terms;
 mod transactions;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Output {
   pub commit: Txid,
   pub commit_psbt: Option<String>,

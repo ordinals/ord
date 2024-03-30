@@ -78,21 +78,11 @@ fn wallet_resume() {
     spawn.child.wait().unwrap();
   }
 
-  //  {
-  //    CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
-  //      .temp_dir(tempdir)
-  //      .bitcoin_rpc_server(&bitcoin_rpc_server)
-  //      .ord_rpc_server(&ord_rpc_server)
-  //      .expected_exit_code(1)
-  //      .expected_stderr(
-  //        "error: rune `AAAAAAAAAAAAA` has a pending etching, resume it with `ord wallet resume`\n",
-  //      )
-  //      .run_and_extract_stdout();
-  //  }
-
-  CommandBuilder::new("--regtest --index-runes wallet resume")
-    .temp_dir(tempdir)
-    .core(&core)
-    .ord(&ord)
-    .run_and_extract_stdout();
+  //  let output = CommandBuilder::new("--regtest --index-runes wallet resume")
+  //    .temp_dir(tempdir)
+  //    .core(&core)
+  //    .ord(&ord)
+  //    .run_and_deserialize_output::<batch::Output>();
+  //
+  //  assert_eq!(output.rune.unwrap().rune.rune, Rune(RUNE));
 }

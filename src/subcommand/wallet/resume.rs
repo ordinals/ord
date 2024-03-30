@@ -7,9 +7,15 @@ pub struct Output {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let mut output: Option<Box<dyn subcommand::Output>> = None;
   for (rune, entry) in wallet.db().pending()? {
-    // wallet.wait_for_maturation(rune_info, commit_tx, reveal_tx, inscriptions, total_fees)
+    output = Some(Box::new(wallet.wait_for_maturation(
+      &rune,
+      entry.commit,
+      entry.reveal,
+      entry.output.clone(),
+    )?) as Box<dyn subcommand::Output>);
   }
 
-  Ok(None)
+  Ok(output)
 }
