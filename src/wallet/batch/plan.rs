@@ -459,7 +459,6 @@ impl Plan {
       }
 
       let inner = Runestone {
-        cenotaph: 0,
         edicts,
         etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
@@ -649,9 +648,10 @@ impl Plan {
     let total_fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    match (Runestone::from_transaction(&reveal_tx), runestone) {
+    match (Runestone::decipher(&reveal_tx).unwrap(), runestone) {
       (Some(actual), Some(expected)) => assert_eq!(
-        actual, expected,
+        actual,
+        Artifact::Runestone(expected),
         "commit transaction runestone did not match expected runestone"
       ),
       (Some(_), None) => panic!("commit transaction contained runestone, but none was expected"),

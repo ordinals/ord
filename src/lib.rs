@@ -51,8 +51,8 @@ use {
   http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{
-    varint, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
-    SatPoint, SpacedRune, Terms,
+    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
+    Sat, SatPoint, SpacedRune, Terms,
   },
   regex::Regex,
   reqwest::Url,

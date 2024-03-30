@@ -1,4 +1,5 @@
 //! Types for interoperating with ordinals, inscriptions, and runes.
+#![allow(clippy::large_enum_variant)]
 
 use {
   bitcoin::{

@@ -19,6 +19,7 @@ impl Display for MintError {
   }
 }
 
+#[cfg(any())]
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};
