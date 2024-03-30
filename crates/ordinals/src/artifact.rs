@@ -13,11 +13,4 @@ impl Artifact {
       Self::Runestone(runestone) => runestone.mint,
     }
   }
-
-  pub fn etching(&self) -> Option<Rune> {
-    match self {
-      Self::Cenotaph(cenotaph) => cenotaph.etching,
-      Self::Runestone(runestone) => runestone.etching.and_then(|etching| etching.rune),
-    }
-  }
 }
