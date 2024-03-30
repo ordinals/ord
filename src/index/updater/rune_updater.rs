@@ -32,7 +32,9 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
 
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
-    let runestone = Runestone::from_transaction(tx);
+    let Artifact::Runestone(runestone) = Runestone::from_transaction(tx) else {
+      todo!();
+    };
 
     let mut unallocated = self.unallocated(tx)?;
 
