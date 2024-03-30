@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::send};
+use {super::*, ord::subcommand::wallet::send, pretty_assertions::assert_eq};
 
 fn receive(core: &mockcore::Handle, ord: &TestServer) -> Address {
   let address = CommandBuilder::new("wallet receive")
@@ -1420,16 +1420,18 @@ fn batch_can_etch_rune() {
 
   core.mine_blocks(1);
 
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
   let batch = batch(
     &core,
     &ord,
     batch::File {
       etching: Some(batch::Etching {
         divisibility: 0,
-        rune: SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0,
-        },
+        rune,
         supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
         symbol: '¢',
@@ -1490,6 +1492,104 @@ fn batch_can_etch_rune() {
   assert_eq!(
     reveal.output[pointer].script_pubkey,
     destination.script_pubkey(),
+  );
+
+  assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 44999980000,
+      ordinal: 10000,
+      runic: Some(10000),
+      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+      total: 450 * COIN_VALUE,
+    }
+  );
+}
+
+#[test]
+fn batch_can_etch_rune_without_premine() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
+  let batch = batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune,
+        supply: "1000".parse().unwrap(),
+        premine: "0".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 1,
+          amount: "1000".parse().unwrap(),
+          height: None,
+          offset: None,
+        }),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: "inscription.jpeg".into(),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let parent = batch.output.inscriptions[0].id;
+
+  let request = ord.request(format!("/content/{parent}"));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(request.headers().get("content-type").unwrap(), "image/jpeg");
+  assert_eq!(request.text().unwrap(), "inscription");
+
+  ord.assert_response_regex(
+    format!("/inscription/{parent}"),
+    r".*<dt>rune</dt>\s*<dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>.*",
+  );
+
+  ord.assert_response_regex(
+    "/rune/AAAAAAAAAAAAA",
+    format!(
+      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+    ),
+  );
+
+  assert_eq!(batch.output.rune.unwrap().destination, None);
+
+  let reveal = core.tx_by_id(batch.output.reveal);
+
+  assert_eq!(
+    reveal.input[0].sequence,
+    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+  );
+
+  assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 44999990000,
+      ordinal: 10000,
+      runic: Some(0),
+      runes: Some(default()),
+      total: 450 * COIN_VALUE,
+    }
   );
 }
 

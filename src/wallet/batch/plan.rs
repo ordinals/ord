@@ -431,8 +431,6 @@ impl Plan {
     let runestone;
 
     if let Some(etching) = self.etching {
-      let mut edicts = Vec::new();
-
       let vout;
       let destination;
       premine = etching.premine.to_integer(etching.divisibility)?;
@@ -446,12 +444,6 @@ impl Plan {
           value: TARGET_POSTAGE.to_sat(),
         });
 
-        edicts.push(Edict {
-          id: RuneId::default(),
-          amount: premine,
-          output,
-        });
-
         vout = Some(output);
       } else {
         vout = None;
@@ -460,7 +452,7 @@ impl Plan {
 
       let inner = Runestone {
         cenotaph: 0,
-        edicts,
+        edicts: Vec::new(),
         etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
           terms: etching
@@ -486,7 +478,7 @@ impl Plan {
           symbol: Some(etching.symbol),
         }),
         mint: None,
-        pointer: Some((reveal_outputs.len() - 1).try_into().unwrap()),
+        pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
       };
 
       let script_pubkey = inner.encipher();

@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::balance::Output};
+use super::*;
 
 #[test]
 fn wallet_balance() {
@@ -12,7 +12,7 @@ fn wallet_balance() {
     CommandBuilder::new("wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>()
+      .run_and_deserialize_output::<Balance>()
       .cardinal,
     0
   );
@@ -23,8 +23,8 @@ fn wallet_balance() {
     CommandBuilder::new("wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 50 * COIN_VALUE,
       ordinal: 0,
       runic: None,
@@ -46,8 +46,8 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
     CommandBuilder::new("wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 0,
       ordinal: 0,
       runic: None,
@@ -62,8 +62,8 @@ fn inscribed_utxos_are_deducted_from_cardinal() {
     CommandBuilder::new("wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 100 * COIN_VALUE - 10_000,
       ordinal: 10_000,
       runic: None,
@@ -85,8 +85,8 @@ fn runic_utxos_are_deducted_from_cardinal() {
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 0,
       ordinal: 0,
       runic: Some(0),
@@ -121,8 +121,8 @@ fn runic_utxos_are_deducted_from_cardinal() {
     CommandBuilder::new("--regtest --index-runes wallet balance")
       .core(&core)
       .ord(&ord)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 50 * COIN_VALUE * 8 - 20_000,
       ordinal: 10000,
       runic: Some(10_000),
@@ -148,8 +148,8 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     CommandBuilder::new("wallet balance")
       .ord(&ord)
       .core(&core)
-      .run_and_deserialize_output::<Output>(),
-    Output {
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
       cardinal: 50 * COIN_VALUE,
       ordinal: 0,
       runic: None,
