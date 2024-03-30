@@ -18,6 +18,7 @@ arbitrary = { version = "1", features = ["derive"] }
 bitcoin = { version = "0.30.0", features = ["rand"] }
 libfuzzer-sys = "0.4"
 ord = { path = ".." }
+ordinals = { path = "../crates/ordinals" }
 
 [[bin]]
 name = "runestone-decipher"

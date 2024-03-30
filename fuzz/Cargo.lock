@@ -1340,6 +1340,7 @@ dependencies = [
  "bitcoin",
  "libfuzzer-sys",
  "ord",
+ "ordinals",
 ]
 
 [[package]]

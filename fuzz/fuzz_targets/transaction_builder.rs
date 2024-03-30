@@ -7,7 +7,8 @@ use {
     Amount, OutPoint,
   },
   libfuzzer_sys::fuzz_target,
-  ord::{FeeRate, SatPoint, Target, TransactionBuilder},
+  ord::{FeeRate, Target, TransactionBuilder},
+  ordinals::SatPoint,
   std::collections::{BTreeMap, BTreeSet},
 };
 
