@@ -545,7 +545,9 @@ impl Wallet {
         .into_option()?;
 
       if let Some(transaction) = transaction {
-        if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+        if u32::try_from(transaction.info.confirmations).unwrap()
+          < Runestone::COMMIT_INTERVAL.into()
+        {
           continue;
         }
       }
@@ -555,7 +557,7 @@ impl Wallet {
         .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
 
       if let Some(tx_out) = tx_out {
-        if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+        if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
           break;
         }
       }

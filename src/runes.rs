@@ -145,8 +145,11 @@ mod tests {
 
   #[test]
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
-    let minimum =
-      Rune::minimum_at_height(Chain::Regtest.network(), Height(RUNE_COMMIT_INTERVAL + 2)).0;
+    let minimum = Rune::minimum_at_height(
+      Chain::Regtest.network(),
+      Height((Runestone::COMMIT_INTERVAL + 2).into()),
+    )
+    .0;
 
     {
       let context = Context::builder()
@@ -5211,7 +5214,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 
@@ -5271,7 +5274,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks((RUNE_COMMIT_INTERVAL - 1).into());
+    context.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
 
     let mut witness = Witness::new();
 
@@ -5331,7 +5334,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 

@@ -5,7 +5,7 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Txid, Witness,
+    Network, OutPoint, Sequence, Txid, Witness,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   chrono::{DateTime, Utc},
@@ -158,7 +158,7 @@ fn drain(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle, ord_rpc_server: &Tes
 
 struct Etched {
   id: RuneId,
-  inscribe: Batch,
+  output: Batch,
 }
 
 fn etch(
@@ -216,7 +216,7 @@ fn batch(
 
   bitcoin_rpc_server.mine_blocks(6);
 
-  let inscribe = spawn.run_and_deserialize_output::<Batch>();
+  let output = spawn.run_and_deserialize_output::<Batch>();
 
   bitcoin_rpc_server.mine_blocks(1);
 
@@ -227,8 +227,8 @@ fn batch(
     tx: 1,
   };
 
-  let reveal = inscribe.reveal;
-  let parent = inscribe.inscriptions[0].id;
+  let reveal = output.reveal;
+  let parent = output.inscriptions[0].id;
 
   let batch::Etching {
     divisibility,
@@ -365,7 +365,7 @@ fn batch(
     destination,
     location,
     rune,
-  } = inscribe.rune.clone().unwrap();
+  } = output.rune.clone().unwrap();
 
   if premine.to_integer(divisibility).unwrap() > 0 {
     let destination = destination
@@ -418,7 +418,7 @@ fn batch(
     }
   }
 
-  Etched { inscribe, id }
+  Etched { output, id }
 }
 
 fn envelope(payload: &[&[u8]]) -> Witness {
