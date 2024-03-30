@@ -1,66 +1,34 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Cenotaph {
-  EdictOutput,
-  EdictRuneId,
-  InvalidScript,
-  Opcode,
-  SupplyOverflow,
-  TrailingIntegers,
-  TruncatedField,
-  UnrecognizedEvenTag,
-  UnrecognizedFlag,
-  Varint,
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug, Default)]
+pub struct Cenotaph {
+  pub etching: Option<Rune>,
+  pub flaws: u32,
+  pub mint: Option<RuneId>,
 }
 
 impl Cenotaph {
-  pub const ALL: [Self; 10] = [
-    Self::EdictOutput,
-    Self::EdictRuneId,
-    Self::InvalidScript,
-    Self::Opcode,
-    Self::SupplyOverflow,
-    Self::TrailingIntegers,
-    Self::TruncatedField,
-    Self::UnrecognizedEvenTag,
-    Self::UnrecognizedFlag,
-    Self::Varint,
-  ];
-
-  pub fn flag(self) -> u32 {
-    1 << (self as u32)
+  pub fn flaws(&self) -> Vec<Flaw> {
+    Flaw::ALL
+      .into_iter()
+      .filter(|flaw| self.flaws & flaw.flag() != 0)
+      .collect()
   }
 }
 
-impl Display for Cenotaph {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-    match self {
-      Self::EdictOutput => write!(f, "edict output greater than transaction output count"),
-      Self::EdictRuneId => write!(f, "invalid rune ID in edict"),
-      Self::InvalidScript => write!(f, "invalid script in OP_RETURN"),
-      Self::Opcode => write!(f, "non-pushdata opcode in OP_RETURN"),
-      Self::SupplyOverflow => write!(f, "supply overflows u128"),
-      Self::TrailingIntegers => write!(f, "trailing integers in body"),
-      Self::TruncatedField => write!(f, "field with missing value"),
-      Self::UnrecognizedEvenTag => write!(f, "unrecognized even tag"),
-      Self::UnrecognizedFlag => write!(f, "unrecognized field"),
-      Self::Varint => write!(f, "invalid varint"),
-    }
-  }
-}
+#[cfg(test)]
+mod tests {
+  use super::*;
 
-impl From<Cenotaph> for Runestone {
-  fn from(cenotaph: Cenotaph) -> Self {
-    Self {
-      cenotaph: cenotaph.flag(),
-      ..default()
-    }
-  }
-}
-
-impl From<Cenotaph> for u32 {
-  fn from(cenotaph: Cenotaph) -> Self {
-    cenotaph.flag()
+  #[test]
+  fn flaws() {
+    assert_eq!(
+      Cenotaph {
+        flaws: Flaw::Opcode.flag() | Flaw::Varint.flag(),
+        ..default()
+      }
+      .flaws(),
+      vec![Flaw::Opcode, Flaw::Varint],
+    );
   }
 }

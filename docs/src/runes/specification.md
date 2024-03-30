@@ -371,13 +371,13 @@ The `Nop` field is unrecognized.
 
 Cenotaphs have the following effects:
 
-- All runes input to a cenotaph are burned.
+- All runes input to a transaction containing a cenotaph are burned.
 
-- If the cenotaph is an etching, the etched rune has supply zero and is
-  unmintable.
+- If the runestone that produced the cenotaph contained an etching, the etched
+  rune has supply zero and is unmintable.
 
-- If the cenotaph is a mint, the mint counts against the mint cap and the
-  minted runes are burned.
+- If the runestone that produced the cenotaph is a mint, the mint counts
+  against the mint cap and the minted runes are burned.
 
 Cenotaphs may be created if a runestone contains an unrecognized even tag, an
 unrecognized flag, an edict with an output number greater than the number of

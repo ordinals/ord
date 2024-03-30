@@ -1069,8 +1069,8 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   let tx = core.tx_by_id(output.txid);
 
   pretty_assert_eq!(
-    Runestone::from_transaction(&tx).unwrap(),
-    Runestone {
+    Runestone::decipher(&tx).unwrap().unwrap(),
+    Artifact::Runestone(Runestone {
       pointer: None,
       etching: None,
       edicts: vec![Edict {
@@ -1078,9 +1078,8 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         amount: 750,
         output: 2
       }],
-      cenotaph: 0,
       mint: None,
-    },
+    }),
   );
 }
 

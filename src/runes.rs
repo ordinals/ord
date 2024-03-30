@@ -796,8 +796,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           ..default()
         }),
-        pointer: None,
-        cenotaph: 1,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -822,7 +821,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_open_mint_parameters_are_unset_for_cenotaph() {
+  fn etched_rune_parameters_are_unset_for_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -845,7 +844,7 @@ mod tests {
           symbol: Some('$'),
           spacers: Some(1),
         }),
-        cenotaph: 1,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -856,18 +855,18 @@ mod tests {
         id,
         RuneEntry {
           block: id.block,
-          burned: u128::MAX,
-          divisibility: 1,
+          burned: 0,
+          divisibility: 0,
           etching: txid0,
           terms: None,
           mints: 0,
           number: 0,
-          premine: u128::MAX,
+          premine: 0,
           spaced_rune: SpacedRune {
             rune: Rune(RUNE),
-            spacers: 1,
+            spacers: 0,
           },
-          symbol: Some('$'),
+          symbol: None,
           timestamp: id.block,
         },
       )],
@@ -876,12 +875,12 @@ mod tests {
   }
 
   #[test]
-  fn etched_reserved_rune_is_allocated_with_zero_supply_in_cenotaph() {
+  fn reserved_runes_are_not_allocated_in_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
-    let txid0 = context.core.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -891,7 +890,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          cenotaph: 1,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -901,24 +900,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = RuneId { block: 2, tx: 1 };
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune::reserved(2, 1),
-            spacers: 0,
-          },
-          timestamp: id.block,
-          ..default()
-        },
-      )],
-      [],
-    );
+    context.assert_runes([], []);
   }
 
   #[test]
@@ -970,7 +952,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: 1,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -4082,7 +4064,7 @@ mod tests {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: 1,
+          pointer: Some(10),
           mint: Some(id),
           edicts: vec![Edict {
             id,

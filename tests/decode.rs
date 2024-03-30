@@ -67,7 +67,7 @@ fn from_file() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
@@ -90,7 +90,7 @@ fn from_stdin() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
@@ -146,7 +146,7 @@ fn compact() {
         pointer: None,
         unrecognized_even_field: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
