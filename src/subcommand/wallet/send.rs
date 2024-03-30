@@ -307,8 +307,8 @@ impl Send {
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
     assert_eq!(
-      Runestone::from_transaction(&unsigned_transaction).unwrap(),
-      runestone,
+      Runestone::decipher(&unsigned_transaction),
+      Ok(Some(Artifact::Runestone(runestone))),
     );
 
     Ok(unsigned_transaction)
