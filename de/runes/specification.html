@@ -490,13 +490,13 @@
 <p>Cenotaphs have the following effects:</p>
 <ul>
 <li>
-<p>All runes input to a cenotaph are burned.</p>
+<p>All runes input to a transaction containing a cenotaph are burned.</p>
 </li>
 <li>
-<p>If the cenotaph is an etching, the etched rune has supply zero and is unmintable.</p>
+<p>If the runestone that produced the cenotaph contained an etching, the etched rune has supply zero and is unmintable.</p>
 </li>
 <li>
-<p>If the cenotaph is a mint, the mint counts against the mint cap and the minted runes are burned.</p>
+<p>If the runestone that produced the cenotaph is a mint, the mint counts against the mint cap and the minted runes are burned.</p>
 </li>
 </ul>
 <p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of inputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, or trailing integers not part of an edict.</p>
