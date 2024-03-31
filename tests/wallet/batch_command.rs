@@ -2584,7 +2584,10 @@ fn batch_inscribe_errors_if_pending_etchings() {
       .read_line(&mut buffer)
       .unwrap();
 
-    assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
+    assert_regex_match!(
+      buffer,
+      "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+    );
 
     core.mine_blocks(1);
 
@@ -2614,7 +2617,7 @@ fn batch_inscribe_errors_if_pending_etchings() {
     .ord(&ord)
     .expected_exit_code(1)
     .expected_stderr(
-      "error: rune `AAAAAAAAAAAAA` has a pending etching, resume it with `ord wallet resume`\n",
+      "error: rune `AAAAAAAAAAAAA` has pending etching, resume with `ord wallet resume`\n",
     )
     .run_and_extract_stdout();
 }

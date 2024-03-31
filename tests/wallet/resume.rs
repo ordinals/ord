@@ -198,13 +198,13 @@ fn resume_suspended() {
 
   assert_regex_match!(buffer, "Waiting for rune commitment .* to mature…\n");
 
+  buffer.clear();
+
   signal::kill(
     Pid::from_raw(spawn.child.id().try_into().unwrap()),
     Signal::SIGINT,
   )
   .unwrap();
-
-  buffer.clear();
 
   BufReader::new(spawn.child.stderr.as_mut().unwrap())
     .read_line(&mut buffer)
