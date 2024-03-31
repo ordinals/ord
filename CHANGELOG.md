@@ -5,6 +5,7 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
+- Allow pausing and resuming etchings ([#3374](https://github.com/ordinals/ord/pull/3374) by [raphjaph](https://github.com/raphjaph))
 - Seed index with genesis rune ([#3426](https://github.com/ordinals/ord/pull/3426) by [casey](https://github.com/casey))
 - Add `ord wallet batch` command ([#3401](https://github.com/ordinals/ord/pull/3401) by [casey](https://github.com/casey))
 - Return effective content type in JSON API ([#3289](https://github.com/ordinals/ord/pull/3289) by [arik-so](https://github.com/arik-so))
@@ -31,6 +32,8 @@ Changelog
 - Downgrade from `beta` to `alpha` ([#3315](https://github.com/ordinals/ord/pull/3315) by [casey](https://github.com/casey))
 
 ### Misc
+- Add links to status page ([#3361](https://github.com/ordinals/ord/pull/3361) by [lugondev](https://github.com/lugondev))
+- Document sending runes ([#3405](https://github.com/ordinals/ord/pull/3405) by [rot13maxi](https://github.com/rot13maxi))
 - Use checked arithmetic in RuneUpdater ([#3423](https://github.com/ordinals/ord/pull/3423) by [casey](https://github.com/casey))
 - Update Dockerfile Rust version ([#3425](https://github.com/ordinals/ord/pull/3425) by [0xspyop](https://github.com/0xspyop))
 - Don't conflate cenotaphs and runestones ([#3417](https://github.com/ordinals/ord/pull/3417) by [casey](https://github.com/casey))
