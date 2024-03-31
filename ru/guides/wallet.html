@@ -426,6 +426,22 @@
 <p>Как только транзакция отправки подтвердится, получатель может подтвердить получение, выполнив команду:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="sending-runes"><a class="header" href="#sending-runes">Sending Runes</a></h2>
+<p>Попросите получателя сгенерировать новый адрес, выполнив команду:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Send the runes by running:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>Посмотреть транзакцию, находящуюся в ожидании, можно с помощью команды:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, the recipient can confirm receipt with:</p>
+<pre><code>ord wallet balance
+</code></pre>
 <h2 id="Получение-надписей"><a class="header" href="#Получение-надписей">Получение надписей</a></h2>
 <p>Сгенерируйте новый адрес получения с помощью команды:</p>
 <pre><code>ord wallet receive

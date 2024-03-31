@@ -1602,6 +1602,22 @@ OP_ENDIF
 <p>एक बार प्रेषित लेनदेन की पुष्टि हो जाने पर, प्राप्तकर्ता निम्नलिखित चलाकर रसीद की पुष्टि कर सकता है:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="sending-runes"><a class="header" href="#sending-runes">Sending Runes</a></h2>
+<p>प्राप्तकर्ता को निम्न संचालित कर एक नये पते का सृजन करने के लिए कहें:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Send the runes by running:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>निम्‍न के साथ लंबित लेनदेन देखें:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, the recipient can confirm receipt with:</p>
+<pre><code>ord wallet balance
+</code></pre>
 <h2 id="इंसकरीपशंस-डिजिटल-अभिलेख-परापत-करना"><a class="header" href="#इंसकरीपशंस-डिजिटल-अभिलेख-परापत-करना">इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्राप्त करना</a></h2>
 <p>इसका उपयोग करके एक नया प्राप्त पता उत्पन्न करें:</p>
 <pre><code>ord wallet receive

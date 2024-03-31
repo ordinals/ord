@@ -1602,6 +1602,22 @@ OP_ENDIF
 <p>Una volta confermata la transazione di invio, il destinatario può confermare la ricezione eseguendo:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="sending-runes"><a class="header" href="#sending-runes">Sending Runes</a></h2>
+<p>Chiedere al destinatario di generare un nuovo indirizzo eseguendo:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Send the runes by running:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>Vedere la transazione in sospeso con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, the recipient can confirm receipt with:</p>
+<pre><code>ord wallet balance
+</code></pre>
 <h2 id="ricevere-iscrizioni"><a class="header" href="#ricevere-iscrizioni">Ricevere Iscrizioni</a></h2>
 <p>Generare un nuovo indirizzo di ricezione utilizzando:</p>
 <pre><code>ord wallet receive

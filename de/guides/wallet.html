@@ -426,6 +426,22 @@
 <p>Sobald die Sendetransaktion bestätigt ist, kann der Empfänger den Empfang bestätigen, indem er Folgendes ausführt:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="sending-runes"><a class="header" href="#sending-runes">Sending Runes</a></h2>
+<p>Bitten Sie den Empfänger, eine neue Adresse zu generieren, indem Sie Folgendes ausführen:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Send the runes by running:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>Sehen Sie sich die ausstehende Transaktion an mit:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Once the send transaction confirms, the recipient can confirm receipt with:</p>
+<pre><code>ord wallet balance
+</code></pre>
 <h2 id="empfang-von-inscriptions"><a class="header" href="#empfang-von-inscriptions">Empfang von Inscriptions</a></h2>
 <p>Erzeugen Sie eine neue Empfangsadresse mit:</p>
 <pre><code>ord wallet receive
