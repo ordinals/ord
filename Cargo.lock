@@ -1992,6 +1992,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "mockcore"
+version = "0.0.1"
+dependencies = [
+ "base64 0.21.7",
+ "bitcoin",
+ "hex",
+ "jsonrpc-core",
+ "jsonrpc-derive",
+ "jsonrpc-http-server",
+ "ord-bitcoincore-rpc",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "mp4"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2266,7 +2283,9 @@ dependencies = [
  "mime",
  "mime_guess",
  "miniscript",
+ "mockcore",
  "mp4",
+ "nix",
  "ord-bitcoincore-rpc",
  "ordinals",
  "pretty_assertions",
@@ -2286,7 +2305,6 @@ dependencies = [
  "sha3",
  "sysinfo",
  "tempfile",
- "test-bitcoincore-rpc",
  "tokio",
  "tokio-stream",
  "tokio-util 0.7.10",
@@ -3353,23 +3371,6 @@ dependencies = [
  "fastrand 2.0.1",
  "rustix 0.38.31",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "test-bitcoincore-rpc"
-version = "0.0.1"
-dependencies = [
- "base64 0.21.7",
- "bitcoin",
- "hex",
- "jsonrpc-core",
- "jsonrpc-derive",
- "jsonrpc-http-server",
- "ord-bitcoincore-rpc",
- "reqwest",
- "serde",
- "serde_json",
- "tempfile",
 ]
 
 [[package]]

@@ -6,7 +6,6 @@ mod tag;
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
-  pub cenotaph: u32,
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
   pub mint: Option<RuneId>,
@@ -16,43 +15,75 @@ pub struct Runestone {
 #[derive(Debug, PartialEq)]
 enum Payload {
   Valid(Vec<u8>),
-  Invalid(Cenotaph),
+  Invalid(Flaw),
 }
 
 impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
+  pub const COMMIT_INTERVAL: u16 = 6;
 
-  pub fn from_transaction(transaction: &Transaction) -> Option<Self> {
-    Self::decipher(transaction).ok().flatten()
-  }
-
-  pub fn is_cenotaph(&self) -> bool {
-    self.cenotaph != 0
-  }
-
-  pub fn cenotaph_reasons(&self) -> Vec<Cenotaph> {
-    Cenotaph::ALL
-      .into_iter()
-      .filter(|cenotaph| self.cenotaph & cenotaph.flag() != 0)
-      .collect()
-  }
-
-  fn decipher(transaction: &Transaction) -> Result<Option<Self>, script::Error> {
+  pub fn decipher(transaction: &Transaction) -> Result<Option<Artifact>, script::Error> {
     let payload = match Runestone::payload(transaction)? {
       Some(Payload::Valid(payload)) => payload,
-      Some(Payload::Invalid(cenotaph)) => return Ok(Some(cenotaph.into())),
+      Some(Payload::Invalid(flaw)) => {
+        return Ok(Some(Artifact::Cenotaph(Cenotaph {
+          flaws: flaw.into(),
+          ..default()
+        })))
+      }
       None => return Ok(None),
     };
 
     let Some(integers) = Runestone::integers(&payload) else {
-      return Ok(Some(Cenotaph::Varint.into()));
+      return Ok(Some(Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::Varint.into(),
+        ..default()
+      })));
     };
 
     let Message {
-      mut cenotaph,
+      mut flaws,
       edicts,
       mut fields,
     } = Message::from_integers(transaction, &integers);
+
+    let mut flags = Tag::Flags
+      .take(&mut fields, |[flags]| Some(flags))
+      .unwrap_or_default();
+
+    let etching = Flag::Etching.take(&mut flags).then(|| Etching {
+      divisibility: Tag::Divisibility.take(&mut fields, |[divisibility]| {
+        let divisibility = u8::try_from(divisibility).ok()?;
+        (divisibility <= Etching::MAX_DIVISIBILITY).then_some(divisibility)
+      }),
+      premine: Tag::Premine.take(&mut fields, |[premine]| Some(premine)),
+      rune: Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune))),
+      spacers: Tag::Spacers.take(&mut fields, |[spacers]| {
+        let spacers = u32::try_from(spacers).ok()?;
+        (spacers <= Etching::MAX_SPACERS).then_some(spacers)
+      }),
+      symbol: Tag::Symbol.take(&mut fields, |[symbol]| {
+        char::from_u32(u32::try_from(symbol).ok()?)
+      }),
+      terms: Flag::Terms.take(&mut flags).then(|| Terms {
+        cap: Tag::Cap.take(&mut fields, |[cap]| Some(cap)),
+        height: (
+          Tag::HeightStart.take(&mut fields, |[start_height]| {
+            u64::try_from(start_height).ok()
+          }),
+          Tag::HeightEnd.take(&mut fields, |[start_height]| {
+            u64::try_from(start_height).ok()
+          }),
+        ),
+        amount: Tag::Amount.take(&mut fields, |[amount]| Some(amount)),
+        offset: (
+          Tag::OffsetStart.take(&mut fields, |[start_offset]| {
+            u64::try_from(start_offset).ok()
+          }),
+          Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
+        ),
+      }),
+    });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
       RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
@@ -63,93 +94,35 @@ impl Runestone {
       (u64::from(pointer) < u64::try_from(transaction.output.len()).unwrap()).then_some(pointer)
     });
 
-    let divisibility = Tag::Divisibility.take(&mut fields, |[divisibility]| {
-      let divisibility = u8::try_from(divisibility).ok()?;
-      (divisibility <= Etching::MAX_DIVISIBILITY).then_some(divisibility)
-    });
-
-    let amount = Tag::Amount.take(&mut fields, |[amount]| Some(amount));
-
-    let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
-
-    let cap = Tag::Cap.take(&mut fields, |[cap]| Some(cap));
-
-    let premine = Tag::Premine.take(&mut fields, |[premine]| Some(premine));
-
-    let spacers = Tag::Spacers.take(&mut fields, |[spacers]| {
-      let spacers = u32::try_from(spacers).ok()?;
-      (spacers <= Etching::MAX_SPACERS).then_some(spacers)
-    });
-
-    let symbol = Tag::Symbol.take(&mut fields, |[symbol]| {
-      char::from_u32(u32::try_from(symbol).ok()?)
-    });
-
-    let offset = (
-      Tag::OffsetStart.take(&mut fields, |[start_offset]| {
-        u64::try_from(start_offset).ok()
-      }),
-      Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
-    );
-
-    let height = (
-      Tag::HeightStart.take(&mut fields, |[start_height]| {
-        u64::try_from(start_height).ok()
-      }),
-      Tag::HeightEnd.take(&mut fields, |[start_height]| {
-        u64::try_from(start_height).ok()
-      }),
-    );
-
-    let mut flags = Tag::Flags
-      .take(&mut fields, |[flags]| Some(flags))
-      .unwrap_or_default();
-
-    let etching = Flag::Etching.take(&mut flags);
-
-    let terms = Flag::Terms.take(&mut flags);
-
-    let overflow = (|| {
-      let premine = premine.unwrap_or_default();
-      let cap = cap.unwrap_or_default();
-      let amount = amount.unwrap_or_default();
-      premine.checked_add(cap.checked_mul(amount)?)
-    })()
-    .is_none();
-
-    let etching = etching.then_some(Etching {
-      divisibility,
-      premine,
-      rune,
-      spacers,
-      symbol,
-      terms: terms.then_some(Terms {
-        cap,
-        height,
-        amount,
-        offset,
-      }),
-    });
-
-    if overflow {
-      cenotaph |= Cenotaph::SupplyOverflow.flag();
+    if etching
+      .map(|etching| etching.supply().is_none())
+      .unwrap_or_default()
+    {
+      flaws |= Flaw::SupplyOverflow.flag();
     }
 
     if flags != 0 {
-      cenotaph |= Cenotaph::UnrecognizedFlag.flag();
+      flaws |= Flaw::UnrecognizedFlag.flag();
     }
 
     if fields.keys().any(|tag| tag % 2 == 0) {
-      cenotaph |= Cenotaph::UnrecognizedEvenTag.flag();
+      flaws |= Flaw::UnrecognizedEvenTag.flag();
     }
 
-    Ok(Some(Self {
-      cenotaph,
+    if flaws != 0 {
+      return Ok(Some(Artifact::Cenotaph(Cenotaph {
+        flaws,
+        mint,
+        etching: etching.and_then(|etching| etching.rune),
+      })));
+    }
+
+    Ok(Some(Artifact::Runestone(Self {
       edicts,
       etching,
       mint,
       pointer,
-    }))
+    })))
   }
 
   pub fn encipher(&self) -> ScriptBuf {
@@ -186,10 +159,6 @@ impl Runestone {
     }
 
     Tag::Pointer.encode_option(self.pointer, &mut payload);
-
-    if self.is_cenotaph() {
-      Tag::Cenotaph.encode([0], &mut payload);
-    }
 
     if !self.edicts.is_empty() {
       varint::encode_to_vec(Tag::Body.into(), &mut payload);
@@ -232,13 +201,11 @@ impl Runestone {
 
       // followed by the protocol identifier, ignoring errors, since OP_RETURN
       // scripts may be invalid
-      if instructions.next().transpose().ok().flatten()
-        != Some(Instruction::Op(Runestone::MAGIC_NUMBER))
-      {
+      if instructions.next() != Some(Ok(Instruction::Op(Runestone::MAGIC_NUMBER))) {
         continue;
       }
 
-      // construct the payload by concatinating remaining data pushes
+      // construct the payload by concatenating remaining data pushes
       let mut payload = Vec::new();
 
       for result in instructions {
@@ -247,10 +214,10 @@ impl Runestone {
             payload.extend_from_slice(push.as_bytes());
           }
           Ok(Instruction::Op(_)) => {
-            return Ok(Some(Payload::Invalid(Cenotaph::Opcode)));
+            return Ok(Some(Payload::Invalid(Flaw::Opcode)));
           }
           Err(_) => {
-            return Ok(Some(Payload::Invalid(Cenotaph::InvalidScript)));
+            return Ok(Some(Payload::Invalid(Flaw::InvalidScript)));
           }
         }
       }
@@ -289,7 +256,7 @@ mod tests {
     RuneId { block: 1, tx }
   }
 
-  fn decipher(integers: &[u128]) -> Runestone {
+  fn decipher(integers: &[u128]) -> Artifact {
     let payload = payload(integers);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
@@ -322,19 +289,17 @@ mod tests {
   }
 
   #[test]
-  fn from_transaction_returns_none_if_decipher_returns_error() {
-    assert_eq!(
-      Runestone::from_transaction(&Transaction {
-        input: Vec::new(),
-        output: vec![TxOut {
-          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
-          value: 0,
-        }],
-        lock_time: LockTime::ZERO,
-        version: 2,
-      }),
-      None
-    );
+  fn decipher_returns_an_error_if_first_opcode_is_malformed() {
+    assert!(Runestone::decipher(&Transaction {
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
+        value: 0,
+      }],
+      lock_time: LockTime::ZERO,
+      version: 2,
+    })
+    .is_err());
   }
 
   #[test]
@@ -437,7 +402,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(Some(Payload::Invalid(Cenotaph::InvalidScript)))
+      Ok(Some(Payload::Invalid(Flaw::InvalidScript)))
     );
   }
 
@@ -494,7 +459,35 @@ mod tests {
       })
       .unwrap()
       .unwrap(),
-      Cenotaph::Opcode.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::Opcode.into(),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn pushnum_opcodes_in_runestone_produce_cenotaph() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_opcode(Runestone::MAGIC_NUMBER)
+            .push_opcode(opcodes::all::OP_PUSHNUM_1)
+            .into_script(),
+          value: 0,
+        },],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      })
+      .unwrap()
+      .unwrap(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::Opcode.into(),
+        ..default()
+      }),
     );
   }
 
@@ -512,8 +505,10 @@ mod tests {
         }],
         lock_time: LockTime::ZERO,
         version: 2,
-      }),
-      Ok(Some(Runestone::default()))
+      })
+      .unwrap()
+      .unwrap(),
+      Artifact::Runestone(Runestone::default()),
     );
   }
 
@@ -552,10 +547,10 @@ mod tests {
       })
       .unwrap()
       .unwrap(),
-      Runestone {
+      Artifact::Runestone(Runestone {
         mint: Some(RuneId::new(1, 1).unwrap()),
         ..default()
-      },
+      }),
     );
   }
 
@@ -563,14 +558,14 @@ mod tests {
   fn deciphering_non_empty_runestone_is_successful() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 2, 0]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
           output: 0,
         }],
         ..default()
-      }
+      }),
     );
   }
 
@@ -586,7 +581,7 @@ mod tests {
         2,
         0
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -594,7 +589,7 @@ mod tests {
         }],
         etching: Some(Etching::default()),
         ..default()
-      }
+      }),
     );
   }
 
@@ -612,7 +607,7 @@ mod tests {
         2,
         0
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -623,33 +618,82 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
   #[test]
-  fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
+  fn terms_flag_without_etching_flag_produces_cenotaph() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Terms.mask(),
-        Tag::OffsetEnd.into(),
-        4,
         Tag::Body.into(),
-        1,
-        1,
-        2,
+        0,
+        0,
+        0,
         0
       ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedFlag.into(),
         ..default()
-      },
+      }),
     );
+  }
+
+  #[test]
+  fn recognized_fields_without_flag_produces_cenotaph() {
+    #[track_caller]
+    fn case(integers: &[u128]) {
+      assert_eq!(
+        decipher(integers),
+        Artifact::Cenotaph(Cenotaph {
+          flaws: Flaw::UnrecognizedEvenTag.into(),
+          ..default()
+        }),
+      );
+    }
+
+    case(&[Tag::Premine.into(), 0]);
+    case(&[Tag::Rune.into(), 0]);
+    case(&[Tag::Cap.into(), 0]);
+    case(&[Tag::Amount.into(), 0]);
+    case(&[Tag::OffsetStart.into(), 0]);
+    case(&[Tag::OffsetEnd.into(), 0]);
+    case(&[Tag::HeightStart.into(), 0]);
+    case(&[Tag::HeightEnd.into(), 0]);
+
+    case(&[Tag::Flags.into(), Flag::Etching.into(), Tag::Cap.into(), 0]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::Amount.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::OffsetStart.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::OffsetEnd.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::HeightStart.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::HeightEnd.into(),
+      0,
+    ]);
   }
 
   #[test]
@@ -666,7 +710,7 @@ mod tests {
         2,
         0
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -680,7 +724,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -698,7 +742,7 @@ mod tests {
         2,
         0
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -712,7 +756,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -734,7 +778,10 @@ mod tests {
       })
       .unwrap()
       .unwrap(),
-      Cenotaph::Varint.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::Varint.into(),
+        ..default()
+      }),
     );
   }
 
@@ -754,19 +801,11 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(4)),
-          ..default()
-        }),
-        cenotaph: Cenotaph::UnrecognizedEvenTag.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.into(),
+        etching: Some(Rune(4)),
         ..default()
-      }
+      }),
     );
   }
 
@@ -786,7 +825,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -798,7 +837,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      }
+      })
     );
   }
 
@@ -806,14 +845,14 @@ mod tests {
   fn unrecognized_odd_tag_is_ignored() {
     assert_eq!(
       decipher(&[Tag::Nop.into(), 100, Tag::Body.into(), 1, 1, 2, 0]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
           output: 0,
         }],
         ..default()
-      },
+      }),
     );
   }
 
@@ -821,15 +860,10 @@ mod tests {
   fn runestone_with_unrecognized_even_tag_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Cenotaph.into(), 0, Tag::Body.into(), 1, 1, 2, 0]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::UnrecognizedEvenTag.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -845,15 +879,10 @@ mod tests {
         2,
         0
       ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::UnrecognizedFlag.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedFlag.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -861,11 +890,10 @@ mod tests {
   fn runestone_with_edict_id_with_zero_block_and_nonzero_tx_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 0, 1, 2, 0]),
-      Runestone {
-        edicts: Vec::new(),
-        cenotaph: Cenotaph::EdictRuneId.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictRuneId.into(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -873,28 +901,18 @@ mod tests {
   fn runestone_with_overflowing_edict_id_delta_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 0, 0, 0, u64::MAX.into(), 0, 0, 0]),
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::new(1, 0).unwrap(),
-          amount: 0,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::EdictRuneId.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictRuneId.into(),
         ..default()
-      },
+      }),
     );
 
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 0, 0, 0, u64::MAX.into(), 0, 0]),
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::new(1, 1).unwrap(),
-          amount: 0,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::EdictRuneId.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictRuneId.into(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -902,11 +920,10 @@ mod tests {
   fn runestone_with_output_over_max_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 2, 2]),
-      Runestone {
-        edicts: Vec::new(),
-        cenotaph: Cenotaph::EdictOutput.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictOutput.into(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -914,11 +931,10 @@ mod tests {
   fn tag_with_no_value_is_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Flags.into(), 1, Tag::Flags.into()]),
-      Runestone {
-        etching: Some(Etching::default()),
-        cenotaph: Cenotaph::TruncatedField.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::TruncatedField.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -929,18 +945,20 @@ mod tests {
     for i in 0..4 {
       assert_eq!(
         decipher(&integers),
-        Runestone {
-          cenotaph: if i > 0 {
-            Cenotaph::TrailingIntegers.flag()
-          } else {
-            0
-          },
-          edicts: vec![Edict {
-            id: rune_id(1),
-            amount: 2,
-            output: 0,
-          }],
-          ..default()
+        if i == 0 {
+          Artifact::Runestone(Runestone {
+            edicts: vec![Edict {
+              id: rune_id(1),
+              amount: 2,
+              output: 0,
+            }],
+            ..default()
+          })
+        } else {
+          Artifact::Cenotaph(Cenotaph {
+            flaws: Flaw::TrailingIntegers.into(),
+            ..default()
+          })
         }
       );
 
@@ -964,7 +982,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -976,7 +994,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -996,7 +1014,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1007,7 +1025,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1025,7 +1043,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1033,7 +1051,7 @@ mod tests {
         }],
         etching: Some(Etching::default()),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1053,7 +1071,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1065,7 +1083,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1103,7 +1121,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1122,41 +1140,20 @@ mod tests {
           symbol: Some('a'),
           spacers: Some(5),
         }),
-        cenotaph: 0,
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
-      },
+      }),
     );
   }
 
   #[test]
-  fn recognized_even_etching_fields_in_non_etching_are_ignored() {
+  fn recognized_even_etching_fields_produce_cenotaph_if_etching_flag_is_not_set() {
     assert_eq!(
-      decipher(&[
-        Tag::Rune.into(),
-        4,
-        Tag::Divisibility.into(),
-        1,
-        Tag::Symbol.into(),
-        'a'.into(),
-        Tag::OffsetEnd.into(),
-        2,
-        Tag::Amount.into(),
-        3,
-        Tag::Body.into(),
-        1,
-        1,
-        2,
-        0,
-      ]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
+      decipher(&[Tag::Rune.into(), 4]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1178,7 +1175,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1191,7 +1188,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1209,7 +1206,7 @@ mod tests {
         2,
         0,
       ]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1220,7 +1217,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1228,7 +1225,7 @@ mod tests {
   fn runestone_may_contain_multiple_edicts() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 2, 0, 0, 3, 5, 0]),
-      Runestone {
+      Artifact::Runestone(Runestone {
         edicts: vec![
           Edict {
             id: rune_id(1),
@@ -1242,7 +1239,7 @@ mod tests {
           },
         ],
         ..default()
-      },
+      }),
     );
   }
 
@@ -1250,15 +1247,10 @@ mod tests {
   fn runestones_with_invalid_rune_id_blocks_are_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 2, 0, u128::MAX, 1, 0, 0,]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::EdictRuneId.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictRuneId.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1266,15 +1258,10 @@ mod tests {
   fn runestones_with_invalid_rune_id_txs_are_cenotaph() {
     assert_eq!(
       decipher(&[Tag::Body.into(), 1, 1, 2, 0, 1, u128::MAX, 0, 0,]),
-      Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
-        cenotaph: Cenotaph::EdictRuneId.flag(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictRuneId.flag(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1321,8 +1308,10 @@ mod tests {
         }],
         lock_time: LockTime::ZERO,
         version: 2,
-      }),
-      Ok(Some(Runestone {
+      })
+      .unwrap()
+      .unwrap(),
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
@@ -1333,7 +1322,7 @@ mod tests {
           ..default()
         }),
         ..default()
-      }))
+      }),
     );
   }
 
@@ -1362,15 +1351,17 @@ mod tests {
         ],
         lock_time: LockTime::ZERO,
         version: 2,
-      }),
-      Ok(Some(Runestone {
+      })
+      .unwrap()
+      .unwrap(),
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
           output: 0,
         }],
         ..default()
-      }))
+      }),
     );
   }
 
@@ -1402,15 +1393,17 @@ mod tests {
         ],
         lock_time: LockTime::ZERO,
         version: 2,
-      }),
-      Ok(Some(Runestone {
+      })
+      .unwrap()
+      .unwrap(),
+      Artifact::Runestone(Runestone {
         edicts: vec![Edict {
           id: rune_id(1),
           amount: 2,
           output: 0,
         }],
         ..default()
-      }))
+      })
     );
   }
 
@@ -1660,11 +1653,10 @@ mod tests {
         Tag::OffsetEnd.into(),
         u128::from(u64::MAX) + 1,
       ]),
-      Runestone {
-        etching: Some(default()),
-        cenotaph: Cenotaph::UnrecognizedEvenTag.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.into(),
         ..default()
-      },
+      }),
     );
   }
 
@@ -1700,8 +1692,8 @@ mod tests {
       };
 
       assert_eq!(
-        Runestone::from_transaction(&transaction).unwrap(),
-        runestone
+        Runestone::decipher(&transaction).unwrap().unwrap(),
+        Artifact::Runestone(runestone),
       );
     }
 
@@ -1709,7 +1701,6 @@ mod tests {
 
     case(
       Runestone {
-        cenotaph: Cenotaph::UnrecognizedEvenTag.into(),
         edicts: vec![
           Edict {
             id: RuneId::new(2, 3).unwrap(),
@@ -1769,8 +1760,6 @@ mod tests {
         18,
         Tag::Pointer.into(),
         0,
-        Tag::Cenotaph.into(),
-        0,
         Tag::Body.into(),
         2,
         3,
@@ -1793,7 +1782,6 @@ mod tests {
           rune: Some(Rune(3)),
           spacers: None,
         }),
-        cenotaph: 0,
         ..default()
       },
       &[Tag::Flags.into(), Flag::Etching.mask(), Tag::Rune.into(), 3],
@@ -1809,18 +1797,9 @@ mod tests {
           rune: None,
           spacers: None,
         }),
-        cenotaph: 0,
         ..default()
       },
       &[Tag::Flags.into(), Flag::Etching.mask()],
-    );
-
-    case(
-      Runestone {
-        cenotaph: Cenotaph::UnrecognizedEvenTag.into(),
-        ..default()
-      },
-      &[Tag::Cenotaph.into(), 0],
     );
   }
 
@@ -1860,73 +1839,126 @@ mod tests {
   #[test]
   fn edict_output_greater_than_32_max_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::Body.into(), 1, 1, 1, u128::from(u32::MAX) + 1]).cenotaph,
-      Cenotaph::EdictOutput.flag()
+      decipher(&[Tag::Body.into(), 1, 1, 1, u128::from(u32::MAX) + 1]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::EdictOutput.flag(),
+        ..default()
+      }),
     );
   }
 
   #[test]
   fn partial_mint_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::Mint.into(), 1]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::Mint.into(), 1]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
   }
 
   #[test]
   fn invalid_mint_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::Mint.into(), 0, Tag::Mint.into(), 1]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::Mint.into(), 0, Tag::Mint.into(), 1]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
   }
 
   #[test]
   fn invalid_deadline_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::OffsetEnd.into(), u128::MAX]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::OffsetEnd.into(), u128::MAX]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
   }
 
   #[test]
   fn invalid_default_output_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::Pointer.into(), 1]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::Pointer.into(), 1]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
     assert_eq!(
-      decipher(&[Tag::Pointer.into(), u128::MAX]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::Pointer.into(), u128::MAX]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
   }
 
   #[test]
   fn invalid_divisibility_does_not_produce_cenotaph() {
-    assert!(!decipher(&[Tag::Divisibility.into(), u128::MAX]).is_cenotaph());
+    assert_eq!(
+      decipher(&[Tag::Divisibility.into(), u128::MAX]),
+      Artifact::Runestone(default()),
+    );
   }
 
   #[test]
   fn min_and_max_runes_are_not_cenotaphs() {
-    assert!(!decipher(&[Tag::Rune.into(), 0]).is_cenotaph());
-    assert!(!decipher(&[Tag::Rune.into(), u128::MAX]).is_cenotaph());
+    assert_eq!(
+      decipher(&[Tag::Flags.into(), Flag::Etching.into(), Tag::Rune.into(), 0]),
+      Artifact::Runestone(Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(0)),
+          ..default()
+        }),
+        ..default()
+      }),
+    );
+    assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.into(),
+        Tag::Rune.into(),
+        u128::MAX
+      ]),
+      Artifact::Runestone(Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(u128::MAX)),
+          ..default()
+        }),
+        ..default()
+      }),
+    );
   }
 
   #[test]
   fn invalid_spacers_does_not_produce_cenotaph() {
-    assert!(!decipher(&[Tag::Spacers.into(), u128::MAX]).is_cenotaph());
+    assert_eq!(
+      decipher(&[Tag::Spacers.into(), u128::MAX]),
+      Artifact::Runestone(default()),
+    );
   }
 
   #[test]
   fn invalid_symbol_does_not_produce_cenotaph() {
-    assert!(!decipher(&[Tag::Symbol.into(), u128::MAX]).is_cenotaph());
+    assert_eq!(
+      decipher(&[Tag::Symbol.into(), u128::MAX]),
+      Artifact::Runestone(default()),
+    );
   }
 
   #[test]
   fn invalid_term_produces_cenotaph() {
     assert_eq!(
-      decipher(&[Tag::OffsetEnd.into(), u128::MAX]).cenotaph,
-      Cenotaph::UnrecognizedEvenTag.flag()
+      decipher(&[Tag::OffsetEnd.into(), u128::MAX]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
+        ..default()
+      }),
     );
   }
 
@@ -1940,9 +1972,19 @@ mod tests {
         1,
         Tag::Amount.into(),
         u128::MAX
-      ])
-      .cenotaph,
-      0,
+      ]),
+      Artifact::Runestone(Runestone {
+        etching: Some(Etching {
+          terms: Some(Terms {
+            cap: Some(1),
+            amount: Some(u128::MAX),
+            height: (None, None),
+            offset: (None, None),
+          }),
+          ..default()
+        }),
+        ..default()
+      }),
     );
 
     assert_eq!(
@@ -1953,9 +1995,11 @@ mod tests {
         2,
         Tag::Amount.into(),
         u128::MAX
-      ])
-      .cenotaph,
-      Cenotaph::SupplyOverflow.flag(),
+      ]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::SupplyOverflow.into(),
+        ..default()
+      }),
     );
 
     assert_eq!(
@@ -1966,9 +2010,11 @@ mod tests {
         2,
         Tag::Amount.into(),
         u128::MAX / 2 + 1
-      ])
-      .cenotaph,
-      Cenotaph::SupplyOverflow.flag(),
+      ]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::SupplyOverflow.into(),
+        ..default()
+      }),
     );
 
     assert_eq!(
@@ -1981,9 +2027,11 @@ mod tests {
         1,
         Tag::Amount.into(),
         u128::MAX
-      ])
-      .cenotaph,
-      Cenotaph::SupplyOverflow.flag(),
+      ]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::SupplyOverflow.into(),
+        ..default()
+      }),
     );
   }
 
@@ -2035,8 +2083,9 @@ mod tests {
           }
         ],
       })
+      .unwrap()
       .unwrap(),
-      Some(Runestone::default())
+      Artifact::Runestone(Runestone::default()),
     );
   }
 
@@ -2061,11 +2110,12 @@ mod tests {
           value: 0,
         }],
       })
+      .unwrap()
       .unwrap(),
-      Some(Runestone {
-        cenotaph: Cenotaph::InvalidScript.into(),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::InvalidScript.into(),
         ..default()
-      })
+      }),
     );
   }
 }

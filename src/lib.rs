@@ -51,8 +51,8 @@ use {
   http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{
-    varint, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
-    SatPoint, SpacedRune, Terms,
+    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
+    Sat, SatPoint, SpacedRune, Terms,
   },
   regex::Regex,
   reqwest::Url,
@@ -131,7 +131,6 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const RUNE_COMMIT_INTERVAL: u32 = 6;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);

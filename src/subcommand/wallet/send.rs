@@ -1,9 +1,4 @@
-use {
-  super::*,
-  crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
-  base64::Engine,
-  bitcoin::psbt::Psbt,
-};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -312,8 +307,8 @@ impl Send {
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
     assert_eq!(
-      Runestone::from_transaction(&unsigned_transaction).unwrap(),
-      runestone,
+      Runestone::decipher(&unsigned_transaction),
+      Ok(Some(Artifact::Runestone(runestone))),
     );
 
     Ok(unsigned_transaction)
