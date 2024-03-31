@@ -44,13 +44,16 @@ fn config_is_loaded_from_config_option() {
 
   fs::write(&config, "chain: regtest").unwrap();
 
-  CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
-    .stdout_regex(
-      r#".*
+  CommandBuilder::new(format!(
+    "--config {} --format json settings",
+    config.to_str().unwrap()
+  ))
+  .stdout_regex(
+    r#".*
   "chain": "regtest",
 .*"#,
-    )
-    .run_and_extract_stdout();
+  )
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -86,7 +89,7 @@ fn config_is_loaded_from_config_dir() {
   fs::write(tempdir.path().join("ord.yaml"), "chain: regtest").unwrap();
 
   CommandBuilder::new(format!(
-    "--config-dir {} settings",
+    "--config-dir {} --format json settings",
     tempdir.path().to_str().unwrap()
   ))
   .stdout_regex(
@@ -99,7 +102,7 @@ fn config_is_loaded_from_config_dir() {
 
 #[test]
 fn config_is_loaded_from_data_dir() {
-  CommandBuilder::new("settings")
+  CommandBuilder::new(format!("--format json settings"))
     .write("ord.yaml", "chain: regtest")
     .stdout_regex(
       r#".*
@@ -111,7 +114,7 @@ fn config_is_loaded_from_data_dir() {
 
 #[test]
 fn env_is_loaded() {
-  CommandBuilder::new("settings")
+  CommandBuilder::new(format!("--format json settings"))
     .stdout_regex(
       r#".*
   "chain": "mainnet",
@@ -119,7 +122,7 @@ fn env_is_loaded() {
     )
     .run_and_extract_stdout();
 
-  CommandBuilder::new("settings")
+  CommandBuilder::new(format!("--format json settings"))
     .env("ORD_CHAIN", "regtest")
     .stdout_regex(
       r#".*
