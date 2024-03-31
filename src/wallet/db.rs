@@ -41,13 +41,17 @@ pub(crate) struct Db {
 }
 
 impl Db {
-  pub(crate) fn open(
-    wallet_name: &String,
-    settings: &Settings,
-    wallet_db: Option<PathBuf>,
-  ) -> Result<Self> {
-    let path = wallet_db.unwrap_or_else(|| settings.data_dir().join(format!("{wallet_name}.redb")));
-    let path_clone = path.clone().to_owned();
+  pub(crate) fn open(wallet_name: &String, settings: &Settings) -> Result<Self> {
+    let path = settings.data_dir().join(format!("{wallet_name}.redb"));
+
+    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
+      bail!(
+        "failed to create data dir `{}`: {err}",
+        path.parent().unwrap().display()
+      );
+    }
+
+    let db_path = path.clone().to_owned();
     let once = Once::new();
     let progress_bar = Mutex::new(None);
     let integration_test = settings.integration_test();
@@ -62,7 +66,7 @@ impl Db {
       once.call_once(|| {
         println!(
           "Wallet database file `{}` needs recovery. This can take some time.",
-          path_clone.display()
+          db_path.display()
         )
       });
 
