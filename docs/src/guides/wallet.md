@@ -400,8 +400,10 @@ Send the runes by running:
 ```
 ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <RUNES_AMOUNT>
 ```
-where `RUNES_AMOUNT` is the number of runes to send, a `:` character, and the name of the rune. For example if you want to send
-1000 of the EXAMPLE rune, you would use `1000:EXAMPLE`.
+
+Where `RUNES_AMOUNT` is the number of runes to send, a `:` character, and the
+name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you
+would use `1000:EXAMPLE`.
 
 ```
 ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
@@ -413,8 +415,7 @@ See the pending transaction with:
 ord wallet transactions
 ```
 
-Once the send transaction confirms, the recipient can confirm receipt by
-running:
+Once the send transaction confirms, the recipient can confirm receipt with:
 
 ```
 ord wallet balance
