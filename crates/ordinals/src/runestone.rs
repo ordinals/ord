@@ -642,6 +642,61 @@ mod tests {
   }
 
   #[test]
+  fn recognized_fields_without_flag_produces_cenotaph() {
+    #[track_caller]
+    fn case(integers: &[u128]) {
+      assert_eq!(
+        decipher(integers),
+        Artifact::Cenotaph(Cenotaph {
+          flaws: Flaw::UnrecognizedEvenTag.into(),
+          ..default()
+        }),
+      );
+    }
+
+    case(&[Tag::Premine.into(), 0]);
+    case(&[Tag::Rune.into(), 0]);
+    case(&[Tag::Cap.into(), 0]);
+    case(&[Tag::Amount.into(), 0]);
+    case(&[Tag::OffsetStart.into(), 0]);
+    case(&[Tag::OffsetEnd.into(), 0]);
+    case(&[Tag::HeightStart.into(), 0]);
+    case(&[Tag::HeightEnd.into(), 0]);
+
+    case(&[Tag::Flags.into(), Flag::Etching.into(), Tag::Cap.into(), 0]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::Amount.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::OffsetStart.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::OffsetEnd.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::HeightStart.into(),
+      0,
+    ]);
+    case(&[
+      Tag::Flags.into(),
+      Flag::Etching.into(),
+      Tag::HeightEnd.into(),
+      0,
+    ]);
+  }
+
+  #[test]
   fn decipher_etching_with_term() {
     assert_eq!(
       decipher(&[
