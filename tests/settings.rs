@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn default() {
-  CommandBuilder::new("settings")
+  CommandBuilder::new("--format json settings")
     .integration_test(false)
     .stdout_regex(
       r#"\{
@@ -102,7 +102,7 @@ fn config_is_loaded_from_config_dir() {
 
 #[test]
 fn config_is_loaded_from_data_dir() {
-  CommandBuilder::new(format!("--format json settings"))
+  CommandBuilder::new("--format json settings")
     .write("ord.yaml", "chain: regtest")
     .stdout_regex(
       r#".*
@@ -114,7 +114,7 @@ fn config_is_loaded_from_data_dir() {
 
 #[test]
 fn env_is_loaded() {
-  CommandBuilder::new(format!("--format json settings"))
+  CommandBuilder::new("--format json settings")
     .stdout_regex(
       r#".*
   "chain": "mainnet",
@@ -122,7 +122,7 @@ fn env_is_loaded() {
     )
     .run_and_extract_stdout();
 
-  CommandBuilder::new(format!("--format json settings"))
+  CommandBuilder::new("--format json settings")
     .env("ORD_CHAIN", "regtest")
     .stdout_regex(
       r#".*
