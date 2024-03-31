@@ -1483,7 +1483,9 @@ fn batch_can_etch_rune() {
     Sequence::from_height(Runestone::COMMIT_INTERVAL)
   );
 
-  let runestone = Runestone::from_transaction(&reveal).unwrap();
+  let Artifact::Runestone(runestone) = Runestone::decipher(&reveal).unwrap().unwrap() else {
+    panic!();
+  };
 
   let pointer = reveal.output.len() - 2;
 

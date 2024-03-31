@@ -15,7 +15,9 @@ use {
     api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
     InscriptionId, RuneEntry,
   },
-  ordinals::{Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune},
+  ordinals::{
+    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
+  },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
