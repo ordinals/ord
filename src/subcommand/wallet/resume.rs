@@ -1,21 +1,18 @@
 use super::*;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Output {
-  pub rune: Rune,
-  pub reveal: Txid,
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct ResumeOutput {
+  pub etchings: Vec<batch::Output>,
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let mut output: Option<Box<dyn subcommand::Output>> = None;
-  for (rune, entry) in wallet.pending()? {
-    output = Some(Box::new(wallet.wait_for_maturation(
-      &rune,
-      entry.commit,
-      entry.reveal,
-      entry.output.clone(),
-    )?) as Box<dyn subcommand::Output>);
-  }
+  let outputs: Result<Vec<batch::Output>, _> = wallet
+    .pending()?
+    .into_iter()
+    .map(|(rune, entry)| {
+      wallet.wait_for_maturation(&rune, entry.commit, entry.reveal, entry.output.clone())
+    })
+    .collect();
 
-  Ok(output)
+  outputs.map(|os| Some(Box::new(ResumeOutput { etchings: os }) as Box<dyn Output>))
 }

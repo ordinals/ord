@@ -94,7 +94,18 @@ fn wallet_resume() {
 
   assert_regex_match!(buffer, "Waiting for rune commitment .* to mature…\n");
 
-  let output = spawn.run_and_deserialize_output::<batch::Output>();
+  let output = spawn.run_and_deserialize_output::<ord::subcommand::wallet::resume::ResumeOutput>();
 
-  assert_eq!(output.rune.unwrap().rune.rune, Rune(RUNE));
+  assert_eq!(
+    output
+      .etchings
+      .first()
+      .unwrap()
+      .rune
+      .clone()
+      .unwrap()
+      .rune
+      .rune,
+    Rune(RUNE)
+  );
 }
