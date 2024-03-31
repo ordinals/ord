@@ -3180,15 +3180,15 @@ mod tests {
   <dt>chain</dt>
   <dd>regtest</dd>
   <dt>height</dt>
-  <dd>4</dd>
+  <dd><a href=/block/4>4</a></dd>
   <dt>inscriptions</dt>
-  <dd>3</dd>
+  <dd><a href=/inscriptions>3</a></dd>
   <dt>blessed inscriptions</dt>
   <dd>3</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
   <dt>runes</dt>
-  <dd>0</dd>
+  <dd><a href=/runes>0</a></dd>
   <dt>lost sats</dt>
   <dd>.*</dd>
   <dt>started</dt>
