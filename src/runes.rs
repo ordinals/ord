@@ -5389,6 +5389,11 @@ mod tests {
 
   #[test]
   fn genesis_rune() {
+    assert_eq!(
+      Chain::Mainnet.first_rune_height(),
+      SUBSIDY_HALVING_INTERVAL * 4,
+    );
+
     Context::builder()
       .chain(Chain::Mainnet)
       .arg("--index-runes")
