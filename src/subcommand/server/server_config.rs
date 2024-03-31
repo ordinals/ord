@@ -1,7 +1,4 @@
-use {
-  super::*,
-  axum::http::{header, HeaderName},
-};
+use {super::*, axum::http::HeaderName};
 
 #[derive(Default)]
 pub(crate) struct ServerConfig {

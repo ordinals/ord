@@ -6,6 +6,8 @@ use super::*;
 pub struct Rune(pub u128);
 
 impl Rune {
+  const RESERVED: u128 = 6402364363415443603228541259936211926;
+
   const STEPS: &'static [u128] = &[
     0,
     26,
@@ -37,12 +39,27 @@ impl Rune {
     166461473448801533683942072758341510102,
   ];
 
-  pub(crate) fn minimum_at_height(chain: Chain, height: Height) -> Self {
+  pub fn n(self) -> u128 {
+    self.0
+  }
+
+  pub fn first_rune_height(network: Network) -> u32 {
+    SUBSIDY_HALVING_INTERVAL
+      * match network {
+        Network::Bitcoin => 4,
+        Network::Regtest => 0,
+        Network::Signet => 0,
+        Network::Testnet => 12,
+        _ => 0,
+      }
+  }
+
+  pub fn minimum_at_height(chain: Network, height: Height) -> Self {
     let offset = height.0.saturating_add(1);
 
     const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
-    let start = chain.first_rune_height();
+    let start = Self::first_rune_height(chain);
 
     let end = start + SUBSIDY_HALVING_INTERVAL;
 
@@ -67,15 +84,19 @@ impl Rune {
     Rune(start - ((start - end) * remainder / u128::from(INTERVAL)))
   }
 
-  pub(crate) fn is_reserved(self) -> bool {
-    self.0 >= RESERVED
+  pub fn is_reserved(self) -> bool {
+    self.0 >= Self::RESERVED
   }
 
-  pub fn reserved(n: u128) -> Self {
-    Rune(RESERVED.checked_add(n).unwrap())
+  pub fn reserved(block: u64, tx: u32) -> Self {
+    Self(
+      Self::RESERVED
+        .checked_add(u128::from(block) << 32 | u128::from(tx))
+        .unwrap(),
+    )
   }
 
-  pub(crate) fn commitment(self) -> Vec<u8> {
+  pub fn commitment(self) -> Vec<u8> {
     let bytes = self.0.to_le_bytes();
 
     let mut end = bytes.len();
@@ -118,25 +139,40 @@ impl Display for Rune {
 impl FromStr for Rune {
   type Err = Error;
 
-  fn from_str(s: &str) -> crate::Result<Self> {
+  fn from_str(s: &str) -> Result<Self, Error> {
     let mut x = 0u128;
     for (i, c) in s.chars().enumerate() {
       if i > 0 {
         x += 1;
       }
-      x = x.checked_mul(26).ok_or_else(|| anyhow!("out of range"))?;
+      x = x.checked_mul(26).ok_or(Error::Range)?;
       match c {
         'A'..='Z' => {
-          x = x
-            .checked_add(c as u128 - 'A' as u128)
-            .ok_or_else(|| anyhow!("out of range"))?;
+          x = x.checked_add(c as u128 - 'A' as u128).ok_or(Error::Range)?;
         }
-        _ => bail!("invalid character in rune name: {c}"),
+        _ => return Err(Error::Character(c)),
       }
     }
     Ok(Rune(x))
   }
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+  Character(char),
+  Range,
+}
+
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Character(c) => write!(f, "invalid character `{c}`"),
+      Self::Range => write!(f, "name out of range"),
+    }
+  }
+}
+
+impl std::error::Error for Error {}
 
 #[cfg(test)]
 mod tests {
@@ -185,8 +221,12 @@ mod tests {
   }
 
   #[test]
-  fn from_str_out_of_range() {
-    "BCGDENLQRQWDSLRUGSNLBTMFIJAW".parse::<Rune>().unwrap_err();
+  fn from_str_error() {
+    assert_eq!(
+      "BCGDENLQRQWDSLRUGSNLBTMFIJAW".parse::<Rune>().unwrap_err(),
+      Error::Range
+    );
+    assert_eq!("x".parse::<Rune>().unwrap_err(), Error::Character('x'));
   }
 
   #[test]
@@ -197,7 +237,7 @@ mod tests {
     #[track_caller]
     fn case(height: u32, minimum: &str) {
       assert_eq!(
-        Rune::minimum_at_height(Chain::Mainnet, Height(height)).to_string(),
+        Rune::minimum_at_height(Network::Bitcoin, Height(height)).to_string(),
         minimum,
       );
     }
@@ -278,35 +318,35 @@ mod tests {
   #[test]
   fn minimum_at_height() {
     #[track_caller]
-    fn case(chain: Chain, height: u32, minimum: &str) {
+    fn case(network: Network, height: u32, minimum: &str) {
       assert_eq!(
-        Rune::minimum_at_height(chain, Height(height)).to_string(),
+        Rune::minimum_at_height(network, Height(height)).to_string(),
         minimum,
       );
     }
 
-    case(Chain::Testnet, 0, "AAAAAAAAAAAAA");
+    case(Network::Testnet, 0, "AAAAAAAAAAAAA");
     case(
-      Chain::Testnet,
+      Network::Testnet,
       SUBSIDY_HALVING_INTERVAL * 12 - 1,
       "AAAAAAAAAAAAA",
     );
     case(
-      Chain::Testnet,
+      Network::Testnet,
       SUBSIDY_HALVING_INTERVAL * 12,
       "ZZYZXBRKWXVA",
     );
     case(
-      Chain::Testnet,
+      Network::Testnet,
       SUBSIDY_HALVING_INTERVAL * 12 + 1,
       "ZZXZUDIVTVQA",
     );
 
-    case(Chain::Signet, 0, "ZZYZXBRKWXVA");
-    case(Chain::Signet, 1, "ZZXZUDIVTVQA");
+    case(Network::Signet, 0, "ZZYZXBRKWXVA");
+    case(Network::Signet, 1, "ZZXZUDIVTVQA");
 
-    case(Chain::Regtest, 0, "ZZYZXBRKWXVA");
-    case(Chain::Regtest, 1, "ZZXZUDIVTVQA");
+    case(Network::Regtest, 0, "ZZYZXBRKWXVA");
+    case(Network::Regtest, 1, "ZZXZUDIVTVQA");
   }
 
   #[test]
@@ -320,12 +360,18 @@ mod tests {
   #[test]
   fn reserved() {
     assert_eq!(
-      RESERVED,
+      Rune::RESERVED,
       "AAAAAAAAAAAAAAAAAAAAAAAAAAA".parse::<Rune>().unwrap().0,
     );
 
-    assert_eq!(Rune::reserved(0), Rune(RESERVED));
-    assert_eq!(Rune::reserved(1), Rune(RESERVED + 1));
+    assert_eq!(Rune::reserved(0, 0), Rune(Rune::RESERVED));
+    assert_eq!(Rune::reserved(0, 1), Rune(Rune::RESERVED + 1));
+    assert_eq!(Rune::reserved(1, 0), Rune(Rune::RESERVED + (1 << 32)));
+    assert_eq!(Rune::reserved(1, 1), Rune(Rune::RESERVED + (1 << 32) + 1));
+    assert_eq!(
+      Rune::reserved(u64::MAX, u32::MAX),
+      Rune(Rune::RESERVED + (u128::from(u64::MAX) << 32 | u128::from(u32::MAX))),
+    );
   }
 
   #[test]

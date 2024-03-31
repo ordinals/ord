@@ -17,7 +17,7 @@ pub enum Charm {
 }
 
 impl Charm {
-  pub const ALL: [Charm; 12] = [
+  pub const ALL: [Self; 12] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -67,9 +67,8 @@ impl Charm {
 
   pub fn charms(charms: u16) -> Vec<Charm> {
     Self::ALL
-      .iter()
+      .into_iter()
       .filter(|charm| charm.is_set(charms))
-      .copied()
       .collect()
   }
 }

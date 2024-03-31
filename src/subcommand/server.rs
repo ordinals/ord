@@ -30,7 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, io::Read, str, sync::Arc},
+  std::{cmp::Ordering, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -1896,28 +1896,23 @@ impl Server {
 #[cfg(test)]
 mod tests {
   use {
-    super::*,
-    crate::runes::{Edict, Etching, Rune, Runestone},
-    reqwest::Url,
-    serde::de::DeserializeOwned,
-    std::net::TcpListener,
-    tempfile::TempDir,
+    super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener, tempfile::TempDir,
   };
 
   const RUNE: u128 = 99246114928149462;
 
   #[derive(Default)]
   struct Builder {
-    bitcoin_rpc_server: Option<test_bitcoincore_rpc::Handle>,
+    core: Option<mockcore::Handle>,
     config: String,
     ord_args: BTreeMap<String, Option<String>>,
     server_args: BTreeMap<String, Option<String>>,
   }
 
   impl Builder {
-    fn bitcoin_rpc_server(self, bitcoin_rpc_server: test_bitcoincore_rpc::Handle) -> Self {
+    fn core(self, core: mockcore::Handle) -> Self {
       Self {
-        bitcoin_rpc_server: Some(bitcoin_rpc_server),
+        core: Some(core),
         ..self
       }
     }
@@ -1954,8 +1949,8 @@ mod tests {
     }
 
     fn build(self) -> TestServer {
-      let bitcoin_rpc_server = self.bitcoin_rpc_server.unwrap_or_else(|| {
-        test_bitcoincore_rpc::builder()
+      let core = self.core.unwrap_or_else(|| {
+        mockcore::builder()
           .network(
             self
               .ord_args
@@ -1982,7 +1977,7 @@ mod tests {
       let mut args = vec!["ord".to_string()];
 
       args.push("--bitcoin-rpc-url".into());
-      args.push(bitcoin_rpc_server.url());
+      args.push(core.url());
 
       args.push("--cookie-file".into());
       args.push(cookiefile.to_str().unwrap().into());
@@ -1992,7 +1987,7 @@ mod tests {
 
       if !self.ord_args.contains_key("--chain") {
         args.push("--chain".into());
-        args.push(bitcoin_rpc_server.network());
+        args.push(core.network());
       }
 
       for (arg, value) in self.ord_args {
@@ -2065,7 +2060,7 @@ mod tests {
       }
 
       TestServer {
-        bitcoin_rpc_server,
+        core,
         index,
         ord_server_handle,
         tempdir,
@@ -2091,7 +2086,7 @@ mod tests {
   }
 
   struct TestServer {
-    bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+    core: mockcore::Handle,
     index: Arc<Index>,
     ord_server_handle: Handle,
     #[allow(unused)]
@@ -2119,13 +2114,13 @@ mod tests {
 
       self.mine_blocks(1);
 
-      self.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      self.core.broadcast_tx(TransactionTemplate {
         inputs: &[(block_count, 0, 0, Default::default())],
         p2tr: true,
         ..default()
       });
 
-      self.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+      self.mine_blocks(Runestone::COMMIT_INTERVAL.into());
 
       let witness = witness.unwrap_or_else(|| {
         let tapscript = script::Builder::new()
@@ -2147,7 +2142,7 @@ mod tests {
         witness
       });
 
-      let txid = self.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = self.core.broadcast_tx(TransactionTemplate {
         inputs: &[(block_count + 1, 1, 0, witness)],
         op_return: Some(runestone.encipher()),
         outputs,
@@ -2250,13 +2245,13 @@ mod tests {
 
     #[track_caller]
     fn mine_blocks(&self, n: u64) -> Vec<Block> {
-      let blocks = self.bitcoin_rpc_server.mine_blocks(n);
+      let blocks = self.core.mine_blocks(n);
       self.index.update().unwrap();
       blocks
     }
 
     fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
-      let blocks = self.bitcoin_rpc_server.mine_blocks_with_subsidy(n, subsidy);
+      let blocks = self.core.mine_blocks_with_subsidy(n, subsidy);
       self.index.update().unwrap();
       blocks
     }
@@ -3148,7 +3143,7 @@ mod tests {
 
     server.mine_blocks(3);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -3158,7 +3153,7 @@ mod tests {
       ..default()
     });
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         2,
         0,
@@ -3168,7 +3163,7 @@ mod tests {
       ..default()
     });
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         3,
         0,
@@ -3511,7 +3506,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       fee: 50 * 100_000_000,
       ..default()
@@ -3519,7 +3514,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         2,
         1,
@@ -3583,7 +3578,7 @@ mod tests {
     let mut ids = Vec::new();
 
     for i in 0..101 {
-      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("image/png", "hello").to_witness())],
         ..default()
       });
@@ -3591,7 +3586,7 @@ mod tests {
       server.mine_blocks(1);
     }
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(102, 0, 0, inscription("text/plain", "{}").to_witness())],
       ..default()
     });
@@ -3726,7 +3721,7 @@ mod tests {
       fee: 0,
       ..default()
     };
-    test_server.bitcoin_rpc_server.broadcast_tx(transaction);
+    test_server.core.broadcast_tx(transaction);
     let block_hash = test_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
@@ -3790,10 +3785,10 @@ mod tests {
     );
 
     for _ in 0..15 {
-      test_server.bitcoin_rpc_server.invalidate_tip();
+      test_server.core.invalidate_tip();
     }
 
-    test_server.bitcoin_rpc_server.mine_blocks(21);
+    test_server.core.mine_blocks(21);
 
     test_server.assert_response_regex(
       "/status",
@@ -3979,7 +3974,7 @@ mod tests {
     );
 
     server.mine_blocks(1);
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       outputs: 2,
       fee: 0,
@@ -4003,7 +3998,7 @@ mod tests {
     );
 
     server.mine_blocks(1);
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       outputs: 2,
       fee: 2,
@@ -4083,7 +4078,7 @@ mod tests {
 
       server.mine_blocks(1);
 
-      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
         ..default()
       });
@@ -4108,7 +4103,7 @@ mod tests {
 
       server.mine_blocks(1);
 
-      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
         ..default()
       });
@@ -4131,7 +4126,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4184,7 +4179,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4211,7 +4206,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("audio/flac", "hello").to_witness())],
       ..default()
     });
@@ -4231,7 +4226,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("font/ttf", "hello").to_witness())],
       ..default()
     });
@@ -4251,7 +4246,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4276,7 +4271,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/markdown", "hello").to_witness())],
       ..default()
     });
@@ -4296,7 +4291,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("image/png", "hello").to_witness())],
       ..default()
     });
@@ -4317,7 +4312,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4342,7 +4337,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4362,7 +4357,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("video/webm", "hello").to_witness())],
       ..default()
     });
@@ -4385,7 +4380,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4407,7 +4402,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4429,7 +4424,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4457,7 +4452,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4491,7 +4486,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4513,7 +4508,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4542,7 +4537,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4568,7 +4563,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -4615,7 +4610,7 @@ mod tests {
 
     for i in 0..101 {
       server.mine_blocks(1);
-      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -4639,7 +4634,7 @@ mod tests {
 
     for i in 0..101 {
       server.mine_blocks(1);
-      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -4667,7 +4662,7 @@ mod tests {
       server.mine_blocks(1);
 
       parent_ids.push(InscriptionId {
-        txid: server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        txid: server.core.broadcast_tx(TransactionTemplate {
           inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
           ..default()
         }),
@@ -4678,7 +4673,7 @@ mod tests {
     for (i, parent_id) in parent_ids.iter().enumerate().take(101) {
       server.mine_blocks(1);
 
-      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_tx(TransactionTemplate {
         inputs: &[
           (i + 2, 1, 0, Default::default()),
           (
@@ -4785,7 +4780,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -4797,7 +4792,7 @@ next
       index: 0,
     };
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -4851,7 +4846,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -4869,7 +4864,7 @@ next
       ".*<h3>No children</h3>.*",
     );
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -4904,7 +4899,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -4916,7 +4911,7 @@ next
       index: 0,
     };
 
-    let _txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let _txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -5006,12 +5001,12 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
 
-    let parent_a_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_a_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
 
-    let parent_b_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_b_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5028,7 +5023,7 @@ next
       index: 0,
     };
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (
           3,
@@ -5073,7 +5068,7 @@ next
     for i in 0..101 {
       parent_ids.push(
         InscriptionId {
-          txid: server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+          txid: server.core.broadcast_tx(TransactionTemplate {
             inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
             ..default()
           }),
@@ -5103,7 +5098,7 @@ next
       ),
     );
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &inputs,
       ..default()
     });
@@ -5136,7 +5131,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (1, 0, 0, inscription("text/plain", "hello").to_witness()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -5189,7 +5184,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (1, 0, 0, Witness::default()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -5228,7 +5223,7 @@ next
 
     server.mine_blocks(110);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (1, 0, 0, Witness::default()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -5268,7 +5263,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -5304,7 +5299,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -5340,7 +5335,7 @@ next
 
     server.mine_blocks(9);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(9, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -5373,14 +5368,14 @@ next
 
     server.mine_blocks(1);
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
 
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, inscription("text/plain", "bar").to_witness())],
       ..default()
     });
@@ -5445,7 +5440,7 @@ next
 
     let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, witness)],
       ..default()
     });
@@ -5502,7 +5497,7 @@ next
     }
     .into();
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (1, 0, 0, inscription("text/plain", "foo").to_witness()),
         (2, 0, 0, cursed_inscription.to_witness()),
@@ -5555,7 +5550,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, envelope(&[b"ord", &[128], &[0]]))],
       ..default()
     });
@@ -5591,7 +5586,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -5618,7 +5613,7 @@ next
       ),
     );
 
-    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Default::default())],
       fee: 50 * COIN_VALUE,
       ..default()
@@ -5669,7 +5664,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -5680,7 +5675,7 @@ next
     ids.push(InscriptionId { txid, index: 0 });
 
     for i in 1..111 {
-      let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(i + 1, 1, 0, inscription("text/plain", "foo").to_witness())],
         ..default()
       });
@@ -5751,7 +5746,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5787,7 +5782,7 @@ next
 
     let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
       ..default()
     });
@@ -5830,7 +5825,7 @@ next
     }
 
     for i in 0..101 {
-      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -5896,7 +5891,7 @@ next
       ..default()
     };
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, delegate.to_witness())],
       ..default()
     });
@@ -5910,7 +5905,7 @@ next
       ..default()
     };
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -5953,7 +5948,7 @@ next
       ..default()
     };
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -6071,23 +6066,23 @@ next
 
   #[test]
   fn inscriptions_can_be_hidden_with_config() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::builder()
+    let core = mockcore::builder()
       .network(Chain::Regtest.network())
       .build();
 
-    bitcoin_rpc_server.mine_blocks(1);
+    core.mine_blocks(1);
 
-    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
 
-    bitcoin_rpc_server.mine_blocks(1);
+    core.mine_blocks(1);
 
     let inscription = InscriptionId { txid, index: 0 };
 
     let server = TestServer::builder()
-      .bitcoin_rpc_server(bitcoin_rpc_server)
+      .core(core)
       .config(&format!("hidden: [{inscription}]"))
       .build();
 

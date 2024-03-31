@@ -597,7 +597,10 @@ impl<'index> Updater<'index> {
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
-        minimum: Rune::minimum_at_height(self.index.settings.chain(), Height(self.height)),
+        minimum: Rune::minimum_at_height(
+          self.index.settings.chain().network(),
+          Height(self.height),
+        ),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,
