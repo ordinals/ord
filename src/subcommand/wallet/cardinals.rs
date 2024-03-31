@@ -1,4 +1,4 @@
-use {super::*, std::collections::BTreeSet};
+use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct CardinalUtxo {

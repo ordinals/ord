@@ -25,7 +25,6 @@ use {
     },
     into_usize::IntoUsize,
     representation::Representation,
-    runes::Terms,
     settings::Settings,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
@@ -41,10 +40,8 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    opcodes,
-    script::{self, Instruction},
-    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
-    Witness,
+    script, Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn,
+    TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -53,7 +50,10 @@ use {
   html_escaper::{Escape, Trusted},
   http::HeaderMap,
   lazy_static::lazy_static,
-  ordinals::{Charm, Epoch, Height, Rarity, Sat, SatPoint},
+  ordinals::{
+    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
+    Sat, SatPoint, SpacedRune, Terms,
+  },
   regex::Regex,
   reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize},
@@ -88,7 +88,6 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId},
   object::Object,
   options::Options,
-  runes::{Edict, Pile, Rune, RuneId, Runestone, SpacedRune},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -132,7 +131,6 @@ pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const RUNE_COMMIT_INTERVAL: u32 = 6;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);

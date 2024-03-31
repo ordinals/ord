@@ -136,7 +136,9 @@ impl Plan {
           .into_option()?;
 
         if let Some(transaction) = transaction {
-          if u32::try_from(transaction.info.confirmations).unwrap() < RUNE_COMMIT_INTERVAL {
+          if u32::try_from(transaction.info.confirmations).unwrap()
+            < Runestone::COMMIT_INTERVAL.into()
+          {
             continue;
           }
         }
@@ -146,7 +148,7 @@ impl Plan {
           .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
 
         if let Some(tx_out) = tx_out {
-          if tx_out.confirmations >= RUNE_COMMIT_INTERVAL {
+          if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
             break;
           }
         }
@@ -429,11 +431,9 @@ impl Plan {
     let runestone;
 
     if let Some(etching) = self.etching {
-      let mut edicts = Vec::new();
-
       let vout;
       let destination;
-      premine = etching.premine.to_amount(etching.divisibility)?;
+      premine = etching.premine.to_integer(etching.divisibility)?;
 
       if premine > 0 {
         let output = u32::try_from(reveal_outputs.len()).unwrap();
@@ -444,12 +444,6 @@ impl Plan {
           value: TARGET_POSTAGE.to_sat(),
         });
 
-        edicts.push(Edict {
-          id: RuneId::default(),
-          amount: premine,
-          output,
-        });
-
         vout = Some(output);
       } else {
         vout = None;
@@ -457,20 +451,19 @@ impl Plan {
       }
 
       let inner = Runestone {
-        cenotaph: false,
-        edicts,
-        etching: Some(runes::Etching {
+        edicts: Vec::new(),
+        etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
           terms: etching
             .terms
-            .map(|terms| -> Result<runes::Terms> {
-              Ok(runes::Terms {
+            .map(|terms| -> Result<ordinals::Terms> {
+              Ok(ordinals::Terms {
                 cap: (terms.cap > 0).then_some(terms.cap),
                 height: (
                   terms.height.and_then(|range| (range.start)),
                   terms.height.and_then(|range| (range.end)),
                 ),
-                limit: Some(terms.limit.to_amount(etching.divisibility)?),
+                amount: Some(terms.amount.to_integer(etching.divisibility)?),
                 offset: (
                   terms.offset.and_then(|range| (range.start)),
                   terms.offset.and_then(|range| (range.end)),
@@ -484,7 +477,7 @@ impl Plan {
           symbol: Some(etching.symbol),
         }),
         mint: None,
-        pointer: None,
+        pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
       };
 
       let script_pubkey = inner.encipher();
@@ -492,7 +485,7 @@ impl Plan {
       runestone = Some(inner);
 
       ensure!(
-        script_pubkey.len() <= 82,
+        self.no_limit || script_pubkey.len() <= 82,
         "runestone greater than maximum OP_RETURN size: {} > 82",
         script_pubkey.len()
       );
@@ -518,6 +511,7 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs.clone(),
       &reveal_script,
+      rune.is_some(),
     );
 
     let mut target_value = reveal_fee;
@@ -562,6 +556,7 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs,
       &reveal_script,
+      rune.is_some(),
     );
 
     for output in reveal_tx.output.iter() {
@@ -645,9 +640,10 @@ impl Plan {
     let total_fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    match (Runestone::from_transaction(&reveal_tx), runestone) {
+    match (Runestone::decipher(&reveal_tx).unwrap(), runestone) {
       (Some(actual), Some(expected)) => assert_eq!(
-        actual, expected,
+        actual,
+        Artifact::Runestone(expected),
         "commit transaction runestone did not match expected runestone"
       ),
       (Some(_), None) => panic!("commit transaction contained runestone, but none was expected"),
@@ -713,6 +709,7 @@ impl Plan {
     output: Vec<TxOut>,
     input: Vec<OutPoint>,
     script: &Script,
+    etching: bool,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
       input: input
@@ -721,7 +718,11 @@ impl Plan {
           previous_output,
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          sequence: if etching {
+            Sequence::from_height(Runestone::COMMIT_INTERVAL)
+          } else {
+            Sequence::ENABLE_RBF_NO_LOCKTIME
+          },
         })
         .collect(),
       output,

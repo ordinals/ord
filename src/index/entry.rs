@@ -28,6 +28,18 @@ impl Entry for Header {
   }
 }
 
+impl Entry for Rune {
+  type Value = u128;
+
+  fn load(value: Self::Value) -> Self {
+    Self(value)
+  }
+
+  fn store(self) -> Self::Value {
+    self.0
+  }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct RuneEntry {
   pub block: u64,
@@ -67,11 +79,16 @@ impl RuneEntry {
       return Err(MintError::Cap(cap));
     }
 
-    Ok(terms.limit.unwrap_or_default())
+    Ok(terms.amount.unwrap_or_default())
   }
 
   pub fn supply(&self) -> u128 {
-    self.premine + self.mints * self.terms.and_then(|terms| terms.limit).unwrap_or_default()
+    self.premine
+      + self.mints
+        * self
+          .terms
+          .and_then(|terms| terms.amount)
+          .unwrap_or_default()
   }
 
   pub fn pile(&self, amount: u128) -> Pile {
@@ -120,7 +137,7 @@ impl RuneEntry {
 type TermsEntryValue = (
   Option<u128>,               // cap
   (Option<u64>, Option<u64>), // height
-  Option<u128>,               // limit
+  Option<u128>,               // amount
   (Option<u64>, Option<u64>), // offset
 );
 
@@ -196,10 +213,10 @@ impl Entry for RuneEntry {
         spacers,
       },
       symbol,
-      terms: terms.map(|(cap, height, limit, offset)| Terms {
+      terms: terms.map(|(cap, height, amount, offset)| Terms {
         cap,
         height,
-        limit,
+        amount,
         offset,
       }),
       timestamp,
@@ -233,9 +250,9 @@ impl Entry for RuneEntry {
         |Terms {
            cap,
            height,
-           limit,
+           amount,
            offset,
-         }| (cap, height, limit, offset),
+         }| (cap, height, amount, offset),
       ),
       self.timestamp,
     )
@@ -543,7 +560,7 @@ mod tests {
       terms: Some(Terms {
         cap: Some(1),
         height: (Some(2), Some(3)),
-        limit: Some(4),
+        amount: Some(4),
         offset: (Some(5), Some(6)),
       }),
       mints: 11,
@@ -611,7 +628,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 0,
@@ -625,7 +642,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 1,
@@ -639,7 +656,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: None,
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 0,
@@ -657,7 +674,7 @@ mod tests {
         block: 1,
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           offset: (Some(1), None),
           ..default()
         }),
@@ -673,7 +690,7 @@ mod tests {
         block: 1,
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           offset: (Some(1), None),
           ..default()
         }),
@@ -692,7 +709,7 @@ mod tests {
         block: 1,
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           offset: (None, Some(1)),
           ..default()
         }),
@@ -708,7 +725,7 @@ mod tests {
         block: 1,
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           offset: (None, Some(1)),
           ..default()
         }),
@@ -726,7 +743,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           height: (Some(1), None),
           ..default()
         }),
@@ -741,7 +758,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           height: (Some(1), None),
           ..default()
         }),
@@ -759,7 +776,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           height: (None, Some(1)),
           ..default()
         }),
@@ -774,7 +791,7 @@ mod tests {
       RuneEntry {
         terms: Some(Terms {
           cap: Some(1),
-          limit: Some(1000),
+          amount: Some(1000),
           height: (None, Some(1)),
           ..default()
         }),
@@ -791,7 +808,7 @@ mod tests {
     let entry = RuneEntry {
       terms: Some(Terms {
         cap: Some(1),
-        limit: Some(1000),
+        amount: Some(1000),
         height: (Some(10), Some(20)),
         offset: (Some(0), Some(10)),
       }),
@@ -838,7 +855,7 @@ mod tests {
     assert_eq!(
       RuneEntry {
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 0,
@@ -851,7 +868,7 @@ mod tests {
     assert_eq!(
       RuneEntry {
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 1,
@@ -864,7 +881,7 @@ mod tests {
     assert_eq!(
       RuneEntry {
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 0,
@@ -878,7 +895,7 @@ mod tests {
     assert_eq!(
       RuneEntry {
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         mints: 1,

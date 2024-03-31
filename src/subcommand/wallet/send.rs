@@ -1,9 +1,4 @@
-use {
-  super::*,
-  crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
-  base64::Engine,
-  bitcoin::psbt::Psbt,
-};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -231,7 +226,7 @@ impl Send {
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let amount = decimal.to_amount(entry.divisibility)?;
+    let amount = decimal.to_integer(entry.divisibility)?;
 
     let inscribed_outputs = inscriptions
       .keys()
@@ -309,6 +304,13 @@ impl Send {
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
-    Ok(consensus::encode::deserialize(&unsigned_transaction)?)
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    assert_eq!(
+      Runestone::decipher(&unsigned_transaction),
+      Ok(Some(Artifact::Runestone(runestone))),
+    );
+
+    Ok(unsigned_transaction)
   }
 }

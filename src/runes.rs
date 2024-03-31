@@ -1,31 +1,4 @@
-use {
-  self::{flag::Flag, tag::Tag},
-  super::*,
-};
-
-pub use {
-  edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId, runestone::Runestone,
-  spaced_rune::SpacedRune, terms::Terms,
-};
-
-pub const MAX_DIVISIBILITY: u8 = 38;
-
-const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
-const RESERVED: u128 = 6402364363415443603228541259936211926;
-
-mod edict;
-mod etching;
-mod flag;
-mod pile;
-mod rune;
-mod rune_id;
-mod runestone;
-mod spaced_rune;
-mod tag;
-mod terms;
-pub mod varint;
-
-type Result<T, E = Error> = std::result::Result<T, E>;
+use super::*;
 
 #[derive(Debug, PartialEq)]
 pub enum MintError {
@@ -86,7 +59,7 @@ mod tests {
 
     context.etch(Default::default(), 1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
       ..default()
@@ -172,7 +145,11 @@ mod tests {
 
   #[test]
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
-    let minimum = Rune::minimum_at_height(Chain::Regtest, Height(RUNE_COMMIT_INTERVAL + 2)).0;
+    let minimum = Rune::minimum_at_height(
+      Chain::Regtest.network(),
+      Height((Runestone::COMMIT_INTERVAL + 2).into()),
+    )
+    .0;
 
     {
       let context = Context::builder()
@@ -256,7 +233,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune(RESERVED)),
+            rune: Some(Rune::reserved(0, 0)),
             ..default()
           }),
           ..default()
@@ -278,7 +255,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            rune: Some(Rune(RESERVED - 1)),
+            rune: Some(Rune(Rune::reserved(0, 0).n() - 1)),
             premine: Some(u128::MAX),
             ..default()
           }),
@@ -294,7 +271,7 @@ mod tests {
             block: id.block,
             etching: txid,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED - 1),
+              rune: Rune(Rune::reserved(0, 0).n() - 1),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -313,7 +290,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -346,7 +323,7 @@ mod tests {
           block: id0.block,
           etching: txid0,
           spaced_rune: SpacedRune {
-            rune: Rune(RESERVED),
+            rune: Rune::reserved(id0.block, id0.tx),
             spacers: 0,
           },
           premine: u128::MAX,
@@ -365,7 +342,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -398,7 +375,7 @@ mod tests {
             block: id0.block,
             etching: txid0,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED),
+              rune: Rune::reserved(id0.block, id0.tx),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -412,7 +389,7 @@ mod tests {
             block: id1.block,
             etching: txid1,
             spaced_rune: SpacedRune {
-              rune: Rune(RESERVED + 1),
+              rune: Rune::reserved(id1.block, id0.tx),
               spacers: 0,
             },
             premine: u128::MAX,
@@ -761,7 +738,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -819,8 +796,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           ..default()
         }),
-        pointer: None,
-        cenotaph: true,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -845,7 +821,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_rune_open_mint_parameters_are_unset_for_cenotaph() {
+  fn etched_rune_parameters_are_unset_for_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -860,7 +836,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
             cap: Some(1),
-            limit: Some(1),
+            amount: Some(1),
             offset: (Some(1), Some(1)),
             height: (None, None),
           }),
@@ -868,7 +844,7 @@ mod tests {
           symbol: Some('$'),
           spacers: Some(1),
         }),
-        cenotaph: true,
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -879,18 +855,18 @@ mod tests {
         id,
         RuneEntry {
           block: id.block,
-          burned: u128::MAX,
-          divisibility: 1,
+          burned: 0,
+          divisibility: 0,
           etching: txid0,
           terms: None,
           mints: 0,
           number: 0,
-          premine: u128::MAX,
+          premine: 0,
           spaced_rune: SpacedRune {
             rune: Rune(RUNE),
-            spacers: 1,
+            spacers: 0,
           },
-          symbol: Some('$'),
+          symbol: None,
           timestamp: id.block,
         },
       )],
@@ -899,12 +875,12 @@ mod tests {
   }
 
   #[test]
-  fn etched_reserved_rune_is_allocated_with_zero_supply_in_cenotaph() {
+  fn reserved_runes_are_not_allocated_in_cenotaph() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
-    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -914,7 +890,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          cenotaph: true,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -924,24 +900,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = RuneId { block: 2, tx: 1 };
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune(RESERVED),
-            spacers: 0,
-          },
-          timestamp: id.block,
-          ..default()
-        },
-      )],
-      [],
-    );
+    context.assert_runes([], []);
   }
 
   #[test]
@@ -989,11 +948,11 @@ mod tests {
       )],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: true,
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -1068,7 +1027,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
       ..default()
@@ -1146,7 +1105,7 @@ mod tests {
       )],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(Runestone::default().encipher()),
       outputs: 0,
@@ -1220,7 +1179,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -1305,7 +1264,7 @@ mod tests {
       )],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -1386,7 +1345,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: None,
       ..default()
@@ -1607,7 +1566,7 @@ mod tests {
       ],
     );
 
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (id0.block.try_into().unwrap(), 1, 0, Witness::new()),
         (id1.block.try_into().unwrap(), 1, 0, Witness::new()),
@@ -1771,7 +1730,7 @@ mod tests {
       ],
     );
 
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (id0.block.try_into().unwrap(), 1, 0, Witness::new()),
         (id1.block.try_into().unwrap(), 1, 0, Witness::new()),
@@ -1822,7 +1781,7 @@ mod tests {
       )],
     );
 
-    let txid3 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid3 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[((id1.block + 1).try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -2011,7 +1970,7 @@ mod tests {
       ],
     );
 
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (id0.block.try_into().unwrap(), 1, 0, Witness::new()),
         (id1.block.try_into().unwrap(), 1, 0, Witness::new()),
@@ -2127,7 +2086,7 @@ mod tests {
       )],
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         script::Builder::new()
@@ -2293,7 +2252,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2455,7 +2414,7 @@ mod tests {
       ],
     );
 
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id0.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2576,7 +2535,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -3104,7 +3063,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -3202,7 +3161,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -3307,7 +3266,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -3412,7 +3371,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -3510,7 +3469,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 4,
       op_return: Some(
@@ -3615,7 +3574,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 4,
       op_return: Some(
@@ -3816,7 +3775,7 @@ mod tests {
       )],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -3869,7 +3828,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3893,7 +3852,7 @@ mod tests {
           timestamp: id.block,
           mints: 0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3903,7 +3862,7 @@ mod tests {
       [],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -3924,7 +3883,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3949,7 +3908,7 @@ mod tests {
   }
 
   #[test]
-  fn etching_with_limit_can_be_minted() {
+  fn etching_with_amount_can_be_minted() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -3958,7 +3917,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
             cap: Some(100),
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -3982,7 +3941,7 @@ mod tests {
           premine: 0,
           mints: 0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -3992,7 +3951,7 @@ mod tests {
       [],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4018,7 +3977,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4042,7 +4001,7 @@ mod tests {
     );
 
     // claim the rune
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(4, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4068,7 +4027,7 @@ mod tests {
           block: id.block,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4101,11 +4060,11 @@ mod tests {
     );
 
     // claim the rune in a burn runestone
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          cenotaph: true,
+          pointer: Some(10),
           mint: Some(id),
           edicts: vec![Edict {
             id,
@@ -4129,7 +4088,7 @@ mod tests {
           burned: 1000,
           etching: txid0,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4171,7 +4130,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             offset: (None, Some(2)),
             ..default()
@@ -4191,7 +4150,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         offset: (None, Some(2)),
         cap: Some(100),
         ..default()
@@ -4202,7 +4161,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4229,7 +4188,7 @@ mod tests {
       )],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4264,7 +4223,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             offset: (Some(2), None),
             ..default()
@@ -4284,7 +4243,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         offset: (Some(2), None),
         cap: Some(100),
         ..default()
@@ -4295,7 +4254,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4311,7 +4270,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4348,7 +4307,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             height: (Some(10), None),
             ..default()
@@ -4368,7 +4327,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         height: (Some(10), None),
         cap: Some(100),
         ..default()
@@ -4379,7 +4338,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4395,7 +4354,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4432,7 +4391,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             height: (None, Some(10)),
             ..default()
@@ -4452,7 +4411,7 @@ mod tests {
         spacers: 0,
       },
       terms: Some(Terms {
-        limit: Some(1000),
+        amount: Some(1000),
         height: (None, Some(10)),
         cap: Some(100),
         ..default()
@@ -4463,7 +4422,7 @@ mod tests {
 
     context.assert_runes([(id, entry)], []);
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4490,7 +4449,7 @@ mod tests {
       )],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4531,7 +4490,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(1111),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4553,7 +4512,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4565,7 +4524,7 @@ mod tests {
       [(OutPoint { txid, vout: 0 }, vec![(id, 1111)])],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -4592,7 +4551,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             offset: (None, Some(0)),
             ..default()
           }),
@@ -4613,7 +4572,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4636,7 +4595,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4646,7 +4605,7 @@ mod tests {
       [],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4679,7 +4638,7 @@ mod tests {
           etching: txid0,
           terms: Some(Terms {
             cap: Some(2),
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -4694,7 +4653,7 @@ mod tests {
       )],
     );
 
-    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4725,7 +4684,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4751,7 +4710,7 @@ mod tests {
       ],
     );
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(4, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -4782,7 +4741,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(2),
             ..default()
           }),
@@ -4818,7 +4777,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4840,7 +4799,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4851,7 +4810,7 @@ mod tests {
       [],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(3, 0, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -4883,7 +4842,7 @@ mod tests {
           },
           timestamp: id.block,
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -4920,7 +4879,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(2000),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           ..default()
@@ -4946,7 +4905,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             ..default()
           }),
           timestamp: id.block,
@@ -4959,7 +4918,7 @@ mod tests {
   }
 
   #[test]
-  fn omitted_limit_defaults_to_max_limit() {
+  fn omitted_edicts_defaults_to_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -4988,7 +4947,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: None,
+            amount: None,
             offset: (None, Some(1)),
             ..default()
           }),
@@ -5001,7 +4960,7 @@ mod tests {
   }
 
   #[test]
-  fn premines_can_claim_over_the_max_limit() {
+  fn premines_can_claim_over_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
@@ -5010,7 +4969,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           premine: Some(2000),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(1),
             ..default()
           }),
@@ -5037,7 +4996,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(1),
             ..default()
           }),
@@ -5052,7 +5011,7 @@ mod tests {
   }
 
   #[test]
-  fn transactions_cannot_claim_more_than_limit() {
+  fn transactions_cannot_claim_more_than_mint_amount() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
@@ -5060,7 +5019,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5071,7 +5030,7 @@ mod tests {
       1,
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -5101,7 +5060,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5129,7 +5088,7 @@ mod tests {
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5151,7 +5110,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5162,7 +5121,7 @@ mod tests {
       [],
     );
 
-    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -5204,7 +5163,7 @@ mod tests {
             spacers: 0,
           },
           terms: Some(Terms {
-            limit: Some(1000),
+            amount: Some(1000),
             cap: Some(100),
             ..default()
           }),
@@ -5231,13 +5190,13 @@ mod tests {
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: false,
       ..default()
     });
 
-    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 
@@ -5245,7 +5204,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
@@ -5271,7 +5230,7 @@ mod tests {
 
     witness.push([]);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
@@ -5291,13 +5250,13 @@ mod tests {
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
       ..default()
     });
 
-    context.mine_blocks((RUNE_COMMIT_INTERVAL - 1).into());
+    context.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
 
     let mut witness = Witness::new();
 
@@ -5305,7 +5264,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
@@ -5331,7 +5290,7 @@ mod tests {
 
     witness.push([]);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count + 1, 1, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
@@ -5351,13 +5310,13 @@ mod tests {
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count, 0, 0, Witness::new())],
       p2tr: true,
       ..default()
     });
 
-    context.mine_blocks(RUNE_COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
 
     let mut witness = Witness::new();
 
@@ -5365,7 +5324,7 @@ mod tests {
       etching: Some(Etching {
         rune: Some(Rune(RUNE)),
         terms: Some(Terms {
-          limit: Some(1000),
+          amount: Some(1000),
           ..default()
         }),
         ..default()
@@ -5381,8 +5340,43 @@ mod tests {
 
     witness.push([]);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(block_count + 1, 1, 0, witness)],
+      op_return: Some(runestone.encipher()),
+      outputs: 1,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes([], []);
+  }
+
+  #[test]
+  fn tx_commits_to_rune_ignores_invalid_script() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let runestone = Runestone {
+      etching: Some(Etching {
+        rune: Some(Rune(RUNE)),
+        terms: Some(Terms {
+          amount: Some(1000),
+          ..default()
+        }),
+        ..default()
+      }),
+      ..default()
+    };
+
+    let mut witness = Witness::new();
+
+    witness.push([opcodes::all::OP_PUSHDATA4.to_u8()]);
+    witness.push([]);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, witness)],
       op_return: Some(runestone.encipher()),
       outputs: 1,
       ..default()
