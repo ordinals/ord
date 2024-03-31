@@ -2,7 +2,7 @@ use super::*;
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
-  pub(super) burned: HashMap<RuneId, u128>,
+  pub(super) burned: HashMap<RuneId, Lot>,
   pub(super) client: &'client Client,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
@@ -22,7 +22,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     let mut unallocated = self.unallocated(tx)?;
 
-    let mut allocated: Vec<HashMap<RuneId, u128>> = vec![HashMap::new(); tx.output.len()];
+    let mut allocated: Vec<HashMap<RuneId, Lot>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(artifact) = &artifact {
       if let Some(id) = artifact.mint() {
@@ -40,6 +40,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         }
 
         for Edict { id, amount, output } in runestone.edicts.iter().copied() {
+          let amount = Lot(amount);
+
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser
           let output = usize::try_from(output).unwrap();
@@ -59,7 +61,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             continue;
           };
 
-          let mut allocate = |balance: &mut u128, amount: u128, output: usize| {
+          let mut allocate = |balance: &mut Lot, amount: Lot, output: usize| {
             if amount > 0 {
               *balance -= amount;
               *allocated[output].entry(id).or_default() += amount;
@@ -113,7 +115,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       }
     }
 
-    let mut burned: HashMap<RuneId, u128> = HashMap::new();
+    let mut burned: HashMap<RuneId, Lot> = HashMap::new();
 
     if let Some(Artifact::Cenotaph(_)) = artifact {
       for (id, balance) in unallocated {
@@ -165,20 +167,20 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       // increment burned balances
       if tx.output[vout].script_pubkey.is_op_return() {
         for (id, balance) in &balances {
-          *burned.entry(*id).or_default() += balance;
+          *burned.entry(*id).or_default() += *balance;
         }
         continue;
       }
 
       buffer.clear();
 
-      let mut balances = balances.into_iter().collect::<Vec<(RuneId, u128)>>();
+      let mut balances = balances.into_iter().collect::<Vec<(RuneId, Lot)>>();
 
       // Sort balances by id so tests can assert balances in a fixed order
       balances.sort();
 
       for (id, balance) in balances {
-        Index::encode_rune_balance(id, balance, &mut buffer);
+        Index::encode_rune_balance(id, balance.n(), &mut buffer);
       }
 
       self.outpoint_to_balances.insert(
@@ -202,7 +204,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn update(self) -> Result {
     for (rune_id, burned) in self.burned {
       let mut entry = RuneEntry::load(self.id_to_entry.get(&rune_id.store())?.unwrap().value());
-      entry.burned += burned;
+      entry.burned = entry.burned.checked_add(burned.n()).unwrap();
       self.id_to_entry.insert(&rune_id.store(), entry.store())?;
     }
 
@@ -336,7 +338,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     )))
   }
 
-  fn mint(&mut self, id: RuneId) -> Result<Option<u128>> {
+  fn mint(&mut self, id: RuneId) -> Result<Option<Lot>> {
     let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
@@ -353,7 +355,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     self.id_to_entry.insert(&id.store(), rune_entry.store())?;
 
-    Ok(Some(amount))
+    Ok(Some(Lot(amount)))
   }
 
   fn tx_commits_to_rune(&self, tx: &Transaction, rune: Rune) -> Result<bool> {
@@ -408,9 +410,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     Ok(false)
   }
 
-  fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<RuneId, u128>> {
+  fn unallocated(&mut self, tx: &Transaction) -> Result<HashMap<RuneId, Lot>> {
     // map of rune ID to un-allocated balance of that rune
-    let mut unallocated: HashMap<RuneId, u128> = HashMap::new();
+    let mut unallocated: HashMap<RuneId, Lot> = HashMap::new();
 
     // increment unallocated runes with the runes in tx inputs
     for input in &tx.input {
