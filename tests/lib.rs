@@ -197,7 +197,10 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     .read_line(&mut buffer)
     .unwrap();
 
-  assert_regex_match!(buffer, "Waiting for rune commitment .* to mature…\n");
+  assert_regex_match!(
+    buffer,
+    "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+  );
 
   core.mine_blocks(6);
 

@@ -8,7 +8,7 @@ use {
     psbt::Psbt,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
-  entry::{ResumeEntry, ResumeEntryValue},
+  entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   futures::{
     future::{self, FutureExt},
@@ -18,10 +18,7 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
-  redb::{
-    Database, DatabaseError, ReadTransaction, ReadableTable, RepairSession, StorageError,
-    TableDefinition, WriteTransaction,
-  },
+  redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
   reqwest::header,
   std::sync::Once,
   transaction_builder::TransactionBuilder,
@@ -33,7 +30,7 @@ pub mod transaction_builder;
 
 const SCHEMA_VERSION: u64 = 1;
 
-define_table! { RUNE_TO_INFO, u128, ResumeEntryValue }
+define_table! { RUNE_TO_ETCHING, u128, EtchingEntryValue }
 define_table! { STATISTICS, u64, u64 }
 
 #[derive(Copy, Clone)]
@@ -547,25 +544,22 @@ impl Wallet {
   pub(crate) fn wait_for_maturation(
     &self,
     rune: &Rune,
-    commit_tx: Transaction,
-    reveal_tx: Transaction,
-    output: batch::Output,
+    commit: Transaction,
+    reveal: Transaction,
+    mut output: batch::Output,
   ) -> Result<batch::Output> {
-    eprintln!(
-      "Waiting for rune commitment {} to mature…",
-      commit_tx.txid()
-    );
+    eprintln!("Waiting for rune commitment {} to mature…", commit.txid());
 
-    self.store(rune, &commit_tx, &reveal_tx, output.clone())?;
+    self.save_etching(rune, &commit, &reveal, output.clone())?;
 
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        return Err(anyhow!("cancelled"));
+        return Ok(output);
       }
 
       let transaction = self
         .bitcoin_client()
-        .get_transaction(&commit_tx.txid(), Some(true))
+        .get_transaction(&commit.txid(), Some(true))
         .into_option()?;
 
       if let Some(transaction) = transaction {
@@ -578,7 +572,7 @@ impl Wallet {
 
       let tx_out = self
         .bitcoin_client()
-        .get_tx_out(&commit_tx.txid(), 0, Some(true))?;
+        .get_tx_out(&commit.txid(), 0, Some(true))?;
 
       if let Some(tx_out) = tx_out {
         if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
@@ -591,17 +585,19 @@ impl Wallet {
       }
     }
 
-    match self.bitcoin_client().send_raw_transaction(&reveal_tx) {
+    match self.bitcoin_client().send_raw_transaction(&reveal) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
           "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
-          commit_tx.txid()
+          commit.txid()
         ))
       }
     };
 
-    self.clear(rune)?;
+    output.reveal_broadcast = true;
+
+    self.clear_etching(rune)?;
 
     Ok(output)
   }
@@ -848,50 +844,33 @@ impl Wallet {
 
         tx.set_durability(durability);
 
-        tx.open_table(RUNE_TO_INFO)?;
+        tx.open_table(RUNE_TO_ETCHING)?;
 
-        {
-          let mut statistics = tx.open_table(STATISTICS)?;
-          statistics.insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
-        }
+        tx.open_table(STATISTICS)?
+          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         tx.commit()?;
 
         database
       }
-      Err(error) => bail!("failed to open index: {error}"),
+      Err(error) => bail!("failed to open wallet database: {error}"),
     };
 
     Ok(database)
   }
 
-  fn begin_read(&self) -> Result<ReadTransaction> {
-    Ok(self.database.begin_read()?)
-  }
-
-  fn begin_write(&self) -> Result<WriteTransaction> {
-    let mut wtx = self.database.begin_write()?;
-    wtx.set_durability(if cfg!(test) {
-      redb::Durability::None
-    } else {
-      redb::Durability::Immediate
-    });
-
-    Ok(wtx)
-  }
-
-  pub(crate) fn store(
+  pub(crate) fn save_etching(
     &self,
     rune: &Rune,
     commit: &Transaction,
     reveal: &Transaction,
     output: batch::Output,
   ) -> Result {
-    let wtx = self.begin_write()?;
+    let wtx = self.database.begin_write()?;
 
-    wtx.open_table(RUNE_TO_INFO)?.insert(
+    wtx.open_table(RUNE_TO_ETCHING)?.insert(
       rune.0,
-      ResumeEntry {
+      EtchingEntry {
         commit: commit.clone(),
         reveal: reveal.clone(),
         output,
@@ -904,37 +883,37 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn retrieve(&self, rune: Rune) -> Result<Option<ResumeEntry>> {
-    let rtx = self.begin_read()?;
+  pub(crate) fn load_etching(&self, rune: Rune) -> Result<Option<EtchingEntry>> {
+    let rtx = self.database.begin_read()?;
 
     Ok(
       rtx
-        .open_table(RUNE_TO_INFO)?
+        .open_table(RUNE_TO_ETCHING)?
         .get(rune.0)?
-        .map(|result| ResumeEntry::load(result.value())),
+        .map(|result| EtchingEntry::load(result.value())),
     )
   }
 
-  pub(crate) fn clear(&self, rune: &Rune) -> Result {
-    let wtx = self.begin_write()?;
+  pub(crate) fn clear_etching(&self, rune: &Rune) -> Result {
+    let wtx = self.database.begin_write()?;
 
-    wtx.open_table(RUNE_TO_INFO)?.remove(rune.0)?;
+    wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
     wtx.commit()?;
 
     Ok(())
   }
 
-  pub(crate) fn pending(&self) -> Result<Vec<(Rune, ResumeEntry)>> {
-    let rtx = self.begin_read()?;
+  pub(crate) fn pending_etchings(&self) -> Result<Vec<(Rune, EtchingEntry)>> {
+    let rtx = self.database.begin_read()?;
 
     Ok(
       rtx
-        .open_table(RUNE_TO_INFO)?
+        .open_table(RUNE_TO_ETCHING)?
         .iter()?
         .map(|result| {
-          result.map(|(key, value)| (Rune(key.value()), ResumeEntry::load(value.value())))
+          result.map(|(key, value)| (Rune(key.value()), EtchingEntry::load(value.value())))
         })
-        .collect::<Result<Vec<(Rune, ResumeEntry)>, StorageError>>()?,
+        .collect::<Result<Vec<(Rune, EtchingEntry)>, StorageError>>()?,
     )
   }
 }

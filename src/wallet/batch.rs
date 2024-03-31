@@ -36,6 +36,7 @@ pub struct Output {
   pub inscriptions: Vec<InscriptionInfo>,
   pub parent: Option<InscriptionId>,
   pub reveal: Txid,
+  pub reveal_broadcast: bool,
   pub reveal_psbt: Option<String>,
   pub rune: Option<RuneInfo>,
   pub total_fees: u64,

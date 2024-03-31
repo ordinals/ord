@@ -6,8 +6,8 @@ pub struct ResumeOutput {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let outputs: Result<Vec<batch::Output>, _> = wallet
-    .pending()?
+  let outputs: Result<Vec<batch::Output>> = wallet
+    .pending_etchings()?
     .into_iter()
     .map(|(rune, entry)| {
       wallet.wait_for_maturation(&rune, entry.commit, entry.reveal, entry.output.clone())

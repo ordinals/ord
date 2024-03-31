@@ -1,26 +1,26 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct ResumeEntry {
+pub struct EtchingEntry {
   pub commit: Transaction,
   pub reveal: Transaction,
   pub output: batch::Output,
 }
 
-pub(super) type ResumeEntryValue = (
+pub(super) type EtchingEntryValue = (
   Vec<u8>, // commit
   Vec<u8>, // reveal
   Vec<u8>, // output
 );
 
-impl Entry for ResumeEntry {
-  type Value = ResumeEntryValue;
+impl Entry for EtchingEntry {
+  type Value = EtchingEntryValue;
 
-  fn load((commit, reveal, output): ResumeEntryValue) -> Self {
+  fn load((commit, reveal, output): EtchingEntryValue) -> Self {
     Self {
       commit: consensus::encode::deserialize::<Transaction>(&commit).unwrap(),
       reveal: consensus::encode::deserialize::<Transaction>(&reveal).unwrap(),
-      output: serde_json::from_str(std::str::from_utf8(&output).unwrap()).unwrap(),
+      output: serde_json::from_slice(&output).unwrap(),
     }
   }
 
@@ -41,7 +41,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn resume_entry() {
+  fn etching_entry() {
     let commit = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -78,6 +78,7 @@ mod tests {
       inscriptions: Vec::new(),
       parent: None,
       reveal: txid,
+      reveal_broadcast: true,
       reveal_psbt: None,
       rune: None,
       total_fees: 0,
@@ -92,13 +93,13 @@ mod tests {
         .to_owned(),
     );
 
-    let entry = ResumeEntry {
+    let entry = EtchingEntry {
       commit,
       reveal,
       output,
     };
 
     assert_eq!(entry.clone().store(), value);
-    assert_eq!(ResumeEntry::load(value), entry);
+    assert_eq!(EtchingEntry::load(value), entry);
   }
 }
