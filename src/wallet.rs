@@ -776,12 +776,6 @@ impl Wallet {
     let progress_bar = Mutex::new(None);
     let integration_test = settings.integration_test();
 
-    let durability = if cfg!(test) {
-      redb::Durability::None
-    } else {
-      redb::Durability::Immediate
-    };
-
     let repair_callback = move |progress: &mut RepairSession| {
       once.call_once(|| {
         println!(
@@ -842,9 +836,7 @@ impl Wallet {
       {
         let database = Database::builder().create(&path)?;
 
-        let mut tx = database.begin_write()?;
-
-        tx.set_durability(durability);
+        let tx = database.begin_write()?;
 
         tx.open_table(RUNE_TO_ETCHING)?;
 
