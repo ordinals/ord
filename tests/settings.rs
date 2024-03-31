@@ -44,7 +44,7 @@ fn config_is_loaded_from_config_option() {
 
   fs::write(&config, "chain: regtest").unwrap();
 
-  CommandBuilder::new(format!("--config {}  settings", config.to_str().unwrap()))
+  CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
     .stdout_regex(
       r#".*
   "chain": "regtest",
