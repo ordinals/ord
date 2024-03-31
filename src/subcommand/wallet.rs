@@ -56,10 +56,10 @@ pub(crate) enum Subcommand {
   Mint(mint::Mint),
   #[command(about = "Generate receive address")]
   Receive(receive::Receive),
-  #[command(about = "Resume any pending etchings")]
-  Resume,
   #[command(about = "Restore wallet")]
   Restore(restore::Restore),
+  #[command(about = "Resume pending etchings")]
+  Resume,
   #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
@@ -101,8 +101,8 @@ impl WalletCommand {
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
-      Subcommand::Resume => resume::run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
+      Subcommand::Resume => resume::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
