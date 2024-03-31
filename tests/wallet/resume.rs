@@ -113,7 +113,7 @@ fn wallet_resume() {
 }
 
 #[test]
-fn wallet_resume_and_resume_suspended() {
+fn resume_suspended() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
