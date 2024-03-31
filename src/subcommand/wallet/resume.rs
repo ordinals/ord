@@ -14,5 +14,5 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     })
     .collect();
 
-  outputs.map(|os| Some(Box::new(ResumeOutput { etchings: os }) as Box<dyn Output>))
+  outputs.map(|etchings| Some(Box::new(ResumeOutput { etchings }) as Box<dyn Output>))
 }
