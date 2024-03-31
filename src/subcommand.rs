@@ -89,12 +89,6 @@ pub enum OutputFormat {
   Yaml,
 }
 
-// impl Default for OutputFormat {
-//   fn default() -> Self {
-//     OutputFormat::Minify
-//   }
-// }
-
 pub trait Output: Send {
   fn print(&self, format: OutputFormat);
 }
