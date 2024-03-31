@@ -28,6 +28,18 @@ impl Entry for Header {
   }
 }
 
+impl Entry for Rune {
+  type Value = u128;
+
+  fn load(value: Self::Value) -> Self {
+    Self(value)
+  }
+
+  fn store(self) -> Self::Value {
+    self.0
+  }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct RuneEntry {
   pub block: u64,

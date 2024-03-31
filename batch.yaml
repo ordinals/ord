@@ -19,6 +19,33 @@ reinscribe: true
 # sat to inscribe on, can only be used with `same-sat`:
 # sat: 5000000000
 
+# rune to etch (optional)
+etching:
+  # rune name
+  rune: THE•BEST•RUNE
+  # allow subdividing super-unit into `10^divisibility` sub-units
+  divisibility: 2
+  # premine
+  premine: 1000.00
+  # total supply, must be equal to `premine + terms.cap * terms.amount`
+  supply: 10000.00
+  # currency symbol
+  symbol: $
+  # mint terms (optional)
+  terms:
+    # amount per mint
+    amount: 100.00
+    # maximum number of mints
+    cap: 90
+    # mint start and end absolute block height (optional)
+    height:
+      start: 840000
+      end: 850000
+    # mint start and end block height relative to etching height (optional)
+    offset:
+      start: 1000
+      end: 9000
+
 # inscriptions to inscribe
 inscriptions:
   # path to inscription content
@@ -36,10 +63,10 @@ inscriptions:
       metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci
       mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
       dolor et luctus euismod.
-    # inscription metaprotocol (optional)
-    metaprotocol: DOPEPROTOCOL-42069
 
 - file: token.json
+  # inscription metaprotocol (optional)
+  metaprotocol: DOPEPROTOCOL-42069
 
 - file: tulip.png
   destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6

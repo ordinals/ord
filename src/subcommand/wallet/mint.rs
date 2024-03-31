@@ -79,8 +79,8 @@ impl Mint {
     let signed_transaction = consensus::encode::deserialize(&signed_transaction)?;
 
     assert_eq!(
-      Runestone::from_transaction(&signed_transaction).unwrap(),
-      runestone,
+      Runestone::decipher(&signed_transaction),
+      Ok(Some(Artifact::Runestone(runestone))),
     );
 
     let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;

@@ -22,6 +22,12 @@ impl Flag {
   }
 }
 
+impl From<Flag> for u128 {
+  fn from(flag: Flag) -> Self {
+    flag.mask()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;

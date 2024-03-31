@@ -11,7 +11,7 @@ To create a batch inscription using a batchfile in `batch.yaml`, run the
 following command:
 
 ```bash
-ord wallet inscribe --fee-rate 21 --batch batch.yaml
+ord wallet batch --fee-rate 21 --batch batch.yaml
 ```
 
 Example `batch.yaml`
