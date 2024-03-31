@@ -113,7 +113,7 @@ fn wallet_resume() {
 }
 
 #[test]
-fn wallet_resume_and_resume_cancelled() {
+fn wallet_resume_and_resume_suspended() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -213,6 +213,17 @@ fn wallet_resume_and_resume_cancelled() {
   assert_eq!(
     buffer,
     "Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.\n"
+  );
+
+  buffer.clear();
+
+  BufReader::new(spawn.child.stderr.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
+
+  assert_eq!(
+    buffer,
+    "Suspending batch. Run `ord wallet resume` to continue.\n"
   );
 
   let output = spawn.run_and_deserialize_output::<ord::subcommand::wallet::resume::ResumeOutput>();

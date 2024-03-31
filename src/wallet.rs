@@ -554,6 +554,7 @@ impl Wallet {
 
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
         return Ok(output);
       }
 
