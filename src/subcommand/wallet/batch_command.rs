@@ -71,7 +71,7 @@ impl Batch {
 
     ensure!(
       wallet.db().retrieve(rune)?.is_none(),
-      "rune `{rune}` has a pending etching, resume it with `ord wallet resume`"
+      "rune `{rune}` has pending etching, resume with `ord wallet resume`"
     );
 
     ensure!(!rune.is_reserved(), "rune `{rune}` is reserved");
