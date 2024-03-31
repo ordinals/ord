@@ -47,6 +47,44 @@ impl Runestone {
       mut fields,
     } = Message::from_integers(transaction, &integers);
 
+    let mut flags = Tag::Flags
+      .take(&mut fields, |[flags]| Some(flags))
+      .unwrap_or_default();
+
+    let etching = Flag::Etching.take(&mut flags).then(|| Etching {
+      divisibility: Tag::Divisibility.take(&mut fields, |[divisibility]| {
+        let divisibility = u8::try_from(divisibility).ok()?;
+        (divisibility <= Etching::MAX_DIVISIBILITY).then_some(divisibility)
+      }),
+      premine: Tag::Premine.take(&mut fields, |[premine]| Some(premine)),
+      rune: Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune))),
+      spacers: Tag::Spacers.take(&mut fields, |[spacers]| {
+        let spacers = u32::try_from(spacers).ok()?;
+        (spacers <= Etching::MAX_SPACERS).then_some(spacers)
+      }),
+      symbol: Tag::Symbol.take(&mut fields, |[symbol]| {
+        char::from_u32(u32::try_from(symbol).ok()?)
+      }),
+      terms: Flag::Terms.take(&mut flags).then(|| Terms {
+        cap: Tag::Cap.take(&mut fields, |[cap]| Some(cap)),
+        height: (
+          Tag::HeightStart.take(&mut fields, |[start_height]| {
+            u64::try_from(start_height).ok()
+          }),
+          Tag::HeightEnd.take(&mut fields, |[start_height]| {
+            u64::try_from(start_height).ok()
+          }),
+        ),
+        amount: Tag::Amount.take(&mut fields, |[amount]| Some(amount)),
+        offset: (
+          Tag::OffsetStart.take(&mut fields, |[start_offset]| {
+            u64::try_from(start_offset).ok()
+          }),
+          Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
+        ),
+      }),
+    });
+
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
       RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
     });
@@ -56,75 +94,10 @@ impl Runestone {
       (u64::from(pointer) < u64::try_from(transaction.output.len()).unwrap()).then_some(pointer)
     });
 
-    let divisibility = Tag::Divisibility.take(&mut fields, |[divisibility]| {
-      let divisibility = u8::try_from(divisibility).ok()?;
-      (divisibility <= Etching::MAX_DIVISIBILITY).then_some(divisibility)
-    });
-
-    let amount = Tag::Amount.take(&mut fields, |[amount]| Some(amount));
-
-    let rune = Tag::Rune.take(&mut fields, |[rune]| Some(Rune(rune)));
-
-    let cap = Tag::Cap.take(&mut fields, |[cap]| Some(cap));
-
-    let premine = Tag::Premine.take(&mut fields, |[premine]| Some(premine));
-
-    let spacers = Tag::Spacers.take(&mut fields, |[spacers]| {
-      let spacers = u32::try_from(spacers).ok()?;
-      (spacers <= Etching::MAX_SPACERS).then_some(spacers)
-    });
-
-    let symbol = Tag::Symbol.take(&mut fields, |[symbol]| {
-      char::from_u32(u32::try_from(symbol).ok()?)
-    });
-
-    let offset = (
-      Tag::OffsetStart.take(&mut fields, |[start_offset]| {
-        u64::try_from(start_offset).ok()
-      }),
-      Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
-    );
-
-    let height = (
-      Tag::HeightStart.take(&mut fields, |[start_height]| {
-        u64::try_from(start_height).ok()
-      }),
-      Tag::HeightEnd.take(&mut fields, |[start_height]| {
-        u64::try_from(start_height).ok()
-      }),
-    );
-
-    let mut flags = Tag::Flags
-      .take(&mut fields, |[flags]| Some(flags))
-      .unwrap_or_default();
-
-    let etching = Flag::Etching.take(&mut flags);
-
-    let terms = Flag::Terms.take(&mut flags);
-
-    let overflow = (|| {
-      let premine = premine.unwrap_or_default();
-      let cap = cap.unwrap_or_default();
-      let amount = amount.unwrap_or_default();
-      premine.checked_add(cap.checked_mul(amount)?)
-    })()
-    .is_none();
-
-    let etching = etching.then_some(Etching {
-      divisibility,
-      premine,
-      rune,
-      spacers,
-      symbol,
-      terms: terms.then_some(Terms {
-        cap,
-        height,
-        amount,
-        offset,
-      }),
-    });
-
-    if overflow {
+    if etching
+      .map(|etching| etching.supply().is_none())
+      .unwrap_or_default()
+    {
       flaws |= Flaw::SupplyOverflow.flag();
     }
 
@@ -650,25 +623,19 @@ mod tests {
   }
 
   #[test]
-  fn etch_flag_is_required_to_etch_rune_even_if_mint_is_set() {
+  fn terms_flag_without_etching_flag_produces_cenotaph() {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
         Flag::Terms.mask(),
-        Tag::OffsetEnd.into(),
-        4,
         Tag::Body.into(),
-        1,
-        1,
-        2,
+        0,
+        0,
+        0,
         0
       ]),
-      Artifact::Runestone(Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedFlag.into(),
         ..default()
       }),
     );
@@ -1125,31 +1092,11 @@ mod tests {
   }
 
   #[test]
-  fn recognized_even_etching_fields_in_non_etching_are_ignored() {
+  fn recognized_even_etching_fields_produce_cenotaph_if_etching_flag_is_not_set() {
     assert_eq!(
-      decipher(&[
-        Tag::Rune.into(),
-        4,
-        Tag::Divisibility.into(),
-        1,
-        Tag::Symbol.into(),
-        'a'.into(),
-        Tag::OffsetEnd.into(),
-        2,
-        Tag::Amount.into(),
-        3,
-        Tag::Body.into(),
-        1,
-        1,
-        2,
-        0,
-      ]),
-      Artifact::Runestone(Runestone {
-        edicts: vec![Edict {
-          id: rune_id(1),
-          amount: 2,
-          output: 0,
-        }],
+      decipher(&[Tag::Rune.into(), 4]),
+      Artifact::Cenotaph(Cenotaph {
+        flaws: Flaw::UnrecognizedEvenTag.flag(),
         ..default()
       }),
     );
@@ -1907,12 +1854,29 @@ mod tests {
   #[test]
   fn min_and_max_runes_are_not_cenotaphs() {
     assert_eq!(
-      decipher(&[Tag::Rune.into(), 0]),
-      Artifact::Runestone(default()),
+      decipher(&[Tag::Flags.into(), Flag::Etching.into(), Tag::Rune.into(), 0]),
+      Artifact::Runestone(Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(0)),
+          ..default()
+        }),
+        ..default()
+      }),
     );
     assert_eq!(
-      decipher(&[Tag::Rune.into(), u128::MAX]),
-      Artifact::Runestone(default()),
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.into(),
+        Tag::Rune.into(),
+        u128::MAX
+      ]),
+      Artifact::Runestone(Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(u128::MAX)),
+          ..default()
+        }),
+        ..default()
+      }),
     );
   }
 
