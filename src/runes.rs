@@ -5386,4 +5386,42 @@ mod tests {
 
     context.assert_runes([], []);
   }
+
+  #[test]
+  fn genesis_rune() {
+    Context::builder()
+      .chain(Chain::Mainnet)
+      .arg("--index-runes")
+      .build()
+      .assert_runes(
+        [(
+          RuneId { block: 1, tx: 0 },
+          RuneEntry {
+            block: 1,
+            burned: 0,
+            divisibility: 0,
+            etching: Txid::all_zeros(),
+            mints: 0,
+            number: 0,
+            premine: 0,
+            spaced_rune: SpacedRune {
+              rune: Rune(2055900680524219742),
+              spacers: 128,
+            },
+            symbol: Some('\u{29C9}'),
+            terms: Some(Terms {
+              amount: Some(1),
+              cap: Some(u128::MAX),
+              height: (
+                Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
+                Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
+              ),
+              offset: (None, None),
+            }),
+            timestamp: 0,
+          },
+        )],
+        [],
+      );
+  }
 }

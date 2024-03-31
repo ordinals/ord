@@ -377,6 +377,49 @@ impl Index {
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
+        if settings.index_runes() && settings.chain() == Chain::Mainnet {
+          let rune = Rune(2055900680524219742);
+
+          let id = RuneId { block: 1, tx: 0 };
+          let etching = Txid::all_zeros();
+
+          tx.open_table(RUNE_TO_RUNE_ID)?
+            .insert(rune.store(), id.store())?;
+
+          let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
+
+          Self::set_statistic(&mut statistics, Statistic::Runes, 1)?;
+
+          tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?.insert(
+            id.store(),
+            RuneEntry {
+              block: 1,
+              burned: 0,
+              divisibility: 0,
+              etching,
+              terms: Some(Terms {
+                amount: Some(1),
+                cap: Some(u128::MAX),
+                height: (
+                  Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
+                  Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
+                ),
+                offset: (None, None),
+              }),
+              mints: 0,
+              number: 0,
+              premine: 0,
+              spaced_rune: SpacedRune { rune, spacers: 128 },
+              symbol: Some('\u{29C9}'),
+              timestamp: 0,
+            }
+            .store(),
+          )?;
+
+          tx.open_table(TRANSACTION_ID_TO_RUNE)?
+            .insert(&etching.store(), rune.store())?;
+        }
+
         tx.commit()?;
 
         database
