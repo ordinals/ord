@@ -29,13 +29,14 @@ mod range;
 mod terms;
 mod transactions;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Output {
   pub commit: Txid,
   pub commit_psbt: Option<String>,
   pub inscriptions: Vec<InscriptionInfo>,
   pub parent: Option<InscriptionId>,
   pub reveal: Txid,
+  pub reveal_broadcast: bool,
   pub reveal_psbt: Option<String>,
   pub rune: Option<RuneInfo>,
   pub total_fees: u64,
