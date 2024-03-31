@@ -4,16 +4,16 @@
   <dd>{{ self.chain }}</dd>
 %% if let Some(height) = self.height {
   <dt>height</dt>
-  <dd>{{ height }}</dd>
+  <dd><a href=/block/{{ height }}>{{ height }}</a></dd>
 %% }
   <dt>inscriptions</dt>
-  <dd>{{ self.inscriptions }}</dd>
+  <dd><a href=/inscriptions>{{ self.inscriptions }}</a></dd>
   <dt>blessed inscriptions</dt>
   <dd>{{ self.blessed_inscriptions }}</dd>
   <dt>cursed inscriptions</dt>
   <dd>{{ self.cursed_inscriptions }}</dd>
   <dt>runes</dt>
-  <dd>{{ self.runes }}</dd>
+  <dd><a href=/runes>{{ self.runes }}</a></dd>
   <dt>lost sats</dt>
   <dd>{{ self.lost_sats }}</dd>
   <dt>started</dt>
