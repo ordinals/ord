@@ -5,7 +5,8 @@ use {
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
-    reorg::*,
+    lot::Lot,
+    reorg::Reorg,
     updater::Updater,
   },
   super::*,
@@ -39,6 +40,7 @@ pub use self::entry::RuneEntry;
 pub(crate) mod entry;
 pub mod event;
 mod fetcher;
+mod lot;
 mod reorg;
 mod rtx;
 mod updater;
@@ -615,14 +617,14 @@ impl Index {
           log::info!("{}", err.to_string());
 
           match err.downcast_ref() {
-            Some(&ReorgError::Recoverable { height, depth }) => {
+            Some(&reorg::Error::Recoverable { height, depth }) => {
               Reorg::handle_reorg(self, height, depth)?;
             }
-            Some(&ReorgError::Unrecoverable) => {
+            Some(&reorg::Error::Unrecoverable) => {
               self
                 .unrecoverably_reorged
                 .store(true, atomic::Ordering::Relaxed);
-              return Err(anyhow!(ReorgError::Unrecoverable));
+              return Err(anyhow!(reorg::Error::Unrecoverable));
             }
             _ => return Err(err),
           };
