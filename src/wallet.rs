@@ -546,7 +546,7 @@ impl Wallet {
     rune: &Rune,
     commit: Transaction,
     reveal: Transaction,
-    mut output: batch::Output,
+    output: batch::Output,
   ) -> Result<batch::Output> {
     eprintln!("Waiting for rune commitment {} to mature…", commit.txid());
 
@@ -595,11 +595,12 @@ impl Wallet {
       }
     };
 
-    output.reveal_broadcast = true;
-
     self.clear_etching(rune)?;
 
-    Ok(output)
+    Ok(batch::Output {
+      reveal_broadcast: true,
+      ..output
+    })
   }
 
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
