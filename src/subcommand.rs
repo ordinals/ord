@@ -81,18 +81,19 @@ impl Subcommand {
   }
 }
 
-#[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum OutputFormat {
+  #[default]
   Minify,
   Json,
   Yaml,
 }
 
-impl Default for OutputFormat {
-  fn default() -> Self {
-    OutputFormat::Minify
-  }
-}
+// impl Default for OutputFormat {
+//   fn default() -> Self {
+//     OutputFormat::Minify
+//   }
+// }
 
 pub trait Output: Send {
   fn print(&self, format: OutputFormat);
