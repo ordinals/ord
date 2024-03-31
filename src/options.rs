@@ -63,7 +63,7 @@ pub struct Options {
   pub(crate) index_transactions: bool,
   #[arg(long, help = "Run in integration test mode.")]
   pub(crate) integration_test: bool,
-  #[clap(value_enum, short, long, default_value_t = OutputFormat::Minify, help = "Specify output format")]
+  #[clap(value_enum, short, long, default_value_t = OutputFormat::Json, help = "Specify output format")]
   pub(crate) format: OutputFormat,
   #[arg(
     long,

@@ -84,9 +84,9 @@ impl Subcommand {
 #[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum OutputFormat {
   #[default]
-  Minify,
   Json,
   Yaml,
+  Minify,
 }
 
 pub trait Output: Send {
@@ -99,9 +99,9 @@ where
 {
   fn print(&self, format: OutputFormat) {
     match format {
-      OutputFormat::Minify => serde_json::to_writer(io::stdout(), self).ok(),
       OutputFormat::Json => serde_json::to_writer_pretty(io::stdout(), self).ok(),
       OutputFormat::Yaml => serde_yaml::to_writer(io::stdout(), self).ok(),
+      OutputFormat::Minify => serde_json::to_writer(io::stdout(), self).ok(),
     };
     println!();
   }

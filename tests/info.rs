@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::index::info::TransactionsOutput};
 #[test]
 fn json_with_satoshi_index() {
   let core = mockcore::spawn();
-  CommandBuilder::new("--index-sats --format json index info")
+  CommandBuilder::new("--index-sats index info")
     .core(&core)
     .stdout_regex(
       r#"\{
@@ -37,7 +37,7 @@ fn json_with_satoshi_index() {
 #[test]
 fn json_without_satoshi_index() {
   let core = mockcore::spawn();
-  CommandBuilder::new("--format json index info")
+  CommandBuilder::new("index info")
     .core(&core)
     .stdout_regex(
       r#"\{
