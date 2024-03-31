@@ -81,20 +81,33 @@ impl Subcommand {
   }
 }
 
+#[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum OutputFormat {
+  Minify,
+  Json,
+  Yaml,
+}
+
+impl Default for OutputFormat {
+  fn default() -> Self {
+    OutputFormat::Minify
+  }
+}
+
 pub trait Output: Send {
-  fn print_json(&self, minify: bool);
+  fn print(&self, format: OutputFormat);
 }
 
 impl<T> Output for T
 where
   T: Serialize + Send,
 {
-  fn print_json(&self, minify: bool) {
-    if minify {
-      serde_json::to_writer(io::stdout(), self).ok();
-    } else {
-      serde_json::to_writer_pretty(io::stdout(), self).ok();
-    }
+  fn print(&self, format: OutputFormat) {
+    match format {
+      OutputFormat::Minify => serde_json::to_writer(io::stdout(), self).ok(),
+      OutputFormat::Json => serde_json::to_writer_pretty(io::stdout(), self).ok(),
+      OutputFormat::Yaml => serde_yaml::to_writer(io::stdout(), self).ok(),
+    };
     println!();
   }
 }
