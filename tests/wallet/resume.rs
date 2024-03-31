@@ -54,7 +54,7 @@ fn wallet_resume() {
       .read_line(&mut buffer)
       .unwrap();
 
-    assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
+    assert_regex_match!(buffer, "Waiting for rune commitment .* to mature…\n");
 
     core.mine_blocks(1);
 
@@ -78,11 +78,23 @@ fn wallet_resume() {
     spawn.child.wait().unwrap();
   }
 
-  //  let output = CommandBuilder::new("--regtest --index-runes wallet resume")
-  //    .temp_dir(tempdir)
-  //    .core(&core)
-  //    .ord(&ord)
-  //    .run_and_deserialize_output::<batch::Output>();
-  //
-  //  assert_eq!(output.rune.unwrap().rune.rune, Rune(RUNE));
+  core.mine_blocks(6);
+
+  let mut spawn = CommandBuilder::new("--regtest --index-runes wallet resume")
+    .temp_dir(tempdir)
+    .core(&core)
+    .ord(&ord)
+    .spawn();
+
+  let mut buffer = String::new();
+
+  BufReader::new(spawn.child.stderr.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
+
+  assert_regex_match!(buffer, "Waiting for rune commitment .* to mature…\n");
+
+  let output = spawn.run_and_deserialize_output::<batch::Output>();
+
+  assert_eq!(output.rune.unwrap().rune.rune, Rune(RUNE));
 }

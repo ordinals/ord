@@ -526,7 +526,10 @@ impl Wallet {
     reveal_tx: Transaction,
     output: batch::Output,
   ) -> Result<batch::Output> {
-    eprintln!("Waiting for rune commitment to mature…");
+    eprintln!(
+      "Waiting for rune commitment {} to mature…",
+      commit_tx.txid()
+    );
 
     self
       .db()

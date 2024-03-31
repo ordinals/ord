@@ -127,13 +127,13 @@ impl Plan {
       .send_raw_transaction(&signed_commit_tx)?;
 
     if let Some(ref rune_info) = rune {
-      let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
       let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
+      let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
 
       Ok(Some(Box::new(wallet.wait_for_maturation(
         &rune_info.rune.rune,
-        reveal.clone(),
         commit.clone(),
+        reveal.clone(),
         self.output(
           commit.txid(),
           None,
