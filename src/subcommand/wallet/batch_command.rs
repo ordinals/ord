@@ -70,7 +70,7 @@ impl Batch {
     let rune = etching.rune.rune;
 
     ensure!(
-      wallet.db().retrieve(rune)?.is_none(),
+      wallet.retrieve(rune)?.is_none(),
       "rune `{rune}` has pending etching, resume with `ord wallet resume`"
     );
 
