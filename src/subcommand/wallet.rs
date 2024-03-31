@@ -33,8 +33,6 @@ pub(crate) struct WalletCommand {
     help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
   )]
   pub(crate) server_url: Option<Url>,
-  // #[arg(long, help = "Path to the <WALLET_DB>.")]
-  // pub(crate) wallet_db: Option<PathBuf>,
   #[command(subcommand)]
   pub(crate) subcommand: Subcommand,
 }

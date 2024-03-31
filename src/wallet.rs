@@ -61,7 +61,6 @@ impl Wallet {
     no_sync: bool,
     settings: Settings,
     rpc_url: Url,
-    // wallet_db: Option<PathBuf>,
   ) -> Result<Self> {
     let mut headers = HeaderMap::new();
 
