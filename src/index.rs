@@ -393,7 +393,7 @@ impl Index {
           tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?.insert(
             id.store(),
             RuneEntry {
-              block: 1,
+              block: id.block,
               burned: 0,
               divisibility: 0,
               etching,
