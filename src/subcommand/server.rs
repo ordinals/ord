@@ -265,8 +265,16 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
         // ---- Ordzaar routes ----
+        // Deprecated: Ordzaar custom routes should use"ordzar" prefix/path
+        // to prevent duplication with the Ord server paths.
         .route("/inscriptions", post(Self::ordzaar_inscriptions_from_ids))
         .route("/ordinals/:outpoint", get(Self::ordzaar_ordinals_from_outpoint))
+
+        .route("/ordzaar/inscriptions", post(Self::ordzaar_inscriptions_from_ids))
+        .route("/ordzaar/ordinals/:outpoint", get(Self::ordzaar_ordinals_from_outpoint))
+        .route("/ordzaar/rune/:rune", get(Self::ordzaar_rune_detail))
+        .route("/ordzaar/rune/output/:outpoint", get(Self::ordzaar_rune_output))
+        .route("/ordzaar/rune/outputs/bulk", get(Self::ordzaar_rune_output_bulk))
         // ---- Ordzaar routes ----
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -390,6 +398,89 @@ impl Server {
       ));
     }
     Ok(Json(inscriptions).into_response())
+  }
+
+  async fn ordzaar_rune_detail(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(rune_query)): Path<DeserializeFromStr<query::Rune>>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      if !index.has_rune_index() {
+        return Err(ServerError::NotFound(
+          "this server has no rune index".to_string(),
+        ));
+      }
+
+      let rune = match rune_query {
+        query::Rune::SpacedRune(spaced_rune) => spaced_rune.rune,
+        query::Rune::RuneId(rune_id) => index
+          .get_rune_by_id(rune_id)?
+          .ok_or_not_found(|| format!("rune {rune_id}"))?,
+      };
+
+      let (id, entry, _) = index
+        .rune(rune)?
+        .ok_or_not_found(|| format!("rune {rune}"))?;
+
+      let block_height = index.block_height()?.unwrap_or(Height(0));
+      let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
+
+      Ok(Json(ordzaar::runes::RuneDetail::from_rune(id, entry, mintable)).into_response())
+    })
+  }
+
+  async fn ordzaar_rune_output(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      if !index.has_rune_index() {
+        return Err(ServerError::NotFound(
+          "this server has no rune index".to_string(),
+        ));
+      }
+      let runes = index.get_rune_balances_for_outpoint(outpoint)?;
+
+      let response: Vec<ordzaar::runes::RuneOutpoint> = runes
+        .into_iter()
+        .map(|rune| ordzaar::runes::RuneOutpoint::from_spaced_rune_pile(rune))
+        .collect();
+
+      Ok(Json(response).into_response())
+    })
+  }
+
+  async fn ordzaar_rune_output_bulk(
+    Extension(index): Extension<Arc<Index>>,
+    Query(query): Query<ordzaar::runes::RuneOutputBulkQuery>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      if !index.has_rune_index() {
+        return Err(ServerError::NotFound(
+          "this server has no rune index".to_string(),
+        ));
+      }
+
+      let mut results = HashMap::new();
+      for outpoint_str in ordzaar::runes::str_coma_to_array(&query.outpoints) {
+        let outpoint_result = OutPoint::from_str(&outpoint_str);
+        if !outpoint_result.is_ok() {
+          return Err(ServerError::BadRequest(format!(
+            "error parsing outpoint: {outpoint_str}"
+          )));
+        }
+        let runes = index.get_rune_balances_for_outpoint(outpoint_result.unwrap())?;
+
+        let response: Vec<ordzaar::runes::RuneOutpoint> = runes
+          .into_iter()
+          .map(|rune| ordzaar::runes::RuneOutpoint::from_spaced_rune_pile(rune))
+          .collect();
+
+        results.insert(outpoint_str, response);
+      }
+
+      Ok(Json(results).into_response())
+    })
   }
   // ---- Ordzaar methods ----
 
