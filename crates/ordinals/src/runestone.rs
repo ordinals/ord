@@ -22,23 +22,23 @@ impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
   pub const COMMIT_INTERVAL: u16 = 6;
 
-  pub fn decipher(transaction: &Transaction) -> Result<Option<Artifact>, script::Error> {
-    let payload = match Runestone::payload(transaction)? {
+  pub fn decipher(transaction: &Transaction) -> Option<Artifact> {
+    let payload = match Runestone::payload(transaction) {
       Some(Payload::Valid(payload)) => payload,
       Some(Payload::Invalid(flaw)) => {
-        return Ok(Some(Artifact::Cenotaph(Cenotaph {
+        return Some(Artifact::Cenotaph(Cenotaph {
           flaws: flaw.into(),
           ..default()
-        })))
+        }));
       }
-      None => return Ok(None),
+      None => return None,
     };
 
     let Some(integers) = Runestone::integers(&payload) else {
-      return Ok(Some(Artifact::Cenotaph(Cenotaph {
+      return Some(Artifact::Cenotaph(Cenotaph {
         flaws: Flaw::Varint.into(),
         ..default()
-      })));
+      }));
     };
 
     let Message {
@@ -110,19 +110,19 @@ impl Runestone {
     }
 
     if flaws != 0 {
-      return Ok(Some(Artifact::Cenotaph(Cenotaph {
+      return Some(Artifact::Cenotaph(Cenotaph {
         flaws,
         mint,
         etching: etching.and_then(|etching| etching.rune),
-      })));
+      }));
     }
 
-    Ok(Some(Artifact::Runestone(Self {
+    Some(Artifact::Runestone(Self {
       edicts,
       etching,
       mint,
       pointer,
-    })))
+    }))
   }
 
   pub fn encipher(&self) -> ScriptBuf {
@@ -189,13 +189,13 @@ impl Runestone {
     builder.into_script()
   }
 
-  fn payload(transaction: &Transaction) -> Result<Option<Payload>, script::Error> {
+  fn payload(transaction: &Transaction) -> Option<Payload> {
     // search transaction outputs for payload
     for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();
 
       // payload starts with OP_RETURN
-      if instructions.next().transpose()? != Some(Instruction::Op(opcodes::all::OP_RETURN)) {
+      if instructions.next() != Some(Ok(Instruction::Op(opcodes::all::OP_RETURN))) {
         continue;
       }
 
@@ -214,18 +214,18 @@ impl Runestone {
             payload.extend_from_slice(push.as_bytes());
           }
           Ok(Instruction::Op(_)) => {
-            return Ok(Some(Payload::Invalid(Flaw::Opcode)));
+            return Some(Payload::Invalid(Flaw::Opcode));
           }
           Err(_) => {
-            return Ok(Some(Payload::Invalid(Flaw::InvalidScript)));
+            return Some(Payload::Invalid(Flaw::InvalidScript));
           }
         }
       }
 
-      return Ok(Some(Payload::Valid(payload)));
+      return Some(Payload::Valid(payload));
     }
 
-    Ok(None)
+    None
   }
 
   fn integers(payload: &[u8]) -> Option<Vec<u128>> {
@@ -275,7 +275,6 @@ mod tests {
       version: 2,
     })
     .unwrap()
-    .unwrap()
   }
 
   fn payload(integers: &[u128]) -> Vec<u8> {
@@ -289,17 +288,19 @@ mod tests {
   }
 
   #[test]
-  fn decipher_returns_an_error_if_first_opcode_is_malformed() {
-    assert!(Runestone::decipher(&Transaction {
-      input: Vec::new(),
-      output: vec![TxOut {
-        script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
-        value: 0,
-      }],
-      lock_time: LockTime::ZERO,
-      version: 2,
-    })
-    .is_err());
+  fn decipher_returns_none_if_first_opcode_is_malformed() {
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
+          value: 0,
+        }],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      }),
+      None,
+    );
   }
 
   #[test]
@@ -311,7 +312,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(None)
+      None,
     );
   }
 
@@ -327,7 +328,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(None)
+      None,
     );
   }
 
@@ -345,7 +346,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(None)
+      None,
     );
   }
 
@@ -364,22 +365,24 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(None)
+      None,
     );
   }
 
   #[test]
   fn deciphering_valid_runestone_with_invalid_script_returns_script_error() {
-    Runestone::decipher(&Transaction {
-      input: Vec::new(),
-      output: vec![TxOut {
-        script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
-        value: 0,
-      }],
-      lock_time: LockTime::ZERO,
-      version: 2,
-    })
-    .unwrap_err();
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
+          value: 0,
+        }],
+        lock_time: LockTime::ZERO,
+        version: 2,
+      }),
+      None,
+    );
   }
 
   #[test]
@@ -402,7 +405,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       }),
-      Ok(Some(Payload::Invalid(Flaw::InvalidScript)))
+      Some(Payload::Invalid(Flaw::InvalidScript))
     );
   }
 
@@ -457,7 +460,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Cenotaph(Cenotaph {
         flaws: Flaw::Opcode.into(),
@@ -482,7 +484,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Cenotaph(Cenotaph {
         flaws: Flaw::Opcode.into(),
@@ -506,7 +507,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone::default()),
     );
@@ -545,7 +545,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone {
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -776,7 +775,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Cenotaph(Cenotaph {
         flaws: Flaw::Varint.into(),
@@ -1309,7 +1307,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone {
         edicts: vec![Edict {
@@ -1352,7 +1349,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone {
         edicts: vec![Edict {
@@ -1394,7 +1390,6 @@ mod tests {
         lock_time: LockTime::ZERO,
         version: 2,
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone {
         edicts: vec![Edict {
@@ -1676,7 +1671,7 @@ mod tests {
         version: 2,
       };
 
-      let Payload::Valid(payload) = Runestone::payload(&transaction).unwrap().unwrap() else {
+      let Payload::Valid(payload) = Runestone::payload(&transaction).unwrap() else {
         panic!("invalid payload")
       };
 
@@ -1692,7 +1687,7 @@ mod tests {
       };
 
       assert_eq!(
-        Runestone::decipher(&transaction).unwrap().unwrap(),
+        Runestone::decipher(&transaction).unwrap(),
         Artifact::Runestone(runestone),
       );
     }
@@ -2054,8 +2049,7 @@ mod tests {
           ]),
           value: 0,
         }],
-      })
-      .unwrap(),
+      }),
       None
     );
 
@@ -2083,7 +2077,6 @@ mod tests {
           }
         ],
       })
-      .unwrap()
       .unwrap(),
       Artifact::Runestone(Runestone::default()),
     );
@@ -2110,7 +2103,6 @@ mod tests {
           value: 0,
         }],
       })
-      .unwrap()
       .unwrap(),
       Artifact::Cenotaph(Cenotaph {
         flaws: Flaw::InvalidScript.into(),
