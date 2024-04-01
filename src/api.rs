@@ -93,6 +93,12 @@ pub struct Inscription {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+
+  // ---- Ordzaar ----
+  pub inscription_sequence: u32,
+  pub delegate: Option<InscriptionId>,
+  pub content_encoding: Option<String>,
+  // ---- Ordzaar ----
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -121,6 +121,10 @@ mod tally;
 pub mod templates;
 pub mod wallet;
 
+// ---- Ordzaar ----
+mod ordzaar;
+// ---- Ordzaar ----
+
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);

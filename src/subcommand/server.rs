@@ -5,6 +5,9 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
+  // ---- Ordzaar ----
+  crate::ordzaar,
+  // ---- Ordzaar ----
   crate::templates::{
     BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
     InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
@@ -18,7 +21,7 @@ use {
     extract::{Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
-    routing::get,
+    routing::{get, post},
     Router,
   },
   axum_server::Handle,
@@ -261,6 +264,10 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
+        // ---- Ordzaar routes ----
+        .route("/inscriptions", post(Self::ordzaar_inscriptions_from_ids))
+        .route("/ordinals/:outpoint", get(Self::ordzaar_ordinals_from_outpoint))
+        // ---- Ordzaar routes ----
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -339,6 +346,52 @@ impl Server {
       Ok(None)
     })
   }
+
+  // ---- Ordzaar methods ----
+  async fn ordzaar_ordinals_from_outpoint(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult<Response> {
+    index
+      .get_transaction(outpoint.txid)?
+      .ok_or_not_found(|| format!("output {outpoint}"))?
+      .output
+      .into_iter()
+      .nth(outpoint.vout as usize)
+      .ok_or_not_found(|| format!("output {outpoint}"))?;
+    Ok(Json(ordzaar::ordinals::get_ordinals(&index, outpoint)?).into_response())
+  }
+
+  async fn ordzaar_inscriptions_from_ids(
+    Extension(index): Extension<Arc<Index>>,
+    Json(payload): Json<ordzaar::inscriptions::InscriptionIds>,
+  ) -> ServerResult<Response> {
+    let mut inscriptions: Vec<ordzaar::inscriptions::InscriptionData> = Vec::new();
+    for id in payload.ids {
+      let entry = match index.get_inscription_entry(id)? {
+        Some(entry) => entry,
+        None => continue,
+      };
+
+      let satpoint = match index.get_inscription_satpoint_by_id(id)? {
+        Some(satpoint) => satpoint,
+        None => continue,
+      };
+
+      inscriptions.push(ordzaar::inscriptions::InscriptionData::new(
+        entry.fee,
+        entry.height,
+        id,
+        entry.inscription_number,
+        entry.sequence_number,
+        entry.sat,
+        satpoint,
+        timestamp(entry.timestamp.into()),
+      ));
+    }
+    Ok(Json(inscriptions).into_response())
+  }
+  // ---- Ordzaar methods ----
 
   fn spawn(
     &self,
@@ -1559,6 +1612,15 @@ impl Server {
           satpoint: info.satpoint,
           timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
           value: info.output.as_ref().map(|o| o.value),
+
+          // ---- Ordzaar ----
+          inscription_sequence: info.entry.sequence_number,
+          delegate: info.inscription.delegate(),
+          content_encoding: info
+            .inscription
+            .content_encoding_str()
+            .map(|s| s.to_string()),
+          // ---- Ordzaar ----
         })
         .into_response()
       } else {

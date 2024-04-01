@@ -170,6 +170,12 @@ fn get_inscription() {
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
+
+       // ---- Ordzaar ----
+      inscription_sequence: 0,
+      delegate: None,
+      content_encoding: None,
+      // ---- Ordzaar ----
     }
   )
 }
