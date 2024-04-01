@@ -1402,7 +1402,7 @@ msgstr "请注意，标签`11`的值是十进制的，而不是十六进制的�
 #: src/inscriptions/delegate.md:38
 msgid ""
 "The delegate field value uses the same encoding as the parent field. See "
-"[provenance](provenance.md) for more examples of inscrpition ID encodings;"
+"[provenance](provenance.md) for more examples of inscription ID encodings;"
 msgstr ""
 "代理字段的值使用与父字段相同的编码方式。有关铭文ID编码的更多示例，请参见[provenance](provenance.md) "
 
