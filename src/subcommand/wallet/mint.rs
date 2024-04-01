@@ -80,7 +80,7 @@ impl Mint {
 
     assert_eq!(
       Runestone::decipher(&signed_transaction),
-      Ok(Some(Artifact::Runestone(runestone))),
+      Some(Artifact::Runestone(runestone)),
     );
 
     let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;
