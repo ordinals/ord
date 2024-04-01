@@ -5,9 +5,11 @@ Changelog
 --------------------------------------------------------------------------
 
 ## Fixed
+- Ignore invalid script pubkeys (#3432)
+
+## Misc
 - Fix typo (#3429)
 - Relax deployed Bitcoin Core relay rules (#3431)
-- Ignore invalid script pubkeys (#3432)
 
 [0.17.0](https://github.com/ordinals/ord/releases/tag/0.17.0) - 2023-03-31
 --------------------------------------------------------------------------
