@@ -1,4 +1,23 @@
-use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::{opcodes,psbt::Psbt}};
+
+#[derive(Clone, Copy)]
+struct AddressParser;
+
+#[derive(Clone, Debug, PartialEq)]
+enum ParsedAddress {
+  Address(Address<NetworkUnchecked>),
+  ScriptBuf(ScriptBuf),
+}
+
+fn parse_address(arg: &str) -> Result<ParsedAddress, bitcoin::address::Error> {
+  if arg == "burn" {
+    let builder = script::Builder::new()
+      .push_opcode(opcodes::all::OP_RETURN);
+    Ok(ParsedAddress::ScriptBuf(builder.into_script()))
+  } else {
+    Ok(ParsedAddress::Address(Address::from_str(arg)?))
+  }
+}
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -11,7 +30,8 @@ pub(crate) struct Send {
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
   )]
   pub(crate) postage: Option<Amount>,
-  address: Address<NetworkUnchecked>,
+  #[arg(value_parser = parse_address)]
+  address: ParsedAddress,
   outgoing: Outgoing,
 }
 
@@ -25,18 +45,25 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let address = self
-      .address
-      .clone()
-      .require_network(wallet.chain().network())?;
+    let recipient = match self.address {
+      ParsedAddress::Address(address) => {
+        address
+          .clone()
+          .require_network(wallet.chain().network())?
+          .script_pubkey()
+      }
+      ParsedAddress::ScriptBuf(script_buf) => {
+        script_buf.clone()
+      }
+    };
 
     let unsigned_transaction = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::create_unsigned_send_amount_transaction(&wallet, address, amount, self.fee_rate)?
+        Self::create_unsigned_send_amount_transaction(&wallet, recipient, amount, self.fee_rate)?
       }
       Outgoing::Rune { decimal, rune } => Self::create_unsigned_send_runes_transaction(
         &wallet,
-        address,
+        recipient,
         rune,
         decimal,
         self.postage.unwrap_or(TARGET_POSTAGE),
@@ -44,7 +71,7 @@ impl Send {
       )?,
       Outgoing::InscriptionId(id) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        address,
+        recipient,
         wallet
           .inscription_info()
           .get(&id)
@@ -56,7 +83,7 @@ impl Send {
       )?,
       Outgoing::SatPoint(satpoint) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        address,
+        recipient,
         satpoint,
         self.postage,
         self.fee_rate,
@@ -64,7 +91,7 @@ impl Send {
       )?,
       Outgoing::Sat(sat) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        address,
+        recipient,
         wallet.find_sat_in_outputs(sat)?,
         self.postage,
         self.fee_rate,
@@ -133,7 +160,7 @@ impl Send {
 
   fn create_unsigned_send_amount_transaction(
     wallet: &Wallet,
-    destination: Address,
+    destination: ScriptBuf,
     amount: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
@@ -144,7 +171,7 @@ impl Send {
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![TxOut {
-        script_pubkey: destination.script_pubkey(),
+        script_pubkey: destination,
         value: amount.to_sat(),
       }],
     };
@@ -160,7 +187,7 @@ impl Send {
 
   fn create_unsigned_send_satpoint_transaction(
     wallet: &Wallet,
-    destination: Address,
+    destination: ScriptBuf,
     satpoint: SatPoint,
     postage: Option<Amount>,
     fee_rate: FeeRate,
@@ -196,18 +223,19 @@ impl Send {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        destination.clone(),
+        destination,
         change,
         fee_rate,
         postage,
+        wallet.chain().network()
       )
-      .build_transaction()?,
+        .build_transaction()?,
     )
   }
 
   fn create_unsigned_send_runes_transaction(
     wallet: &Wallet,
-    destination: Address,
+    destination: ScriptBuf,
     spaced_rune: SpacedRune,
     decimal: Decimal,
     postage: Amount,
@@ -327,7 +355,7 @@ impl Send {
         ]
       } else {
         vec![TxOut {
-          script_pubkey: destination.script_pubkey(),
+          script_pubkey: destination,
           value: postage.to_sat(),
         }]
       },

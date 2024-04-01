@@ -48,6 +48,58 @@ fn inscriptions_can_be_sent() {
 }
 
 #[test]
+fn inscriptions_can_be_burned() {
+  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+
+  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 burn {inscription}",
+  ))
+    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .ord_rpc_server(&ord_rpc_server)
+    .stdout_regex(r".*")
+    .run_and_deserialize_output::<send::Output>();
+
+  let txid = bitcoin_rpc_server.mempool()[0].txid();
+  assert_eq!(txid, output.txid);
+
+  bitcoin_rpc_server.mine_blocks(1);
+
+  let send_txid = output.txid;
+
+  ord_rpc_server.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    format!(
+      ".*<h1>Inscription 0</h1>.*<dl>.*
+  <dt>charms</dt>
+  <dd>
+    <span title=burned>💀🔥</span>
+  </dd>
+  .*
+  <dt>content length</dt>
+  <dd>3 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
+  .*
+  <dt>location</dt>
+  <dd class=monospace>{send_txid}:0:0</dd>
+  .*
+</dl>
+.*",
+    ),
+  );
+}
+
+#[test]
 fn send_unknown_inscription() {
   let core = mockcore::spawn();
 

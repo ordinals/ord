@@ -533,10 +533,11 @@ impl Plan {
       utxos.clone(),
       locked_utxos.clone(),
       runic_utxos,
-      commit_tx_address.clone(),
+      commit_tx_address.script_pubkey(),
       commit_change,
       self.commit_fee_rate,
       Target::Value(target_value),
+      chain.network()
     )
     .build_transaction()?;
 
