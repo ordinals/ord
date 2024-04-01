@@ -84,7 +84,7 @@ impl Decode {
 
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);
 
-    let runestone = Runestone::decipher(&transaction)?;
+    let runestone = Runestone::decipher(&transaction);
 
     if self.compact {
       Ok(Some(Box::new(CompactOutput {

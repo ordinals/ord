@@ -632,7 +632,7 @@ impl Plan {
     let total_fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    match (Runestone::decipher(&reveal_tx).unwrap(), runestone) {
+    match (Runestone::decipher(&reveal_tx), runestone) {
       (Some(actual), Some(expected)) => assert_eq!(
         actual,
         Artifact::Runestone(expected),
