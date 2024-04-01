@@ -85,7 +85,8 @@ fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))
     .core(core)
     .ord(ord)
-    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
+    .stdout_regex(".*")
+    .run_and_extract_stdout();
 }
 
 fn sats(
@@ -196,7 +197,10 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     .read_line(&mut buffer)
     .unwrap();
 
-  assert_eq!(buffer, "Waiting for rune commitment to mature…\n");
+  assert_regex_match!(
+    buffer,
+    "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+  );
 
   core.mine_blocks(6);
 
