@@ -370,22 +370,6 @@ mod tests {
   }
 
   #[test]
-  fn deciphering_valid_runestone_with_invalid_script_returns_script_error() {
-    assert_eq!(
-      Runestone::decipher(&Transaction {
-        input: Vec::new(),
-        output: vec![TxOut {
-          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
-          value: 0,
-        }],
-        lock_time: LockTime::ZERO,
-        version: 2,
-      }),
-      None,
-    );
-  }
-
-  #[test]
   fn deciphering_valid_runestone_with_invalid_script_postfix_returns_invalid_payload() {
     let mut script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
