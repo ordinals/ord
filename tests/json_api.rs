@@ -567,22 +567,22 @@ fn get_runes() {
     api::Runes {
       entries: vec![
         (
-          RuneId { block: 11, tx: 1 },
+          RuneId { block: 27, tx: 1 },
           RuneEntry {
-            block: a.id.block,
+            block: c.id.block,
             burned: 0,
             terms: None,
             divisibility: 0,
-            etching: a.output.reveal,
+            etching: c.output.reveal,
             mints: 0,
-            number: 0,
+            number: 2,
             premine: 1000,
             spaced_rune: SpacedRune {
-              rune: Rune(RUNE),
+              rune: Rune(RUNE + 2),
               spacers: 0
             },
             symbol: Some('¢'),
-            timestamp: 11,
+            timestamp: 27,
           }
         ),
         (
@@ -605,25 +605,28 @@ fn get_runes() {
           }
         ),
         (
-          RuneId { block: 27, tx: 1 },
+          RuneId { block: 11, tx: 1 },
           RuneEntry {
-            block: c.id.block,
+            block: a.id.block,
             burned: 0,
             terms: None,
             divisibility: 0,
-            etching: c.output.reveal,
+            etching: a.output.reveal,
             mints: 0,
-            number: 2,
+            number: 0,
             premine: 1000,
             spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 2),
+              rune: Rune(RUNE),
               spacers: 0
             },
             symbol: Some('¢'),
-            timestamp: 27,
+            timestamp: 11,
           }
         )
-      ]
+      ],
+      more: false,
+      next: None,
+      prev: None,
     }
   );
 }

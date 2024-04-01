@@ -4,3 +4,15 @@
   <li><a href=/rune/{{ entry.spaced_rune }}>{{ entry.spaced_rune }}</a></li>
 %% }
 </ul>
+<div class=center>
+  %% if let Some(prev) = self.prev {
+  <a class=prev href=/runes/{{prev}}>prev</a>
+  %% } else {
+  prev
+  %% }
+  %% if let Some(next) = self.next {
+  <a class=next href=/runes/{{next}}>next</a>
+  %% } else {
+  next
+  %% }
+</div>
