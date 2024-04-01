@@ -77,7 +77,7 @@ mod tests {
     let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
     let reveal_change = [commit_address, change(1)];
 
     let batch::Transactions {
@@ -123,7 +123,7 @@ mod tests {
     let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
     let reveal_change = [commit_address, change(1)];
 
     let batch::Transactions {
@@ -173,7 +173,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
 
     let error = batch::Plan {
       satpoint,
@@ -225,7 +225,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
 
     assert!(batch::Plan {
       satpoint,
@@ -270,7 +270,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
     let fee_rate = 3.3;
 
     let batch::Transactions {
@@ -358,7 +358,7 @@ mod tests {
     .into();
 
     let commit_address = change(1);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
     let fee_rate = 4.0;
 
     let batch::Transactions {
@@ -444,7 +444,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
 
@@ -509,7 +509,7 @@ mod tests {
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
 
     let error = batch::Plan {
       satpoint,
@@ -550,7 +550,7 @@ mod tests {
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient();
+    let reveal_address = recipient_as_address();
 
     let batch::Transactions { reveal_tx, .. } = batch::Plan {
       satpoint,
@@ -605,7 +605,7 @@ mod tests {
     wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient()];
+    let reveal_addresses = vec![recipient_as_address()];
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -718,7 +718,11 @@ mod tests {
     wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient(), recipient(), recipient()];
+    let reveal_addresses = vec![
+      recipient_as_address(),
+      recipient_as_address(),
+      recipient_as_address()
+    ];
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -860,7 +864,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient()];
+    let reveal_addresses = vec![recipient_as_address()];
 
     let error = batch::Plan {
       satpoint: None,
@@ -937,7 +941,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient(), recipient()];
+    let reveal_addresses = vec![recipient_as_address(), recipient_as_address()];
 
     let _ = batch::Plan {
       satpoint: None,
@@ -976,7 +980,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient()];
+    let reveal_addresses = vec![recipient_as_address()];
 
     let error = batch::Plan {
       satpoint: None,
@@ -1020,7 +1024,11 @@ mod tests {
     let wallet_inscriptions = BTreeMap::new();
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient(), recipient(), recipient()];
+    let reveal_addresses = vec![
+      recipient_as_address(),
+      recipient_as_address(),
+      recipient_as_address()
+    ];
 
     let inscriptions = vec![
       inscription("text/plain", [b'O'; 100]),
@@ -1089,7 +1097,11 @@ mod tests {
     wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient(), recipient(), recipient()];
+    let reveal_addresses = vec![
+      recipient_as_address(),
+      recipient_as_address(),
+      recipient_as_address()
+    ];
 
     let inscriptions = vec![
       InscriptionTemplate {

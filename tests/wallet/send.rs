@@ -49,34 +49,34 @@ fn inscriptions_can_be_sent() {
 
 #[test]
 fn inscriptions_can_be_burned() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(&bitcoin_rpc_server, &[], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 burn {inscription}",
   ))
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
-    .ord_rpc_server(&ord_rpc_server)
+    .core(&core)
+    .ord(&ord)
     .stdout_regex(r".*")
-    .run_and_deserialize_output::<send::Output>();
+    .run_and_deserialize_output::<Send>();
 
-  let txid = bitcoin_rpc_server.mempool()[0].txid();
+  let txid = core.mempool()[0].txid();
   assert_eq!(txid, output.txid);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let send_txid = output.txid;
 
-  ord_rpc_server.assert_response_regex(
+  ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
