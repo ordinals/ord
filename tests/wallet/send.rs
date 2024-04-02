@@ -1069,7 +1069,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   let tx = core.tx_by_id(output.txid);
 
   pretty_assert_eq!(
-    Runestone::decipher(&tx).unwrap().unwrap(),
+    Runestone::decipher(&tx).unwrap(),
     Artifact::Runestone(Runestone {
       pointer: None,
       etching: None,
