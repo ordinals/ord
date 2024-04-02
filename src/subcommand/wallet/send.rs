@@ -308,7 +308,7 @@ impl Send {
 
     assert_eq!(
       Runestone::decipher(&unsigned_transaction),
-      Ok(Some(Artifact::Runestone(runestone))),
+      Some(Artifact::Runestone(runestone)),
     );
 
     Ok(unsigned_transaction)
