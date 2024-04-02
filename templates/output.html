@@ -37,10 +37,10 @@
 <h2>{{"Sat Range".tally(sat_ranges.len())}}</h2>
 <ul class=monospace>
 %% for (start, end) in sat_ranges {
-%% if end - start == 1 {
+%% if start == end {
   <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
-  <li><a href=/range/{{start}}/{{end}} class={{Sat(*start).rarity()}}>{{start}}–{{end}}</a></li>
+  <li><a href=/range/{{start}}/{{end+1}} class={{Sat(*start).rarity()}}>{{start}}–{{end}}</a></li>
 %% }
 %% }
 </ul>
