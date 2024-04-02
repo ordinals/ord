@@ -610,6 +610,13 @@ impl Server {
           .ok_or_not_found(|| format!("output {outpoint}"))?
       };
 
+      let human_legible_ranges: Option<Vec<(u64, u64)>> = sat_ranges.map(|ranges| {
+        ranges
+          .into_iter()
+          .map(|(start, end)| (start, end - 1))
+          .collect()
+      });
+
       let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
       let runes = index.get_rune_balances_for_outpoint(outpoint)?;
@@ -624,7 +631,7 @@ impl Server {
           output,
           indexed,
           runes,
-          sat_ranges,
+          human_legible_ranges,
           spent,
         ))
         .into_response()
@@ -635,7 +642,7 @@ impl Server {
           outpoint,
           output,
           runes,
-          sat_ranges,
+          sat_ranges: human_legible_ranges,
           spent,
         }
         .page(server_config)
