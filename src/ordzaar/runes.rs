@@ -76,11 +76,11 @@ impl RuneDetail {
           },
         ),
         offset: (
-          match terms_value.height.0 {
+          match terms_value.offset.0 {
             Some(v) => Some(v.to_string()),
             None => None,
           },
-          match terms_value.height.1 {
+          match terms_value.offset.1 {
             Some(v) => Some(v.to_string()),
             None => None,
           },
