@@ -129,14 +129,14 @@ impl File {
         }
       }
 
-      inscriptions.push(Inscription::from_file(
+      inscriptions.push(Inscription::from(
         wallet.chain(),
         compress,
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
         self.parent.into_iter().collect(),
-        &entry.file,
+        entry.file.clone(),
         Some(pointer),
         self
           .etching
@@ -146,7 +146,8 @@ impl File {
       let postage = if self.mode == Mode::SatPoints {
         let satpoint = entry
           .satpoint
-          .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
+          .ok_or_else(|| anyhow!("no satpoint specified for entry {i}"))?;
+        // .ok_or_else(|| anyhow!("no satpoint specified for entry {i}: {entry}",))?;
 
         let txout = utxos
           .get(&satpoint.outpoint)
@@ -396,7 +397,7 @@ inscriptions:
         }),
         inscriptions: vec![
           batch::Entry {
-            file: "mango.avif".into(),
+            file: Some("mango.avif".into()),
             delegate: Some(
               "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
                 .parse()
@@ -424,12 +425,12 @@ inscriptions:
             ..default()
           },
           batch::Entry {
-            file: "token.json".into(),
+            file: Some("token.json".into()),
             metaprotocol: Some("DOPEPROTOCOL-42069".into()),
             ..default()
           },
           batch::Entry {
-            file: "tulip.png".into(),
+            file: Some("tulip.png".into()),
             destination: Some(
               "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
                 .parse()

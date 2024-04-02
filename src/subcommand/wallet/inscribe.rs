@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Debug, Parser)]
+#[clap(group(ArgGroup::new("input").required(true).args(&["delegate", "file"])))]
 pub(crate) struct Inscribe {
   #[command(flatten)]
   shared: SharedArgs,
@@ -15,7 +16,7 @@ pub(crate) struct Inscribe {
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
-  pub(crate) file: PathBuf,
+  pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
     help = "Include JSON in file at <METADATA> converted to CBOR as inscription metadata",
@@ -58,7 +59,7 @@ impl Inscribe {
       }],
       dry_run: self.shared.dry_run,
       etching: None,
-      inscriptions: vec![Inscription::from_file(
+      inscriptions: vec![Inscription::from(
         chain,
         self.shared.compress,
         self.delegate,
