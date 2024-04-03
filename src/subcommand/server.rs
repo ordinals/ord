@@ -18,7 +18,7 @@ use {
     extract::{Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
-    routing::get,
+    routing::{get, post},
     Router,
   },
   axum_server::Handle,
@@ -216,6 +216,7 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
+        .route("/outputs", post(Self::outputs))
         .route("/parents/:inscription_id", get(Self::parents))
         .route(
           "/parents/:inscription_id/:page",
@@ -641,6 +642,66 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn outputs(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Json(outputs): Json<Vec<OutPoint>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let mut response: Vec<api::Output> = Vec::new();
+      for outpoint in outputs {
+        let sat_ranges = index.list(outpoint)?;
+
+        let indexed;
+
+        let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+          let mut value = 0;
+
+          if let Some(ranges) = &sat_ranges {
+            for (start, end) in ranges {
+              value += end - start;
+            }
+          }
+
+          indexed = true;
+
+          TxOut {
+            value,
+            script_pubkey: ScriptBuf::new(),
+          }
+        } else {
+          indexed = index.contains_output(&outpoint)?;
+
+          index
+            .get_transaction(outpoint.txid)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?
+            .output
+            .into_iter()
+            .nth(outpoint.vout as usize)
+            .ok_or_not_found(|| format!("output {outpoint}"))?
+        };
+
+        let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+
+        let runes = index.get_rune_balances_for_outpoint(outpoint)?;
+
+        let spent = index.is_output_spent(outpoint)?;
+
+        response.push(api::Output::new(
+          server_config.chain,
+          inscriptions,
+          outpoint,
+          output,
+          indexed,
+          runes,
+          sat_ranges,
+          spent,
+        ))
+      }
+      Ok(Json(response).into_response())
     })
   }
 

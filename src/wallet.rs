@@ -65,6 +65,17 @@ impl OrdClient {
       .map_err(|err| anyhow!(err))
       .await
   }
+
+  pub async fn post(&self, path: &str, body: impl Serialize) -> Result<reqwest::Response> {
+    self
+      .client
+      .post(self.url.join(path)?)
+      .json(&body)
+      .header(reqwest::header::ACCEPT, "application/json")
+      .send()
+      .map_err(|err| anyhow!(err))
+      .await
+  }
 }
 
 pub(crate) struct Wallet {
@@ -158,23 +169,23 @@ impl Wallet {
         let locked_utxos = Self::get_locked_utxos(&bitcoin_client)?;
         utxos.extend(locked_utxos.clone());
 
-        let requests = utxos
-          .clone()
-          .into_keys()
-          .map(|output| (output, Self::get_output(&async_ord_client, output)))
-          .collect::<Vec<(OutPoint, _)>>();
+        let outputs = utxos.clone().into_keys().collect();
 
-        let futures = requests.into_iter().map(|(output, req)| async move {
-          let result = req.await;
-          (output, result)
-        });
+        // .map(|output| (output, Self::get_output(&async_ord_client, output)))
+        // .collect::<Vec<(OutPoint, _)>>();
 
-        let results = future::join_all(futures).await;
+        // let futures = requests.into_iter().map(|(output, req)| async move {
+        // let result = req.await;
+        // (output, result)
+        // });
+
+        // let results = future::join_all(futures).await;
+
+        let results = Self::get_outputs(&async_ord_client, &outputs).await?;
 
         let mut output_info = BTreeMap::new();
-        for (output, result) in results {
-          let info = result?;
-          output_info.insert(output, info);
+        for (output, info) in outputs.iter().zip(results) {
+          output_info.insert(*output, info);
         }
 
         let requests = output_info
@@ -222,6 +233,25 @@ impl Wallet {
           utxos,
         })
       })
+  }
+
+  async fn get_outputs(
+    ord_client: &OrdClient,
+    outputs: &Vec<OutPoint>,
+  ) -> Result<Vec<api::Output>> {
+    let response = ord_client.post(&format!("/outputs"), outputs).await?;
+
+    if !response.status().is_success() {
+      bail!("wallet failed get outputs: {}", response.text().await?);
+    }
+
+    let outputs_json: Vec<api::Output> = serde_json::from_str(&response.text().await?)?;
+
+    // if !output_json.indexed {
+    // bail!("output in wallet but not in ord server: {output}");
+    // }
+
+    Ok(outputs_json)
   }
 
   async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<api::Output> {
