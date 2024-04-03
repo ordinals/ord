@@ -1,8 +1,5 @@
 use {
-  super::{
-    target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-    Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
-  },
+  super::*,
   serde_hex::{SerHex, Strict},
 };
 
@@ -79,16 +76,17 @@ pub struct Children {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
+  pub effective_content_type: Option<String>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
   pub next: Option<InscriptionId>,
   pub number: i32,
-  pub parent: Option<InscriptionId>,
+  pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
@@ -105,7 +103,7 @@ pub struct Inscription {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionRecursive {
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
   pub fee: u64,
@@ -128,7 +126,7 @@ pub struct Inscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub address: Option<String>,
+  pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<(SpacedRune, Pile)>,
@@ -154,7 +152,7 @@ impl Output {
       address: chain
         .address_from_script(&output.script_pubkey)
         .ok()
-        .map(|address| address.to_string()),
+        .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,
@@ -169,20 +167,21 @@ impl Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
-  pub number: u64,
+  pub block: u32,
+  pub charms: Vec<Charm>,
+  pub cycle: u32,
   pub decimal: String,
   pub degree: String,
-  pub name: String,
-  pub block: u32,
-  pub cycle: u32,
   pub epoch: u32,
-  pub period: u32,
+  pub inscriptions: Vec<InscriptionId>,
+  pub name: String,
+  pub number: u64,
   pub offset: u64,
-  pub rarity: Rarity,
   pub percentile: String,
+  pub period: u32,
+  pub rarity: Rarity,
   pub satpoint: Option<SatPoint>,
   pub timestamp: i64,
-  pub inscriptions: Vec<InscriptionId>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

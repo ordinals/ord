@@ -5006,10 +5006,10 @@ msgstr ""
 #: src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"`ord --datadir <DIR> index update` or give it a specific filename and path "
 "with `ord --index <FILENAME> index update`."
 msgstr ""
-"É claro que você também pode definir a localização do diretório de dados com `ord --data-dir <DIR> index update` "
+"É claro que você também pode definir a localização do diretório de dados com `ord --datadir <DIR> index update` "
 "ou fornecer um nome de arquivo e caminho específicos com `ord --index <ARQUIVO> index update`."
 
 #: src/bounties.md:1

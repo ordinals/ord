@@ -12,7 +12,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) number: i32,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) rune: Option<SpacedRune>,
   pub(crate) sat: Option<Sat>,
@@ -23,10 +23,6 @@ pub(crate) struct InscriptionHtml {
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.number)
-  }
-
-  fn preview_image_url(&self) -> Option<Trusted<String>> {
-    Some(Trusted(format!("/content/{}", self.id)))
   }
 }
 
@@ -43,7 +39,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -95,7 +91,7 @@ mod tests {
         number: 1,
         output: Some(tx_out(1, address())),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -128,7 +124,7 @@ mod tests {
         output: Some(tx_out(1, address())),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -158,7 +154,7 @@ mod tests {
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -187,7 +183,7 @@ mod tests {
           offset: 0
         },
         timestamp: timestamp(0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription -1</h1>
@@ -209,13 +205,13 @@ mod tests {
   fn with_parent() {
     assert_regex_match!(
       InscriptionHtml {
-        parent: Some(inscription_id(2)),
+        parents: vec![inscription_id(2)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -225,14 +221,17 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
-          <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
-          <dt>parent</dt>
+          <dt>parents</dt>
           <dd>
             <div class=thumbnails>
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
+            <div class=center>
+              <a href=/parents/1{64}i1>all</a>
+            </div>
           </dd>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -258,7 +257,7 @@ mod tests {
           <dt>ethereum teleburn address</dt>
           <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
-      "
+"
       .unindent()
     );
   }
@@ -273,7 +272,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -335,7 +334,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -399,7 +398,7 @@ mod tests {
           rune: Rune(26),
           spacers: 1
         }),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -426,7 +425,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>

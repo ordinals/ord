@@ -1,9 +1,4 @@
-use {
-  super::*,
-  crate::{outgoing::Outgoing, wallet::transaction_builder::Target},
-  base64::Engine,
-  bitcoin::psbt::Psbt,
-};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -66,6 +61,14 @@ impl Send {
         self.fee_rate,
         false,
       )?,
+      Outgoing::Sat(sat) => Self::create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        wallet.find_sat_in_outputs(sat)?,
+        self.postage,
+        self.fee_rate,
+        true,
+      )?,
     };
 
     let unspent_outputs = wallet.utxos();
@@ -107,49 +110,24 @@ impl Send {
       )
     };
 
+    let mut fee = 0;
+    for txin in unsigned_transaction.input.iter() {
+      let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
+        panic!("input {} not found in utxos", txin.previous_output);
+      };
+      fee += txout.value;
+    }
+
+    for txout in unsigned_transaction.output.iter() {
+      fee = fee.checked_sub(txout.value).unwrap();
+    }
+
     Ok(Some(Box::new(Output {
       txid,
       psbt,
       outgoing: self.outgoing,
-      fee: unsigned_transaction
-        .input
-        .iter()
-        .map(|txin| unspent_outputs.get(&txin.previous_output).unwrap().value)
-        .sum::<u64>()
-        .checked_sub(
-          unsigned_transaction
-            .output
-            .iter()
-            .map(|txout| txout.value)
-            .sum::<u64>(),
-        )
-        .unwrap(),
+      fee,
     })))
-  }
-
-  fn lock_non_cardinal_outputs(
-    bitcoin_client: &Client,
-    inscriptions: &BTreeMap<SatPoint, Vec<InscriptionId>>,
-    runic_outputs: &BTreeSet<OutPoint>,
-    unspent_outputs: &BTreeMap<OutPoint, TxOut>,
-  ) -> Result {
-    let all_inscription_outputs = inscriptions
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<HashSet<OutPoint>>();
-
-    let locked_outputs = unspent_outputs
-      .keys()
-      .filter(|utxo| all_inscription_outputs.contains(utxo))
-      .chain(runic_outputs.iter())
-      .cloned()
-      .collect::<Vec<OutPoint>>();
-
-    if !bitcoin_client.lock_unspent(&locked_outputs)? {
-      bail!("failed to lock UTXOs");
-    }
-
-    Ok(())
   }
 
   fn create_unsigned_send_amount_transaction(
@@ -158,12 +136,7 @@ impl Send {
     amount: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
-    Self::lock_non_cardinal_outputs(
-      wallet.bitcoin_client(),
-      wallet.inscriptions(),
-      &wallet.get_runic_outputs()?,
-      wallet.utxos(),
-    )?;
+    wallet.lock_non_cardinal_outputs()?;
 
     let unfunded_transaction = Transaction {
       version: 2,
@@ -243,23 +216,17 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    let unspent_outputs = wallet.utxos();
     let inscriptions = wallet.inscriptions();
     let runic_outputs = wallet.get_runic_outputs()?;
     let bitcoin_client = wallet.bitcoin_client();
 
-    Self::lock_non_cardinal_outputs(
-      bitcoin_client,
-      inscriptions,
-      &runic_outputs,
-      unspent_outputs,
-    )?;
+    wallet.lock_non_cardinal_outputs()?;
 
     let (id, entry, _parent) = wallet
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let amount = decimal.to_amount(entry.divisibility)?;
+    let amount = decimal.to_integer(entry.divisibility)?;
 
     let inscribed_outputs = inscriptions
       .keys()
@@ -274,7 +241,7 @@ impl Send {
         continue;
       }
 
-      let balance = wallet.get_rune_balance_in_output(&output, entry.rune)?;
+      let balance = wallet.get_rune_balance_in_output(&output, entry.spaced_rune.rune)?;
 
       if balance > 0 {
         input_runes += balance;
@@ -300,10 +267,10 @@ impl Send {
     let runestone = Runestone {
       edicts: vec![Edict {
         amount,
-        id: id.into(),
+        id,
         output: 2,
       }],
-      ..Default::default()
+      ..default()
     };
 
     let unfunded_transaction = Transaction {
@@ -337,6 +304,13 @@ impl Send {
     let unsigned_transaction =
       fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
-    Ok(consensus::encode::deserialize(&unsigned_transaction)?)
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    assert_eq!(
+      Runestone::decipher(&unsigned_transaction),
+      Some(Artifact::Runestone(runestone)),
+    );
+
+    Ok(unsigned_transaction)
   }
 }

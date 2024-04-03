@@ -3,7 +3,6 @@ use {
   bitcoin::blockdata::{
     opcodes,
     script::{
-      self,
       Instruction::{self, Op, PushBytes},
       Instructions,
     },
@@ -48,13 +47,14 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_encoding = Tag::ContentEncoding.remove_field(&mut fields);
-    let content_type = Tag::ContentType.remove_field(&mut fields);
-    let delegate = Tag::Delegate.remove_field(&mut fields);
-    let metadata = Tag::Metadata.remove_field(&mut fields);
-    let metaprotocol = Tag::Metaprotocol.remove_field(&mut fields);
-    let parent = Tag::Parent.remove_field(&mut fields);
-    let pointer = Tag::Pointer.remove_field(&mut fields);
+    let content_encoding = Tag::ContentEncoding.take(&mut fields);
+    let content_type = Tag::ContentType.take(&mut fields);
+    let delegate = Tag::Delegate.take(&mut fields);
+    let metadata = Tag::Metadata.take(&mut fields);
+    let metaprotocol = Tag::Metaprotocol.take(&mut fields);
+    let parents = Tag::Parent.take_array(&mut fields);
+    let pointer = Tag::Pointer.take(&mut fields);
+    let rune = Tag::Rune.take(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
@@ -76,8 +76,9 @@ impl From<RawEnvelope> for ParsedEnvelope {
         incomplete_field,
         metadata,
         metaprotocol,
-        parent,
+        parents,
         pointer,
+        rune,
         unrecognized_even_field,
       },
       input: envelope.input,
@@ -324,9 +325,7 @@ mod tests {
           .into_bytes(),
         Vec::new()
       ])]),
-      vec![ParsedEnvelope {
-        ..Default::default()
-      }]
+      vec![ParsedEnvelope { ..default() }]
     );
   }
 
@@ -363,17 +362,17 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::Nop.bytes(),
+        Tag::Nop.bytes().as_slice(),
         &[],
-        Tag::Nop.bytes(),
+        &Tag::Nop.bytes(),
         &[]
       ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           duplicate_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -383,14 +382,14 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord",
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -400,7 +399,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[9],
         b"br",
@@ -412,7 +411,7 @@ mod tests {
           content_encoding: Some("br".as_bytes().to_vec()),
           ..inscription("text/plain;charset=utf-8", "ord")
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -422,16 +421,16 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
-        Tag::Nop.bytes(),
+        Tag::Nop.bytes().as_slice(),
         b"bar",
         &[],
         b"ord",
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -441,15 +440,15 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8"
       ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           content_type: Some(b"text/plain;charset=utf-8".to_vec()),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -461,9 +460,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           body: Some(b"foo".to_vec()),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -473,7 +472,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"foo",
@@ -481,7 +480,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "foobar"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -491,13 +490,13 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[]
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -507,7 +506,7 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[],
@@ -518,7 +517,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -541,7 +540,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -564,7 +563,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -595,12 +594,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "foo"),
-          ..Default::default()
+          ..default()
         },
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "bar"),
           offset: 1,
-          ..Default::default()
+          ..default()
         },
       ],
     );
@@ -611,14 +610,14 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         &[0b10000000]
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", [0b10000000]),
-        ..Default::default()
+        ..default()
       },],
     );
   }
@@ -666,14 +665,14 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[],
         b"ord"
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -685,7 +684,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
         input: 1,
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -704,12 +703,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("foo", [1; 100]),
-          ..Default::default()
+          ..default()
         },
         ParsedEnvelope {
           payload: inscription("bar", [1; 100]),
           offset: 1,
-          ..Default::default()
+          ..default()
         }
       ]
     );
@@ -720,14 +719,14 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::ContentType.bytes(),
+        &Tag::ContentType.bytes(),
         b"image/png",
         &[],
         &[1; 100]
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("image/png", [1; 100]),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -744,7 +743,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -761,7 +760,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -769,10 +768,10 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Nop.bytes(), &[0]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Nop.bytes(), &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -784,9 +783,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -798,9 +797,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           pointer: Some(vec![1]),
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -814,9 +813,9 @@ mod tests {
           pointer: Some(vec![1]),
           duplicate_field: true,
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -824,13 +823,13 @@ mod tests {
   #[test]
   fn tag_66_makes_inscriptions_unbound() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Unbound.bytes(), &[1]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Unbound.bytes(), &[1]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -842,9 +841,9 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           incomplete_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }],
     );
   }
@@ -852,13 +851,13 @@ mod tests {
   #[test]
   fn metadata_is_parsed_correctly() {
     assert_eq!(
-      parse(&[envelope(&[&PROTOCOL_ID, Tag::Metadata.bytes(), &[]])]),
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Metadata.bytes(), &[]])]),
       vec![ParsedEnvelope {
         payload: Inscription {
-          metadata: Some(vec![]),
-          ..Default::default()
+          metadata: Some(Vec::new()),
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -868,18 +867,18 @@ mod tests {
     assert_eq!(
       parse(&[envelope(&[
         &PROTOCOL_ID,
-        Tag::Metadata.bytes(),
+        &Tag::Metadata.bytes(),
         &[0],
-        Tag::Metadata.bytes(),
+        &Tag::Metadata.bytes(),
         &[1]
       ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
           metadata: Some(vec![0, 1]),
           duplicate_field: true,
-          ..Default::default()
+          ..default()
         },
-        ..Default::default()
+        ..default()
       }]
     );
   }
@@ -921,10 +920,10 @@ mod tests {
         vec![ParsedEnvelope {
           payload: Inscription {
             body: Some(vec![value]),
-            ..Default::default()
+            ..default()
           },
           pushnum: true,
-          ..Default::default()
+          ..default()
         }],
       );
     }
@@ -945,7 +944,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -963,7 +962,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -983,7 +982,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: true,
-        ..Default::default()
+        ..default()
       }],
     );
 
@@ -1002,7 +1001,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Default::default(),
         stutter: false,
-        ..Default::default()
+        ..default()
       }],
     );
   }

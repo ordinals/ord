@@ -1,26 +1,54 @@
 use {
   super::*,
   base64::{self, Engine},
+  batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     psbt::Psbt,
-    Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
+  entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   futures::{
     future::{self, FutureExt},
     try_join, TryFutureExt,
   },
-  inscribe::ParentInfo,
+  index::entry::Entry,
+  indicatif::{ProgressBar, ProgressStyle},
+  log::log_enabled,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
-  reqwest::{header, Url},
+  redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
+  reqwest::header,
+  std::sync::Once,
   transaction_builder::TransactionBuilder,
 };
 
-pub mod inscribe;
+pub mod batch;
+pub mod entry;
 pub mod transaction_builder;
+
+const SCHEMA_VERSION: u64 = 1;
+
+define_table! { RUNE_TO_ETCHING, u128, EtchingEntryValue }
+define_table! { STATISTICS, u64, u64 }
+
+#[derive(Copy, Clone)]
+pub(crate) enum Statistic {
+  Schema = 0,
+}
+
+impl Statistic {
+  fn key(self) -> u64 {
+    self.into()
+  }
+}
+
+impl From<Statistic> for u64 {
+  fn from(statistic: Statistic) -> Self {
+    statistic as u64
+  }
+}
 
 #[derive(Clone)]
 struct OrdClient {
@@ -30,10 +58,9 @@ struct OrdClient {
 
 impl OrdClient {
   pub async fn get(&self, path: &str) -> Result<reqwest::Response> {
-    let url = self.url.join(path)?;
     self
       .client
-      .get(url)
+      .get(self.url.join(path)?)
       .send()
       .map_err(|err| anyhow!(err))
       .await
@@ -41,7 +68,8 @@ impl OrdClient {
 }
 
 pub(crate) struct Wallet {
-  bitcoin_client: bitcoincore_rpc::Client,
+  bitcoin_client: Client,
+  database: Database,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -61,7 +89,7 @@ impl Wallet {
     settings: Settings,
     rpc_url: Url,
   ) -> Result<Self> {
-    let mut headers = header::HeaderMap::new();
+    let mut headers = HeaderMap::new();
 
     headers.insert(
       header::ACCEPT,
@@ -76,6 +104,8 @@ impl Wallet {
         header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
       );
     }
+
+    let database = Self::open_database(&name, &settings)?;
 
     let ord_client = reqwest::blocking::ClientBuilder::new()
       .default_headers(headers.clone())
@@ -109,10 +139,16 @@ impl Wallet {
         if !no_sync {
           for i in 0.. {
             let response = async_ord_client.get("/blockcount").await?;
-            if response.text().await?.parse::<u64>().unwrap() >= chain_block_count {
+            if response
+              .text()
+              .await?
+              .parse::<u64>()
+              .expect("wallet failed to talk to server. Make sure `ord server` is running.")
+              >= chain_block_count
+            {
               break;
             } else if i == 20 {
-              bail!("wallet failed to synchronize with ord server");
+              bail!("wallet failed to synchronize with `ord server` after {i} attempts");
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
           }
@@ -173,6 +209,7 @@ impl Wallet {
 
         Ok(Wallet {
           bitcoin_client,
+          database,
           has_rune_index: status.rune_index,
           has_sat_index: status.sat_index,
           inscription_info,
@@ -203,7 +240,7 @@ impl Wallet {
     Ok(output_json)
   }
 
-  fn get_utxos(bitcoin_client: &bitcoincore_rpc::Client) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     Ok(
       bitcoin_client
         .list_unspent(None, None, None, None, None)?
@@ -221,12 +258,10 @@ impl Wallet {
     )
   }
 
-  fn get_locked_utxos(
-    bitcoin_client: &bitcoincore_rpc::Client,
-  ) -> Result<BTreeMap<OutPoint, TxOut>> {
+  fn get_locked_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
-      txid: bitcoin::Txid,
+      txid: Txid,
       vout: u32,
     }
 
@@ -319,7 +354,7 @@ impl Wallet {
     )))
   }
 
-  pub(crate) fn bitcoin_client(&self) -> &bitcoincore_rpc::Client {
+  pub(crate) fn bitcoin_client(&self) -> &Client {
     &self.bitcoin_client
   }
 
@@ -329,6 +364,35 @@ impl Wallet {
 
   pub(crate) fn locked_utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
     &self.locked_utxos
+  }
+
+  pub(crate) fn lock_non_cardinal_outputs(&self) -> Result {
+    let inscriptions = self
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let locked = self
+      .locked_utxos()
+      .keys()
+      .cloned()
+      .collect::<HashSet<OutPoint>>();
+
+    let outputs = self
+      .utxos()
+      .keys()
+      .filter(|utxo| inscriptions.contains(utxo))
+      .chain(self.get_runic_outputs()?.iter())
+      .cloned()
+      .filter(|utxo| !locked.contains(utxo))
+      .collect::<Vec<OutPoint>>();
+
+    if !self.bitcoin_client().lock_unspent(&outputs)? {
+      bail!("failed to lock UTXOs");
+    }
+
+    Ok(())
   }
 
   pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
@@ -473,6 +537,73 @@ impl Wallet {
     self.settings.chain()
   }
 
+  pub(crate) fn integration_test(&self) -> bool {
+    self.settings.integration_test()
+  }
+
+  pub(crate) fn wait_for_maturation(
+    &self,
+    rune: &Rune,
+    commit: Transaction,
+    reveal: Transaction,
+    output: batch::Output,
+  ) -> Result<batch::Output> {
+    eprintln!("Waiting for rune commitment {} to mature…", commit.txid());
+
+    self.save_etching(rune, &commit, &reveal, output.clone())?;
+
+    loop {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
+        return Ok(output);
+      }
+
+      let transaction = self
+        .bitcoin_client()
+        .get_transaction(&commit.txid(), Some(true))
+        .into_option()?;
+
+      if let Some(transaction) = transaction {
+        if u32::try_from(transaction.info.confirmations).unwrap()
+          < Runestone::COMMIT_INTERVAL.into()
+        {
+          continue;
+        }
+      }
+
+      let tx_out = self
+        .bitcoin_client()
+        .get_tx_out(&commit.txid(), 0, Some(true))?;
+
+      if let Some(tx_out) = tx_out {
+        if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
+          break;
+        }
+      }
+
+      if !self.integration_test() {
+        thread::sleep(Duration::from_secs(5));
+      }
+    }
+
+    match self.bitcoin_client().send_raw_transaction(&reveal) {
+      Ok(txid) => txid,
+      Err(err) => {
+        return Err(anyhow!(
+          "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
+          commit.txid()
+        ))
+      }
+    };
+
+    self.clear_etching(rune)?;
+
+    Ok(batch::Output {
+      reveal_broadcast: true,
+      ..output
+    })
+  }
+
   fn check_descriptors(wallet_name: &str, descriptors: Vec<Descriptor>) -> Result<Vec<Descriptor>> {
     let tr = descriptors
       .iter()
@@ -586,7 +717,7 @@ impl Wallet {
 
     let public_key = secret_key.to_public(secp)?;
 
-    let mut key_map = std::collections::HashMap::new();
+    let mut key_map = HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
@@ -627,6 +758,156 @@ impl Wallet {
       version / 10000,
       version % 10000 / 100,
       version % 100
+    )
+  }
+
+  pub(crate) fn open_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
+    let path = settings.data_dir().join(format!("{wallet_name}.redb"));
+
+    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
+      bail!(
+        "failed to create data dir `{}`: {err}",
+        path.parent().unwrap().display()
+      );
+    }
+
+    let db_path = path.clone().to_owned();
+    let once = Once::new();
+    let progress_bar = Mutex::new(None);
+    let integration_test = settings.integration_test();
+
+    let repair_callback = move |progress: &mut RepairSession| {
+      once.call_once(|| {
+        println!(
+          "Wallet database file `{}` needs recovery. This can take some time.",
+          db_path.display()
+        )
+      });
+
+      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test) {
+        let mut guard = progress_bar.lock().unwrap();
+
+        let progress_bar = guard.get_or_insert_with(|| {
+          let progress_bar = ProgressBar::new(100);
+          progress_bar.set_style(
+            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+          );
+          progress_bar
+        });
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        progress_bar.set_position((progress.progress() * 100.0) as u64);
+      }
+    };
+
+    let database = match Database::builder()
+      .set_repair_callback(repair_callback)
+      .open(&path)
+    {
+      Ok(database) => {
+        {
+          let schema_version = database
+            .begin_read()?
+            .open_table(STATISTICS)?
+            .get(&Statistic::Schema.key())?
+            .map(|x| x.value())
+            .unwrap_or(0);
+
+          match schema_version.cmp(&SCHEMA_VERSION) {
+            cmp::Ordering::Less =>
+              bail!(
+                "wallet database at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Greater =>
+              bail!(
+                "wallet database at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Equal => {
+            }
+          }
+        }
+
+        database
+      }
+      Err(DatabaseError::Storage(StorageError::Io(error)))
+        if error.kind() == io::ErrorKind::NotFound =>
+      {
+        let database = Database::builder().create(&path)?;
+
+        let tx = database.begin_write()?;
+
+        tx.open_table(RUNE_TO_ETCHING)?;
+
+        tx.open_table(STATISTICS)?
+          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
+
+        tx.commit()?;
+
+        database
+      }
+      Err(error) => bail!("failed to open wallet database: {error}"),
+    };
+
+    Ok(database)
+  }
+
+  pub(crate) fn save_etching(
+    &self,
+    rune: &Rune,
+    commit: &Transaction,
+    reveal: &Transaction,
+    output: batch::Output,
+  ) -> Result {
+    let wtx = self.database.begin_write()?;
+
+    wtx.open_table(RUNE_TO_ETCHING)?.insert(
+      rune.0,
+      EtchingEntry {
+        commit: commit.clone(),
+        reveal: reveal.clone(),
+        output,
+      }
+      .store(),
+    )?;
+
+    wtx.commit()?;
+
+    Ok(())
+  }
+
+  pub(crate) fn load_etching(&self, rune: Rune) -> Result<Option<EtchingEntry>> {
+    let rtx = self.database.begin_read()?;
+
+    Ok(
+      rtx
+        .open_table(RUNE_TO_ETCHING)?
+        .get(rune.0)?
+        .map(|result| EtchingEntry::load(result.value())),
+    )
+  }
+
+  pub(crate) fn clear_etching(&self, rune: &Rune) -> Result {
+    let wtx = self.database.begin_write()?;
+
+    wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
+    wtx.commit()?;
+
+    Ok(())
+  }
+
+  pub(crate) fn pending_etchings(&self) -> Result<Vec<(Rune, EtchingEntry)>> {
+    let rtx = self.database.begin_read()?;
+
+    Ok(
+      rtx
+        .open_table(RUNE_TO_ETCHING)?
+        .iter()?
+        .map(|result| {
+          result.map(|(key, value)| (Rune(key.value()), EtchingEntry::load(value.value())))
+        })
+        .collect::<Result<Vec<(Rune, EtchingEntry)>, StorageError>>()?,
     )
   }
 }
