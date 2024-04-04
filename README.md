@@ -90,7 +90,7 @@ Building
 On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 
 ```
-sudo apt-get install pkg-config libssl-dev
+sudo apt-get install pkg-config libssl-dev build-essential
 ```
 
 You'll also need Rust:
