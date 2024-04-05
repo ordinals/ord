@@ -463,6 +463,7 @@ impl Plan {
               })
             })
             .transpose()?,
+          turbo: false,
           premine: (premine > 0).then_some(premine),
           rune: Some(etching.rune.rune),
           spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),

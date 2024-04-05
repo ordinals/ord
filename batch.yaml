@@ -45,6 +45,7 @@ etching:
     offset:
       start: 1000
       end: 9000
+  turbo: true,
 
 # inscriptions to inscribe
 inscriptions:

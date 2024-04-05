@@ -83,6 +83,7 @@ impl Runestone {
           Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
         ),
       }),
+      turbo: Flag::Turbo.take(&mut flags),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -134,6 +135,10 @@ impl Runestone {
 
       if etching.terms.is_some() {
         Flag::Terms.set(&mut flags);
+      }
+
+      if etching.turbo {
+        Flag::Turbo.set(&mut flags);
       }
 
       Tag::Flags.encode([flags], &mut payload);
@@ -1074,7 +1079,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
@@ -1110,17 +1115,18 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching {
+          divisibility: Some(1),
+          premine: Some(8),
           rune: Some(Rune(4)),
+          spacers: Some(5),
+          symbol: Some('a'),
           terms: Some(Terms {
             cap: Some(9),
             offset: (None, Some(2)),
             amount: Some(3),
             height: (None, None),
           }),
-          premine: Some(8),
-          divisibility: Some(1),
-          symbol: Some('a'),
-          spacers: Some(5),
+          turbo: true,
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -1433,6 +1439,7 @@ mod tests {
           offset: (Some(u32::MAX.into()), Some(u32::MAX.into())),
           height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
+        turbo: true,
         premine: Some(u64::MAX.into()),
         rune: Some(Rune(u128::MAX)),
         symbol: Some('\u{10FFFF}'),
@@ -1704,13 +1711,14 @@ mod tests {
             amount: Some(14),
             offset: (Some(15), Some(16)),
           }),
+          turbo: true,
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
       },
       &[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         9,
         Tag::Divisibility.into(),
@@ -1754,12 +1762,13 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          premine: None,
           divisibility: None,
-          terms: None,
-          symbol: None,
+          premine: None,
           rune: Some(Rune(3)),
           spacers: None,
+          symbol: None,
+          terms: None,
+          turbo: false,
         }),
         ..default()
       },
@@ -1769,12 +1778,13 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          premine: None,
           divisibility: None,
-          terms: None,
-          symbol: None,
+          premine: None,
           rune: None,
           spacers: None,
+          symbol: None,
+          terms: None,
+          turbo: false,
         }),
         ..default()
       },

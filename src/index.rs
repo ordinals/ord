@@ -386,6 +386,7 @@ impl Index {
               spaced_rune: SpacedRune { rune, spacers: 128 },
               symbol: Some('\u{29C9}'),
               timestamp: 0,
+              turbo: true,
             }
             .store(),
           )?;

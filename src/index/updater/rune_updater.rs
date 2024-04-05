@@ -243,6 +243,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         spaced_rune: SpacedRune { rune, spacers: 0 },
         symbol: None,
         timestamp: self.block_time.into(),
+        turbo: false,
       },
       Artifact::Runestone(Runestone { etching, .. }) => {
         let Etching {
@@ -251,6 +252,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           premine,
           spacers,
           symbol,
+          turbo,
           ..
         } = etching.unwrap();
 
@@ -269,6 +271,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           },
           symbol,
           timestamp: self.block_time.into(),
+          turbo,
         }
       }
     };
