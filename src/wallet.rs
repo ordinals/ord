@@ -565,19 +565,19 @@ impl Wallet {
 
       if let Some(transaction) = transaction {
         if u32::try_from(transaction.info.confirmations).unwrap()
-          < Runestone::COMMIT_INTERVAL.into()
+          >= Runestone::COMMIT_INTERVAL.into()
         {
-          continue;
-        }
-      }
+          let tx_out = self
+            .bitcoin_client()
+            .get_tx_out(&commit.txid(), 0, Some(true))?;
 
-      let tx_out = self
-        .bitcoin_client()
-        .get_tx_out(&commit.txid(), 0, Some(true))?;
-
-      if let Some(tx_out) = tx_out {
-        if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
-          break;
+          if let Some(tx_out) = tx_out {
+            if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
+              break;
+            }
+          } else {
+            bail!("output spent, can't send reveal tx");
+          }
         }
       }
 
