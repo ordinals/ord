@@ -157,7 +157,7 @@ fn minting_rune_with_no_rune_index_fails() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: `ord wallet etch` requires index created with `--index-runes` flag\n")
+  .expected_stderr("error: `ord wallet mint` requires index created with `--index-runes` flag\n")
   .run_and_extract_stdout();
 }
 
