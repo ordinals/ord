@@ -1,0 +1,6 @@
+projectKey=Ord
+serverUrl=https://cc9a-2408-8256-2e80-bd0-2dec-8f85-d4fb-2924.ngrok-free.app
+serverVersion=9.9.4.87374
+dashboardUrl=https://cc9a-2408-8256-2e80-bd0-2dec-8f85-d4fb-2924.ngrok-free.app/dashboard?id=Ord
+ceTaskId=AY62cF1a3MH4PSZRenrZ
+ceTaskUrl=https://cc9a-2408-8256-2e80-bd0-2dec-8f85-d4fb-2924.ngrok-free.app/api/ce/task?id=AY62cF1a3MH4PSZRenrZ

@@ -47,8 +47,23 @@ const ENDPOINTS: &[(&str, StatusCode, &str, &str)] = &[
   ("/blockheight", StatusCode::OK, "BYPASS", ""),
 ];
 
+fn add(a: i32, b: i32) -> i32 {
+  // Intentional logical error: this should be `a + b`
+  a - b
+}
+
 fn main() {
   eprint!("Warming up the cache");
+
+  let sum = add(5, 3);
+  println!("The sum of 5 and 3 is {}", sum);
+
+  let x = 42;
+    // Intentional lint issue: unnecessary clone on a type that implements Copy
+  let y = x.clone();
+  println!("x = {}, y = {}", x, y);
+
+  let z = --x;
 
   for (endpoint, expected_status_code, _expected_cache_status, _expected_cache_control) in ENDPOINTS
   {

@@ -61,8 +61,23 @@ pub enum Target {
   ExactPostage(Amount),
 }
 
+fn add(a: i32, b: i32) -> i32 {
+  // Intentional logical error: this should be `a + b`
+  a - b
+}
+
 impl Display for Error {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    let sum = add(5, 3);
+    println!("The sum of 5 and 3 is {}", sum);
+
+    let x = 42;
+      // Intentional lint issue: unnecessary clone on a type that implements Copy
+    let y = x.clone();
+    println!("x = {}, y = {}", x, y);
+
+    let z = --x;
+
     match self {
       Error::Dust {
         output_value,
