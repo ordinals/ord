@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::{batch, Wallet},
+  crate::wallet::{batch, wallet_builder::WalletBuilder, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
 };
@@ -80,7 +80,7 @@ impl WalletCommand {
       _ => {}
     };
 
-    let wallet = Wallet::build(
+    let wallet = WalletBuilder::new(
       self.name.clone(),
       self.no_sync,
       settings.clone(),
@@ -92,7 +92,8 @@ impl WalletCommand {
         .unwrap_or("http://127.0.0.1:80")
         .parse::<Url>()
         .context("invalid server URL")?,
-    )?;
+    )?
+    .build()?;
 
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
