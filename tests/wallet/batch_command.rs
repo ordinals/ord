@@ -1023,7 +1023,6 @@ fn batch_inscribe_with_delegate_inscription() {
         "mode: shared-output
 inscriptions:
 - delegate: {delegate}
-  file: inscription.txt
 "
       ),
     )
