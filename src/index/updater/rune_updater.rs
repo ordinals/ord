@@ -26,7 +26,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     if let Some(artifact) = &artifact {
       if let Some(id) = artifact.mint() {
-        if let Some(amount) = self.mint(id)? {
+        if let Some(amount) = self.mint(txid, id)? {
           *unallocated.entry(id).or_default() += amount;
         }
       }
@@ -338,7 +338,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     )))
   }
 
-  fn mint(&mut self, id: RuneId) -> Result<Option<Lot>> {
+  fn mint(&mut self, txid: Txid, id: RuneId) -> Result<Option<Lot>> {
     let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
     };
@@ -352,6 +352,13 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     drop(entry);
 
     rune_entry.mints += 1;
+    let cap = rune_entry
+      .terms
+      .map(|t| t.cap.unwrap_or_default())
+      .unwrap_or_default();
+    if rune_entry.mints == cap {
+      rune_entry.final_mint = Some(txid);
+    }
 
     self.id_to_entry.insert(&id.store(), rune_entry.store())?;
 

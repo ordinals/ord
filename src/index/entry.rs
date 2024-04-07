@@ -49,6 +49,7 @@ pub struct RuneEntry {
   pub mints: u128,
   pub number: u64,
   pub premine: u128,
+  pub final_mint: Option<Txid>,
   pub spaced_rune: SpacedRune,
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
