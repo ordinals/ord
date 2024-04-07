@@ -341,11 +341,11 @@ inscriptions:
   let response = ord.json_request(format!("/output/{}:0", reveal_txid));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let output_json: api::OutputArtifacts = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     output_json,
-    api::Output {
+    api::OutputArtifacts {
       address: Some(destination.clone()),
       inscriptions: vec![
         InscriptionId {

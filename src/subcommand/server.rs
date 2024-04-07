@@ -17,7 +17,7 @@ use {
     body,
     extract::{Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
-    response::{IntoResponse, Redirect, Response},
+    response::{IntoResponse, IntoResponseParts, Redirect, Response},
     routing::{get, post},
     Router,
   },
@@ -204,6 +204,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
@@ -618,7 +619,7 @@ impl Server {
       let spent = index.is_output_spent(outpoint)?;
 
       Ok(if accept_json {
-        Json(api::Output::new(
+        Json(api::OutputArtifacts::new(
           server_config.chain,
           inscriptions,
           outpoint,
@@ -648,10 +649,11 @@ impl Server {
   async fn outputs(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let mut response: Vec<api::Output> = Vec::new();
+      let mut response: Vec<api::OutputArtifacts> = Vec::new();
       for outpoint in outputs {
         let sat_ranges = index.list(outpoint)?;
 
@@ -690,7 +692,7 @@ impl Server {
 
         let spent = index.is_output_spent(outpoint)?;
 
-        response.push(api::Output::new(
+        response.push(api::OutputArtifacts::new(
           server_config.chain,
           inscriptions,
           outpoint,
@@ -1644,6 +1646,65 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn inscriptions_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(_): AcceptJson,
+    Json(inscriptions): Json<Vec<InscriptionId>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let mut response = Vec::new();
+      for inscription in inscriptions {
+        let query = query::Inscription::Id(inscription);
+        let info = Index::inscription_info(&index, query)?
+          .ok_or_not_found(|| format!("inscription {query}"))?;
+
+        let effective_mime_type = if let Some(delegate_id) = info.inscription.delegate() {
+          let delegate_result = index.get_inscription_by_id(delegate_id);
+          if let Ok(Some(delegate)) = delegate_result {
+            delegate.content_type().map(str::to_string)
+          } else {
+            info.inscription.content_type().map(str::to_string)
+          }
+        } else {
+          info.inscription.content_type().map(str::to_string)
+        };
+
+        response.push(api::Inscription {
+          address: info
+            .output
+            .as_ref()
+            .and_then(|o| {
+              server_config
+                .chain
+                .address_from_script(&o.script_pubkey)
+                .ok()
+            })
+            .map(|address| address.to_string()),
+          charms: Charm::charms(info.charms),
+          children: info.children,
+          content_length: info.inscription.content_length(),
+          content_type: info.inscription.content_type().map(|s| s.to_string()),
+          effective_content_type: effective_mime_type,
+          fee: info.entry.fee,
+          height: info.entry.height,
+          id: info.entry.id,
+          next: info.next,
+          number: info.entry.inscription_number,
+          parents: info.parents,
+          previous: info.previous,
+          rune: info.rune,
+          sat: info.entry.sat,
+          satpoint: info.satpoint,
+          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
+          value: info.output.as_ref().map(|o| o.value),
+        })
+      }
+
+      Ok(Json(response).into_response())
     })
   }
 
@@ -3149,8 +3210,8 @@ mod tests {
     let address = default_address(Chain::Regtest);
 
     pretty_assert_eq!(
-      server.get_json::<api::Output>(format!("/output/{output}")),
-      api::Output {
+      server.get_json::<api::OutputArtifacts>(format!("/output/{output}")),
+      api::OutputArtifacts {
         value: 5000000000,
         script_pubkey: address.script_pubkey().to_asm_string(),
         address: Some(uncheck(&address)),
