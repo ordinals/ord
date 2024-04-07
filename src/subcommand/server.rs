@@ -17,7 +17,7 @@ use {
     body,
     extract::{Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
-    response::{IntoResponse, IntoResponseParts, Redirect, Response},
+    response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
   },
@@ -649,7 +649,7 @@ impl Server {
   async fn outputs(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    AcceptJson(accept_json): AcceptJson,
+    AcceptJson(_): AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {

@@ -10,10 +10,6 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
-  futures::{
-    future::{self, FutureExt},
-    try_join, TryFutureExt,
-  },
   index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -193,7 +189,7 @@ impl Wallet {
     ord_client: &OrdClient,
     outputs: Vec<OutPoint>,
   ) -> Result<BTreeMap<OutPoint, api::OutputArtifacts>> {
-    let response = ord_client.post(&format!("/outputs"), &outputs)?;
+    let response = ord_client.post("/outputs", &outputs)?;
 
     if !response.status().is_success() {
       bail!("wallet failed get outputs: {}", response.text()?);
@@ -222,7 +218,7 @@ impl Wallet {
     BTreeMap<SatPoint, Vec<InscriptionId>>,
     BTreeMap<InscriptionId, api::Inscription>,
   )> {
-    let response = ord_client.post(&format!("/inscriptions"), inscriptions)?;
+    let response = ord_client.post("/inscriptions", inscriptions)?;
 
     if !response.status().is_success() {
       bail!("wallet failed get inscriptions: {}", response.text()?);
