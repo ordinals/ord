@@ -19,7 +19,7 @@ impl Mint {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
-      "`ord wallet etch` requires index created with `--index-runes` flag",
+      "`ord wallet mint` requires index created with `--index-runes` flag",
     );
 
     let rune = self.rune.rune;

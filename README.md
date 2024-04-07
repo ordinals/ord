@@ -90,7 +90,7 @@ Building
 On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 
 ```
-sudo apt-get install pkg-config libssl-dev
+sudo apt-get install pkg-config libssl-dev build-essential
 ```
 
 You'll also need Rust:
@@ -120,7 +120,7 @@ cargo build --release
 
 Once built, the `ord` binary can be found at `./target/release/ord`.
 
-`ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+`ord` requires `rustc` version 1.74.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
 
 ### Docker
 
