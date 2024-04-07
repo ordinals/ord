@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-#[clap(group(ArgGroup::new("input").required(true).args(&["delegate", "file"])))]
+#[clap(group(ArgGroup::new("input").required(true).multiple(true).args(&["delegate", "file"])))]
 pub(crate) struct Inscribe {
   #[command(flatten)]
   shared: SharedArgs,

@@ -110,7 +110,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
         terms: None,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()

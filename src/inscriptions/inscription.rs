@@ -48,8 +48,7 @@ impl Inscription {
     let path = path.as_ref();
 
     let (body, content_type, content_encoding) = if let Some(path) = path {
-      let body = fs::read(path)
-        .with_context(|| format!("io error reading {}", path.display().to_string()))?;
+      let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
       let content_type = Media::content_type_for_path(path)?.0;
 
