@@ -216,10 +216,6 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    let inscriptions = wallet.inscriptions();
-    let runic_outputs = wallet.get_runic_outputs()?;
-    let bitcoin_client = wallet.bitcoin_client();
-
     wallet.lock_non_cardinal_outputs()?;
 
     let (id, entry, _parent) = wallet
@@ -228,15 +224,15 @@ impl Send {
 
     let amount = decimal.to_integer(entry.divisibility)?;
 
-    let inscribed_outputs = inscriptions
+    let inscribed_outputs = wallet
+      .inscriptions()
       .keys()
       .map(|satpoint| satpoint.outpoint)
       .collect::<HashSet<OutPoint>>();
 
     let mut input_runes = 0;
     let mut input = Vec::new();
-
-    for output in runic_outputs {
+    for output in wallet.get_runic_outputs()? {
       if inscribed_outputs.contains(&output) {
         continue;
       }
@@ -302,7 +298,7 @@ impl Send {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(wallet.bitcoin_client(), fee_rate, &unfunded_transaction)?;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
