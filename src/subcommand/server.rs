@@ -1519,7 +1519,7 @@ impl Server {
           rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
-          timestamp: timestamp(info.timestamp as u64),
+          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(),
         }
         .page(server_config)
         .into_response()
