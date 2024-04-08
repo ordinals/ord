@@ -1536,7 +1536,7 @@ impl Server {
       let mut response = Vec::new();
       for inscription in inscriptions {
         let query = query::Inscription::Id(inscription);
-        let info = index
+        let (info, _, _) = index
           .inscription_info(query)?
           .ok_or_not_found(|| format!("inscription {query}"))?;
 
