@@ -576,7 +576,7 @@ impl Wallet {
               break;
             }
           } else {
-            bail!("output spent, can't send reveal tx");
+            bail!("rune commitment spent, can't send reveal tx");
           }
         }
       }
