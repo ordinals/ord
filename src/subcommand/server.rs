@@ -581,64 +581,21 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let sat_ranges = index.list(outpoint)?;
-
-      let indexed;
-
-      let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
-        let mut value = 0;
-
-        if let Some(ranges) = &sat_ranges {
-          for (start, end) in ranges {
-            value += end - start;
-          }
-        }
-
-        indexed = true;
-
-        TxOut {
-          value,
-          script_pubkey: ScriptBuf::new(),
-        }
-      } else {
-        indexed = index.contains_output(&outpoint)?;
-
-        index
-          .get_transaction(outpoint.txid)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?
-          .output
-          .into_iter()
-          .nth(outpoint.vout as usize)
-          .ok_or_not_found(|| format!("output {outpoint}"))?
-      };
-
-      let inscriptions = index.get_inscriptions_on_output(outpoint)?;
-
-      let runes = index.get_rune_balances_for_outpoint(outpoint)?;
-
-      let spent = index.is_output_spent(outpoint)?;
+      let (output_info, txout) = index
+        .get_output_info(outpoint)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?;
 
       Ok(if accept_json {
-        Json(api::OutputInfo::new(
-          server_config.chain,
-          inscriptions,
-          outpoint,
-          output,
-          indexed,
-          runes,
-          sat_ranges,
-          spent,
-        ))
-        .into_response()
+        Json(output_info).into_response()
       } else {
         OutputHtml {
           chain: server_config.chain,
-          inscriptions,
+          inscriptions: output_info.inscriptions,
           outpoint,
-          output,
-          runes,
-          sat_ranges,
-          spent,
+          output: txout,
+          runes: output_info.runes,
+          sat_ranges: output_info.sat_ranges,
+          spent: output_info.spent,
         }
         .page(server_config)
         .into_response()
@@ -647,61 +604,18 @@ impl Server {
   }
 
   async fn outputs(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(_): AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let mut response: Vec<api::OutputInfo> = Vec::new();
+      let mut response = Vec::new();
       for outpoint in outputs {
-        let sat_ranges = index.list(outpoint)?;
+        let (output_info, _) = index
+          .get_output_info(outpoint)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?;
 
-        let indexed;
-
-        let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
-          let mut value = 0;
-
-          if let Some(ranges) = &sat_ranges {
-            for (start, end) in ranges {
-              value += end - start;
-            }
-          }
-
-          indexed = true;
-
-          TxOut {
-            value,
-            script_pubkey: ScriptBuf::new(),
-          }
-        } else {
-          indexed = index.contains_output(&outpoint)?;
-
-          index
-            .get_transaction(outpoint.txid)?
-            .ok_or_not_found(|| format!("output {outpoint}"))?
-            .output
-            .into_iter()
-            .nth(outpoint.vout as usize)
-            .ok_or_not_found(|| format!("output {outpoint}"))?
-        };
-
-        let inscriptions = index.get_inscriptions_on_output(outpoint)?;
-
-        let runes = index.get_rune_balances_for_outpoint(outpoint)?;
-
-        let spent = index.is_output_spent(outpoint)?;
-
-        response.push(api::OutputInfo::new(
-          server_config.chain,
-          inscriptions,
-          outpoint,
-          output,
-          indexed,
-          runes,
-          sat_ranges,
-          spent,
-        ))
+        response.push(output_info);
       }
       Ok(Json(response).into_response())
     })

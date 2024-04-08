@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Clone)]
-pub(crate) struct WalletBuilder {
+pub(crate) struct WalletConstructor {
   ord_client: reqwest::blocking::Client,
   name: String,
   no_sync: bool,
@@ -9,7 +9,7 @@ pub(crate) struct WalletBuilder {
   settings: Settings,
 }
 
-impl WalletBuilder {
+impl WalletConstructor {
   pub(crate) fn new(name: String, no_sync: bool, settings: Settings, rpc_url: Url) -> Result<Self> {
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -76,14 +76,14 @@ impl WalletBuilder {
     let locked_utxos = Self::get_locked_utxos(&bitcoin_client)?;
     utxos.extend(locked_utxos.clone());
 
-    let output_infos = self.get_output_artifacts(utxos.clone().into_keys().collect())?;
+    let output_info = self.get_output_info(utxos.clone().into_keys().collect())?;
 
-    let inscriptions = output_infos
+    let inscriptions = output_info
       .iter()
       .flat_map(|(_output, info)| info.inscriptions.clone())
       .collect::<Vec<InscriptionId>>();
 
-    let (inscriptions, inscription_infos) = self.get_inscriptions(&inscriptions)?;
+    let (inscriptions, inscription_info) = self.get_inscriptions(&inscriptions)?;
 
     let status = self.get_server_status()?;
 
@@ -92,41 +92,38 @@ impl WalletBuilder {
       database,
       has_rune_index: status.rune_index,
       has_sat_index: status.sat_index,
-      inscription_infos,
+      inscription_info,
       inscriptions,
       locked_utxos,
       ord_client: self.ord_client,
-      output_infos,
+      output_info,
       rpc_url: self.rpc_url,
       settings: self.settings,
       utxos,
     })
   }
 
-  fn get_output_artifacts(
-    &self,
-    outputs: Vec<OutPoint>,
-  ) -> Result<BTreeMap<OutPoint, api::OutputInfo>> {
+  fn get_output_info(&self, outputs: Vec<OutPoint>) -> Result<BTreeMap<OutPoint, api::OutputInfo>> {
     let response = self.post("/outputs", &outputs)?;
 
     if !response.status().is_success() {
       bail!("wallet failed get outputs: {}", response.text()?);
     }
 
-    let output_artifacts: BTreeMap<OutPoint, api::OutputInfo> = outputs
+    let output_info: BTreeMap<OutPoint, api::OutputInfo> = outputs
       .into_iter()
       .zip(serde_json::from_str::<Vec<api::OutputInfo>>(
         &response.text()?,
       )?)
       .collect();
 
-    for (output, artifacts) in &output_artifacts {
+    for (output, artifacts) in &output_info {
       if !artifacts.indexed {
         bail!("output in wallet but not in ord server: {output}");
       }
     }
 
-    Ok(output_artifacts)
+    Ok(output_info)
   }
 
   fn get_inscriptions(

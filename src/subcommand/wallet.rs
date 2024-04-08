@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::{batch, wallet_builder::WalletBuilder, Wallet},
+  crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
 };
@@ -80,7 +80,7 @@ impl WalletCommand {
       _ => {}
     };
 
-    let wallet = WalletBuilder::new(
+    let wallet = WalletConstructor::new(
       self.name.clone(),
       self.no_sync,
       settings.clone(),

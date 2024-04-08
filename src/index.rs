@@ -2104,6 +2104,64 @@ impl Index {
         .collect(),
     )
   }
+
+  pub(crate) fn get_output_info(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<(api::OutputInfo, TxOut)>> {
+    let sat_ranges = self.list(outpoint)?;
+
+    let indexed;
+
+    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+      let mut value = 0;
+
+      if let Some(ranges) = &sat_ranges {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+
+      indexed = true;
+
+      TxOut {
+        value,
+        script_pubkey: ScriptBuf::new(),
+      }
+    } else {
+      indexed = self.contains_output(&outpoint)?;
+
+      let Some(tx) = self.get_transaction(outpoint.txid)? else {
+        return Ok(None);
+      };
+
+      let Some(output) = tx.output.into_iter().nth(outpoint.vout as usize) else {
+        return Ok(None);
+      };
+
+      output
+    };
+
+    let inscriptions = self.get_inscriptions_on_output(outpoint)?;
+
+    let runes = self.get_rune_balances_for_outpoint(outpoint)?;
+
+    let spent = self.is_output_spent(outpoint)?;
+
+    Ok(Some((
+      api::OutputInfo::new(
+        self.settings.chain(),
+        inscriptions,
+        outpoint,
+        txout.clone(),
+        indexed,
+        runes,
+        sat_ranges,
+        spent,
+      ),
+      txout,
+    )))
+  }
 }
 
 #[cfg(test)]
