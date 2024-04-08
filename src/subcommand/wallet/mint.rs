@@ -6,6 +6,11 @@ pub(crate) struct Mint {
   fee_rate: FeeRate,
   #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
+  #[clap(
+    long,
+    help = "Amount of postage to include in the inscription. Default `10000sat`."
+  )]
+  postage: Option<Amount>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -31,6 +36,8 @@ impl Mint {
     let Some((id, rune_entry, _)) = wallet.get_rune(rune)? else {
       bail!("rune {rune} has not been etched");
     };
+
+    let postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
     let amount = rune_entry
       .mintable(block_height)
@@ -62,7 +69,7 @@ impl Mint {
         },
         TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: postage.to_sat(),
         },
       ],
     };
