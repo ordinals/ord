@@ -1788,12 +1788,6 @@ impl Index {
     )
   }
 
-  pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    index
-      .inscription_info(query::Inscription::Number(inscription_number))
-      .unwrap();
-  }
-
   pub(crate) fn inscription_info(
     &self,
     query: query::Inscription,
