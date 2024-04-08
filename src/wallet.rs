@@ -55,8 +55,8 @@ pub(crate) struct Wallet {
   rpc_url: Url,
   utxos: BTreeMap<OutPoint, TxOut>,
   ord_client: reqwest::blocking::Client,
-  inscriptions_info: BTreeMap<InscriptionId, api::Inscription>,
-  output_artifacts: BTreeMap<OutPoint, api::OutputArtifacts>,
+  inscription_infos: BTreeMap<InscriptionId, api::Inscription>,
+  output_infos: BTreeMap<OutPoint, api::OutputInfo>,
   inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
   locked_utxos: BTreeMap<OutPoint, TxOut>,
   settings: Settings,
@@ -70,7 +70,7 @@ impl Wallet {
     );
 
     let mut output_sat_ranges = Vec::new();
-    for (output, info) in self.output_artifacts.iter() {
+    for (output, info) in self.output_infos.iter() {
       if let Some(sat_ranges) = &info.sat_ranges {
         output_sat_ranges.push((*output, sat_ranges.clone()));
       } else {
@@ -87,7 +87,7 @@ impl Wallet {
       "ord index must be built with `--index-sats` to use `--sat`"
     );
 
-    for (outpoint, info) in self.output_artifacts.iter() {
+    for (outpoint, info) in self.output_infos.iter() {
       if let Some(sat_ranges) = &info.sat_ranges {
         let mut offset = 0;
         for (start, end) in sat_ranges {
@@ -155,7 +155,7 @@ impl Wallet {
   }
 
   pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, api::Inscription> {
-    self.inscriptions_info.clone()
+    self.inscription_infos.clone()
   }
 
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
@@ -184,7 +184,7 @@ impl Wallet {
       }
 
       let satpoint = self
-        .inscriptions_info
+        .inscription_infos
         .get(&parent_id)
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .satpoint;
@@ -208,7 +208,7 @@ impl Wallet {
 
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     let mut runic_outputs = BTreeSet::new();
-    for (output, info) in self.output_artifacts.iter() {
+    for (output, info) in self.output_infos.iter() {
       if !info.runes.is_empty() {
         runic_outputs.insert(*output);
       }
@@ -223,7 +223,7 @@ impl Wallet {
   ) -> Result<Vec<(SpacedRune, Pile)>> {
     Ok(
       self
-        .output_artifacts
+        .output_infos
         .get(output)
         .ok_or(anyhow!("output not found in wallet"))?
         .runes

@@ -119,7 +119,7 @@ pub struct Inscriptions {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct OutputArtifacts {
+pub struct OutputInfo {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
@@ -131,7 +131,7 @@ pub struct OutputArtifacts {
   pub value: u64,
 }
 
-impl OutputArtifacts {
+impl OutputInfo {
   pub fn new(
     chain: Chain,
     inscriptions: Vec<InscriptionId>,

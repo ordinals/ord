@@ -619,7 +619,7 @@ impl Server {
       let spent = index.is_output_spent(outpoint)?;
 
       Ok(if accept_json {
-        Json(api::OutputArtifacts::new(
+        Json(api::OutputInfo::new(
           server_config.chain,
           inscriptions,
           outpoint,
@@ -653,7 +653,7 @@ impl Server {
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let mut response: Vec<api::OutputArtifacts> = Vec::new();
+      let mut response: Vec<api::OutputInfo> = Vec::new();
       for outpoint in outputs {
         let sat_ranges = index.list(outpoint)?;
 
@@ -692,7 +692,7 @@ impl Server {
 
         let spent = index.is_output_spent(outpoint)?;
 
-        response.push(api::OutputArtifacts::new(
+        response.push(api::OutputInfo::new(
           server_config.chain,
           inscriptions,
           outpoint,
@@ -3210,8 +3210,8 @@ mod tests {
     let address = default_address(Chain::Regtest);
 
     pretty_assert_eq!(
-      server.get_json::<api::OutputArtifacts>(format!("/output/{output}")),
-      api::OutputArtifacts {
+      server.get_json::<api::OutputInfo>(format!("/output/{output}")),
+      api::OutputInfo {
         value: 5000000000,
         script_pubkey: address.script_pubkey().to_asm_string(),
         address: Some(uncheck(&address)),
