@@ -157,19 +157,6 @@ pub(crate) struct TransactionInfo {
   pub(crate) starting_timestamp: u128,
 }
 
-pub(crate) struct InscriptionInfo {
-  pub(crate) children: Vec<InscriptionId>,
-  pub(crate) entry: InscriptionEntry,
-  pub(crate) parents: Vec<InscriptionId>,
-  pub(crate) output: Option<TxOut>,
-  pub(crate) satpoint: SatPoint,
-  pub(crate) inscription: Inscription,
-  pub(crate) previous: Option<InscriptionId>,
-  pub(crate) next: Option<InscriptionId>,
-  pub(crate) rune: Option<SpacedRune>,
-  pub(crate) charms: u16,
-}
-
 pub(crate) trait BitcoinCoreRpcResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
 }
@@ -1802,14 +1789,16 @@ impl Index {
   }
 
   pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
+    index
+      .inscription_info(query::Inscription::Number(inscription_number))
+      .unwrap();
   }
 
   pub(crate) fn inscription_info(
-    index: &Index,
+    &self,
     query: query::Inscription,
-  ) -> Result<Option<InscriptionInfo>> {
-    let rtx = index.database.begin_read()?;
+  ) -> Result<Option<(api::Inscription, Option<TxOut>, Inscription)>> {
+    let rtx = self.database.begin_read()?;
 
     let sequence_number = match query {
       query::Inscription::Id(id) => rtx
@@ -1842,7 +1831,7 @@ impl Index {
         .value(),
     );
 
-    let Some(transaction) = index.get_transaction(entry.id.txid)? else {
+    let Some(transaction) = self.get_transaction(entry.id.txid)? else {
       return Ok(None);
     };
 
@@ -1866,7 +1855,7 @@ impl Index {
     {
       None
     } else {
-      let Some(transaction) = index.get_transaction(satpoint.outpoint.txid)? else {
+      let Some(transaction) = self.get_transaction(satpoint.outpoint.txid)? else {
         return Ok(None);
       };
 
@@ -1943,18 +1932,50 @@ impl Index {
       Charm::Lost.set(&mut charms);
     }
 
-    Ok(Some(InscriptionInfo {
-      children,
-      entry,
-      parents,
+    let effective_mime_type = if let Some(delegate_id) = inscription.delegate() {
+      let delegate_result = self.get_inscription_by_id(delegate_id);
+      if let Ok(Some(delegate)) = delegate_result {
+        delegate.content_type().map(str::to_string)
+      } else {
+        inscription.content_type().map(str::to_string)
+      }
+    } else {
+      inscription.content_type().map(str::to_string)
+    };
+
+    Ok(Some((
+      api::Inscription {
+        address: output
+          .as_ref()
+          .and_then(|o| {
+            self
+              .settings
+              .chain()
+              .address_from_script(&o.script_pubkey)
+              .ok()
+          })
+          .map(|address| address.to_string()),
+        charms: Charm::charms(charms),
+        children,
+        content_length: inscription.content_length(),
+        content_type: inscription.content_type().map(|s| s.to_string()),
+        effective_content_type: effective_mime_type,
+        fee: entry.fee,
+        height: entry.height,
+        id: entry.id,
+        next,
+        number: entry.inscription_number,
+        parents,
+        previous,
+        rune,
+        sat: entry.sat,
+        satpoint,
+        timestamp: timestamp(entry.timestamp.into()).timestamp(),
+        value: output.as_ref().map(|o| o.value),
+      },
       output,
-      satpoint,
       inscription,
-      previous,
-      next,
-      rune,
-      charms,
-    }))
+    )))
   }
 
   pub(crate) fn get_inscription_entry(

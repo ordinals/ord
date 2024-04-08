@@ -1493,69 +1493,33 @@ impl Server {
         }
       }
 
-      let info = Index::inscription_info(&index, query)?
+      let (info, txout, inscription) = index
+        .inscription_info(query)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
-      let effective_mime_type = if let Some(delegate_id) = info.inscription.delegate() {
-        let delegate_result = index.get_inscription_by_id(delegate_id);
-        if let Ok(Some(delegate)) = delegate_result {
-          delegate.content_type().map(str::to_string)
-        } else {
-          info.inscription.content_type().map(str::to_string)
-        }
-      } else {
-        info.inscription.content_type().map(str::to_string)
-      };
-
       Ok(if accept_json {
-        Json(api::Inscription {
-          address: info
-            .output
-            .as_ref()
-            .and_then(|o| {
-              server_config
-                .chain
-                .address_from_script(&o.script_pubkey)
-                .ok()
-            })
-            .map(|address| address.to_string()),
-          charms: Charm::charms(info.charms),
-          children: info.children,
-          content_length: info.inscription.content_length(),
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          effective_content_type: effective_mime_type,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          id: info.entry.id,
-          next: info.next,
-          number: info.entry.inscription_number,
-          parents: info.parents,
-          previous: info.previous,
-          rune: info.rune,
-          sat: info.entry.sat,
-          satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
-          value: info.output.as_ref().map(|o| o.value),
-        })
-        .into_response()
+        Json(info).into_response()
       } else {
         InscriptionHtml {
           chain: server_config.chain,
-          charms: Charm::Vindicated.unset(info.charms),
+          charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
+            charm.set(&mut acc);
+            acc
+          })),
           children: info.children,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          inscription: info.inscription,
-          id: info.entry.id,
-          number: info.entry.inscription_number,
+          fee: info.fee,
+          height: info.height,
+          inscription,
+          id: info.id,
+          number: info.number,
           next: info.next,
-          output: info.output,
+          output: txout,
           parents: info.parents,
           previous: info.previous,
           rune: info.rune,
-          sat: info.entry.sat,
+          sat: info.sat,
           satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()),
+          timestamp: timestamp(info.timestamp as u64),
         }
         .page(server_config)
         .into_response()
@@ -1564,7 +1528,6 @@ impl Server {
   }
 
   async fn inscriptions_json(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(_): AcceptJson,
     Json(inscriptions): Json<Vec<InscriptionId>>,
@@ -1573,49 +1536,11 @@ impl Server {
       let mut response = Vec::new();
       for inscription in inscriptions {
         let query = query::Inscription::Id(inscription);
-        let info = Index::inscription_info(&index, query)?
+        let info = index
+          .inscription_info(query)?
           .ok_or_not_found(|| format!("inscription {query}"))?;
 
-        let effective_mime_type = if let Some(delegate_id) = info.inscription.delegate() {
-          let delegate_result = index.get_inscription_by_id(delegate_id);
-          if let Ok(Some(delegate)) = delegate_result {
-            delegate.content_type().map(str::to_string)
-          } else {
-            info.inscription.content_type().map(str::to_string)
-          }
-        } else {
-          info.inscription.content_type().map(str::to_string)
-        };
-
-        response.push(api::Inscription {
-          address: info
-            .output
-            .as_ref()
-            .and_then(|o| {
-              server_config
-                .chain
-                .address_from_script(&o.script_pubkey)
-                .ok()
-            })
-            .map(|address| address.to_string()),
-          charms: Charm::charms(info.charms),
-          children: info.children,
-          content_length: info.inscription.content_length(),
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          effective_content_type: effective_mime_type,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          id: info.entry.id,
-          next: info.next,
-          number: info.entry.inscription_number,
-          parents: info.parents,
-          previous: info.previous,
-          rune: info.rune,
-          sat: info.entry.sat,
-          satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
-          value: info.output.as_ref().map(|o| o.value),
-        })
+        response.push(info);
       }
 
       Ok(Json(response).into_response())
