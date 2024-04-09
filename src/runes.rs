@@ -4824,7 +4824,7 @@ mod tests {
           mint: Some(id),
           ..default()
         }
-          .encipher(),
+        .encipher(),
       ),
       ..default()
     });
