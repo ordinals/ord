@@ -25,7 +25,7 @@ pub struct Inscription {
 }
 
 impl Inscription {
-  pub(crate) fn new(
+  pub fn new(
     chain: Chain,
     compress: bool,
     delegate: Option<InscriptionId>,
