@@ -147,7 +147,6 @@ impl File {
         let satpoint = entry
           .satpoint
           .ok_or_else(|| anyhow!("no satpoint specified for entry {i}"))?;
-        // .ok_or_else(|| anyhow!("no satpoint specified for entry {i}: {entry}",))?;
 
         let txout = utxos
           .get(&satpoint.outpoint)
