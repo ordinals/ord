@@ -8,6 +8,7 @@ pub struct EtchingEntry {
 }
 
 pub(super) type EtchingEntryValue = (
+  // u32,
   Vec<u8>, // commit
   Vec<u8>, // reveal
   Vec<u8>, // output
