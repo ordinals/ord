@@ -59,7 +59,7 @@ impl Inscribe {
       }],
       dry_run: self.shared.dry_run,
       etching: None,
-      inscriptions: vec![Inscription::from(
+      inscriptions: vec![Inscription::new(
         chain,
         self.shared.compress,
         self.delegate,

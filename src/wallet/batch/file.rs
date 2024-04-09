@@ -129,7 +129,7 @@ impl File {
         }
       }
 
-      inscriptions.push(Inscription::from(
+      inscriptions.push(Inscription::new(
         wallet.chain(),
         compress,
         entry.delegate,

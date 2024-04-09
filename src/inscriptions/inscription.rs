@@ -25,16 +25,7 @@ pub struct Inscription {
 }
 
 impl Inscription {
-  #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self {
-      content_type,
-      body,
-      ..default()
-    }
-  }
-
-  pub(crate) fn from(
+  pub(crate) fn new(
     chain: Chain,
     compress: bool,
     delegate: Option<InscriptionId>,
@@ -778,7 +769,7 @@ mod tests {
 
     write!(file, "foo").unwrap();
 
-    let inscription = Inscription::from(
+    let inscription = Inscription::new(
       Chain::Mainnet,
       false,
       None,
@@ -793,7 +784,7 @@ mod tests {
 
     assert_eq!(inscription.pointer, None);
 
-    let inscription = Inscription::from(
+    let inscription = Inscription::new(
       Chain::Mainnet,
       false,
       None,
@@ -808,7 +799,7 @@ mod tests {
 
     assert_eq!(inscription.pointer, Some(Vec::new()));
 
-    let inscription = Inscription::from(
+    let inscription = Inscription::new(
       Chain::Mainnet,
       false,
       None,
@@ -823,7 +814,7 @@ mod tests {
 
     assert_eq!(inscription.pointer, Some(vec![1]));
 
-    let inscription = Inscription::from(
+    let inscription = Inscription::new(
       Chain::Mainnet,
       false,
       None,
