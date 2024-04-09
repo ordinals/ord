@@ -212,7 +212,7 @@ fn minting_rune_and_then_sending_works() {
     111_u128
   );
 
-  assert_eq!(balance.runic.unwrap(), 10000_u64);
+  assert_eq!(balance.runic.unwrap(), 10000);
 
   let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {}",
@@ -234,7 +234,7 @@ fn minting_rune_and_then_sending_works() {
     132_u128
   );
 
-  assert_eq!(balance.runic.unwrap(), 20000_u64);
+  assert_eq!(balance.runic.unwrap(), 20000);
 
   pretty_assert_eq!(
     output.pile,
@@ -296,7 +296,7 @@ fn minting_rune_with_postage() {
   );
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --postage 1000sat",
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --postage 2222sat",
     Rune(RUNE)
   ))
   .core(&core)
@@ -319,5 +319,57 @@ fn minting_rune_with_postage() {
     .ord(&ord)
     .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
-  assert_eq!(balance.runic.unwrap(), 1000_u64);
+  assert_eq!(balance.runic.unwrap(), 2222);
+}
+
+#[test]
+fn minting_rune_with_postage_dust() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  core.mine_blocks(1);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "21".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 1,
+          offset: Some(batch::Range {
+            end: Some(10),
+            start: None,
+          }),
+          amount: "21".parse().unwrap(),
+          height: None,
+        }),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: "inscription.jpeg".into(),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --postage 300sat",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr("error: postage below dust limit\n")
+  .run_and_extract_stdout();
 }

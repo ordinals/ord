@@ -8,7 +8,7 @@ pub(crate) struct Mint {
   rune: SpacedRune,
   #[clap(
     long,
-    help = "Amount of postage to include in the inscription. Default `10000sat`."
+    help = "Amount of postage to include in the minted rune output. Default `10000sat`."
   )]
   postage: Option<Amount>,
 }
@@ -44,6 +44,11 @@ impl Mint {
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
     let destination = wallet.get_change_address()?;
+
+    ensure!(
+      destination.script_pubkey().dust_value() < postage,
+      "postage below dust limit"
+    );
 
     let runestone = Runestone {
       mint: Some(id),
