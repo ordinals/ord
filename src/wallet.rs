@@ -10,10 +10,6 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
-  futures::{
-    future::{self, FutureExt},
-    try_join, TryFutureExt,
-  },
   index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -27,6 +23,7 @@ use {
 pub mod batch;
 pub mod entry;
 pub mod transaction_builder;
+pub mod wallet_constructor;
 
 const SCHEMA_VERSION: u64 = 1;
 
@@ -50,23 +47,6 @@ impl From<Statistic> for u64 {
   }
 }
 
-#[derive(Clone)]
-struct OrdClient {
-  url: Url,
-  client: reqwest::Client,
-}
-
-impl OrdClient {
-  pub async fn get(&self, path: &str) -> Result<reqwest::Response> {
-    self
-      .client
-      .get(self.url.join(path)?)
-      .send()
-      .map_err(|err| anyhow!(err))
-      .await
-  }
-}
-
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
@@ -83,231 +63,6 @@ pub(crate) struct Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn build(
-    name: String,
-    no_sync: bool,
-    settings: Settings,
-    rpc_url: Url,
-  ) -> Result<Self> {
-    let mut headers = HeaderMap::new();
-
-    headers.insert(
-      header::ACCEPT,
-      header::HeaderValue::from_static("application/json"),
-    );
-
-    if let Some((username, password)) = settings.credentials() {
-      let credentials =
-        base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
-      headers.insert(
-        header::AUTHORIZATION,
-        header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
-      );
-    }
-
-    let database = Self::open_database(&name, &settings)?;
-
-    let ord_client = reqwest::blocking::ClientBuilder::new()
-      .default_headers(headers.clone())
-      .build()?;
-
-    tokio::runtime::Builder::new_multi_thread()
-      .enable_all()
-      .build()?
-      .block_on(async move {
-        let bitcoin_client = {
-          let client = Self::check_version(settings.bitcoin_rpc_client(Some(name.clone()))?)?;
-
-          if !client.list_wallets()?.contains(&name) {
-            client.load_wallet(&name)?;
-          }
-
-          Self::check_descriptors(&name, client.list_descriptors(None)?.descriptors)?;
-
-          client
-        };
-
-        let async_ord_client = OrdClient {
-          url: rpc_url.clone(),
-          client: reqwest::ClientBuilder::new()
-            .default_headers(headers.clone())
-            .build()?,
-        };
-
-        let chain_block_count = bitcoin_client.get_block_count().unwrap() + 1;
-
-        if !no_sync {
-          for i in 0.. {
-            let response = async_ord_client.get("/blockcount").await?;
-            if response
-              .text()
-              .await?
-              .parse::<u64>()
-              .expect("wallet failed to talk to server. Make sure `ord server` is running.")
-              >= chain_block_count
-            {
-              break;
-            } else if i == 20 {
-              bail!("wallet failed to synchronize with `ord server` after {i} attempts");
-            }
-            tokio::time::sleep(Duration::from_millis(50)).await;
-          }
-        }
-
-        let mut utxos = Self::get_utxos(&bitcoin_client)?;
-        let locked_utxos = Self::get_locked_utxos(&bitcoin_client)?;
-        utxos.extend(locked_utxos.clone());
-
-        let requests = utxos
-          .clone()
-          .into_keys()
-          .map(|output| (output, Self::get_output(&async_ord_client, output)))
-          .collect::<Vec<(OutPoint, _)>>();
-
-        let futures = requests.into_iter().map(|(output, req)| async move {
-          let result = req.await;
-          (output, result)
-        });
-
-        let results = future::join_all(futures).await;
-
-        let mut output_info = BTreeMap::new();
-        for (output, result) in results {
-          let info = result?;
-          output_info.insert(output, info);
-        }
-
-        let requests = output_info
-          .iter()
-          .flat_map(|(_output, info)| info.inscriptions.clone())
-          .collect::<Vec<InscriptionId>>()
-          .into_iter()
-          .map(|id| (id, Self::get_inscription_info(&async_ord_client, id)))
-          .collect::<Vec<(InscriptionId, _)>>();
-
-        let futures = requests.into_iter().map(|(output, req)| async move {
-          let result = req.await;
-          (output, result)
-        });
-
-        let (results, status) = try_join!(
-          future::join_all(futures).map(Ok),
-          Self::get_server_status(&async_ord_client)
-        )?;
-
-        let mut inscriptions = BTreeMap::new();
-        let mut inscription_info = BTreeMap::new();
-        for (id, result) in results {
-          let info = result?;
-          inscriptions
-            .entry(info.satpoint)
-            .or_insert_with(Vec::new)
-            .push(id);
-
-          inscription_info.insert(id, info);
-        }
-
-        Ok(Wallet {
-          bitcoin_client,
-          database,
-          has_rune_index: status.rune_index,
-          has_sat_index: status.sat_index,
-          inscription_info,
-          inscriptions,
-          locked_utxos,
-          ord_client,
-          output_info,
-          rpc_url,
-          settings,
-          utxos,
-        })
-      })
-  }
-
-  async fn get_output(ord_client: &OrdClient, output: OutPoint) -> Result<api::Output> {
-    let response = ord_client.get(&format!("/output/{output}")).await?;
-
-    if !response.status().is_success() {
-      bail!("wallet failed get output: {}", response.text().await?);
-    }
-
-    let output_json: api::Output = serde_json::from_str(&response.text().await?)?;
-
-    if !output_json.indexed {
-      bail!("output in wallet but not in ord server: {output}");
-    }
-
-    Ok(output_json)
-  }
-
-  fn get_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
-    Ok(
-      bitcoin_client
-        .list_unspent(None, None, None, None, None)?
-        .into_iter()
-        .map(|utxo| {
-          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-          let txout = TxOut {
-            script_pubkey: utxo.script_pub_key,
-            value: utxo.amount.to_sat(),
-          };
-
-          (outpoint, txout)
-        })
-        .collect(),
-    )
-  }
-
-  fn get_locked_utxos(bitcoin_client: &Client) -> Result<BTreeMap<OutPoint, TxOut>> {
-    #[derive(Deserialize)]
-    pub(crate) struct JsonOutPoint {
-      txid: Txid,
-      vout: u32,
-    }
-
-    let outpoints = bitcoin_client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])?;
-
-    let mut utxos = BTreeMap::new();
-
-    for outpoint in outpoints {
-      let txout = bitcoin_client
-        .get_raw_transaction(&outpoint.txid, None)?
-        .output
-        .get(TryInto::<usize>::try_into(outpoint.vout).unwrap())
-        .cloned()
-        .ok_or_else(|| anyhow!("Invalid output index"))?;
-
-      utxos.insert(OutPoint::new(outpoint.txid, outpoint.vout), txout);
-    }
-
-    Ok(utxos)
-  }
-
-  async fn get_inscription_info(
-    ord_client: &OrdClient,
-    inscription_id: InscriptionId,
-  ) -> Result<api::Inscription> {
-    let response = ord_client
-      .get(&format!("/inscription/{inscription_id}"))
-      .await?;
-
-    if !response.status().is_success() {
-      bail!("inscription {inscription_id} not found");
-    }
-
-    Ok(serde_json::from_str(&response.text().await?)?)
-  }
-
-  async fn get_server_status(ord_client: &OrdClient) -> Result<api::Status> {
-    let response = ord_client.get("/status").await?;
-
-    if !response.status().is_success() {
-      bail!("could not get status: {}", response.text().await?)
-    }
-
-    Ok(serde_json::from_str(&response.text().await?)?)
-  }
-
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
       self.has_sat_index,

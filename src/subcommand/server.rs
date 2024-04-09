@@ -18,7 +18,7 @@ use {
     extract::{Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
-    routing::get,
+    routing::{get, post},
     Router,
   },
   axum_server::Handle,
@@ -204,6 +204,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
@@ -216,6 +217,7 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
+        .route("/outputs", post(Self::outputs))
         .route("/parents/:inscription_id", get(Self::parents))
         .route(
           "/parents/:inscription_id/:page",
@@ -579,68 +581,43 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let sat_ranges = index.list(outpoint)?;
-
-      let indexed;
-
-      let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
-        let mut value = 0;
-
-        if let Some(ranges) = &sat_ranges {
-          for (start, end) in ranges {
-            value += end - start;
-          }
-        }
-
-        indexed = true;
-
-        TxOut {
-          value,
-          script_pubkey: ScriptBuf::new(),
-        }
-      } else {
-        indexed = index.contains_output(&outpoint)?;
-
-        index
-          .get_transaction(outpoint.txid)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?
-          .output
-          .into_iter()
-          .nth(outpoint.vout as usize)
-          .ok_or_not_found(|| format!("output {outpoint}"))?
-      };
-
-      let inscriptions = index.get_inscriptions_on_output(outpoint)?;
-
-      let runes = index.get_rune_balances_for_outpoint(outpoint)?;
-
-      let spent = index.is_output_spent(outpoint)?;
+      let (output_info, txout) = index
+        .get_output_info(outpoint)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?;
 
       Ok(if accept_json {
-        Json(api::Output::new(
-          server_config.chain,
-          inscriptions,
-          outpoint,
-          output,
-          indexed,
-          runes,
-          sat_ranges,
-          spent,
-        ))
-        .into_response()
+        Json(output_info).into_response()
       } else {
         OutputHtml {
           chain: server_config.chain,
-          inscriptions,
+          inscriptions: output_info.inscriptions,
           outpoint,
-          output,
-          runes,
-          sat_ranges,
-          spent,
+          output: txout,
+          runes: output_info.runes,
+          sat_ranges: output_info.sat_ranges,
+          spent: output_info.spent,
         }
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn outputs(
+    Extension(index): Extension<Arc<Index>>,
+    _: AcceptJson,
+    Json(outputs): Json<Vec<OutPoint>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let mut response = Vec::new();
+      for outpoint in outputs {
+        let (output_info, _) = index
+          .get_output_info(outpoint)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+        response.push(output_info);
+      }
+      Ok(Json(response).into_response())
     })
   }
 
@@ -1516,73 +1493,57 @@ impl Server {
         }
       }
 
-      let info = Index::inscription_info(&index, query)?
+      let (info, txout, inscription) = index
+        .inscription_info(query)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
-      let effective_mime_type = if let Some(delegate_id) = info.inscription.delegate() {
-        let delegate_result = index.get_inscription_by_id(delegate_id);
-        if let Ok(Some(delegate)) = delegate_result {
-          delegate.content_type().map(str::to_string)
-        } else {
-          info.inscription.content_type().map(str::to_string)
-        }
-      } else {
-        info.inscription.content_type().map(str::to_string)
-      };
-
       Ok(if accept_json {
-        Json(api::Inscription {
-          address: info
-            .output
-            .as_ref()
-            .and_then(|o| {
-              server_config
-                .chain
-                .address_from_script(&o.script_pubkey)
-                .ok()
-            })
-            .map(|address| address.to_string()),
-          charms: Charm::charms(info.charms),
-          children: info.children,
-          content_length: info.inscription.content_length(),
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          effective_content_type: effective_mime_type,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          id: info.entry.id,
-          next: info.next,
-          number: info.entry.inscription_number,
-          parents: info.parents,
-          previous: info.previous,
-          rune: info.rune,
-          sat: info.entry.sat,
-          satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
-          value: info.output.as_ref().map(|o| o.value),
-        })
-        .into_response()
+        Json(info).into_response()
       } else {
         InscriptionHtml {
           chain: server_config.chain,
-          charms: Charm::Vindicated.unset(info.charms),
+          charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
+            charm.set(&mut acc);
+            acc
+          })),
           children: info.children,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          inscription: info.inscription,
-          id: info.entry.id,
-          number: info.entry.inscription_number,
+          fee: info.fee,
+          height: info.height,
+          inscription,
+          id: info.id,
+          number: info.number,
           next: info.next,
-          output: info.output,
+          output: txout,
           parents: info.parents,
           previous: info.previous,
           rune: info.rune,
-          sat: info.entry.sat,
+          sat: info.sat,
           satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()),
+          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(),
         }
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn inscriptions_json(
+    Extension(index): Extension<Arc<Index>>,
+    _: AcceptJson,
+    Json(inscriptions): Json<Vec<InscriptionId>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let mut response = Vec::new();
+      for inscription in inscriptions {
+        let query = query::Inscription::Id(inscription);
+        let (info, _, _) = index
+          .inscription_info(query)?
+          .ok_or_not_found(|| format!("inscription {query}"))?;
+
+        response.push(info);
+      }
+
+      Ok(Json(response).into_response())
     })
   }
 
