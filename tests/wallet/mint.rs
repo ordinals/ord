@@ -209,7 +209,11 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    111_u128
+    Pile {
+      amount: 111,
+      divisibility: 0,
+      symbol: Some('¢')
+    }
   );
 
   let output = CommandBuilder::new(format!(
@@ -229,7 +233,11 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    132_u128
+    Pile {
+      amount: 132,
+      divisibility: 0,
+      symbol: Some('¢')
+    }
   );
 
   pretty_assert_eq!(

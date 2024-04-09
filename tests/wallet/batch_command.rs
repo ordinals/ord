@@ -1505,7 +1505,18 @@ fn batch_can_etch_rune() {
       cardinal: 44999980000,
       ordinal: 10000,
       runic: Some(10000),
-      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+      runes: Some(
+        vec![(
+          rune,
+          Pile {
+            amount: 1000,
+            divisibility: 0,
+            symbol: Some('¢')
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
       total: 450 * COIN_VALUE,
     }
   );

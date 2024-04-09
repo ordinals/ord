@@ -127,9 +127,16 @@ fn runic_utxos_are_deducted_from_cardinal() {
       ordinal: 10000,
       runic: Some(10_000),
       runes: Some(
-        vec![(SpacedRune { rune, spacers: 1 }, 1000)]
-          .into_iter()
-          .collect()
+        vec![(
+          SpacedRune { rune, spacers: 1 },
+          Pile {
+            amount: 1000,
+            divisibility: 0,
+            symbol: Some('¢')
+          }
+        )]
+        .into_iter()
+        .collect()
       ),
       total: 50 * COIN_VALUE * 8,
     }

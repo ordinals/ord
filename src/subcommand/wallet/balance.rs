@@ -5,7 +5,7 @@ pub struct Output {
   pub cardinal: u64,
   pub ordinal: u64,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub runes: Option<BTreeMap<SpacedRune, u128>>,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
@@ -22,7 +22,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut cardinal = 0;
   let mut ordinal = 0;
-  let mut runes = BTreeMap::new();
+  let mut runes_balance = BTreeMap::new();
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
@@ -37,7 +37,13 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        *runes.entry(spaced_rune).or_default() += pile.amount;
+        let _ = runes_balance
+          .entry(spaced_rune)
+          .and_modify(|entry_pile: &mut Pile| {
+            assert_eq!(entry_pile.divisibility, pile.divisibility);
+            entry_pile.amount += pile.amount;
+          })
+          .or_insert(pile);
       }
       runic += txout.value;
     }
@@ -51,10 +57,12 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     }
   }
 
+  // let runes = runes_balance.into_iter().map(|(rune, value)| (rune, Decimal { value, scale: rune.rune.d})).collect()
+
   Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: wallet.has_rune_index().then_some(runes),
+    runes: wallet.has_rune_index().then_some(runes_balance),
     runic: wallet.has_rune_index().then_some(runic),
     total: cardinal + ordinal + runic,
   })))
