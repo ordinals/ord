@@ -56,7 +56,7 @@ pub(crate) struct Wallet {
   utxos: BTreeMap<OutPoint, TxOut>,
   ord_client: reqwest::blocking::Client,
   inscription_info: BTreeMap<InscriptionId, api::Inscription>,
-  output_info: BTreeMap<OutPoint, api::OutputInfo>,
+  output_info: BTreeMap<OutPoint, api::Output>,
   inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
   locked_utxos: BTreeMap<OutPoint, TxOut>,
   settings: Settings,

@@ -80,7 +80,7 @@ impl WalletCommand {
       _ => {}
     };
 
-    let wallet = WalletConstructor::new(
+    let wallet = WalletConstructor::construct(
       self.name.clone(),
       self.no_sync,
       settings.clone(),
@@ -92,8 +92,7 @@ impl WalletCommand {
         .unwrap_or("http://127.0.0.1:80")
         .parse::<Url>()
         .context("invalid server URL")?,
-    )?
-    .build()?;
+    )?;
 
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),

@@ -2120,10 +2120,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_output_info(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Option<(api::OutputInfo, TxOut)>> {
+  pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
     let indexed;
@@ -2164,7 +2161,7 @@ impl Index {
     let spent = self.is_output_spent(outpoint)?;
 
     Ok(Some((
-      api::OutputInfo::new(
+      api::Output::new(
         self.settings.chain(),
         inscriptions,
         outpoint,

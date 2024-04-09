@@ -317,7 +317,7 @@ fn get_output() {
   assert_eq!(response.status(), StatusCode::OK);
 
   assert!(
-    !serde_json::from_str::<api::OutputInfo>(&response.text().unwrap())
+    !serde_json::from_str::<api::Output>(&response.text().unwrap())
       .unwrap()
       .indexed
   );
@@ -327,11 +327,11 @@ fn get_output() {
   let response = server.json_request(format!("/output/{}:0", txid));
   assert_eq!(response.status(), StatusCode::OK);
 
-  let output_json: api::OutputInfo = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(
     output_json,
-    api::OutputInfo {
+    api::Output {
       address: Some(
         "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs"
           .parse()

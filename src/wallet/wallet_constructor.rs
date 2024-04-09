@@ -10,7 +10,12 @@ pub(crate) struct WalletConstructor {
 }
 
 impl WalletConstructor {
-  pub(crate) fn new(name: String, no_sync: bool, settings: Settings, rpc_url: Url) -> Result<Self> {
+  pub(crate) fn construct(
+    name: String,
+    no_sync: bool,
+    settings: Settings,
+    rpc_url: Url,
+  ) -> Result<Wallet> {
     let mut headers = HeaderMap::new();
     headers.insert(
       header::ACCEPT,
@@ -26,7 +31,7 @@ impl WalletConstructor {
       );
     }
 
-    Ok(Self {
+    Self {
       ord_client: reqwest::blocking::ClientBuilder::new()
         .default_headers(headers.clone())
         .build()?,
@@ -34,8 +39,10 @@ impl WalletConstructor {
       no_sync,
       rpc_url,
       settings,
-    })
+    }
+    .build()
   }
+
   pub(crate) fn build(self) -> Result<Wallet> {
     let database = Wallet::open_database(&self.name, &self.settings)?;
 
@@ -103,22 +110,20 @@ impl WalletConstructor {
     })
   }
 
-  fn get_output_info(&self, outputs: Vec<OutPoint>) -> Result<BTreeMap<OutPoint, api::OutputInfo>> {
+  fn get_output_info(&self, outputs: Vec<OutPoint>) -> Result<BTreeMap<OutPoint, api::Output>> {
     let response = self.post("/outputs", &outputs)?;
 
     if !response.status().is_success() {
       bail!("wallet failed get outputs: {}", response.text()?);
     }
 
-    let output_info: BTreeMap<OutPoint, api::OutputInfo> = outputs
+    let output_info: BTreeMap<OutPoint, api::Output> = outputs
       .into_iter()
-      .zip(serde_json::from_str::<Vec<api::OutputInfo>>(
-        &response.text()?,
-      )?)
+      .zip(serde_json::from_str::<Vec<api::Output>>(&response.text()?)?)
       .collect();
 
-    for (output, artifacts) in &output_info {
-      if !artifacts.indexed {
+    for (output, info) in &output_info {
+      if !info.indexed {
         bail!("output in wallet but not in ord server: {output}");
       }
     }

@@ -605,7 +605,7 @@ impl Server {
 
   async fn outputs(
     Extension(index): Extension<Arc<Index>>,
-    AcceptJson(_): AcceptJson,
+    _: AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
@@ -1529,7 +1529,7 @@ impl Server {
 
   async fn inscriptions_json(
     Extension(index): Extension<Arc<Index>>,
-    AcceptJson(_): AcceptJson,
+    _: AcceptJson,
     Json(inscriptions): Json<Vec<InscriptionId>>,
   ) -> ServerResult {
     task::block_in_place(|| {
@@ -3049,8 +3049,8 @@ mod tests {
     let address = default_address(Chain::Regtest);
 
     pretty_assert_eq!(
-      server.get_json::<api::OutputInfo>(format!("/output/{output}")),
-      api::OutputInfo {
+      server.get_json::<api::Output>(format!("/output/{output}")),
+      api::Output {
         value: 5000000000,
         script_pubkey: address.script_pubkey().to_asm_string(),
         address: Some(uncheck(&address)),

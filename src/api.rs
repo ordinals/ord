@@ -119,7 +119,7 @@ pub struct Inscriptions {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct OutputInfo {
+pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
@@ -131,12 +131,12 @@ pub struct OutputInfo {
   pub value: u64,
 }
 
-impl OutputInfo {
+impl Output {
   pub fn new(
     chain: Chain,
     inscriptions: Vec<InscriptionId>,
     outpoint: OutPoint,
-    txout: TxOut,
+    tx_out: TxOut,
     indexed: bool,
     runes: Vec<(SpacedRune, Pile)>,
     sat_ranges: Option<Vec<(u64, u64)>>,
@@ -144,17 +144,17 @@ impl OutputInfo {
   ) -> Self {
     Self {
       address: chain
-        .address_from_script(&txout.script_pubkey)
+        .address_from_script(&tx_out.script_pubkey)
         .ok()
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,
       sat_ranges,
-      script_pubkey: txout.script_pubkey.to_asm_string(),
+      script_pubkey: tx_out.script_pubkey.to_asm_string(),
       spent,
       transaction: outpoint.txid.to_string(),
-      value: txout.value,
+      value: tx_out.value,
     }
   }
 }
