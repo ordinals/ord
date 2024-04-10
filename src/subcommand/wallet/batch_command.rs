@@ -101,7 +101,7 @@ impl Batch {
         terms
           .cap
           .checked_mul(terms.amount.to_integer(etching.divisibility)?)
-          .ok_or_else(|| anyhow!("`terms.count` * `terms.amount` over maximum"))
+          .ok_or_else(|| anyhow!("`terms.cap` * `terms.amount` over maximum"))
       })
       .transpose()?
       .unwrap_or_default();
@@ -110,8 +110,8 @@ impl Batch {
       supply
         == premine
           .checked_add(mintable)
-          .ok_or_else(|| anyhow!("`premine` + `terms.count` * `terms.amount` over maximum"))?,
-      "`supply` not equal to `premine` + `terms.count` * `terms.amount`"
+          .ok_or_else(|| anyhow!("`premine` + `terms.cap` * `terms.amount` over maximum"))?,
+      "`supply` not equal to `premine` + `terms.cap` * `terms.amount`"
     );
 
     ensure!(supply > 0, "`supply` must be greater than zero");
