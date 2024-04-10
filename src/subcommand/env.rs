@@ -67,7 +67,8 @@ rpcport={bitcoind_port}
       Command::new("bitcoind")
         .arg(format!("-conf={}", absolute.join("bitcoin.conf").display()))
         .stdout(Stdio::null())
-        .spawn().expect("failed to start bitcoind"),
+        .spawn()
+        .expect("failed to start bitcoind"),
     );
 
     loop {
