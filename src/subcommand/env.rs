@@ -206,7 +206,7 @@ bitcoin-cli -datadir={datadir} getblockchaininfo
         break Ok(None);
       }
 
-      thread::sleep(Duration::from_millis(1000));
+      thread::sleep(Duration::from_millis(100));
     }
   }
 }
