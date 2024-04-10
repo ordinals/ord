@@ -7789,7 +7789,7 @@ msgstr "不普通的"
 
 #: src/bounty/2.md:7
 msgid " sat to the submission address:"
-msgstr "聪到下列地址"
+msgstr "聪到下列地址："
 
 #: src/bounty/2.md:9
 msgid "✅: [347100000000000](https://ordinals.com/sat/347100000000000)"
