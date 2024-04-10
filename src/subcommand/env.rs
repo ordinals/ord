@@ -181,12 +181,32 @@ bitcoin-cli -datadir={datadir} getblockchaininfo
       ord.display(),
     );
 
+    let mut latest = 0;
+
     loop {
+      let height = std::process::Command::new("bitcoin-cli")
+        .arg(format!("-datadir={datadir}"))
+        .arg("getblockcount")
+        .output()
+        .ok()
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .and_then(|height_str| height_str.trim().parse().ok())
+        .unwrap_or(0);
+
+      if height > latest {
+        eprintln!(
+          "indexed {} blocks, updated: [{}..{}]",
+          height + 1,
+          latest,
+          height
+        );
+        latest = height;
+      }
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break Ok(None);
       }
 
-      thread::sleep(Duration::from_millis(100));
+      thread::sleep(Duration::from_millis(1000));
     }
   }
 }
