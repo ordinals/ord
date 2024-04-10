@@ -2078,7 +2078,7 @@ mod tests {
         ..default()
       });
 
-      self.mine_blocks(Runestone::COMMIT_INTERVAL.into());
+      self.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
 
       let witness = witness.unwrap_or_else(|| {
         let tapscript = script::Builder::new()
@@ -2535,8 +2535,8 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_redirect("/search/9:1", "/rune/AAAAAAAAAAAAA");
-    server.assert_redirect("/search?query=9:1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search/8:1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=8:1", "/rune/AAAAAAAAAAAAA");
 
     server.assert_response_regex(
       "/search/100000000000000000000:200000000000000000",
@@ -2616,7 +2616,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/rune/9:1",
+      "/rune/8:1",
       StatusCode::OK,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*",
     );
@@ -2763,11 +2763,11 @@ mod tests {
   <dt>number</dt>
   <dd>0</dd>
   <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:09 UTC</time></dd>
+  <dd><time>1970-01-01 00:00:08 UTC</time></dd>
   <dt>id</dt>
-  <dd>9:1</dd>
+  <dd>8:1</dd>
   <dt>etching block</dt>
-  <dd><a href=/block/9>9</a></dd>
+  <dd><a href=/block/8>8</a></dd>
   <dt>etching transaction</dt>
   <dd>1</dd>
   <dt>mint</dt>

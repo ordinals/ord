@@ -5256,7 +5256,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
+    context.mine_blocks((Runestone::COMMIT_INTERVAL - 2).into());
 
     let mut witness = Witness::new();
 
