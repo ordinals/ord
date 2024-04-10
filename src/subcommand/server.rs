@@ -2078,7 +2078,7 @@ mod tests {
         ..default()
       });
 
-      self.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
+      self.mine_blocks((Runestone::COMMIT_CONFIRMATIONS - 1).into());
 
       let witness = witness.unwrap_or_else(|| {
         let tapscript = script::Builder::new()

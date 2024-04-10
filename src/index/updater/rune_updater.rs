@@ -416,7 +416,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           .unwrap()
           + 1;
 
-        if confirmations >= Runestone::COMMIT_INTERVAL.into() {
+        if confirmations >= Runestone::COMMIT_CONFIRMATIONS.into() {
           return Ok(true);
         }
       }
