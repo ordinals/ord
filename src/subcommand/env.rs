@@ -53,7 +53,8 @@ impl Env {
     fs::write(
       absolute.join("bitcoin.conf"),
       format!(
-        "regtest=1
+        "datacarriersize=1000000
+        regtest=1
 datadir={absolute_str}
 listen=0
 txindex=1
