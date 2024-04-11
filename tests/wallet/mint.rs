@@ -32,6 +32,7 @@ fn minting_rune_and_fails_if_after_end() {
           amount: "111.1".parse().unwrap(),
           height: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -120,6 +121,7 @@ fn minting_rune_fails_if_not_mintable() {
         premine: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -193,6 +195,7 @@ fn minting_rune_and_then_sending_works() {
           amount: "21".parse().unwrap(),
           height: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),

@@ -8,5 +8,6 @@ pub struct Etching {
   pub rune: SpacedRune,
   pub supply: Decimal,
   pub symbol: char,
-  pub terms: Option<Terms>,
+  pub terms: Option<batch::Terms>,
+  pub turbo: bool,
 }

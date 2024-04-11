@@ -843,6 +843,7 @@ mod tests {
           divisibility: Some(1),
           symbol: Some('$'),
           spacers: Some(1),
+          turbo: true,
         }),
         pointer: Some(10),
         ..default()
@@ -868,6 +869,7 @@ mod tests {
           },
           symbol: None,
           timestamp: id.block,
+          turbo: false,
         },
       )],
       [],
@@ -5486,6 +5488,7 @@ mod tests {
               offset: (None, None),
             }),
             timestamp: 0,
+            turbo: true,
           },
         )],
         [],
