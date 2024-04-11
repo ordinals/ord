@@ -95,7 +95,7 @@ fn minting_rune_and_fails_if_after_end() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: rune AAAAAAAAAAAAA mint ended on block 11\n")
+  .expected_stderr("error: rune AAAAAAAAAAAAA mint ended on block 10\n")
   .run_and_extract_stdout();
 }
 
