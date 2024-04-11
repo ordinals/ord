@@ -1,7 +1,12 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-#[clap(group(ArgGroup::new("input").required(true).multiple(true).args(&["delegate", "file"])))]
+#[clap(group(
+  ArgGroup::new("input")
+    .required(true)
+    .multiple(true)
+    .args(&["delegate", "file"]))
+)]
 pub(crate) struct Inscribe {
   #[command(flatten)]
   shared: SharedArgs,
@@ -15,7 +20,10 @@ pub(crate) struct Inscribe {
   pub(crate) delegate: Option<InscriptionId>,
   #[arg(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
-  #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
+  #[arg(
+    long,
+    help = "Inscribe sat with contents of <FILE>. May be omitted if --delegate is present."
+  )]
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
@@ -155,5 +163,50 @@ mod tests {
       .to_string(),
       ".*--sat.*cannot be used with.*--satpoint.*"
     );
+  }
+
+  #[test]
+  fn delegate_or_file_must_be_set() {
+    assert_regex_match!(
+      Arguments::try_parse_from(["ord", "wallet", "inscribe", "--fee-rate", "1"])
+        .unwrap_err()
+        .to_string(),
+      ".*required arguments.*--delegate <DELEGATE|--file <FILE>.*"
+    );
+
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "wallet",
+      "inscribe",
+      "--file",
+      "hello.txt",
+      "--fee-rate",
+      "1"
+    ])
+    .is_ok());
+
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "wallet",
+      "inscribe",
+      "--delegate",
+      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+      "--fee-rate",
+      "1"
+    ])
+    .is_ok());
+
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "wallet",
+      "inscribe",
+      "--file",
+      "hello.txt",
+      "--delegate",
+      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+      "--fee-rate",
+      "1"
+    ])
+    .is_ok());
   }
 }

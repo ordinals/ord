@@ -446,4 +446,21 @@ inscriptions:
       }
     );
   }
+
+  #[test]
+  fn batchfile_no_delegate_no_file_allowed() {
+    let tempdir = TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: shared-output
+inscriptions:
+  -
+"#,
+    )
+    .unwrap();
+
+    assert!(batch::File::load(batch_file.as_path()).is_ok());
+  }
 }
