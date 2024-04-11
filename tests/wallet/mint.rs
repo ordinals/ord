@@ -308,7 +308,7 @@ fn minting_rune_with_destination() {
   let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --destination {}",
     Rune(RUNE),
-    destination.clone().assume_checked().to_string()
+    destination.clone().assume_checked()
   ))
   .core(&core)
   .ord(&ord)
