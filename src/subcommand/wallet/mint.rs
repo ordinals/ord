@@ -47,7 +47,8 @@ impl Mint {
 
     ensure!(
       destination.script_pubkey().dust_value() < postage,
-      "postage below dust limit"
+      "postage below dust limit of {} sats",
+      destination.script_pubkey().dust_value().to_sat()
     );
 
     let runestone = Runestone {
