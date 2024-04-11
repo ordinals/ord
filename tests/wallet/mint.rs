@@ -34,7 +34,7 @@ fn minting_rune_and_fails_if_after_end() {
         }),
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -122,7 +122,7 @@ fn minting_rune_fails_if_not_mintable() {
         terms: None,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -195,7 +195,7 @@ fn minting_rune_and_then_sending_works() {
         }),
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()

@@ -3126,7 +3126,12 @@ mod tests {
         3,
         0,
         0,
-        Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
+        Inscription {
+          content_type: None,
+          body: Some("hello".as_bytes().into()),
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });
@@ -3974,7 +3979,11 @@ mod tests {
   fn content_response_no_content() {
     assert_eq!(
       Server::content_response(
-        Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
+        Inscription {
+          content_type: Some("text/plain".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        },
         AcceptEncoding::default(),
         &ServerConfig::default(),
       )
@@ -3986,7 +3995,11 @@ mod tests {
   #[test]
   fn content_response_with_content() {
     let (headers, body) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4000,7 +4013,11 @@ mod tests {
   #[test]
   fn content_security_policy_no_origin() {
     let (headers, _) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4016,7 +4033,11 @@ mod tests {
   #[test]
   fn content_security_policy_with_origin() {
     let (headers, _) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig {
         csp_origin: Some("https://ordinals.com".into()),
@@ -4107,7 +4128,11 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) = Server::content_response(
-      Inscription::new(None, Some(Vec::new())),
+      Inscription {
+        content_type: None,
+        body: Some(Vec::new()),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4121,7 +4146,11 @@ mod tests {
   #[test]
   fn content_response_bad_content_type() {
     let (headers, body) = Server::content_response(
-      Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
+      Inscription {
+        content_type: Some("\n".as_bytes().to_vec()),
+        body: Some(Vec::new()),
+        ..Default::default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4471,7 +4500,12 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
+        Inscription {
+          content_type: Some("foo/bar".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });
@@ -4500,7 +4534,12 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("image/png".as_bytes().to_vec()), None).to_witness(),
+        Inscription {
+          content_type: Some("image/png".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });

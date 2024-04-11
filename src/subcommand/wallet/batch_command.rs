@@ -224,12 +224,12 @@ inscriptions:
       batch::File {
         inscriptions: vec![
           batch::Entry {
-            file: inscription_path,
+            file: Some(inscription_path),
             metadata: Some(Value::Mapping(metadata)),
             ..default()
           },
           batch::Entry {
-            file: brc20_path,
+            file: Some(brc20_path),
             metaprotocol: Some("brc-20".to_string()),
             ..default()
           }
