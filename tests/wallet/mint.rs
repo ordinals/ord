@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::mint};
+use {super::*, ord::decimal::Decimal, ord::subcommand::wallet::mint};
 
 #[test]
 fn minting_rune_and_fails_if_after_end() {
@@ -209,7 +209,10 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    111_u128
+    Decimal {
+      value: 111,
+      scale: 0,
+    }
   );
 
   let output = CommandBuilder::new(format!(
@@ -229,7 +232,10 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    132_u128
+    Decimal {
+      value: 132,
+      scale: 0,
+    }
   );
 
   pretty_assert_eq!(
