@@ -2699,3 +2699,45 @@ fn batch_inscribe_errors_if_pending_etchings() {
     )
     .run_and_extract_stdout();
 }
+
+#[test]
+fn forbid_etching_below_rune_activation_height() {
+  let core = mockcore::builder().build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("--index-runes wallet batch --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: "1".parse().unwrap(),
+          premine: "1".parse().unwrap(),
+          symbol: '¢',
+          terms: None,
+          turbo: false,
+        }),
+        inscriptions: vec![batch::Entry {
+          file: Some("inscription.txt".into()),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr("error: rune reveal height below rune activation height: 7 < 840000\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
