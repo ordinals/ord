@@ -282,6 +282,7 @@ fn minting_rune_with_destination() {
         premine: "0".parse().unwrap(),
         supply: "21".parse().unwrap(),
         symbol: '¢',
+        turbo: false,
         terms: Some(batch::Terms {
           cap: 1,
           offset: Some(batch::Range {
@@ -293,16 +294,21 @@ fn minting_rune_with_destination() {
         }),
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
     },
   );
 
+  let destination: Address<NetworkUnchecked> = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
+    .parse()
+    .unwrap();
+
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --destination bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw",
-    Rune(RUNE)
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --destination {}",
+    Rune(RUNE),
+    destination.clone().assume_checked().to_string()
   ))
   .core(&core)
   .ord(&ord)
@@ -315,6 +321,12 @@ fn minting_rune_with_destination() {
       divisibility: 0,
       symbol: Some('¢'),
     }
+  );
+
+  let mint_tx = &core.mempool()[0];
+  assert_eq!(
+    mint_tx.output[1].script_pubkey,
+    destination.payload.script_pubkey()
   );
 
   core.mine_blocks(1);
