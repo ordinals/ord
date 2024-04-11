@@ -9,7 +9,7 @@ pub struct File {
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
-  pub etching: Option<Etching>,
+  pub etching: Option<batch::Etching>,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
 }
@@ -393,6 +393,7 @@ inscriptions:
               end: Some(9000),
             }),
           }),
+          turbo: true,
         }),
         inscriptions: vec![
           batch::Entry {

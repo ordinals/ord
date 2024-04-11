@@ -2715,6 +2715,7 @@ mod tests {
           rune: Some(rune),
           symbol: Some('%'),
           premine: Some(u128::MAX),
+          turbo: true,
           ..default()
         }),
         ..default()
@@ -2742,6 +2743,7 @@ mod tests {
           premine: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
+          turbo: true,
           ..default()
         }
       )]
@@ -2782,6 +2784,8 @@ mod tests {
   <dd>0</dd>
   <dt>symbol</dt>
   <dd>%</dd>
+  <dt>turbo</dt>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
