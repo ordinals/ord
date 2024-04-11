@@ -1,6 +1,12 @@
 Changelog
 =========
 
+[0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2023-04-11
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix off-by-one in wallet when waiting for etching commitment to mature ([#3515](https://github.com/ordinals/ord/pull/3515) by [casey](https://github.com/casey))
+
 [0.18.0](https://github.com/ordinals/ord/releases/tag/0.18.0) - 2023-04-10
 --------------------------------------------------------------------------
 
