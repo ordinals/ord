@@ -8,7 +8,7 @@ pub(crate) struct Mint {
   rune: SpacedRune,
   #[clap(
     long,
-    help = "Postage to include with minted rune output. Default `10000sat`."
+    help = "Postage to include with minted rune output. [default 10000sat]."
   )]
   postage: Option<Amount>,
 }
@@ -47,7 +47,7 @@ impl Mint {
 
     ensure!(
       destination.script_pubkey().dust_value() < postage,
-      "postage below dust limit of {} sats",
+      "postage below dust limit of {}sat",
       destination.script_pubkey().dust_value().to_sat()
     );
 

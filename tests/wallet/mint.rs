@@ -381,6 +381,6 @@ fn minting_rune_with_postage_dust() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: postage below dust limit of 330 sats\n")
+  .expected_stderr("error: postage below dust limit of 330sat\n")
   .run_and_extract_stdout();
 }
