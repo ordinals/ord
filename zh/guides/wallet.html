@@ -288,7 +288,7 @@
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>像区块链浏览器<a href="https://mempool.space/">the mempool.space block explorer</a>一样对区块进行记述. <code>ord</code>同<code>bitcoind</code>进行交互, 所以你在使用<code>ord</code>时候需要让<code>bitcoind</code> 在后台运行。</p>
-<p>T区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
+<p>区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
 <h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
 <p>确保你可以通过 <code>bitcoin-cli -getinfo</code> 来访问<code>bitcoind</code> ，并且它已经完全同步</p>
 <p>假如 <code>bitcoin-cli -getinfo</code> 返回的是 <code>Could not connect to the server</code>, 这可能是<code>bitcoind</code> 没有运行</p>

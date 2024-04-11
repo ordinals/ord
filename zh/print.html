@@ -896,7 +896,7 @@ OP_ENDIF
 <h2 id="墓碑"><a class="header" href="#墓碑">墓碑</a></h2>
 <p>由于多种原因，符石可能会形成错误，包括符石<code>OOP_RETURN</code>中的非推送数据操作码、无效的变长整数或无法识别的符石字段。</p>
 <p>形成错误的符石被称为<a href="https://en.wikipedia.org/wiki/Cenotaph">墓碑</a>.</p>
-<p>输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸造。在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"</p>
+<p>输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸造。在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。</p>
 <p>墓碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，同时不会误导未升级的客户端关于这些符文的位置，因为未升级的客户端会看到这些符文已经被燃烧。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="符文没有规范"><a class="header" href="#符文没有规范">符文没有规范</a></h1>
 <p>符文的参考实现，即<code>ord</code>，是符文协议的规范性规格说明。</p>
@@ -1465,7 +1465,7 @@ OP_ENDIF
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>像区块链浏览器<a href="https://mempool.space/">the mempool.space block explorer</a>一样对区块进行记述. <code>ord</code>同<code>bitcoind</code>进行交互, 所以你在使用<code>ord</code>时候需要让<code>bitcoind</code> 在后台运行。</p>
-<p>T区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
+<p>区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
 <h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
 <p>确保你可以通过 <code>bitcoin-cli -getinfo</code> 来访问<code>bitcoind</code> ，并且它已经完全同步</p>
 <p>假如 <code>bitcoin-cli -getinfo</code> 返回的是 <code>Could not connect to the server</code>, 这可能是<code>bitcoind</code> 没有运行</p>
@@ -2217,7 +2217,7 @@ $ord outputs
 <p>由 <a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>赢得！</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="赏金任务-2"><a class="header" href="#赏金任务-2">赏金任务 2</a></h1>
 <h2 id="标准-2"><a class="header" href="#标准-2">标准</a></h2>
-<p>发送一个<span class=uncommon>不普通的</span>聪到下列地址✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>发送一个<span class=uncommon>不普通的</span>聪到下列地址：✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
 <p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
 <p>在提交之前确认上述地址并未在你之前收到其他的稀有聪，只有第一个成功的提交可以获得奖励；</p>
 <h2 id="奖励-2"><a class="header" href="#奖励-2">奖励</a></h2>
@@ -2228,7 +2228,7 @@ $ord outputs
 <p>由<a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a> 赢得!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="赏金任务-3"><a class="header" href="#赏金任务-3">赏金任务 3</a></h1>
 <h2 id="标准-3"><a class="header" href="#标准-3">标准</a></h2>
-<p>任务3有两个部分，都是基于_序数名字_序数名字是把序数数字用修改后的base-26进行的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的_变长_，序数名字将变得_更短_ 比如第一个开采的0号聪的名字是<code>nvtdijuwxlp</code>，而最后一个被开采的2,099,999,997,689,999号聪的名字，则是 <code>a</code>.</p>
+<p>任务3有两个部分，都是基于 <em>序数名字</em>，序数名字是把序数数字用修改后的base-26进行的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的 <em>变长</em>，序数名字将变得 <em>更短</em>， 比如第一个开采的0号聪的名字是<code>nvtdijuwxlp</code>，而最后一个被开采的2,099,999,997,689,999号聪的名字，则是 <code>a</code>.</p>
 <p>赏金计划开放到区块高度840000-第四次减半后的第一个区块。区块高度840000以及以后的区块将不被考虑。</p>
 <p>两个部分任务都使用 <a href="bounty/frequency.tsv">frequency.tsv</a>, 一个单词的清单以及他们在 <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>中出现的次数。过滤后仅包含在提交期结束时能被挖掘的聪的名字，这些名称在语料库中出现至少5000次。</p>
 <p><code>frequency.tsv</code> 制表符分割值的文件，第一列是单词，第二列是它在语料库里出现的次数。这些条目从出现频率最低到出现频率最高的顺序进行排序。</p>
