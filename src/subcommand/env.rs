@@ -97,6 +97,8 @@ rpcport={bitcoind_port}
         .arg("--polling-interval=100ms")
         .arg("--http-port")
         .arg(ord_port.to_string())
+        .arg("--content-proxy")
+        .arg("https://ordinals.com")
         .spawn()?,
     );
 
