@@ -6,7 +6,7 @@ pub(crate) struct Mint {
   fee_rate: FeeRate,
   #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
-  #[clap(long, help = "Send minted rune output to <DESTINATION>.")]
+  #[clap(long, help = "Send minted runes to <DESTINATION>.")]
   destination: Option<Address<NetworkUnchecked>>,
 }
 
