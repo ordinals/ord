@@ -410,10 +410,22 @@ fn minting_rune_with_postage() {
     },
   );
 
-  CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --postage 2222sat",
     Rune(RUNE)
-  ));
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  pretty_assert_eq!(
+    output.pile,
+    Pile {
+      amount: 21,
+      divisibility: 0,
+      symbol: Some('¢'),
+    }
+  );
 
   core.mine_blocks(1);
 
