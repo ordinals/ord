@@ -37,7 +37,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        let _ = runes
+        runes
           .entry(spaced_rune)
           .and_modify(|decimal: &mut Decimal| {
             assert_eq!(decimal.scale, pile.divisibility);
