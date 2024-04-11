@@ -1504,7 +1504,7 @@ fn batch_can_etch_rune() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 44999980000,
+      cardinal: 39999980000,
       ordinal: 10000,
       runic: Some(10000),
       runes: Some(
@@ -1518,7 +1518,7 @@ fn batch_can_etch_rune() {
         .into_iter()
         .collect()
       ),
-      total: 450 * COIN_VALUE,
+      total: 400 * COIN_VALUE,
     }
   );
 }
@@ -1645,11 +1645,11 @@ fn batch_can_etch_rune_without_premine() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 44999990000,
+      cardinal: 39999990000,
       ordinal: 10000,
       runic: Some(0),
       runes: Some(default()),
-      total: 450 * COIN_VALUE,
+      total: 400 * COIN_VALUE,
     }
   );
 }

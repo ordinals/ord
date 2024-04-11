@@ -124,7 +124,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 50 * COIN_VALUE * 8 - 20_000,
+      cardinal: 50 * COIN_VALUE * 7 - 20_000,
       ordinal: 10000,
       runic: Some(10_000),
       runes: Some(
@@ -138,7 +138,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
         .into_iter()
         .collect()
       ),
-      total: 50 * COIN_VALUE * 8,
+      total: 50 * COIN_VALUE * 7,
     }
   );
 }
@@ -240,7 +240,7 @@ fn runic_utxos_are_displayed_with_decimal_amount() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 50 * COIN_VALUE * 8 - 20_000,
+      cardinal: 50 * COIN_VALUE * 7 - 20_000,
       ordinal: 10000,
       runic: Some(10_000),
       runes: Some(
@@ -254,7 +254,7 @@ fn runic_utxos_are_displayed_with_decimal_amount() {
         .into_iter()
         .collect()
       ),
-      total: 50 * COIN_VALUE * 8,
+      total: 50 * COIN_VALUE * 7,
     }
   );
 }
