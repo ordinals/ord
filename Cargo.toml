@@ -8,7 +8,7 @@ autotests = false
 homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 autobins = false
-rust-version = "1.74.0"
+rust-version = "1.76.0"
 
 [package.metadata.deb]
 copyright = "The Ord Maintainers"
