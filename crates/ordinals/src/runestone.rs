@@ -2104,4 +2104,83 @@ mod tests {
       }),
     );
   }
+
+  #[test]
+  fn all_pushdata_opcodes_are_valid() {
+    for i in 0..79 {
+      let mut script_pubkey = Vec::new();
+
+      script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
+      script_pubkey.push(Runestone::MAGIC_NUMBER.to_u8());
+      script_pubkey.push(i);
+
+      match i {
+        0..=75 => {
+          for j in 0..i {
+            script_pubkey.push(if j % 2 == 0 { 1 } else { 0 });
+          }
+
+          if i % 2 == 1 {
+            script_pubkey.push(1);
+            script_pubkey.push(1);
+          }
+        }
+        76 => {
+          script_pubkey.push(0);
+        }
+        77 => {
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+        }
+        78 => {
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+        }
+        _ => unreachable!(),
+      }
+
+      assert_eq!(
+        Runestone::decipher(&Transaction {
+          version: 2,
+          lock_time: LockTime::ZERO,
+          input: default(),
+          output: vec![TxOut {
+            script_pubkey: script_pubkey.into(),
+            value: 0,
+          },],
+        })
+        .unwrap(),
+        Artifact::Runestone(Runestone::default()),
+      );
+    }
+  }
+
+  #[test]
+  fn all_non_pushdata_opcodes_are_invalid() {
+    for i in 79..=u8::MAX {
+      assert_eq!(
+        Runestone::decipher(&Transaction {
+          version: 2,
+          lock_time: LockTime::ZERO,
+          input: default(),
+          output: vec![TxOut {
+            script_pubkey: vec![
+              opcodes::all::OP_RETURN.to_u8(),
+              Runestone::MAGIC_NUMBER.to_u8(),
+              i
+            ]
+            .into(),
+            value: 0,
+          },],
+        })
+        .unwrap(),
+        Artifact::Cenotaph(Cenotaph {
+          flaws: Flaw::Opcode.into(),
+          ..default()
+        }),
+      );
+    }
+  }
 }
