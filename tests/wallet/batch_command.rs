@@ -1,4 +1,6 @@
-use {super::*, ord::subcommand::wallet::send, pretty_assertions::assert_eq};
+use {
+  super::*, ord::decimal::Decimal, ord::subcommand::wallet::send, pretty_assertions::assert_eq,
+};
 
 fn receive(core: &mockcore::Handle, ord: &TestServer) -> Address {
   let address = CommandBuilder::new("wallet receive")
@@ -1505,7 +1507,17 @@ fn batch_can_etch_rune() {
       cardinal: 44999980000,
       ordinal: 10000,
       runic: Some(10000),
-      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+      runes: Some(
+        vec![(
+          rune,
+          Decimal {
+            value: 1000,
+            scale: 0,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
       total: 450 * COIN_VALUE,
     }
   );
@@ -1990,7 +2002,7 @@ fn etch_mintable_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2039,7 +2051,7 @@ fn etch_mintable_plus_premine_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `premine` + `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `premine` + `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2088,7 +2100,7 @@ fn incorrect_supply_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `supply` not equal to `premine` + `terms.count` * `terms.amount`\n")
+    .expected_stderr("error: `supply` not equal to `premine` + `terms.cap` * `terms.amount`\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

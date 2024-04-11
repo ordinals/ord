@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Default, DeserializeFromStr, SerializeDisplay)]
 pub struct Decimal {
-  value: u128,
-  scale: u8,
+  pub value: u128,
+  pub scale: u8,
 }
 
 impl Decimal {
