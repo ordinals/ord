@@ -166,6 +166,7 @@ fn etch(core: &mockcore::Handle, ord: &TestServer, rune: Rune) -> Etched {
         premine: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -225,6 +226,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     supply,
     symbol,
     terms,
+    turbo,
   } = batchfile.etching.unwrap();
 
   {

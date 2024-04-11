@@ -108,6 +108,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
         supply: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
