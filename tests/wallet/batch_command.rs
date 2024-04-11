@@ -1480,7 +1480,7 @@ fn batch_can_etch_rune() {
 
   assert_eq!(
     reveal.input[0].sequence,
-    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+    Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
   );
 
   let Artifact::Runestone(runestone) = Runestone::decipher(&reveal).unwrap() else {
@@ -1588,7 +1588,7 @@ fn batch_can_etch_rune_without_premine() {
 
   assert_eq!(
     reveal.input[0].sequence,
-    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+    Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
   );
 
   assert_eq!(
@@ -1870,7 +1870,7 @@ fn etch_sub_minimum_rune_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: rune is less than minimum for next block: A < ZZQYZPATYGGX\n")
+    .expected_stderr("error: rune is less than minimum for next block: A < ZZRZCNJJBILX\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2247,7 +2247,7 @@ fn invalid_start_height_error() {
     .core(&core)
     .ord(&ord)
     .expected_stderr(
-      "error: `terms.height.start` must be greater than the reveal transaction block height of 8\n",
+      "error: `terms.height.start` must be greater than the reveal transaction block height of 7\n",
     )
     .expected_exit_code(1)
     .run_and_extract_stdout();
@@ -2298,7 +2298,7 @@ fn invalid_end_height_error() {
     .core(&core)
     .ord(&ord)
     .expected_stderr(
-      "error: `terms.height.end` must be greater than the reveal transaction block height of 8\n",
+      "error: `terms.height.end` must be greater than the reveal transaction block height of 7\n",
     )
     .expected_exit_code(1)
     .run_and_extract_stdout();
