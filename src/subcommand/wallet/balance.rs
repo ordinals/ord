@@ -22,7 +22,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut cardinal = 0;
   let mut ordinal = 0;
-  let mut runes_balance = BTreeMap::new();
+  let mut runes = BTreeMap::new();
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
@@ -37,7 +37,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        let _ = runes_balance
+        let _ = runes
           .entry(spaced_rune)
           .and_modify(|decimal: &mut Decimal| {
             assert_eq!(decimal.scale, pile.divisibility);
@@ -63,7 +63,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: wallet.has_rune_index().then_some(runes_balance),
+    runes: wallet.has_rune_index().then_some(runes),
     runic: wallet.has_rune_index().then_some(runic),
     total: cardinal + ordinal + runic,
   })))
