@@ -286,6 +286,7 @@ fn minting_rune_with_postage() {
         premine: "0".parse().unwrap(),
         supply: "21".parse().unwrap(),
         symbol: '¢',
+        turbo: false,
         terms: Some(batch::Terms {
           cap: 1,
           offset: Some(batch::Range {
@@ -297,7 +298,7 @@ fn minting_rune_with_postage() {
         }),
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -354,6 +355,7 @@ fn minting_rune_with_postage_dust() {
         premine: "0".parse().unwrap(),
         supply: "21".parse().unwrap(),
         symbol: '¢',
+        turbo: false,
         terms: Some(batch::Terms {
           cap: 1,
           offset: Some(batch::Range {
@@ -365,7 +367,7 @@ fn minting_rune_with_postage_dust() {
         }),
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
