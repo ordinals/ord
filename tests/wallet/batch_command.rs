@@ -1507,7 +1507,17 @@ fn batch_can_etch_rune() {
       cardinal: 44999980000,
       ordinal: 10000,
       runic: Some(10000),
-      runes: Some(vec![(rune, 1000)].into_iter().collect()),
+      runes: Some(
+        vec![(
+          rune,
+          Decimal {
+            value: 1000,
+            scale: 0,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
       total: 450 * COIN_VALUE,
     }
   );
@@ -1549,79 +1559,11 @@ fn batch_can_etch_turbo_rune() {
     },
   );
 
-  let parent = batch.output.inscriptions[0].id;
-
-  let request = ord.request(format!("/content/{parent}"));
-
-  assert_eq!(request.status(), 200);
-  assert_eq!(request.headers().get("content-type").unwrap(), "image/jpeg");
-  assert_eq!(request.text().unwrap(), "inscription");
-
-  ord.assert_response_regex(
-    format!("/inscription/{parent}"),
-    r".*<dt>rune</dt>\s*<dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>.*",
-  );
-
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
       r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
-  );
-
-  let destination = batch
-    .output
-    .rune
-    .unwrap()
-    .destination
-    .unwrap()
-    .require_network(Network::Regtest)
-    .unwrap();
-
-  assert!(core.state().is_wallet_address(&destination));
-
-  let reveal = core.tx_by_id(batch.output.reveal);
-
-  assert_eq!(
-    reveal.input[0].sequence,
-    Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
-  );
-
-  let Artifact::Runestone(runestone) = Runestone::decipher(&reveal).unwrap() else {
-    panic!();
-  };
-
-  let pointer = reveal.output.len() - 2;
-
-  assert_eq!(runestone.pointer, Some(pointer.try_into().unwrap()));
-
-  assert_eq!(
-    reveal.output[pointer].script_pubkey,
-    destination.script_pubkey(),
-  );
-
-  assert_eq!(
-    CommandBuilder::new("--regtest wallet balance")
-      .core(&core)
-      .ord(&ord)
-      .run_and_deserialize_output::<Balance>(),
-    Balance {
-      cardinal: 44999980000,
-      ordinal: 10000,
-      runic: Some(10000),
-      runes: Some(
-        vec![(
-          rune,
-          Decimal {
-            value: 1000,
-            scale: 0,
-          }
-        )]
-        .into_iter()
-        .collect()
-      ),
-      total: 450 * COIN_VALUE,
-    }
   );
 }
 

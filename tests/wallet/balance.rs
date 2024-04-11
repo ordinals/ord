@@ -224,6 +224,7 @@ fn runic_utxos_are_displayed_with_decimal_amount() {
           cap: 1,
           ..default()
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
