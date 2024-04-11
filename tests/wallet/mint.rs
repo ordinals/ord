@@ -323,9 +323,8 @@ fn minting_rune_with_destination() {
     }
   );
 
-  let mint_tx = &core.mempool()[0];
   assert_eq!(
-    mint_tx.output[1].script_pubkey,
+    core.mempool()[0].output[1].script_pubkey,
     destination.payload.script_pubkey()
   );
 
@@ -337,4 +336,30 @@ fn minting_rune_with_destination() {
     .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
 
   assert_eq!(balance.runic, Some(0));
+
+  assert_eq!(
+    CommandBuilder::new("--regtest --index-runes balances")
+      .core(&core)
+      .run_and_deserialize_output::<ord::subcommand::balances::Output>(),
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        SpacedRune::new(Rune(RUNE), 0),
+        vec![(
+          OutPoint {
+            txid: output.mint,
+            vout: 1
+          },
+          Pile {
+            amount: 21,
+            divisibility: 0,
+            symbol: Some('¢')
+          },
+        )]
+        .into_iter()
+        .collect()
+      )]
+      .into_iter()
+      .collect(),
+    }
+  );
 }
