@@ -1552,12 +1552,14 @@ fn batch_can_etch_turbo_rune() {
         turbo: true,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
     },
   );
+
+  let parent = batch.output.inscriptions[0].id;
 
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
