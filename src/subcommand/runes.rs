@@ -20,6 +20,7 @@ pub struct RuneInfo {
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
   pub timestamp: DateTime<Utc>,
+  pub turbo: bool,
   pub tx: u32,
 }
 
@@ -52,6 +53,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
             symbol,
             terms,
             timestamp,
+            turbo,
           },
         )| {
           (
@@ -70,6 +72,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
               symbol,
               terms,
               timestamp: crate::timestamp(timestamp),
+              turbo,
               tx: id.tx,
             },
           )
