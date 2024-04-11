@@ -102,7 +102,7 @@ pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod decimal;
+pub mod decimal;
 mod deserialize_from_str;
 mod fee_rate;
 pub mod index;

@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::mint};
+use {super::*, ord::decimal::Decimal, ord::subcommand::wallet::mint};
 
 #[test]
 fn minting_rune_and_fails_if_after_end() {
@@ -32,9 +32,10 @@ fn minting_rune_and_fails_if_after_end() {
           amount: "111.1".parse().unwrap(),
           height: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -120,9 +121,10 @@ fn minting_rune_fails_if_not_mintable() {
         premine: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -193,9 +195,10 @@ fn minting_rune_and_then_sending_works() {
           amount: "21".parse().unwrap(),
           height: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -209,7 +212,10 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    111_u128
+    Decimal {
+      value: 111,
+      scale: 0,
+    }
   );
 
   assert_eq!(balance.runic.unwrap(), 10000);
@@ -231,7 +237,10 @@ fn minting_rune_and_then_sending_works() {
 
   assert_eq!(
     *balance.runes.unwrap().first_key_value().unwrap().1,
-    132_u128
+    Decimal {
+      value: 132,
+      scale: 0,
+    }
   );
 
   assert_eq!(balance.runic.unwrap(), 20000);

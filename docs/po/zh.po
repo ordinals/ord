@@ -2548,7 +2548,7 @@ msgid ""
 "with a cenotaph count towards the mint cap, but the minted runes are burned."
 msgstr ""
 "输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸造。"
-"在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。""
+"在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
 
 #: src/runes.md:157
 msgid ""
@@ -5037,7 +5037,7 @@ msgid ""
 "`datadir` option because the cookie file will still be in the default "
 "location for `bitcoin-cli` and `ord` to find."
 msgstr ""
-"T区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选"
+"区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选"
 "项`blocksdir=<external_drive_path>`. 这比使用`datadir` 选项更简单， `bitcoin-"
 "cli` 和 `ord` 可以在默认的位置找到cookie文件"
 
@@ -7789,7 +7789,7 @@ msgstr "不普通的"
 
 #: src/bounty/2.md:7
 msgid " sat to the submission address:"
-msgstr "聪到下列地址"
+msgstr "聪到下列地址："
 
 #: src/bounty/2.md:9
 msgid "✅: [347100000000000](https://ordinals.com/sat/347100000000000)"
@@ -7837,9 +7837,9 @@ msgid ""
 "sat 0, the first sat to be mined is `nvtdijuwxlp` and the name of sat "
 "2,099,999,997,689,999, the last sat to be mined, is `a`."
 msgstr ""
-"任务3有两个部分，都是基于_序数名字_序数名字是把序数数字用修改后的base-26进行"
-"的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的_变长_，序数"
-"名字将变得_更短_ 比如第一个开采的0号聪的名字是`nvtdijuwxlp`，而最后一个被开采"
+"任务3有两个部分，都是基于 _序数名字_，序数名字是把序数数字用修改后的base-26进行"
+"的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的 _变长_，序数"
+"名字将变得 _更短_， 比如第一个开采的0号聪的名字是`nvtdijuwxlp`，而最后一个被开采"
 "的2,099,999,997,689,999号聪的名字，则是 `a`."
 
 #: src/bounty/3.md:14
