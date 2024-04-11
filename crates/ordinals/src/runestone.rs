@@ -2160,19 +2160,18 @@ mod tests {
   #[test]
   fn all_non_pushdata_opcodes_are_invalid() {
     for i in 79..=u8::MAX {
-      let mut script_pubkey = Vec::new();
-
-      script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
-      script_pubkey.push(Runestone::MAGIC_NUMBER.to_u8());
-      script_pubkey.push(i);
-
       assert_eq!(
         Runestone::decipher(&Transaction {
           version: 2,
           lock_time: LockTime::ZERO,
           input: default(),
           output: vec![TxOut {
-            script_pubkey: script_pubkey.into(),
+            script_pubkey: vec![
+              opcodes::all::OP_RETURN.to_u8(),
+              Runestone::MAGIC_NUMBER.to_u8(),
+              i
+            ]
+            .into(),
             value: 0,
           },],
         })
