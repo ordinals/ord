@@ -335,7 +335,8 @@
 <h4 id="定位符石输出"><a class="header" href="#定位符石输出">定位符石输出</a></h4>
 <p>搜索第一个脚本公钥以 <code>OP_RETURN</code> <code>OP_13</code> 开头的输出。如果解读失败，不会考虑后续匹配的输出。</p>
 <h4 id="组装有效载荷缓冲区"><a class="header" href="#组装有效载荷缓冲区">组装有效载荷缓冲区</a></h4>
-<p>通过连接数据推送来组装有效载荷缓冲区。如果遇到非数据推送操作码，则解读的符石是没有铭刻、铸造或法令的纪念碑。</p>
+<p>The payload buffer is assembled by concatenating data pushes, after <code>OP_13</code>, in the matching script pubkey.</p>
+<p>Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is encountered, i.e., any opcode equal to or greater than opcode 79, the deciphered runestone is a cenotaph with no etching, mint, or edicts.</p>
 <h4 id="解码整数序列"><a class="header" href="#解码整数序列">解码整数序列</a></h4>
 <p>从有效载荷中解码一系列 128 位整数作为 LEB128 变长整数。</p>
 <p>LEB128 变长整数被编码为一系列字节，每个字节的最高有效位都被设置，最后一个字节除外。</p>

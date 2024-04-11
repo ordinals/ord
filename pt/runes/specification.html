@@ -335,7 +335,8 @@
 <h4 id="locating-the-runestone-output"><a class="header" href="#locating-the-runestone-output">Locating the Runestone Output</a></h4>
 <p>Outputs are searched for the first script pubkey that beings with <code>OP_RETURN OP_13</code>. If deciphering fails, later matching outputs are not considered.</p>
 <h4 id="assembling-the-payload-buffer"><a class="header" href="#assembling-the-payload-buffer">Assembling the Payload Buffer</a></h4>
-<p>The payload buffer is assembled by concatenating data pushes. If a non-data push opcode is encountered, the deciphered runestone is a cenotaph with no etching, mint, or edicts.</p>
+<p>The payload buffer is assembled by concatenating data pushes, after <code>OP_13</code>, in the matching script pubkey.</p>
+<p>Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is encountered, i.e., any opcode equal to or greater than opcode 79, the deciphered runestone is a cenotaph with no etching, mint, or edicts.</p>
 <h4 id="decoding-the-integer-sequence"><a class="header" href="#decoding-the-integer-sequence">Decoding the Integer Sequence</a></h4>
 <p>A sequence of 128-bit integers are decoded from the payload as LEB128 varints.</p>
 <p>LEB128 varints are encoded as sequence of bytes, each of which has the most-significant bit set, except for the last.</p>
