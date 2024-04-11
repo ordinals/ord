@@ -4771,7 +4771,7 @@ mod tests {
   }
 
   #[test]
-  fn open_mints_cannot_be_without_cap() {
+  fn open_mints_without_a_cap_are_unmintable() {
     let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
