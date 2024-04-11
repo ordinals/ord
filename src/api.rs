@@ -136,7 +136,7 @@ impl Output {
     chain: Chain,
     inscriptions: Vec<InscriptionId>,
     outpoint: OutPoint,
-    output: TxOut,
+    tx_out: TxOut,
     indexed: bool,
     runes: Vec<(SpacedRune, Pile)>,
     sat_ranges: Option<Vec<(u64, u64)>>,
@@ -144,17 +144,17 @@ impl Output {
   ) -> Self {
     Self {
       address: chain
-        .address_from_script(&output.script_pubkey)
+        .address_from_script(&tx_out.script_pubkey)
         .ok()
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,
       sat_ranges,
-      script_pubkey: output.script_pubkey.to_asm_string(),
+      script_pubkey: tx_out.script_pubkey.to_asm_string(),
       spent,
       transaction: outpoint.txid.to_string(),
-      value: output.value,
+      value: tx_out.value,
     }
   }
 }
