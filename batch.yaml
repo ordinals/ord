@@ -45,6 +45,13 @@ etching:
     offset:
       start: 1000
       end: 9000
+  # future runes protocol changes may be opt-in. this may be for a variety of
+  # reasons, including that they make light client validation harder, or simply
+  # because they are too degenerate.
+  #
+  # setting `turbo` to `true` opts in to these future protocol changes,
+  # whatever they may be.
+  turbo: true
 
 # inscriptions to inscribe
 inscriptions:

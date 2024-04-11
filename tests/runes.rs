@@ -62,6 +62,7 @@ fn one_rune() {
           supply: 1000,
           symbol: Some('¢'),
           timestamp: ord::timestamp(8),
+          turbo: false,
           tx: 1,
         }
       )]
@@ -107,6 +108,7 @@ fn two_runes() {
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(8),
+            turbo: false,
             tx: 1,
           }
         ),
@@ -129,6 +131,7 @@ fn two_runes() {
             supply: 1000,
             symbol: Some('¢'),
             timestamp: ord::timestamp(16),
+            turbo: false,
             tx: 1,
           }
         )

@@ -161,7 +161,7 @@ impl Context {
       ..default()
     });
 
-    self.mine_blocks(Runestone::COMMIT_INTERVAL.into());
+    self.mine_blocks(Runestone::COMMIT_CONFIRMATIONS.into());
 
     let mut witness = Witness::new();
 
@@ -197,7 +197,8 @@ impl Context {
     (
       txid,
       RuneId {
-        block: u64::try_from(block_count + usize::from(Runestone::COMMIT_INTERVAL) + 1).unwrap(),
+        block: u64::try_from(block_count + usize::from(Runestone::COMMIT_CONFIRMATIONS) + 1)
+          .unwrap(),
         tx: 1,
       },
     )

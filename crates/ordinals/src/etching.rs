@@ -8,6 +8,7 @@ pub struct Etching {
   pub spacers: Option<u32>,
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
+  pub turbo: bool,
 }
 
 impl Etching {
