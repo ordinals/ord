@@ -11,6 +11,8 @@ pub(crate) struct Mint {
     help = "Postage to include with minted rune output. [default 10000sat]."
   )]
   postage: Option<Amount>,
+  #[clap(long, help = "Send minted runes to <DESTINATION>.")]
+  destination: Option<Address<NetworkUnchecked>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -43,7 +45,12 @@ impl Mint {
       .mintable(block_height)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
-    let destination = wallet.get_change_address()?;
+    let chain = wallet.chain();
+
+    let destination = match self.destination {
+      Some(destination) => destination.require_network(chain.network())?,
+      None => wallet.get_change_address()?,
+    };
 
     ensure!(
       destination.script_pubkey().dust_value() < postage,
