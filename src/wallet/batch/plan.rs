@@ -9,6 +9,7 @@ pub struct Plan {
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
+  pub(crate) no_wait: bool,
   pub(crate) parent_info: Option<ParentInfo>,
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
@@ -28,6 +29,7 @@ impl Default for Plan {
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
+      no_wait: false,
       parent_info: None,
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
@@ -145,6 +147,7 @@ impl Plan {
           self.inscriptions.clone(),
           rune.clone(),
         ),
+        !self.no_wait,
       )?)))
     } else {
       let reveal = match wallet

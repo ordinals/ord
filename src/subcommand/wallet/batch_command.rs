@@ -47,6 +47,7 @@ impl Batch {
       mode: batchfile.mode,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
+      no_wait: self.shared.no_wait,
       parent_info,
       postages,
       reinscribe: batchfile.reinscribe,
