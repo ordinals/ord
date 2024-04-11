@@ -258,3 +258,108 @@ fn minting_rune_and_then_sending_works() {
   .ord(&ord)
   .run_and_deserialize_output::<ord::subcommand::wallet::send::Output>();
 }
+
+#[test]
+fn minting_rune_with_destination() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  core.mine_blocks(1);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "21".parse().unwrap(),
+        symbol: '¢',
+        turbo: false,
+        terms: Some(batch::Terms {
+          cap: 1,
+          offset: Some(batch::Range {
+            end: Some(10),
+            start: None,
+          }),
+          amount: "21".parse().unwrap(),
+          height: None,
+        }),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let destination: Address<NetworkUnchecked> = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
+    .parse()
+    .unwrap();
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {} --destination {}",
+    Rune(RUNE),
+    destination.clone().assume_checked()
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<mint::Output>();
+
+  pretty_assert_eq!(
+    output.pile,
+    Pile {
+      amount: 21,
+      divisibility: 0,
+      symbol: Some('¢'),
+    }
+  );
+
+  assert_eq!(
+    core.mempool()[0].output[1].script_pubkey,
+    destination.payload.script_pubkey()
+  );
+
+  core.mine_blocks(1);
+
+  let balance = CommandBuilder::new("--chain regtest --index-runes wallet balance")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+
+  assert_eq!(balance.runic, Some(0));
+
+  assert_eq!(
+    CommandBuilder::new("--regtest --index-runes balances")
+      .core(&core)
+      .run_and_deserialize_output::<ord::subcommand::balances::Output>(),
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        SpacedRune::new(Rune(RUNE), 0),
+        vec![(
+          OutPoint {
+            txid: output.mint,
+            vout: 1
+          },
+          Pile {
+            amount: 21,
+            divisibility: 0,
+            symbol: Some('¢')
+          },
+        )]
+        .into_iter()
+        .collect()
+      )]
+      .into_iter()
+      .collect(),
+    }
+  );
+}
