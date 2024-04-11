@@ -22,7 +22,7 @@ pub(crate) struct Inscribe {
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(
     long,
-    help = "Inscribe sat with contents of <FILE>. May be omitted if --delegate is present."
+    help = "Inscribe sat with contents of <FILE>. May be omitted if `--delegate` is supplied."
   )]
   pub(crate) file: Option<PathBuf>,
   #[arg(
@@ -171,7 +171,7 @@ mod tests {
       Arguments::try_parse_from(["ord", "wallet", "inscribe", "--fee-rate", "1"])
         .unwrap_err()
         .to_string(),
-      ".*required arguments.*--delegate <DELEGATE|--file <FILE>.*"
+      r".*required arguments.*--delegate <DELEGATE>\|--file <FILE>.*"
     );
 
     assert!(Arguments::try_parse_from([
