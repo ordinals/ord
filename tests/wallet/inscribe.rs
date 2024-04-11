@@ -1181,6 +1181,35 @@ fn file_inscribe_with_delegate_inscription() {
 }
 
 #[test]
+fn file_inscribe_with_only_delegate() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (delegate, _) = inscribe(&core, &ord);
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --delegate {delegate}"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    format!(r#".*<dt>delegate</dt>\s*<dd><a href=/inscription/{delegate}>{delegate}</a></dd>.*"#,),
+  );
+
+  ord.assert_response(format!("/content/{}", inscribe.inscriptions[0].id), "FOO");
+}
+
+#[test]
 fn inscription_with_delegate_returns_effective_content_type() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
