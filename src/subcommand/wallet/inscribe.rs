@@ -37,7 +37,7 @@ pub(crate) struct Inscribe {
   pub(crate) parent: Option<InscriptionId>,
   #[arg(
     long,
-    help = "Amount of postage to include in the inscription. [default: 10000sat]."
+    help = "Include <AMOUNT> postage with inscription. [default: 10000sat]"
   )]
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Allow reinscription.")]
