@@ -711,7 +711,7 @@ impl Plan {
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
           sequence: if etching {
-            Sequence::from_height(Runestone::COMMIT_INTERVAL)
+            Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
           } else {
             Sequence::ENABLE_RBF_NO_LOCKTIME
           },
