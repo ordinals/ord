@@ -3388,7 +3388,7 @@ msgid ""
 "content, the higher the fee that the inscription transaction must pay."
 msgstr ""
 "Gayundin, ang mga inscription ay kasama sa mga transaksyon, kaya kung mas "
-"maraming nilalaman, mas mataas ang bayad para sa transaksyon sa incription."
+"maraming nilalaman, mas mataas ang bayad para sa transaksyon sa inscription."
 
 #: src/guides/inscriptions.md:204
 msgid ""
