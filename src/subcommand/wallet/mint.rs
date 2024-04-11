@@ -6,6 +6,8 @@ pub(crate) struct Mint {
   fee_rate: FeeRate,
   #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
+  #[clap(long, help = "Send minted runes to <DESTINATION>.")]
+  destination: Option<Address<NetworkUnchecked>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -36,7 +38,12 @@ impl Mint {
       .mintable(block_height)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
-    let destination = wallet.get_change_address()?;
+    let chain = wallet.chain();
+
+    let destination = match self.destination {
+      Some(destination) => destination.require_network(chain.network())?,
+      None => wallet.get_change_address()?,
+    };
 
     let runestone = Runestone {
       mint: Some(id),
