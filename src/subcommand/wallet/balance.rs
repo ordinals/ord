@@ -5,7 +5,7 @@ pub struct Output {
   pub cardinal: u64,
   pub ordinal: u64,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
+  pub runes: Option<BTreeMap<SpacedRune, Decimal>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
@@ -39,11 +39,14 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       for (spaced_rune, pile) in rune_balances {
         let _ = runes_balance
           .entry(spaced_rune)
-          .and_modify(|entry_pile: &mut Pile| {
-            assert_eq!(entry_pile.divisibility, pile.divisibility);
-            entry_pile.amount += pile.amount;
+          .and_modify(|decimal: &mut Decimal| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
           })
-          .or_insert(pile);
+          .or_insert(Decimal {
+            value: pile.amount,
+            scale: pile.divisibility,
+          });
       }
       runic += txout.value;
     }
@@ -56,8 +59,6 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       eprintln!("warning: output {output} contains both inscriptions and runes");
     }
   }
-
-  // let runes = runes_balance.into_iter().map(|(rune, value)| (rune, Decimal { value, scale: rune.rune.d})).collect()
 
   Ok(Some(Box::new(Output {
     cardinal,

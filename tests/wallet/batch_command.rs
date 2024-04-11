@@ -1,4 +1,6 @@
-use {super::*, ord::subcommand::wallet::send, pretty_assertions::assert_eq};
+use {
+  super::*, ord::decimal::Decimal, ord::subcommand::wallet::send, pretty_assertions::assert_eq,
+};
 
 fn receive(core: &mockcore::Handle, ord: &TestServer) -> Address {
   let address = CommandBuilder::new("wallet receive")
@@ -1508,10 +1510,9 @@ fn batch_can_etch_rune() {
       runes: Some(
         vec![(
           rune,
-          Pile {
-            amount: 1000,
-            divisibility: 0,
-            symbol: Some('¢')
+          Decimal {
+            value: 1000,
+            scale: 0,
           }
         )]
         .into_iter()

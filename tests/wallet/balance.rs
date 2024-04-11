@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::decimal::Decimal};
 
 #[test]
 fn wallet_balance() {
@@ -129,10 +129,9 @@ fn runic_utxos_are_deducted_from_cardinal() {
       runes: Some(
         vec![(
           SpacedRune { rune, spacers: 1 },
-          Pile {
-            amount: 1000,
-            divisibility: 0,
-            symbol: Some('¢')
+          Decimal {
+            value: 1000,
+            scale: 0,
           }
         )]
         .into_iter()
