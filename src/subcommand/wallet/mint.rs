@@ -8,7 +8,7 @@ pub(crate) struct Mint {
   rune: SpacedRune,
   #[clap(
     long,
-    help = "Postage to include with minted rune output. [default 10000sat]."
+    help = "Postage to include with minted rune output. [default: 10000sat]."
   )]
   postage: Option<Amount>,
   #[clap(long, help = "Send minted runes to <DESTINATION>.")]
