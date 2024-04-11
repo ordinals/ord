@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::decimal::Decimal};
 
 #[test]
 fn wallet_balance() {
@@ -110,7 +110,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
         terms: None,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -127,14 +127,21 @@ fn runic_utxos_are_deducted_from_cardinal() {
       ordinal: 10000,
       runic: Some(10_000),
       runes: Some(
-        vec![(SpacedRune { rune, spacers: 1 }, 1000)]
-          .into_iter()
-          .collect()
+        vec![(
+          SpacedRune { rune, spacers: 1 },
+          Decimal {
+            value: 1000,
+            scale: 0,
+          }
+        )]
+        .into_iter()
+        .collect()
       ),
       total: 50 * COIN_VALUE * 8,
     }
   );
 }
+
 #[test]
 fn unsynced_wallet_fails_with_unindexed_output() {
   let core = mockcore::spawn();
@@ -175,4 +182,77 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     .expected_exit_code(1)
     .stderr_regex(r"error: output in wallet but not in ord server: [[:xdigit:]]{64}:\d+.*")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn runic_utxos_are_displayed_with_decimal_amount() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 0,
+      ordinal: 0,
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
+      total: 0,
+    }
+  );
+
+  let rune = Rune(RUNE);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 3,
+        premine: "1.111".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        supply: "2.222".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          amount: "1.111".parse().unwrap(),
+          cap: 1,
+          ..default()
+        }),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 50 * COIN_VALUE * 8 - 20_000,
+      ordinal: 10000,
+      runic: Some(10_000),
+      runes: Some(
+        vec![(
+          SpacedRune { rune, spacers: 1 },
+          Decimal {
+            value: 1111,
+            scale: 3,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      total: 50 * COIN_VALUE * 8,
+    }
+  );
 }

@@ -93,7 +93,11 @@ impl From<InscriptionTemplate> for Inscription {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+  Inscription {
+    content_type: Some(content_type.into()),
+    body: Some(body.as_ref().into()),
+    ..default()
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
