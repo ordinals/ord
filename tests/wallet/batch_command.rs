@@ -2002,7 +2002,7 @@ fn etch_mintable_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2051,7 +2051,7 @@ fn etch_mintable_plus_premine_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `premine` + `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `premine` + `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2100,7 +2100,7 @@ fn incorrect_supply_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `supply` not equal to `premine` + `terms.count` * `terms.amount`\n")
+    .expected_stderr("error: `supply` not equal to `premine` + `terms.cap` * `terms.amount`\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
