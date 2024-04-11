@@ -342,6 +342,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dd>{divisibility}</dd>
   <dt>symbol</dt>
   <dd>{symbol}</dd>
+  <dt>turbo</dt>
+  <dd>{turbo}</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>

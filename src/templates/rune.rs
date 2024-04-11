@@ -1,28 +1,5 @@
 use super::*;
 
-enum Foo {
-  No,
-  Yes,
-}
-
-impl From<bool> for Foo {
-  fn from(b: bool) -> Self {
-    match b {
-      false => Self::No,
-      true => Self::Yes,
-    }
-  }
-}
-
-impl Display for Foo {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    match self {
-      Self::No => write!(f, "no"),
-      Self::Yes => write!(f, "yes"),
-    }
-  }
-}
-
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneHtml {
   pub entry: RuneEntry,
@@ -117,7 +94,7 @@ mod tests {
   <dt>symbol</dt>
   <dd>%</dd>
   <dt>turbo</dt>
-  <dd>yes</dd>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
@@ -189,7 +166,7 @@ mod tests {
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>.*
   <dt>turbo</dt>
-  <dd>no</dd>
+  <dd>false</dd>
 .*</dl>
 "
     );

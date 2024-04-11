@@ -2785,7 +2785,7 @@ mod tests {
   <dt>symbol</dt>
   <dd>%</dd>
   <dt>turbo</dt>
-  <dd>yes</dd>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
