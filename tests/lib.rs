@@ -203,7 +203,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
   );
 
-  core.mine_blocks(6);
+  core.mine_blocks(5);
 
   let output = spawn.run_and_deserialize_output::<Batch>();
 

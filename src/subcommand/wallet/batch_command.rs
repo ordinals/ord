@@ -122,6 +122,13 @@ impl Batch {
 
     let reveal_height = current_height + u32::from(Runestone::COMMIT_CONFIRMATIONS);
 
+    let first_rune_height = Rune::first_rune_height(wallet.chain().into());
+
+    ensure!(
+      reveal_height >= first_rune_height,
+      "rune reveal height below rune activation height: {reveal_height} < {first_rune_height}",
+    );
+
     if let Some(terms) = etching.terms {
       if let Some((start, end)) = terms.offset.and_then(|range| range.start.zip(range.end)) {
         ensure!(
