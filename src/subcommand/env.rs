@@ -1,5 +1,5 @@
-use {super::*, colored::Colorize, std::net::TcpListener};
 use crate::wallet::batch;
+use {super::*, colored::Colorize, std::net::TcpListener};
 
 struct KillOnDrop(process::Child);
 
