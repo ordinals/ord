@@ -1,4 +1,5 @@
 use {super::*, colored::Colorize, std::net::TcpListener};
+use crate::wallet::batch;
 
 struct KillOnDrop(process::Child);
 
@@ -63,6 +64,26 @@ rpcport={bitcoind_port}
 ",
       ),
     )?;
+    // add a sample inscription.txt with hooter in text
+    fs::write(absolute.join("inscription.txt"), "hooter")?;
+    // add a sample etch.yaml
+    let yaml = serde_yaml::to_string(&batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: "HOOOOOOOOOOOOTERS".parse::<SpacedRune>().unwrap(),
+        supply: "1000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("env/inscription.txt".into()),
+        ..default()
+      }],
+      ..default()
+    });
+    fs::write(absolute.join("etch.yaml"), yaml.unwrap())?;
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
