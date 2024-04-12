@@ -92,6 +92,12 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 ```
 sudo apt-get install pkg-config libssl-dev build-essential
 ```
+Or RedHat/Centos, you need to change the command above to:
+
+```
+yum install -y pkgconfig openssl-devel
+yum groupinstall "Development Tools"
+```
 
 You'll also need Rust:
 
