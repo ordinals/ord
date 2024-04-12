@@ -1733,18 +1733,20 @@ impl Index {
     let rtx = self.database.begin_read()?;
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-    let id_min = RuneId {
+
+    let min_id = RuneId {
       block: u64::from(block_height),
       tx: 0,
     };
-    let id_max = RuneId {
+
+    let max_id = RuneId {
       block: u64::from(block_height + 1),
       tx: 0,
     };
 
     let runes = rune_id_to_rune_entry
-      .range(id_min.store()..=id_max.store())?
-      .map(|result| result.map(|(_number, entry)| RuneEntry::load(entry.value())))
+      .range(min_id.store()..max_id.store())?
+      .map(|result| result.map(|(_, entry)| RuneEntry::load(entry.value())))
       .collect::<Result<Vec<RuneEntry>, StorageError>>()?;
 
     Ok(runes)
