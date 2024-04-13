@@ -855,6 +855,23 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_rune_by_number(&self, number: usize) -> Result<Option<Rune>> {
+    match self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+      .nth(number)
+    {
+      Some(result) => {
+        let rune_result =
+          result.map(|(_id, entry)| RuneEntry::load(entry.value()).spaced_rune.rune);
+        Ok(rune_result.ok())
+      }
+      None => Ok(None),
+    }
+  }
+
   pub(crate) fn rune(
     &self,
     rune: Rune,

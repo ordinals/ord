@@ -45,7 +45,7 @@ pub(crate) use server_config::ServerConfig;
 mod accept_encoding;
 mod accept_json;
 mod error;
-pub(crate) mod query;
+pub mod query;
 mod server_config;
 
 enum SpawnConfig {
@@ -656,10 +656,13 @@ impl Server {
       }
 
       let rune = match rune_query {
-        query::Rune::SpacedRune(spaced_rune) => spaced_rune.rune,
-        query::Rune::RuneId(rune_id) => index
+        query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
+        query::Rune::Id(rune_id) => index
           .get_rune_by_id(rune_id)?
           .ok_or_not_found(|| format!("rune {rune_id}"))?,
+        query::Rune::Number(number) => index
+          .get_rune_by_number(usize::try_from(number).unwrap())?
+          .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
       let (id, entry, parent) = index
@@ -2647,6 +2650,60 @@ mod tests {
       "/rune/8:1",
       StatusCode::OK,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+  }
+
+  #[test]
+  fn runes_can_be_queried_by_rune_number() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
+
+    for i in 0..10 {
+      let rune = Rune(RUNE + i);
+      server.etch(
+        Runestone {
+          edicts: vec![Edict {
+            id: RuneId::default(),
+            amount: u128::MAX,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            ..default()
+          }),
+          ..default()
+        },
+        1,
+        None,
+      );
+
+      server.mine_blocks(1);
+    }
+
+    server.assert_response_regex(
+      "/rune/0",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+
+    for i in 1..6 {
+      server.assert_response_regex(
+        format!("/rune/{}", i),
+        StatusCode::OK,
+        ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
+      );
+    }
+
+    server.assert_response_regex(
+      "/rune/9",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAJ</title>.*",
     );
   }
 
