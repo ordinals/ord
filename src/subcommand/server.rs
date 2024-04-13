@@ -2856,9 +2856,9 @@ mod tests {
       StatusCode::OK,
       ".*
 <dl>
-  .*
   <dt>rune</dt>
   <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+  .*
 </dl>
 .*",
     );
