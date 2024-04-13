@@ -924,6 +924,31 @@ impl Index {
     Ok(entries)
   }
 
+  pub(crate) fn runes_paginated(
+    &self,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<(RuneId, RuneEntry)>, bool)> {
+    let mut entries = Vec::new();
+
+    for result in self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+      .rev()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+    {
+      let (id, entry) = result?;
+      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
+    }
+
+    let more = entries.len() > page_size;
+
+    Ok((entries, more))
+  }
+
   pub(crate) fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
     varint::encode_to_vec(id.block.into(), buffer);
     varint::encode_to_vec(id.tx.into(), buffer);
