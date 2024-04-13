@@ -1,6 +1,7 @@
-use bitcoin::{OutPoint, Txid};
-
-use crate::{InscriptionId, RuneId, SatPoint};
+use {
+  crate::{InscriptionId, RuneId, SatPoint},
+  bitcoin::{OutPoint, Txid},
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
@@ -24,7 +25,7 @@ pub enum Event {
     txid: Txid,
     rune_id: RuneId,
   },
-  RuneClaimed {
+  RuneMinted {
     block_height: u32,
     txid: Txid,
     rune_id: RuneId,

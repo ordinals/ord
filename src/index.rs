@@ -6438,7 +6438,7 @@ mod tests {
     let event = event_receiver.blocking_recv().unwrap();
     assert_eq!(
       event,
-      Event::RuneClaimed {
+      Event::RuneMinted {
         block_height: 3,
         txid: txid1,
         rune_id: id,

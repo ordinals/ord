@@ -1,17 +1,5 @@
 use super::*;
 
-struct Claim {
-  id: u128,
-  limit: u128,
-}
-
-#[derive(Default)]
-pub(crate) struct RuneUpdate {
-  pub(crate) burned: u128,
-  pub(crate) mints: u64,
-  pub(crate) supply: u128,
-}
-
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
   pub(super) burned: HashMap<RuneId, Lot>,
