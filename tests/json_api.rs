@@ -568,7 +568,7 @@ fn get_runes() {
     api::Runes {
       entries: vec![
         (
-          RuneId { block: 10, tx: 1 },
+          RuneId { block: 24, tx: 1 },
           RuneEntry {
             block: c.id.block,
             burned: 0,
@@ -583,7 +583,7 @@ fn get_runes() {
               spacers: 0
             },
             symbol: Some('¢'),
-            timestamp: 10,
+            timestamp: 24,
             turbo: false,
           }
         ),
@@ -608,7 +608,7 @@ fn get_runes() {
           }
         ),
         (
-          RuneId { block: 24, tx: 1 },
+          RuneId { block: 10, tx: 1 },
           RuneEntry {
             block: a.id.block,
             burned: 0,
@@ -623,7 +623,7 @@ fn get_runes() {
               spacers: 0
             },
             symbol: Some('¢'),
-            timestamp: 24,
+            timestamp: 10,
             turbo: false,
           }
         )
