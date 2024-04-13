@@ -6493,7 +6493,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 1000,
             output: 0,
           }],
@@ -6554,7 +6554,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id.into(),
+            id,
             amount: 1000,
             output: 1,
           }],
