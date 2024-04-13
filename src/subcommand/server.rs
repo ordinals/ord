@@ -1,4 +1,3 @@
-pub(crate) use server_config::ServerConfig;
 use {
   self::{
     accept_encoding::AcceptEncoding,
@@ -41,10 +40,12 @@ use {
   },
 };
 
+pub(crate) use server_config::ServerConfig;
+
 mod accept_encoding;
 mod accept_json;
 mod error;
-pub(crate) mod query;
+pub mod query;
 mod server_config;
 
 enum SpawnConfig {
