@@ -1,13 +1,13 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default, DeserializeFromStr, SerializeDisplay)]
 pub struct Decimal {
-  value: u128,
-  scale: u8,
+  pub value: u128,
+  pub scale: u8,
 }
 
 impl Decimal {
-  pub(crate) fn to_amount(self, divisibility: u8) -> Result<u128> {
+  pub fn to_integer(self, divisibility: u8) -> Result<u128> {
     match divisibility.checked_sub(self.scale) {
       Some(difference) => Ok(
         self
@@ -85,24 +85,6 @@ impl FromStr for Decimal {
   }
 }
 
-impl Serialize for Decimal {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Decimal {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -146,7 +128,7 @@ mod tests {
       assert_eq!(
         s.parse::<Decimal>()
           .unwrap()
-          .to_amount(divisibility)
+          .to_integer(divisibility)
           .unwrap(),
         amount,
       );
@@ -154,7 +136,7 @@ mod tests {
 
     assert_eq!(
       Decimal { value: 0, scale: 0 }
-        .to_amount(255)
+        .to_integer(255)
         .unwrap_err()
         .to_string(),
       "divisibility out of range"
@@ -165,7 +147,7 @@ mod tests {
         value: u128::MAX,
         scale: 0,
       }
-      .to_amount(1)
+      .to_integer(1)
       .unwrap_err()
       .to_string(),
       "amount out of range",
@@ -173,7 +155,7 @@ mod tests {
 
     assert_eq!(
       Decimal { value: 1, scale: 1 }
-        .to_amount(0)
+        .to_integer(0)
         .unwrap_err()
         .to_string(),
       "excessive precision",
@@ -196,6 +178,7 @@ mod tests {
       assert_eq!(decimal, string.parse::<Decimal>().unwrap());
     }
 
+    case(Decimal { value: 0, scale: 0 }, "0");
     case(Decimal { value: 1, scale: 0 }, "1");
     case(Decimal { value: 1, scale: 1 }, "0.1");
     case(

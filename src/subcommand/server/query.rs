@@ -21,17 +21,22 @@ impl FromStr for Block {
 pub(crate) enum Inscription {
   Id(InscriptionId),
   Number(i32),
+  Sat(Sat),
 }
 
 impl FromStr for Inscription {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.contains('i') {
-      Self::Id(s.parse()?)
+    if re::INSCRIPTION_ID.is_match(s) {
+      Ok(Self::Id(s.parse()?))
+    } else if re::INSCRIPTION_NUMBER.is_match(s) {
+      Ok(Self::Number(s.parse()?))
+    } else if re::SAT_NAME.is_match(s) {
+      Ok(Self::Sat(s.parse()?))
     } else {
-      Self::Number(s.parse()?)
-    })
+      Err(anyhow!("bad inscription query {s}"))
+    }
   }
 }
 
@@ -40,13 +45,16 @@ impl Display for Inscription {
     match self {
       Self::Id(id) => write!(f, "{id}"),
       Self::Number(number) => write!(f, "{number}"),
+      Self::Sat(sat) => write!(f, "on sat {}", sat.name()),
     }
   }
 }
 
+#[derive(Debug)]
 pub(super) enum Rune {
-  SpacedRune(SpacedRune),
-  RuneId(RuneId),
+  Spaced(SpacedRune),
+  Id(RuneId),
+  Number(u64),
 }
 
 impl FromStr for Rune {
@@ -54,9 +62,11 @@ impl FromStr for Rune {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     if s.contains(':') {
-      Ok(Self::RuneId(s.parse()?))
+      Ok(Self::Id(s.parse()?))
+    } else if re::RUNE_NUMBER.is_match(s) {
+      Ok(Self::Number(s.parse()?))
     } else {
-      Ok(Self::SpacedRune(s.parse()?))
+      Ok(Self::Spaced(s.parse()?))
     }
   }
 }

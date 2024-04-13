@@ -1,40 +1,16 @@
 pub(crate) use {
   super::*,
   bitcoin::{
-    blockdata::{opcodes, script, script::PushBytesBuf},
+    blockdata::script::{PushBytes, PushBytesBuf},
     constants::COIN_VALUE,
-    ScriptBuf, Witness,
+    opcodes, WPubkeyHash,
   },
+  mockcore::TransactionTemplate,
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
-  test_bitcoincore_rpc::TransactionTemplate,
+  tempfile::TempDir,
   unindent::Unindent,
 };
-
-macro_rules! assert_regex_match {
-  ($value:expr, $pattern:expr $(,)?) => {
-    let regex = Regex::new(&format!("^(?s){}$", $pattern)).unwrap();
-    let string = $value.to_string();
-
-    if !regex.is_match(string.as_ref()) {
-      eprintln!("Regex did not match:");
-      pretty_assert_eq!(regex.as_str(), string);
-    }
-  };
-}
-
-macro_rules! assert_matches {
-  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
-    match $expression {
-      $( $pattern )|+ $( if $guard )? => {}
-      left => panic!(
-        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
-        left,
-        stringify!($($pattern)|+ $(if $guard)?)
-      ),
-    }
-  }
-}
 
 pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
@@ -102,22 +78,26 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 #[derive(Default, Debug)]
 pub(crate) struct InscriptionTemplate {
-  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) parents: Vec<InscriptionId>,
   pub(crate) pointer: Option<u64>,
 }
 
 impl From<InscriptionTemplate> for Inscription {
   fn from(template: InscriptionTemplate) -> Self {
     Self {
-      parent: template.parent.map(|id| id.value()),
+      parents: template.parents.into_iter().map(|id| id.value()).collect(),
       pointer: template.pointer.map(Inscription::pointer_value),
-      ..Default::default()
+      ..default()
     }
   }
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+  Inscription {
+    content_type: Some(content_type.into()),
+    body: Some(body.as_ref().into()),
+    ..default()
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
@@ -144,4 +124,12 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
   let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
 
   Witness::from_slice(&[script.into_bytes(), Vec::new()])
+}
+
+pub(crate) fn default_address(chain: Chain) -> Address {
+  Address::from_script(
+    &ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros()),
+    chain.network(),
+  )
+  .unwrap()
 }

@@ -1,12 +1,30 @@
-# Example Config
+# example config
 
+# see `ord --help` for setting documentation
+
+bitcoin_data_dir: /var/lib/bitcoin
+bitcoin_rpc_password: bar
+bitcoin_rpc_url: https://localhost:8000
+bitcoin_rpc_username: foo
 chain: mainnet
-
-# use username `bar` and password `foo` for bitcoind RPC calls
-bitcoin_rpc_user: bar
-bitcoin_rpc_pass: foo
-
-# prevent `ord server` from serving the content of the inscriptions below
+commit_interval: 10000
+config: /var/lib/ord/ord.yaml
+config_dir: /var/lib/ord
+cookie_file: /var/lib/bitcoin/.cookie
+data_dir: /var/lib/ord
+first_inscription_height: 100
+height_limit: 1000
 hidden:
 - 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 - 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
+index: /var/lib/ord/index.redb
+index_cache_size: 1000000000
+index_runes: true
+index_sats: true
+index_spent_sats: true
+index_transactions: true
+integration_test: true
+no_index_inscriptions: true
+server_password: bar
+server_url: http://localhost:8888
+server_username: foo

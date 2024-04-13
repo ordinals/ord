@@ -12,7 +12,7 @@ ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
   --chain ${CHAIN} \
   --config-dir /var/lib/ord \
-  --data-dir /var/lib/ord \
+  --datadir /var/lib/ord \
   --index-runes \
   --index-sats \
   server \

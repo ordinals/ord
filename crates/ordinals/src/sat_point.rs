@@ -9,7 +9,19 @@ use {super::*, bitcoin::transaction::ParseOutPointError};
 /// that of the second sat of the genesis block coinbase output is
 /// `000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f:0:1`, and
 /// so on and so on.
-#[derive(Debug, PartialEq, Copy, Clone, Eq, PartialOrd, Ord, Default)]
+#[derive(
+  Debug,
+  PartialEq,
+  Copy,
+  Clone,
+  Eq,
+  PartialOrd,
+  Ord,
+  Default,
+  Hash,
+  DeserializeFromStr,
+  SerializeDisplay,
+)]
 pub struct SatPoint {
   pub outpoint: OutPoint,
   pub offset: u64,
@@ -36,24 +48,6 @@ impl Decodable for SatPoint {
       outpoint: Decodable::consensus_decode(d)?,
       offset: Decodable::consensus_decode(d)?,
     })
-  }
-}
-
-impl Serialize for SatPoint {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for SatPoint {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 

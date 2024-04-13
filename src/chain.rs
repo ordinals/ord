@@ -14,12 +14,7 @@ pub enum Chain {
 
 impl Chain {
   pub(crate) fn network(self) -> Network {
-    match self {
-      Self::Mainnet => Network::Bitcoin,
-      Self::Testnet => Network::Testnet,
-      Self::Signet => Network::Signet,
-      Self::Regtest => Network::Regtest,
-    }
+    self.into()
   }
 
   pub(crate) fn default_rpc_port(self) -> u16 {
@@ -48,13 +43,7 @@ impl Chain {
   }
 
   pub(crate) fn first_rune_height(self) -> u32 {
-    SUBSIDY_HALVING_INTERVAL
-      * match self {
-        Self::Mainnet => 4,
-        Self::Regtest => 0,
-        Self::Signet => 0,
-        Self::Testnet => 12,
-      }
+    Rune::first_rune_height(self.into())
   }
 
   pub(crate) fn jubilee_height(self) -> u32 {
@@ -84,12 +73,23 @@ impl Chain {
     Address::from_script(script, self.network())
   }
 
-  pub(crate) fn join_with_data_dir(self, data_dir: &Path) -> PathBuf {
+  pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
     match self {
-      Self::Mainnet => data_dir.to_owned(),
-      Self::Testnet => data_dir.join("testnet3"),
-      Self::Signet => data_dir.join("signet"),
-      Self::Regtest => data_dir.join("regtest"),
+      Self::Mainnet => data_dir.as_ref().to_owned(),
+      Self::Testnet => data_dir.as_ref().join("testnet3"),
+      Self::Signet => data_dir.as_ref().join("signet"),
+      Self::Regtest => data_dir.as_ref().join("regtest"),
+    }
+  }
+}
+
+impl From<Chain> for Network {
+  fn from(chain: Chain) -> Network {
+    match chain {
+      Chain::Mainnet => Network::Bitcoin,
+      Chain::Testnet => Network::Testnet,
+      Chain::Signet => Network::Signet,
+      Chain::Regtest => Network::Regtest,
     }
   }
 }
