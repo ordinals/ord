@@ -130,7 +130,7 @@ Examples
 }
 ```
 
-- `r/inscription/3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0`
+- `/r/inscription/3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0`
 
 ```json
 {

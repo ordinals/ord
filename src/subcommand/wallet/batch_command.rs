@@ -101,7 +101,7 @@ impl Batch {
         terms
           .cap
           .checked_mul(terms.amount.to_integer(etching.divisibility)?)
-          .ok_or_else(|| anyhow!("`terms.count` * `terms.amount` over maximum"))
+          .ok_or_else(|| anyhow!("`terms.cap` * `terms.amount` over maximum"))
       })
       .transpose()?
       .unwrap_or_default();
@@ -110,8 +110,8 @@ impl Batch {
       supply
         == premine
           .checked_add(mintable)
-          .ok_or_else(|| anyhow!("`premine` + `terms.count` * `terms.amount` over maximum"))?,
-      "`supply` not equal to `premine` + `terms.count` * `terms.amount`"
+          .ok_or_else(|| anyhow!("`premine` + `terms.cap` * `terms.amount` over maximum"))?,
+      "`supply` not equal to `premine` + `terms.cap` * `terms.amount`"
     );
 
     ensure!(supply > 0, "`supply` must be greater than zero");
@@ -120,7 +120,14 @@ impl Batch {
 
     let current_height = u32::try_from(bitcoin_client.get_block_count()?).unwrap();
 
-    let reveal_height = current_height + 1 + u32::from(Runestone::COMMIT_INTERVAL);
+    let reveal_height = current_height + u32::from(Runestone::COMMIT_CONFIRMATIONS);
+
+    let first_rune_height = Rune::first_rune_height(wallet.chain().into());
+
+    ensure!(
+      reveal_height >= first_rune_height,
+      "rune reveal height below rune activation height: {reveal_height} < {first_rune_height}",
+    );
 
     if let Some(terms) = etching.terms {
       if let Some((start, end)) = terms.offset.and_then(|range| range.start.zip(range.end)) {
@@ -224,12 +231,12 @@ inscriptions:
       batch::File {
         inscriptions: vec![
           batch::Entry {
-            file: inscription_path,
+            file: Some(inscription_path),
             metadata: Some(Value::Mapping(metadata)),
             ..default()
           },
           batch::Entry {
-            file: brc20_path,
+            file: Some(brc20_path),
             metaprotocol: Some("brc-20".to_string()),
             ..default()
           }

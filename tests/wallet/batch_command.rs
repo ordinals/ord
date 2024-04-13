@@ -1,4 +1,6 @@
-use {super::*, ord::subcommand::wallet::send, pretty_assertions::assert_eq};
+use {
+  super::*, ord::decimal::Decimal, ord::subcommand::wallet::send, pretty_assertions::assert_eq,
+};
 
 fn receive(core: &mockcore::Handle, ord: &TestServer) -> Address {
   let address = CommandBuilder::new("wallet receive")
@@ -1023,7 +1025,6 @@ fn batch_inscribe_with_delegate_inscription() {
         "mode: shared-output
 inscriptions:
 - delegate: {delegate}
-  file: inscription.txt
 "
       ),
     )
@@ -1436,9 +1437,10 @@ fn batch_can_etch_rune() {
         premine: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -1461,7 +1463,7 @@ fn batch_can_etch_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1480,7 +1482,7 @@ fn batch_can_etch_rune() {
 
   assert_eq!(
     reveal.input[0].sequence,
-    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+    Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
   );
 
   let Artifact::Runestone(runestone) = Runestone::decipher(&reveal).unwrap() else {
@@ -1502,12 +1504,68 @@ fn batch_can_etch_rune() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 44999980000,
+      cardinal: 39999980000,
       ordinal: 10000,
       runic: Some(10000),
-      runes: Some(vec![(rune, 1000)].into_iter().collect()),
-      total: 450 * COIN_VALUE,
+      runes: Some(
+        vec![(
+          rune,
+          Decimal {
+            value: 1000,
+            scale: 0,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      total: 400 * COIN_VALUE,
     }
+  );
+}
+
+#[test]
+fn batch_can_etch_turbo_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
+  let batch = batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune,
+        supply: "1000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: true,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let parent = batch.output.inscriptions[0].id;
+
+  ord.assert_response_regex(
+    "/rune/AAAAAAAAAAAAA",
+    format!(
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+    ),
   );
 }
 
@@ -1542,9 +1600,10 @@ fn batch_can_etch_rune_without_premine() {
           height: None,
           offset: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -1577,7 +1636,7 @@ fn batch_can_etch_rune_without_premine() {
 
   assert_eq!(
     reveal.input[0].sequence,
-    Sequence::from_height(Runestone::COMMIT_INTERVAL)
+    Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
   );
 
   assert_eq!(
@@ -1586,11 +1645,11 @@ fn batch_can_etch_rune_without_premine() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 44999990000,
+      cardinal: 39999990000,
       ordinal: 10000,
       runic: Some(0),
       runes: Some(default()),
-      total: 450 * COIN_VALUE,
+      total: 400 * COIN_VALUE,
     }
   );
 }
@@ -1627,9 +1686,10 @@ fn batch_inscribe_can_etch_rune_with_offset() {
           }),
           height: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -1700,9 +1760,10 @@ fn batch_inscribe_can_etch_rune_with_height() {
           }),
           offset: None,
         }),
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -1766,9 +1827,10 @@ fn etch_existing_rune_error() {
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1807,9 +1869,10 @@ fn etch_reserved_rune_error() {
           supply: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1848,9 +1911,10 @@ fn etch_sub_minimum_rune_error() {
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1859,7 +1923,7 @@ fn etch_sub_minimum_rune_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: rune is less than minimum for next block: A < ZZQYZPATYGGX\n")
+    .expected_stderr("error: rune is less than minimum for next block: A < ZZRZCNJJBILX\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -1889,9 +1953,10 @@ fn etch_requires_rune_index() {
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1930,9 +1995,10 @@ fn etch_divisibility_over_maximum_error() {
           premine: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1979,9 +2045,10 @@ fn etch_mintable_overflow_error() {
             amount: "340282366920938463463374607431768211455".parse().unwrap(),
             height: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -1990,7 +2057,7 @@ fn etch_mintable_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2028,9 +2095,10 @@ fn etch_mintable_plus_premine_overflow_error() {
             amount: "340282366920938463463374607431768211455".parse().unwrap(),
             height: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2039,7 +2107,7 @@ fn etch_mintable_plus_premine_overflow_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `premine` + `terms.count` * `terms.amount` over maximum\n")
+    .expected_stderr("error: `premine` + `terms.cap` * `terms.amount` over maximum\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2077,9 +2145,10 @@ fn incorrect_supply_error() {
             amount: "1".parse().unwrap(),
             height: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2088,7 +2157,7 @@ fn incorrect_supply_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: `supply` not equal to `premine` + `terms.count` * `terms.amount`\n")
+    .expected_stderr("error: `supply` not equal to `premine` + `terms.cap` * `terms.amount`\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -2126,9 +2195,10 @@ fn zero_offset_interval_error() {
             amount: "1".parse().unwrap(),
             height: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2175,9 +2245,10 @@ fn zero_height_interval_error() {
             amount: "1".parse().unwrap(),
             offset: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2224,9 +2295,10 @@ fn invalid_start_height_error() {
             amount: "1".parse().unwrap(),
             offset: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2236,7 +2308,7 @@ fn invalid_start_height_error() {
     .core(&core)
     .ord(&ord)
     .expected_stderr(
-      "error: `terms.height.start` must be greater than the reveal transaction block height of 8\n",
+      "error: `terms.height.start` must be greater than the reveal transaction block height of 7\n",
     )
     .expected_exit_code(1)
     .run_and_extract_stdout();
@@ -2275,9 +2347,10 @@ fn invalid_end_height_error() {
             amount: "1".parse().unwrap(),
             offset: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2287,7 +2360,7 @@ fn invalid_end_height_error() {
     .core(&core)
     .ord(&ord)
     .expected_stderr(
-      "error: `terms.height.end` must be greater than the reveal transaction block height of 8\n",
+      "error: `terms.height.end` must be greater than the reveal transaction block height of 7\n",
     )
     .expected_exit_code(1)
     .run_and_extract_stdout();
@@ -2318,9 +2391,10 @@ fn zero_supply_error() {
           premine: "0".parse().unwrap(),
           symbol: '¢',
           terms: None,
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2364,9 +2438,10 @@ fn zero_cap_error() {
             amount: "1".parse().unwrap(),
             offset: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2410,9 +2485,10 @@ fn zero_amount_error() {
             amount: "0".parse().unwrap(),
             offset: None,
           }),
+          turbo: false,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2462,9 +2538,10 @@ fn oversize_runestone_error() {
             }),
             amount: "1".parse().unwrap(),
           }),
+          turbo: true,
         }),
         inscriptions: vec![batch::Entry {
-          file: "inscription.txt".into(),
+          file: Some("inscription.txt".into()),
           ..default()
         }],
         ..default()
@@ -2516,9 +2593,10 @@ fn oversize_runestones_are_allowed_with_no_limit() {
           }),
           amount: "1".parse().unwrap(),
         }),
+        turbo: true,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.txt".into(),
+        file: Some("inscription.txt".into()),
         ..default()
       }],
       ..default()
@@ -2559,7 +2637,7 @@ fn batch_inscribe_errors_if_pending_etchings() {
       ..default()
     }),
     inscriptions: vec![batch::Entry {
-      file: "inscription.jpeg".into(),
+      file: Some("inscription.jpeg".into()),
       ..default()
     }],
     ..default()
@@ -2619,5 +2697,47 @@ fn batch_inscribe_errors_if_pending_etchings() {
     .expected_stderr(
       "error: rune `AAAAAAAAAAAAA` has pending etching, resume with `ord wallet resume`\n",
     )
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn forbid_etching_below_rune_activation_height() {
+  let core = mockcore::builder().build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("--index-runes wallet batch --fee-rate 0 --batch batch.yaml")
+    .write("inscription.txt", "foo")
+    .write(
+      "batch.yaml",
+      serde_yaml::to_string(&batch::File {
+        etching: Some(batch::Etching {
+          divisibility: 0,
+          rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          supply: "1".parse().unwrap(),
+          premine: "1".parse().unwrap(),
+          symbol: '¢',
+          terms: None,
+          turbo: false,
+        }),
+        inscriptions: vec![batch::Entry {
+          file: Some("inscription.txt".into()),
+          ..default()
+        }],
+        ..default()
+      })
+      .unwrap(),
+    )
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr("error: rune reveal height below rune activation height: 7 < 840000\n")
+    .expected_exit_code(1)
     .run_and_extract_stdout();
 }

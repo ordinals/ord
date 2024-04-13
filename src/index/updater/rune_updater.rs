@@ -243,6 +243,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         spaced_rune: SpacedRune { rune, spacers: 0 },
         symbol: None,
         timestamp: self.block_time.into(),
+        turbo: false,
       },
       Artifact::Runestone(Runestone { etching, .. }) => {
         let Etching {
@@ -251,6 +252,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           premine,
           spacers,
           symbol,
+          turbo,
           ..
         } = etching.unwrap();
 
@@ -269,6 +271,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           },
           symbol,
           timestamp: self.block_time.into(),
+          turbo,
         }
       }
     };
@@ -388,7 +391,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           .get_raw_transaction_info(&input.previous_output.txid, None)
           .into_option()?
         else {
-          panic!("input not in UTXO set: {}", input.previous_output);
+          panic!(
+            "can't get input transaction: {}",
+            input.previous_output.txid
+          );
         };
 
         let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
@@ -396,12 +402,24 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           .script()?
           .is_v1_p2tr();
 
-        let mature = tx_info
-          .confirmations
-          .map(|confirmations| confirmations >= Runestone::COMMIT_INTERVAL.into())
-          .unwrap_or_default();
+        if !taproot {
+          continue;
+        }
 
-        if taproot && mature {
+        let commit_tx_height = self
+          .client
+          .get_block_header_info(&tx_info.blockhash.unwrap())
+          .into_option()?
+          .unwrap()
+          .height;
+
+        let confirmations = self
+          .height
+          .checked_sub(commit_tx_height.try_into().unwrap())
+          .unwrap()
+          + 1;
+
+        if confirmations >= Runestone::COMMIT_CONFIRMATIONS.into() {
           return Ok(true);
         }
       }

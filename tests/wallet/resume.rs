@@ -29,7 +29,7 @@ fn wallet_resume() {
       ..default()
     }),
     inscriptions: vec![batch::Entry {
-      file: "inscription.jpeg".into(),
+      file: Some("inscription.jpeg".into()),
       ..default()
     }],
     ..default()
@@ -135,7 +135,7 @@ fn resume_suspended() {
       ..default()
     }),
     inscriptions: vec![batch::Entry {
-      file: "inscription.jpeg".into(),
+      file: Some("inscription.jpeg".into()),
       ..default()
     }],
     ..default()

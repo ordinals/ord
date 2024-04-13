@@ -1,14 +1,14 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.17.1"
+version = "0.18.1"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
 homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 autobins = false
-rust-version = "1.67"
+rust-version = "1.76.0"
 
 [package.metadata.deb]
 copyright = "The Ord Maintainers"
@@ -27,7 +27,7 @@ bech32 = "0.11.0"
 bip39 = "2.0.0"
 bitcoin = { version = "0.30.1", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
-brotli = "3.4.0"
+brotli = "4.0.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
@@ -49,7 +49,7 @@ mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.2"
-ordinals = { version = "0.0.6", path = "crates/ordinals" }
+ordinals = { version = "0.0.7", path = "crates/ordinals" }
 redb = "2.0.0"
 regex = "1.6.0"
 reqwest = { version = "0.11.23", features = ["blocking", "json"] }

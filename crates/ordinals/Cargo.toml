@@ -1,12 +1,12 @@
 [package]
 name = "ordinals"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 description = "Library for interoperating with ordinals and inscriptions"
 homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 license = "CC0-1.0"
-rust-version = "1.67"
+rust-version = "1.74.0"
 
 [dependencies]
 bitcoin = { version = "0.30.1", features = ["rand"] }
