@@ -48,7 +48,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 24;
+const SCHEMA_VERSION: u64 = 25;
 
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
@@ -155,19 +155,6 @@ impl From<TableStats> for TableInfo {
 pub(crate) struct TransactionInfo {
   pub(crate) starting_block_count: u32,
   pub(crate) starting_timestamp: u128,
-}
-
-pub(crate) struct InscriptionInfo {
-  pub(crate) children: Vec<InscriptionId>,
-  pub(crate) entry: InscriptionEntry,
-  pub(crate) parents: Vec<InscriptionId>,
-  pub(crate) output: Option<TxOut>,
-  pub(crate) satpoint: SatPoint,
-  pub(crate) inscription: Inscription,
-  pub(crate) previous: Option<InscriptionId>,
-  pub(crate) next: Option<InscriptionId>,
-  pub(crate) rune: Option<SpacedRune>,
-  pub(crate) charms: u16,
 }
 
 pub(crate) trait BitcoinCoreRpcResultExt<T> {
@@ -399,6 +386,7 @@ impl Index {
               spaced_rune: SpacedRune { rune, spacers: 128 },
               symbol: Some('\u{29C9}'),
               timestamp: 0,
+              turbo: true,
             }
             .store(),
           )?;
@@ -1820,15 +1808,11 @@ impl Index {
     )
   }
 
-  pub fn inscription_info_benchmark(index: &Index, inscription_number: i32) {
-    Self::inscription_info(index, query::Inscription::Number(inscription_number)).unwrap();
-  }
-
   pub(crate) fn inscription_info(
-    index: &Index,
+    &self,
     query: query::Inscription,
-  ) -> Result<Option<InscriptionInfo>> {
-    let rtx = index.database.begin_read()?;
+  ) -> Result<Option<(api::Inscription, Option<TxOut>, Inscription)>> {
+    let rtx = self.database.begin_read()?;
 
     let sequence_number = match query {
       query::Inscription::Id(id) => rtx
@@ -1861,7 +1845,7 @@ impl Index {
         .value(),
     );
 
-    let Some(transaction) = index.get_transaction(entry.id.txid)? else {
+    let Some(transaction) = self.get_transaction(entry.id.txid)? else {
       return Ok(None);
     };
 
@@ -1885,7 +1869,7 @@ impl Index {
     {
       None
     } else {
-      let Some(transaction) = index.get_transaction(satpoint.outpoint.txid)? else {
+      let Some(transaction) = self.get_transaction(satpoint.outpoint.txid)? else {
         return Ok(None);
       };
 
@@ -1962,18 +1946,50 @@ impl Index {
       Charm::Lost.set(&mut charms);
     }
 
-    Ok(Some(InscriptionInfo {
-      children,
-      entry,
-      parents,
+    let effective_mime_type = if let Some(delegate_id) = inscription.delegate() {
+      let delegate_result = self.get_inscription_by_id(delegate_id);
+      if let Ok(Some(delegate)) = delegate_result {
+        delegate.content_type().map(str::to_string)
+      } else {
+        inscription.content_type().map(str::to_string)
+      }
+    } else {
+      inscription.content_type().map(str::to_string)
+    };
+
+    Ok(Some((
+      api::Inscription {
+        address: output
+          .as_ref()
+          .and_then(|o| {
+            self
+              .settings
+              .chain()
+              .address_from_script(&o.script_pubkey)
+              .ok()
+          })
+          .map(|address| address.to_string()),
+        charms: Charm::charms(charms),
+        children,
+        content_length: inscription.content_length(),
+        content_type: inscription.content_type().map(|s| s.to_string()),
+        effective_content_type: effective_mime_type,
+        fee: entry.fee,
+        height: entry.height,
+        id: entry.id,
+        next,
+        number: entry.inscription_number,
+        parents,
+        previous,
+        rune,
+        sat: entry.sat,
+        satpoint,
+        timestamp: timestamp(entry.timestamp.into()).timestamp(),
+        value: output.as_ref().map(|o| o.value),
+      },
       output,
-      satpoint,
       inscription,
-      previous,
-      next,
-      rune,
-      charms,
-    }))
+    )))
   }
 
   pub(crate) fn get_inscription_entry(
@@ -2122,6 +2138,61 @@ impl Index {
         .map(|(_sequence_number, satpoint, inscription_id)| (satpoint, inscription_id))
         .collect(),
     )
+  }
+
+  pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
+    let sat_ranges = self.list(outpoint)?;
+
+    let indexed;
+
+    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+      let mut value = 0;
+
+      if let Some(ranges) = &sat_ranges {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+
+      indexed = true;
+
+      TxOut {
+        value,
+        script_pubkey: ScriptBuf::new(),
+      }
+    } else {
+      indexed = self.contains_output(&outpoint)?;
+
+      let Some(tx) = self.get_transaction(outpoint.txid)? else {
+        return Ok(None);
+      };
+
+      let Some(output) = tx.output.into_iter().nth(outpoint.vout as usize) else {
+        return Ok(None);
+      };
+
+      output
+    };
+
+    let inscriptions = self.get_inscriptions_on_output(outpoint)?;
+
+    let runes = self.get_rune_balances_for_outpoint(outpoint)?;
+
+    let spent = self.is_output_spent(outpoint)?;
+
+    Ok(Some((
+      api::Output::new(
+        self.settings.chain(),
+        inscriptions,
+        outpoint,
+        txout.clone(),
+        indexed,
+        runes,
+        sat_ranges,
+        spent,
+      ),
+      txout,
+    )))
   }
 }
 

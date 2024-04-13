@@ -20,7 +20,7 @@ enum Payload {
 
 impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
-  pub const COMMIT_INTERVAL: u16 = 6;
+  pub const COMMIT_CONFIRMATIONS: u16 = 6;
 
   pub fn decipher(transaction: &Transaction) -> Option<Artifact> {
     let payload = match Runestone::payload(transaction) {
@@ -83,6 +83,7 @@ impl Runestone {
           Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
         ),
       }),
+      turbo: Flag::Turbo.take(&mut flags),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -134,6 +135,10 @@ impl Runestone {
 
       if etching.terms.is_some() {
         Flag::Terms.set(&mut flags);
+      }
+
+      if etching.turbo {
+        Flag::Turbo.set(&mut flags);
       }
 
       Tag::Flags.encode([flags], &mut payload);
@@ -1074,7 +1079,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
@@ -1110,17 +1115,18 @@ mod tests {
           output: 0,
         }],
         etching: Some(Etching {
+          divisibility: Some(1),
+          premine: Some(8),
           rune: Some(Rune(4)),
+          spacers: Some(5),
+          symbol: Some('a'),
           terms: Some(Terms {
             cap: Some(9),
             offset: (None, Some(2)),
             amount: Some(3),
             height: (None, None),
           }),
-          premine: Some(8),
-          divisibility: Some(1),
-          symbol: Some('a'),
-          spacers: Some(5),
+          turbo: true,
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -1433,6 +1439,7 @@ mod tests {
           offset: (Some(u32::MAX.into()), Some(u32::MAX.into())),
           height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
+        turbo: true,
         premine: Some(u64::MAX.into()),
         rune: Some(Rune(u128::MAX)),
         symbol: Some('\u{10FFFF}'),
@@ -1704,13 +1711,14 @@ mod tests {
             amount: Some(14),
             offset: (Some(15), Some(16)),
           }),
+          turbo: true,
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
       },
       &[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         9,
         Tag::Divisibility.into(),
@@ -1754,12 +1762,13 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          premine: None,
           divisibility: None,
-          terms: None,
-          symbol: None,
+          premine: None,
           rune: Some(Rune(3)),
           spacers: None,
+          symbol: None,
+          terms: None,
+          turbo: false,
         }),
         ..default()
       },
@@ -1769,12 +1778,13 @@ mod tests {
     case(
       Runestone {
         etching: Some(Etching {
-          premine: None,
           divisibility: None,
-          terms: None,
-          symbol: None,
+          premine: None,
           rune: None,
           spacers: None,
+          symbol: None,
+          terms: None,
+          turbo: false,
         }),
         ..default()
       },
@@ -2093,5 +2103,84 @@ mod tests {
         ..default()
       }),
     );
+  }
+
+  #[test]
+  fn all_pushdata_opcodes_are_valid() {
+    for i in 0..79 {
+      let mut script_pubkey = Vec::new();
+
+      script_pubkey.push(opcodes::all::OP_RETURN.to_u8());
+      script_pubkey.push(Runestone::MAGIC_NUMBER.to_u8());
+      script_pubkey.push(i);
+
+      match i {
+        0..=75 => {
+          for j in 0..i {
+            script_pubkey.push(if j % 2 == 0 { 1 } else { 0 });
+          }
+
+          if i % 2 == 1 {
+            script_pubkey.push(1);
+            script_pubkey.push(1);
+          }
+        }
+        76 => {
+          script_pubkey.push(0);
+        }
+        77 => {
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+        }
+        78 => {
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+          script_pubkey.push(0);
+        }
+        _ => unreachable!(),
+      }
+
+      assert_eq!(
+        Runestone::decipher(&Transaction {
+          version: 2,
+          lock_time: LockTime::ZERO,
+          input: default(),
+          output: vec![TxOut {
+            script_pubkey: script_pubkey.into(),
+            value: 0,
+          },],
+        })
+        .unwrap(),
+        Artifact::Runestone(Runestone::default()),
+      );
+    }
+  }
+
+  #[test]
+  fn all_non_pushdata_opcodes_are_invalid() {
+    for i in 79..=u8::MAX {
+      assert_eq!(
+        Runestone::decipher(&Transaction {
+          version: 2,
+          lock_time: LockTime::ZERO,
+          input: default(),
+          output: vec![TxOut {
+            script_pubkey: vec![
+              opcodes::all::OP_RETURN.to_u8(),
+              Runestone::MAGIC_NUMBER.to_u8(),
+              i
+            ]
+            .into(),
+            value: 0,
+          },],
+        })
+        .unwrap(),
+        Artifact::Cenotaph(Cenotaph {
+          flaws: Flaw::Opcode.into(),
+          ..default()
+        }),
+      );
+    }
   }
 }

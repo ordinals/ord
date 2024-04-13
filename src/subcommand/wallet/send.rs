@@ -8,7 +8,7 @@ pub(crate) struct Send {
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Target amount of postage to include with sent inscriptions [default: 10000 sat]"
+    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
   )]
   pub(crate) postage: Option<Amount>,
   address: Address<NetworkUnchecked>,
