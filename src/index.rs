@@ -870,8 +870,6 @@ impl Index {
       }
       None => Ok(None),
     }
-
-    // Ok(rune_result)
   }
 
   pub(crate) fn rune(

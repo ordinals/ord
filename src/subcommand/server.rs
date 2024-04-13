@@ -1,3 +1,4 @@
+pub(crate) use server_config::ServerConfig;
 use {
   self::{
     accept_encoding::AcceptEncoding,
@@ -39,8 +40,6 @@ use {
     validate_request::ValidateRequestHeaderLayer,
   },
 };
-
-pub(crate) use server_config::ServerConfig;
 
 mod accept_encoding;
 mod accept_json;
@@ -653,7 +652,7 @@ impl Server {
           "this server has no rune index".to_string(),
         ));
       }
-      println!("get_rune_by_number({:?})", rune_query);
+
       let rune = match rune_query {
         query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
         query::Rune::Id(rune_id) => index
@@ -2634,33 +2633,48 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(RUNE);
-
     server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
 
-    server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune),
+    for i in 0..10 {
+      let rune = Rune(RUNE + i);
+      server.etch(
+        Runestone {
+          edicts: vec![Edict {
+            id: RuneId::default(),
+            amount: u128::MAX,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            ..default()
+          }),
           ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
+        },
+        1,
+        None,
+      );
 
-    server.mine_blocks(1);
+      server.mine_blocks(1);
+    }
 
     server.assert_response_regex(
       "/rune/0",
       StatusCode::OK,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+
+    for i in 1..6 {
+      server.assert_response_regex(
+        format!("/rune/{}", i),
+        StatusCode::OK,
+        ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
+      );
+    }
+
+    server.assert_response_regex(
+      "/rune/9",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAJ</title>.*",
     );
   }
 
