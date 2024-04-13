@@ -255,6 +255,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
@@ -693,17 +694,44 @@ impl Server {
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::runes_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn runes_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
+      let (entries, more) = index.runes_paginated(50, page_index)?;
+
+      let prev = page_index.checked_sub(1);
+
+      let next = more.then_some(page_index + 1);
+
       Ok(if accept_json {
-        Json(api::Runes {
-          entries: index.runes()?,
+        Json(RunesHtml {
+          entries,
+          more,
+          prev,
+          next,
         })
         .into_response()
       } else {
         RunesHtml {
-          entries: index.runes()?,
+          entries,
+          more,
+          prev,
+          next,
         }
         .page(server_config)
         .into_response()
@@ -2634,7 +2662,7 @@ mod tests {
     server.assert_response_regex(
       "/runes",
       StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>\n<div class=center>\n    prev\n      next\n  </div>.*",
     );
 
     let (txid, id) = server.etch(
