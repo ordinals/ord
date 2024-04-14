@@ -855,6 +855,23 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_rune_by_number(&self, number: usize) -> Result<Option<Rune>> {
+    match self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+      .nth(number)
+    {
+      Some(result) => {
+        let rune_result =
+          result.map(|(_id, entry)| RuneEntry::load(entry.value()).spaced_rune.rune);
+        Ok(rune_result.ok())
+      }
+      None => Ok(None),
+    }
+  }
+
   pub(crate) fn rune(
     &self,
     rune: Rune,
@@ -905,6 +922,31 @@ impl Index {
     }
 
     Ok(entries)
+  }
+
+  pub(crate) fn runes_paginated(
+    &self,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<(RuneId, RuneEntry)>, bool)> {
+    let mut entries = Vec::new();
+
+    for result in self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+      .rev()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+    {
+      let (id, entry) = result?;
+      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
+    }
+
+    let more = entries.len() > page_size;
+
+    Ok((entries, more))
   }
 
   pub(crate) fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
@@ -6231,7 +6273,7 @@ mod tests {
   }
 
   #[test]
-  fn event_sender_channel() {
+  fn inscription_event_sender_channel() {
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
     let context = Context::builder().event_sender(event_sender).build();
 
@@ -6302,6 +6344,243 @@ mod tests {
           offset: 0
         },
         sequence_number: 0,
+      }
+    );
+  }
+
+  #[test]
+  fn rune_event_sender_channel() {
+    const RUNE: u128 = 99246114928149462;
+
+    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
+    let context = Context::builder()
+      .arg("--index-runes")
+      .event_sender(event_sender)
+      .build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneEtched {
+        block_height: 8,
+        txid: txid0,
+        rune_id: id,
+      }
+    );
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          mints: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: 0,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneMinted {
+        block_height: 9,
+        txid: txid1,
+        rune_id: id,
+        amount: 1000,
+      }
+    );
+
+    let txid2 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(9, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: 8,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            ..default()
+          },
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..Default::default()
+          }),
+          timestamp: 8,
+          mints: 1,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid2,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    event_receiver.blocking_recv().unwrap();
+
+    pretty_assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneTransferred {
+        block_height: 10,
+        txid: txid2,
+        rune_id: id,
+        amount: 1000,
+        outpoint: OutPoint {
+          txid: txid2,
+          vout: 0,
+        },
+      }
+    );
+
+    let txid3 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(10, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 111,
+            output: 0,
+          }],
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      op_return_index: Some(0),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: 8,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            ..default()
+          },
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..Default::default()
+          }),
+          timestamp: 8,
+          mints: 1,
+          burned: 111,
+          ..Default::default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid3,
+          vout: 1,
+        },
+        vec![(id, 889)],
+      )],
+    );
+
+    event_receiver.blocking_recv().unwrap();
+
+    pretty_assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneBurned {
+        block_height: 11,
+        txid: txid3,
+        amount: 111,
+        rune_id: id,
       }
     );
   }
