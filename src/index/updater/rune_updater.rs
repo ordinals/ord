@@ -4,6 +4,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
   pub(super) burned: HashMap<RuneId, Lot>,
   pub(super) client: &'client Client,
+  pub(super) event_sender: Option<&'a Sender<Event>>,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
@@ -28,6 +29,15 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           *unallocated.entry(id).or_default() += amount;
+
+          if let Some(sender) = self.event_sender {
+            sender.blocking_send(Event::RuneMinted {
+              block_height: self.height,
+              txid,
+              rune_id: id,
+              amount: amount.n(),
+            })?;
+          }
         }
       }
 
@@ -179,23 +189,42 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       // Sort balances by id so tests can assert balances in a fixed order
       balances.sort();
 
+      let outpoint = OutPoint {
+        txid,
+        vout: vout.try_into().unwrap(),
+      };
+
       for (id, balance) in balances {
         Index::encode_rune_balance(id, balance.n(), &mut buffer);
+
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneTransferred {
+            outpoint,
+            block_height: self.height,
+            txid,
+            rune_id: id,
+            amount: balance.0,
+          })?;
+        }
       }
 
-      self.outpoint_to_balances.insert(
-        &OutPoint {
-          txid,
-          vout: vout.try_into().unwrap(),
-        }
-        .store(),
-        buffer.as_slice(),
-      )?;
+      self
+        .outpoint_to_balances
+        .insert(&outpoint.store(), buffer.as_slice())?;
     }
 
     // increment entries with burned runes
     for (id, amount) in burned {
       *self.burned.entry(id).or_default() += amount;
+
+      if let Some(sender) = self.event_sender {
+        sender.blocking_send(Event::RuneBurned {
+          block_height: self.height,
+          txid,
+          rune_id: id,
+          amount: amount.n(),
+        })?;
+      }
     }
 
     Ok(())
@@ -277,6 +306,14 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     };
 
     self.id_to_entry.insert(id.store(), entry.store())?;
+
+    if let Some(sender) = self.event_sender {
+      sender.blocking_send(Event::RuneEtched {
+        block_height: self.height,
+        txid,
+        rune_id: id,
+      })?;
+    }
 
     let inscription_id = InscriptionId { txid, index: 0 };
 
