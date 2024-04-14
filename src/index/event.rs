@@ -1,7 +1,4 @@
-use {
-  crate::{InscriptionId, RuneId, SatPoint},
-  bitcoin::{OutPoint, Txid},
-};
+use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
