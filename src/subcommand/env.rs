@@ -53,7 +53,8 @@ impl Env {
     fs::write(
       absolute.join("bitcoin.conf"),
       format!(
-        "regtest=1
+        "datacarriersize=1000000
+        regtest=1
 datadir={absolute_str}
 listen=0
 txindex=1
@@ -67,7 +68,8 @@ rpcport={bitcoind_port}
       Command::new("bitcoind")
         .arg(format!("-conf={}", absolute.join("bitcoin.conf").display()))
         .stdout(Stdio::null())
-        .spawn()?,
+        .spawn()
+        .expect("failed to start bitcoind"),
     );
 
     loop {

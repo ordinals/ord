@@ -843,6 +843,7 @@ mod tests {
           divisibility: Some(1),
           symbol: Some('$'),
           spacers: Some(1),
+          turbo: true,
         }),
         pointer: Some(10),
         ..default()
@@ -868,6 +869,7 @@ mod tests {
           },
           symbol: None,
           timestamp: id.block,
+          turbo: false,
         },
       )],
       [],
@@ -4769,6 +4771,91 @@ mod tests {
   }
 
   #[test]
+  fn open_mints_without_a_cap_are_unmintable() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 0,
+          etching: txid0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
   fn open_mint_claims_can_use_split() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -5486,6 +5573,7 @@ mod tests {
               offset: (None, None),
             }),
             timestamp: 0,
+            turbo: true,
           },
         )],
         [],
