@@ -774,11 +774,12 @@ impl Api for Server {
   }
 
   fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error> {
+    let state = self.state();
     Ok(
-      self
-        .state()
+      state
         .locked
         .iter()
+        .filter(|outpoint| state.utxos.contains_key(outpoint))
         .map(|outpoint| (*outpoint).into())
         .collect(),
     )
@@ -890,7 +891,7 @@ impl Api for Server {
         vout: output.vout,
         txid: output.txid,
       };
-      assert!(state.utxos.contains_key(&output));
+      // assert!(state.utxos.contains_key(&output));
       assert!(state.locked.insert(output));
     }
 
