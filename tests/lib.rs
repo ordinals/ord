@@ -194,9 +194,14 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   let mut buffer = String::new();
 
-  BufReader::new(spawn.child.stderr.as_mut().unwrap())
-    .read_line(&mut buffer)
-    .unwrap();
+  let mut reader = BufReader::new(spawn.child.stderr.as_mut().unwrap());
+
+  reader.read_line(&mut buffer).unwrap();
+
+  assert_regex_match!(buffer, "Locking rune commitment output\n");
+
+  buffer.clear();
+  reader.read_line(&mut buffer).unwrap();
 
   assert_regex_match!(
     buffer,

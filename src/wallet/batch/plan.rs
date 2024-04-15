@@ -129,7 +129,7 @@ impl Plan {
       .send_raw_transaction(&signed_commit_tx)?;
 
     if let Some(ref rune_info) = rune {
-      // eprintln!("Locking commitment output");
+      eprintln!("Locking rune commitment output");
       wallet.bitcoin_client().lock_unspent(&[OutPoint {
         txid: commit_txid,
         vout: commit_vout.try_into().unwrap(),
