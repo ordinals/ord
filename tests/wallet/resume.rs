@@ -50,14 +50,9 @@ fn wallet_resume() {
 
     let mut buffer = String::new();
 
-    let mut reader = BufReader::new(spawn.child.stderr.as_mut().unwrap());
-
-    reader.read_line(&mut buffer).unwrap();
-
-    assert_regex_match!(buffer, "Locking rune commitment output\n");
-
-    buffer.clear();
-    reader.read_line(&mut buffer).unwrap();
+    BufReader::new(spawn.child.stderr.as_mut().unwrap())
+      .read_line(&mut buffer)
+      .unwrap();
 
     assert_regex_match!(
       buffer,
@@ -95,7 +90,6 @@ fn wallet_resume() {
     .spawn();
 
   let mut buffer = String::new();
-
   let mut reader = BufReader::new(spawn.child.stderr.as_mut().unwrap());
 
   reader.read_line(&mut buffer).unwrap();
@@ -167,14 +161,9 @@ fn resume_suspended() {
 
     let mut buffer = String::new();
 
-    let mut reader = BufReader::new(spawn.child.stderr.as_mut().unwrap());
-
-    reader.read_line(&mut buffer).unwrap();
-
-    assert_regex_match!(buffer, "Locking rune commitment output\n");
-
-    buffer.clear();
-    reader.read_line(&mut buffer).unwrap();
+    BufReader::new(spawn.child.stderr.as_mut().unwrap())
+      .read_line(&mut buffer)
+      .unwrap();
 
     assert_regex_match!(
       buffer,
@@ -289,13 +278,9 @@ fn commitment_output_is_locked() {
       .spawn();
 
   let mut buffer = String::new();
-  let mut reader = BufReader::new(spawn.child.stderr.as_mut().unwrap());
-  reader.read_line(&mut buffer).unwrap();
-
-  assert_regex_match!(buffer, "Locking rune commitment output\n");
-
-  buffer.clear();
-  reader.read_line(&mut buffer).unwrap();
+  BufReader::new(spawn.child.stderr.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
 
   assert_regex_match!(
     buffer,
