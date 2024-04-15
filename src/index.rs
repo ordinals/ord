@@ -1771,6 +1771,29 @@ impl Index {
       .collect::<Result<Vec<InscriptionId>>>()
   }
 
+  pub(crate) fn get_runes_in_block(&self, block_height: u64) -> Result<Vec<SpacedRune>> {
+    let rtx = self.database.begin_read()?;
+
+    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let min_id = RuneId {
+      block: block_height,
+      tx: 0,
+    };
+
+    let max_id = RuneId {
+      block: block_height + 1,
+      tx: 0,
+    };
+
+    let runes = rune_id_to_rune_entry
+      .range(min_id.store()..max_id.store())?
+      .map(|result| result.map(|(_, entry)| RuneEntry::load(entry.value()).spaced_rune))
+      .collect::<Result<Vec<SpacedRune>, StorageError>>()?;
+
+    Ok(runes)
+  }
+
   pub(crate) fn get_highest_paying_inscriptions_in_block(
     &self,
     block_height: u32,
