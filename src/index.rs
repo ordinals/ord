@@ -955,19 +955,19 @@ impl Index {
     varint::encode_to_vec(balance, buffer);
   }
 
-  pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Option<((RuneId, u128), usize)> {
+  pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Result<((RuneId, u128), usize)> {
     let mut len = 0;
     let (block, block_len) = varint::decode(&buffer[len..])?;
     len += block_len;
     let (tx, tx_len) = varint::decode(&buffer[len..])?;
     len += tx_len;
     let id = RuneId {
-      block: block.try_into().ok()?,
-      tx: tx.try_into().ok()?,
+      block: block.try_into()?,
+      tx: tx.try_into()?,
     };
     let (balance, balance_len) = varint::decode(&buffer[len..])?;
     len += balance_len;
-    Some(((id, balance), len))
+    Ok(((id, balance), len))
   }
 
   pub(crate) fn get_rune_balances_for_outpoint(

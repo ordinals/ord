@@ -34,7 +34,7 @@ impl Runestone {
       None => return None,
     };
 
-    let Some(integers) = Runestone::integers(&payload) else {
+    let Ok(integers) = Runestone::integers(&payload) else {
       return Some(Artifact::Cenotaph(Cenotaph {
         flaw: Some(Flaw::Varint),
         ..default()
@@ -233,7 +233,7 @@ impl Runestone {
     None
   }
 
-  fn integers(payload: &[u8]) -> Option<Vec<u128>> {
+  fn integers(payload: &[u8]) -> Result<Vec<u128>, varint::Error> {
     let mut integers = Vec::new();
     let mut i = 0;
 
@@ -243,7 +243,7 @@ impl Runestone {
       i += length;
     }
 
-    Some(integers)
+    Ok(integers)
   }
 }
 
