@@ -17,6 +17,16 @@ impl Drop for KillOnDrop {
 pub(crate) struct Env {
   #[arg(default_value = "env", help = "Create env in <DIRECTORY>.")]
   directory: PathBuf,
+  #[arg(
+    long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(
+    long,
+    help = "Proxy `/content/INSCRIPTION_ID` requests to `<CONTENT_PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+  )]
+  pub(crate) content_proxy: Option<Url>,
 }
 
 #[derive(Serialize)]
@@ -91,17 +101,27 @@ rpcport={bitcoind_port}
 
     let ord = std::env::current_exe()?;
 
-    let _ord = KillOnDrop(
-      Command::new(&ord)
-        .arg("--datadir")
-        .arg(&absolute)
-        .arg("server")
-        .arg("--polling-interval=100ms")
-        .arg("--http-port")
-        .arg(ord_port.to_string())
-        .arg("--content-proxy=https://ordinals.com")
-        .spawn()?,
-    );
+    let decompress = self.decompress;
+    let content_proxy = self.content_proxy.map(|url| url.to_string());
+
+    let mut command = Command::new(&ord);
+    let ord_server = command
+      .arg("--datadir")
+      .arg(&absolute)
+      .arg("server")
+      .arg("--polling-interval=100ms")
+      .arg("--http-port")
+      .arg(ord_port.to_string());
+
+    if decompress {
+      ord_server.arg("--decompress");
+    }
+
+    if let Some(content_proxy) = content_proxy {
+      ord_server.arg("--content-proxy").arg(content_proxy);
+    }
+
+    let _ord = KillOnDrop(ord_server.spawn()?);
 
     thread::sleep(Duration::from_millis(250));
 
