@@ -89,7 +89,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               })
               .collect::<Vec<usize>>();
 
-            if destinations.len() > 0 {
+            if !destinations.is_empty() {
               if amount == 0 {
                 // if amount is zero, divide balance between eligible outputs
                 let amount = *balance / destinations.len() as u128;
