@@ -8,11 +8,7 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   v.push(n.to_le_bytes()[0]);
 }
 
-pub fn decode(buffer: &[u8]) -> Option<(u128, usize)> {
-  try_decode(buffer).ok()
-}
-
-fn try_decode(buffer: &[u8]) -> Result<(u128, usize), Error> {
+pub fn decode(buffer: &[u8]) -> Result<(u128, usize), Error> {
   let mut n = 0u128;
 
   for (i, &byte) in buffer.iter().enumerate() {
@@ -43,7 +39,7 @@ pub fn encode(n: u128) -> Vec<u8> {
 }
 
 #[derive(PartialEq, Debug)]
-enum Error {
+pub enum Error {
   Overlong,
   Overflow,
   Unterminated,
@@ -69,7 +65,7 @@ mod tests {
   fn zero_round_trips_successfully() {
     let n = 0;
     let encoded = encode(n);
-    let (decoded, length) = try_decode(&encoded).unwrap();
+    let (decoded, length) = decode(&encoded).unwrap();
     assert_eq!(decoded, n);
     assert_eq!(length, encoded.len());
   }
@@ -78,7 +74,7 @@ mod tests {
   fn u128_max_round_trips_successfully() {
     let n = u128::MAX;
     let encoded = encode(n);
-    let (decoded, length) = try_decode(&encoded).unwrap();
+    let (decoded, length) = decode(&encoded).unwrap();
     assert_eq!(decoded, n);
     assert_eq!(length, encoded.len());
   }
@@ -88,7 +84,7 @@ mod tests {
     for i in 0..128 {
       let n = 1 << i;
       let encoded = encode(n);
-      let (decoded, length) = try_decode(&encoded).unwrap();
+      let (decoded, length) = decode(&encoded).unwrap();
       assert_eq!(decoded, n);
       assert_eq!(length, encoded.len());
     }
@@ -101,7 +97,7 @@ mod tests {
     for i in 0..129 {
       n = n << 1 | (i % 2);
       let encoded = encode(n);
-      let (decoded, length) = try_decode(&encoded).unwrap();
+      let (decoded, length) = decode(&encoded).unwrap();
       assert_eq!(decoded, n);
       assert_eq!(length, encoded.len());
     }
@@ -118,49 +114,49 @@ mod tests {
       128, 0,
     ];
 
-    assert_eq!(try_decode(&VALID), Ok((0, 19)));
-    assert_eq!(try_decode(&INVALID), Err(Error::Overlong));
+    assert_eq!(decode(&VALID), Ok((0, 19)));
+    assert_eq!(decode(&INVALID), Err(Error::Overlong));
   }
 
   #[test]
   fn varints_may_not_overflow_u128() {
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         64,
       ]),
       Err(Error::Overflow)
     );
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         32,
       ]),
       Err(Error::Overflow)
     );
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         16,
       ]),
       Err(Error::Overflow)
     );
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         8,
       ]),
       Err(Error::Overflow)
     );
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         4,
       ]),
       Err(Error::Overflow)
     );
     assert_eq!(
-      try_decode(&[
+      decode(&[
         128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
         2,
       ]),
@@ -170,6 +166,6 @@ mod tests {
 
   #[test]
   fn varints_must_be_terminated() {
-    assert_eq!(try_decode(&[128]), Err(Error::Unterminated));
+    assert_eq!(decode(&[128]), Err(Error::Unterminated));
   }
 }
