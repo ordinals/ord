@@ -68,10 +68,10 @@ mod tests {
         prev
         next
         .*
+        <h2>0 Runes</h2>
         <h2>0 Inscriptions</h2>
         <div class=thumbnails>
         </div>
-        <h2>0 Runes</h2>
         <h2>1 Transaction</h2>
         <ul class=monospace>
           <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
