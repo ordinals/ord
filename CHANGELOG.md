@@ -134,7 +134,7 @@ Changelog
 - Rename RuneID fields ([#3310](https://github.com/ordinals/ord/pull/3310) by [casey](https://github.com/casey))
 - Prevent front-running rune etchings ([#3212](https://github.com/ordinals/ord/pull/3212) by [casey](https://github.com/casey))
 - Clarify build instructions ([#3304](https://github.com/ordinals/ord/pull/3304) by [raphjaph](https://github.com/raphjaph))
-- Add test to choose the the earliest of deadline or end ([#3254](https://github.com/ordinals/ord/pull/3254) by [sondotpin](https://github.com/sondotpin))
+- Add test to choose the earliest of deadline or end ([#3254](https://github.com/ordinals/ord/pull/3254) by [sondotpin](https://github.com/sondotpin))
 - Ensure inscription tags are unique ([#3296](https://github.com/ordinals/ord/pull/3296) by [casey](https://github.com/casey))
 - Include CSP origin in preview content security policy headers ([#3276](https://github.com/ordinals/ord/pull/3276) by [bingryan](https://github.com/bingryan))
 - Add pre-commit hook ([#3262](https://github.com/ordinals/ord/pull/3262) by [bingryan](https://github.com/bingryan))
