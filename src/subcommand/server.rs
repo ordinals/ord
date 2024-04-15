@@ -236,6 +236,10 @@ impl Server {
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
         )
+        .route(
+          "/r/inscription/:inscription_id/rune/:rune_id",
+          get(Self::inscription_rune),
+        )
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -986,6 +990,47 @@ impl Server {
           timestamp: timestamp(entry.timestamp.into()).timestamp(),
         })
         .into_response(),
+      )
+    })
+  }
+
+  async fn inscription_rune(
+    Extension(index): Extension<Arc<Index>>,
+    Path((inscription_id, rune_id)): Path<(InscriptionId, RuneId)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let satpoint = index
+        .get_inscription_satpoint_by_id(inscription_id)
+        .ok()
+        .flatten()
+        .unwrap();
+
+      let rune = index
+        .get_rune_by_id(rune_id)?
+        .ok_or_not_found(|| format!("rune {rune_id}"))?;
+
+      let (_, rune_entry, _) = index
+        .rune(rune)?
+        .ok_or_not_found(|| format!("rune {rune}"))?;
+
+      let runes = index.get_rune_balances_for_outpoint(satpoint.outpoint)?;
+
+      let pile = runes.into_iter()
+        .find_map(|(spaced_rune, pile)| {
+            if spaced_rune.rune == rune {
+                Some(pile)
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| rune_entry.pile(0));
+
+      Ok(
+        Json(pile).into_response()
       )
     })
   }
