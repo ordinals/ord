@@ -48,6 +48,7 @@ impl Plan {
   ) -> SubcommandResult {
     let Transactions {
       commit_tx,
+      commit_vout,
       reveal_tx,
       recovery_key_pair,
       total_fees,
@@ -128,6 +129,11 @@ impl Plan {
       .send_raw_transaction(&signed_commit_tx)?;
 
     if let Some(ref rune_info) = rune {
+      wallet.bitcoin_client().lock_unspent(&[OutPoint {
+        txid: commit_txid,
+        vout: commit_vout.try_into().unwrap(),
+      }])?;
+
       let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
       let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
 
@@ -657,6 +663,7 @@ impl Plan {
 
     Ok(Transactions {
       commit_tx: unsigned_commit_tx,
+      commit_vout: vout,
       recovery_key_pair,
       reveal_tx,
       rune,
