@@ -891,7 +891,6 @@ impl Api for Server {
         vout: output.vout,
         txid: output.txid,
       };
-      // assert!(state.utxos.contains_key(&output));
       assert!(state.locked.insert(output));
     }
 
