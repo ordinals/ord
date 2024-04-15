@@ -1,21 +1,21 @@
-use {super::*, std::collections::BTreeSet};
+use super::*;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Output {
   pub cardinal: u64,
   pub ordinal: u64,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub runes: Option<BTreeMap<Rune, u128>>,
+  pub runes: Option<BTreeMap<SpacedRune, Decimal>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.get_unspent_outputs()?;
+  let unspent_outputs = wallet.utxos();
 
   let inscription_outputs = wallet
-    .get_inscriptions()?
+    .inscriptions()
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
@@ -25,26 +25,46 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runes = BTreeMap::new();
   let mut runic = 0;
 
-  for (output, amount) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_for_output(&output)?;
+  for (output, txout) in unspent_outputs {
+    let rune_balances = wallet.get_runes_balances_for_output(output)?;
 
-    if inscription_outputs.contains(&output) {
-      ordinal += amount.to_sat();
-    } else if !rune_balances.is_empty() {
+    let is_ordinal = inscription_outputs.contains(output);
+    let is_runic = !rune_balances.is_empty();
+
+    if is_ordinal {
+      ordinal += txout.value;
+    }
+
+    if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        *runes.entry(spaced_rune.rune).or_default() += pile.amount;
+        runes
+          .entry(spaced_rune)
+          .and_modify(|decimal: &mut Decimal| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert(Decimal {
+            value: pile.amount,
+            scale: pile.divisibility,
+          });
       }
-      runic += amount.to_sat();
-    } else {
-      cardinal += amount.to_sat();
+      runic += txout.value;
+    }
+
+    if !is_ordinal && !is_runic {
+      cardinal += txout.value;
+    }
+
+    if is_ordinal && is_runic {
+      eprintln!("warning: output {output} contains both inscriptions and runes");
     }
   }
 
   Ok(Some(Box::new(Output {
     cardinal,
     ordinal,
-    runes: wallet.has_rune_index()?.then_some(runes),
-    runic: wallet.has_rune_index()?.then_some(runic),
+    runes: wallet.has_rune_index().then_some(runes),
+    runic: wallet.has_rune_index().then_some(runic),
     total: cardinal + ordinal + runic,
   })))
 }

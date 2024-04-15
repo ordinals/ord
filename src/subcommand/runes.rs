@@ -7,24 +7,25 @@ pub struct Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneInfo {
+  pub block: u64,
   pub burned: u128,
   pub divisibility: u8,
   pub etching: Txid,
-  pub height: u32,
   pub id: RuneId,
-  pub index: u16,
-  pub mint: Option<MintEntry>,
-  pub mints: u64,
+  pub mints: u128,
   pub number: u64,
-  pub rune: Rune,
-  pub spacers: u32,
+  pub premine: u128,
+  pub rune: SpacedRune,
   pub supply: u128,
   pub symbol: Option<char>,
+  pub terms: Option<Terms>,
   pub timestamp: DateTime<Utc>,
+  pub turbo: bool,
+  pub tx: u32,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
+  let index = Index::open(&settings)?;
 
   ensure!(
     index.has_rune_index(),
@@ -40,37 +41,39 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
       .map(
         |(
           id,
-          RuneEntry {
+          entry @ RuneEntry {
+            block,
             burned,
             divisibility,
             etching,
-            mint,
             mints,
             number,
-            rune,
-            spacers,
-            supply,
+            premine,
+            spaced_rune,
             symbol,
+            terms,
             timestamp,
+            turbo,
           },
         )| {
           (
-            rune,
+            spaced_rune.rune,
             RuneInfo {
+              block,
               burned,
               divisibility,
               etching,
-              height: id.height,
               id,
-              index: id.index,
-              mint,
               mints,
               number,
-              rune,
-              spacers,
-              supply,
+              premine,
+              rune: spaced_rune,
+              supply: entry.supply(),
               symbol,
+              terms,
               timestamp: crate::timestamp(timestamp),
+              turbo,
+              tx: id.tx,
             },
           )
         },

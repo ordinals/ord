@@ -84,6 +84,29 @@ impl Sat {
     name.chars().rev().collect()
   }
 
+  pub fn charms(self) -> u16 {
+    let mut charms = 0;
+
+    if self.nineball() {
+      Charm::Nineball.set(&mut charms);
+    }
+
+    if self.coin() {
+      Charm::Coin.set(&mut charms);
+    }
+
+    match self.rarity() {
+      Rarity::Common => {}
+      Rarity::Epic => Charm::Epic.set(&mut charms),
+      Rarity::Legendary => Charm::Legendary.set(&mut charms),
+      Rarity::Mythic => Charm::Mythic.set(&mut charms),
+      Rarity::Rare => Charm::Rare.set(&mut charms),
+      Rarity::Uncommon => Charm::Uncommon.set(&mut charms),
+    }
+
+    charms
+  }
+
   fn from_name(s: &str) -> Result<Self, Error> {
     let mut x = 0;
     for c in s.chars() {
@@ -229,7 +252,7 @@ pub struct Error {
 }
 
 impl Display for Error {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "failed to parse sat `{}`: {}", self.input, self.kind)
   }
 }
@@ -263,7 +286,7 @@ impl ErrorKind {
 }
 
 impl Display for ErrorKind {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Self::IntegerRange => write!(f, "invalid integer range"),
       Self::NameRange => write!(f, "invalid name range"),

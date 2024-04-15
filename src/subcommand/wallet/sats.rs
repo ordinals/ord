@@ -26,7 +26,7 @@ pub struct OutputRare {
 impl Sats {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
-      wallet.has_sat_index()?,
+      wallet.has_sat_index(),
       "sats requires index created with `--index-sats` flag"
     );
 

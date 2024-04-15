@@ -1,32 +1,33 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::{BlockHtml, BlockInfoJson, BlockJson},
-  blocks::{BlocksHtml, BlocksJson},
-  children::{ChildrenHtml, ChildrenJson},
+  crate::subcommand::server::ServerConfig,
+  block::BlockHtml,
+  children::ChildrenHtml,
   clock::ClockSvg,
   collections::CollectionsHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::{InscriptionHtml, InscriptionJson},
-  inscriptions::{InscriptionsHtml, InscriptionsJson},
+  inscription::InscriptionHtml,
+  inscriptions::InscriptionsHtml,
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
-  output::{OutputHtml, OutputJson},
+  output::OutputHtml,
+  parents::ParentsHtml,
   preview::{
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
-  rune::{RuneHtml, RuneJson},
   rune_balances::RuneBalancesHtml,
-  runes::{RunesHtml, RunesJson},
-  sat::{SatHtml, SatInscriptionJson, SatInscriptionsJson, SatJson},
-  server_config::ServerConfig,
-  status::{StatusHtml, StatusJson},
-  transaction::{TransactionHtml, TransactionJson},
+  sat::SatHtml,
+};
+
+pub use {
+  blocks::BlocksHtml, rune::RuneHtml, runes::RunesHtml, status::StatusHtml,
+  transaction::TransactionHtml,
 };
 
 pub mod block;
@@ -42,6 +43,7 @@ pub mod inscriptions;
 mod inscriptions_block;
 mod metadata;
 pub mod output;
+mod parents;
 mod preview;
 mod range;
 mod rare;
@@ -76,7 +78,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "beta".into()
+      "alpha".into()
     } else {
       self.config.chain.to_string()
     }
@@ -91,10 +93,6 @@ pub(crate) trait PageContent: Display + 'static {
     Self: Sized,
   {
     PageHtml::new(self, server_config)
-  }
-
-  fn preview_image_url(&self) -> Option<Trusted<String>> {
-    None
   }
 }
 
@@ -124,7 +122,7 @@ mod tests {
         csp_origin: Some("https://signet.ordinals.com".into()),
         domain: Some("signet.ordinals.com".into()),
         index_sats: true,
-        ..Default::default()
+        ..default()
       }),),
       r"<!doctype html>
 <html lang=en>
@@ -146,7 +144,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>beta</sup></a>
+      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -174,9 +172,9 @@ mod tests {
         csp_origin: None,
         domain: None,
         index_sats: true,
-        ..Default::default()
+        ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
@@ -188,9 +186,9 @@ mod tests {
         csp_origin: None,
         domain: None,
         index_sats: false,
-        ..Default::default()
+        ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 
@@ -202,7 +200,7 @@ mod tests {
         csp_origin: None,
         domain: None,
         index_sats: true,
-        ..Default::default()
+        ..default()
       })),
       r".*<nav>\s*<a href=/ title=home>Ordinals<sup>signet</sup></a>.*"
     );

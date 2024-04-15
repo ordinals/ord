@@ -3,32 +3,29 @@ use super::*;
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct CompactOutput {
   pub inscriptions: Vec<CompactInscription>,
+  pub runestone: Option<Artifact>,
 }
 
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct RawOutput {
   pub inscriptions: Vec<ParsedEnvelope>,
+  pub runestone: Option<Artifact>,
 }
 
 #[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
+#[serde_with::skip_serializing_none]
 pub struct CompactInscription {
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub body: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_encoding: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub content_type: Option<String>,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub duplicate_field: bool,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub incomplete_field: bool,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metadata: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub metaprotocol: Option<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub parent: Option<InscriptionId>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub parents: Vec<InscriptionId>,
   pub pointer: Option<u64>,
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub unrecognized_even_field: bool,
@@ -45,7 +42,7 @@ impl TryFrom<Inscription> for CompactInscription {
         .transpose()?,
       content_type: inscription.content_type().map(str::to_string),
       metaprotocol: inscription.metaprotocol().map(str::to_string),
-      parent: inscription.parent(),
+      parents: inscription.parents(),
       pointer: inscription.pointer(),
       body: inscription.body.map(hex::encode),
       duplicate_field: inscription.duplicate_field,
@@ -74,18 +71,20 @@ pub(crate) struct Decode {
 }
 
 impl Decode {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let transaction = if let Some(txid) = self.txid {
-      options
+      settings
         .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {
-      Transaction::consensus_decode(&mut File::open(file)?)?
+      Transaction::consensus_decode(&mut fs::File::open(file)?)?
     } else {
       Transaction::consensus_decode(&mut io::stdin())?
     };
 
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);
+
+    let runestone = Runestone::decipher(&transaction);
 
     if self.compact {
       Ok(Some(Box::new(CompactOutput {
@@ -94,9 +93,13 @@ impl Decode {
           .into_iter()
           .map(|inscription| inscription.payload.try_into())
           .collect::<Result<Vec<CompactInscription>>>()?,
+        runestone,
       })))
     } else {
-      Ok(Some(Box::new(RawOutput { inscriptions })))
+      Ok(Some(Box::new(RawOutput {
+        inscriptions,
+        runestone,
+      })))
     }
   }
 }

@@ -1,7 +1,8 @@
 use {
+  self::{ImageRendering::*, Language::*, Media::*},
   super::*,
   brotli::enc::backward_references::BrotliEncoderMode::{
-    self, BROTLI_MODE_FONT, BROTLI_MODE_GENERIC, BROTLI_MODE_TEXT,
+    self, BROTLI_MODE_FONT as FONT, BROTLI_MODE_GENERIC as GENERIC, BROTLI_MODE_TEXT as TEXT,
   },
   mp4::{MediaType, Mp4Reader, TrackType},
   std::{fs::File, io::BufReader},
@@ -13,7 +14,7 @@ pub(crate) enum Media {
   Code(Language),
   Font,
   Iframe,
-  Image,
+  Image(ImageRendering),
   Markdown,
   Model,
   Pdf,
@@ -47,45 +48,65 @@ impl Display for Language {
   }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub(crate) enum ImageRendering {
+  Auto,
+  Pixelated,
+}
+
+impl Display for ImageRendering {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        Self::Auto => "auto",
+        Self::Pixelated => "pixelated",
+      }
+    )
+  }
+}
+
 impl Media {
   #[rustfmt::skip]
   const TABLE: &'static [(&'static str, BrotliEncoderMode, Media, &'static [&'static str])] = &[
-    ("application/cbor",            BROTLI_MODE_GENERIC, Media::Unknown,                    &["cbor"]),
-    ("application/json",            BROTLI_MODE_TEXT,    Media::Code(Language::Json),       &["json"]),
-    ("application/octet-stream",    BROTLI_MODE_GENERIC, Media::Unknown,                    &["bin"]),
-    ("application/pdf",             BROTLI_MODE_GENERIC, Media::Pdf,                        &["pdf"]),
-    ("application/pgp-signature",   BROTLI_MODE_TEXT,    Media::Text,                       &["asc"]),
-    ("application/protobuf",        BROTLI_MODE_GENERIC, Media::Unknown,                    &["binpb"]),
-    ("application/x-javascript",    BROTLI_MODE_TEXT,    Media::Code(Language::JavaScript), &[]),
-    ("application/yaml",            BROTLI_MODE_TEXT,    Media::Code(Language::Yaml),       &["yaml", "yml"]),
-    ("audio/flac",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["flac"]),
-    ("audio/mpeg",                  BROTLI_MODE_GENERIC, Media::Audio,                      &["mp3"]),
-    ("audio/wav",                   BROTLI_MODE_GENERIC, Media::Audio,                      &["wav"]),
-    ("font/otf",                    BROTLI_MODE_GENERIC, Media::Font,                       &["otf"]),
-    ("font/ttf",                    BROTLI_MODE_GENERIC, Media::Font,                       &["ttf"]),
-    ("font/woff",                   BROTLI_MODE_GENERIC, Media::Font,                       &["woff"]),
-    ("font/woff2",                  BROTLI_MODE_FONT,    Media::Font,                       &["woff2"]),
-    ("image/apng",                  BROTLI_MODE_GENERIC, Media::Image,                      &["apng"]),
-    ("image/avif",                  BROTLI_MODE_GENERIC, Media::Image,                      &[]),
-    ("image/gif",                   BROTLI_MODE_GENERIC, Media::Image,                      &["gif"]),
-    ("image/jpeg",                  BROTLI_MODE_GENERIC, Media::Image,                      &["jpg", "jpeg"]),
-    ("image/png",                   BROTLI_MODE_GENERIC, Media::Image,                      &["png"]),
-    ("image/svg+xml",               BROTLI_MODE_TEXT,    Media::Iframe,                     &["svg"]),
-    ("image/webp",                  BROTLI_MODE_GENERIC, Media::Image,                      &["webp"]),
-    ("model/gltf+json",             BROTLI_MODE_TEXT,    Media::Model,                      &["gltf"]),
-    ("model/gltf-binary",           BROTLI_MODE_GENERIC, Media::Model,                      &["glb"]),
-    ("model/stl",                   BROTLI_MODE_GENERIC, Media::Unknown,                    &["stl"]),
-    ("text/css",                    BROTLI_MODE_TEXT,    Media::Code(Language::Css),        &["css"]),
-    ("text/html",                   BROTLI_MODE_TEXT,    Media::Iframe,                     &[]),
-    ("text/html;charset=utf-8",     BROTLI_MODE_TEXT,    Media::Iframe,                     &["html"]),
-    ("text/javascript",             BROTLI_MODE_TEXT,    Media::Code(Language::JavaScript), &["js"]),
-    ("text/markdown",               BROTLI_MODE_TEXT,    Media::Markdown,                   &[]),
-    ("text/markdown;charset=utf-8", BROTLI_MODE_TEXT,    Media::Markdown,                   &["md"]),
-    ("text/plain",                  BROTLI_MODE_TEXT,    Media::Text,                       &[]),
-    ("text/plain;charset=utf-8",    BROTLI_MODE_TEXT,    Media::Text,                       &["txt"]),
-    ("text/x-python",               BROTLI_MODE_TEXT,    Media::Code(Language::Python),     &["py"]),
-    ("video/mp4",                   BROTLI_MODE_GENERIC, Media::Video,                      &["mp4"]),
-    ("video/webm",                  BROTLI_MODE_GENERIC, Media::Video,                      &["webm"]),
+    ("application/cbor",            GENERIC, Unknown,          &["cbor"]),
+    ("application/json",            TEXT,    Code(Json),       &["json"]),
+    ("application/octet-stream",    GENERIC, Unknown,          &["bin"]),
+    ("application/pdf",             GENERIC, Pdf,              &["pdf"]),
+    ("application/pgp-signature",   TEXT,    Text,             &["asc"]),
+    ("application/protobuf",        GENERIC, Unknown,          &["binpb"]),
+    ("application/x-javascript",    TEXT,    Code(JavaScript), &[]),
+    ("application/yaml",            TEXT,    Code(Yaml),       &["yaml", "yml"]),
+    ("audio/flac",                  GENERIC, Audio,            &["flac"]),
+    ("audio/mpeg",                  GENERIC, Audio,            &["mp3"]),
+    ("audio/wav",                   GENERIC, Audio,            &["wav"]),
+    ("font/otf",                    GENERIC, Font,             &["otf"]),
+    ("font/ttf",                    GENERIC, Font,             &["ttf"]),
+    ("font/woff",                   GENERIC, Font,             &["woff"]),
+    ("font/woff2",                  FONT,    Font,             &["woff2"]),
+    ("image/apng",                  GENERIC, Image(Pixelated), &["apng"]),
+    ("image/avif",                  GENERIC, Image(Auto),      &["avif"]),
+    ("image/gif",                   GENERIC, Image(Pixelated), &["gif"]),
+    ("image/jpeg",                  GENERIC, Image(Pixelated), &["jpg", "jpeg"]),
+    ("image/jxl",                   GENERIC, Image(Auto),      &[]),
+    ("image/png",                   GENERIC, Image(Pixelated), &["png"]),
+    ("image/svg+xml",               TEXT,    Iframe,           &["svg"]),
+    ("image/webp",                  GENERIC, Image(Pixelated), &["webp"]),
+    ("model/gltf+json",             TEXT,    Model,            &["gltf"]),
+    ("model/gltf-binary",           GENERIC, Model,            &["glb"]),
+    ("model/stl",                   GENERIC, Unknown,          &["stl"]),
+    ("text/css",                    TEXT,    Code(Css),        &["css"]),
+    ("text/html",                   TEXT,    Iframe,           &[]),
+    ("text/html;charset=utf-8",     TEXT,    Iframe,           &["html"]),
+    ("text/javascript",             TEXT,    Code(JavaScript), &["js"]),
+    ("text/markdown",               TEXT,    Markdown,         &[]),
+    ("text/markdown;charset=utf-8", TEXT,    Markdown,         &["md"]),
+    ("text/plain",                  TEXT,    Text,             &[]),
+    ("text/plain;charset=utf-8",    TEXT,    Text,             &["txt"]),
+    ("text/x-python",               TEXT,    Code(Python),     &["py"]),
+    ("video/mp4",                   GENERIC, Video,            &["mp4"]),
+    ("video/webm",                  GENERIC, Video,            &["webm"]),
   ];
 
   pub(crate) fn content_type_for_path(

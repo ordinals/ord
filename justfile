@@ -17,8 +17,20 @@ fmt:
 clippy:
   cargo clippy --all --all-targets -- --deny warnings
 
+install-git-hooks:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  for hook in hooks/*; do
+      name=$(basename "$hook")
+      if [ ! -e ".git/hooks/$name" ]; then
+          ln -s "$PWD/$hook" ".git/hooks/$name"
+      fi
+  done
+
 deploy branch remote chain domain:
-  ssh root@{{domain}} 'mkdir -p deploy \
+  ssh root@{{domain}} '\
+    export DEBIAN_FRONTEND=noninteractive \
+    && mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync'
@@ -50,6 +62,14 @@ deploy-all: \
   deploy-mainnet-alpha \
   deploy-mainnet-bravo \
   deploy-mainnet-charlie
+
+delete-indices: \
+  (delete-index "regtest.ordinals.net") \
+  (delete-index "signet.ordinals.net") \
+  (delete-index "testnet.ordinals.net")
+
+delete-index domain:
+  ssh root@{{domain}} 'systemctl stop ord && rm -f /var/lib/ord/*/index.redb'
 
 servers := 'alpha bravo charlie regtest signet testnet'
 
@@ -87,10 +107,10 @@ fuzz:
   set -euxo pipefail
   cd fuzz
   while true; do
-    cargo +nightly fuzz run transaction-builder -- -max_total_time=60
     cargo +nightly fuzz run runestone-decipher -- -max_total_time=60
     cargo +nightly fuzz run varint-decode -- -max_total_time=60
     cargo +nightly fuzz run varint-encode -- -max_total_time=60
+    cargo +nightly fuzz run transaction-builder -- -max_total_time=60
   done
 
 open:
@@ -151,6 +171,7 @@ update-modern-normalize:
 
 download-log unit='ord' host='alpha.ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
+  mkdir -p tmp/{{unit}}
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph log:
@@ -196,3 +217,6 @@ coverage:
 
 benchmark-server:
   cargo bench --bench server
+
+update-contributors:
+  cargo run --release --package update-contributors

@@ -7,8 +7,6 @@ use {
 };
 
 pub(crate) struct TestServer {
-  #[allow(unused)]
-  index: Arc<Index>,
   bitcoin_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
@@ -17,24 +15,19 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
-  pub(crate) fn spawn(bitcoin_rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
-    Self::spawn_with_server_args(bitcoin_rpc_server, &[], &[])
+  pub(crate) fn spawn(core: &mockcore::Handle) -> Self {
+    Self::spawn_with_server_args(core, &[], &[])
   }
 
-  pub(crate) fn spawn_with_args(
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
-    ord_args: &[&str],
-  ) -> Self {
-    Self::spawn_with_server_args(bitcoin_rpc_server, ord_args, &[])
+  pub(crate) fn spawn_with_args(core: &mockcore::Handle, ord_args: &[&str]) -> Self {
+    Self::spawn_with_server_args(core, ord_args, &[])
   }
 
   pub(crate) fn spawn_with_server_args(
-    bitcoin_rpc_server: &test_bitcoincore_rpc::Handle,
+    core: &mockcore::Handle,
     ord_args: &[&str],
     ord_server_args: &[&str],
   ) -> Self {
-    std::env::set_var("ORD_INTEGRATION_TEST", "1");
-
     let tempdir = TempDir::new().unwrap();
 
     let cookiefile = tempdir.path().join("cookie");
@@ -47,9 +40,9 @@ impl TestServer {
       .unwrap()
       .port();
 
-    let (options, server) = parse_ord_server_args(&format!(
-      "ord --rpc-url {} --cookie-file {} --bitcoin-data-dir {} --data-dir {} {} server {} --http-port {port} --address 127.0.0.1",
-      bitcoin_rpc_server.url(),
+    let (settings, server) = parse_ord_server_args(&format!(
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
+      core.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),
       tempdir.path().display(),
@@ -57,13 +50,13 @@ impl TestServer {
       ord_server_args.join(" "),
     ));
 
-    let index = Arc::new(Index::open(&options).unwrap());
+    let index = Arc::new(Index::open(&settings).unwrap());
     let ord_server_handle = Handle::new();
 
     {
       let index = index.clone();
       let ord_server_handle = ord_server_handle.clone();
-      thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+      thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
     }
 
     for i in 0.. {
@@ -80,8 +73,7 @@ impl TestServer {
     }
 
     Self {
-      index,
-      bitcoin_rpc_url: bitcoin_rpc_server.url(),
+      bitcoin_rpc_url: core.url(),
       ord_server_handle,
       port,
       tempdir,
@@ -92,14 +84,18 @@ impl TestServer {
     format!("http://127.0.0.1:{}", self.port).parse().unwrap()
   }
 
+  #[track_caller]
   pub(crate) fn assert_response_regex(&self, path: impl AsRef<str>, regex: impl AsRef<str>) {
     self.sync_server();
-
+    let path = path.as_ref();
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_regex_match!(response.text().unwrap(), regex.as_ref());
+    let status = response.status();
+    assert_eq!(status, StatusCode::OK, "bad status for {path}: {status}");
+    let text = response.text().unwrap();
+    assert_regex_match!(text, regex.as_ref());
   }
 
+  #[track_caller]
   pub(crate) fn assert_response(&self, path: impl AsRef<str>, expected_response: &str) {
     self.sync_server();
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
@@ -133,21 +129,9 @@ impl TestServer {
   pub(crate) fn sync_server(&self) {
     let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
-
-    for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
-
-      assert_eq!(response.status(), StatusCode::OK);
-
-      let ord_height = response.text().unwrap().parse::<u64>().unwrap();
-
-      if ord_height >= chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("index failed to synchronize with chain");
-      }
-      thread::sleep(Duration::from_millis(50));
-    }
+    let response = reqwest::blocking::get(self.url().join("/update").unwrap()).unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count);
   }
 }
 

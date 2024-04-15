@@ -28,11 +28,11 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut inscriptions_by_output: BTreeMap<OutPoint, BTreeMap<u64, Vec<InscriptionId>>> =
     BTreeMap::new();
 
-  for (satpoint, inscriptions) in wallet.get_inscriptions()? {
+  for (satpoint, inscriptions) in wallet.inscriptions() {
     inscriptions_by_output
       .entry(satpoint.outpoint)
       .or_default()
-      .insert(satpoint.offset, inscriptions);
+      .insert(satpoint.offset, inscriptions.clone());
   }
 
   for (output, ranges) in sat_ranges {

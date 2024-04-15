@@ -2,40 +2,10 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
-  pub(crate) sat: Sat,
-  pub(crate) satpoint: Option<SatPoint>,
   pub(crate) blocktime: Blocktime,
   pub(crate) inscriptions: Vec<InscriptionId>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct SatJson {
-  pub number: u64,
-  pub decimal: String,
-  pub degree: String,
-  pub name: String,
-  pub block: u32,
-  pub cycle: u32,
-  pub epoch: u32,
-  pub period: u32,
-  pub offset: u64,
-  pub rarity: Rarity,
-  pub percentile: String,
-  pub satpoint: Option<SatPoint>,
-  pub timestamp: i64,
-  pub inscriptions: Vec<InscriptionId>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct SatInscriptionsJson {
-  pub ids: Vec<InscriptionId>,
-  pub more: bool,
-  pub page: u64,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct SatInscriptionJson {
-  pub id: Option<InscriptionId>,
+  pub(crate) sat: Sat,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl PageContent for SatHtml {
@@ -69,8 +39,13 @@ mod tests {
           <dt>period</dt><dd>0</dd>
           <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=coin>🪙</span>
+            <span title=mythic>🎃</span>
+          </dd>
         </dl>
         .*
         prev
@@ -102,8 +77,12 @@ mod tests {
           <dt>period</dt><dd>3437</dd>
           <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=uncommon>🌱</span>
+          </dd>
         </dl>
         .*
         <a class=prev href=/sat/2099999997689998>prev</a>

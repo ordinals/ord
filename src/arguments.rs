@@ -21,6 +21,28 @@ pub(crate) struct Arguments {
 
 impl Arguments {
   pub(crate) fn run(self) -> SubcommandResult {
-    self.subcommand.run(self.options)
+    let mut env: BTreeMap<String, String> = BTreeMap::new();
+
+    for (var, value) in env::vars_os() {
+      let Some(var) = var.to_str() else {
+        continue;
+      };
+
+      let Some(key) = var.strip_prefix("ORD_") else {
+        continue;
+      };
+
+      env.insert(
+        key.into(),
+        value.into_string().map_err(|value| {
+          anyhow!(
+            "environment variable `{var}` not valid unicode: `{}`",
+            value.to_string_lossy()
+          )
+        })?,
+      );
+    }
+
+    self.subcommand.run(Settings::load(self.options)?)
   }
 }

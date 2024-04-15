@@ -15,11 +15,11 @@ pub(crate) enum IndexSubcommand {
 }
 
 impl IndexSubcommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self {
-      Self::Export(export) => export.run(options),
-      Self::Info(info) => info.run(options),
-      Self::Update => update::run(options),
+      Self::Export(export) => export.run(settings),
+      Self::Info(info) => info.run(settings),
+      Self::Update => update::run(settings),
     }
   }
 }

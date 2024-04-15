@@ -2,7 +2,7 @@
 <dl>
   <dt>hash</dt><dd class=monospace>{{self.hash}}</dd>
   <dt>target</dt><dd class=monospace>{{self.target}}</dd>
-  <dt>timestamp</dt><dd><time>{{timestamp(self.block.header.time)}}</time></dd>
+  <dt>timestamp</dt><dd><time>{{timestamp(self.block.header.time.into())}}</time></dd>
   <dt>size</dt><dd>{{self.block.size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
 %% if self.height.0 > 0 {
@@ -21,6 +21,14 @@ prev
 next
 %% }
 </div>
+<h2>{{"Rune".tally(self.runes.len())}}</h2>
+%% if self.runes.len() > 0 {
+<ul>
+  %% for spaced_rune in &self.runes {
+  <li><a href=/rune/{{ spaced_rune }}>{{ spaced_rune }}</a></li>
+  %% }
+</ul>
+%% }
 <h2>{{"Inscription".tally(self.inscription_count)}}</h2>
 <div class=thumbnails>
 %% for id in &self.featured_inscriptions {

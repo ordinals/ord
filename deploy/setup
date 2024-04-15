@@ -10,6 +10,8 @@ BRANCH=$3
 COMMIT=$4
 REVISION="ord-$BRANCH-$COMMIT"
 
+export DEBIAN_FRONTEND=noninteractive
+
 touch ~/.hushlogin
 
 hostnamectl set-hostname $DOMAIN
@@ -24,6 +26,8 @@ apt-get install --yes \
   pkg-config \
   ufw \
   vim
+
+apt-get remove --yes --auto-remove
 
 ufw default allow outgoing
 ufw default deny incoming

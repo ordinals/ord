@@ -15,7 +15,7 @@
         background-repeat: no-repeat;
         background-size: contain;
         height: 100%;
-        image-rendering: pixelated;
+        image-rendering: {{ self.image_rendering }};
         margin: 0;
       }
 
@@ -25,6 +25,7 @@
         width: 100%;
       }
     </style>
+    <script src=/static/preview-image.js type=module defer></script>
   </head>
   <body>
     <img src=/content/{{self.inscription_id}}></img>

@@ -1,8 +1,8 @@
 use super::*;
 
-pub(crate) struct Rtx<'a>(pub(crate) redb::ReadTransaction<'a>);
+pub(crate) struct Rtx(pub(crate) redb::ReadTransaction);
 
-impl Rtx<'_> {
+impl Rtx {
   pub(crate) fn block_height(&self) -> Result<Option<Height>> {
     Ok(
       self
@@ -10,7 +10,7 @@ impl Rtx<'_> {
         .open_table(HEIGHT_TO_BLOCK_HEADER)?
         .range(0..)?
         .next_back()
-        .and_then(|result| result.ok())
+        .transpose()?
         .map(|(height, _header)| Height(height.value())),
     )
   }
@@ -22,7 +22,7 @@ impl Rtx<'_> {
         .open_table(HEIGHT_TO_BLOCK_HEADER)?
         .range(0..)?
         .next_back()
-        .and_then(|result| result.ok())
+        .transpose()?
         .map(|(height, _header)| height.value() + 1)
         .unwrap_or(0),
     )

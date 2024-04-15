@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Copy, Clone, DeserializeFromStr, SerializeDisplay)]
 pub enum Rarity {
   Common,
   Uncommon,
@@ -33,7 +33,7 @@ impl TryFrom<u8> for Rarity {
 }
 
 impl Display for Rarity {
-  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(
       f,
       "{}",
@@ -87,24 +87,6 @@ impl FromStr for Rarity {
       "mythic" => Ok(Self::Mythic),
       _ => Err(format!("invalid rarity `{s}`")),
     }
-  }
-}
-
-impl Serialize for Rarity {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Rarity {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
   }
 }
 

@@ -2,11 +2,11 @@ use super::*;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub runes: BTreeMap<Rune, BTreeMap<OutPoint, u128>>,
+  pub runes: BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
+  let index = Index::open(&settings)?;
 
   ensure!(
     index.has_rune_index(),

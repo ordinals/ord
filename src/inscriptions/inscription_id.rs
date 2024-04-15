@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Ord, PartialOrd)]
+#[derive(
+  Debug, PartialEq, Copy, Clone, Hash, Eq, PartialOrd, Ord, DeserializeFromStr, SerializeDisplay,
+)]
 pub struct InscriptionId {
   pub txid: Txid,
   pub index: u32,
@@ -31,24 +33,6 @@ impl InscriptionId {
       .chain(index_slice)
       .copied()
       .collect()
-  }
-}
-
-impl<'de> Deserialize<'de> for InscriptionId {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    DeserializeFromStr::with(deserializer)
-  }
-}
-
-impl Serialize for InscriptionId {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
   }
 }
 
