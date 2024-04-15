@@ -841,7 +841,7 @@ impl Server {
         }
       };
 
-      let runes = index.get_runes_in_block(height)?;
+      let runes = index.get_runes_in_block(u64::from(height))?;
       Ok(if accept_json {
         let inscriptions = index.get_inscriptions_in_block(height)?;
         Json(api::Block::new(
@@ -2836,6 +2836,45 @@ mod tests {
   .*
 </dl>
 .*",
+    );
+  }
+
+  #[test]
+  fn etched_runes_on_block() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    let rune0 = Rune(RUNE);
+
+    let (_txid, id) = server.etch(
+      Runestone {
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: u128::MAX,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: Some(rune0),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      None,
+    );
+
+    assert_eq!(
+      server.index.get_runes_in_block(id.block - 1).unwrap().len(),
+      0
+    );
+    assert_eq!(server.index.get_runes_in_block(id.block).unwrap().len(), 1);
+    assert_eq!(
+      server.index.get_runes_in_block(id.block + 1).unwrap().len(),
+      0
     );
   }
 

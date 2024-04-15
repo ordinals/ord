@@ -1754,18 +1754,18 @@ impl Index {
       .collect::<Result<Vec<InscriptionId>>>()
   }
 
-  pub(crate) fn get_runes_in_block(&self, block_height: u32) -> Result<Vec<RuneEntry>> {
+  pub(crate) fn get_runes_in_block(&self, block_height: u64) -> Result<Vec<RuneEntry>> {
     let rtx = self.database.begin_read()?;
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
     let min_id = RuneId {
-      block: u64::from(block_height),
+      block: block_height,
       tx: 0,
     };
 
     let max_id = RuneId {
-      block: u64::from(block_height + 1),
+      block: block_height + 1,
       tx: 0,
     };
 
