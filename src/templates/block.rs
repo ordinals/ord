@@ -2,14 +2,14 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
-  hash: BlockHash,
-  target: BlockHash,
   best_height: Height,
   block: Block,
+  featured_inscriptions: Vec<InscriptionId>,
+  hash: BlockHash,
   height: Height,
   inscription_count: usize,
-  featured_inscriptions: Vec<InscriptionId>,
-  runes: Vec<RuneEntry>,
+  runes: Vec<SpacedRune>,
+  target: BlockHash,
 }
 
 impl BlockHtml {
@@ -19,7 +19,7 @@ impl BlockHtml {
     best_height: Height,
     inscription_count: usize,
     featured_inscriptions: Vec<InscriptionId>,
-    runes: Vec<RuneEntry>,
+    runes: Vec<SpacedRune>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
