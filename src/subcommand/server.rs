@@ -2897,7 +2897,7 @@ mod tests {
   }
 
   #[test]
-  fn etched_runes_on_block() {
+  fn etched_runes_are_displayed_on_block_page() {
     let server = TestServer::builder()
       .chain(Chain::Regtest)
       .index_runes()
@@ -2932,6 +2932,12 @@ mod tests {
     assert_eq!(
       server.index.get_runes_in_block(id.block + 1).unwrap().len(),
       0
+    );
+
+    server.assert_response_regex(
+      format!("/block/{}", id.block),
+      StatusCode::OK,
+      format!(".*<h2>1 Rune</h2>.*<li><a href=/rune/{rune0}>{rune0}</a></li>.*"),
     );
   }
 
