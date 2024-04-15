@@ -1,15 +1,56 @@
 Changelog
 =========
 
+[0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2023-04-11
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix off-by-one in wallet when waiting for etching commitment to mature ([#3515](https://github.com/ordinals/ord/pull/3515) by [casey](https://github.com/casey))
+
+[0.18.0](https://github.com/ordinals/ord/releases/tag/0.18.0) - 2023-04-10
+--------------------------------------------------------------------------
+
+### Fixed
+- Check etching commit confirmations correctly ([#3507](https://github.com/ordinals/ord/pull/3507) by [casey](https://github.com/casey))
+
+### Added
+- Add postage flag to mint command ([#3482](https://github.com/ordinals/ord/pull/3482) by [ynohtna92](https://github.com/ynohtna92))
+- Mint with destination ([#3497](https://github.com/ordinals/ord/pull/3497) by [ynohtna92](https://github.com/ynohtna92))
+- Add etching turbo flag ([#3511](https://github.com/ordinals/ord/pull/3511) by [casey](https://github.com/casey))
+- Allow inscribing without file ([#3451](https://github.com/ordinals/ord/pull/3451) by [raphjaph](https://github.com/raphjaph))
+- Add wallet batch outputs and inscriptions endpoints ([#3456](https://github.com/ordinals/ord/pull/3456) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Show decimal rune balances ([#3505](https://github.com/ordinals/ord/pull/3505) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Test that mints without a cap are unmintable ([#3495](https://github.com/ordinals/ord/pull/3495) by [lugondev](https://github.com/lugondev))
+- Bump ord crate required rust version to 1.76 ([#3512](https://github.com/ordinals/ord/pull/3512) by [casey](https://github.com/casey))
+- Updated rust-version to 1.74.0 ([#3492](https://github.com/ordinals/ord/pull/3492) by [tgscan-dev](https://github.com/tgscan-dev))
+- Better error message when bitcoind doesn't start ([#3500](https://github.com/ordinals/ord/pull/3500) by [twosatsmaxi](https://github.com/twosatsmaxi))
+- Fix typo in zh.po ([#3498](https://github.com/ordinals/ord/pull/3498) by [RandolphJiffy](https://github.com/RandolphJiffy))
+- Document allowed opcodes in runestones ([#3461](https://github.com/ordinals/ord/pull/3461) by [casey](https://github.com/casey))
+- Update data carriersize to match with ord ([#3506](https://github.com/ordinals/ord/pull/3506) by [twosatsmaxi](https://github.com/twosatsmaxi))
+- Fix maturation loop ([#3480](https://github.com/ordinals/ord/pull/3480) by [raphjaph](https://github.com/raphjaph))
+- Add rune logo and link to navbar ([#3442](https://github.com/ordinals/ord/pull/3442) by [lugondev](https://github.com/lugondev))
+- Add package necessary for Ubuntu ([#3462](https://github.com/ordinals/ord/pull/3462) by [petriuslima](https://github.com/petriuslima))
+- Update required Rust version in README ([#3466](https://github.com/ordinals/ord/pull/3466) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix typo in zh.po ([#3464](https://github.com/ordinals/ord/pull/3464) by [RandolphJiffy](https://github.com/RandolphJiffy))
+- Update testing.md ([#3463](https://github.com/ordinals/ord/pull/3463) by [gmart7t2](https://github.com/gmart7t2))
+- Update rune docs for Chinese version ([#3457](https://github.com/ordinals/ord/pull/3457) by [DrJingLee](https://github.com/DrJingLee))
+- Remove `etch` from error message ([#3449](https://github.com/ordinals/ord/pull/3449) by [ordinariusprof](https://github.com/ordinariusprof))
+- Fix deploy bitcoin.conf typo ([#3443](https://github.com/ordinals/ord/pull/3443) by [bitspill](https://github.com/bitspill))
+- Fix type in runes docs ([#3447](https://github.com/ordinals/ord/pull/3447) by [twosatsmaxi](https://github.com/twosatsmaxi))
+
 [0.17.1](https://github.com/ordinals/ord/releases/tag/0.17.1) - 2023-04-01
 --------------------------------------------------------------------------
 
-## Fixed
-- Ignore invalid script pubkeys (#3432)
+### Fixed
+- Ignore invalid script pubkeys ([#3432](https://github.com/ordinals/ord/pull/3432) by [casey](https://github.com/casey))
 
-## Misc
-- Fix typo (#3429)
-- Relax deployed Bitcoin Core relay rules (#3431)
+### Misc
+- Fix typo ([#3429](https://github.com/ordinals/ord/pull/3429) by [lugondev](https://github.com/lugondev))
+- Relax deployed Bitcoin Core relay rules ([#3431](https://github.com/ordinals/ord/pull/3431) by [casey](https://github.com/casey))
 
 [0.17.0](https://github.com/ordinals/ord/releases/tag/0.17.0) - 2023-03-31
 --------------------------------------------------------------------------

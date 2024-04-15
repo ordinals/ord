@@ -453,6 +453,10 @@ impl Plan {
         edicts: Vec::new(),
         etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
+          premine: (premine > 0).then_some(premine),
+          rune: Some(etching.rune.rune),
+          spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
+          symbol: Some(etching.symbol),
           terms: etching
             .terms
             .map(|terms| -> Result<ordinals::Terms> {
@@ -470,10 +474,7 @@ impl Plan {
               })
             })
             .transpose()?,
-          premine: (premine > 0).then_some(premine),
-          rune: Some(etching.rune.rune),
-          spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
-          symbol: Some(etching.symbol),
+          turbo: etching.turbo,
         }),
         mint: None,
         pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
@@ -719,7 +720,7 @@ impl Plan {
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
           sequence: if etching {
-            Sequence::from_height(Runestone::COMMIT_INTERVAL)
+            Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
           } else {
             Sequence::ENABLE_RBF_NO_LOCKTIME
           },

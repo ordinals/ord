@@ -46,11 +46,11 @@ fn one_rune() {
       runes: vec![(
         Rune(RUNE),
         RuneInfo {
-          block: 8,
+          block: 7,
           burned: 0,
           divisibility: 0,
           etching: etch.output.reveal,
-          id: RuneId { block: 8, tx: 1 },
+          id: RuneId { block: 7, tx: 1 },
           terms: None,
           mints: 0,
           number: 0,
@@ -61,7 +61,8 @@ fn one_rune() {
           },
           supply: 1000,
           symbol: Some('¢'),
-          timestamp: ord::timestamp(8),
+          timestamp: ord::timestamp(7),
+          turbo: false,
           tx: 1,
         }
       )]
@@ -91,11 +92,11 @@ fn two_runes() {
         (
           Rune(RUNE),
           RuneInfo {
-            block: 8,
+            block: 7,
             burned: 0,
             divisibility: 0,
             etching: a.output.reveal,
-            id: RuneId { block: 8, tx: 1 },
+            id: RuneId { block: 7, tx: 1 },
             terms: None,
             mints: 0,
             number: 0,
@@ -106,18 +107,19 @@ fn two_runes() {
             },
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(8),
+            timestamp: ord::timestamp(7),
+            turbo: false,
             tx: 1,
           }
         ),
         (
           Rune(RUNE + 1),
           RuneInfo {
-            block: 16,
+            block: 14,
             burned: 0,
             divisibility: 0,
             etching: b.output.reveal,
-            id: RuneId { block: 16, tx: 1 },
+            id: RuneId { block: 14, tx: 1 },
             terms: None,
             mints: 0,
             number: 1,
@@ -128,7 +130,8 @@ fn two_runes() {
             },
             supply: 1000,
             symbol: Some('¢'),
-            timestamp: ord::timestamp(16),
+            timestamp: ord::timestamp(14),
+            turbo: false,
             tx: 1,
           }
         )

@@ -45,7 +45,7 @@ pub(crate) use server_config::ServerConfig;
 mod accept_encoding;
 mod accept_json;
 mod error;
-pub(crate) mod query;
+pub mod query;
 mod server_config;
 
 enum SpawnConfig {
@@ -255,6 +255,7 @@ impl Server {
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
+        .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
@@ -655,10 +656,13 @@ impl Server {
       }
 
       let rune = match rune_query {
-        query::Rune::SpacedRune(spaced_rune) => spaced_rune.rune,
-        query::Rune::RuneId(rune_id) => index
+        query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
+        query::Rune::Id(rune_id) => index
           .get_rune_by_id(rune_id)?
           .ok_or_not_found(|| format!("rune {rune_id}"))?,
+        query::Rune::Number(number) => index
+          .get_rune_by_number(usize::try_from(number).unwrap())?
+          .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
       let (id, entry, parent) = index
@@ -693,17 +697,44 @@ impl Server {
   async fn runes(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::runes_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn runes_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
+      let (entries, more) = index.runes_paginated(50, page_index)?;
+
+      let prev = page_index.checked_sub(1);
+
+      let next = more.then_some(page_index + 1);
+
       Ok(if accept_json {
-        Json(api::Runes {
-          entries: index.runes()?,
+        Json(RunesHtml {
+          entries,
+          more,
+          prev,
+          next,
         })
         .into_response()
       } else {
         RunesHtml {
-          entries: index.runes()?,
+          entries,
+          more,
+          prev,
+          next,
         }
         .page(server_config)
         .into_response()
@@ -2078,7 +2109,7 @@ mod tests {
         ..default()
       });
 
-      self.mine_blocks(Runestone::COMMIT_INTERVAL.into());
+      self.mine_blocks((Runestone::COMMIT_CONFIRMATIONS - 1).into());
 
       let witness = witness.unwrap_or_else(|| {
         let tapscript = script::Builder::new()
@@ -2535,8 +2566,8 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_redirect("/search/9:1", "/rune/AAAAAAAAAAAAA");
-    server.assert_redirect("/search?query=9:1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search/8:1", "/rune/AAAAAAAAAAAAA");
+    server.assert_redirect("/search?query=8:1", "/rune/AAAAAAAAAAAAA");
 
     server.assert_response_regex(
       "/search/100000000000000000000:200000000000000000",
@@ -2616,9 +2647,63 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      "/rune/9:1",
+      "/rune/8:1",
       StatusCode::OK,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+  }
+
+  #[test]
+  fn runes_can_be_queried_by_rune_number() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
+
+    for i in 0..10 {
+      let rune = Rune(RUNE + i);
+      server.etch(
+        Runestone {
+          edicts: vec![Edict {
+            id: RuneId::default(),
+            amount: u128::MAX,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            rune: Some(rune),
+            ..default()
+          }),
+          ..default()
+        },
+        1,
+        None,
+      );
+
+      server.mine_blocks(1);
+    }
+
+    server.assert_response_regex(
+      "/rune/0",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAA</title>.*",
+    );
+
+    for i in 1..6 {
+      server.assert_response_regex(
+        format!("/rune/{}", i),
+        StatusCode::OK,
+        ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
+      );
+    }
+
+    server.assert_response_regex(
+      "/rune/9",
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAJ</title>.*",
     );
   }
 
@@ -2634,7 +2719,7 @@ mod tests {
     server.assert_response_regex(
       "/runes",
       StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>\n<div class=center>\n    prev\n      next\n  </div>.*",
     );
 
     let (txid, id) = server.etch(
@@ -2715,6 +2800,7 @@ mod tests {
           rune: Some(rune),
           symbol: Some('%'),
           premine: Some(u128::MAX),
+          turbo: true,
           ..default()
         }),
         ..default()
@@ -2742,6 +2828,7 @@ mod tests {
           premine: u128::MAX,
           symbol: Some('%'),
           timestamp: id.block,
+          turbo: true,
           ..default()
         }
       )]
@@ -2763,11 +2850,11 @@ mod tests {
   <dt>number</dt>
   <dd>0</dd>
   <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:09 UTC</time></dd>
+  <dd><time>1970-01-01 00:00:08 UTC</time></dd>
   <dt>id</dt>
-  <dd>9:1</dd>
+  <dd>8:1</dd>
   <dt>etching block</dt>
-  <dd><a href=/block/9>9</a></dd>
+  <dd><a href=/block/8>8</a></dd>
   <dt>etching transaction</dt>
   <dd>1</dd>
   <dt>mint</dt>
@@ -2782,6 +2869,8 @@ mod tests {
   <dd>0</dd>
   <dt>symbol</dt>
   <dd>%</dd>
+  <dt>turbo</dt>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
@@ -2796,9 +2885,9 @@ mod tests {
       StatusCode::OK,
       ".*
 <dl>
-  .*
   <dt>rune</dt>
   <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
+  .*
 </dl>
 .*",
     );
@@ -3126,7 +3215,12 @@ mod tests {
         3,
         0,
         0,
-        Inscription::new(None, Some("hello".as_bytes().into())).to_witness(),
+        Inscription {
+          content_type: None,
+          body: Some("hello".as_bytes().into()),
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });
@@ -3974,7 +4068,11 @@ mod tests {
   fn content_response_no_content() {
     assert_eq!(
       Server::content_response(
-        Inscription::new(Some("text/plain".as_bytes().to_vec()), None),
+        Inscription {
+          content_type: Some("text/plain".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        },
         AcceptEncoding::default(),
         &ServerConfig::default(),
       )
@@ -3986,7 +4084,11 @@ mod tests {
   #[test]
   fn content_response_with_content() {
     let (headers, body) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4000,7 +4102,11 @@ mod tests {
   #[test]
   fn content_security_policy_no_origin() {
     let (headers, _) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4016,7 +4122,11 @@ mod tests {
   #[test]
   fn content_security_policy_with_origin() {
     let (headers, _) = Server::content_response(
-      Inscription::new(Some("text/plain".as_bytes().to_vec()), Some(vec![1, 2, 3])),
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig {
         csp_origin: Some("https://ordinals.com".into()),
@@ -4107,7 +4217,11 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) = Server::content_response(
-      Inscription::new(None, Some(Vec::new())),
+      Inscription {
+        content_type: None,
+        body: Some(Vec::new()),
+        ..default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4121,7 +4235,11 @@ mod tests {
   #[test]
   fn content_response_bad_content_type() {
     let (headers, body) = Server::content_response(
-      Inscription::new(Some("\n".as_bytes().to_vec()), Some(Vec::new())),
+      Inscription {
+        content_type: Some("\n".as_bytes().to_vec()),
+        body: Some(Vec::new()),
+        ..Default::default()
+      },
       AcceptEncoding::default(),
       &ServerConfig::default(),
     )
@@ -4471,7 +4589,12 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
+        Inscription {
+          content_type: Some("foo/bar".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });
@@ -4500,7 +4623,12 @@ mod tests {
         1,
         0,
         0,
-        Inscription::new(Some("image/png".as_bytes().to_vec()), None).to_witness(),
+        Inscription {
+          content_type: Some("image/png".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        }
+        .to_witness(),
       )],
       ..default()
     });

@@ -319,15 +319,15 @@ impl Wallet {
         .into_option()?;
 
       if let Some(transaction) = transaction {
-        if u32::try_from(transaction.info.confirmations).unwrap()
-          >= Runestone::COMMIT_INTERVAL.into()
+        if u32::try_from(transaction.info.confirmations).unwrap() + 1
+          >= Runestone::COMMIT_CONFIRMATIONS.into()
         {
           let tx_out = self
             .bitcoin_client()
             .get_tx_out(&commit.txid(), 0, Some(true))?;
 
           if let Some(tx_out) = tx_out {
-            if tx_out.confirmations >= Runestone::COMMIT_INTERVAL.into() {
+            if tx_out.confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
               break;
             }
           } else {
