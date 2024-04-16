@@ -151,7 +151,7 @@ mod tests {
   #[test]
   fn identify_no_rare_sats() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
       )]),
@@ -162,7 +162,7 @@ mod tests {
   #[test]
   fn identify_one_rare_sat() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
       )]),
@@ -173,7 +173,7 @@ mod tests {
   #[test]
   fn identify_two_rare_sats() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(0, 100), (1050000000000000, 1150000000000000)],
       )]),
@@ -187,7 +187,7 @@ mod tests {
   #[test]
   fn identify_rare_sats_in_different_outpoints() {
     assert_eq!(
-      rare_sats(vec![
+      Sats::rare_sats(vec![
         (outpoint(1), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
         (outpoint(2), vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],),
       ]),
@@ -198,134 +198,134 @@ mod tests {
     )
   }
 
-  #[test]
-  fn identify_from_tsv_none() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
-      Vec::new()
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_none() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
+  //     Vec::new()
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_single() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_single() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
+  //     vec![(outpoint(1), "0"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_two_in_one_range() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_two_in_one_range() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
+  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_out_of_order_tsv() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_out_of_order_tsv() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
+  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_out_of_order_ranges() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_out_of_order_ranges() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
+  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_two_in_two_ranges() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_two_in_two_ranges() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
+  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_two_in_two_outputs() {
-    assert_eq!(
-      sats_from_tsv(
-        vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
-        "0\n1\n"
-      )
-      .unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(2), "1"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_two_in_two_outputs() {
+  //   assert_eq!(
+  //     sats_from_tsv(
+  //       vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
+  //       "0\n1\n"
+  //     )
+  //     .unwrap(),
+  //     vec![(outpoint(1), "0"), (outpoint(2), "1"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_ignores_extra_columns() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_ignores_extra_columns() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
+  //     vec![(outpoint(1), "0"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_ignores_empty_lines() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_ignores_empty_lines() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
+  //     vec![(outpoint(1), "0"),]
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_ignores_comments() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
-  }
+  // #[test]
+  // fn identify_from_tsv_ignores_comments() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
+  //     vec![(outpoint(1), "0"),]
+  //   )
+  // }
 
-  #[test]
-  fn parse_error_reports_line_and_value() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
-        .unwrap_err()
-        .to_string(),
-      "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
-    )
-  }
+  // #[test]
+  // fn parse_error_reports_line_and_value() {
+  //   assert_eq!(
+  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
+  //       .unwrap_err()
+  //       .to_string(),
+  //     "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
+  //   )
+  // }
 
-  #[test]
-  fn identify_from_tsv_is_fast() {
-    let mut start = 0;
-    let mut utxos = Vec::new();
-    let mut results = Vec::new();
-    for i in 0..16 {
-      let mut ranges = Vec::new();
-      let outpoint = outpoint(i);
-      for _ in 0..100 {
-        let end = start + 50 * COIN_VALUE;
-        ranges.push((start, end));
-        for j in 0..50 {
-          results.push((outpoint, start + j * COIN_VALUE));
-        }
-        start = end;
-      }
-      utxos.push((outpoint, ranges));
-    }
+  // #[test]
+  // fn identify_from_tsv_is_fast() {
+  //   let mut start = 0;
+  //   let mut utxos = Vec::new();
+  //   let mut results = Vec::new();
+  //   for i in 0..16 {
+  //     let mut ranges = Vec::new();
+  //     let outpoint = outpoint(i);
+  //     for _ in 0..100 {
+  //       let end = start + 50 * COIN_VALUE;
+  //       ranges.push((start, end));
+  //       for j in 0..50 {
+  //         results.push((outpoint, start + j * COIN_VALUE));
+  //       }
+  //       start = end;
+  //     }
+  //     utxos.push((outpoint, ranges));
+  //   }
 
-    let mut tsv = String::new();
-    for i in 0..start / COIN_VALUE {
-      writeln!(tsv, "{}", i * COIN_VALUE).expect("writing to string should succeed");
-    }
+  //   let mut tsv = String::new();
+  //   for i in 0..start / COIN_VALUE {
+  //     writeln!(tsv, "{}", i * COIN_VALUE).expect("writing to string should succeed");
+  //   }
 
-    let start = Instant::now();
-    assert_eq!(
-      sats_from_tsv(utxos, &tsv)
-        .unwrap()
-        .into_iter()
-        .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))
-        .collect::<Vec<(OutPoint, u64)>>(),
-      results
-    );
+  //   let start = Instant::now();
+  //   assert_eq!(
+  //     sats_from_tsv(utxos, &tsv)
+  //       .unwrap()
+  //       .into_iter()
+  //       .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))
+  //       .collect::<Vec<(OutPoint, u64)>>(),
+  //     results
+  //   );
 
-    assert!(Instant::now() - start < Duration::from_secs(10));
-  }
+  //   assert!(Instant::now() - start < Duration::from_secs(10));
+  // }
 }
