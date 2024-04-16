@@ -42,7 +42,8 @@ impl Sats {
 
       let lost = needles
         .into_iter()
-        .filter_map(|(_sat, value)| (!found.contains_key(value)).then(|| value.into()))
+        .filter(|(_sat, value)| !found.contains_key(*value))
+        .map(|(_sat, value)| value.into())
         .collect();
 
       Ok(Some(Box::new(OutputTsv { found, lost })))
@@ -60,8 +61,8 @@ impl Sats {
     }
   }
 
-  fn find<'a>(
-    needles: &[(Sat, &'a str)],
+  fn find(
+    needles: &[(Sat, &str)],
     ranges: &[(OutPoint, Vec<(u64, u64)>)],
   ) -> BTreeMap<String, SatPoint> {
     let mut haystacks = Vec::new();
@@ -203,7 +204,7 @@ mod tests {
   #[track_caller]
   fn case(tsv: &str, haystacks: &[(OutPoint, Vec<(u64, u64)>)], expected: &[(&str, SatPoint)]) {
     assert_eq!(
-      Sats::find(&Sats::needles(&tsv).unwrap(), &haystacks),
+      Sats::find(&Sats::needles(tsv).unwrap(), haystacks),
       expected
         .iter()
         .map(|(sat, satpoint)| (sat.to_string(), *satpoint))
@@ -221,7 +222,7 @@ mod tests {
     case(
       "0\n",
       &[(outpoint(1), vec![(0, 1)])],
-      &[("0".into(), satpoint(1, 0))],
+      &[("0", satpoint(1, 0))],
     );
   }
 
@@ -230,7 +231,7 @@ mod tests {
     case(
       "0\n1\n",
       &[(outpoint(1), vec![(0, 2)])],
-      &[("0".into(), satpoint(1, 0)), ("1".into(), satpoint(1, 1))],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
     );
   }
 
