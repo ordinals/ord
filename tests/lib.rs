@@ -336,6 +336,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dd>{premine} {symbol}</dd>
   <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
+  <dt>premine percentage</dt>
+  <dd>.*</dd>
   <dt>burned</dt>
   <dd>0 {symbol}</dd>
   <dt>divisibility</dt>
