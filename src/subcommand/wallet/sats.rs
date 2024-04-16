@@ -148,7 +148,7 @@ impl Sats {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::fmt::Write};
+  use super::*;
 
   #[test]
   fn identify_no_rare_sats() {
