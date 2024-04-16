@@ -517,7 +517,10 @@ impl Wallet {
   }
 
   pub(crate) fn open_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
-    let path = settings.data_dir().join(format!("{wallet_name}.redb"));
+    let path = settings
+      .data_dir()
+      .join("wallets")
+      .join(format!("{wallet_name}.redb"));
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(

@@ -7478,7 +7478,7 @@ msgstr ""
 
 #: src/guides/testing.md:71
 msgid "Run `ord server` in regtest with:"
-msgstr "在regtest里运行bitcoind，使用："
+msgstr "在regtest里运行ord server，使用："
 
 #: src/guides/testing.md:73
 msgid ""
