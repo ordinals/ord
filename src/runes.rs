@@ -5537,6 +5537,85 @@ mod tests {
   }
 
   #[test]
+  fn edict_with_amount_zero_and_no_destinations_is_ignored() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(id, u128::MAX)],
+      )],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 0,
+            output: 1,
+          }],
+          ..default()
+        }
+        .encipher(),
+      ),
+      outputs: 0,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: u128::MAX,
+          burned: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
   fn genesis_rune() {
     assert_eq!(
       Chain::Mainnet.first_rune_height(),
