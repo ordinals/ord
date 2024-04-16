@@ -444,7 +444,7 @@ impl Api for Server {
       if output_value > input_value {
         return Err(jsonrpc_core::Error {
           code: jsonrpc_core::ErrorCode::ServerError(-6),
-          message: "insufficent funds".into(),
+          message: "insufficient funds".into(),
           data: None,
         });
       }
