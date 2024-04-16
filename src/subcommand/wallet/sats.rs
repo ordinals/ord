@@ -74,6 +74,8 @@ impl Sats {
       }
     }
 
+    haystacks.sort_by_key(|(start, _, _, _)| *start);
+
     let mut i = 0;
     let mut j = 0;
     let mut results = BTreeMap::new();
@@ -105,7 +107,7 @@ impl Sats {
     let mut needles = tsv
       .lines()
       .enumerate()
-      .filter(|(_i, line)| !line.starts_with('#'))
+      .filter(|(_i, line)| !line.starts_with('#') && !line.is_empty())
       .filter_map(|(i, line)| {
         line.split('\t').next().map(|value| {
           Sat::from_str(value).map(|sat| (sat, value)).map_err(|err| {
@@ -198,134 +200,110 @@ mod tests {
     )
   }
 
-  // #[test]
-  // fn identify_from_tsv_none() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
-  //     Vec::new()
-  //   )
-  // }
+  #[track_caller]
+  fn case(tsv: &str, haystacks: &[(OutPoint, Vec<(u64, u64)>)], expected: &[(&str, SatPoint)]) {
+    assert_eq!(
+      Sats::find(&Sats::needles(&tsv).unwrap(), &haystacks),
+      expected
+        .iter()
+        .map(|(sat, satpoint)| (sat.to_string(), *satpoint))
+        .collect()
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_single() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
-  //     vec![(outpoint(1), "0"),]
-  //   )
-  // }
+  #[test]
+  fn tsv() {
+    case("1\n", &[(outpoint(1), vec![(0, 1)])], &[]);
+  }
 
-  // #[test]
-  // fn identify_from_tsv_two_in_one_range() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
-  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_single() {
+    case(
+      "0\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0".into(), satpoint(1, 0))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_out_of_order_tsv() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
-  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_two_in_one_range() {
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 2)])],
+      &[("0".into(), satpoint(1, 0)), ("1".into(), satpoint(1, 1))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_out_of_order_ranges() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
-  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_out_of_order_tsv() {
+    case(
+      "1\n0\n",
+      &[(outpoint(1), vec![(0, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_two_in_two_ranges() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
-  //     vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_out_of_order_ranges() {
+    case(
+      "1\n0\n",
+      &[(outpoint(1), vec![(1, 2), (0, 1)])],
+      &[("0", satpoint(1, 1)), ("1", satpoint(1, 0))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_two_in_two_outputs() {
-  //   assert_eq!(
-  //     sats_from_tsv(
-  //       vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
-  //       "0\n1\n"
-  //     )
-  //     .unwrap(),
-  //     vec![(outpoint(1), "0"), (outpoint(2), "1"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_two_in_two_ranges() {
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 1), (1, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
+    )
+  }
 
-  // #[test]
-  // fn identify_from_tsv_ignores_extra_columns() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
-  //     vec![(outpoint(1), "0"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_two_in_two_outputs() {
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(2, 0))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_ignores_empty_lines() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
-  //     vec![(outpoint(1), "0"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_ignores_extra_columns() {
+    case(
+      "0\t===\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_ignores_comments() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
-  //     vec![(outpoint(1), "0"),]
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_ignores_empty_lines() {
+    case(
+      "0\n\n\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
+  }
 
-  // #[test]
-  // fn parse_error_reports_line_and_value() {
-  //   assert_eq!(
-  //     sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
-  //       .unwrap_err()
-  //       .to_string(),
-  //     "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
-  //   )
-  // }
+  #[test]
+  fn identify_from_tsv_ignores_comments() {
+    case(
+      "0\n#===\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
+  }
 
-  // #[test]
-  // fn identify_from_tsv_is_fast() {
-  //   let mut start = 0;
-  //   let mut utxos = Vec::new();
-  //   let mut results = Vec::new();
-  //   for i in 0..16 {
-  //     let mut ranges = Vec::new();
-  //     let outpoint = outpoint(i);
-  //     for _ in 0..100 {
-  //       let end = start + 50 * COIN_VALUE;
-  //       ranges.push((start, end));
-  //       for j in 0..50 {
-  //         results.push((outpoint, start + j * COIN_VALUE));
-  //       }
-  //       start = end;
-  //     }
-  //     utxos.push((outpoint, ranges));
-  //   }
-
-  //   let mut tsv = String::new();
-  //   for i in 0..start / COIN_VALUE {
-  //     writeln!(tsv, "{}", i * COIN_VALUE).expect("writing to string should succeed");
-  //   }
-
-  //   let start = Instant::now();
-  //   assert_eq!(
-  //     sats_from_tsv(utxos, &tsv)
-  //       .unwrap()
-  //       .into_iter()
-  //       .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))
-  //       .collect::<Vec<(OutPoint, u64)>>(),
-  //     results
-  //   );
-
-  //   assert!(Instant::now() - start < Duration::from_secs(10));
-  // }
+  #[test]
+  fn parse_error_reports_line_and_value() {
+    assert_eq!(
+      Sats::needles("0\n===\n")
+        .unwrap_err()
+        .to_string(),
+      "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
+    );
+  }
 }
