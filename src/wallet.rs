@@ -349,7 +349,7 @@ impl Wallet {
       }
     }
 
-    Ok(self.send_etching(rune, &entry)?)
+    self.send_etching(rune, &entry)
   }
 
   pub(crate) fn send_etching(&self, rune: &Rune, entry: &EtchingEntry) -> Result<batch::Output> {
