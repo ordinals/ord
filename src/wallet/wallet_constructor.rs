@@ -54,7 +54,9 @@ impl WalletConstructor {
         client.load_wallet(&self.name)?;
       }
 
-      Wallet::check_descriptors(&self.name, client.list_descriptors(None)?.descriptors)?;
+      if client.get_wallet_info()?.private_keys_enabled {
+        Wallet::check_descriptors(&self.name, client.list_descriptors(None)?.descriptors)?;
+      }
 
       client
     };
