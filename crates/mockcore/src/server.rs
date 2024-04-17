@@ -296,7 +296,7 @@ impl Api for Server {
         keypool_size: 0,
         keypool_size_hd_internal: 0,
         pay_tx_fee: Amount::from_sat(0),
-        private_keys_enabled: false,
+        private_keys_enabled: true,
         scanning: None,
         tx_count: 0,
         unconfirmed_balance: Amount::from_sat(0),
@@ -444,7 +444,7 @@ impl Api for Server {
       if output_value > input_value {
         return Err(jsonrpc_core::Error {
           code: jsonrpc_core::ErrorCode::ServerError(-6),
-          message: "insufficent funds".into(),
+          message: "insufficient funds".into(),
           data: None,
         });
       }
