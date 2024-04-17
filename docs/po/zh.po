@@ -83,7 +83,7 @@ msgstr "浏览器"
 
 #: src/SUMMARY.md:21 src/guides/wallet.md:1
 msgid "Wallet"
-msgstr "麻雀钱包"
+msgstr "钱包"
 
 #: src/SUMMARY.md:22 src/guides/batch-inscribing.md:1
 msgid "Batch Inscribing"
@@ -127,19 +127,19 @@ msgstr "赏金"
 
 #: src/SUMMARY.md:32
 msgid "Bounty 0: 100,000 sats Claimed!"
-msgstr "任务 0: 100,000 sats 完成!"
+msgstr "赏金 0: 100,000 sats 完成!"
 
 #: src/SUMMARY.md:33
 msgid "Bounty 1: 200,000 sats Claimed!"
-msgstr "任务 1: 200,000 sats 完成!"
+msgstr "赏金 1: 200,000 sats 完成!"
 
 #: src/SUMMARY.md:34
 msgid "Bounty 2: 300,000 sats Claimed!"
-msgstr "任务 2: 300,000 sats 完成!"
+msgstr "赏金 2: 300,000 sats 完成!"
 
 #: src/SUMMARY.md:35
 msgid "Bounty 3: 400,000 sats"
-msgstr "任务 3: 400,000 sats"
+msgstr "赏金 3: 400,000 sats"
 
 #: src/introduction.md:4
 msgid ""
@@ -7950,15 +7950,15 @@ msgstr "在平局情况下，如果两个提交的出现了相同的频率，则
 
 #: src/bounty/3.md:66
 msgid "Part 0: 200,000 sats"
-msgstr ""
+msgstr "第0部分: 200,000 sats"
 
 #: src/bounty/3.md:67
 msgid "Part 1: 200,000 sats"
-msgstr ""
+msgstr "第1部分: 200,000 sats"
 
 #: src/bounty/3.md:68
 msgid "Total: 400,000 sats"
-msgstr ""
+msgstr "总量: 400,000 sats"
 
 #: src/bounty/3.md:73
 msgid ""
@@ -7968,7 +7968,7 @@ msgstr ""
 
 #: src/bounty/3.md:78
 msgid "Unclaimed!"
-msgstr "仍然有效！"
+msgstr "无人认领!"
 
 #~ msgid ""
 #~ "[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www."
