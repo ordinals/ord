@@ -263,6 +263,7 @@ FLAG_VALUE`:
 enum Flag {
   Etching = 0,
   Terms = 1,
+  Turbo = 2,
   Cenotaph = 127,
 }
 ```
@@ -270,6 +271,8 @@ enum Flag {
 The `Etching` flag marks this transaction as containing an etching.
 
 The `Terms` flag marks this transaction's etching as having open mint terms.
+
+The `Turbo` flag marks this transaction's etching as opting into unspecified future protocol changes.
 
 The `Cenotaph` flag is unrecognized.
 
