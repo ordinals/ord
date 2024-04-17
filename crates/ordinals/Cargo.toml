@@ -1,6 +1,6 @@
 [package]
 name = "ordinals"
-version = "0.0.7"
+version = "0.0.8"
 edition = "2021"
 description = "Library for interoperating with ordinals and inscriptions"
 homepage = "https://github.com/ordinals/ord"

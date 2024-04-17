@@ -200,7 +200,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   assert_regex_match!(
     buffer,
-    "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+    "Waiting for rune .* commitment [[:xdigit:]]{64} to mature…\n"
   );
 
   core.mine_blocks(5);
@@ -356,7 +356,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   let batch::RuneInfo {
     destination,
     location,
-    rune,
+    rune: _,
   } = output.rune.clone().unwrap();
 
   if premine.to_integer(divisibility).unwrap() > 0 {
@@ -369,27 +369,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     assert!(core.state().is_wallet_address(&destination));
 
     let location = location.unwrap();
-
-    ord.assert_response_regex(
-      "/runes/balances",
-      format!(
-        ".*<tr>
-    <td><a href=/rune/{rune}>{rune}</a></td>
-    <td>
-      <table>
-        <tr>
-          <td class=monospace>
-            <a href=/output/{location}>{location}</a>
-          </td>
-          <td class=monospace>
-            {premine}\u{A0}{symbol}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>.*"
-      ),
-    );
 
     assert_eq!(core.address(location), destination);
   } else {

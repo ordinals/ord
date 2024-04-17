@@ -9,7 +9,7 @@ pub struct Pile {
 
 impl Display for Pile {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    let cutoff = 10u128.pow(self.divisibility.into());
+    let cutoff = 10u128.checked_pow(self.divisibility.into()).unwrap();
 
     let whole = self.amount / cutoff;
     let mut fractional = self.amount % cutoff;
