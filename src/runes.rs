@@ -3954,6 +3954,7 @@ mod tests {
 
     let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
       op_return: Some(
         Runestone {
           mint: Some(id),
