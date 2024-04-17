@@ -10,7 +10,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     .pending_etchings()?
     .into_iter()
     .map(|(rune, entry)| {
-      wallet.wait_for_maturation(&rune, entry.commit, entry.reveal, entry.output)
+      wallet.wait_for_maturation(&rune, entry.commit, entry.reveal, entry.output, false)
     })
     .collect();
 

@@ -302,13 +302,14 @@ impl Wallet {
     commit: Transaction,
     reveal: Transaction,
     output: batch::Output,
+    no_wait: bool,
   ) -> Result<batch::Output> {
     eprintln!("Waiting for rune commitment {} to mature…", commit.txid());
 
     self.save_etching(rune, &commit, &reveal, output.clone())?;
 
     loop {
-      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) || no_wait {
         eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
         return Ok(output);
       }

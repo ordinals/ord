@@ -81,6 +81,7 @@ impl Inscribe {
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
+      no_wait: self.shared.no_wait,
       parent_info: wallet.get_parent_info(self.parent)?,
       postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
       reinscribe: self.reinscribe,
