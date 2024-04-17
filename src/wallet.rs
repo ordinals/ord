@@ -323,7 +323,7 @@ impl Wallet {
     Ok(false)
   }
 
-  pub(crate) fn wait_for_maturation(&self, rune: &Rune) -> Result<batch::Output> {
+  pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
     let Some(entry) = self.load_etching(rune)? else {
       bail!("no etching found");
     };
@@ -352,7 +352,7 @@ impl Wallet {
     self.send_etching(rune, &entry)
   }
 
-  pub(crate) fn send_etching(&self, rune: &Rune, entry: &EtchingEntry) -> Result<batch::Output> {
+  pub(crate) fn send_etching(&self, rune: Rune, entry: &EtchingEntry) -> Result<batch::Output> {
     match self.bitcoin_client().send_raw_transaction(&entry.reveal) {
       Ok(txid) => txid,
       Err(err) => {
@@ -647,7 +647,7 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn load_etching(&self, rune: &Rune) -> Result<Option<EtchingEntry>> {
+  pub(crate) fn load_etching(&self, rune: Rune) -> Result<Option<EtchingEntry>> {
     let rtx = self.database.begin_read()?;
 
     Ok(
@@ -658,7 +658,7 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn clear_etching(&self, rune: &Rune) -> Result {
+  pub(crate) fn clear_etching(&self, rune: Rune) -> Result {
     let wtx = self.database.begin_write()?;
 
     wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;

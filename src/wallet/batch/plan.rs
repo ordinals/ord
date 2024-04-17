@@ -154,7 +154,7 @@ impl Plan {
       )?;
 
       Ok(Some(Box::new(
-        wallet.wait_for_maturation(&rune_info.rune.rune)?,
+        wallet.wait_for_maturation(rune_info.rune.rune)?,
       )))
     } else {
       let reveal = match wallet
