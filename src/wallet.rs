@@ -296,44 +296,52 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  pub(crate) fn wait_for_maturation(
-    &self,
-    rune: &Rune,
-    commit: Transaction,
-    reveal: Transaction,
-    output: batch::Output,
-  ) -> Result<batch::Output> {
-    eprintln!("Waiting for rune commitment {} to mature…", commit.txid());
+  pub(crate) fn is_mature(&self, commit: &Transaction) -> Result<bool> {
+    let transaction = self
+      .bitcoin_client()
+      .get_transaction(&commit.txid(), Some(true))
+      .into_option()?;
 
-    self.save_etching(rune, &commit, &reveal, output.clone())?;
+    if let Some(transaction) = transaction {
+      if u32::try_from(transaction.info.confirmations).unwrap() + 1
+        >= Runestone::COMMIT_CONFIRMATIONS.into()
+      {
+        let tx_out = self
+          .bitcoin_client()
+          .get_tx_out(&commit.txid(), 0, Some(true))?;
+
+        if let Some(tx_out) = tx_out {
+          if tx_out.confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
+            return Ok(true);
+          }
+        } else {
+          bail!("rune commitment spent, can't send reveal tx");
+        }
+      }
+    }
+
+    Ok(false)
+  }
+
+  pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
+    let Some(entry) = self.load_etching(rune)? else {
+      bail!("no etching found");
+    };
+
+    eprintln!(
+      "Waiting for rune {} commitment {} to mature…",
+      rune,
+      entry.commit.txid()
+    );
 
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
-        return Ok(output);
+        return Ok(entry.output);
       }
 
-      let transaction = self
-        .bitcoin_client()
-        .get_transaction(&commit.txid(), Some(true))
-        .into_option()?;
-
-      if let Some(transaction) = transaction {
-        if u32::try_from(transaction.info.confirmations).unwrap() + 1
-          >= Runestone::COMMIT_CONFIRMATIONS.into()
-        {
-          let tx_out = self
-            .bitcoin_client()
-            .get_tx_out(&commit.txid(), 0, Some(true))?;
-
-          if let Some(tx_out) = tx_out {
-            if tx_out.confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
-              break;
-            }
-          } else {
-            bail!("rune commitment spent, can't send reveal tx");
-          }
-        }
+      if self.is_mature(&entry.commit)? {
+        break;
       }
 
       if !self.integration_test() {
@@ -341,12 +349,16 @@ impl Wallet {
       }
     }
 
-    match self.bitcoin_client().send_raw_transaction(&reveal) {
+    self.send_etching(rune, &entry)
+  }
+
+  pub(crate) fn send_etching(&self, rune: Rune, entry: &EtchingEntry) -> Result<batch::Output> {
+    match self.bitcoin_client().send_raw_transaction(&entry.reveal) {
       Ok(txid) => txid,
       Err(err) => {
         return Err(anyhow!(
           "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
-          commit.txid()
+          entry.commit.txid()
         ))
       }
     };
@@ -355,7 +367,7 @@ impl Wallet {
 
     Ok(batch::Output {
       reveal_broadcast: true,
-      ..output
+      ..entry.output.clone()
     })
   }
 
@@ -646,7 +658,7 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn clear_etching(&self, rune: &Rune) -> Result {
+  pub(crate) fn clear_etching(&self, rune: Rune) -> Result {
     let wtx = self.database.begin_write()?;
 
     wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
