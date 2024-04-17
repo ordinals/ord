@@ -49,7 +49,7 @@ mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.2"
-ordinals = { version = "0.0.7", path = "crates/ordinals" }
+ordinals = { version = "0.0.8", path = "crates/ordinals" }
 redb = "2.0.0"
 regex = "1.6.0"
 reqwest = { version = "0.11.23", features = ["blocking", "json"] }
