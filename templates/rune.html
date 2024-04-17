@@ -55,7 +55,7 @@
   <dt>premine</dt>
   <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
   <dt>premine percentage</dt>
-  <dd>{{ (self.entry.premine as f64 / self.entry.supply() as f64) * 100.0 }}%</dd>
+  <dd>{{ format!("{:.2}%", (self.entry.premine as f64 / self.entry.supply() as f64) * 100.0) }}</dd>
   <dt>burned</dt>
   <dd>{{ self.entry.pile(self.entry.burned) }}</dd>
   <dt>divisibility</dt>

@@ -88,7 +88,7 @@ mod tests {
   <dt>premine</dt>
   <dd>0.123456789\u{A0}%</dd>
   <dt>premine percentage</dt>
-  <dd>0.12330456102496348%</dd>
+  <dd>0.12%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{A0}%</dd>
   <dt>divisibility</dt>
