@@ -435,11 +435,13 @@
 </span>enum Flag {
   Etching = 0,
   Terms = 1,
+  Turbo = 2,
   Cenotaph = 127,
 }
 <span class="boring">}</span></code></pre></pre>
 <p><code>Etching</code>标志表示此交易包含蚀刻。</p>
 <p><code>Terms</code>标志表示此交易的蚀刻具有开放的铸币条款。</p>
+<p>The <code>Turbo</code> flag marks this transaction's etching as opting into future protocol changes. These protocol changes may increase light client validation costs, or just be highly degenerate.</p>
 <p><code>Cenotaph</code>标志表示无法识别</p>
 <p>如果在移除已识别标志后，标志字段的值非零，则该符石为纪念碑。</p>
 <h5 id="符文"><a class="header" href="#符文">符文</a></h5>

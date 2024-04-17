@@ -1404,11 +1404,15 @@ integers to be interpreted as edicts.</p>
 </span>enum Flag {
   Etching = 0,
   Terms = 1,
+  Turbo = 2,
   Cenotaph = 127,
 }
 <span class="boring">}</span></code></pre></pre>
 <p>The <code>Etching</code> flag marks this transaction as containing an etching.</p>
 <p>The <code>Terms</code> flag marks this transaction's etching as having open mint terms.</p>
+<p>The <code>Turbo</code> flag marks this transaction's etching as opting into future
+protocol changes. These protocol changes may increase light client validation
+costs, or just be highly degenerate.</p>
 <p>The <code>Cenotaph</code> flag is unrecognized.</p>
 <p>If the value of the flags field after removing recognized flags is nonzero, the
 runestone is a cenotaph.</p>
