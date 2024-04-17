@@ -1,6 +1,38 @@
 Changelog
 =========
 
+[0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2023-04-17
+--------------------------------------------------------------------------
+
+### Migration
+- Wallet databases are now stored in the `/wallets` subdirectory of the data
+  dir. To use old wallet databases with 0.18.2, move `<WALLET_NAME>.redb` files
+  into the `/wallets` subdirectory of the data dir. Currently, the only
+  information stored in wallet databases are pending etchings.
+
+### Changed
+- Store wallets in /wallets subdir of data dir ([#3553](https://github.com/ordinals/ord/pull/3553) by [casey](https://github.com/casey))
+- Remove /runes/balances page ([#3555](https://github.com/ordinals/ord/pull/3555) by [lugondev](https://github.com/lugondev))
+- Forbid etching below rune activation height ([#3523](https://github.com/ordinals/ord/pull/3523) by [casey](https://github.com/casey))
+
+### Added
+- Add command to export BIP-329 labels for wallet outputs ([#3120](https://github.com/ordinals/ord/pull/3120) by [casey](https://github.com/casey))
+- Display etched runes on /block ([#3366](https://github.com/ordinals/ord/pull/3366) by [lugondev](https://github.com/lugondev))
+- Emit rune-related events ([#3219](https://github.com/ordinals/ord/pull/3219) by [felipelincoln](https://github.com/felipelincoln))
+- Lookup rune by number ([#3440](https://github.com/ordinals/ord/pull/3440) by [lugondev](https://github.com/lugondev))
+- Add runes pagination ([#3215](https://github.com/ordinals/ord/pull/3215) by [lugondev](https://github.com/lugondev))
+
+### Misc
+- Document turbo flag ([#3579](https://github.com/ordinals/ord/pull/3579) by [gmart7t2](https://github.com/gmart7t2))
+- Add open mint tests ([#3558](https://github.com/ordinals/ord/pull/3558) by [lugondev](https://github.com/lugondev))
+- Fix typos ([#3541](https://github.com/ordinals/ord/pull/3541) by [StevenMia](https://github.com/StevenMia))
+- Fix typo in zh.po ([#3540](https://github.com/ordinals/ord/pull/3540) by [blackj-x](https://github.com/blackj-x))
+- Lock runes commit output ([#3504](https://github.com/ordinals/ord/pull/3504) by [raphjaph](https://github.com/raphjaph))
+- Address runes review comments ([#3547](https://github.com/ordinals/ord/pull/3547) by [casey](https://github.com/casey))
+- Add Red Had build instructions to readme ([#3531](https://github.com/ordinals/ord/pull/3531) by [rongyi](https://github.com/rongyi))
+- Fix typo in recursion docs ([#3529](https://github.com/ordinals/ord/pull/3529) by [nix-eth](https://github.com/nix-eth))
+- Put rune higher on /inscription ([#3363](https://github.com/ordinals/ord/pull/3363) by [lugondev](https://github.com/lugondev))
+
 [0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2023-04-11
 --------------------------------------------------------------------------
 
@@ -134,7 +166,7 @@ Changelog
 - Rename RuneID fields ([#3310](https://github.com/ordinals/ord/pull/3310) by [casey](https://github.com/casey))
 - Prevent front-running rune etchings ([#3212](https://github.com/ordinals/ord/pull/3212) by [casey](https://github.com/casey))
 - Clarify build instructions ([#3304](https://github.com/ordinals/ord/pull/3304) by [raphjaph](https://github.com/raphjaph))
-- Add test to choose the the earliest of deadline or end ([#3254](https://github.com/ordinals/ord/pull/3254) by [sondotpin](https://github.com/sondotpin))
+- Add test to choose the earliest of deadline or end ([#3254](https://github.com/ordinals/ord/pull/3254) by [sondotpin](https://github.com/sondotpin))
 - Ensure inscription tags are unique ([#3296](https://github.com/ordinals/ord/pull/3296) by [casey](https://github.com/casey))
 - Include CSP origin in preview content security policy headers ([#3276](https://github.com/ordinals/ord/pull/3276) by [bingryan](https://github.com/bingryan))
 - Add pre-commit hook ([#3262](https://github.com/ordinals/ord/pull/3262) by [bingryan](https://github.com/bingryan))

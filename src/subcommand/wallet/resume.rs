@@ -6,13 +6,26 @@ pub struct ResumeOutput {
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let outputs: Result<Vec<batch::Output>> = wallet
-    .pending_etchings()?
-    .into_iter()
-    .map(|(rune, entry)| {
-      wallet.wait_for_maturation(&rune, entry.commit, entry.reveal, entry.output)
-    })
-    .collect();
+  let mut etchings = Vec::new();
+  loop {
+    if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+      break;
+    }
 
-  outputs.map(|etchings| Some(Box::new(ResumeOutput { etchings }) as Box<dyn Output>))
+    for (rune, entry) in wallet.pending_etchings()? {
+      if wallet.is_mature(&entry.commit)? {
+        etchings.push(wallet.send_etching(rune, &entry)?);
+      }
+    }
+
+    if wallet.pending_etchings()?.is_empty() {
+      break;
+    }
+
+    if !wallet.integration_test() {
+      thread::sleep(Duration::from_secs(5));
+    }
+  }
+
+  Ok(Some(Box::new(ResumeOutput { etchings }) as Box<dyn Output>))
 }

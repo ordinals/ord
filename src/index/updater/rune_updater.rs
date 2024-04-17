@@ -89,22 +89,24 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               })
               .collect::<Vec<usize>>();
 
-            if amount == 0 {
-              // if amount is zero, divide balance between eligible outputs
-              let amount = *balance / destinations.len() as u128;
-              let remainder = usize::try_from(*balance % destinations.len() as u128).unwrap();
+            if !destinations.is_empty() {
+              if amount == 0 {
+                // if amount is zero, divide balance between eligible outputs
+                let amount = *balance / destinations.len() as u128;
+                let remainder = usize::try_from(*balance % destinations.len() as u128).unwrap();
 
-              for (i, output) in destinations.iter().enumerate() {
-                allocate(
-                  balance,
-                  if i < remainder { amount + 1 } else { amount },
-                  *output,
-                );
-              }
-            } else {
-              // if amount is non-zero, distribute amount to eligible outputs
-              for output in destinations {
-                allocate(balance, amount.min(*balance), output);
+                for (i, output) in destinations.iter().enumerate() {
+                  allocate(
+                    balance,
+                    if i < remainder { amount + 1 } else { amount },
+                    *output,
+                  );
+                }
+              } else {
+                // if amount is non-zero, distribute amount to eligible outputs
+                for output in destinations {
+                  allocate(balance, amount.min(*balance), output);
+                }
               }
             }
           } else {
