@@ -27,7 +27,7 @@ bech32 = "0.11.0"
 bip39 = "2.0.0"
 bitcoin = { version = "0.30.1", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
-brotli = "4.0.0"
+brotli = "5.0.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
