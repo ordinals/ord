@@ -1,5 +1,4 @@
-use crate::wallet::batch;
-use {super::*, colored::Colorize, std::net::TcpListener};
+use {super::*, crate::wallet::batch, colored::Colorize, std::net::TcpListener};
 
 struct KillOnDrop(process::Child);
 
@@ -64,17 +63,21 @@ rpcport={bitcoind_port}
 ",
       ),
     )?;
-    // add a sample inscription.txt with hooter in text
-    fs::write(absolute.join("inscription.txt"), "hooter")?;
-    // add a sample etch.yaml
+
+    fs::write(absolute.join("inscription.txt"), "FOO")?;
+
     let yaml = serde_yaml::to_string(&batch::File {
       etching: Some(batch::Etching {
         divisibility: 0,
-        rune: "HOOOOOOOOOOOOTERS".parse::<SpacedRune>().unwrap(),
-        supply: "1000".parse().unwrap(),
+        rune: "FOO".parse::<SpacedRune>().unwrap(),
+        supply: "2000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
         symbol: '¢',
-        terms: None,
+        terms: Some(batch::Terms {
+          amount: "1000".parse().unwrap(),
+          cap: 1,
+          ..default()
+        }),
         turbo: false,
       }),
       inscriptions: vec![batch::Entry {
@@ -82,8 +85,10 @@ rpcport={bitcoind_port}
         ..default()
       }],
       ..default()
-    });
-    fs::write(absolute.join("etch.yaml"), yaml.unwrap())?;
+    })
+    .unwrap();
+
+    fs::write(absolute.join("batch.yaml"), yaml)?;
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
