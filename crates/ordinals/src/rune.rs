@@ -7,7 +7,7 @@ pub struct Rune(pub u128);
 
 impl Rune {
   const RESERVED: u128 = 6402364363415443603228541259936211926;
-
+  const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
   const STEPS: &'static [u128] = &[
     0,
     26,
@@ -57,8 +57,6 @@ impl Rune {
   pub fn minimum_at_height(chain: Network, height: Height) -> Self {
     let offset = height.0.saturating_add(1);
 
-    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
-
     let start = Self::first_rune_height(chain);
 
     let end = start + SUBSIDY_HALVING_INTERVAL;
@@ -68,20 +66,53 @@ impl Rune {
     }
 
     if offset >= end {
-      return Rune(0);
+      return Rune(Self::STEPS[0]);
     }
 
     let progress = offset.saturating_sub(start);
 
-    let length = 12u32.saturating_sub(progress / INTERVAL);
+    let length = 12u32.saturating_sub(progress / Self::INTERVAL);
 
     let end = Self::STEPS[usize::try_from(length - 1).unwrap()];
 
     let start = Self::STEPS[usize::try_from(length).unwrap()];
 
-    let remainder = u128::from(progress % INTERVAL);
+    let remainder = u128::from(progress % Self::INTERVAL);
 
-    Rune(start - ((start - end) * remainder / u128::from(INTERVAL)))
+    Rune(start - ((start - end) * remainder / u128::from(Self::INTERVAL)))
+  }
+
+  pub fn unlock_height(&self, chain: Network) -> Option<u32> {
+    if self.is_reserved() {
+      return None;
+    }
+
+    let mut min = 0;
+    let mut max = 26;
+    let mut step: usize = 12;
+
+    for (i, val) in Self::STEPS.windows(2).enumerate() {
+      if self.n() == 0 {
+        break;
+      }
+
+      step = step.saturating_sub(i);
+
+      if self.n() <= val[1] && self.n() > val[0] {
+        min = val[0];
+        max = val[1];
+        break;
+      }
+    }
+
+    let step_height =
+      Self::first_rune_height(chain) + (u32::try_from(step).unwrap() * Self::INTERVAL);
+
+    let step_progress = (max - self.n()) as f64 / (max - min) as f64;
+
+    let height = step_height + (step_progress * Self::INTERVAL as f64) as u32;
+
+    Some(height)
   }
 
   pub fn is_reserved(self) -> bool {
@@ -419,5 +450,29 @@ mod tests {
     case(65535, &[255, 255]);
     case(65536, &[0, 0, 1]);
     case(u128::MAX, &[255; 16]);
+  }
+
+  #[test]
+  fn unlock_height() {
+    #[track_caller]
+    fn case(rune: &str, height: u32) {
+      assert_eq!(
+        rune
+          .parse::<Rune>()
+          .unwrap()
+          .unlock_height(Network::Bitcoin),
+        Some(height)
+      );
+    }
+    const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
+    // const END: u32 = START + SUBSIDY_HALVING_INTERVAL;
+    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
+
+    case("ZZYZXBRKWXVA", START);
+    case("ZZZZZZZZZZZZ", START);
+    case("AAAAAAAAAAAAA", START);
+    case("ZZXZUDIVTVQA", START + 1);
+
+    case("ZZXZUDIVTVQA", START + INTERVAL * 00 + 1);
   }
 }
