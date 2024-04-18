@@ -741,10 +741,13 @@ impl Server {
     })
   }
 
-  async fn runes_balances(Extension(index): Extension<Arc<Index>>) -> ServerResult {
+  async fn runes_balances(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
     task::block_in_place(|| {
       let balances = index.get_rune_balance_map()?;
-      Ok(
+      Ok(if accept_json {
         Json(
           balances
             .into_iter()
@@ -759,8 +762,11 @@ impl Server {
             })
             .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
         )
-        .into_response(),
-      )
+        .into_response()
+      } else {
+        // throw http error 404
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
@@ -2568,6 +2574,14 @@ mod tests {
       StatusCode::BAD_REQUEST,
       ".*",
     );
+  }
+
+  #[test]
+  fn html_runes_balances_not_found() {
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_response("/runes/balances", StatusCode::NOT_FOUND, "");
   }
 
   #[test]
