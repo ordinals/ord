@@ -68,7 +68,10 @@ impl FromStr for Decimal {
       } else {
         let trailing_zeros = decimal.chars().rev().take_while(|c| *c == '0').count();
         let significant_digits = decimal.chars().count() - trailing_zeros;
-        let decimal = decimal.parse::<u128>()? / 10u128.pow(u32::try_from(trailing_zeros).unwrap());
+        let decimal = decimal.parse::<u128>()?
+          / 10u128
+            .checked_pow(u32::try_from(trailing_zeros).unwrap())
+            .context("excessive trailing zeros")?;
         (decimal, u8::try_from(significant_digits).unwrap())
       };
 
