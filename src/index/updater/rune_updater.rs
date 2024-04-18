@@ -142,8 +142,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         .unwrap_or_default();
 
       // assign all un-allocated runes to the default output, or the first non
-      // OP_RETURN output if there is no default, or if the default output is
-      // too large
+      // OP_RETURN output if there is no default
       if let Some(vout) = pointer
         .map(|pointer| pointer.into_usize())
         .inspect(|&pointer| assert!(pointer < allocated.len()))
