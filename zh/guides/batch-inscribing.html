@@ -250,7 +250,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="批量铸造"><a class="header" href="#批量铸造">批量铸造</a></h1>
-<p>可以使用<a href="./../inscriptions/pointer.html">指针字段</a>来批量创建多个铭文. 这在创建需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多个子铭文的揭示交易中。</p>
+<p>Multiple inscriptions can be created at the same time using the <a href="./../inscriptions/pointer.html">pointer field</a>. This is especially helpful for collections, or other cases when multiple inscriptions should share the same parent, since the parent can passed into a reveal transaction that creates multiple children.</p>
 <p>创建批量铭文，使用批处理文件<code>batch.yaml</code>, 运行</p>
 <pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>

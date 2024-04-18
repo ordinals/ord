@@ -1635,7 +1635,7 @@ OP_ENDIF
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iscrivere-in-batch"><a class="header" href="#iscrivere-in-batch">Iscrivere in Batch</a></h1>
-<p>È possibile creare più iscrizioni contemporaneamente utilizzando il <a href="guides/./../inscriptions/pointer.html">campo puntatore</a>. Questo è particolarmente utile per le collezioni o per altri casi in cui più iscrizioni devono condividere lo stesso genitore, poiché il genitore può essere passato in una transazione di rivelazione che crea più figli.</p>
+<p>Multiple inscriptions can be created at the same time using the <a href="guides/./../inscriptions/pointer.html">pointer field</a>. This is especially helpful for collections, or other cases when multiple inscriptions should share the same parent, since the parent can passed into a reveal transaction that creates multiple children.</p>
 <p>Per creare un'iscrizione batch usando un batchfile in <code>batch.yaml</code>, eseguire il seguente comando:</p>
 <pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>
