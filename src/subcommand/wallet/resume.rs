@@ -6,7 +6,7 @@ pub struct ResumeOutput {
 }
 #[derive(Debug, Parser)]
 pub(crate) struct Resume {
-  #[arg(long, help = "Don't sign or broadcast transactions.")]
+  #[arg(long, help = "Don't broadcast transactions.")]
   pub(crate) dry_run: bool,
 }
 
