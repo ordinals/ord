@@ -764,7 +764,6 @@ impl Server {
         )
         .into_response()
       } else {
-        // throw http error 404
         StatusCode::NOT_FOUND.into_response()
       })
     })
