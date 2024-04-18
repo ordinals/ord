@@ -558,6 +558,65 @@ fn get_runes() {
     }
   );
 
+  let response0 = ord.json_request("/runes/0?size=2");
+
+  assert_eq!(response0.status(), StatusCode::OK);
+
+  let runes_json0: api::Runes = serde_json::from_str(&response0.text().unwrap()).unwrap();
+
+  assert_eq!(runes_json0.entries.len(), 2);
+
+  pretty_assert_eq!(
+    runes_json0,
+    api::Runes {
+      entries: vec![
+        (
+          RuneId { block: 24, tx: 1 },
+          RuneEntry {
+            block: c.id.block,
+            burned: 0,
+            terms: None,
+            divisibility: 0,
+            etching: c.output.reveal,
+            mints: 0,
+            number: 2,
+            premine: 1000,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 2),
+              spacers: 0
+            },
+            symbol: Some('¢'),
+            timestamp: 24,
+            turbo: false,
+          }
+        ),
+        (
+          RuneId { block: 17, tx: 1 },
+          RuneEntry {
+            block: b.id.block,
+            burned: 0,
+            terms: None,
+            divisibility: 0,
+            etching: b.output.reveal,
+            mints: 0,
+            number: 1,
+            premine: 1000,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
+            symbol: Some('¢'),
+            timestamp: 17,
+            turbo: false,
+          }
+        )
+      ],
+      more: true,
+      next: Some(1),
+      prev: None,
+    }
+  );
+
   let response = ord.json_request("/runes");
 
   assert_eq!(response.status(), StatusCode::OK);
