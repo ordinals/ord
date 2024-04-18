@@ -10,7 +10,7 @@ pub struct File {
   #[serde(default)]
   pub reinscribe: bool,
   #[serde(default)]
-  pub disable_etch_checks:bool,
+  pub disable_etch_checks: bool,
   pub etching: Option<batch::Etching>,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
