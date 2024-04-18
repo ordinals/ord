@@ -9,6 +9,8 @@ pub struct File {
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
+  #[serde(default)]
+  pub disable_etch_checks:bool,
   pub etching: Option<batch::Etching>,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
@@ -375,6 +377,7 @@ inscriptions:
         reinscribe: true,
         sat: None,
         satpoint: None,
+        disable_etch_checks: false,
         etching: Some(Etching {
           rune: "THE•BEST•RUNE".parse().unwrap(),
           divisibility: 2,
