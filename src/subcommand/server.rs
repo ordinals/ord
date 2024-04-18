@@ -734,6 +734,7 @@ impl Server {
           more,
           prev,
           next,
+          page_size,
         })
         .into_response()
       } else {
@@ -742,6 +743,7 @@ impl Server {
           more,
           prev,
           next,
+          page_size,
         }
         .page(server_config)
         .into_response()

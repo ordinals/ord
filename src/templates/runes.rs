@@ -6,6 +6,7 @@ pub struct RunesHtml {
   pub more: bool,
   pub prev: Option<usize>,
   pub next: Option<usize>,
+  pub page_size: u32,
 }
 
 impl PageContent for RunesHtml {
@@ -35,6 +36,7 @@ mod tests {
         more: false,
         prev: None,
         next: None,
+        page_size: 0,
       }
       .to_string(),
       "<h1>Runes</h1>
@@ -44,7 +46,8 @@ mod tests {
 <div class=center>
     prev
       next
-  </div>"
+  </div>
+"
     );
   }
 
@@ -77,6 +80,7 @@ mod tests {
         prev: Some(1),
         next: Some(2),
         more: true,
+        page_size: 0,
       }
       .to_string(),
       "<h1>Runes</h1>
@@ -85,9 +89,10 @@ mod tests {
   <li><a href=/rune/C>C</a></li>
 </ul>
 <div class=center>
-    <a class=prev href=/runes/1>prev</a>
-      <a class=next href=/runes/2>next</a>
-  </div>"
+    <a class=prev href=/runes/1?size=0>prev</a>
+      <a class=next href=/runes/2?size=0>next</a>
+  </div>
+"
     );
   }
 }

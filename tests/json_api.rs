@@ -614,6 +614,7 @@ fn get_runes() {
       more: true,
       next: Some(1),
       prev: None,
+      page_size: 2,
     }
   );
 
@@ -691,6 +692,7 @@ fn get_runes() {
       more: false,
       next: None,
       prev: None,
+      page_size: 50,
     }
   );
 }
