@@ -26,7 +26,7 @@ impl Decimal {
 
 impl Display for Decimal {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    let magnitude = 10u128.pow(self.scale.into());
+    let magnitude = 10u128.checked_pow(self.scale.into()).ok_or(fmt::Error)?;
 
     let integer = self.value / magnitude;
     let mut fraction = self.value % magnitude;
