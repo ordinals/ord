@@ -746,10 +746,10 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let balances = index.get_rune_balance_map()?;
       Ok(if accept_json {
         Json(
-          balances
+          index
+            .get_rune_balance_map()?
             .into_iter()
             .map(|(rune, balances)| {
               (
