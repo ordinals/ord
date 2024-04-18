@@ -720,7 +720,7 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let page_size = pagination.size.unwrap_or(50).min(100);
+      let page_size = pagination.size.unwrap_or(50).min(1000);
       let (entries, more) =
         index.runes_paginated(usize::try_from(page_size).unwrap(), page_index)?;
 
