@@ -5,23 +5,23 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
-- Add `dry-run` flag to `resume` command (#3592)
-- Add back runes balances API (#3571)
-- Show premine percentage (#3567)
-- Add default content proxy and decompress to env command (#3509)
+- Add `dry-run` flag to `resume` command ([#3592](https://github.com/ordinals/ord/pull/3592) by [felipelincoln](https://github.com/felipelincoln))
+- Add back runes balances API ([#3571](https://github.com/ordinals/ord/pull/3571) by [lugondev](https://github.com/lugondev))
+- Show premine percentage ([#3567](https://github.com/ordinals/ord/pull/3567) by [raphjaph](https://github.com/raphjaph))
+- Add default content proxy and decompress to env command ([#3509](https://github.com/ordinals/ord/pull/3509) by [jahvi](https://github.com/jahvi))
 
 ### Changed
-- Resume cycles through all pending etchings (#3566)
+- Resume cycles through all pending etchings ([#3566](https://github.com/ordinals/ord/pull/3566) by [raphjaph](https://github.com/raphjaph))
 
 ### Misc
-- Check rune minimum at height before sending (#3626)
-- Update recursion.md with consistant syntax (#3585)
-- Add test Rune cannot be minted less than limit amount (#3556)
-- Clear etching when rune commitment is spent (#3618)
-- Remove timeout for wallet client (#3621)
-- Remove duplicated word (#3598)
-- Address runes review comments (#3605)
-- Generate sample batch.yaml in env command (#3530)
+- Check rune minimum at height before sending ([#3626](https://github.com/ordinals/ord/pull/3626) by [raphjaph](https://github.com/raphjaph))
+- Update recursion.md with consistant syntax ([#3585](https://github.com/ordinals/ord/pull/3585) by [zmeyer44](https://github.com/zmeyer44))
+- Add test Rune cannot be minted less than limit amount ([#3556](https://github.com/ordinals/ord/pull/3556) by [lugondev](https://github.com/lugondev))
+- Clear etching when rune commitment is spent ([#3618](https://github.com/ordinals/ord/pull/3618) by [felipelincoln](https://github.com/felipelincoln))
+- Remove timeout for wallet client ([#3621](https://github.com/ordinals/ord/pull/3621) by [raphjaph](https://github.com/raphjaph))
+- Remove duplicated word ([#3598](https://github.com/ordinals/ord/pull/3598) by [oxSaturn](https://github.com/oxSaturn))
+- Address runes review comments ([#3605](https://github.com/ordinals/ord/pull/3605) by [casey](https://github.com/casey))
+- Generate sample batch.yaml in env command ([#3530](https://github.com/ordinals/ord/pull/3530) by [twosatsmaxi](https://github.com/twosatsmaxi))
 
 [0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2023-04-17
 --------------------------------------------------------------------------
