@@ -2743,7 +2743,7 @@ fn forbid_etching_below_rune_activation_height() {
 }
 
 #[test]
-fn allow_etching_below_rune_activation_height() {
+fn allow_etching_below_rune_unlock_height() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -2752,28 +2752,47 @@ fn allow_etching_below_rune_activation_height() {
 
   core.mine_blocks(1);
 
-  batch(
-    &core,
-    &ord,
-    batch::File {
-      disable_etch_checks: true,
-      etching: Some(batch::Etching {
-        divisibility: 0,
-        rune: SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0,
-        },
-        supply: "1".parse().unwrap(),
-        premine: "1".parse().unwrap(),
-        symbol: '¢',
-        terms: None,
-        turbo: false,
-      }),
-      inscriptions: vec![batch::Entry {
-        file: Some("inscription.txt".into()),
-        ..default()
-      }],
-      ..default()
-    },
+  let batchfile = batch::File {
+    disable_etch_checks: true,
+    etching: Some(batch::Etching {
+      divisibility: 0,
+      rune: SpacedRune {
+        rune: Rune::minimum_at_height(Network::Regtest, ordinals::Height(10)),
+        spacers: 0,
+      },
+      supply: "1".parse().unwrap(),
+      premine: "1".parse().unwrap(),
+      symbol: '¢',
+      terms: None,
+      turbo: false,
+    }),
+    inscriptions: vec![batch::Entry { ..default() }],
+    ..default()
+  };
+
+  let mut spawn =
+    CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
+      .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
+      .core(&core)
+      .ord(&ord)
+      .spawn();
+
+  let mut buffer = String::new();
+
+  BufReader::new(spawn.child.stderr.as_mut().unwrap())
+    .read_line(&mut buffer)
+    .unwrap();
+
+  assert_regex_match!(
+    buffer,
+    "Waiting for rune .* commitment [[:xdigit:]]{64} to mature…\n"
   );
+
+  core.mine_blocks(10);
+
+  let output = spawn.run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  assert!(output.reveal_broadcast);
 }
