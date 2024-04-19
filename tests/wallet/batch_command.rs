@@ -2741,3 +2741,39 @@ fn forbid_etching_below_rune_activation_height() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn allow_etching_below_rune_activation_height() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      disable_etch_checks: true,
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        supply: "1".parse().unwrap(),
+        premine: "1".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.txt".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+}
