@@ -1782,12 +1782,12 @@ impl Index {
     };
 
     let max_id = RuneId {
-      block: block_height + 1,
-      tx: 0,
+      block: block_height,
+      tx: u32::MAX,
     };
 
     let runes = rune_id_to_rune_entry
-      .range(min_id.store()..max_id.store())?
+      .range(min_id.store()..=max_id.store())?
       .map(|result| result.map(|(_, entry)| RuneEntry::load(entry.value()).spaced_rune))
       .collect::<Result<Vec<SpacedRune>, StorageError>>()?;
 
