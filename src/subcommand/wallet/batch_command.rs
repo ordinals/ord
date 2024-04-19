@@ -35,9 +35,7 @@ impl Batch {
     );
 
     if let Some(etching) = batchfile.etching {
-      if !batchfile.disable_etch_checks {
-        Self::check_etching(&wallet, &etching)?;
-      }
+      Self::check_etching(&wallet, &etching, batchfile.disable_etch_checks)?;
     }
 
     batch::Plan {
@@ -68,7 +66,7 @@ impl Batch {
     )
   }
 
-  fn check_etching(wallet: &Wallet, etching: &batch::Etching) -> Result {
+  fn check_etching(wallet: &Wallet, etching: &batch::Etching, disable_checks: bool) -> Result {
     let rune = etching.rune.rune;
 
     ensure!(
@@ -127,7 +125,7 @@ impl Batch {
     let first_rune_height = Rune::first_rune_height(wallet.chain().into());
 
     ensure!(
-      reveal_height >= first_rune_height,
+      reveal_height >= first_rune_height || disable_checks,
       "rune reveal height below rune activation height: {reveal_height} < {first_rune_height}",
     );
 
@@ -155,14 +153,14 @@ impl Batch {
 
       if let Some(end) = terms.height.and_then(|range| range.end) {
         ensure!(
-          end > reveal_height.into(),
+          end > reveal_height.into() || disable_checks,
           "`terms.height.end` must be greater than the reveal transaction block height of {reveal_height}"
         );
       }
 
       if let Some(start) = terms.height.and_then(|range| range.start) {
         ensure!(
-            start > reveal_height.into(),
+            start > reveal_height.into() || disable_checks,
             "`terms.height.start` must be greater than the reveal transaction block height of {reveal_height}"
           );
       }
@@ -171,7 +169,7 @@ impl Batch {
     let minimum = Rune::minimum_at_height(wallet.chain().into(), Height(reveal_height));
 
     ensure!(
-      rune >= minimum,
+      rune >= minimum || disable_checks,
       "rune is less than minimum for next block: {rune} < {minimum}",
     );
 
