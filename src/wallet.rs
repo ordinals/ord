@@ -296,7 +296,7 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  pub(crate) fn is_mature(&self, commit: &Transaction, rune: Rune) -> Result<bool> {
+  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool> {
     let transaction = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
@@ -341,7 +341,7 @@ impl Wallet {
         return Ok(entry.output);
       }
 
-      if self.is_mature(&entry.commit, rune)? {
+      if self.is_mature(rune, &entry.commit)? {
         break;
       }
 
