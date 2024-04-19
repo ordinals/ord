@@ -296,7 +296,7 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  pub(crate) fn is_mature(&self, commit: &Transaction) -> Result<bool> {
+  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool> {
     let transaction = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
@@ -315,6 +315,7 @@ impl Wallet {
             return Ok(true);
           }
         } else {
+          self.clear_etching(rune)?;
           bail!("rune commitment spent, can't send reveal tx");
         }
       }
@@ -340,7 +341,7 @@ impl Wallet {
         return Ok(entry.output);
       }
 
-      if self.is_mature(&entry.commit)? {
+      if self.is_mature(rune, &entry.commit)? {
         break;
       }
 
