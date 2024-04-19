@@ -21,6 +21,9 @@ pub struct Options {
     help = "Authenticate to Bitcoin Core RPC as <BITCOIN_RPC_USERNAME>."
   )]
   pub(crate) bitcoin_rpc_username: Option<String>,
+
+  #[arg(long, help = "Max <N> requests in flight. [default: 12]")]
+  pub(crate) bitcoin_rpc_limit: Option<u32>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
   #[arg(
