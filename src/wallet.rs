@@ -305,6 +305,11 @@ impl Wallet {
     if let Some(transaction) = transaction {
       if u32::try_from(transaction.info.confirmations).unwrap() + 1
         >= Runestone::COMMIT_CONFIRMATIONS.into()
+        && rune
+          >= Rune::minimum_at_height(
+            self.chain().network(),
+            Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
+          )
       {
         let tx_out = self
           .bitcoin_client()
