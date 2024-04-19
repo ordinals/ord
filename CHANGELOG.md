@@ -5,6 +5,7 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
+- Check rune minimum at height before sending (#3626)
 - Update recursion.md with consistant syntax (#3585)
 - Add test Rune cannot be minted less than limit amount (#3556)
 - Clear etching when rune commitment is spent (#3618)
