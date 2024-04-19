@@ -13,7 +13,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     }
 
     for (rune, entry) in wallet.pending_etchings()? {
-      if wallet.is_mature(&entry.commit)? {
+      if wallet.is_mature(&entry.commit, rune)? {
         etchings.push(wallet.send_etching(rune, &entry)?);
       }
     }
