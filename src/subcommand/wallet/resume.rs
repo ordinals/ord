@@ -27,7 +27,7 @@ impl Resume {
           continue;
         };
 
-        if wallet.is_mature(&entry.commit)? {
+        if wallet.is_mature(rune, &entry.commit)? {
           etchings.push(wallet.send_etching(rune, &entry)?);
         }
       }
