@@ -308,7 +308,7 @@ impl Wallet {
         && rune
           >= Rune::minimum_at_height(
             self.chain().network(),
-            Height(u32::try_from(self.bitcoin_client().get_block_count()?).unwrap()), // TODO: subtract 1?
+            Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
           )
       {
         let tx_out = self
