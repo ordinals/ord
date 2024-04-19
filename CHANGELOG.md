@@ -5,19 +5,23 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
+- Add `dry-run` flag to `resume` command (#3592)
+- Add back runes balances API (#3571)
+- Show premine percentage (#3567)
+- Add default content proxy and decompress to env command (#3509)
+
+### Changed
+- Resume cycles through all pending etchings (#3566)
+
+### Misc
 - Check rune minimum at height before sending (#3626)
 - Update recursion.md with consistant syntax (#3585)
 - Add test Rune cannot be minted less than limit amount (#3556)
 - Clear etching when rune commitment is spent (#3618)
-- Add `dry-run` flag to `resume` command (#3592)
 - Remove timeout for wallet client (#3621)
-- Add back runes balances API (#3571)
-- Show premine percentage (#3567)
 - Remove duplicated word (#3598)
 - Address runes review comments (#3605)
-- Add default content proxy and decompress to env command (#3509)
 - Generate sample batch.yaml in env command (#3530)
-- Resume cycles through all pending etchings (#3566)
 
 [0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2023-04-17
 --------------------------------------------------------------------------
