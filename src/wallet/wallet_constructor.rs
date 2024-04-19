@@ -33,6 +33,7 @@ impl WalletConstructor {
 
     Self {
       ord_client: reqwest::blocking::ClientBuilder::new()
+        .timeout(None)
         .default_headers(headers.clone())
         .build()?,
       name,
