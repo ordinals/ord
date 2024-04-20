@@ -3,6 +3,7 @@ use super::*;
 mod authentication;
 mod balance;
 mod batch_command;
+mod bridge;
 mod cardinals;
 mod create;
 mod dump;

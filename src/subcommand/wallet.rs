@@ -7,6 +7,7 @@ use {
 
 pub mod balance;
 mod batch_command;
+pub mod bridge;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -73,6 +74,10 @@ pub(crate) enum Subcommand {
   Send(send::Send),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
+  #[command()]
+  BridgeLock(bridge::Lock),
+  #[command()]
+  BridgeUnlock(bridge::Unlock),
 }
 
 impl WalletCommand {
@@ -113,6 +118,8 @@ impl WalletCommand {
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
+      Subcommand::BridgeLock(bridge) => bridge.run(wallet),
+      Subcommand::BridgeUnlock(bridge) => bridge.run(wallet),
     }
   }
 }
