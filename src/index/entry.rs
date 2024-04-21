@@ -61,9 +61,9 @@ impl RuneEntry {
     let Some(terms) = self.terms else {
       return Err(MintError::Unmintable);
     };
-
+    
     if let Some(start) = self.start() {
-        if height < start - 1 {
+        if height < (start - 1) {
             return Err(MintError::Start(start));
         }
     }
