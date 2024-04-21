@@ -43,8 +43,6 @@ impl Airdrop {
     let destinations = fs::read_to_string(self.destinations.clone())
       .with_context(|| format!("I/O error reading `{}`", self.destinations.display()))?;
 
-
-
     Ok(None)
   }
 }

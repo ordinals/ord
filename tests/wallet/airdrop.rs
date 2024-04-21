@@ -57,6 +57,4 @@ fn airdrop() {
       total: 400 * COIN_VALUE,
     }
   );
-
-
 }
