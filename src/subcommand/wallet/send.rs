@@ -1,4 +1,4 @@
-use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::psbt::Psbt};
+use {super::*, crate::outgoing::Outgoing};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
