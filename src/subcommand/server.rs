@@ -14,7 +14,7 @@ use {
   },
   axum::{
     body,
-    extract::{Extension, Json, Path, Query},
+    extract::{DefaultBodyLimit, Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -281,6 +281,7 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
+        .layer(DefaultBodyLimit::disable())
         .with_state(server_config);
 
       let router = if let Some((username, password)) = settings.credentials() {
