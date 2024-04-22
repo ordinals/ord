@@ -294,8 +294,8 @@
 <p>वर्तमान में एक <a href="https://github.com/ordinals/ord/issues/1589">बग</a> का हमला हुआ है, "जिसके कारण इंपोर्ट किए गये वॉलेट को ब्लॉकचेन के विरुद्ध स्वचालित रूप से दुबारा स्कैन नहीं किया जा सकता। इसे दुरूस्‍त करने के लिए, आपको bitcoin core cli:<code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code> का उपयोग करके मैन्युअल रूप से रीस्कैन करना होगा।"</p>
 <p>इसके बाद आप <code>ord wallet inscriptions</code> का उपयोग कर अपने वॉलेट इंस्‍क्रीप्‍शंस (डिजिटल अभिलेखों) की जांच कर सकते हैं</p>
 <p>ध्यान रहे, यदि आपने पहले <code>ऑर्ड</code> के साथ एक वॉलेट बना चुके हैं, तब आपके पास पहले से ही डिफ़ॉल्ट नाम वाला एक वॉलेट पहले से ही उपलब्‍ध है, और इसलिए आपको अपने इंर्पोटेड वॉलेट को कोई दूसरा नाम देना होगा। आप सभी <code>ऑर्ड</code> में <code>–-wallet</code> पैरामीटर में सभी कमांड का उपयोग करके किसी भिन्न वॉलेट को संदर्भित कर सकते हैं, उदाहरण के लिए:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-डिजिटल-अभिलेख-परेषित-करना"><a class="header" href="#सपैरो-वॉलेट-के-साथ-इंसकरीपशंस-डिजिटल-अभिलेख-परेषित-करना">स्पैरो वॉलेट के साथ इंस्‍क्रीप्‍शंस (डिजिटल अभिलेख) प्रेषित करना</a></h2>
 <h4 id="-चेतावनी--1"><a class="header" href="#-चेतावनी--1">⚠️⚠️ चेतावनी ⚠️⚠️</a></h4>

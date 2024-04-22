@@ -294,8 +294,8 @@
 <p>目前存在一个<a href="https://github.com/ordinals/ord/issues/1589">程序错误</a> 导致导入的钱包无法自动重新扫描区块链。为解决这个问题，你需要手动触发重新扫描，使用比特币核心命令行界面：</p>
 <p>然后，你可以使用<code>ord wallet inscriptions</code>检查你的钱包的铭文.</p>
 <p>注意，如果你之前已经用 <code>ord</code> 创建过一个钱包，那么你已经有一个默认名称的钱包，需要给你导入的钱包取一个不同的名称。你可以在所有的 <code>ord</code>命令中使用 <code>--wallet</code> 参数来引用不同的钱包，例如：</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="使用麻雀钱包发送铭文"><a class="header" href="#使用麻雀钱包发送铭文">使用麻雀钱包发送铭文</a></h2>
 <h4 id="-警告--1"><a class="header" href="#-警告--1">⚠️⚠️ 警告 ⚠️⚠️</a></h4>

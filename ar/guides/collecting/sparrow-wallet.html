@@ -294,8 +294,8 @@
 <p>هناك <a href="https://github.com/ordinals/ord/issues/1589">خلل</a> حاليًا يجعل من المحفظة المستوردة ألا تُمسح تلقائياً ضد سلسلة الكتل. للتغلب على ذلك، ستحتاج إلى تشغيل عملية مسح يدويًا باستخدام واجهة سطر الأوامر للنود البيتكوين: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>بعد ذلك، يمكنك التحقق من الإنسكريبشين محفظتك باستخدام <code>ord wallet inscriptions</code></p>
 <p>يرجى ملاحظة أنه إذا كنت قد أنشأت بالفعل محفظة بواسطة ord في السابق، فسيكون لديك محفظة بالاسم الافتراضي بالفعل، وستحتاج إلى تعيين اسم محفظتك المستوردة باسم مختلف. يمكنك استخدام <code>wallet--</code> براميتير في جميع أوامر <code>ord</code> للإشارة إلى محفظة مختلفة، على سبيل المثال:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow"><a class="header" href="#جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow">جمع الإنسكريبشين باستخدام محفظة سباروو Sparrow</a></h2>
 <h4 id="-تحذير--1"><a class="header" href="#-تحذير--1">⚠️⚠️ تحذير ⚠️⚠️</a></h4>

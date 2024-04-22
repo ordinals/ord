@@ -294,8 +294,8 @@
 <p>Atualmente existe um <a href="https://github.com/ordinals/ord/issues/1589">bug</a> que faz com que uma carteira importada não seja automaticamente verificada novamente na blockchain. Para contornar isso, você precisará acionar manualmente uma nova verificação usando o bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Você pode então verificar as inscrições da sua carteira usando<code>ord wallet inscriptions</code></p>
 <p>Observe que se você já criou uma carteira com <code>ord</code>, então você já terá uma carteira com o nome padrão e precisará dar um nome diferente à sua carteira importada. Você pode usar o parâmetro <code>--wallet</code> em todos os comandos <code>ord</code> para referenciar uma carteira diferente, por exemplo:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="enviando-inscrições-com-a-sparrow-wallet"><a class="header" href="#enviando-inscrições-com-a-sparrow-wallet">Enviando inscrições com a Sparrow Wallet</a></h2>
 <h4 id="-aviso--1"><a class="header" href="#-aviso--1">⚠️⚠️ Aviso ⚠️⚠️</a></h4>

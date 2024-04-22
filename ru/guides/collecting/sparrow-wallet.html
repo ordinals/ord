@@ -294,8 +294,8 @@
 <p>В настоящее время существует <a href="https://github.com/ordinals/ord/issues/1589">ошибка</a> из-за которой импортированный кошелек не может быть автоматически пересканирован на блокчейн. Чтобы решить эту проблему, необходимо вручную запустить повторное сканирование с помощью программы bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Затем вы можете проверить количество надписей в кошельке, используя команду <code>ord wallet inscriptions</code></p>
 <p>Обратите внимание, что если вы ранее создали кошелек с помощью <code>ord</code>, то у вас уже будет кошелек с именем по умолчанию, и вам необходимо будет дать импортируемому кошельку другое имя. Для ссылки на другой кошелек можно использовать параметр <code>--wallet</code> во всех командах <code>ord</code>, например:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="Отправка-надписей-с-помощью-sparrow-wallet"><a class="header" href="#Отправка-надписей-с-помощью-sparrow-wallet">Отправка надписей с помощью Sparrow Wallet</a></h2>
 <h4 id="-Внимание--1"><a class="header" href="#-Внимание--1">⚠️⚠️ Внимание ⚠️⚠️</a></h4>

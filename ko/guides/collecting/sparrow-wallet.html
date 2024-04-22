@@ -294,8 +294,8 @@
 <p>현재 가져오기 한 지갑이 블록체인에 대해 자동으로 재스캔되지 않는 <a href="https://github.com/ordinals/ord/issues/1589">버그</a>가 있다. 이 문제를 해결하려면 bitcoin core cli(<code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code>)를 사용하여 수동으로 재스캔을 트리거해야 한다</p>
 <p>그런 다음 <code>ord wallet inscriptions</code>을 사용하여 지갑의 인스크립션을 확인할 수 있다</p>
 <p>이전에 <code>ord</code>로 지갑을 생성한 적이 있다면 기본 이름의 지갑이 이미 있을 것이므로 가져오기 한 지갑에 다른 이름을 지정해야 한다. 모든 <code>ord</code> 명령에 <code>--wallet</code> 매개변수를 사용하여 다른 지갑을 참조할 수 있다. 예시:</p>
-<p><code>ord —wallet ord_from_sparrow wallet restore “BIP39 SEED PHRASE”</code></p>
-<p><code>ord —wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="스패로우-월렛으로-인스크립션-보내기"><a class="header" href="#스패로우-월렛으로-인스크립션-보내기">스패로우 월렛으로 인스크립션 보내기</a></h2>
 <h4 id="-경고--1"><a class="header" href="#-경고--1">⚠️⚠️ 경고 ⚠️⚠️</a></h4>

@@ -294,8 +294,8 @@
 <p>現在、[プログラムエラー]が存在します(https://github.com/ordinals/ord/issues/1589)インポートの原因のウォレットはブロックチェーンを自動的に再スキャンできません。この問題を解決するには、手動で再スキャンをトリガーする必要があります。Bitcoinコアコマンドラインインターフェイスを使います：</p>
 <p>そして、'ord wallet inscriptions'を使用して、財布の碑文を確認することができます。.</p>
 <p>前にウォレットを'ord'で作成したことがある場合は、デフォルトの名前のウォレットを既に持っていることに注意してください。はあなたが導入した財布に違う名前を付ける必要があります。すべての'ord'コマンドで'--wallet'引数を使用できます異なる財布を引用するために、例えば：</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="雀の財布を使って銘文を発送します"><a class="header" href="#雀の財布を使って銘文を発送します">雀の財布を使って銘文を発送します。</a></h2>
 <h4 id="-警告--1"><a class="header" href="#-警告--1">⚠️⚠️ 警告 ⚠️⚠️</a></h4>

@@ -294,8 +294,8 @@
 <p>Il existe actuellement un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> qui empêche un portefeuille importé d’être re-scanné automatiquement pour trouver son contenu sur la blockchain. Pour contourner ce problème, vous devrez manuellement déclencher un rescan à l’aide de bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Vous pouvez ensuite vérifier les inscriptions de votre portefeuille en utilisant <code>ord wallet inscriptions</code></p>
 <p>Notez que si vous avez précédemment créé un portefeuille avec <code>ord</code>, vous aurez alors déjà un portefeuille avec le nom par défaut, et vous devrez donner un nom différent à votre portefeuille importé. Vous pouvez utiliser le paramètre <code>--wallet</code> dans toutes les commandes <code>ord</code> pour référencer un portefeuille différent, par exemple :</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="envoyer-des-inscriptions-avec-le-portefeuille-sparrow"><a class="header" href="#envoyer-des-inscriptions-avec-le-portefeuille-sparrow">Envoyer des inscriptions avec le portefeuille Sparrow</a></h2>
 <h4 id="-avertissement--1"><a class="header" href="#-avertissement--1">⚠️⚠️ Avertissement ⚠️⚠️</a></h4>

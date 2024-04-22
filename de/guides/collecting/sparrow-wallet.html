@@ -294,8 +294,8 @@
 <p>Derzeit gibt es einen <a href="https://github.com/ordinals/ord/issues/1589">Fehler</a>, der dazu führt, dass eine importierte Wallet nicht automatisch erneut anhand der Blockchain gescannt wird. Um dies zu umgehen, müssen Sie manuell einen erneuten Scan mit der Bitcoin-Core-CLI auslösen: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>Anschließend können Sie die Beschriftung Ihrer Brieftasche mithilfe von <code>ord wallet inscriptions</code> überprüfen</p>
 <p>Beachten Sie, dass Sie, wenn Sie zuvor ein Wallet mit <code>ord</code> erstellt haben, bereits über ein Wallet mit dem Standardnamen verfügen und Ihrem importierten Wallet einen anderen Namen geben müssen. Sie können den Parameter <code>--wallet</code> in allen <code>ord</code> -Befehlen verwenden, um auf eine andere Wallet zu verweisen, z. B.:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="inscriptions-mit-sparrow-wallet-versenden"><a class="header" href="#inscriptions-mit-sparrow-wallet-versenden">Inscriptions mit Sparrow Wallet versenden</a></h2>
 <h4 id="-achtung--1"><a class="header" href="#-achtung--1">⚠️⚠️ Achtung ⚠️⚠️</a></h4>

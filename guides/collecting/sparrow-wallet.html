@@ -295,8 +295,8 @@
 <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>You can then check your wallet's inscriptions using <code>ord wallet inscriptions</code></p>
 <p>Note that if you have previously created a wallet with <code>ord</code>, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the <code>--wallet</code> parameter in all <code>ord</code> commands to reference a different wallet, eg:</p>
-<p><code>ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"</code></p>
-<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="sending-inscriptions-with-sparrow-wallet"><a class="header" href="#sending-inscriptions-with-sparrow-wallet">Sending inscriptions with Sparrow Wallet</a></h2>
 <h4 id="-warning--1"><a class="header" href="#-warning--1">⚠️⚠️ Warning ⚠️⚠️</a></h4>
