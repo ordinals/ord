@@ -250,6 +250,10 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
+        .route(
+          "/r/output/:output",
+          get(Self::output_recursive),
+        )
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -618,6 +622,18 @@ impl Server {
         response.push(output_info);
       }
       Ok(Json(response).into_response())
+    })
+  }
+
+  async fn output_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let output_info = index
+        .get_output_info(outpoint)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?;
+       Ok(Json(output_info).into_response())
     })
   }
 
