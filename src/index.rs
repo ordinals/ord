@@ -620,7 +620,7 @@ impl Index {
         .next_back()
         .transpose()?
         .map(|(height, _header)| height.value() + 1)
-        .unwrap_or(0);
+        .unwrap_or(self.first_inscription_height);
       let mut updater = Updater {
         height: ordinal_block_height,
         index: self,
