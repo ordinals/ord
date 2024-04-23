@@ -244,7 +244,7 @@ button to display the descriptor.
 ### Transferring Ordinals
 
 The `ord` wallet supports transferring specific satoshis by using the 
-name of the sastoshi with the `ord wallet send` command. You can also use the
+name of the satoshi with the `ord wallet send` command. You can also use the
 `bitcoin-cli` commands `createrawtransaction`, `signrawtransactionwithwallet`, 
 and `sendrawtransaction`, but this method can be complex and is outside the 
 scope of this guide.
