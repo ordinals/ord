@@ -53,6 +53,7 @@ pub struct RuneEntry {
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
   pub timestamp: u64,
+  pub turbo: bool,
 }
 
 impl RuneEntry {
@@ -153,6 +154,7 @@ pub(super) type RuneEntryValue = (
   Option<char>,            // symbol
   Option<TermsEntryValue>, // terms
   u64,                     // timestamp
+  bool,                    // turbo
 );
 
 impl Default for RuneEntry {
@@ -169,6 +171,7 @@ impl Default for RuneEntry {
       symbol: None,
       terms: None,
       timestamp: 0,
+      turbo: false,
     }
   }
 }
@@ -189,6 +192,7 @@ impl Entry for RuneEntry {
       symbol,
       terms,
       timestamp,
+      turbo,
     ): RuneEntryValue,
   ) -> Self {
     Self {
@@ -220,6 +224,7 @@ impl Entry for RuneEntry {
         offset,
       }),
       timestamp,
+      turbo,
     }
   }
 
@@ -255,6 +260,7 @@ impl Entry for RuneEntry {
          }| (cap, height, amount, offset),
       ),
       self.timestamp,
+      self.turbo,
     )
   }
 }
@@ -572,6 +578,7 @@ mod tests {
       },
       symbol: Some('a'),
       timestamp: 10,
+      turbo: true,
     };
 
     let value = (
@@ -589,6 +596,7 @@ mod tests {
       Some('a'),
       Some((Some(1), (Some(2), Some(3)), Some(4), (Some(5), Some(6)))),
       10,
+      true,
     );
 
     assert_eq!(entry.store(), value);

@@ -1,7 +1,7 @@
 Batch Inscribing
 ================
 
-Multiple inscriptions can be created inscriptions at the same time using the
+Multiple inscriptions can be created at the same time using the
 [pointer field](./../inscriptions/pointer.md). This is especially helpful for
 collections, or other cases when multiple inscriptions should share the same
 parent, since the parent can passed into a reveal transaction that creates

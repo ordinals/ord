@@ -48,6 +48,7 @@ impl Plan {
   ) -> SubcommandResult {
     let Transactions {
       commit_tx,
+      commit_vout,
       reveal_tx,
       recovery_key_pair,
       total_fees,
@@ -128,13 +129,18 @@ impl Plan {
       .send_raw_transaction(&signed_commit_tx)?;
 
     if let Some(ref rune_info) = rune {
+      wallet.bitcoin_client().lock_unspent(&[OutPoint {
+        txid: commit_txid,
+        vout: commit_vout.try_into().unwrap(),
+      }])?;
+
       let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
       let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
 
-      Ok(Some(Box::new(wallet.wait_for_maturation(
+      wallet.save_etching(
         &rune_info.rune.rune,
-        commit.clone(),
-        reveal.clone(),
+        &commit,
+        &reveal,
         self.output(
           commit.txid(),
           None,
@@ -145,7 +151,11 @@ impl Plan {
           self.inscriptions.clone(),
           rune.clone(),
         ),
-      )?)))
+      )?;
+
+      Ok(Some(Box::new(
+        wallet.wait_for_maturation(rune_info.rune.rune)?,
+      )))
     } else {
       let reveal = match wallet
         .bitcoin_client()
@@ -446,6 +456,10 @@ impl Plan {
         edicts: Vec::new(),
         etching: Some(ordinals::Etching {
           divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
+          premine: (premine > 0).then_some(premine),
+          rune: Some(etching.rune.rune),
+          spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
+          symbol: Some(etching.symbol),
           terms: etching
             .terms
             .map(|terms| -> Result<ordinals::Terms> {
@@ -463,10 +477,7 @@ impl Plan {
               })
             })
             .transpose()?,
-          premine: (premine > 0).then_some(premine),
-          rune: Some(etching.rune.rune),
-          spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
-          symbol: Some(etching.symbol),
+          turbo: etching.turbo,
         }),
         mint: None,
         pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
@@ -656,6 +667,7 @@ impl Plan {
 
     Ok(Transactions {
       commit_tx: unsigned_commit_tx,
+      commit_vout: vout,
       recovery_key_pair,
       reveal_tx,
       rune,
@@ -711,7 +723,7 @@ impl Plan {
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
           sequence: if etching {
-            Sequence::from_height(Runestone::COMMIT_INTERVAL)
+            Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
           } else {
             Sequence::ENABLE_RBF_NO_LOCKTIME
           },

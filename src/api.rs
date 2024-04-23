@@ -10,11 +10,12 @@ pub use crate::templates::{
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
-  pub hash: BlockHash,
-  pub target: BlockHash,
   pub best_height: u32,
+  pub hash: BlockHash,
   pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
+  pub runes: Vec<SpacedRune>,
+  pub target: BlockHash,
 }
 
 impl Block {
@@ -23,6 +24,7 @@ impl Block {
     height: Height,
     best_height: Height,
     inscriptions: Vec<InscriptionId>,
+    runes: Vec<SpacedRune>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -30,6 +32,7 @@ impl Block {
       height: height.0,
       best_height: best_height.0,
       inscriptions,
+      runes,
     }
   }
 }
@@ -136,7 +139,7 @@ impl Output {
     chain: Chain,
     inscriptions: Vec<InscriptionId>,
     outpoint: OutPoint,
-    output: TxOut,
+    tx_out: TxOut,
     indexed: bool,
     runes: Vec<(SpacedRune, Pile)>,
     sat_ranges: Option<Vec<(u64, u64)>>,
@@ -144,17 +147,17 @@ impl Output {
   ) -> Self {
     Self {
       address: chain
-        .address_from_script(&output.script_pubkey)
+        .address_from_script(&tx_out.script_pubkey)
         .ok()
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,
       sat_ranges,
-      script_pubkey: output.script_pubkey.to_asm_string(),
+      script_pubkey: tx_out.script_pubkey.to_asm_string(),
       spent,
       transaction: outpoint.txid.to_string(),
-      value: output.value,
+      value: tx_out.value,
     }
   }
 }
