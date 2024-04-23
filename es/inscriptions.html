@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>Primero, se hace un push con el string <code>ord</code> para diferenciar que sobre va a utilizar la inscripción.</p>
 <p><code>OP_PUSH 1</code> indica que el próximo push es el tipo de contenido y <code>OP_PUSH 0</code> indica que los siguientes datos en el push contienen el contenido que se va a anexar. Múltiples push de datos deben ser utilizados para inscripciones de gran tamaño ya que una de las pocas restricciones de Taproot es que un push de datos no puede ser mayor a 520 bytes.</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="contenido"><a class="header" href="#contenido">Contenido</a></h2>
 <p>El modelo de datos de las inscripciones es el de una respuesta HTTP, permitiendo que el contenido de la inscripción sea obtenido a través de un servidor web y visualizado en un navegador web.</p>
 <h2 id="campos"><a class="header" href="#campos">Campos</a></h2>
@@ -307,6 +307,13 @@ OP_ENDIF
 <h2 id="sandboxing-o-aislamiento"><a class="header" href="#sandboxing-o-aislamiento">Sandboxing o Aislamiento</a></h2>
 <p>Las inscripciones en HTML y SVG están restringidas en un entorno aislado llamado sandboxing para evitar referencias a contenido fuera de la cadena, manteniendo así las inscripciones inmutables y contenidas dentro del entorno.</p>
 <p>Esto se logra cargando las inscripciones en HTML y SVG dentro de <code>iframes</code> con el atributo <code>sandbox</code> y agregando <code>Content-Security-Policy</code> a los encabezados.</p>
+<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
+<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
+</code></pre>
+<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
+<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
 <h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>

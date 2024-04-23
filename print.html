@@ -662,6 +662,18 @@ off-chain content, thus keeping inscriptions immutable and self-contained.</p>
 <p>This is accomplished by loading HTML and SVG inscriptions inside <code>iframes</code> with
 the <code>sandbox</code> attribute, as well as serving inscription content with
 <code>Content-Security-Policy</code> headers.</p>
+<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
+<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the
+URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
+</code></pre>
+<p>If an inscription with ID X delegates to an inscription with ID Y, that is to
+say, if inscription X contains a delegate field with value Y, the content of
+inscription X must be served from the URL path <code>/content/X</code>, <em>not</em>
+<code>/content/Y</code>.</p>
+<p>This allows delegating inscriptions to use their own inscription ID as a seed
+for generative delegate content.</p>
 <h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if
 the inscription is present in the wallet. This will only append an inscription to
@@ -672,8 +684,9 @@ a sat, not change the initial inscription.</p>
 <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of
-an inscription with a delegate will instead return the content and content type
-of the delegate. This can be used to cheaply create copies of an inscription.</p>
+an inscription with a delegate will instead return the content, content type
+and content encoding of the delegate. This can be used to cheaply create copies
+of an inscription.</p>
 <h3 id="specification"><a class="header" href="#specification">Specification</a></h3>
 <p>To create an inscription I with delegate inscription D:</p>
 <ul>

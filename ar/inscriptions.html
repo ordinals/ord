@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>أولاً، يتم دفع سلسلة <code>ord</code> للتفريق بين الكتابات وبين استخدامات أخرى للظروف.</p>
 <p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="المحتوى"><a class="header" href="#المحتوى">المحتوى</a></h2>
 <p>نموذج بيانات الكتابات هو نفس نموذج الاستجابة HTTP، مما يتيح لمحتوى انسكريبشين أن يتم تقديمه من خلال خادم ويب وعرضه في متصفح ويب.</p>
 <h2 id="الحقول"><a class="header" href="#الحقول">الحقول</a></h2>
@@ -307,6 +307,13 @@ OP_ENDIF
 <h2 id="عزل-البيئة"><a class="header" href="#عزل-البيئة">عزل البيئة</a></h2>
 <p>يتم عزل الأنسكريبشين HTML و SVG من أجل منع الإشارات إلى المحتوى الخارجي على الشبكة، وبالتالي الحفاظ على الأنسكريبشين بلا تغيير ومكتملة ذاتياً.</p>
 <p>يتم تحقيق ذلك من خلال تحميل HTML و SVG انسكريبشين داخل <code>iframes</code> مع صفة <code>sandbox</code>، بالإضافة إلى تقديم محتوى انسكريبشين باستخدام <code>Content-Security-Policy</code> .</p>
+<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
+<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
+</code></pre>
+<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
+<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
 <h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>

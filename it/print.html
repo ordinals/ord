@@ -463,7 +463,7 @@ OP_ENDIF
 </code></pre>
 <p>Per prima cosa viene inserita la stringa <code>ord</code>, per distinguere le iscrizioni da altri usi delle buste.</p>
 <p><code>OP_PUSH 1</code> indica che il prossimo push contiene il tipo di contenuto, mentre <code>OP_PUSH 0</code> indica che i successivi push di dati contengono il contenuto stesso. Per iscrizioni di grandi dimensioni è necessario utilizzare più push di dati, poiché una delle poche restrizioni di taproot è che i singoli push di dati non possono essere più grandi di 520 byte.</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="il-contenuto"><a class="header" href="#il-contenuto">Il Contenuto</a></h2>
 <p>Il modello di dati delle iscrizioni è quello di una risposta HTTP, che rende disponibile il contenuto dell'iscrizione da un server web e lo rende visualizzabile in un browser web.</p>
 <h2 id="i-campi"><a class="header" href="#i-campi">I Campi</a></h2>
@@ -502,12 +502,19 @@ OP_ENDIF
 <h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
 <p>Le iscrizioni HTML e SVG sono sottoposte a sandboxing per evitare riferimenti a contenuti esterni alla catena, mantenendo così le iscrizioni immutabili e autonome.</p>
 <p>Ciò si ottiene caricando le iscrizioni HTML e SVG all'interno di <code>iframes</code> con l'attributo <code>sandbox</code> e servendo il contenuto dell'iscrizione con intestazioni <code>Content-Security-Policy</code>.</p>
+<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
+<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
+</code></pre>
+<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
+<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
 <h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
 <p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
-<p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content and content type of the delegate. This can be used to cheaply create copies of an inscription.</p>
+<p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content, content type  and content encoding of the delegate. This can be used to cheaply create copies  of an inscription.</p>
 <h3 id="specifiche"><a class="header" href="#specifiche">Specifiche</a></h3>
 <p>To create an inscription I with delegate inscription D:</p>
 <ul>

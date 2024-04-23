@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。</p>
 <p>`OP_PUSH 1'は、次のプッシュにコンテンツタイプが含まれていることを示します。'OP_PUSH 0'は、後続のデータプッシュがコンテンツ自体を含むことを示す。の大規模な銘文は複数回のデータプッシュを使用しなければならない。taprootの少数の制限の一つは、単一のデータプッシュが520バイトを超えないことであります。</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal  theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="内容"><a class="header" href="#内容">内容</a></h2>
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
@@ -307,6 +307,13 @@ OP_ENDIF
 <h2 id="サンドボックス化"><a class="header" href="#サンドボックス化">サンドボックス化</a></h2>
 <p>HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないようにして、銘文の不変性と独立性を保ちます。</p>
 <p>これは、HTMLとSVGの銘文を <code>iframes</code> にロードし、銘文コンテンツを提供することによって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。</p>
+<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
+<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
+</code></pre>
+<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
+<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
 <h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
