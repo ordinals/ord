@@ -34,7 +34,6 @@ use {
   tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
-    limit::RequestBodyLimitLayer,
     set_header::SetResponseHeaderLayer,
     validate_request::ValidateRequestHeaderLayer,
   },
@@ -282,9 +281,13 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
-        .layer(DefaultBodyLimit::disable())
-        .layer(RequestBodyLimitLayer::new(5 * 1024 * 1024))
-        .with_state(server_config);
+        .with_state(server_config.clone());
+
+      let router = if server_config.json_api_enabled {
+        router.layer(DefaultBodyLimit::disable())
+      } else {
+        router
+      };
 
       let router = if let Some((username, password)) = settings.credentials() {
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
