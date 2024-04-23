@@ -283,7 +283,7 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .layer(DefaultBodyLimit::disable())
-        .layer(RequestBodyLimitLayer::new(5 * 1000000))
+        .layer(RequestBodyLimitLayer::new(5 * 1024 * 1024))
         .with_state(server_config);
 
       let router = if let Some((username, password)) = settings.credentials() {
