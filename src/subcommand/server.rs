@@ -34,6 +34,7 @@ use {
   tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
+    limit::RequestBodyLimitLayer,
     set_header::SetResponseHeaderLayer,
     validate_request::ValidateRequestHeaderLayer,
   },
@@ -282,6 +283,7 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .layer(DefaultBodyLimit::disable())
+        .layer(RequestBodyLimitLayer::new(5 * 1000000))
         .with_state(server_config);
 
       let router = if let Some((username, password)) = settings.credentials() {
