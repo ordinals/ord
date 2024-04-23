@@ -39,6 +39,7 @@ impl Send {
         address,
         rune,
         decimal,
+        self.postage.unwrap_or(TARGET_POSTAGE),
         self.fee_rate,
       )?,
       Outgoing::InscriptionId(id) => Self::create_unsigned_send_satpoint_transaction(
@@ -209,6 +210,7 @@ impl Send {
     destination: Address,
     spaced_rune: SpacedRune,
     decimal: Decimal,
+    postage: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
     ensure!(
@@ -264,16 +266,16 @@ impl Send {
       },
     }
 
-    let outputs = if with_runes_change {
-      let runestone = Runestone {
-        edicts: vec![Edict {
-          amount,
-          id,
-          output: 2,
-        }],
-        ..default()
-      };
+    let runestone = Runestone {
+      edicts: vec![Edict {
+        amount,
+        id,
+        output: 2,
+      }],
+      ..default()
+    };
 
+    let outputs = if with_runes_change {
       vec![
         TxOut {
           script_pubkey: runestone.encipher(),
@@ -281,17 +283,17 @@ impl Send {
         },
         TxOut {
           script_pubkey: wallet.get_change_address()?.script_pubkey(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: postage.to_sat(),
         },
         TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: postage.to_sat(),
         },
       ]
     } else {
       vec![TxOut {
         script_pubkey: destination.script_pubkey(),
-        value: TARGET_POSTAGE.to_sat(),
+        value: postage.to_sat(),
       }]
     };
 
@@ -315,10 +317,12 @@ impl Send {
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
-    // assert_eq!(
-    // Runestone::decipher(&unsigned_transaction),
-    // Some(Artifact::Runestone(runestone)),
-    // );
+    if with_runes_change {
+      assert_eq!(
+        Runestone::decipher(&unsigned_transaction),
+        Some(Artifact::Runestone(runestone)),
+      );
+    }
 
     Ok(unsigned_transaction)
   }
