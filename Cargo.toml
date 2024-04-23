@@ -71,6 +71,14 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header"] }
 urlencoding = "2.1.3"
 
+# runebeta
+diesel = { version = "2.1", features = ["chrono", "postgres", "uuid", "serde_json", "numeric", "r2d2"] }
+diesel_migrations = { version = "2.1" }
+bigdecimal =  { version = "0.4.3", features = ["serde"] }
+deadpool-diesel = { version = "0.4", features = ["postgres"] }
+dotenvy = "0.15"
+# End runebeta
+
 [dev-dependencies]
 criterion = "0.5.1"
 executable-path = "1.0.0"

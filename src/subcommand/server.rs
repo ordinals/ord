@@ -44,9 +44,9 @@ pub(crate) use server_config::ServerConfig;
 mod accept_encoding;
 mod accept_json;
 mod error;
+mod extension;
 pub mod query;
 mod server_config;
-
 enum SpawnConfig {
   Https(AxumAcceptor),
   Http,
@@ -263,6 +263,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
+        .nest("/extend", self::extension::ExtensionServer::create_router())
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))

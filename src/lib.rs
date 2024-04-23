@@ -114,13 +114,14 @@ pub mod options;
 pub mod outgoing;
 mod re;
 mod representation;
+pub mod runebeta;
 pub mod runes;
 mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
 pub mod wallet;
-
+pub use runebeta::*;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);

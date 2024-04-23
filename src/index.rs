@@ -40,7 +40,7 @@ pub use self::entry::RuneEntry;
 pub(crate) mod entry;
 pub mod event;
 mod fetcher;
-mod lot;
+pub(crate) mod lot;
 mod reorg;
 mod rtx;
 mod updater;
@@ -197,6 +197,7 @@ pub struct Index {
   path: PathBuf,
   started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
+  pub(crate) extension: Arc<IndexExtension>,
 }
 
 impl Index {
@@ -418,7 +419,7 @@ impl Index {
 
     let genesis_block_coinbase_transaction =
       settings.chain().genesis_block().coinbase().unwrap().clone();
-
+    let extension = Arc::new(IndexExtension::new(settings.chain()));
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       client,
@@ -436,6 +437,7 @@ impl Index {
       path,
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
+      extension,
     })
   }
 
@@ -612,15 +614,15 @@ impl Index {
   pub fn update(&self) -> Result {
     loop {
       let wtx = self.begin_write()?;
-
+      let ordinal_block_height = wtx
+        .open_table(HEIGHT_TO_BLOCK_HEADER)?
+        .range(0..)?
+        .next_back()
+        .transpose()?
+        .map(|(height, _header)| height.value() + 1)
+        .unwrap_or(0);
       let mut updater = Updater {
-        height: wtx
-          .open_table(HEIGHT_TO_BLOCK_HEADER)?
-          .range(0..)?
-          .next_back()
-          .transpose()?
-          .map(|(height, _header)| height.value() + 1)
-          .unwrap_or(0),
+        height: ordinal_block_height,
         index: self,
         outputs_cached: 0,
         outputs_inserted_since_flush: 0,
