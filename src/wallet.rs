@@ -306,10 +306,11 @@ impl Wallet {
   }
 
   fn is_after_minimum_height(&self, rune: Rune) -> bool {
-    rune >= Rune::minimum_at_height(
-      self.chain().network(),
-      Height(u32::try_from(self.bitcoin_client().get_block_count().unwrap() + 1).unwrap()),
-    )
+    rune
+      >= Rune::minimum_at_height(
+        self.chain().network(),
+        Height(u32::try_from(self.bitcoin_client().get_block_count().unwrap() + 1).unwrap()),
+      )
   }
 
   fn is_commitment_spent(&self, commit: &Transaction) -> Result<bool> {
@@ -320,7 +321,11 @@ impl Wallet {
         .is_none(),
     )
   }
-  pub(crate) fn check_rune_maturity(&self, rune: Rune, commit: &Transaction) -> Result<RuneMaturityDetails> {
+  pub(crate) fn check_rune_maturity(
+    &self,
+    rune: Rune,
+    commit: &Transaction,
+  ) -> Result<RuneMaturityDetails> {
     let transaction = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
@@ -339,9 +344,7 @@ impl Wallet {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::BeforeMinimumHeight),
         })
-      } else if current_confirmations + 1
-          >= Runestone::COMMIT_CONFIRMATIONS.into()
-      {
+      } else if current_confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
         Ok(RuneMaturityDetails {
           matured: true,
           maturity_failure_status: None,
@@ -350,10 +353,11 @@ impl Wallet {
         Ok(RuneMaturityDetails {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
-            i8::try_from(Runestone::COMMIT_CONFIRMATIONS as i32 - current_confirmations as i32 - 1).unwrap(),
-          ))
+            i8::try_from(Runestone::COMMIT_CONFIRMATIONS as i32 - current_confirmations as i32 - 1)
+              .unwrap(),
+          )),
         })
-      }
+      };
     }
     return Ok(RuneMaturityDetails {
       matured: false,
@@ -380,7 +384,7 @@ impl Wallet {
 
       let rune_maturity = self.check_rune_maturity(rune, &entry.commit)?;
       if rune_maturity.matured {
-        break
+        break;
       }
 
       match rune_maturity.maturity_failure_status.unwrap() {
@@ -394,9 +398,7 @@ impl Wallet {
           self.clear_etching(rune)?;
           bail!("rune commitment {} spent, can't send reveal tx", txid);
         }
-        _ => {
-
-        }
+        _ => {}
       }
 
       if !self.integration_test() {

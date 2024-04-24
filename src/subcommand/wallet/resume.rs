@@ -1,5 +1,5 @@
-use crate::wallet::MaturityFailureStatus;
 use super::*;
+use crate::wallet::MaturityFailureStatus;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResumeOutput {
@@ -39,7 +39,7 @@ impl Resume {
               eprintln!("Commitment {} Spent", tx_id);
               etchings.remove(index);
             }
-            _ => continue
+            _ => continue,
           }
         }
       }
