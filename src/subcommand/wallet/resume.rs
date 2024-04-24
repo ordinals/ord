@@ -8,6 +8,9 @@ pub struct ResumeOutput {
 pub(crate) struct Resume {
   #[arg(long, help = "Don't broadcast transactions.")]
   pub(crate) dry_run: bool,
+
+  #[arg(long, help = "Rune commitment to resume.")]
+  pub(crate) commitment: Option<String>,
 }
 
 impl Resume {
@@ -18,7 +21,26 @@ impl Resume {
         break;
       }
 
-      for (rune, entry) in wallet.pending_etchings()? {
+      let mut pending_etchings = Vec::new();
+      let commitment = self.commitment.clone();
+
+      if let Some(commitment) = commitment {
+        let pending_etching = wallet
+          .pending_etchings()?
+          .into_iter()
+          .find(|(_, entry)| entry.commit.txid().to_string() == commitment);
+
+        ensure!(
+          pending_etching.is_some(),
+          "commitment `{commitment}` does not correspond to any pending rune etching."
+        );
+
+        pending_etchings.push(pending_etching.unwrap());
+      } else {
+        pending_etchings.extend(wallet.pending_etchings()?.into_iter());
+      }
+
+      for (rune, entry) in pending_etchings {
         if self.dry_run {
           etchings.push(batch::Output {
             reveal_broadcast: false,
