@@ -349,8 +349,7 @@ impl Wallet {
         Ok(RuneMaturityDetails {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
-            i8::try_from(Runestone::COMMIT_CONFIRMATIONS - current_confirmations  - 1)
-                .unwrap(),
+            i8::try_from(Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1).unwrap(),
           )),
         })
       } else {
