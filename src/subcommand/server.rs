@@ -253,6 +253,7 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
+        .route("/rune/:rune/balances", get(Self::rune_specific_balances))
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
@@ -772,6 +773,41 @@ impl Server {
               )
             })
             .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
+        )
+        .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn rune_specific_balances(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(rune_query)): Path<DeserializeFromStr<query::Rune>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !index.has_rune_index() {
+        return Err(ServerError::NotFound(
+          "this server has no rune index".to_string(),
+        ));
+      }
+
+      let rune = match rune_query {
+        query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
+        query::Rune::Id(rune_id) => index
+          .get_rune_by_id(rune_id)?
+          .ok_or_not_found(|| format!("rune {rune_id}"))?,
+        query::Rune::Number(number) => index
+          .get_rune_by_number(usize::try_from(number).unwrap())?
+          .ok_or_not_found(|| format!("rune number {number}"))?,
+      };
+
+      Ok(if accept_json {
+        Json(
+          index
+            .get_rune_specific_balances(rune)
+            .unwrap()
         )
         .into_response()
       } else {

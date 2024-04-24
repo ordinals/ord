@@ -134,6 +134,18 @@ impl Context {
 
     pretty_assert_eq!(balances, self.index.get_rune_balances().unwrap());
 
+    balances
+      .iter()
+      .for_each(|rune| {
+        for r in rune.1.iter() {
+          let mut balance: BTreeMap<OutPoint, u128> = BTreeMap::new();
+          *balance
+            .entry(rune.0)
+            .or_default() += r.1;
+          pretty_assert_eq!(balance, self.index.get_rune_specific_balances(self.index.get_rune_by_id(r.0).unwrap().unwrap()).unwrap());
+        }
+      });
+
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
 
     for (_, balances) in balances {

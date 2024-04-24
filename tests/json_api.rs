@@ -752,3 +752,77 @@ fn get_decode_tx() {
     }
   );
 }
+
+#[test]
+fn get_rune_specific_balances() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(3);
+
+  let runes = vec![Rune(RUNE), Rune(RUNE + 1), Rune(RUNE + 2)];
+  let mut etched: Vec<Etched> = Vec::new();
+
+  runes.iter()
+    .for_each(|rune| {
+      etched.push(etch(&core, &ord, *rune))
+    });
+
+  core.mine_blocks(1);
+
+  let mut rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+    (
+      runes[0],
+      vec![(
+        OutPoint {
+          txid: etched[0].output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      runes[1],
+      vec![(
+        OutPoint {
+          txid: etched[1].output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      runes[2],
+      vec![(
+        OutPoint {
+          txid: etched[2].output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+  ]
+  .into_iter()
+  .collect();
+
+  etched.iter()
+    .enumerate()
+    .for_each(|(i, e)| {
+      let response = ord.json_request(format!("/rune/{}/balances", e.id.to_string()));
+      assert_eq!(response.status(), StatusCode::OK);
+
+      let runes_balance_json: BTreeMap<OutPoint, u128> =
+        serde_json::from_str(&response.text().unwrap()).unwrap();
+
+      pretty_assert_eq!(runes_balance_json, rune_balances.entry(runes[i]).or_default().to_owned());
+    });
+}

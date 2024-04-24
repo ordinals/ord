@@ -1064,6 +1064,53 @@ impl Index {
     Ok(rune_balances)
   }
 
+  pub(crate) fn get_rune_specific_balances(&self, rune: Rune) -> Result<BTreeMap<OutPoint, u128>> {
+    let mut result: BTreeMap<OutPoint, u128> = BTreeMap::new();
+
+    // get rune id
+    let Some(id) = self.database
+      .begin_read()?
+      .open_table(RUNE_TO_RUNE_ID)?
+      .get(rune.0)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(BTreeMap::new());
+    };
+
+    let rune_id = RuneId::load(id);
+    
+    for entry in self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_RUNE_BALANCES)?
+      .iter()?
+    {
+      let (outpoint, balances_buffer) = entry?;
+      let outpoint = OutPoint::load(*outpoint.value());
+      let balances_buffer = balances_buffer.value();
+
+      let mut i = 0;
+      let mut query_balance = 0;
+      while i < balances_buffer.len() {
+        let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
+        i += length;
+
+        if rune_id == id {
+          query_balance = balance;
+          break;
+        }
+      }
+
+      if query_balance > 0 {
+        *result
+          .entry(outpoint)
+          .or_default() += query_balance
+      }
+    }
+
+    Ok(result)
+  }
+
   pub(crate) fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
     let mut result = Vec::new();
 
