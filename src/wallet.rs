@@ -375,7 +375,14 @@ impl Wallet {
       rune,
       entry.commit.txid()
     );
-    let mut pending_confirmations = 6;
+    let mut pending_confirmations = 6i8;
+    let pb = ProgressBar::new(pending_confirmations.try_into().unwrap()).with_style(
+      ProgressStyle::default_bar()
+        .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
+        .unwrap()
+        .progress_chars("#>-"),
+    );
+
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
@@ -384,15 +391,15 @@ impl Wallet {
 
       let rune_maturity = self.check_rune_maturity(rune, &entry.commit)?;
       if rune_maturity.matured {
-        eprintln!("Rune matured, submitting...");
+        pb.finish_with_message("Rune matured, submitting...");
         break;
       }
 
       match rune_maturity.maturity_failure_status.unwrap() {
         MaturityFailureStatus::ConfirmationsNotReached(remaining) => {
           if remaining < pending_confirmations {
-            eprintln!("{} confirmations to go...", pending_confirmations - 1);
             pending_confirmations = remaining;
+            pb.inc(1);
           }
         }
         MaturityFailureStatus::CommitSpent(txid) => {
