@@ -40,7 +40,16 @@ impl Statistic {
     self.into()
   }
 }
-
+pub(crate) struct RuneMaturityDetails {
+  pub(crate) maturity_failure_status: Option<MaturityFailureStatus>,
+  pub(crate) matured: bool,
+}
+pub(crate) enum MaturityFailureStatus {
+  BeforeMinimumHeight,
+  ConfirmationsNotReached(i8),
+  CommitSpent(Txid),
+  Unknown,
+}
 impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
@@ -296,37 +305,60 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool> {
+  fn is_after_minimum_height(&self, rune: Rune) -> bool {
+    rune >= Rune::minimum_at_height(
+      self.chain().network(),
+      Height(u32::try_from(self.bitcoin_client().get_block_count().unwrap() + 1).unwrap()),
+    )
+  }
+
+  fn is_commitment_spent(&self, commit: &Transaction) -> Result<bool> {
+    Ok(
+      self
+        .bitcoin_client()
+        .get_tx_out(&commit.txid(), 0, Some(true))?
+        .is_none(),
+    )
+  }
+  pub(crate) fn check_rune_maturity(&self, rune: Rune, commit: &Transaction) -> Result<RuneMaturityDetails> {
     let transaction = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
       .into_option()?;
 
-    if let Some(transaction) = transaction {
-      if u32::try_from(transaction.info.confirmations).unwrap() + 1
-        >= Runestone::COMMIT_CONFIRMATIONS.into()
-        && rune
-          >= Rune::minimum_at_height(
-            self.chain().network(),
-            Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
-          )
-      {
-        let tx_out = self
-          .bitcoin_client()
-          .get_tx_out(&commit.txid(), 0, Some(true))?;
+    if let Some(commit_tx) = transaction {
+      let current_confirmations = u32::try_from(commit_tx.info.confirmations).unwrap();
 
-        if let Some(tx_out) = tx_out {
-          if tx_out.confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
-            return Ok(true);
-          }
-        } else {
-          self.clear_etching(rune)?;
-          bail!("rune commitment spent, can't send reveal tx");
-        }
+      return if self.is_commitment_spent(commit)? {
+        Ok(RuneMaturityDetails {
+          matured: false,
+          maturity_failure_status: Some(MaturityFailureStatus::CommitSpent(commit_tx.info.txid)),
+        })
+      } else if !self.is_after_minimum_height(rune) {
+        Ok(RuneMaturityDetails {
+          matured: false,
+          maturity_failure_status: Some(MaturityFailureStatus::BeforeMinimumHeight),
+        })
+      } else if current_confirmations + 1
+          >= Runestone::COMMIT_CONFIRMATIONS.into()
+      {
+        Ok(RuneMaturityDetails {
+          matured: true,
+          maturity_failure_status: None,
+        })
+      } else {
+        Ok(RuneMaturityDetails {
+          matured: false,
+          maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
+            i8::try_from(Runestone::COMMIT_CONFIRMATIONS as i32 - current_confirmations as i32 - 1).unwrap(),
+          ))
+        })
       }
     }
-
-    Ok(false)
+    return Ok(RuneMaturityDetails {
+      matured: false,
+      maturity_failure_status: Some(MaturityFailureStatus::Unknown),
+    });
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
@@ -346,8 +378,25 @@ impl Wallet {
         return Ok(entry.output);
       }
 
-      if self.is_mature(rune, &entry.commit)? {
-        break;
+      let rune_maturity = self.check_rune_maturity(rune, &entry.commit)?;
+      if rune_maturity.matured {
+        break
+      }
+
+      match rune_maturity.maturity_failure_status.unwrap() {
+        MaturityFailureStatus::BeforeMinimumHeight => {
+          //   do something
+        }
+        MaturityFailureStatus::ConfirmationsNotReached(remaining) => {
+          // do something
+        }
+        MaturityFailureStatus::CommitSpent(txid) => {
+          self.clear_etching(rune)?;
+          bail!("rune commitment {} spent, can't send reveal tx", txid);
+        }
+        _ => {
+
+        }
       }
 
       if !self.integration_test() {

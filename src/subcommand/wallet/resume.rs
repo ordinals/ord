@@ -1,3 +1,4 @@
+use crate::wallet::MaturityFailureStatus;
 use super::*;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -18,7 +19,7 @@ impl Resume {
         break;
       }
 
-      for (rune, entry) in wallet.pending_etchings()? {
+      for (index, (rune, entry)) in wallet.pending_etchings()?.iter().enumerate() {
         if self.dry_run {
           etchings.push(batch::Output {
             reveal_broadcast: false,
@@ -26,9 +27,20 @@ impl Resume {
           });
           continue;
         };
+        let rune_maturity = wallet.check_rune_maturity(rune.clone(), &entry.commit)?;
+        if rune_maturity.matured {
+          etchings.push(wallet.send_etching(rune.clone(), &entry)?);
+        }
 
-        if wallet.is_mature(rune, &entry.commit)? {
-          etchings.push(wallet.send_etching(rune, &entry)?);
+        if let Some(maturity_failure_status) = rune_maturity.maturity_failure_status {
+          match maturity_failure_status {
+            MaturityFailureStatus::CommitSpent(tx_id) => {
+              // shouldn't to bail out here it can proceed with other pending etchings.
+              eprintln!("Commitment {} Spent", tx_id);
+              etchings.remove(index);
+            }
+            _ => continue
+          }
         }
       }
 
