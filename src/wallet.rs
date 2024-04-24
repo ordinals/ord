@@ -1,3 +1,4 @@
+use std::u16;
 use {
   super::*,
   base64::{self, Engine},
@@ -332,7 +333,7 @@ impl Wallet {
       .into_option()?;
 
     if let Some(commit_tx) = transaction {
-      let current_confirmations = u32::try_from(commit_tx.info.confirmations).unwrap();
+      let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
 
       return if self.is_commitment_spent(commit)? {
         Ok(RuneMaturityDetails {
@@ -344,7 +345,7 @@ impl Wallet {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::BeforeMinimumHeight),
         })
-      } else if current_confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
+      } else if current_confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS {
         Ok(RuneMaturityDetails {
           matured: true,
           maturity_failure_status: None,
@@ -353,16 +354,16 @@ impl Wallet {
         Ok(RuneMaturityDetails {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
-            i8::try_from(Runestone::COMMIT_CONFIRMATIONS as i32 - current_confirmations as i32 - 1)
+            i8::try_from(Runestone::COMMIT_CONFIRMATIONS - current_confirmations  - 1)
               .unwrap(),
           )),
         })
       };
     }
-    return Ok(RuneMaturityDetails {
+    Ok(RuneMaturityDetails {
       matured: false,
       maturity_failure_status: Some(MaturityFailureStatus::Unknown),
-    });
+    })
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
@@ -391,7 +392,7 @@ impl Wallet {
         MaturityFailureStatus::BeforeMinimumHeight => {
           //   do something
         }
-        MaturityFailureStatus::ConfirmationsNotReached(remaining) => {
+        MaturityFailureStatus::ConfirmationsNotReached(_remaining) => {
           // do something
         }
         MaturityFailureStatus::CommitSpent(txid) => {

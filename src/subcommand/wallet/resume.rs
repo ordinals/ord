@@ -27,9 +27,9 @@ impl Resume {
           });
           continue;
         };
-        let rune_maturity = wallet.check_rune_maturity(rune.clone(), &entry.commit)?;
+        let rune_maturity = wallet.check_rune_maturity(*rune, &entry.commit)?;
         if rune_maturity.matured {
-          etchings.push(wallet.send_etching(rune.clone(), &entry)?);
+          etchings.push(wallet.send_etching(*rune, entry)?);
         }
 
         if let Some(maturity_failure_status) = rune_maturity.maturity_failure_status {
