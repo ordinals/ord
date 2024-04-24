@@ -345,18 +345,18 @@ impl Wallet {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::BeforeMinimumHeight),
         })
-      } else if current_confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS {
-        Ok(RuneMaturityDetails {
-          matured: true,
-          maturity_failure_status: None,
-        })
-      } else {
+      } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
         Ok(RuneMaturityDetails {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
             i8::try_from(Runestone::COMMIT_CONFIRMATIONS - current_confirmations  - 1)
-              .unwrap(),
+                .unwrap(),
           )),
+        })
+      } else {
+        Ok(RuneMaturityDetails {
+          matured: true,
+          maturity_failure_status: None,
         })
       };
     }
