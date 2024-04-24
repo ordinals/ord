@@ -235,9 +235,28 @@ impl Send {
     let mut input_runes = 0;
     let mut input = Vec::new();
     let mut with_runes_change = true;
+    let mut multiple_runes_in_input = false;
+
+    let balances = wallet
+      .get_runic_outputs()?
+      .into_iter()
+      .filter(|output| !inscribed_outputs.contains(output))
+      .filter_map(|output| {
+        wallet
+          .get_runes_balances_for_output(&output)
+          .ok()
+          .map(|balance| (output, balance))
+      })
+      // .flatten()
+      .collect::<BTreeMap<OutPoint, Vec<_>>>();
+
     for output in wallet.get_runic_outputs()? {
       if inscribed_outputs.contains(&output) {
         continue;
+      }
+
+      if wallet.get_runes_balances_for_output(&output)?.len() > 1 {
+        multiple_runes_in_input = true;
       }
 
       let balance = wallet.get_rune_balance_in_output(&output, entry.spaced_rune.rune)?;
@@ -251,6 +270,11 @@ impl Send {
         if input_runes == amount {
           with_runes_change = false;
         }
+
+        if multiple_runes_in_input {
+          with_runes_change = true;
+        }
+
         break;
       }
     }
