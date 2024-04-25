@@ -145,6 +145,7 @@ diesel::table! {
         turbo -> Bool,
         timestamp -> Int4,
         total_tx_count -> Int8,
+        total_holders -> Int8,
     }
 }
 

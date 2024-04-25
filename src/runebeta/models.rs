@@ -330,6 +330,8 @@ pub struct NewTxRuneEntry {
   pub divisibility: i16,
   pub etching: String,
   pub parent: Option<String>,
+  pub total_tx_count: i64,
+  pub total_holders: i64,
   pub terms: Option<RuneTerms>,
   pub height_start: Option<i64>,
   pub height_end: Option<i64>,

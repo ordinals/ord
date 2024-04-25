@@ -10,23 +10,23 @@ use crate::schema::rune_stats::dsl::*;
 use crate::{calculate_chunk_size, split_input, InsertRecords};
 
 use super::models::NewRuneStats;
-use super::table_transaction_rune_entry::create_update_rune_mintable;
-pub const NUMBER_OF_FIELDS: u16 = 8;
+use super::table_transaction_rune_entry::{create_update_rune_mintable, create_update_rune_total_holders};
+pub const NUMBER_OF_FIELDS: u16 = 9;
 
 pub fn create_update_rune_entry(height: &u64) -> SqlQuery {
   let query = format!(
     r#"
-      UPDATE transaction_rune_entries e SET 
-        mints = e.mints + s.mints, 
-        supply = e.supply + s.mint_amount * s.mints,
-        burned = e.burned + s.burned,  
-        remaining = e.remaining - s.mints
-        total_tx_count = e.total_tx_count + s.tx_count
-      FROM rune_stats s
-      WHERE s.block_height = {} 
-      AND s.aggregated = false
-      AND e.rune_id = s.rune_id;
-      "#,
+    UPDATE transaction_rune_entries e SET 
+    mints = e.mints + s.mints, 
+    supply = e.supply + s.mint_amount * s.mints,
+    burned = e.burned + s.burned,  
+    remaining = e.remaining - s.mints,
+    total_tx_count = e.total_tx_count + s.tx_count
+    FROM rune_stats s
+    WHERE s.block_height = {} 
+    AND s.aggregated = false
+    AND e.rune_id = s.rune_id;
+    "#,
     height
   );
   diesel::sql_query(query)
@@ -136,6 +136,20 @@ impl RuneStatsTable {
                 }
               };
             }
+            //Update total holders for rune entries
+            let update_rune_total_holders = create_update_rune_total_holders();
+            let stat_res = update_rune_total_holders.execute(conn);
+            match &stat_res {
+              Ok(_) => log::info!(
+                "Updated rune entries total holders for blocks {:?} in {} ms",
+                heights,
+                start.elapsed().as_millis()
+              ),
+              Err(err) => {
+                log::info!("Update rune entries total holders error {:?}", err);
+                return stat_res;
+              }
+            };
 
             Ok(size)
           });

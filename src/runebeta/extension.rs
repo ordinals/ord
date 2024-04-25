@@ -576,8 +576,8 @@ impl IndexExtension {
       if balances.is_empty() {
         continue;
       }
-      if let Some(tx_out) = transaction.output.get(vout) {
-        for (rune_id, lot) in balances {
+      if let Some(_) = transaction.output.get(vout) {
+        for (rune_id, _) in balances {
           index_block.add_rune_tx_count(block_height, rune_id);
         }
       }
@@ -812,9 +812,16 @@ impl IndexExtension {
       {
         handles.append(res);
       }
-      if total_rune_stats.len() > 0 {
+      // update spent_outpoint_balance before update stats
+      if total_tx_ins.len() > 0 {
+        //move spent utxo to spent tx_output table
         if let Ok(ref mut res) =
-          table_rune_stats.update(total_rune_stats, self.connection_pool.clone())
+          table_outpoint_balance.spends(total_tx_ins.clone(), self.connection_pool.clone())
+        {
+          handles.append(res);
+        }
+        if let Ok(ref mut res) =
+          table_transaction_out.spends(total_tx_ins, self.connection_pool.clone())
         {
           handles.append(res);
         }
@@ -826,15 +833,9 @@ impl IndexExtension {
           handles.append(res);
         }
       }
-      if total_tx_ins.len() > 0 {
-        //move spent utxo to spent tx_output table
+      if total_rune_stats.len() > 0 {
         if let Ok(ref mut res) =
-          table_outpoint_balance.spends(total_tx_ins.clone(), self.connection_pool.clone())
-        {
-          handles.append(res);
-        }
-        if let Ok(ref mut res) =
-          table_transaction_out.spends(total_tx_ins, self.connection_pool.clone())
+          table_rune_stats.update(total_rune_stats, self.connection_pool.clone())
         {
           handles.append(res);
         }

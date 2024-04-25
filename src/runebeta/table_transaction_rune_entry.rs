@@ -6,7 +6,7 @@ use crate::schema::transaction_rune_entries::dsl::*;
 use crate::{InsertRecords, RuneEntry, RuneId};
 
 use super::models::{NewTxRuneEntry, RuneTerms};
-pub const NUMBER_OF_FIELDS: u16 = 28;
+pub const NUMBER_OF_FIELDS: u16 = 30;
 pub const RUNE_MINT_TYPE_FIXED_CAP: &str = "fixed-cap";
 pub const RUNE_MINT_TYPE_FAIRMINT: &str = "fairmint";
 
@@ -21,6 +21,22 @@ pub fn create_update_rune_mintable(height: &u64) -> SqlQuery {
     WHERE terms IS NOT NULL;"#,
     height
   );
+  diesel::sql_query(query)
+}
+
+pub fn create_update_rune_total_holders() -> SqlQuery {
+  let query = r"
+  WITH rune_total_holders AS (
+    SELECT COUNT(DISTINCT address) AS total_holders, rune_id
+    FROM outpoint_rune_balances
+    WHERE balance_value > 0
+    GROUP BY rune_id
+  )
+  UPDATE transaction_rune_entries
+  SET total_holders = rtd.total_holders
+  FROM rune_total_holders rtd
+  WHERE transaction_rune_entries.rune_id = rtd.rune_id;
+  ";
   diesel::sql_query(query)
 }
 
@@ -69,6 +85,8 @@ impl From<&RuneEntry> for NewTxRuneEntry {
       divisibility: rune_entry.divisibility as i16,
       etching: rune_entry.etching.to_string(),
       parent: None,
+      total_tx_count: 0,
+      total_holders: 0,
       mintable: rune_entry.mintable(rune_entry.block).is_ok(),
       mint_type: rune_entry.terms.map_or_else(
         || String::from(RUNE_MINT_TYPE_FIXED_CAP),
