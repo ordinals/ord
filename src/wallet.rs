@@ -47,7 +47,7 @@ pub(crate) struct RuneMaturityDetails {
 }
 pub(crate) enum MaturityFailureStatus {
   BeforeMinimumHeight,
-  ConfirmationsNotReached(i8),
+  ConfirmationsNotReached(u16),
   CommitSpent(Txid),
   Unknown,
 }
@@ -349,7 +349,7 @@ impl Wallet {
         Ok(RuneMaturityDetails {
           matured: false,
           maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
-            i8::try_from(Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1).unwrap(),
+            Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
           )),
         })
       } else {
@@ -375,8 +375,8 @@ impl Wallet {
       rune,
       entry.commit.txid()
     );
-    let mut pending_confirmations = 6i8;
-    let pb = ProgressBar::new(pending_confirmations.try_into().unwrap()).with_style(
+    let mut pending_confirmations = Runestone::COMMIT_CONFIRMATIONS;
+    let pb = ProgressBar::new(pending_confirmations.into()).with_style(
       ProgressStyle::default_bar()
         .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
         .unwrap()
