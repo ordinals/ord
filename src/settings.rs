@@ -27,6 +27,10 @@ pub struct Settings {
   server_password: Option<String>,
   server_url: Option<String>,
   server_username: Option<String>,
+  rabbitmq_url: Option<String>,
+  rabbitmq_username: Option<String>,
+  rabbitmq_password: Option<String>,
+  rabbitmq_exchange: Option<String>,
 }
 
 impl Settings {
@@ -141,6 +145,10 @@ impl Settings {
       server_password: self.server_password.or(source.server_password),
       server_url: self.server_url.or(source.server_url),
       server_username: self.server_username.or(source.server_username),
+      rabbitmq_url: self.rabbitmq_url.or(source.rabbitmq_url),
+      rabbitmq_username: self.rabbitmq_username.or(source.rabbitmq_username),
+      rabbitmq_password: self.rabbitmq_password.or(source.rabbitmq_password),
+      rabbitmq_exchange: self.rabbitmq_exchange.or(source.rabbitmq_exchange),
     }
   }
 
@@ -175,6 +183,10 @@ impl Settings {
       server_password: options.server_password,
       server_url: None,
       server_username: options.server_username,
+      rabbitmq_url: options.rabbitmq_url,
+      rabbitmq_username: options.rabbitmq_username,
+      rabbitmq_password: options.rabbitmq_password,
+      rabbitmq_exchange: options.rabbitmq_exchange,
     }
   }
 
@@ -253,6 +265,10 @@ impl Settings {
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
+      rabbitmq_url: get_string("RMQ_URL"),
+      rabbitmq_username: get_string("RMQ_USERNAME"),
+      rabbitmq_password: get_string("RMQ_PASSWORD"),
+      rabbitmq_exchange: get_string("RMQ_EXCHANGE"),
     })
   }
 
@@ -282,6 +298,10 @@ impl Settings {
       server_password: None,
       server_url: Some(server_url.into()),
       server_username: None,
+      rabbitmq_url: None,
+      rabbitmq_username: None,
+      rabbitmq_password: None,
+      rabbitmq_exchange: None,
     }
   }
 
@@ -361,6 +381,10 @@ impl Settings {
       server_password: self.server_password,
       server_url: self.server_url,
       server_username: self.server_username,
+      rabbitmq_url: self.rabbitmq_url,
+      rabbitmq_username: self.rabbitmq_username,
+      rabbitmq_password: self.rabbitmq_password,
+      rabbitmq_exchange: self.rabbitmq_exchange,
     })
   }
 
@@ -553,6 +577,23 @@ impl Settings {
   pub(crate) fn server_url(&self) -> Option<&str> {
     self.server_url.as_deref()
   }
+
+  pub fn rabbitmq_url(&self) -> Option<&String> {
+    self.rabbitmq_url.as_ref()
+  }
+
+  pub fn rabbitmq_username(&self) -> Option<&String> {
+    self.rabbitmq_username.as_ref()
+  }
+
+  pub fn rabbitmq_password(&self) -> Option<&String> {
+    self.rabbitmq_password.as_ref()
+  }
+
+  pub fn rabbitmq_exchange(&self) -> Option<&String> {
+    self.rabbitmq_exchange.as_ref()
+  }
+
 }
 
 #[cfg(test)]
@@ -1000,7 +1041,10 @@ mod tests {
       ("NO_INDEX_INSCRIPTIONS", "1"),
       ("SERVER_PASSWORD", "server password"),
       ("SERVER_URL", "server url"),
-      ("SERVER_USERNAME", "server username"),
+      ("RMQ_URL", "http://127.0.0.1"),
+      ("RMQ_USERNAME", "rmq username"),
+      ("RMQ_PASSWORD", "rmq password"),
+      ("RMQ_EXCHANGE", "rmq exchange"),
     ]
     .into_iter()
     .map(|(key, value)| (key.into(), value.into()))
@@ -1044,6 +1088,10 @@ mod tests {
         server_password: Some("server password".into()),
         server_url: Some("server url".into()),
         server_username: Some("server username".into()),
+        rabbitmq_url: Some("http://127.0.0.1".into()),
+        rabbitmq_username: Some("rmq username".into()),
+        rabbitmq_password: Some("rmq password".into()),
+        rabbitmq_exchange: Some("rmq exchange".into()),
       }
     );
   }
@@ -1076,6 +1124,10 @@ mod tests {
           "--no-index-inscriptions",
           "--server-password=server password",
           "--server-username=server username",
+          "--rabbitmq-url=http://127.0.0.1",
+          "--rabbitmq-username=rmq username",
+          "--rabbitmq-password=rmq password",
+          "--rabbitmq-exchange=rmq exchange",
         ])
         .unwrap()
       ),
@@ -1104,6 +1156,10 @@ mod tests {
         server_password: Some("server password".into()),
         server_url: None,
         server_username: Some("server username".into()),
+        rabbitmq_url: Some("http://127.0.0.1".into()),
+        rabbitmq_username: Some("rmq username".into()),
+        rabbitmq_password: Some("rmq password".into()),
+        rabbitmq_exchange: Some("rmq exchange".into()),
       }
     );
   }

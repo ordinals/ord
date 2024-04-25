@@ -42,6 +42,7 @@ http = "0.2.6"
 humantime = "2.1.0"
 hyper = { version = "0.14.24", features = ["client", "http2"] }
 indicatif = "0.17.1"
+lapin = "2.3.3"
 lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
@@ -59,6 +60,7 @@ rustls = "0.22.0"
 rustls-acme = { version = "0.8.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde-hex = "0.1.0"
+serde-reflection = "0.3.6"
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_with = "3.7.0"
 serde_yaml = "0.9.17"
