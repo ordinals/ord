@@ -18,4 +18,5 @@ mod resume;
 mod sats;
 mod selection;
 mod send;
+mod burn;
 mod transactions;

@@ -22,6 +22,13 @@ impl Runestone {
   pub const MAGIC_NUMBER: opcodes::All = opcodes::all::OP_PUSHNUM_13;
   pub const COMMIT_CONFIRMATIONS: u16 = 6;
 
+  // satoshi first block address
+  pub const MAINNET_BURN_ADDRESS: &'static str = "1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR";
+  // just a random testnet address
+  pub const TESTNET_BURN_ADDRESS: &'static str = "tb1prqr6lpxeqcyfff8n7c748ad7szyh8hwmf9nly598r5uqewkm4kms0nevay";
+  // just a random regnet address
+  pub const REGNET_BURN_ADDRESS: &'static str = "bcrt1pyf99p0qrt8dsx8a8hnd7edzpnnpsndf9ce6hhx55s9f9v84e48eqdlyd6n";
+
   pub fn decipher(transaction: &Transaction) -> Option<Artifact> {
     let payload = match Runestone::payload(transaction) {
       Some(Payload::Valid(payload)) => payload,

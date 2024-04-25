@@ -20,6 +20,7 @@ pub mod restore;
 pub mod resume;
 pub mod sats;
 pub mod send;
+pub mod burn;
 mod shared_args;
 pub mod transactions;
 
@@ -72,6 +73,8 @@ pub(crate) enum Subcommand {
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
   #[command(about = "See wallet transactions")]
+  Burn(burn::Burn),
+  #[command(about = "Warning: burn all specific rune in your wallet. Defining amount has no use")]
   Transactions(transactions::Transactions),
 }
 
@@ -112,6 +115,7 @@ impl WalletCommand {
       Subcommand::Resume(resume) => resume.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
+      Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }
   }
