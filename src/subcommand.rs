@@ -1,3 +1,5 @@
+use crate::event_publisher::EventPublisher;
+
 use super::*;
 
 pub mod balances;
@@ -39,6 +41,8 @@ pub(crate) enum Subcommand {
   Runes,
   #[command(about = "Run the explorer server")]
   Server(server::Server),
+  #[command(about = "Run the explorer server in event emit mode")]
+  EventServer(server::Server),
   #[command(about = "Display settings")]
   Settings,
   #[command(about = "Display information about a block's subsidy")]
@@ -67,6 +71,14 @@ impl Subcommand {
       Self::Runes => runes::run(settings),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&settings)?);
+        let handle = axum_server::Handle::new();
+        LISTENERS.lock().unwrap().push(handle.clone());
+        server.run(settings, index, handle)
+      }
+      Self::EventServer(server) => {
+        let event_publisher = EventPublisher::new();
+        let event_sender = event_publisher.event_sender.clone();
+        let index = Arc::new(Index::open_with_event_sender(&settings, Some(event_sender))?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
         server.run(settings, index, handle)
