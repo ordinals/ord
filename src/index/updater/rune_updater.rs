@@ -1,3 +1,5 @@
+use bitcoin::opcodes::all;
+
 use super::*;
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
@@ -177,6 +179,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         .extension
         .index_outpoint_balances_v2(self.height as i64, tx_index, tx, &allocated);
 
+    let _res = self.extension.index_rune_tx_count(self.height as i64, tx, &allocated);
+
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
         continue;
@@ -327,9 +331,23 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
      * Taivv April 03, index data to postgres
      */
 
+    // Huy add parent field to NewTxRuneEntry by parent inscription id of etching txid
+
+    // let parent = InscriptionId {
+    //   txid: entry.etching,
+    //   index: 0,
+    // };
+
+    // let parent = self.inscription_id_to_sequence_number
+    //   .get(&parent.store())?
+    //   .is_some()
+    //   .then_some(parent);
+
+    let parent = None;
+
     let _ = self
       .extension
-      .index_transaction_rune_entry(&txid, &id, &entry);
+      .index_transaction_rune_entry(&txid, &id, &entry, &parent);
 
     self.id_to_entry.insert(id.store(), entry.store())?;
 

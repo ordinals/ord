@@ -18,9 +18,10 @@ pub fn create_update_rune_entry(height: &u64) -> SqlQuery {
     r#"
       UPDATE transaction_rune_entries e SET 
         mints = e.mints + s.mints, 
-        supply = e.supply + s.mint_amount,
+        supply = e.supply + s.mint_amount * s.mints,
         burned = e.burned + s.burned,  
         remaining = e.remaining - s.mints
+        total_tx_count = e.total_tx_count + s.tx_count
       FROM rune_stats s
       WHERE s.block_height = {} 
       AND s.aggregated = false

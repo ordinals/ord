@@ -2,6 +2,7 @@ use crate::{
   index::lot::Lot,
   runebeta::{models::NewOutpointRuneBalance, OutpointRuneBalanceTable},
   Chain, InsertRecords, RuneEntry, RuneId, RuneStatsTable, TransactionRuneTable,
+  inscriptions::inscription_id::InscriptionId,
 };
 
 use super::{
@@ -150,6 +151,20 @@ impl IndexBlock {
     } else {
       log::info!("Cannot lock the raw_tx_ins for insert item");
     }
+  }
+  fn add_rune_tx_count(&self, block_height: i64, rune_id: &RuneId) {
+    if let Ok(ref mut rune_stats) = self.rune_stats.try_lock() {
+      let rune_stat = rune_stats
+      .entry(rune_id.clone())
+      .or_insert_with(|| NewRuneStats {
+        block_height,
+        rune_id: rune_id.to_string(),
+        ..Default::default()
+      });
+      rune_stat.tx_count = &rune_stat.tx_count + 1;
+    } else {
+      log::info!("Cannot lock the raw_tx_ins for intert item");
+    } 
   }
 }
 #[derive(Debug)]
@@ -495,11 +510,14 @@ impl IndexExtension {
     txid: &Txid,
     rune_id: &RuneId,
     rune_entry: &RuneEntry,
+    parent: &Option<InscriptionId>,
   ) -> anyhow::Result<()> {
     log::debug!("Runebeta index transaction rune {}, rune {}", txid, rune_id);
     let mut tx_rune_entry = NewTxRuneEntry::from(rune_entry);
     tx_rune_entry.tx_index = rune_id.tx as i32;
     tx_rune_entry.rune_id = rune_id.to_string();
+    tx_rune_entry.parent = parent.map(|v| v.to_string());
+    
     let height = rune_id.block.clone();
     let index_block = match self.get_block_cache(height as u64) {
       Some(cache) => cache,
@@ -538,6 +556,32 @@ impl IndexExtension {
       }
     };
     index_block.add_rune_burned(height as i64, burned);
+    Ok(())
+  }
+  pub fn index_rune_tx_count(
+    &self,
+    block_height: i64,
+    transaction: &Transaction,
+    allocated: &Vec<HashMap<RuneId, Lot>>,
+  ) -> anyhow::Result<()> {
+    let index_block = match self.get_block_cache(block_height as u64) {
+      Some(cache) => cache,
+      None => {
+        let new_index_block = Arc::new(IndexBlock::new(block_height as u64));
+        self.add_index_block(Arc::clone(&new_index_block));
+        new_index_block
+      }
+    };
+    for (vout, balances) in allocated.iter().enumerate() {
+      if balances.is_empty() {
+        continue;
+      }
+      if let Some(tx_out) = transaction.output.get(vout) {
+        for (rune_id, lot) in balances {
+          index_block.add_rune_tx_count(block_height, rune_id);
+        }
+      }
+    }
     Ok(())
   }
   pub fn index_outpoint_balances(
@@ -601,15 +645,15 @@ impl IndexExtension {
     let network = self.chain.network();
     let mut outpoint_balances = vec![];
     let txid = transaction.txid();
-    for (vout, balanaces) in allocated.iter().enumerate() {
-      if balanaces.is_empty() {
+    for (vout, balances) in allocated.iter().enumerate() {
+      if balances.is_empty() {
         continue;
       }
       if let Some(tx_out) = transaction.output.get(vout) {
         let address = Address::from_script(&tx_out.script_pubkey, network.clone()).ok();
         let address = address.map(|addr| addr.to_string());
         let address = address.map(|addr| addr.to_string()).unwrap_or_default();
-        for (rune_id, lot) in balanaces {
+        for (rune_id, lot) in balances {
           let outpoint_balance = NewOutpointRuneBalance {
             block_height,
             tx_index: tx_index as i32,

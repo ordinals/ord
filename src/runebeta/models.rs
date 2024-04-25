@@ -433,6 +433,7 @@ pub struct RuneStats {
   pub burned: BigDecimal,
   pub remaining: BigDecimal,
   pub aggregated: bool,
+  pub tx_count: i64,
 }
 
 #[derive(Insertable, Clone, Debug, Default)]
@@ -445,4 +446,5 @@ pub struct NewRuneStats {
   pub burned: BigDecimal,
   pub remaining: BigDecimal,
   pub aggregated: bool,
+  pub tx_count: i64,
 }
