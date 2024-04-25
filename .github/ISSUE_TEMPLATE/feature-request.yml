@@ -25,7 +25,7 @@ body:
         If applicable please answer the below questions
         Why do we need this feature? 
         What problems may be addressed by introducing this feature?
-        What benefits does the SDK stand to gain by including this feature?
+        What benefits does the Ordinal protocol stand to gain by including this feature?
         Are there any disadvantages of including this feature?
       placeholder: Description of the issue being faced
     validations:
