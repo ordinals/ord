@@ -65,26 +65,29 @@ impl Fetcher {
 
     let mut results: Vec<JsonResponse<String>>;
     let mut retries = 0;
+    let max_retries = 5;
+    let base_delay = 100;
 
     loop {
-      results = match self.try_get_transactions(body.clone()).await {
-        Ok(results) => results,
-        Err(error) => {
-          if retries >= 5 {
-            return Err(anyhow!(
-              "failed to fetch raw transactions after 5 retries: {}",
-              error
-            ));
-          }
+        results = match self.try_get_transactions(body.clone()).await {
+            Ok(results) => results,
+            Err(error) => {
+                if retries >= max_retries {
+                    return Err(anyhow!(
+                        "failed to fetch raw transactions after {max_retries} retries: {error}",
+                        max_retries = max_retries,
+                        error = error
+                    ));
+                }
 
-          log::info!("failed to fetch raw transactions, retrying: {}", error);
-
-          tokio::time::sleep(Duration::from_millis(100 * u64::pow(2, retries))).await;
-          retries += 1;
-          continue;
-        }
-      };
-      break;
+                log::info!("failed to fetch raw transactions, retrying: {}", error);
+                let delay = base_delay * 2_u64.pow(retries);
+                tokio::time::sleep(Duration::from_millis(delay)).await;
+                retries += 1;
+                continue;
+            }
+        };
+        break;
     }
 
     // Return early on any error, because we need all results to proceed
