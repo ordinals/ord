@@ -37,6 +37,7 @@ diesel::table! {
         remaining -> Numeric,
         aggregated -> Bool,
         tx_count -> Int8,
+        total_holders -> Int8,
     }
 }
 

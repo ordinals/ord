@@ -11,7 +11,7 @@ use crate::{calculate_chunk_size, split_input, InsertRecords};
 
 use super::models::NewRuneStats;
 use super::table_transaction_rune_entry::{create_update_rune_mintable, create_update_rune_total_holders};
-pub const NUMBER_OF_FIELDS: u16 = 9;
+pub const NUMBER_OF_FIELDS: u16 = 10;
 
 pub fn create_update_rune_entry(height: &u64) -> SqlQuery {
   let query = format!(
@@ -53,10 +53,10 @@ pub fn create_update_rune_stats_total_holders(height: &u64) -> SqlQuery {
     WHERE balance_value > 0 AND block_height <= {}
     GROUP BY rune_id
   )
-  UPDATE transaction_rune_entries
+  UPDATE rune_stats
   SET total_holders = rtd.total_holders
   FROM rune_total_holders rtd
-  WHERE transaction_rune_entries.rune_id = rtd.rune_id;
+  WHERE rune_stats.rune_id = rtd.rune_id;
   ", 
   height);
   diesel::sql_query(query)

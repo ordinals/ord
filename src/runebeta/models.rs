@@ -449,4 +449,5 @@ pub struct NewRuneStats {
   pub remaining: BigDecimal,
   pub aggregated: bool,
   pub tx_count: i64,
+  pub total_holders: i64,
 }
