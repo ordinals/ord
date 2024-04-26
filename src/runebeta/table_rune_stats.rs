@@ -44,6 +44,24 @@ pub fn create_update_rune_stats(heights: &Vec<u64>) -> SqlQuery {
   diesel::sql_query(query)
 }
 
+pub fn create_update_rune_stats_total_holders(height: &u64) -> SqlQuery {
+  let query = format!(
+  r"
+  WITH rune_total_holders AS (
+    SELECT COUNT(DISTINCT address) AS total_holders, rune_id
+    FROM outpoint_rune_balances
+    WHERE balance_value > 0 AND block_height <= {}
+    GROUP BY rune_id
+  )
+  UPDATE transaction_rune_entries
+  SET total_holders = rtd.total_holders
+  FROM rune_total_holders rtd
+  WHERE transaction_rune_entries.rune_id = rtd.rune_id;
+  ", 
+  height);
+  diesel::sql_query(query)
+}
+
 #[derive(Clone)]
 pub struct RuneStatsTable {}
 
@@ -106,6 +124,19 @@ impl RuneStatsTable {
                   return rune_res;
                 }
               }
+              let update_rune_stat = create_update_rune_stats_total_holders(height);
+              let stat_res = update_rune_stat.execute(conn);
+              match &stat_res {
+                Ok(_) => log::info!(
+                  "Updated rune stats total holders for blocks {:?} in {} ms",
+                  heights,
+                  start.elapsed().as_millis()
+                ),
+                Err(err) => {
+                  log::info!("Updated rune stats total holders error {:?}", err);
+                  return stat_res;
+                }
+              };
             }
             let update_rune_stat = create_update_rune_stats(&heights);
             let stat_res = update_rune_stat.execute(conn);

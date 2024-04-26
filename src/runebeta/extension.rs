@@ -152,16 +152,18 @@ impl IndexBlock {
       log::info!("Cannot lock the raw_tx_ins for insert item");
     }
   }
-  fn add_rune_tx_count(&self, block_height: i64, rune_id: &RuneId) {
+  fn add_rune_tx_count(&self, block_height: i64, tx_counts: &HashMap<RuneId, i64>) {
     if let Ok(ref mut rune_stats) = self.rune_stats.try_lock() {
-      let rune_stat = rune_stats
-      .entry(rune_id.clone())
-      .or_insert_with(|| NewRuneStats {
-        block_height,
-        rune_id: rune_id.to_string(),
-        ..Default::default()
-      });
-      rune_stat.tx_count = &rune_stat.tx_count + 1;
+      for (rune_id, tx_count) in tx_counts {
+        let rune_stat = rune_stats
+          .entry(rune_id.clone())
+          .or_insert_with(|| NewRuneStats {
+            block_height,
+            rune_id: rune_id.to_string(),
+            ..Default::default()
+          });
+          rune_stat.tx_count = &rune_stat.tx_count + tx_count;
+      }
     } else {
       log::info!("Cannot lock the raw_tx_ins for intert item");
     } 
@@ -558,32 +560,6 @@ impl IndexExtension {
     index_block.add_rune_burned(height as i64, burned);
     Ok(())
   }
-  pub fn index_rune_tx_count(
-    &self,
-    block_height: i64,
-    transaction: &Transaction,
-    allocated: &Vec<HashMap<RuneId, Lot>>,
-  ) -> anyhow::Result<()> {
-    let index_block = match self.get_block_cache(block_height as u64) {
-      Some(cache) => cache,
-      None => {
-        let new_index_block = Arc::new(IndexBlock::new(block_height as u64));
-        self.add_index_block(Arc::clone(&new_index_block));
-        new_index_block
-      }
-    };
-    for (vout, balances) in allocated.iter().enumerate() {
-      if balances.is_empty() {
-        continue;
-      }
-      if let Some(_) = transaction.output.get(vout) {
-        for (rune_id, _) in balances {
-          index_block.add_rune_tx_count(block_height, rune_id);
-        }
-      }
-    }
-    Ok(())
-  }
   pub fn index_outpoint_balances(
     &self,
     block_height: i64,
@@ -644,6 +620,7 @@ impl IndexExtension {
   ) -> Result<usize, diesel::result::Error> {
     let network = self.chain.network();
     let mut outpoint_balances = vec![];
+    let mut tx_counts: HashMap<RuneId, i64> = HashMap::new();
     let txid = transaction.txid();
     for (vout, balances) in allocated.iter().enumerate() {
       if balances.is_empty() {
@@ -665,6 +642,7 @@ impl IndexExtension {
             balance_value: BigDecimal::from(lot.0),
           };
           outpoint_balances.push(outpoint_balance);
+          *tx_counts.entry(rune_id.clone()).or_insert(0) += 1;
         }
       }
     }
@@ -683,6 +661,7 @@ impl IndexExtension {
         tx_hash: txid.to_string(),
       };
       index_block.add_tx_rune(tx_rune);
+      index_block.add_rune_tx_count(block_height, &tx_counts);
     }
     let len = outpoint_balances.len();
     index_block.append_outpoint_rune_balances(&mut outpoint_balances);

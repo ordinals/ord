@@ -1,5 +1,3 @@
-use bitcoin::opcodes::all;
-
 use super::*;
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
@@ -178,8 +176,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       self
         .extension
         .index_outpoint_balances_v2(self.height as i64, tx_index, tx, &allocated);
-
-    let _res = self.extension.index_rune_tx_count(self.height as i64, tx, &allocated);
 
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
