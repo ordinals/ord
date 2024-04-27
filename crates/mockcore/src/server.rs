@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, PublicKey, Witness},
+  bitcoin::{consensus::Decodable, key::XOnlyPublicKey, psbt, psbt::Psbt, PublicKey, Witness},
   std::io::Cursor,
 };
 
@@ -956,12 +956,9 @@ impl Api for Server {
     &self,
     psbt: String,
     sign: Option<bool>,
-    sighash_type: Option<()>,
+    _sighash_type: Option<String>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
-    assert!(sighash_type.is_none());
-    assert!(bip32derivs.is_none());
-
     let mut psbt = Psbt::deserialize(
       &base64::engine::general_purpose::STANDARD
         .decode(psbt)
@@ -969,10 +966,11 @@ impl Api for Server {
     )
     .unwrap();
 
+    let state = self.state();
+
     for (i, txin) in psbt.unsigned_tx.input.iter().enumerate() {
       psbt.inputs[i].witness_utxo = Some(
-        self
-          .state()
+        state
           .transactions
           .get(&txin.previous_output.txid)
           .unwrap()
@@ -981,10 +979,35 @@ impl Api for Server {
       );
     }
 
-    if let Some(sign) = sign {
-      if sign {
-        for input in psbt.inputs.iter_mut() {
-          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+    if bip32derivs.unwrap_or(false) {
+      for (i, txout) in psbt.unsigned_tx.output.iter().enumerate() {
+        let Ok(address) = Address::from_script(&txout.script_pubkey, state.network) else {
+          continue;
+        };
+
+        let Some(key_pair) = state.address_to_key.get(&address) else {
+          continue;
+        };
+
+        let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
+
+        psbt.outputs[i] = psbt::Output {
+          redeem_script: None,
+          witness_script: None,
+          bip32_derivation: BTreeMap::new(),
+          tap_internal_key: Some(public_key),
+          tap_tree: None,
+          tap_key_origins: BTreeMap::new(),
+          proprietary: BTreeMap::new(),
+          unknown: BTreeMap::new(),
+        }
+      }
+
+      if let Some(sign) = sign {
+        if sign {
+          for input in psbt.inputs.iter_mut() {
+            input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          }
         }
       }
     }

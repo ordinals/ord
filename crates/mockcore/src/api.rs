@@ -194,7 +194,7 @@ pub trait Api {
     &self,
     psbt: String,
     sign: Option<bool>,
-    sighash_type: Option<()>,
+    sighash_type: Option<String>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error>;
 
