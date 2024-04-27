@@ -23,6 +23,65 @@ pub struct Output {
   pub fee: u64,
 }
 
+pub(crate) fn fund_runes_transaction(
+  wallet: &Wallet,
+  entry: RuneEntry,
+  amount: u128,
+) -> Result<Vec<TxIn>> {
+  let inscriptions = wallet.inscriptions();
+  let runic_outputs = wallet.get_runic_outputs()?;
+
+  wallet.lock_non_cardinal_outputs()?;
+
+  let inscribed_outputs = inscriptions
+    .keys()
+    .map(|satpoint| satpoint.outpoint)
+    .collect::<HashSet<OutPoint>>();
+
+  let mut input_runes = 0;
+  let mut input = Vec::new();
+
+  for output in runic_outputs {
+    if inscribed_outputs.contains(&output) {
+      continue;
+    }
+
+    let balance = wallet.get_rune_balance_in_output(&output, entry.spaced_rune.rune)?;
+
+    if balance > 0 {
+      input_runes += balance;
+      input.push(output);
+    }
+
+    if input_runes >= amount {
+      break;
+    }
+  }
+
+  ensure! {
+    input_runes >= amount,
+    "insufficient `{}` balance, only {} in wallet",
+    entry.spaced_rune,
+    Pile {
+      amount: input_runes,
+      divisibility: entry.divisibility,
+      symbol: entry.symbol
+    },
+  }
+
+  let input = input
+    .into_iter()
+    .map(|previous_output| TxIn {
+      previous_output,
+      script_sig: ScriptBuf::new(),
+      sequence: Sequence::MAX,
+      witness: Witness::new(),
+    })
+    .collect();
+
+  Ok(input)
+}
+
 impl Send {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let address = self
@@ -216,53 +275,13 @@ impl Send {
       "sending runes with `ord send` requires index created with `--index-runes` flag",
     );
 
-    let inscriptions = wallet.inscriptions();
-    let runic_outputs = wallet.get_runic_outputs()?;
-    let bitcoin_client = wallet.bitcoin_client();
-
-    wallet.lock_non_cardinal_outputs()?;
-
     let (id, entry, _parent) = wallet
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
     let amount = decimal.to_integer(entry.divisibility)?;
 
-    let inscribed_outputs = inscriptions
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<HashSet<OutPoint>>();
-
-    let mut input_runes = 0;
-    let mut input = Vec::new();
-
-    for output in runic_outputs {
-      if inscribed_outputs.contains(&output) {
-        continue;
-      }
-
-      let balance = wallet.get_rune_balance_in_output(&output, entry.spaced_rune.rune)?;
-
-      if balance > 0 {
-        input_runes += balance;
-        input.push(output);
-      }
-
-      if input_runes >= amount {
-        break;
-      }
-    }
-
-    ensure! {
-      input_runes >= amount,
-      "insufficient `{}` balance, only {} in wallet",
-      spaced_rune,
-      Pile {
-        amount: input_runes,
-        divisibility: entry.divisibility,
-        symbol: entry.symbol
-      },
-    }
+    let input = fund_runes_transaction(wallet, entry, amount)?;
 
     let runestone = Runestone {
       edicts: vec![Edict {
@@ -276,15 +295,7 @@ impl Send {
     let unfunded_transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
-      input: input
-        .into_iter()
-        .map(|previous_output| TxIn {
-          previous_output,
-          script_sig: ScriptBuf::new(),
-          sequence: Sequence::MAX,
-          witness: Witness::new(),
-        })
-        .collect(),
+      input,
       output: vec![
         TxOut {
           script_pubkey: runestone.encipher(),
@@ -301,10 +312,12 @@ impl Send {
       ],
     };
 
-    let unsigned_transaction =
+    let bitcoin_client = wallet.bitcoin_client();
+
+    let unsigned_transaction_raw =
       fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
 
-    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction_raw)?;
 
     assert_eq!(
       Runestone::decipher(&unsigned_transaction),
