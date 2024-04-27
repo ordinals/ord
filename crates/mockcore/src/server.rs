@@ -1023,23 +1023,22 @@ impl Api for Server {
     psbt: String,
     _extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error> {
-    let mut transaction = Psbt::deserialize(
+    let mut packet = Psbt::deserialize(
       &base64::engine::general_purpose::STANDARD
         .decode(psbt)
         .unwrap(),
     )
-    .unwrap()
-    .unsigned_tx;
+    .unwrap();
 
-    for input in &mut transaction.input {
+    for input in &mut packet.unsigned_tx.input {
       if input.witness.is_empty() {
         input.witness = Witness::from_slice(&[&[0; 64]]);
       }
     }
 
     Ok(FinalizePsbtResult {
-      psbt: None,
-      hex: Some(serialize(&transaction)),
+      psbt: Some(base64::engine::general_purpose::STANDARD.encode(packet.serialize())),
+      hex: Some(serialize(&packet.unsigned_tx)),
       complete: true,
     })
   }
