@@ -1,5 +1,9 @@
 use super::*;
 
+extern "C" {
+  fn echo();
+}
+
 #[test]
 fn bridge_lock() {
   let core = mockcore::builder().network(Network::Regtest).build();
@@ -19,6 +23,10 @@ fn bridge_lock() {
     .run_and_extract_stdout();
 
   println!("out: {}", out);
+
+  unsafe {
+    echo();
+  }
 }
 
 #[test]

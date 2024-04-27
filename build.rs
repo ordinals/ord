@@ -33,4 +33,19 @@ fn main() {
     "cargo:rustc-env=GIT_COMMIT={}",
     git_commit().unwrap_or_default()
   );
+
+  Command::new("go")
+    .current_dir("./tap")
+    .args([
+      "build",
+      "-buildmode=c-archive",
+      "-o",
+      "../target/libtap.a",
+      ".",
+    ])
+    .spawn()
+    .expect("failed to build tapd wrapper");
+
+  println!("cargo:rustc-link-search=native=./target");
+  println!("cargo:rustc-link-lib=static=tap");
 }
