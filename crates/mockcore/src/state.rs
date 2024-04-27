@@ -24,6 +24,7 @@ pub struct State {
   pub version: usize,
   pub receive_addresses: Vec<Address>,
   pub change_addresses: Vec<Address>,
+  pub address_to_key: BTreeMap<Address, KeyPair>,
   pub wallets: BTreeSet<String>,
 }
 
@@ -53,6 +54,7 @@ impl State {
       txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
       version,
+      address_to_key: BTreeMap::new(),
       wallets: BTreeSet::new(),
     }
   }
@@ -68,6 +70,7 @@ impl State {
       &mut self.receive_addresses
     }
     .push(address.clone());
+    self.address_to_key.insert(address.clone(), key_pair);
     address
   }
 

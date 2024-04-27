@@ -204,4 +204,10 @@ pub trait Api {
     psbt: String,
     extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "getaddressinfo")]
+  fn get_address_info(
+    &self,
+    address: Address<NetworkUnchecked>,
+  ) -> Result<GetAddressInfoResult, jsonrpc_core::Error>;
 }

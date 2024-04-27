@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
+  bitcoin::{consensus::Decodable, psbt::Psbt, PublicKey, Witness},
   std::io::Cursor,
 };
 
@@ -1018,6 +1018,44 @@ impl Api for Server {
       psbt: None,
       hex: Some(serialize(&transaction)),
       complete: true,
+    })
+  }
+
+  fn get_address_info(
+    &self,
+    address: bitcoin::Address<bitcoin::address::NetworkUnchecked>,
+  ) -> Result<GetAddressInfoResult, jsonrpc_core::Error> {
+    let state = self.state();
+
+    let key_pair = state
+      .address_to_key
+      .get(&address.clone().assume_checked())
+      .unwrap();
+
+    Ok(GetAddressInfoResult {
+      address: address.clone(),
+      script_pub_key: address.clone().payload.script_pubkey(),
+      is_mine: None,
+      is_watchonly: None,
+      is_script: None,
+      is_witness: None,
+      witness_version: None,
+      witness_program: Some(Vec::new()),
+      script: None,
+      hex: Some(Vec::new()),
+      pubkeys: None,
+      n_signatures_required: None,
+      pubkey: Some(PublicKey {
+        compressed: true,
+        inner: key_pair.public_key(),
+      }),
+      embedded: None,
+      is_compressed: None,
+      timestamp: None,
+      hd_key_path: None,
+      hd_seed_id: None,
+      labels: Vec::new(),
+      label: Some("demo".into()),
     })
   }
 }
