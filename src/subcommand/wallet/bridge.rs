@@ -1,12 +1,11 @@
-use super::*;
-use crate::outgoing::Outgoing;
+use {super::*, crate::bridge::lock, crate::outgoing::Outgoing};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Lock {
   outgoing: Outgoing,
+  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
+  fee_rate: FeeRate,
 }
-
-// create_unsigned_send_runes_transaction
 
 impl Lock {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
@@ -15,23 +14,9 @@ impl Lock {
       "bridging runes with `ord wallet bridge-lock` requires index created with `--index-runes` flag",
     );
 
-    match self.outgoing {
-      Outgoing::Rune {
-        decimal,
-        rune: spaced_rune,
-      } => {
-        let (id, entry, _parent) = wallet
-          .get_rune(spaced_rune.rune)?
-          .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+    let output = lock(wallet, self.fee_rate, self.outgoing)?;
 
-        let amount = decimal.to_integer(entry.divisibility)?;
-
-        println!("rune: id {}, amount {}", id, amount);
-      }
-      _ => todo!("currently only runes can be bridged"),
-    }
-
-    Ok(None)
+    Ok(Some(Box::new(output)))
   }
 }
 

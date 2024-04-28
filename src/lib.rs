@@ -51,8 +51,8 @@ use {
   http::HeaderMap,
   lazy_static::lazy_static,
   ordinals::{
-    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
-    Sat, SatPoint, SpacedRune, Terms,
+    varint, Artifact, Bridge, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId,
+    Runestone, Sat, SatPoint, SpacedRune, Terms,
   },
   regex::Regex,
   reqwest::Url,
@@ -101,6 +101,7 @@ use self::test::*;
 pub mod api;
 pub mod arguments;
 mod blocktime;
+mod bridge;
 pub mod chain;
 pub mod decimal;
 mod deserialize_from_str;
