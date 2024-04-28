@@ -13,6 +13,7 @@ pub enum Flaw {
   UnrecognizedEvenTag,
   UnrecognizedFlag,
   Varint,
+  Bridge,
 }
 
 impl Display for Flaw {
@@ -28,6 +29,7 @@ impl Display for Flaw {
       Self::UnrecognizedEvenTag => write!(f, "unrecognized even tag"),
       Self::UnrecognizedFlag => write!(f, "unrecognized field"),
       Self::Varint => write!(f, "invalid varint"),
+      Self::Bridge => write!(f, "invalid bridge"),
     }
   }
 }

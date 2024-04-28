@@ -4,6 +4,7 @@ pub(super) struct Message {
   pub(super) flaw: Option<Flaw>,
   pub(super) edicts: Vec<Edict>,
   pub(super) fields: HashMap<u128, VecDeque<u128>>,
+  pub(super) bridge: Option<Bridge>,
 }
 
 impl Message {
@@ -11,6 +12,7 @@ impl Message {
     let mut edicts = Vec::new();
     let mut fields = HashMap::<u128, VecDeque<u128>>::new();
     let mut flaw = None;
+    let mut bridge = None;
 
     for i in (0..payload.len()).step_by(2) {
       let tag = payload[i];
@@ -39,6 +41,27 @@ impl Message {
         break;
       }
 
+      if Tag::Bridge == tag {
+        let Some(chunk) = &payload[i + 1..].get(0..6) else {
+          flaw.get_or_insert(Flaw::Bridge);
+          break;
+        };
+
+        let Some(next) = RuneId::default().next(chunk[0], chunk[1]) else {
+          flaw.get_or_insert(Flaw::Bridge);
+          break;
+        };
+
+        bridge = Bridge::from_integers(tx, next, chunk[2], chunk[3], chunk[4], chunk[5]);
+
+        if let None = bridge {
+          flaw.get_or_insert(Flaw::Bridge);
+          break;
+        }
+
+        break;
+      }
+
       let Some(&value) = payload.get(i + 1) else {
         flaw.get_or_insert(Flaw::TruncatedField);
         break;
@@ -51,6 +74,7 @@ impl Message {
       flaw,
       edicts,
       fields,
+      bridge,
     }
   }
 }

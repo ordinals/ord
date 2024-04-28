@@ -4,12 +4,65 @@ mod flag;
 mod message;
 mod tag;
 
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone, Eq)]
+pub struct Bridge {
+  pub id: RuneId,
+  pub amount: u128,
+  pub index: u32, // either an input or an output dependent on `lock`.
+  pub lock: bool, // wether a bridge is a lock (runes -> other) or unlock (other -> runes).
+}
+
+impl Bridge {
+  // TODO: use `anyhow::bail`/`Result` instead of `panic`/`Option`.
+  pub fn from_integers(
+    tx: &Transaction,
+    id: RuneId,
+    amount: u128,
+    index: u128,
+    lock: u128,
+    protocol: u128,
+  ) -> Option<Self> {
+    // only valid protocol is 0, taproot assets.
+    if protocol != 0 {
+      panic!("protocol is invalid");
+    }
+
+    // check wether the bridge is a lock or unlock.
+    let lock = if lock == 1 { true } else { false };
+
+    // ensure the index fits in a u32.
+    let Ok(index) = u32::try_from(index) else {
+      panic!("index does not fit inside a u32");
+    };
+
+    if lock {
+      // ensure the lock index has an output.
+      if index > u32::try_from(tx.output.len()).unwrap() {
+        panic!("index references an invalid output")
+      }
+    } else {
+      // ensure the unlock index has an input.
+      if index > u32::try_from(tx.input.len()).unwrap() {
+        panic!("index references an invalid input")
+      }
+    }
+
+    Some(Self {
+      id,
+      amount,
+      index,
+      lock,
+    })
+  }
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
   pub mint: Option<RuneId>,
   pub pointer: Option<u32>,
+  pub bridge: Option<Bridge>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -45,6 +98,7 @@ impl Runestone {
       mut flaw,
       edicts,
       mut fields,
+      bridge,
     } = Message::from_integers(transaction, &integers);
 
     let mut flags = Tag::Flags
@@ -123,6 +177,7 @@ impl Runestone {
       etching,
       mint,
       pointer,
+      bridge,
     }))
   }
 
@@ -180,6 +235,29 @@ impl Runestone {
         varint::encode_to_vec(edict.output.into(), &mut payload);
         previous = edict.id;
       }
+    }
+
+    // uses similar encoding to edicts so we can support multiple bridges in the future.
+    if let Some(bridge) = self.bridge {
+      varint::encode_to_vec(Tag::Bridge.into(), &mut payload);
+
+      let (block, tx) = RuneId::default().delta(bridge.id).unwrap();
+
+      varint::encode_to_vec(block, &mut payload);
+      varint::encode_to_vec(tx, &mut payload);
+
+      varint::encode_to_vec(bridge.amount, &mut payload);
+      varint::encode_to_vec(bridge.index.into(), &mut payload);
+
+      // wether this is a lock/bridge-in or unlock/bridge-out.
+      if bridge.lock {
+        varint::encode_to_vec(1, &mut payload);
+      } else {
+        varint::encode_to_vec(0, &mut payload);
+      }
+
+      // reserved for protocol, so future bridges can be made.
+      varint::encode_to_vec(0, &mut payload);
     }
 
     let mut builder = script::Builder::new()
@@ -1130,6 +1208,7 @@ mod tests {
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
+        bridge: None,
       }),
     );
   }
@@ -1715,6 +1794,7 @@ mod tests {
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
+        bridge: None,
       },
       &[
         Tag::Flags.into(),
