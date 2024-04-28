@@ -1077,7 +1077,7 @@ impl Api for Server {
       hd_key_path: None,
       hd_seed_id: None,
       labels: Vec::new(),
-      label: Some("demo".into()),
+      label: None,
     })
   }
 }
