@@ -263,6 +263,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
+        .route("/bridge/track", post(Self::track_bridge))
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -1878,6 +1879,18 @@ impl Server {
     }
 
     Redirect::to(&destination)
+  }
+
+  async fn track_bridge(
+    Extension(index): Extension<Arc<Index>>,
+    Json(track_bridge): Json<api::TrackBridge>,
+  ) -> ServerResult<String> {
+    task::block_in_place(|| {
+      index.write_bridge_entry(track_bridge.txid, track_bridge.entry)?;
+
+      // TODO: return something useful here (?).
+      Ok(String::from("success"))
+    })
   }
 }
 

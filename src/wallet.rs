@@ -10,7 +10,7 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
-  index::entry::Entry,
+  index::entry::{BridgeEntry, Entry},
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
@@ -63,6 +63,16 @@ pub(crate) struct Wallet {
 }
 
 impl Wallet {
+  pub(crate) fn track_bridge(&self, txid: Txid, entry: BridgeEntry) -> Result<()> {
+    self
+      .ord_client
+      .post(self.rpc_url.join("/bridge/track")?)
+      .json(&api::TrackBridge { txid, entry })
+      .send()?;
+
+    Ok(())
+  }
+
   pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
       self.has_sat_index,

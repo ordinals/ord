@@ -1,4 +1,7 @@
-use super::*;
+use {
+  super::*,
+  serde_hex::{SerHex, StrictPfx},
+};
 
 pub(crate) trait Entry: Sized {
   type Value;
@@ -279,6 +282,52 @@ impl Entry for RuneId {
   }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BridgeEntry {
+  #[serde(with = "SerHex::<StrictPfx>")]
+  pub script_key: [u8; 33],
+  #[serde(with = "SerHex::<StrictPfx>")]
+  pub batch_key: [u8; 33],
+  pub amount: u64,
+  pub rune_id: RuneId,
+  pub lock: bool,
+  pub psbt: String,
+}
+
+pub(crate) type BridgeEntryValue<'a> = (
+  [u8; 33],    // script_key
+  [u8; 33],    // batch_key
+  u64,         // amount
+  RuneIdValue, // rune ID
+  bool,        // lock
+  &'a str,     // psbt
+);
+
+// TODO: add lifetime support to `Entry`, currently implemeneting the trait indirectly.
+impl<'a> BridgeEntry {
+  pub fn load((script_key, batch_key, amount, rune_id, lock, psbt): BridgeEntryValue<'a>) -> Self {
+    Self {
+      script_key,
+      batch_key,
+      amount,
+      rune_id: RuneId::load(rune_id),
+      lock,
+      psbt: psbt.to_string(),
+    }
+  }
+
+  pub fn store(self) -> BridgeEntryValue<'a> {
+    (
+      self.script_key,
+      self.batch_key,
+      self.amount,
+      self.rune_id.store(),
+      self.lock,
+      self.psbt.leak(),
+    )
+  }
+}
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub(crate) struct InscriptionEntry {
   pub(crate) charms: u16,
@@ -466,7 +515,7 @@ impl Entry for SatRange {
   }
 }
 
-pub(super) type TxidValue = [u8; 32];
+pub(crate) type TxidValue = [u8; 32];
 
 impl Entry for Txid {
   type Value = TxidValue;

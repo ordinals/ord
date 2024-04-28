@@ -192,3 +192,9 @@ pub struct SatInscriptions {
   pub more: bool,
   pub page: u64,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TrackBridge {
+  pub txid: Txid,
+  pub entry: index::entry::BridgeEntry,
+}

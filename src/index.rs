@@ -1,8 +1,9 @@
 use {
   self::{
     entry::{
-      Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      BridgeEntry, BridgeEntryValue, Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue,
+      InscriptionIdValue, OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
+      TxidValue,
     },
     event::Event,
     lot::Lot,
@@ -48,7 +49,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 25;
+const SCHEMA_VERSION: u64 = 26;
 
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
@@ -72,6 +73,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { TRANSACTION_ID_TO_BRIDGE, &TxidValue, BridgeEntryValue }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -2239,6 +2241,18 @@ impl Index {
       ),
       txout,
     )))
+  }
+
+  pub(crate) fn write_bridge_entry(&self, txid: Txid, entry: BridgeEntry) -> Result<()> {
+    let wtx = self.database.begin_write()?;
+
+    wtx
+      .open_table(TRANSACTION_ID_TO_BRIDGE)?
+      .insert(&txid.store(), entry.store())?;
+
+    wtx.commit()?;
+
+    Ok(())
   }
 }
 
