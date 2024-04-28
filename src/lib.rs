@@ -134,7 +134,7 @@ fn fund_raw_transaction(
   client: &Client,
   fee_rate: FeeRate,
   unfunded_transaction: &Transaction,
-) -> Result<Vec<u8>> {
+) -> Result<bitcoincore_rpc::json::FundRawTransactionResult> {
   let mut buffer = Vec::new();
 
   {
@@ -171,8 +171,7 @@ fn fund_raw_transaction(
         } else {
           err.into()
         }
-      })?
-      .hex,
+      })?,
   )
 }
 

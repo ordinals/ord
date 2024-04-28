@@ -207,11 +207,9 @@ impl Send {
       }],
     };
 
-    let unsigned_transaction = consensus::encode::deserialize(&fund_raw_transaction(
-      wallet.bitcoin_client(),
-      fee_rate,
-      &unfunded_transaction,
-    )?)?;
+    let unsigned_transaction = consensus::encode::deserialize(
+      &fund_raw_transaction(wallet.bitcoin_client(), fee_rate, &unfunded_transaction)?.hex,
+    )?;
 
     Ok(unsigned_transaction)
   }
@@ -315,7 +313,7 @@ impl Send {
     let bitcoin_client = wallet.bitcoin_client();
 
     let unsigned_transaction_raw =
-      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(bitcoin_client, fee_rate, &unfunded_transaction)?.hex;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction_raw)?;
 
