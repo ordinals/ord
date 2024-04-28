@@ -30,6 +30,25 @@ impl From<Block> for BlockData {
   }
 }
 
+impl From<&BlockData> for Block {
+  fn from(block_data: &BlockData) -> Self {
+    let mut block = Block {
+      header: block_data.header.clone(),
+      txdata: block_data
+        .txdata
+        .clone()
+        .into_iter()
+        .map(|(transaction, _)| transaction)
+        .collect(),
+    };
+
+    // compute the merkle root, as it is not included in block data.
+    block.header.merkle_root = block.compute_merkle_root().unwrap();
+
+    return block;
+  }
+}
+
 pub(crate) struct Updater<'index> {
   pub(super) height: u32,
   pub(super) index: &'index Index,
