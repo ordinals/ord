@@ -27,6 +27,7 @@ pub struct Settings {
   server_password: Option<String>,
   server_url: Option<String>,
   server_username: Option<String>,
+  universe_url: Option<String>,
 }
 
 impl Settings {
@@ -141,6 +142,7 @@ impl Settings {
       server_password: self.server_password.or(source.server_password),
       server_url: self.server_url.or(source.server_url),
       server_username: self.server_username.or(source.server_username),
+      universe_url: self.universe_url.or(source.universe_url),
     }
   }
 
@@ -175,6 +177,7 @@ impl Settings {
       server_password: options.server_password,
       server_url: None,
       server_username: options.server_username,
+      universe_url: options.universe_url,
     }
   }
 
@@ -253,6 +256,7 @@ impl Settings {
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
+      universe_url: get_string("UNIVERSE_URL"),
     })
   }
 
@@ -282,6 +286,7 @@ impl Settings {
       server_password: None,
       server_url: Some(server_url.into()),
       server_username: None,
+      universe_url: None,
     }
   }
 
@@ -361,6 +366,7 @@ impl Settings {
       server_password: self.server_password,
       server_url: self.server_url,
       server_username: self.server_username,
+      universe_url: self.universe_url,
     })
   }
 
@@ -552,6 +558,10 @@ impl Settings {
 
   pub(crate) fn server_url(&self) -> Option<&str> {
     self.server_url.as_deref()
+  }
+
+  pub(crate) fn universe_url(&self) -> Option<String> {
+    self.universe_url.clone()
   }
 }
 
@@ -1044,6 +1054,7 @@ mod tests {
         server_password: Some("server password".into()),
         server_url: Some("server url".into()),
         server_username: Some("server username".into()),
+        universe_url: None,
       }
     );
   }
@@ -1104,6 +1115,7 @@ mod tests {
         server_password: Some("server password".into()),
         server_url: None,
         server_username: Some("server username".into()),
+        universe_url: None,
       }
     );
   }

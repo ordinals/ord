@@ -88,4 +88,6 @@ pub struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[arg(long, help = "Taproot Assets universe URL, for use with the bridge.")]
+  pub(crate) universe_url: Option<String>,
 }
