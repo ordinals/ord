@@ -603,6 +603,7 @@ impl<'index> Updater<'index> {
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
+      let mut transaction_id_to_bridge = wtx.open_table(TRANSACTION_ID_TO_BRIDGE)?;
 
       let runes = statistic_to_count
         .get(&Statistic::Runes.into())?
@@ -627,10 +628,12 @@ impl<'index> Updater<'index> {
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
         statistic_to_count: &mut statistic_to_count,
         transaction_id_to_rune: &mut transaction_id_to_rune,
+        transaction_id_to_bridge: &mut transaction_id_to_bridge,
+        universe_url: self.index.settings.universe_url(),
       };
 
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
+        rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid, &block)?;
       }
 
       rune_updater.update()?;

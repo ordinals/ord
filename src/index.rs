@@ -44,7 +44,7 @@ mod fetcher;
 mod lot;
 mod reorg;
 mod rtx;
-mod updater;
+pub(crate) mod updater;
 
 #[cfg(test)]
 pub(crate) mod testing;

@@ -56,8 +56,25 @@ pub struct CTapLockResult {
   asset_id: *const c_char,
 }
 
+// must stay in sync with `tap/tap.go`.
+#[repr(C)]
+pub struct CProofConfig {
+  packet: *const c_void,
+  packet_length: c_int,
+  block: *const c_void,
+  block_length: c_int,
+  transaction_index: u32,
+  height: u32,
+  amount: u64,
+  script_key: *const u8,
+  batch_key: *const u8,
+  rune_id: *const CRuneID,
+  universe_address: *const c_uchar,
+}
+
 extern "C" {
   fn TapLock(config: *const CTapLockConfig) -> *const CTapLockResult;
+  fn TapPublishProof(config: *const CProofConfig);
 }
 
 // bitcoind doesn't have a direct way to derive a public key, so instead we create an address and query the public key.
@@ -248,4 +265,36 @@ pub(crate) fn lock(wallet: Wallet, fee_rate: FeeRate, outgoing: Outgoing) -> Res
     batch_key: hex::encode(batch_key),
     script_key: hex::encode(script_key),
   })
+}
+
+pub(crate) fn publish_proof(
+  block: Block,
+  transaction_index: u32,
+  height: u32,
+  entry: BridgeEntry,
+  universe_url: String,
+) -> Result<()> {
+  let mut raw_block = Vec::new();
+  block.consensus_encode(&mut raw_block)?;
+
+  unsafe {
+    TapPublishProof(&CProofConfig {
+      packet: entry.psbt.as_ptr() as *const c_void,
+      packet_length: entry.psbt.len() as c_int,
+      block: raw_block.as_c_ptr() as *const c_void,
+      block_length: raw_block.len() as c_int,
+      transaction_index,
+      height,
+      amount: entry.amount,
+      script_key: entry.script_key.as_c_ptr(),
+      batch_key: entry.batch_key.as_c_ptr(),
+      rune_id: &CRuneID {
+        block: entry.rune_id.block,
+        tx: entry.rune_id.tx,
+      },
+      universe_address: universe_url.as_ptr(),
+    });
+  }
+
+  Ok(())
 }

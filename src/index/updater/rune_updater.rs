@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::bridge::publish_proof};
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
@@ -15,10 +15,19 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
   pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
   pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
+  pub(super) transaction_id_to_bridge:
+    &'a mut Table<'tx, &'static TxidValue, BridgeEntryValue<'static>>,
+  pub(super) universe_url: Option<String>,
 }
 
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
-  pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
+  pub(super) fn index_runes(
+    &mut self,
+    tx_index: u32,
+    tx: &Transaction,
+    txid: Txid,
+    block: &BlockData,
+  ) -> Result<()> {
     let artifact = Runestone::decipher(tx);
 
     let mut unallocated = self.unallocated(tx)?;
@@ -118,6 +127,24 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             };
 
             allocate(balance, amount, output);
+          }
+        }
+
+        if runestone.bridge.is_some() {
+          if let Some(bridge_entry) = self.transaction_id_to_bridge.get(&txid.clone().store())? {
+            if let Some(universe_url) = self.universe_url.clone() {
+              let bridge_entry = BridgeEntry::load(bridge_entry.value());
+
+              if bridge_entry.lock {
+                publish_proof(
+                  block.into(),
+                  tx_index,
+                  self.height,
+                  bridge_entry,
+                  universe_url,
+                )?;
+              }
+            }
           }
         }
       }
