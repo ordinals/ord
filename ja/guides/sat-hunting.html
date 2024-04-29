@@ -420,7 +420,10 @@
 <h4 id="雀のウォレット"><a class="header" href="#雀のウォレット">雀のウォレット</a></h4>
 <p>Navigate to the <code>Settings</code> tab, then to <code>Script Policy</code>, and press the edit button to display the descriptor.</p>
 <h3 id="transferring-ordinals"><a class="header" href="#transferring-ordinals">Transferring Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the  name of the sastoshi with the <code>ord wallet send</code> command. You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>,  and <code>sendrawtransaction</code>, but this method can be complex and is outside the  scope of this guide.</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
+</code></pre>
+<p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>
 
                     </main>
 

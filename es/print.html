@@ -2050,7 +2050,10 @@ ord index update
 <h4 id="monedero-sparrow"><a class="header" href="#monedero-sparrow">Monedero Sparrow</a></h4>
 <p>Haz clic en la pestaña <code>Settings</code>, luego en <code>Script Policy</code>, y presiona el botón de editar para mostrar el descriptor.</p>
 <h3 id="transferir-ordinals"><a class="header" href="#transferir-ordinals">Transferir Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the  name of the sastoshi with the <code>ord wallet send</code> command. You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>,  and <code>sendrawtransaction</code>, but this method can be complex and is outside the  scope of this guide.</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
+</code></pre>
+<p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="settings"><a class="header" href="#settings">Settings</a></h1>
 <p><code>ord</code> can be configured with the command line, environment variables, a configuration file, and default values.</p>
 <p>The command line takes precedence over environment variables, which take precedence over the configuration file, which takes precedence over defaults.</p>
