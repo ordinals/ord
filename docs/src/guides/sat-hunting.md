@@ -243,14 +243,13 @@ button to display the descriptor.
 
 ### Transferring Ordinals
 
-The `ord` wallet supports transferring specific satoshis by using the 
-name of the satoshi with the `ord wallet send` command. This is useful
-for when you want to isolate a specific sat that doesn't have an 
-inscription ID. The syntax for the command is `ord wallet send
-<RECEIVING_ADDRESS> <SAT> --fee-rate <FEE_RATE>`, where 
-`RECEIVING_ADDRESS` is the wallet address where you want to send the 
-sat, and the `SAT` is a distinct sat name, like `flhlyjyfafj`.
+The `ord` wallet supports transferring specific satoshis by using the
+name of the satoshi. To send a the satoshi `zonefruits` do:
 
-You can also use the `bitcoin-cli` commands `createrawtransaction`, 
-`signrawtransactionwithwallet`, and `sendrawtransaction`, but this 
+```
+ord wallet send <RECEIVING_ADDRESS> zonefruits --fee-rate 21
+```
+
+You can also use the `bitcoin-cli` commands `createrawtransaction`,
+`signrawtransactionwithwallet`, and `sendrawtransaction`, but this
 method can be complex and is outside the scope of this guide.
