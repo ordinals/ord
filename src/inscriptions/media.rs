@@ -76,7 +76,7 @@ impl Media {
     ("application/pdf",             GENERIC, Pdf,              &["pdf"]),
     ("application/pgp-signature",   TEXT,    Text,             &["asc"]),
     ("application/protobuf",        GENERIC, Unknown,          &["binpb"]),
-    ("application/x-javascript",    TEXT,    Code(JavaScript), &[]),
+    ("application/x-javascript",    TEXT,    Code(JavaScript), &["mjs"]),
     ("application/yaml",            TEXT,    Code(Yaml),       &["yaml", "yml"]),
     ("audio/flac",                  GENERIC, Audio,            &["flac"]),
     ("audio/mpeg",                  GENERIC, Audio,            &["mp3"]),
