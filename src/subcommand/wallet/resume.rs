@@ -18,7 +18,7 @@ impl Resume {
         break;
       }
 
-      for (index, (rune, entry)) in wallet.pending_etchings()?.iter().enumerate() {
+      for (i, (rune, entry)) in wallet.pending_etchings()?.iter().enumerate() {
         if self.dry_run {
           etchings.push(batch::Output {
             reveal_broadcast: false,
@@ -31,7 +31,7 @@ impl Resume {
           Ok(true) => etchings.push(wallet.send_etching(*rune, entry)?),
           Err(MaturityError::CommitSpent(txid)) => {
             eprintln!("Commitment for rune etching {rune} spent in {txid}");
-            etchings.remove(index);
+            etchings.remove(i);
           }
           _ => continue,
         }
