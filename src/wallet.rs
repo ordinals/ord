@@ -1,4 +1,3 @@
-use std::u16;
 use {
   super::*,
   base64::{self, Engine},
@@ -50,8 +49,8 @@ impl From<Statistic> for u64 {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum MaturityError {
-  BeforeMinimumHeight,
-  ConfirmationsNotReached(u16),
+  MinimumHeight,
+  Confirmations(u16),
   CommitSpent(Txid),
   NotFound(String),
 }
@@ -330,9 +329,9 @@ impl Wallet {
       {
         Err(MaturityError::CommitSpent(commit_tx.info.txid))
       } else if !self.is_after_minimum_height(rune) {
-        Err(MaturityError::BeforeMinimumHeight)
+        Err(MaturityError::MinimumHeight)
       } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
-        Err(MaturityError::ConfirmationsNotReached(
+        Err(MaturityError::Confirmations(
           Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
         ))
       } else {
@@ -374,7 +373,7 @@ impl Wallet {
           pb.finish_with_message("Rune matured, submitting...");
           break;
         }
-        Err(MaturityError::ConfirmationsNotReached(remaining)) => {
+        Err(MaturityError::Confirmations(remaining)) => {
           if remaining < pending_confirmations {
             pending_confirmations = remaining;
             pb.inc(1);
