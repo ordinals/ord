@@ -1,5 +1,5 @@
 use super::*;
-use crate::wallet::MaturityFailureStatus;
+use crate::wallet::MaturityError;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResumeOutput {
@@ -27,20 +27,14 @@ impl Resume {
           });
           continue;
         };
-        let rune_maturity = wallet.check_rune_maturity(*rune, &entry.commit)?;
-        if rune_maturity.matured {
-          etchings.push(wallet.send_etching(*rune, entry)?);
-        }
 
-        if let Some(maturity_failure_status) = rune_maturity.maturity_failure_status {
-          match maturity_failure_status {
-            MaturityFailureStatus::CommitSpent(tx_id) => {
-              // shouldn't to bail out here it can proceed with other pending etchings.
-              eprintln!("Commitment {} Spent", tx_id);
-              etchings.remove(index);
-            }
-            _ => continue,
+        match wallet.is_mature(*rune, &entry.commit) {
+          Ok(true) => etchings.push(wallet.send_etching(*rune, entry)?),
+          Err(MaturityError::CommitSpent(txid)) => {
+            eprintln!("Commitment for rune etching {rune} spent in {txid}");
+            etchings.remove(index);
           }
+          _ => continue,
         }
       }
 

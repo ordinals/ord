@@ -41,20 +41,19 @@ impl Statistic {
     self.into()
   }
 }
-pub(crate) struct RuneMaturityDetails {
-  pub(crate) maturity_failure_status: Option<MaturityFailureStatus>,
-  pub(crate) matured: bool,
-}
-pub(crate) enum MaturityFailureStatus {
-  BeforeMinimumHeight,
-  ConfirmationsNotReached(u16),
-  CommitSpent(Txid),
-  Unknown,
-}
+
 impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
   }
+}
+
+#[derive(Debug, PartialEq)]
+pub(crate) enum MaturityError {
+  BeforeMinimumHeight,
+  ConfirmationsNotReached(u16),
+  CommitSpent(Txid),
+  NotFound(String),
 }
 
 pub(crate) struct Wallet {
@@ -314,55 +313,33 @@ impl Wallet {
       )
   }
 
-  fn is_commitment_spent(&self, commit: &Transaction) -> Result<bool> {
-    Ok(
-      self
-        .bitcoin_client()
-        .get_tx_out(&commit.txid(), 0, Some(true))?
-        .is_none(),
-    )
-  }
-  pub(crate) fn check_rune_maturity(
-    &self,
-    rune: Rune,
-    commit: &Transaction,
-  ) -> Result<RuneMaturityDetails> {
+  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool, MaturityError> {
     let transaction = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
-      .into_option()?;
+      .into_option()
+      .map_err(|err| MaturityError::NotFound(err.to_string()))?;
 
     if let Some(commit_tx) = transaction {
       let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
 
-      return if self.is_commitment_spent(commit)? {
-        Ok(RuneMaturityDetails {
-          matured: false,
-          maturity_failure_status: Some(MaturityFailureStatus::CommitSpent(commit_tx.info.txid)),
-        })
+      if self
+        .bitcoin_client()
+        .get_tx_out(&commit.txid(), 0, Some(true))
+        .map_err(|err| MaturityError::NotFound(err.to_string()))?
+        .is_none()
+      {
+        return Err(MaturityError::CommitSpent(commit_tx.info.txid));
       } else if !self.is_after_minimum_height(rune) {
-        Ok(RuneMaturityDetails {
-          matured: false,
-          maturity_failure_status: Some(MaturityFailureStatus::BeforeMinimumHeight),
-        })
+        return Err(MaturityError::BeforeMinimumHeight);
       } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
-        Ok(RuneMaturityDetails {
-          matured: false,
-          maturity_failure_status: Some(MaturityFailureStatus::ConfirmationsNotReached(
-            Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
-          )),
-        })
-      } else {
-        Ok(RuneMaturityDetails {
-          matured: true,
-          maturity_failure_status: None,
-        })
-      };
+        return Err(MaturityError::ConfirmationsNotReached(
+          Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
+        ));
+      }
     }
-    Ok(RuneMaturityDetails {
-      matured: false,
-      maturity_failure_status: Some(MaturityFailureStatus::Unknown),
-    })
+
+    Ok(false)
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
@@ -375,7 +352,9 @@ impl Wallet {
       rune,
       entry.commit.txid()
     );
+
     let mut pending_confirmations = Runestone::COMMIT_CONFIRMATIONS;
+
     let pb = ProgressBar::new(pending_confirmations.into()).with_style(
       ProgressStyle::default_bar()
         .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
@@ -389,20 +368,18 @@ impl Wallet {
         return Ok(entry.output);
       }
 
-      let rune_maturity = self.check_rune_maturity(rune, &entry.commit)?;
-      if rune_maturity.matured {
-        pb.finish_with_message("Rune matured, submitting...");
-        break;
-      }
-
-      match rune_maturity.maturity_failure_status.unwrap() {
-        MaturityFailureStatus::ConfirmationsNotReached(remaining) => {
+      match self.is_mature(rune, &entry.commit) {
+        Ok(true) => {
+          pb.finish_with_message("Rune matured, submitting...");
+          break;
+        }
+        Err(MaturityError::ConfirmationsNotReached(remaining)) => {
           if remaining < pending_confirmations {
             pending_confirmations = remaining;
             pb.inc(1);
           }
         }
-        MaturityFailureStatus::CommitSpent(txid) => {
+        Err(MaturityError::CommitSpent(txid)) => {
           self.clear_etching(rune)?;
           bail!("rune commitment {} spent, can't send reveal tx", txid);
         }
