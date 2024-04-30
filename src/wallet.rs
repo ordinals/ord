@@ -314,13 +314,12 @@ impl Wallet {
   }
 
   pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool, MaturityError> {
-    let transaction = self
+    if let Some(commit_tx) = self
       .bitcoin_client()
       .get_transaction(&commit.txid(), Some(true))
       .into_option()
-      .map_err(|err| MaturityError::NotFound(err.to_string()))?;
-
-    if let Some(commit_tx) = transaction {
+      .map_err(|err| MaturityError::NotFound(err.to_string()))?
+    {
       let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
 
       if self
@@ -329,17 +328,19 @@ impl Wallet {
         .map_err(|err| MaturityError::NotFound(err.to_string()))?
         .is_none()
       {
-        return Err(MaturityError::CommitSpent(commit_tx.info.txid));
+        Err(MaturityError::CommitSpent(commit_tx.info.txid))
       } else if !self.is_after_minimum_height(rune) {
-        return Err(MaturityError::BeforeMinimumHeight);
+        Err(MaturityError::BeforeMinimumHeight)
       } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
-        return Err(MaturityError::ConfirmationsNotReached(
+        Err(MaturityError::ConfirmationsNotReached(
           Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
-        ));
+        ))
+      } else {
+        Ok(true)
       }
+    } else {
+      Ok(false)
     }
-
-    Ok(false)
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {

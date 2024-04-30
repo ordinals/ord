@@ -1,5 +1,4 @@
-use super::*;
-use crate::wallet::MaturityError;
+use {super::*, crate::wallet::MaturityError};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResumeOutput {
