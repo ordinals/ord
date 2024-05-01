@@ -430,8 +430,8 @@ fn inscribe_with_dry_run_flag() {
     .ord(&ord)
     .run_and_deserialize_output::<Batch>();
 
-  assert!(inscribe.commit_psbt.is_none());
-  assert!(inscribe.reveal_psbt.is_none());
+  assert!(inscribe.commit_psbt.is_some());
+  assert!(inscribe.reveal_psbt.is_some());
 
   assert_eq!(core.mempool().len(), 2);
 }
