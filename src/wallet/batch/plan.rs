@@ -62,21 +62,20 @@ impl Plan {
       [wallet.get_change_address()?, wallet.get_change_address()?],
       wallet.get_change_address()?,
     )?;
+    let commit_psbt = wallet
+      .bitcoin_client()
+      .wallet_process_psbt(
+        &base64::engine::general_purpose::STANDARD
+          .encode(Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize()),
+        Some(false),
+        None,
+        None,
+      )?
+      .psbt;
+
+    let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
 
     if self.dry_run {
-      let commit_psbt = wallet
-        .bitcoin_client()
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize()),
-          Some(false),
-          None,
-          None,
-        )?
-        .psbt;
-
-      let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
-
       return Ok(Some(Box::new(self.output(
         commit_tx.txid(),
         Some(commit_psbt),
@@ -143,10 +142,10 @@ impl Plan {
         &reveal,
         self.output(
           commit.txid(),
-          None,
+          Some(commit_psbt),
           reveal.txid(),
           false,
-          None,
+          Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
           total_fees,
           self.inscriptions.clone(),
           rune.clone(),
@@ -171,10 +170,10 @@ impl Plan {
 
       Ok(Some(Box::new(self.output(
         commit_txid,
-        None,
+        Some(commit_psbt),
         reveal,
         true,
-        None,
+        Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
         rune,
