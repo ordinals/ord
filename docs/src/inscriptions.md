@@ -61,7 +61,7 @@ bytes.
 
 The inscription content is contained within the input of a reveal transaction,
 and the inscription is made on the first sat of its input if it has no pointer
-field. This sat can then be tracked using the familiar rules of ordinal 
+field. This sat can then be tracked using the familiar rules of ordinal
 theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.
 
 Content
@@ -149,6 +149,26 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
+
+Self-Reference
+--------------
+
+The content of the inscription with ID `INSCRIPTION_ID` must served from the
+URL path `/content/<INSCRIPTION_ID>`.
+
+This allows inscriptions to retrieve their own inscription ID with:
+
+```js
+let inscription_id = window.location.pathname.split("/").pop();
+```
+
+If an inscription with ID X delegates to an inscription with ID Y, that is to
+say, if inscription X contains a delegate field with value Y, the content of
+inscription X must be served from the URL path `/content/X`, *not*
+`/content/Y`.
+
+This allows delegating inscriptions to use their own inscription ID as a seed
+for generative delegate content.
 
 Reinscriptions
 --------------
