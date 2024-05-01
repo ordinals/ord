@@ -59,11 +59,11 @@ impl Env {
       .with_context(|| format!("directory `{}` is not valid unicode", absolute.display()))?;
 
     fs::create_dir_all(&absolute)?;
-
-    fs::write(
-      absolute.join("bitcoin.conf"),
-      format!(
-        "datacarriersize=1000000
+    if !absolute.join("bitcoin.conf").try_exists()? {
+      fs::write(
+        absolute.join("bitcoin.conf"),
+        format!(
+          "datacarriersize=1000000
         regtest=1
 datadir={absolute_str}
 listen=0
@@ -71,8 +71,9 @@ txindex=1
 [regtest]
 rpcport={bitcoind_port}
 ",
-      ),
-    )?;
+        ),
+      )?;
+    }
 
     fs::write(absolute.join("inscription.txt"), "FOO")?;
 
@@ -97,8 +98,9 @@ rpcport={bitcoind_port}
       ..default()
     })
     .unwrap();
-
-    fs::write(absolute.join("batch.yaml"), yaml)?;
+    if !absolute.join("batch.yaml").try_exists()? {
+      fs::write(absolute.join("batch.yaml"), yaml)?;
+    }
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
