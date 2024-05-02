@@ -248,16 +248,10 @@ impl Send {
           .map(|balance| {
             (
               output,
-              balance.into_iter().fold(
-                BTreeMap::new(),
-                |mut acc: BTreeMap<Rune, Pile>, (spaced_rune, pile)| {
-                  acc
-                    .entry(spaced_rune.rune)
-                    .and_modify(|p| p.amount += pile.amount)
-                    .or_insert(pile);
-                  acc
-                },
-              ),
+              balance
+                .into_iter()
+                .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+                .collect(),
             )
           })
       })

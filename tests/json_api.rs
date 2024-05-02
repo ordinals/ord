@@ -343,7 +343,7 @@ fn get_output() {
         InscriptionId { txid, index: 2 },
       ],
       indexed: true,
-      runes: Vec::new(),
+      runes: BTreeMap::new(),
       sat_ranges: Some(vec![
         (5000000000, 10000000000,),
         (10000000000, 15000000000,),
