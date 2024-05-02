@@ -805,14 +805,19 @@ fn sending_rune_with_change_works() {
   etch(&core, &ord, Rune(RUNE));
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 777:{}",
+    "--chain regtest --index-runes wallet send --postage 1234sat --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 777:{}",
     Rune(RUNE)
   ))
   .core(&core)
-    .ord(&ord)
+  .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);
+
+  let tx = core.tx_by_id(output.txid);
+
+  assert_eq!(tx.output[1].value, 1234);
+  assert_eq!(tx.output[2].value, 1234);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
@@ -858,7 +863,7 @@ fn sending_rune_with_change_works() {
 }
 
 #[test]
-fn sending_spaced_rune_works() {
+fn sending_spaced_rune_works_with_no_change() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -875,6 +880,10 @@ fn sending_spaced_rune_works() {
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);
+
+  let tx = core.tx_by_id(output.txid);
+
+  assert_eq!(tx.output.len(), 1);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)

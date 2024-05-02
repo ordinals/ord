@@ -276,9 +276,7 @@ impl Send {
       .cloned()
       .unwrap_or_default();
 
-    let mut with_runes_change = input_rune_balance > amount;
-
-    with_runes_change |= input_rune_balances.len() > 1;
+    let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
 
     ensure! {
       input_rune_balance >= amount,
@@ -300,28 +298,6 @@ impl Send {
       ..default()
     };
 
-    let outputs = if with_runes_change {
-      vec![
-        TxOut {
-          script_pubkey: runestone.encipher(),
-          value: 0,
-        },
-        TxOut {
-          script_pubkey: wallet.get_change_address()?.script_pubkey(),
-          value: postage.to_sat(),
-        },
-        TxOut {
-          script_pubkey: destination.script_pubkey(),
-          value: postage.to_sat(),
-        },
-      ]
-    } else {
-      vec![TxOut {
-        script_pubkey: destination.script_pubkey(),
-        value: postage.to_sat(),
-      }]
-    };
-
     let unfunded_transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -334,7 +310,27 @@ impl Send {
           witness: Witness::new(),
         })
         .collect(),
-      output: outputs,
+      output: if needs_runes_change_output {
+        vec![
+          TxOut {
+            script_pubkey: runestone.encipher(),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: wallet.get_change_address()?.script_pubkey(),
+            value: postage.to_sat(),
+          },
+          TxOut {
+            script_pubkey: destination.script_pubkey(),
+            value: postage.to_sat(),
+          },
+        ]
+      } else {
+        vec![TxOut {
+          script_pubkey: destination.script_pubkey(),
+          value: postage.to_sat(),
+        }]
+      },
     };
 
     let unsigned_transaction =
@@ -342,7 +338,7 @@ impl Send {
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
-    if with_runes_change {
+    if needs_runes_change_output {
       assert_eq!(
         Runestone::decipher(&unsigned_transaction),
         Some(Artifact::Runestone(runestone)),
