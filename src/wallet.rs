@@ -48,11 +48,12 @@ impl From<Statistic> for u64 {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum MaturityError {
-  MinimumHeight,
-  Confirmations(u16),
-  CommitSpent(Txid),
-  NotFound(String),
+pub(crate) enum Maturity {
+  Mature,
+  Immature,
+  BelowMinimumHeight(u64),
+  ConfirmationsPending(u16),
+  CommitmentSpent(Txid),
 }
 
 pub(crate) struct Wallet {
@@ -296,34 +297,34 @@ impl Wallet {
       )
   }
 
-  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool, MaturityError> {
-    if let Some(commit_tx) = self
-      .bitcoin_client()
-      .get_transaction(&commit.txid(), Some(true))
-      .into_option()
-      .map_err(|err| MaturityError::NotFound(err.to_string()))?
-    {
-      let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
-
-      if self
+  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<Maturity> {
+    Ok(
+      if let Some(commit_tx) = self
         .bitcoin_client()
-        .get_tx_out(&commit.txid(), 0, Some(true))
-        .map_err(|err| MaturityError::NotFound(err.to_string()))?
-        .is_none()
+        .get_transaction(&commit.txid(), Some(true))
+        .into_option()?
       {
-        Err(MaturityError::CommitSpent(commit_tx.info.txid))
-      } else if !self.is_after_minimum_height(rune) {
-        Err(MaturityError::MinimumHeight)
-      } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
-        Err(MaturityError::Confirmations(
-          Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
-        ))
+        let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
+
+        if self
+          .bitcoin_client()
+          .get_tx_out(&commit.txid(), 0, Some(true))?
+          .is_none()
+        {
+          Maturity::CommitmentSpent(commit_tx.info.txid)
+        } else if !self.is_after_minimum_height(rune) {
+          Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
+        } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
+          Maturity::ConfirmationsPending(
+            Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
+          )
+        } else {
+          Maturity::Mature
+        }
       } else {
-        Ok(true)
-      }
-    } else {
-      Ok(false)
-    }
+        Maturity::Immature
+      },
+    )
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
@@ -352,18 +353,18 @@ impl Wallet {
         return Ok(entry.output);
       }
 
-      match self.is_mature(rune, &entry.commit) {
-        Ok(true) => {
+      match self.is_mature(rune, &entry.commit)? {
+        Maturity::Mature => {
           pb.finish_with_message("Rune matured, submitting...");
           break;
         }
-        Err(MaturityError::Confirmations(remaining)) => {
+        Maturity::ConfirmationsPending(remaining) => {
           if remaining < pending_confirmations {
             pending_confirmations = remaining;
             pb.inc(1);
           }
         }
-        Err(MaturityError::CommitSpent(txid)) => {
+        Maturity::CommitmentSpent(txid) => {
           self.clear_etching(rune)?;
           bail!("rune commitment {} spent, can't send reveal tx", txid);
         }

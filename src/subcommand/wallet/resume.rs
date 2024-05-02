@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::MaturityError};
+use {super::*, crate::wallet::Maturity};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResumeOutput {
@@ -27,9 +27,9 @@ impl Resume {
           continue;
         };
 
-        match wallet.is_mature(*rune, &entry.commit) {
-          Ok(true) => etchings.push(wallet.send_etching(*rune, entry)?),
-          Err(MaturityError::CommitSpent(txid)) => {
+        match wallet.is_mature(*rune, &entry.commit)? {
+          Maturity::Mature => etchings.push(wallet.send_etching(*rune, entry)?),
+          Maturity::CommitmentSpent(txid) => {
             eprintln!("Commitment for rune etching {rune} spent in {txid}");
             etchings.remove(i);
           }
