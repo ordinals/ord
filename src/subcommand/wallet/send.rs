@@ -255,10 +255,7 @@ impl Send {
     for (output, runes) in balances {
       if let Some(balance) = runes.get(&spaced_rune.rune) {
         if balance.amount > 0 {
-          input_rune_balances
-            .entry(spaced_rune.rune)
-            .and_modify(|amount| *amount += balance.amount)
-            .or_insert(balance.amount);
+          *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
 
           inputs.push(output);
         }
