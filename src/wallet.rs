@@ -217,10 +217,10 @@ impl Wallet {
     Ok(runic_outputs)
   }
 
-  pub(crate) fn get_runes_balances_for_output(
+  pub(crate) fn get_runes_balances_in_output(
     &self,
     output: &OutPoint,
-  ) -> Result<Vec<(SpacedRune, Pile)>> {
+  ) -> Result<BTreeMap<SpacedRune, Pile>> {
     Ok(
       self
         .output_info
@@ -228,22 +228,6 @@ impl Wallet {
         .ok_or(anyhow!("output not found in wallet"))?
         .runes
         .clone(),
-    )
-  }
-
-  pub(crate) fn get_rune_balance_in_output(&self, output: &OutPoint, rune: Rune) -> Result<u128> {
-    Ok(
-      self
-        .get_runes_balances_for_output(output)?
-        .iter()
-        .map(|(spaced_rune, pile)| {
-          if spaced_rune.rune == rune {
-            pile.amount
-          } else {
-            0
-          }
-        })
-        .sum(),
     )
   }
 
