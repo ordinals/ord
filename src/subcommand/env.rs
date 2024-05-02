@@ -60,19 +60,23 @@ impl Env {
 
     fs::create_dir_all(&absolute)?;
 
-    fs::write(
-      absolute.join("bitcoin.conf"),
-      format!(
-        "datacarriersize=1000000
-        regtest=1
+    let bitcoin_conf = absolute.join("bitcoin.conf");
+
+    if !bitcoin_conf.try_exists()? {
+      fs::write(
+        bitcoin_conf,
+        format!(
+          "datacarriersize=1000000
+regtest=1
 datadir={absolute_str}
 listen=0
 txindex=1
 [regtest]
 rpcport={bitcoind_port}
 ",
-      ),
-    )?;
+        ),
+      )?;
+    }
 
     fs::write(absolute.join("inscription.txt"), "FOO")?;
 
@@ -98,7 +102,11 @@ rpcport={bitcoind_port}
     })
     .unwrap();
 
-    fs::write(absolute.join("batch.yaml"), yaml)?;
+    let batch_yaml = absolute.join("batch.yaml");
+
+    if !batch_yaml.try_exists()? {
+      fs::write(absolute.join("batch.yaml"), yaml)?;
+    }
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
@@ -120,10 +128,12 @@ rpcport={bitcoind_port}
 
     let config = absolute.join("ord.yaml");
 
-    fs::write(
-      config,
-      serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
-    )?;
+    if !config.try_exists()? {
+      fs::write(
+        config,
+        serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
+      )?;
+    }
 
     let ord = std::env::current_exe()?;
 
