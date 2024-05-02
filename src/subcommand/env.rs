@@ -67,7 +67,7 @@ impl Env {
         bitcoin_conf,
         format!(
           "datacarriersize=1000000
-        regtest=1
+regtest=1
 datadir={absolute_str}
 listen=0
 txindex=1
