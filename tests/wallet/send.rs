@@ -871,7 +871,7 @@ fn sending_spaced_rune_works() {
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:A•AAAAAAAAAAAA",
   )
   .core(&core)
-    .ord(&ord)
+  .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);

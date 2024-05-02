@@ -231,21 +231,21 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_rune_balance_in_output(&self, output: &OutPoint, rune: Rune) -> Result<u128> {
-    Ok(
-      self
-        .get_runes_balances_for_output(output)?
-        .iter()
-        .map(|(spaced_rune, pile)| {
-          if spaced_rune.rune == rune {
-            pile.amount
-          } else {
-            0
-          }
-        })
-        .sum(),
-    )
-  }
+  //  pub(crate) fn get_rune_balance_in_output(&self, output: &OutPoint, rune: Rune) -> Result<u128> {
+  //    Ok(
+  //      self
+  //        .get_runes_balances_for_output(output)?
+  //        .iter()
+  //        .map(|(spaced_rune, pile)| {
+  //          if spaced_rune.rune == rune {
+  //            pile.amount
+  //          } else {
+  //            0
+  //          }
+  //        })
+  //        .sum(),
+  //    )
+  //  }
 
   pub(crate) fn get_rune(
     &self,
