@@ -59,6 +59,7 @@ impl Env {
       .with_context(|| format!("directory `{}` is not valid unicode", absolute.display()))?;
 
     fs::create_dir_all(&absolute)?;
+
     if !absolute.join("bitcoin.conf").try_exists()? {
       fs::write(
         absolute.join("bitcoin.conf"),
@@ -98,6 +99,7 @@ rpcport={bitcoind_port}
       ..default()
     })
     .unwrap();
+
     if !absolute.join("batch.yaml").try_exists()? {
       fs::write(absolute.join("batch.yaml"), yaml)?;
     }
@@ -122,10 +124,12 @@ rpcport={bitcoind_port}
 
     let config = absolute.join("ord.yaml");
 
-    fs::write(
-      config,
-      serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
-    )?;
+    if !config.try_exists()? {
+      fs::write(
+        config,
+        serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
+      )?;
+    }
 
     let ord = std::env::current_exe()?;
 
