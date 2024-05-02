@@ -250,12 +250,12 @@ impl Send {
       .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>>()?;
 
     let mut inputs = Vec::new();
-    let mut selected_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
+    let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
       if let Some(balance) = runes.get(&spaced_rune.rune) {
         if balance.amount > 0 {
-          selected_rune_balances
+          input_rune_balances
             .entry(spaced_rune.rune)
             .and_modify(|amount| *amount += balance.amount)
             .or_insert(balance.amount);
@@ -264,7 +264,7 @@ impl Send {
         }
       }
 
-      if selected_rune_balances
+      if input_rune_balances
         .get(&spaced_rune.rune)
         .cloned()
         .unwrap_or_default()
@@ -274,14 +274,14 @@ impl Send {
       }
     }
 
-    let input_rune_balance = selected_rune_balances
+    let input_rune_balance = input_rune_balances
       .get(&spaced_rune.rune)
       .cloned()
       .unwrap_or_default();
 
     let mut with_runes_change = input_rune_balance > amount;
 
-    with_runes_change |= selected_rune_balances.len() > 1;
+    with_runes_change |= input_rune_balances.len() > 1;
 
     ensure! {
       input_rune_balance >= amount,
