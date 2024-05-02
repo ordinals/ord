@@ -232,11 +232,6 @@ impl Send {
       .map(|satpoint| satpoint.outpoint)
       .collect::<HashSet<OutPoint>>();
 
-    let mut input_runes = 0;
-    let mut input = Vec::new();
-    let mut with_runes_change = true;
-    let mut multiple_runes_in_input = false;
-
     let balances = wallet
       .get_runic_outputs()?
       .into_iter()
@@ -256,6 +251,12 @@ impl Send {
           })
       })
       .collect::<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>();
+
+    let mut input_runes = 0;
+    let mut input = Vec::new();
+    // let mut selected_rune_inputs: BTreeMap<Rune, Pile> = BTreeMap::new();
+    let mut with_runes_change = true;
+    let mut multiple_runes_in_input = false;
 
     for (output, runes) in balances {
       if runes.len() > 1 {
