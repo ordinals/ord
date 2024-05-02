@@ -236,21 +236,18 @@ impl Send {
       .get_runic_outputs()?
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
-      .filter_map(|output| {
-        wallet
-          .get_runes_balances_in_output(&output)
-          .ok()
-          .map(|balance| {
-            (
-              output,
-              balance
-                .into_iter()
-                .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
-                .collect(),
-            )
-          })
+      .map(|output| {
+        wallet.get_runes_balances_in_output(&output).map(|balance| {
+          (
+            output,
+            balance
+              .into_iter()
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+              .collect(),
+          )
+        })
       })
-      .collect::<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>();
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>>()?;
 
     let mut inputs = Vec::new();
     let mut selected_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
