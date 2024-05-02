@@ -243,15 +243,21 @@ impl Send {
       .filter(|output| !inscribed_outputs.contains(output))
       .filter_map(|output| {
         wallet
-          .get_runes_balances_for_output(&output)
+          .get_runes_balances_in_output(&output)
           .ok()
           .map(|balance| {
             (
               output,
-              balance
-                .into_iter()
-                .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
-                .collect::<BTreeMap<Rune, Pile>>(),
+              balance.into_iter().fold(
+                BTreeMap::new(),
+                |mut acc: BTreeMap<Rune, Pile>, (spaced_rune, pile)| {
+                  acc
+                    .entry(spaced_rune.rune)
+                    .and_modify(|p| p.amount += pile.amount)
+                    .or_insert(pile);
+                  acc
+                },
+              ),
             )
           })
       })
