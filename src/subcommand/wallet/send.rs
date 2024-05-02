@@ -237,7 +237,7 @@ impl Send {
     let mut with_runes_change = true;
     let mut multiple_runes_in_input = false;
 
-    let balances = wallet
+    let _balances = wallet
       .get_runic_outputs()?
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
