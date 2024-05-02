@@ -60,9 +60,11 @@ impl Env {
 
     fs::create_dir_all(&absolute)?;
 
-    if !absolute.join("bitcoin.conf").try_exists()? {
+    let bitcoin_conf = absolute.join("bitcoin.conf");
+
+    if !bitcoin_conf.try_exists()? {
       fs::write(
-        absolute.join("bitcoin.conf"),
+        bitcoin_conf,
         format!(
           "datacarriersize=1000000
         regtest=1
@@ -100,7 +102,9 @@ rpcport={bitcoind_port}
     })
     .unwrap();
 
-    if !absolute.join("batch.yaml").try_exists()? {
+    let batch_yaml = absolute.join("batch.yaml");
+
+    if !batch_yaml.try_exists()? {
       fs::write(absolute.join("batch.yaml"), yaml)?;
     }
 
