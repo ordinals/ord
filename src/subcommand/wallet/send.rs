@@ -252,43 +252,46 @@ impl Send {
       })
       .collect::<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>();
 
-    let mut input_runes = 0;
-    let mut input = Vec::new();
-    // let mut selected_rune_inputs: BTreeMap<Rune, Pile> = BTreeMap::new();
-    let mut with_runes_change = true;
-    let mut multiple_runes_in_input = false;
+    let mut inputs = Vec::new();
+    let mut selected_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
-      if runes.len() > 1 {
-        multiple_runes_in_input = true;
-      }
-
       if let Some(balance) = runes.get(&spaced_rune.rune) {
         if balance.amount > 0 {
-          input_runes += balance.amount;
-          input.push(output);
+          selected_rune_balances
+            .entry(spaced_rune.rune)
+            .and_modify(|amount| *amount += balance.amount)
+            .or_insert(balance.amount);
+
+          inputs.push(output);
         }
       }
 
-      if input_runes >= amount {
-        if input_runes == amount {
-          with_runes_change = false;
-        }
-
-        if multiple_runes_in_input {
-          with_runes_change = true;
-        }
-
+      if selected_rune_balances
+        .get(&spaced_rune.rune)
+        .cloned()
+        .unwrap_or_default()
+        >= amount
+      {
         break;
       }
     }
 
+    let input_rune_balance = selected_rune_balances
+      .get(&spaced_rune.rune)
+      .cloned()
+      .unwrap_or_default();
+
+    let mut with_runes_change = input_rune_balance > amount;
+
+    with_runes_change |= selected_rune_balances.len() > 1;
+
     ensure! {
-      input_runes >= amount,
+      input_rune_balance >= amount,
       "insufficient `{}` balance, only {} in wallet",
       spaced_rune,
       Pile {
-        amount: input_runes,
+        amount: input_rune_balance,
         divisibility: entry.divisibility,
         symbol: entry.symbol
       },
@@ -328,7 +331,7 @@ impl Send {
     let unfunded_transaction = Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
-      input: input
+      input: inputs
         .into_iter()
         .map(|previous_output| TxIn {
           previous_output,
