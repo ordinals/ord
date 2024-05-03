@@ -268,3 +268,7 @@ a.mythic {
   height: 1rem;
   width: 1rem;
 }
+
+.lazyload-iframe {
+  background: url('/static/loading.svg') center center no-repeat;
+}

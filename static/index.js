@@ -6,7 +6,7 @@ let next = document.querySelector('a.next');
 let prev = document.querySelector('a.prev');
 
 window.addEventListener('keydown', e => {
-  if (document.activeElement.tagName == 'INPUT') {
+  if (document.activeElement.tagName === 'INPUT') {
     return;
   }
 
@@ -30,5 +30,30 @@ const query = search.querySelector('input[name="query"]');
 search.addEventListener('submit', (e) => {
   if (!query.value) {
     e.preventDefault();
+  }
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  if ('IntersectionObserver' in window) {
+    let observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          let iframe = entry.target;
+          iframe.src = iframe.dataset.src;
+          observer.unobserve(iframe);
+        }
+      });
+    }, {
+      threshold: 0.1,
+    });
+
+    document.querySelectorAll('.lazyload-iframe').forEach(iframe => {
+      observer.observe(iframe);
+    });
+  } else {
+    document.querySelectorAll('.lazyload-iframe').forEach(iframe => {
+      iframe.src = iframe.dataset.src;
+    });
   }
 });
