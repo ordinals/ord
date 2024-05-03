@@ -33,7 +33,6 @@ search.addEventListener('submit', (e) => {
   }
 });
 
-
 document.addEventListener("DOMContentLoaded", function() {
   if ('IntersectionObserver' in window) {
     let observer = new IntersectionObserver((entries, observer) => {
@@ -41,7 +40,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (entry.isIntersecting) {
           let iframe = entry.target;
           iframe.src = iframe.dataset.src;
-          iframe.classList.remove('lazyload-iframe');
           observer.unobserve(iframe);
         }
       });

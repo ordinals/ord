@@ -74,8 +74,8 @@ mod tests {
       <div class=block>
         <h2><a href=/block/1260002>Block 1260002</a></h2>
         <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+          <a href=/inscription/1{64}i1><iframe .* data-src=/preview/1{64}i1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* data-src=/preview/2{64}i2></iframe></a>
         </div>
       </div>
       <ol start=1260001 reversed class=block-list>

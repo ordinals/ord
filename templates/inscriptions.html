@@ -1,7 +1,7 @@
 <h1>All Inscriptions</h1>
 <div class=thumbnails>
 %% for id in &self.inscriptions {
-  {{Iframe::thumbnail(*id)}}
+  {{Iframe::lazy_load(*id)}}
 %% }
 </div>
 <div class=center>
