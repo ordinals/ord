@@ -27,9 +27,9 @@ impl Resume {
           continue;
         };
 
-        match wallet.is_mature(*rune, &entry.commit)? {
+        match wallet.check_maturity(*rune, &entry.commit)? {
           Maturity::Mature => etchings.push(wallet.send_etching(*rune, entry)?),
-          Maturity::CommitmentSpent(txid) => {
+          Maturity::CommitSpent(txid) => {
             eprintln!("Commitment for rune etching {rune} spent in {txid}");
             etchings.remove(i);
           }
