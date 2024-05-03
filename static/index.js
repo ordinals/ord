@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (entry.isIntersecting) {
           let iframe = entry.target;
           iframe.src = iframe.dataset.src;
+          iframe.classList.remove('lazyload-iframe');
           observer.unobserve(iframe);
         }
       });
