@@ -7,7 +7,6 @@ pub(crate) struct Iframe {
 }
 
 impl Iframe {
-
   pub(crate) fn lazy_load(inscription_id: InscriptionId) -> Trusted<Self> {
     Trusted(Self {
       inscription_id,
@@ -52,8 +51,6 @@ impl Display for Iframe {
         self.inscription_id
       )?;
     }
-
-
 
     if self.thumbnail {
       write!(f, "</a>",)?
