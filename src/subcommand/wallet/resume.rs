@@ -18,7 +18,7 @@ impl Resume {
         break;
       }
 
-      for (i, (rune, entry)) in wallet.pending_etchings()?.iter().enumerate() {
+      for (rune, entry) in wallet.pending_etchings()? {
         if self.dry_run {
           etchings.push(batch::Output {
             reveal_broadcast: false,
@@ -27,16 +27,13 @@ impl Resume {
           continue;
         };
 
-        match wallet.check_maturity(*rune, &entry.commit)? {
-          Maturity::Mature => etchings.push(wallet.send_etching(*rune, entry)?),
+        match wallet.check_maturity(rune, &entry.commit)? {
+          Maturity::Mature => etchings.push(wallet.send_etching(rune, &entry)?),
           Maturity::CommitSpent(txid) => {
             eprintln!("Commitment for rune etching {rune} spent in {txid}");
-            etchings.remove(i);
+            wallet.clear_etching(rune)?;
           }
-          Maturity::CommitNotFound => {
-            eprintln!("Commit not found for rune etching {rune}");
-            etchings.remove(i);
-          }
+          Maturity::CommitNotFound => {}
           Maturity::BelowMinimumHeight(_) => {}
           Maturity::ConfirmationsPending(_) => {}
         }
