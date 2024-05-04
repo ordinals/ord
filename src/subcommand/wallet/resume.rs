@@ -33,7 +33,12 @@ impl Resume {
             eprintln!("Commitment for rune etching {rune} spent in {txid}");
             etchings.remove(i);
           }
-          _ => continue,
+          Maturity::CommitNotFound => {
+            eprintln!("Commit not found for rune etching {rune}");
+            etchings.remove(i);
+          }
+          Maturity::BelowMinimumHeight(_) => {}
+          Maturity::ConfirmationsPending(_) => {}
         }
       }
 
