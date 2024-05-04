@@ -342,7 +342,7 @@ impl Wallet {
 
     let mut pending_confirmations: u32 = Runestone::COMMIT_CONFIRMATIONS.into();
 
-    let pb = ProgressBar::new(pending_confirmations.into()).with_style(
+    let progress = ProgressBar::new(pending_confirmations.into()).with_style(
       ProgressStyle::default_bar()
         .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
         .unwrap()
@@ -357,13 +357,13 @@ impl Wallet {
 
       match self.check_maturity(rune, &entry.commit)? {
         Maturity::Mature => {
-          pb.finish_with_message("Rune matured, submitting...");
+          progress.finish_with_message("Rune matured, submitting...");
           break;
         }
         Maturity::ConfirmationsPending(remaining) => {
           if remaining < pending_confirmations {
             pending_confirmations = remaining;
-            pb.inc(1);
+            progress.inc(1);
           }
         }
         Maturity::CommitSpent(txid) => {
