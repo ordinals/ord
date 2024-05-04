@@ -1,4 +1,3 @@
-use std::u32;
 use {
   super::*,
   base64::{self, Engine},
