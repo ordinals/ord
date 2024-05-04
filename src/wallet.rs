@@ -290,7 +290,7 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  fn is_above_minimum_at_height(&self, rune: Rune) -> Result<bool, Error> {
+  fn is_above_minimum_at_height(&self, rune: Rune) -> Result<bool> {
     Ok(
       rune
         >= Rune::minimum_at_height(
