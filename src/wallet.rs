@@ -289,7 +289,7 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  fn is_after_minimum_height(&self, rune: Rune) -> bool {
+  fn is_above_minimum_at_height(&self, rune: Rune) -> bool {
     rune
       >= Rune::minimum_at_height(
         self.chain().network(),
@@ -312,7 +312,7 @@ impl Wallet {
           .is_none()
         {
           Maturity::CommitSpent(commit_tx.info.txid)
-        } else if !self.is_after_minimum_height(rune) {
+        } else if !self.is_above_minimum_at_height(rune) {
           Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
         } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
           Maturity::ConfirmationsPending(
