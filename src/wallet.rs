@@ -289,12 +289,14 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  fn is_above_minimum_at_height(&self, rune: Rune) -> bool {
-    rune
-      >= Rune::minimum_at_height(
-        self.chain().network(),
-        Height(u32::try_from(self.bitcoin_client().get_block_count().unwrap() + 1).unwrap()),
-      )
+  fn is_above_minimum_at_height(&self, rune: Rune) -> Result<bool, Error> {
+    Ok(
+      rune
+        >= Rune::minimum_at_height(
+          self.chain().network(),
+          Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
+        ),
+    )
   }
 
   pub(crate) fn check_maturity(&self, rune: Rune, commit: &Transaction) -> Result<Maturity> {
@@ -305,14 +307,13 @@ impl Wallet {
         .into_option()?
       {
         let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
-
         if self
           .bitcoin_client()
           .get_tx_out(&commit.txid(), 0, Some(true))?
           .is_none()
         {
           Maturity::CommitSpent(commit_tx.info.txid)
-        } else if !self.is_above_minimum_at_height(rune) {
+        } else if !self.is_above_minimum_at_height(rune)? {
           Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
         } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
           Maturity::ConfirmationsPending(
