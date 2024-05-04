@@ -1,3 +1,4 @@
+use std::u32;
 use {
   super::*,
   base64::{self, Engine},
@@ -52,7 +53,7 @@ pub(crate) enum Maturity {
   BelowMinimumHeight(u64),
   CommitNotFound,
   CommitSpent(Txid),
-  ConfirmationsPending(u16),
+  ConfirmationsPending(u32),
   Mature,
 }
 
@@ -306,7 +307,7 @@ impl Wallet {
         .get_transaction(&commit.txid(), Some(true))
         .into_option()?
       {
-        let current_confirmations = u16::try_from(commit_tx.info.confirmations).unwrap();
+        let current_confirmations = u32::try_from(commit_tx.info.confirmations)?;
         if self
           .bitcoin_client()
           .get_tx_out(&commit.txid(), 0, Some(true))?
@@ -315,9 +316,9 @@ impl Wallet {
           Maturity::CommitSpent(commit_tx.info.txid)
         } else if !self.is_above_minimum_at_height(rune)? {
           Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
-        } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS {
+        } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS.into() {
           Maturity::ConfirmationsPending(
-            Runestone::COMMIT_CONFIRMATIONS - current_confirmations - 1,
+            u32::from(Runestone::COMMIT_CONFIRMATIONS) - current_confirmations - 1,
           )
         } else {
           Maturity::Mature
@@ -339,7 +340,7 @@ impl Wallet {
       entry.commit.txid()
     );
 
-    let mut pending_confirmations = Runestone::COMMIT_CONFIRMATIONS;
+    let mut pending_confirmations: u32 = Runestone::COMMIT_CONFIRMATIONS.into();
 
     let pb = ProgressBar::new(pending_confirmations.into()).with_style(
       ProgressStyle::default_bar()
