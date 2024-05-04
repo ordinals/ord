@@ -12,7 +12,16 @@ pub(crate) struct Accelerator {
 
 impl Accelerator {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    // TODO
+    let address = self
+      .address
+      .clone()
+      .require_network(wallet.chain().network())?;
+
+    ensure!(
+      wallet.has_address(&address)?,
+      "The `{address}` address does not belong to your wallet address"
+    );
+
     Ok(Some(Box::new(())))
   }
 }

@@ -280,6 +280,21 @@ impl Wallet {
     self.settings.integration_test()
   }
 
+  pub(crate) fn has_address(&self, address: &Address) -> Result<bool> {
+    let addresses = self
+      .bitcoin_client
+      .call::<HashMap<String, HashMap<String, String>>>("getaddressesbylabel", &["".into()])
+      .context("call getaddressesbylabel get error")?;
+
+    Ok(addresses.keys().any(|addr| {
+      if let Ok(ad) = Address::from_str(addr) {
+        ad.assume_checked() == *address
+      } else {
+        false
+      }
+    }))
+  }
+
   pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool> {
     let transaction = self
       .bitcoin_client()
