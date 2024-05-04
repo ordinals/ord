@@ -5,6 +5,7 @@ use {
   shared_args::SharedArgs,
 };
 
+pub mod accelerator;
 pub mod balance;
 mod batch_command;
 pub mod cardinals;
@@ -41,6 +42,8 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
+  #[command(about = "Tx Accelerator (CPFP)")]
+  Accelerator(accelerator::Accelerator),
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
@@ -98,6 +101,7 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
+      Subcommand::Accelerator(accelerator) => accelerator.run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
