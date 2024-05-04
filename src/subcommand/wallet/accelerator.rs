@@ -12,6 +12,8 @@ pub(crate) struct Accelerator {
 
 impl Accelerator {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
+    let client = wallet.bitcoin_client();
+
     let address = self
       .address
       .clone()
@@ -20,6 +22,13 @@ impl Accelerator {
     ensure!(
       wallet.has_address(&address)?,
       "The `{address}` address does not belong to your wallet address"
+    );
+
+    let txr = client.get_transaction(&self.tx, None)?;
+
+    ensure!(
+      txr.info.confirmations == 0,
+      "The transaction has already been confirmed"
     );
 
     Ok(Some(Box::new(())))
