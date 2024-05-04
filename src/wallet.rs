@@ -346,7 +346,7 @@ impl Wallet {
       ProgressStyle::default_bar()
         .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
         .unwrap()
-        .progress_chars("#>-"),
+        .progress_chars("█▓▒░ "),
     );
 
     loop {
