@@ -47,6 +47,6 @@ impl Send {
       Outgoing::SatPoint(satpoint) => Box::new(SatPointTransfer { satpoint }),
       Outgoing::Sat(sat) => Box::new(SatTransfer { sat }),
     };
-    transfer.send(&wallet, self.dry_run, address, self.postage, self.fee_rate)
+    transfer.execute(&wallet, self.dry_run, address, self.postage, self.fee_rate)
   }
 }

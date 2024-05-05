@@ -16,7 +16,7 @@ pub(crate) trait Transfer {
     postage: Option<Amount>,
     fee_rate: FeeRate,
   ) -> Result<Transaction>;
-  fn send(
+  fn execute(
     &self,
     wallet: &Wallet,
     dry_run: bool,
