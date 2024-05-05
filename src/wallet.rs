@@ -21,9 +21,9 @@ use {
 };
 
 pub mod batch;
-pub mod transfer;
 pub mod entry;
 pub mod transaction_builder;
+pub mod transfer;
 pub mod wallet_constructor;
 const SCHEMA_VERSION: u64 = 1;
 

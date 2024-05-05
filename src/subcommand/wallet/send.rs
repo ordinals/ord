@@ -1,10 +1,10 @@
-use {super::*, crate::outgoing::Outgoing};
 use crate::wallet::transfer::amount_tranfer::AmountTransfer;
 use crate::wallet::transfer::inscription_transfer::InscriptionTransfer;
 use crate::wallet::transfer::rune_transfer::RuneTransfer;
 use crate::wallet::transfer::sat_transfer::SatTransfer;
 use crate::wallet::transfer::satpoint_transfer::SatPointTransfer;
 use crate::wallet::transfer::Transfer;
+use {super::*, crate::outgoing::Outgoing};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -37,39 +37,15 @@ impl Send {
       .require_network(wallet.chain().network())?;
 
     let transfer: Box<dyn Transfer> = match self.outgoing {
-      Outgoing::Amount(amount) => {
-        Box::new(AmountTransfer{
-          amount
-        })
-      }
-      Outgoing::Rune { decimal, rune } => {
-        Box::new(RuneTransfer {
-          decimal,
-          spaced_rune: rune,
-        })
-      },
-      Outgoing::InscriptionId(id) => {
-        Box::new(InscriptionTransfer {
-          id
-        })
-      },
-      Outgoing::SatPoint(satpoint) => {
-        Box::new(SatPointTransfer {
-          satpoint
-        })
-      },
-      Outgoing::Sat(sat) => {
-        Box::new(SatTransfer {
-          sat
-        })
-      },
+      Outgoing::Amount(amount) => Box::new(AmountTransfer { amount }),
+      Outgoing::Rune { decimal, rune } => Box::new(RuneTransfer {
+        decimal,
+        spaced_rune: rune,
+      }),
+      Outgoing::InscriptionId(id) => Box::new(InscriptionTransfer { id }),
+      Outgoing::SatPoint(satpoint) => Box::new(SatPointTransfer { satpoint }),
+      Outgoing::Sat(sat) => Box::new(SatTransfer { sat }),
     };
-    transfer.send(
-      &wallet,
-      self.dry_run,
-      address,
-      self.postage,
-      self.fee_rate,
-    )
+    transfer.send(&wallet, self.dry_run, address, self.postage, self.fee_rate)
   }
 }
