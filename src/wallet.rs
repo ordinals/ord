@@ -21,10 +21,10 @@ use {
 };
 
 pub mod batch;
+pub mod transfer;
 pub mod entry;
 pub mod transaction_builder;
 pub mod wallet_constructor;
-
 const SCHEMA_VERSION: u64 = 1;
 
 define_table! { RUNE_TO_ETCHING, u128, EtchingEntryValue }
