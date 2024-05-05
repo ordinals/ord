@@ -15,7 +15,12 @@ impl Transfer for SatPointTransfer {
     destination: Address,
     postage: Option<Amount>,
     fee_rate: FeeRate,
-  ) -> crate::Result<Transaction> {
+  ) -> Result<Transaction> {
+    for inscription_satpoint in wallet.inscriptions().keys() {
+      if self.satpoint == *inscription_satpoint {
+        bail!("inscriptions must be sent by inscription ID");
+      }
+    }
     self.create_unsigned_send_satpoint_transaction(
       wallet,
       destination,

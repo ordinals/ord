@@ -35,7 +35,6 @@ impl Send {
       .address
       .clone()
       .require_network(wallet.chain().network())?;
-
     let transfer: Box<dyn Transfer> = match self.outgoing {
       Outgoing::Amount(amount) => Box::new(AmountTransfer { amount }),
       Outgoing::Rune { decimal, rune } => Box::new(RuneTransfer {
