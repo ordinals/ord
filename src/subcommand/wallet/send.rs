@@ -1,10 +1,12 @@
-use crate::wallet::transfer::amount_tranfer::AmountTransfer;
-use crate::wallet::transfer::inscription_transfer::InscriptionTransfer;
-use crate::wallet::transfer::rune_transfer::RuneTransfer;
-use crate::wallet::transfer::sat_transfer::SatTransfer;
-use crate::wallet::transfer::satpoint_transfer::SatPointTransfer;
-use crate::wallet::transfer::Transfer;
-use {super::*, crate::outgoing::Outgoing};
+use {
+  super::*,
+  crate::outgoing::Outgoing,
+  crate::wallet::transfer::{
+    amount_tranfer::AmountTransfer, inscription_transfer::InscriptionTransfer,
+    rune_transfer::RuneTransfer, sat_transfer::SatTransfer, satpoint_transfer::SatPointTransfer,
+    Transfer,
+  },
+};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
