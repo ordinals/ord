@@ -18,6 +18,7 @@ pub mod outputs;
 pub mod receive;
 pub mod restore;
 pub mod resume;
+pub mod pending;
 pub mod sats;
 pub mod send;
 mod shared_args;
@@ -67,6 +68,8 @@ pub(crate) enum Subcommand {
   Restore(restore::Restore),
   #[command(about = "Resume pending etchings")]
   Resume(resume::Resume),
+  #[command(about = "List pending etchings")]
+  Pending(pending::Pending),
   #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
@@ -110,6 +113,7 @@ impl WalletCommand {
       Subcommand::Outputs => outputs::run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
       Subcommand::Resume(resume) => resume.run(wallet),
+      Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
