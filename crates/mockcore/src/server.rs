@@ -149,6 +149,36 @@ impl Api for Server {
     }
   }
 
+  fn get_block_header_info(
+    &self,
+    block_hash: BlockHash,
+  ) -> Result<GetBlockHeaderResult, jsonrpc_core::Error> {
+    let state = self.state();
+
+    let height = match state.hashes.iter().position(|hash| *hash == block_hash) {
+      Some(height) => height,
+      None => return Err(Self::not_found()),
+    };
+
+    Ok(GetBlockHeaderResult {
+      height,
+      hash: block_hash,
+      confirmations: 0,
+      version: Version::ONE,
+      version_hex: None,
+      merkle_root: TxMerkleNode::all_zeros(),
+      time: 0,
+      median_time: None,
+      nonce: 0,
+      bits: String::new(),
+      difficulty: 0.0,
+      chainwork: Vec::new(),
+      n_tx: 0,
+      previous_block_hash: None,
+      next_block_hash: None,
+    })
+  }
+
   fn get_block_stats(&self, height: usize) -> Result<GetBlockStatsResult, jsonrpc_core::Error> {
     let Some(block_hash) = self.state().hashes.get(height).cloned() else {
       return Err(Self::not_found());
@@ -266,7 +296,7 @@ impl Api for Server {
         keypool_size: 0,
         keypool_size_hd_internal: 0,
         pay_tx_fee: Amount::from_sat(0),
-        private_keys_enabled: false,
+        private_keys_enabled: true,
         scanning: None,
         tx_count: 0,
         unconfirmed_balance: Amount::from_sat(0),
@@ -414,7 +444,7 @@ impl Api for Server {
       if output_value > input_value {
         return Err(jsonrpc_core::Error {
           code: jsonrpc_core::ErrorCode::ServerError(-6),
-          message: "insufficent funds".into(),
+          message: "insufficient funds".into(),
           data: None,
         });
       }
@@ -630,12 +660,16 @@ impl Api for Server {
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
+
     let state = self.state();
+
     let current_height: u32 = (state.hashes.len() - 1).try_into().unwrap();
-    let confirmations = state
-      .txid_to_block_height
-      .get(&txid)
-      .map(|tx_height| current_height - tx_height);
+
+    let tx_height = state.txid_to_block_height.get(&txid);
+
+    let confirmations = tx_height.map(|tx_height| current_height - tx_height);
+
+    let blockhash = tx_height.map(|tx_height| state.hashes[usize::try_from(*tx_height).unwrap()]);
 
     if verbose.unwrap_or(false) {
       match state.transactions.get(&txid) {
@@ -667,7 +701,7 @@ impl Api for Server {
                 },
               })
               .collect(),
-            blockhash: None,
+            blockhash,
             confirmations,
             time: None,
             blocktime: None,
@@ -740,11 +774,12 @@ impl Api for Server {
   }
 
   fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error> {
+    let state = self.state();
     Ok(
-      self
-        .state()
+      state
         .locked
         .iter()
+        .filter(|outpoint| state.utxos.contains_key(outpoint))
         .map(|outpoint| (*outpoint).into())
         .collect(),
     )
@@ -856,7 +891,6 @@ impl Api for Server {
         vout: output.vout,
         txid: output.txid,
       };
-      assert!(state.utxos.contains_key(&output));
       assert!(state.locked.insert(output));
     }
 

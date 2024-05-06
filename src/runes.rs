@@ -147,7 +147,7 @@ mod tests {
   fn runes_must_be_greater_than_or_equal_to_minimum_for_height() {
     let minimum = Rune::minimum_at_height(
       Chain::Regtest.network(),
-      Height((Runestone::COMMIT_INTERVAL + 2).into()),
+      Height((Runestone::COMMIT_CONFIRMATIONS + 2).into()),
     )
     .0;
 
@@ -843,6 +843,7 @@ mod tests {
           divisibility: Some(1),
           symbol: Some('$'),
           spacers: Some(1),
+          turbo: true,
         }),
         pointer: Some(10),
         ..default()
@@ -868,6 +869,7 @@ mod tests {
           },
           symbol: None,
           timestamp: id.block,
+          turbo: false,
         },
       )],
       [],
@@ -3908,6 +3910,100 @@ mod tests {
   }
 
   #[test]
+  fn rune_cannot_be_minted_less_than_limit_amount() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          edicts: vec![Edict {
+            id,
+            amount: 111,
+            output: 0,
+          }],
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          mints: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: 0,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
   fn etching_with_amount_can_be_minted() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -4476,6 +4572,362 @@ mod tests {
   }
 
   #[test]
+  fn open_mints_must_be_ended_with_etched_height_plus_offset_end() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            height: (None, Some(100)),
+            offset: (None, Some(2)),
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    let mut entry = RuneEntry {
+      block: id.block,
+      etching: txid0,
+      spaced_rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      terms: Some(Terms {
+        amount: Some(1000),
+        height: (None, Some(100)),
+        offset: (None, Some(2)),
+        cap: Some(100),
+      }),
+      timestamp: id.block,
+      ..default()
+    };
+
+    context.assert_runes([(id, entry)], []);
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+    entry.mints += 1;
+
+    context.assert_runes(
+      [(id, entry)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(id, entry)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
+  fn open_mints_must_be_ended_with_height_end() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            height: (None, Some(10)),
+            offset: (None, Some(100)),
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    let mut entry = RuneEntry {
+      block: id.block,
+      etching: txid0,
+      spaced_rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      terms: Some(Terms {
+        amount: Some(1000),
+        height: (None, Some(10)),
+        offset: (None, Some(100)),
+        cap: Some(100),
+      }),
+      timestamp: id.block,
+      ..default()
+    };
+
+    context.assert_runes([(id, entry)], []);
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+    entry.mints += 1;
+
+    context.assert_runes(
+      [(id, entry)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(id, entry)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
+  fn open_mints_must_be_started_with_height_start() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            height: (Some(11), None),
+            offset: (Some(1), None),
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    let mut entry0 = RuneEntry {
+      block: id.block,
+      etching: txid0,
+      spaced_rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      terms: Some(Terms {
+        amount: Some(1000),
+        height: (Some(11), None),
+        offset: (Some(1), None),
+        cap: Some(100),
+      }),
+      timestamp: id.block,
+      ..default()
+    };
+
+    context.mine_blocks(1);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes([(id, entry0)], []);
+
+    context.mine_blocks(1);
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    entry0.mints += 1;
+
+    context.assert_runes(
+      [(id, entry0)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
+  fn open_mints_must_be_started_with_etched_height_plus_offset_start() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            height: (Some(9), None),
+            offset: (Some(3), None),
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    let mut entry = RuneEntry {
+      block: id.block,
+      etching: txid0,
+      spaced_rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      terms: Some(Terms {
+        amount: Some(1000),
+        height: (Some(9), None),
+        offset: (Some(3), None),
+        cap: Some(100),
+      }),
+      timestamp: id.block,
+      ..default()
+    };
+
+    context.mine_blocks(1);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes([(id, entry)], []);
+
+    context.mine_blocks(1);
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    entry.mints += 1;
+
+    context.assert_runes(
+      [(id, entry)],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
   fn open_mints_with_offset_end_zero_can_be_premined() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -4765,6 +5217,91 @@ mod tests {
           vec![(id, 1000)],
         ),
       ],
+    );
+  }
+
+  #[test]
+  fn open_mints_without_a_cap_are_unmintable() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 1000,
+            output: 0,
+          }],
+          mint: Some(id),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 0,
+          etching: txid0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            offset: (None, Some(2)),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
     );
   }
 
@@ -5196,7 +5733,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_CONFIRMATIONS.into());
 
     let mut witness = Witness::new();
 
@@ -5256,7 +5793,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks((Runestone::COMMIT_INTERVAL - 1).into());
+    context.mine_blocks((Runestone::COMMIT_CONFIRMATIONS - 2).into());
 
     let mut witness = Witness::new();
 
@@ -5303,6 +5840,68 @@ mod tests {
   }
 
   #[test]
+  fn immature_commits_are_not_valid_even_when_bitcoind_is_ahead() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let block_count = context.index.block_count().unwrap().into_usize();
+
+    context.mine_blocks_with_update(1, false);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count, 0, 0, Witness::new())],
+      p2tr: true,
+      ..default()
+    });
+
+    context.mine_blocks_with_update((Runestone::COMMIT_CONFIRMATIONS - 2).into(), false);
+
+    let mut witness = Witness::new();
+
+    let runestone = Runestone {
+      etching: Some(Etching {
+        rune: Some(Rune(RUNE)),
+        terms: Some(Terms {
+          amount: Some(1000),
+          ..default()
+        }),
+        ..default()
+      }),
+      ..default()
+    };
+
+    let tapscript = script::Builder::new()
+      .push_slice::<&PushBytes>(
+        runestone
+          .etching
+          .unwrap()
+          .rune
+          .unwrap()
+          .commitment()
+          .as_slice()
+          .try_into()
+          .unwrap(),
+      )
+      .into_script();
+
+    witness.push(tapscript);
+
+    witness.push([]);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count + 1, 1, 0, witness)],
+      op_return: Some(runestone.encipher()),
+      outputs: 1,
+      ..default()
+    });
+
+    context.mine_blocks_with_update(2, false);
+
+    context.mine_blocks_with_update(1, true);
+
+    context.assert_runes([], []);
+  }
+
+  #[test]
   fn etchings_are_not_valid_without_commitment() {
     let context = Context::builder().arg("--index-runes").build();
 
@@ -5316,7 +5915,7 @@ mod tests {
       ..default()
     });
 
-    context.mine_blocks(Runestone::COMMIT_INTERVAL.into());
+    context.mine_blocks(Runestone::COMMIT_CONFIRMATIONS.into());
 
     let mut witness = Witness::new();
 
@@ -5385,5 +5984,128 @@ mod tests {
     context.mine_blocks(1);
 
     context.assert_runes([], []);
+  }
+
+  #[test]
+  fn edict_with_amount_zero_and_no_destinations_is_ignored() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          premine: Some(u128::MAX),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0,
+        },
+        vec![(id, u128::MAX)],
+      )],
+    );
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id,
+            amount: 0,
+            output: 1,
+          }],
+          ..default()
+        }
+        .encipher(),
+      ),
+      outputs: 0,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: u128::MAX,
+          burned: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
+  fn genesis_rune() {
+    assert_eq!(
+      Chain::Mainnet.first_rune_height(),
+      SUBSIDY_HALVING_INTERVAL * 4,
+    );
+
+    Context::builder()
+      .chain(Chain::Mainnet)
+      .arg("--index-runes")
+      .build()
+      .assert_runes(
+        [(
+          RuneId { block: 1, tx: 0 },
+          RuneEntry {
+            block: 1,
+            burned: 0,
+            divisibility: 0,
+            etching: Txid::all_zeros(),
+            mints: 0,
+            number: 0,
+            premine: 0,
+            spaced_rune: SpacedRune {
+              rune: Rune(2055900680524219742),
+              spacers: 128,
+            },
+            symbol: Some('\u{29C9}'),
+            terms: Some(Terms {
+              amount: Some(1),
+              cap: Some(u128::MAX),
+              height: (
+                Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
+                Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
+              ),
+              offset: (None, None),
+            }),
+            timestamp: 0,
+            turbo: true,
+          },
+        )],
+        [],
+      );
   }
 }

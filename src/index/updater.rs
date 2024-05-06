@@ -250,7 +250,7 @@ impl<'index> Updater<'index> {
     // Default rpcworkqueue in bitcoind is 16, meaning more than 16 concurrent requests will be rejected.
     // Since we are already requesting blocks on a separate thread, and we don't want to break if anything
     // else runs a request, we keep this to 12.
-    const PARALLEL_REQUESTS: usize = 12;
+    let parallel_requests: usize = settings.bitcoin_rpc_limit() as usize;
 
     thread::spawn(move || {
       let rt = tokio::runtime::Builder::new_multi_thread()
@@ -273,8 +273,8 @@ impl<'index> Updater<'index> {
             outpoints.push(outpoint);
           }
           // Break outpoints into chunks for parallel requests
-          let chunk_size = (outpoints.len() / PARALLEL_REQUESTS) + 1;
-          let mut futs = Vec::with_capacity(PARALLEL_REQUESTS);
+          let chunk_size = (outpoints.len() / parallel_requests) + 1;
+          let mut futs = Vec::with_capacity(parallel_requests);
           for chunk in outpoints.chunks(chunk_size) {
             let txids = chunk.iter().map(|outpoint| outpoint.txid).collect();
             let fut = fetcher.get_transactions(txids);
@@ -591,6 +591,7 @@ impl<'index> Updater<'index> {
         .unwrap_or(0);
 
       let mut rune_updater = RuneUpdater {
+        event_sender: self.index.event_sender.as_ref(),
         block_time: block.header.time,
         burned: HashMap::new(),
         client: &self.index.client,

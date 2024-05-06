@@ -362,7 +362,7 @@ inscriptions:
         },
       ],
       indexed: true,
-      runes: Vec::new(),
+      runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
       script_pubkey: destination.payload.script_pubkey().to_asm_string(),
       spent: false,
@@ -769,7 +769,7 @@ fn sending_rune_works() {
     .ord(&ord)
     .run_and_deserialize_output::<ord::subcommand::balances::Output>();
 
-  assert_eq!(
+  pretty_assert_eq!(
     balances,
     ord::subcommand::balances::Output {
       runes: vec![(
@@ -777,7 +777,7 @@ fn sending_rune_works() {
         vec![(
           OutPoint {
             txid: output.txid,
-            vout: 2
+            vout: 0
           },
           Pile {
             amount: 1000,
@@ -795,7 +795,75 @@ fn sending_rune_works() {
 }
 
 #[test]
-fn sending_spaced_rune_works() {
+fn sending_rune_with_change_works() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --postage 1234sat --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 777:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let tx = core.tx_by_id(output.txid);
+
+  assert_eq!(tx.output[1].value, 1234);
+  assert_eq!(tx.output[2].value, 1234);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        SpacedRune::new(Rune(RUNE), 0),
+        vec![
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 223,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          ),
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 2
+            },
+            Pile {
+              amount: 777,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )
+        ]
+        .into_iter()
+        .collect()
+      )]
+      .into_iter()
+      .collect(),
+    }
+  );
+}
+
+#[test]
+fn sending_spaced_rune_works_with_no_change() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -808,10 +876,14 @@ fn sending_spaced_rune_works() {
     "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:A•AAAAAAAAAAAA",
   )
   .core(&core)
-    .ord(&ord)
+  .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);
+
+  let tx = core.tx_by_id(output.txid);
+
+  assert_eq!(tx.output.len(), 1);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
@@ -826,7 +898,7 @@ fn sending_spaced_rune_works() {
         vec![(
           OutPoint {
             txid: output.txid,
-            vout: 2
+            vout: 0
           },
           Pile {
             amount: 1000,
@@ -866,9 +938,10 @@ fn sending_rune_with_divisibility_works() {
         supply: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -1069,7 +1142,7 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   let tx = core.tx_by_id(output.txid);
 
   pretty_assert_eq!(
-    Runestone::decipher(&tx).unwrap().unwrap(),
+    Runestone::decipher(&tx).unwrap(),
     Artifact::Runestone(Runestone {
       pointer: None,
       etching: None,

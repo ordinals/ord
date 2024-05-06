@@ -12,31 +12,6 @@ pub(crate) use {
   unindent::Unindent,
 };
 
-macro_rules! assert_regex_match {
-  ($value:expr, $pattern:expr $(,)?) => {
-    let regex = Regex::new(&format!("^(?s){}$", $pattern)).unwrap();
-    let string = $value.to_string();
-
-    if !regex.is_match(string.as_ref()) {
-      eprintln!("Regex did not match:");
-      pretty_assert_eq!(regex.as_str(), string);
-    }
-  };
-}
-
-macro_rules! assert_matches {
-  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
-    match $expression {
-      $( $pattern )|+ $( if $guard )? => {}
-      left => panic!(
-        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
-        left,
-        stringify!($($pattern)|+ $(if $guard)?)
-      ),
-    }
-  }
-}
-
 pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
 
@@ -118,7 +93,11 @@ impl From<InscriptionTemplate> for Inscription {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+  Inscription {
+    content_type: Some(content_type.into()),
+    body: Some(body.as_ref().into()),
+    ..default()
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {

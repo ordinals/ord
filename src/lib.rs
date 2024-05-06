@@ -98,25 +98,17 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
-macro_rules! tprintln {
-  ($($arg:tt)*) => {
-    if cfg!(test) {
-      eprint!("==> ");
-      eprintln!($($arg)*);
-    }
-  };
-}
-
 pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
-mod decimal;
+pub mod decimal;
 mod deserialize_from_str;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
 mod into_usize;
+mod macros;
 mod object;
 pub mod options;
 pub mod outgoing;
@@ -241,13 +233,12 @@ fn gracefully_shutdown_indexer() {
 
 pub fn main() {
   env_logger::init();
-
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
     }
 
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+    eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
       .lock()

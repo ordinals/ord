@@ -5,7 +5,7 @@ pub struct Output {
   pub cardinal: u64,
   pub ordinal: u64,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub runes: Option<BTreeMap<SpacedRune, u128>>,
+  pub runes: Option<BTreeMap<SpacedRune, Decimal>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
@@ -26,7 +26,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_for_output(output)?;
+    let rune_balances = wallet.get_runes_balances_in_output(output)?;
 
     let is_ordinal = inscription_outputs.contains(output);
     let is_runic = !rune_balances.is_empty();
@@ -37,7 +37,16 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
-        *runes.entry(spaced_rune).or_default() += pile.amount;
+        runes
+          .entry(spaced_rune)
+          .and_modify(|decimal: &mut Decimal| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert(Decimal {
+            value: pile.amount,
+            scale: pile.divisibility,
+          });
       }
       runic += txout.value;
     }
