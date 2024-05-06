@@ -267,19 +267,21 @@ a transaction's inputs to its outputs.</p>
 <p>A transaction output may hold balances of any number of runes.</p>
 <p>Runes are identified by IDs, which consist of the block in which a rune was
 etched and the index of the etching transaction within that block, represented
-in text as <code>BLOCK:TX</code>. For example, the ID of the rune minted in the 20th
+in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th
 transaction of the 500th block is <code>500:20</code>.</p>
 <h2 id="etching"><a class="header" href="#etching">Etching</a></h2>
 <p>Runes come into existence by being etched. Etching creates a rune and sets its
 properties. Once set, these properties are immutable, even to its etcher.</p>
 <h3 id="name"><a class="header" href="#name">Name</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-eight
-characters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
+<p>Names consist of the letters A through Z and are between one and twenty-six
+letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
 <p>Names may contain spacers, represented as bullets, to aid readability.
 <code>UNCOMMONGOODS</code> might be etched as <code>UNCOMMON•GOODS</code>.</p>
 <p>The uniqueness of a name does not depend on spacers. Thus, a rune may not be
 etched with the same sequence of letters as an existing rune, even if it has
 different spacers.</p>
+<p>Spacers can only be placed between two letters. Finally, spacers do not
+count towards the letter count.</p>
 <h3 id="divisibility"><a class="header" href="#divisibility">Divisibility</a></h3>
 <p>A rune's divisibility is how finely it may be divided into its atomic units.
 Divisibility is expressed as the number of digits permissible after the decimal
