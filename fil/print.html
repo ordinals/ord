@@ -1878,7 +1878,6 @@ ord index update
 </code></pre>
 <p>Siyempre maaari mo ring itakda ang lokasyon ng direktoryo ng data sa iyong sarili gamit ang <code>ord --datadir &lt;DIR&gt; index update</code> o bigyan ito ng partikular na filename at path na may <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sat-hunting"><a class="header" href="#sat-hunting">Sat Hunting</a></h1>
-<p>Ang gabay na ito ay hindi na napapanahon. Ang <code>ord</code> binary ay binago upang bumuo lamang ng buong satoshi index kapag ang <code>--index-sats</code> na opsyon ay ibinigay. Bukod pa rito, mayroon na ngayong built-in na wallet ang <code>ord</code> na nakapaloob sa isang Bitcoin Core wallet. Tingnan ang <code>ord wallet --help</code> na command.</p>
 <p>Ang ordinal hunting ay mahirap ngunit kapaki-pakinabang. Ang pakiramdam ng pagmamay-ari ng pitaka puno ng mga UTXOs, nag naglalaman ng mga rare at exotic sats, lubos na mahalaga.</p>
 <p>Ang mga ordinal ay mga numero para sa mga satoshi. Ang bawat satoshi ay may ordinal na numero at bawat ordinal na numero ay may satoshi.</p>
 <h2 id="paghahanda"><a class="header" href="#paghahanda">Paghahanda</a></h2>
@@ -1902,10 +1901,10 @@ ord index update
 <p>Kumuha ng kopya ng <code>ord</code> mula sa <a href="https://github.com/ordinals/ord/">repo</a>.</p>
 </li>
 <li>
-<p>I-run ang <code>RUST_LOG=info ord index</code>. Dapat itong kumonekta sa iyong bitcoin core node at simulan ang pag-index.</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>Hintaying matapos ang pag-index.</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -2048,7 +2047,7 @@ ord index update
 <h4 id="sparrow-wallet"><a class="header" href="#sparrow-wallet">Sparrow Wallet</a></h4>
 <p>Mag-navigate sa tab na <code>Setting</code>, pagkatapos ay sa <code>Script Policy</code>, at pindutin ang i-edit button to display the descriptor.</p>
 <h3 id="pag-transfer-ng-ordinals"><a class="header" href="#pag-transfer-ng-ordinals">Pag-transfer ng Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>

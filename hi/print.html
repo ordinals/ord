@@ -1878,7 +1878,6 @@ ord index update
 </code></pre>
 <p>आप निस्‍संदेह <code>ord --datadir &lt;DIR&gt; index update</code> के साथ डेटा निर्देशिका का स्थान स्वयं भी सेट कर सकते हैं या इसे <code>ord --index &lt;FILENAME&gt; index update</code> के साथ एक विशिष्ट फ़ाइल नाम और पथ भी दे सकते हैं।</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="सैट-हंटिंग"><a class="header" href="#सैट-हंटिंग">सैट हंटिंग</a></h1>
-<p>_यह मार्गदर्शिका पुरानी हो गई है। जब से इसे लिखा गया है, <code>ऑर्ड</code> बाइनरी को <code>--index-sats</code> फ्लैग आपूर्ति करने के बाद पूर्ण सातोशी सूचकांक बनाने के लिए बदल दिया गया था। इसके अतिरिक्त, ऑर्ड में अब एक अंतरंग वॉलेट है जो बिटकॉइन कोर वॉलेट को सम्मिलित करता है। <code>ord wallet –help</code> पर देखें।</p>
 <p>ऑर्डिनल हंटिंग कठिन जरूर है लेकिन बहुत लाभदायक है। यूटीएक्सओ से युक्‍त वॉलेट के मालिक बनने का एहसास, सैट की आकर्षकता और दुर्लभता का सूचक है, जो अतुलनीय है।</p>
 <p>ऑर्डिनल्स सातोशी के लिए संख्याएँ हैं। प्रत्येक सातोशी में क्रमसूचक संख्या होती है और प्रत्येक क्रमसूचक संख्या की एक सातोशी होती है।</p>
 <h2 id="तैयारी-करना"><a class="header" href="#तैयारी-करना">तैयारी करना</a></h2>
@@ -1902,10 +1901,10 @@ ord index update
 <p><a href="https://github.com/ordinals/ord/">रेपो</a> से <code>ऑर्ड</code> की एक प्रति प्राप्त करें।</p>
 </li>
 <li>
-<p><code>RUST_LOG=जानकारी ऑर्ड इंडेक्स</code> क्रियाशील करें। यह आपके बिटकॉइन कोर नोड से जुड़ना चाहिए और सूचकांक शुरू हो जाना चाहिए।</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>इसके सूचकांक के समाप्त होने तक प्रतीक्षा करें।</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -2048,7 +2047,7 @@ ord index update
 <h4 id="सपैरो-वॉलेट"><a class="header" href="#सपैरो-वॉलेट">स्‍पैरो वॉलेट</a></h4>
 <p>पहले सेटिंग्स टैब पर जाएँ, फिर स्क्रिप्ट पॉलिसी पर जाएँ, और डिस्क्रिप्टर प्रदर्शित करने के लिए एडिट बटन दबाएँ।</p>
 <h3 id="ऑरडिनलस-करमसूचक-संखयाएं-सथानांतरित-करना"><a class="header" href="#ऑरडिनलस-करमसूचक-संखयाएं-सथानांतरित-करना">ऑर्डिनल्‍स (क्रमसूचक संख्‍याएं) स्थानांतरित करना</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>

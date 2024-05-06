@@ -250,7 +250,6 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="sat-헌팅"><a class="header" href="#sat-헌팅">SAT 헌팅</a></h1>
-<p><em>이 가이드는 오래되었다. 이 가이드가 작성된 이후, <code>ord</code> 바이너리는 <code>--index-sats</code> 플래그가 제공될 때만 풀 사토시 인덱스를 빌드하도록 변경되다. 또한 <code>ord</code>에는 이제 Bitcoin Core 지갑을 감싸는 지갑이 내장되어 있다. <code>ord wallet —help</code>를 참조하자.</em></p>
 <p>오디널 헌팅은 어렵지만 보람이 있다. 희귀하고 이색적인 SAT의 향기가 풍기는 UTXO가 가득한 지갑을 소유했을 때의 기분은 그 무엇과도 비교할 수 없다.</p>
 <p>오디널은 사토시를 나타내는 숫자이다. 모든 사토시에는 서수가 있고 모든 서수에는 사토시가 있다.</p>
 <h2 id="준비"><a class="header" href="#준비">준비</a></h2>
@@ -274,10 +273,10 @@
 <p><a href="https://github.com/ordinals/ord/">the repo</a>에서 <code>ord</code>의 사본을 가져오자.</p>
 </li>
 <li>
-<p><code>RUST_LOG=info ord index</code>를 실행한다. Bitcoin Core 노드에 연결되고 인덱싱을 시작할 것이다.</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>인덱싱이 완료될 때까지 기다린다.</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -420,7 +419,7 @@
 <h4 id="스패로우-월렛"><a class="header" href="#스패로우-월렛">스패로우 월렛</a></h4>
 <p><code>Settings</code> 탭으로 이동한 다음 <code>Script Policy</code>로 이동한 후 편집 버튼을 눌러 기술자를 표시한다.</p>
 <h3 id="오디널스-전송하기"><a class="header" href="#오디널스-전송하기">오디널스 전송하기</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>

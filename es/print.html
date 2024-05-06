@@ -1878,7 +1878,6 @@ ord index update
 </code></pre>
 <p>También tienes la opción de determinar la ubicación del directorio de datos utilizando el comando <code>ord --datadir &lt;DIR&gt; index update</code> o asignarle un nombre de archivo y ruta específicos utilizando el comando <code>ord --index &lt;NOMBRE_DE_ARCHIVO&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="caza-de-sats"><a class="header" href="#caza-de-sats">Caza de Sats</a></h1>
-<p><em>Esta guía está desactualizada. Desde que se escribió, el binario <code>ord</code> ord fue modificado para construir el índice completo de satoshis únicamente cuando se utiliza la bandera <code>--index-sats</code>. Además, <code>ord</code> ahora tiene un monedero integrado que envuelve un monedero de Bitcoin Core. Ver <code>ord wallet –help</code>.</em></p>
 <p>La caza de Ordinals es difícil pero gratificante. La sensación de poseer un monedero lleno de UTXOs, impregnado con el aroma de sats raros y exóticos, es incomparable.</p>
 <p>Los Ordinales son números para los satoshis. Cada satoshi tiene un número ordinal y cada número ordinal tiene un satoshi.</p>
 <h2 id="preparación"><a class="header" href="#preparación">Preparación</a></h2>
@@ -1902,10 +1901,10 @@ ord index update
 <p>Obtén una copia de ord desde <a href="https://github.com/ordinals/ord/">el repositorio</a>.</p>
 </li>
 <li>
-<p>Ejecuta <code>RUST_LOG=info ord index</code>. Debería conectarse a tu nodo bitcoin core e iniciar el proceso de indexación.</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>Espera hasta que termine de indexar.</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -2050,7 +2049,7 @@ ord index update
 <h4 id="monedero-sparrow"><a class="header" href="#monedero-sparrow">Monedero Sparrow</a></h4>
 <p>Haz clic en la pestaña <code>Settings</code>, luego en <code>Script Policy</code>, y presiona el botón de editar para mostrar el descriptor.</p>
 <h3 id="transferir-ordinals"><a class="header" href="#transferir-ordinals">Transferir Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>

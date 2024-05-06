@@ -1878,7 +1878,6 @@ ord index update
 </code></pre>
 <p>You can of course also set the location of the data directory yourself with <code>ord --datadir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="جمع-الساتوشي"><a class="header" href="#جمع-الساتوشي">جمع الساتوشي</a></h1>
-<p>هذا الدليل غير محدّث. منذ كتابته، تم تغيير البرنامج <code>ord</code> الثنائي لبناء فهرس الساتوشي الكامل فقط عندما يتم توفير <code>ord</code> ,<code>--index-sats</code> الآن يحتوي على محفظة مدمجة تلتف حول محفظة بيتكوين الأساسية. راجع <code>ord wallet --help</code>._</p>
 <p>صيد الأوردينال أمرٌ صعب ولكنه مكافئ. الشعور بامتلاك محفظة مليئة بـ UTXOs، محملة بالساتوشي النادرة والاستثنائية، لا يمكن وصفه.</p>
 <p>أوردينالس هي أعداد تُستخدم للساتوشي. كل ساتوشي لديه رقم ترتيبي وكل رقم ترتيبي لديه ساتوشي.</p>
 <h2 id="التحضير"><a class="header" href="#التحضير">التحضير</a></h2>
@@ -1902,10 +1901,10 @@ ord index update
 <p>إحصل على نسخه من <code>ord</code> من خلال <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
 </li>
 <li>
-<p>قم بتشغيل الأمر <code>RUST_LOG=info ord index</code>. يجب أن يتصل بنود Bitcoin Core الخاص بك ويبدأ عملية الفهرسة.</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>انتظر حتى انتهاء عملية الفهرسة.</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -2048,7 +2047,7 @@ ord index update
 <h4 id="محفظة-سباروو"><a class="header" href="#محفظة-سباروو">محفظة سباروو</a></h4>
 <p>انتقل إلى علامة التبويب "الإعدادات" <code>Settings</code> ثم انتقل إلى "سياسة النص" <code>Script Policy</code> واضغط على زر التحرير (Edit) لعرض الوصف (descriptor).</p>
 <h3 id="إرسال-الأوردينالس"><a class="header" href="#إرسال-الأوردينالس">إرسال الأوردينالس</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>

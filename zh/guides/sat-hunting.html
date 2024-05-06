@@ -250,7 +250,6 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="猎聪"><a class="header" href="#猎聪">猎聪</a></h1>
-<p><em>本指南已过时。自编写以来，“ord”安装文件已更改仅当提供“--index-sats”标志时才构建完整的聪索引。此外，“ord”现在有一个内置钱包，其中包含比特币核心钱包。请参阅<code>ord wallet --help</code>。</em></p>
 <p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.</p>
 <p>Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi.</p>
 <h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
@@ -274,10 +273,10 @@
 <p>Get a copy of <code>ord</code> from <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
 </li>
 <li>
-<p>Run <code>RUST_LOG=info ord index</code>. It should connect to your bitcoin core node and start indexing.</p>
+<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
 </li>
 <li>
-<p>Wait for it to finish indexing.</p>
+<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
 </li>
 </ul>
 </li>
@@ -420,7 +419,7 @@
 <h4 id="麻雀钱包"><a class="header" href="#麻雀钱包">麻雀钱包</a></h4>
 <p>Navigate to the <code>Settings</code> tab, then to <code>Script Policy</code>, and press the edit button to display the descriptor.</p>
 <h3 id="transferring-ordinals"><a class="header" href="#transferring-ordinals">Transferring Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send a the satoshi <code>zonefruits</code> do:</p>
+<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>
