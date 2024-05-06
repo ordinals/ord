@@ -4,10 +4,10 @@ use {super::*, bitcoincore_rpc::Auth};
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
   bitcoin_data_dir: Option<PathBuf>,
+  bitcoin_rpc_limit: Option<u32>,
   bitcoin_rpc_password: Option<String>,
   bitcoin_rpc_url: Option<String>,
   bitcoin_rpc_username: Option<String>,
-  bitcoin_rpc_limit: Option<u32>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
   config: Option<PathBuf>,
@@ -989,6 +989,7 @@ mod tests {
     let env = vec![
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
       ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
+      ("BITCOIN_RPC_LIMIT", "12"),
       ("BITCOIN_RPC_URL", "url"),
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
@@ -1066,6 +1067,7 @@ mod tests {
         Options::try_parse_from([
           "ord",
           "--bitcoin-data-dir=/bitcoin/data/dir",
+          "--bitcoin-rpc-limit=12",
           "--bitcoin-rpc-password=bitcoin password",
           "--bitcoin-rpc-url=url",
           "--bitcoin-rpc-username=bitcoin username",
@@ -1092,10 +1094,10 @@ mod tests {
       ),
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
+        bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
         bitcoin_rpc_url: Some("url".into()),
         bitcoin_rpc_username: Some("bitcoin username".into()),
-        bitcoin_rpc_limit: Some(12),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
         config: Some("config".into()),
