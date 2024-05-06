@@ -99,7 +99,7 @@ impl Media {
     ("text/css",                    TEXT,    Code(Css),        &["css"]),
     ("text/html",                   TEXT,    Iframe,           &[]),
     ("text/html;charset=utf-8",     TEXT,    Iframe,           &["html"]),
-    ("text/javascript",             TEXT,    Code(JavaScript), &["js"]),
+    ("text/javascript",             TEXT,    Code(JavaScript), &["js", "mjs"]),
     ("text/markdown",               TEXT,    Markdown,         &[]),
     ("text/markdown;charset=utf-8", TEXT,    Markdown,         &["md"]),
     ("text/plain",                  TEXT,    Text,             &[]),
