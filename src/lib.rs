@@ -274,7 +274,7 @@ pub fn main() {
     }
     Ok(output) => {
       if let Some(output) = output {
-        output.print(format);
+        output.print(format.unwrap_or_default());
       }
       gracefully_shutdown_indexer();
     }
