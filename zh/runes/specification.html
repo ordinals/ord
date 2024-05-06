@@ -335,8 +335,8 @@
 <h4 id="定位符石输出"><a class="header" href="#定位符石输出">定位符石输出</a></h4>
 <p>搜索第一个脚本公钥以 <code>OP_RETURN</code> <code>OP_13</code> 开头的输出。如果解读失败，不会考虑后续匹配的输出。</p>
 <h4 id="组装有效载荷缓冲区"><a class="header" href="#组装有效载荷缓冲区">组装有效载荷缓冲区</a></h4>
-<p>The payload buffer is assembled by concatenating data pushes, after <code>OP_13</code>, in the matching script pubkey.</p>
-<p>Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is encountered, i.e., any opcode equal to or greater than opcode 79, the deciphered runestone is a cenotaph with no etching, mint, or edicts.</p>
+<p>有效载荷缓冲区是通过将匹配的脚本 pubkey 中 <code>OP_13</code> 之后的数据推送连接起来而组装成的。</p>
+<p>数据推送是操作码 0 到 78 之间的操作码。如果遇到大于或等于操作码 79 的操作码，则解密的符文是一个没有雕刻、铸造或法令的纪念碑。</p>
 <h4 id="解码整数序列"><a class="header" href="#解码整数序列">解码整数序列</a></h4>
 <p>从有效载荷中解码一系列 128 位整数作为 LEB128 变长整数。</p>
 <p>LEB128 变长整数被编码为一系列字节，每个字节的最高有效位都被设置，最后一个字节除外。</p>
@@ -441,7 +441,7 @@
 <span class="boring">}</span></code></pre></pre>
 <p><code>Etching</code>标志表示此交易包含蚀刻。</p>
 <p><code>Terms</code>标志表示此交易的蚀刻具有开放的铸币条款。</p>
-<p>The <code>Turbo</code> flag marks this transaction's etching as opting into future protocol changes. These protocol changes may increase light client validation costs, or just be highly degenerate.</p>
+<p><code>Turbo</code>标记将此交易的蚀刻设置为选择未来协议可以更改。这些协议更改可能会增加轻客户端验证成本，或者仅仅是高度退化的。</p>
 <p><code>Cenotaph</code>标志表示无法识别</p>
 <p>如果在移除已识别标志后，标志字段的值非零，则该符石为纪念碑。</p>
 <h5 id="符文"><a class="header" href="#符文">符文</a></h5>
@@ -547,13 +547,13 @@
 }
 <span class="boring">}</span></code></pre></pre>
 <p><code>6402364363415443603228541259936211926</code> 对应于符文名称 <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code>.</p>
-<p>如果存在 <code>rune </code>，则它必须在蚀刻出现的区块中解锁。</p>
+<p>如果存在 <code>rune</code>，则它必须在蚀刻出现的区块中解锁。</p>
 <p>最初，所有长度为十三及以上的符文名称，直到第一个保留的符文名称，都被解锁。</p>
 <p>符文从840,000区块开始解锁，即符文协议激活的区块。</p>
 <p>此后，每个17,500区块周期，连续解锁下一个最短长度的符文名称。因此，在840,000到857,500区块之间，解锁十二字符的符文名称，在857,500到875,000区块之间，解锁十一字符的符文名称，依此类推，直到在1,032,500到1,050,000区块之间解锁一个字符的符文名称。具体的解锁时间表请参见ord代码库。</p>
 <p>为了防止对已广播但未挖掘的蚀刻进行前置操作，如果正在蚀刻非保留的符文名称，则蚀刻交易必须包含对正在蚀刻的名称的有效承诺。</p>
-<p>承诺commitment包括在输入见证tapscript中推送的符文名称数据，编码为省略尾随零字节的小端整数，其中被花费的输出至少有六次确认。</p>
-<p>如果没有有效的承诺commitment，蚀刻将被忽略。</p>
+<p>承诺 <code>commitment</code> 包括在输入见证 <code>tapscript</code> 中推送的符文名称数据，编码为省略尾随零字节的小端整数，其中被花费的输出至少有六次确认。</p>
+<p>如果没有有效的承诺 <code>commitment</code>，蚀刻将被忽略。</p>
 <h4 id="铸造-1"><a class="header" href="#铸造-1">铸造</a></h4>
 <p>符石可以通过在铸币<code>Mint</code>字段中包含符文的ID来铸造符文。</p>
 <p>如果铸币是开放的，铸币金额将添加到交易输入中的未分配符文中。这些符文可以使用法令转移，并且否则将转移到第一个非<code>OP_RETURN</code>输出，或由指针Pointer`字段指定的输出。</p>
