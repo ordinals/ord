@@ -40,7 +40,7 @@ The recursive endpoints are:
 - `/r/blocktime`: UNIX time stamp of latest block.
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
-- `/r/inscription/:inscription_id`: information about an inscription
+- `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
 - `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
 - `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.

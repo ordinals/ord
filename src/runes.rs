@@ -3910,6 +3910,100 @@ mod tests {
   }
 
   #[test]
+  fn rune_cannot_be_minted_less_than_limit_amount() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let (txid0, id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(RUNE)),
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          mints: 0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          ..default()
+        },
+      )],
+      [],
+    );
+
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          mint: Some(id),
+          edicts: vec![Edict {
+            id,
+            amount: 111,
+            output: 0,
+          }],
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid0,
+          terms: Some(Terms {
+            amount: Some(1000),
+            cap: Some(100),
+            ..default()
+          }),
+          mints: 1,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          premine: 0,
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0,
+        },
+        vec![(id, 1000)],
+      )],
+    );
+  }
+
+  #[test]
   fn etching_with_amount_can_be_minted() {
     let context = Context::builder().arg("--index-runes").build();
 
