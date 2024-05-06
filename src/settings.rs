@@ -109,10 +109,10 @@ impl Settings {
   pub(crate) fn or(self, source: Settings) -> Self {
     Self {
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
+      bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
       bitcoin_rpc_password: self.bitcoin_rpc_password.or(source.bitcoin_rpc_password),
       bitcoin_rpc_url: self.bitcoin_rpc_url.or(source.bitcoin_rpc_url),
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
-      bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
       config: self.config.or(source.config),
@@ -149,10 +149,10 @@ impl Settings {
   pub(crate) fn from_options(options: Options) -> Self {
     Self {
       bitcoin_data_dir: options.bitcoin_data_dir,
+      bitcoin_rpc_limit: options.bitcoin_rpc_limit,
       bitcoin_rpc_password: options.bitcoin_rpc_password,
       bitcoin_rpc_url: options.bitcoin_rpc_url,
       bitcoin_rpc_username: options.bitcoin_rpc_username,
-      bitcoin_rpc_limit: options.bitcoin_rpc_limit,
       chain: options
         .signet
         .then_some(Chain::Signet)
@@ -233,10 +233,10 @@ impl Settings {
 
     Ok(Self {
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
+      bitcoin_rpc_limit: get_u32("BITCOIN_RPC_LIMIT")?,
       bitcoin_rpc_password: get_string("BITCOIN_RPC_PASSWORD"),
       bitcoin_rpc_url: get_string("BITCOIN_RPC_URL"),
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
-      bitcoin_rpc_limit: get_u32("BITCOIN_RPC_LIMIT")?,
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
       config: get_path("CONFIG"),
@@ -325,6 +325,7 @@ impl Settings {
 
     Ok(Self {
       bitcoin_data_dir: Some(bitcoin_data_dir),
+      bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
       bitcoin_rpc_password: self.bitcoin_rpc_password,
       bitcoin_rpc_url: Some(
         self
@@ -333,7 +334,6 @@ impl Settings {
           .unwrap_or_else(|| format!("127.0.0.1:{}", chain.default_rpc_port())),
       ),
       bitcoin_rpc_username: self.bitcoin_rpc_username,
-      bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
       config: None,
@@ -988,8 +988,8 @@ mod tests {
   fn from_env() {
     let env = vec![
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
-      ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
       ("BITCOIN_RPC_LIMIT", "12"),
+      ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
       ("BITCOIN_RPC_URL", "url"),
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
@@ -1021,10 +1021,10 @@ mod tests {
       Settings::from_env(env).unwrap(),
       Settings {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
+        bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
         bitcoin_rpc_url: Some("url".into()),
         bitcoin_rpc_username: Some("bitcoin username".into()),
-        bitcoin_rpc_limit: Some(12),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
         config: Some("config".into()),
