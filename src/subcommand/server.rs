@@ -3225,7 +3225,9 @@ mod tests {
             divisibility: 1,
             symbol: None,
           }
-        )],
+        )]
+        .into_iter()
+        .collect(),
         spent: false,
       }
     );
