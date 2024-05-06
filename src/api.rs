@@ -126,7 +126,7 @@ pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: Vec<(SpacedRune, Pile)>,
+  pub runes: BTreeMap<SpacedRune, Pile>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: String,
   pub spent: bool,
@@ -141,7 +141,7 @@ impl Output {
     outpoint: OutPoint,
     tx_out: TxOut,
     indexed: bool,
-    runes: Vec<(SpacedRune, Pile)>,
+    runes: BTreeMap<SpacedRune, Pile>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
