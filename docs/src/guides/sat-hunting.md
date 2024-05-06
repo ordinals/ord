@@ -1,11 +1,6 @@
 Sat Hunting
 ===========
 
-*This guide is out of date. Since it was written, the `ord` binary was changed
-to only build the full satoshi index when the `--index-sats` flag is supplied.
-Additionally, `ord` now has a built-in wallet that wraps a Bitcoin Core wallet.
-See `ord wallet --help`.*
-
 Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
 of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.
 
@@ -42,10 +37,9 @@ There are a few things you'll need before you start.
 
    - Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/).
 
-   - Run `RUST_LOG=info ord index`. It should connect to your bitcoin core
-     node and start indexing.
-
-   - Wait for it to finish indexing.
+   - Run `ord --index-sats server`. It should connect to your bitcoin core node and start indexing.
+     
+   - Once it has finished indexing, leave the server running and submit new `ord` commands in a separate terminal session.
 
 3. Third, you'll need a wallet with UTXOs that you want to search.
 
@@ -244,7 +238,7 @@ button to display the descriptor.
 ### Transferring Ordinals
 
 The `ord` wallet supports transferring specific satoshis by using the
-name of the satoshi. To send a the satoshi `zonefruits` do:
+name of the satoshi. To send the satoshi `zonefruits`, do:
 
 ```
 ord wallet send <RECEIVING_ADDRESS> zonefruits --fee-rate 21
