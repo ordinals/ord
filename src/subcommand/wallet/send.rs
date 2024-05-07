@@ -349,7 +349,7 @@ impl Send {
             value: postage.to_sat(),
           },
           TxOut {
-            script_pubkey: destination.script_pubkey(),
+            script_pubkey: destination,
             value: postage.to_sat(),
           },
         ]

@@ -123,7 +123,7 @@ pub struct TransactionBuilder {
   locked_utxos: BTreeSet<OutPoint>,
   network: Network,
   outgoing: SatPoint,
-  outputs: Vec<(OutputType, Amount)>,
+  outputs: Vec<TxOut>,
   recipient: ScriptBuf,
   runic_utxos: BTreeSet<OutPoint>,
   target: Target,
@@ -247,14 +247,7 @@ impl TransactionBuilder {
     self.inputs.push(self.outgoing.outpoint);
     self
       .outputs
-      .push(
-        if self.recipient.is_op_return() {
-          (OutputType::ScriptBuf(self.recipient.clone()), Amount::from_sat(amount))
-        } else {
-          (OutputType::Address(Address::from_script(&self.recipient.as_script(), self.network)?),
-           Amount::from_sat(amount))
-        }
-      );
+      .push(TxOut { script_pubkey: self.recipient.clone(), value: amount });
 
     tprintln!(
       "selected outgoing outpoint {} with value {}",
@@ -269,7 +262,7 @@ impl TransactionBuilder {
     assert_eq!(self.outputs.len(), 1, "invariant: only one output");
 
     assert_eq!(
-      self.outputs[0].0.script_pubkey(), self.recipient,
+      self.outputs[0].script_pubkey, self.recipient,
       "invariant: first output is recipient"
     );
 
@@ -281,24 +274,22 @@ impl TransactionBuilder {
       tprintln!("aligned outgoing with {sat_offset} sat padding output");
       self.outputs.insert(
         0,
-        (
-          OutputType::Address(
-            self
-              .unused_change_addresses
-              .pop()
-              .expect("not enough change addresses")
-          ),
-          Amount::from_sat(sat_offset),
-        ),
+        TxOut {
+          script_pubkey: self.unused_change_addresses
+            .pop()
+            .unwrap_or_else(|| panic!("not enough change addresses"))
+            .script_pubkey(),
+          value: sat_offset
+        }
       );
-      self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(sat_offset);
+      self.outputs.last_mut().expect("no output").value -= sat_offset;
     }
 
     self
   }
 
   fn pad_alignment_output(mut self) -> Result<Self> {
-    if self.outputs[0].0.script_pubkey() == self.recipient {
+    if self.outputs[0].script_pubkey == self.recipient {
       tprintln!("no alignment output");
     } else {
       let dust_limit = self
@@ -306,21 +297,22 @@ impl TransactionBuilder {
         .last()
         .unwrap()
         .script_pubkey()
-        .dust_value();
+        .dust_value()
+        .to_sat();
 
-      if self.outputs[0].1 >= dust_limit {
+      if self.outputs[0].value >= dust_limit {
         tprintln!("no padding needed");
       } else {
-        while self.outputs[0].1 < dust_limit {
+        while self.outputs[0].value < dust_limit {
           let (utxo, size) =
-            self.select_cardinal_utxo((dust_limit - self.outputs[0].1).to_sat(), true)?;
+            self.select_cardinal_utxo(dust_limit - self.outputs[0].value, true)?;
 
           self.inputs.insert(0, utxo);
-          self.outputs[0].1 += size;
+          self.outputs[0].value += size.to_sat();
 
           tprintln!(
             "padded alignment output to {} with additional {size} sat input",
-            self.outputs[0].1
+            self.outputs[0].value
           );
         }
       }
@@ -333,7 +325,7 @@ impl TransactionBuilder {
     let estimated_fee = self.estimate_fee();
 
     let min_value = match self.target {
-      Target::Postage => self.outputs.last().unwrap().0.script_pubkey().dust_value(),
+      Target::Postage => self.outputs.last().unwrap().script_pubkey.dust_value(),
       Target::Value(value) | Target::ExactPostage(value) => value,
     };
 
@@ -341,7 +333,7 @@ impl TransactionBuilder {
       .checked_add(estimated_fee)
       .ok_or(Error::ValueOverflow)?;
 
-    if let Some(mut deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
+    if let Some(mut deficit) = total.checked_sub(Amount::from_sat(self.outputs.last().unwrap().value)) {
       while deficit > Amount::ZERO {
         let additional_fee = self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES);
 
@@ -357,7 +349,7 @@ impl TransactionBuilder {
 
         self.inputs.push(utxo);
 
-        self.outputs.last_mut().unwrap().1 += value;
+        self.outputs.last_mut().unwrap().value += value.to_sat();
 
         if benefit > deficit {
           tprintln!("added {value} sat input to cover {deficit} sat deficit");
@@ -378,13 +370,13 @@ impl TransactionBuilder {
     let total_output_amount = self
       .outputs
       .iter()
-      .map(|(_address, amount)| *amount)
+      .map(|tx_out| Amount::from_sat(tx_out.value))
       .sum::<Amount>();
 
     self
       .outputs
       .iter()
-      .find(|(address, _amount)| &address.script_pubkey() == &self.recipient)
+      .find(|tx_out| &tx_out.script_pubkey == &self.recipient)
       .expect("couldn't find output that contains the index");
 
     let value = total_output_amount - Amount::from_sat(sat_offset);
@@ -409,16 +401,15 @@ impl TransactionBuilder {
               .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
         tprintln!("stripped {} sats", (value - target).to_sat());
-        self.outputs.last_mut().expect("no outputs found").1 = target;
-        self.outputs.push((
-          OutputType::Address(
-            self
-              .unused_change_addresses
-              .pop()
-              .expect("not enough change addresses")
-          ),
-          value - target,
-        ));
+        self.outputs.last_mut().expect("no outputs found").value = target.to_sat();
+        self.outputs.push(TxOut {
+          script_pubkey: self
+            .unused_change_addresses
+            .pop()
+            .unwrap_or_else(|| panic!("not enough change addresses"))
+            .script_pubkey(),
+          value: (value - target).to_sat()
+        })
       }
     }
 
@@ -433,10 +424,10 @@ impl TransactionBuilder {
     let total_output_amount = self
       .outputs
       .iter()
-      .map(|(_address, amount)| *amount)
+      .map(|tx_out| Amount::from_sat(tx_out.value))
       .sum::<Amount>();
 
-    let (_address, last_output_amount) = self
+    let last_tx_out = self
       .outputs
       .last_mut()
       .expect("No output to deduct fee from");
@@ -447,13 +438,13 @@ impl TransactionBuilder {
     );
 
     assert!(
-      *last_output_amount >= fee,
+      last_tx_out.value >= fee.to_sat(),
       "invariant: last output can pay fee: {} {}",
-      *last_output_amount,
+      last_tx_out.value,
       fee,
     );
 
-    *last_output_amount -= fee;
+    last_tx_out.value -= fee.to_sat();
 
     self
   }
@@ -468,13 +459,13 @@ impl TransactionBuilder {
       self
         .outputs
         .iter()
-        .map(|(output, _amount)| output)
+        .map(|tx_out| tx_out)
         .cloned()
         .collect(),
     )
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<OutputType>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: Vec<TxOut>) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -488,16 +479,6 @@ impl TransactionBuilder {
         .collect(),
       output: outputs
         .into_iter()
-        .map(|output_type| match output_type {
-          OutputType::Address(addr) => TxOut {
-            value: 0,
-            script_pubkey: addr.script_pubkey(),
-          },
-          OutputType::ScriptBuf(script) => TxOut {
-            value: 0,
-            script_pubkey: script,
-          },
-        })
         .collect(),
     }
     .vsize()
@@ -524,10 +505,7 @@ impl TransactionBuilder {
       output: self
         .outputs
         .iter()
-        .map(|(address, amount)| TxOut {
-          value: amount.to_sat(),
-          script_pubkey: address.script_pubkey(),
-        })
+        .cloned()
         .collect(),
     };
 
@@ -804,10 +782,7 @@ mod tests {
     assert_eq!(tx_builder.inputs, [outpoint(2)]);
     assert_eq!(
       tx_builder.outputs,
-      [(
-        recipient_address_as_output_type(),
-        Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE)
-      )]
+      [TxOut { script_pubkey: recipient(), value: 100 * COIN_VALUE - 51 * COIN_VALUE }]
     )
   }
 
@@ -831,9 +806,9 @@ mod tests {
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient_address_as_output_type(), Amount::from_sat(5_000)),
-        (change_as_output_type(0), Amount::from_sat(5_000)),
-        (change_as_output_type(1), Amount::from_sat(1_724)),
+        TxOut { script_pubkey: recipient(), value: 5_000 },
+        TxOut { script_pubkey: change(0).script_pubkey(), value: 5_000 },
+        TxOut { script_pubkey: change(1).script_pubkey(), value: 1_724 },
       ],
       target: Target::Postage,
       network: Network::Testnet,
@@ -1120,12 +1095,11 @@ mod tests {
     .select_outgoing()
     .unwrap();
 
-    builder.outputs[0].0 = OutputType::Address(
-      "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
-        .parse::<Address<NetworkUnchecked>>()
-        .unwrap()
-        .assume_checked()
-    );
+    builder.outputs[0].script_pubkey = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked()
+      .script_pubkey();
 
     builder.build().unwrap();
   }
@@ -1150,7 +1124,7 @@ mod tests {
     .select_outgoing()
     .unwrap();
 
-    builder.outputs[0].1 = Amount::from_sat(0);
+    builder.outputs[0].value = 0;
 
     builder.build().unwrap();
   }
@@ -1393,9 +1367,9 @@ mod tests {
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient_address_as_output_type(), Amount::from_sat(5_000)),
-        (recipient_address_as_output_type(), Amount::from_sat(5_000)),
-        (change_as_output_type(1), Amount::from_sat(1_774)),
+        TxOut { script_pubkey: recipient(), value: 5_000 },
+        TxOut { script_pubkey: recipient(), value: 5_000 },
+        TxOut { script_pubkey: change(1).script_pubkey(), value: 1_774 },
       ],
       target: Target::Postage,
       network: Network::Testnet,
@@ -1425,9 +1399,9 @@ mod tests {
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
       inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
       outputs: vec![
-        (recipient_address_as_output_type(), Amount::from_sat(5_000)),
-        (change_as_output_type(0), Amount::from_sat(5_000)),
-        (change_as_output_type(0), Amount::from_sat(1_774)),
+        TxOut { script_pubkey: recipient(), value: 5_000 },
+        TxOut { script_pubkey: change(0).script_pubkey(), value: 5_000 },
+        TxOut { script_pubkey: change(0).script_pubkey(), value: 1_774 },
       ],
       target: Target::Postage,
       network: Network::Testnet,
@@ -1692,12 +1666,14 @@ mod tests {
     let after = TransactionBuilder::estimate_vbytes_with(
       0,
       vec![
-        OutputType::Address(
-          "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
+        TxOut {
+          script_pubkey: "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
             .parse::<Address<NetworkUnchecked>>()
             .unwrap()
             .assume_checked()
-        ),
+            .script_pubkey(),
+          value: 0
+        }
       ],
     );
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_OUTPUT_VBYTES);
@@ -1946,7 +1922,7 @@ mod tests {
     ); // value inputs are pushed at the end
     assert_eq!(
       tx_builder.outputs,
-      [(recipient_address_as_output_type(), Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001))]
+      [TxOut { script_pubkey: recipient(), value: 3_003 + 3_006 + 3_005 + 3_001 }]
     )
   }
 
@@ -1995,8 +1971,8 @@ mod tests {
     assert_eq!(
       tx_builder.outputs,
       [
-        (change_as_output_type(1), Amount::from_sat(101 + 104 + 105 + 1)),
-        (recipient_address_as_output_type(), Amount::from_sat(19_999))
+        TxOut { script_pubkey: change(1).script_pubkey(), value: 101 + 104 + 105 + 1 },
+        TxOut { script_pubkey: recipient(), value: 19_999 }
       ]
     )
   }
