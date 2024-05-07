@@ -1,22 +1,16 @@
-use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::{opcodes,psbt::Psbt}};
+use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::{psbt::Psbt}};
 
 #[derive(Clone, Copy)]
 struct AddressParser;
 
 #[derive(Clone, Debug, PartialEq)]
-enum ParsedAddress {
+pub(crate) enum ParsedAddress {
   Address(Address<NetworkUnchecked>),
   ScriptBuf(ScriptBuf),
 }
 
 fn parse_address(arg: &str) -> Result<ParsedAddress, bitcoin::address::Error> {
-  if arg == "burn" {
-    let builder = script::Builder::new()
-      .push_opcode(opcodes::all::OP_RETURN);
-    Ok(ParsedAddress::ScriptBuf(builder.into_script()))
-  } else {
-    Ok(ParsedAddress::Address(Address::from_str(arg)?))
-  }
+  Ok(ParsedAddress::Address(Address::from_str(arg)?))
 }
 
 #[derive(Debug, Parser)]
@@ -24,15 +18,15 @@ pub(crate) struct Send {
   #[arg(long, help = "Don't sign or broadcast transaction")]
   pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
-  fee_rate: FeeRate,
+  pub(crate) fee_rate: FeeRate,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
   )]
   pub(crate) postage: Option<Amount>,
   #[arg(value_parser = parse_address)]
-  address: ParsedAddress,
-  outgoing: Outgoing,
+  pub(crate) address: ParsedAddress,
+  pub(crate) outgoing: Outgoing,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

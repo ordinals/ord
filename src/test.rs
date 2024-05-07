@@ -10,7 +10,6 @@ pub(crate) use {
   std::iter,
   tempfile::TempDir,
   unindent::Unindent,
-  wallet::transaction_builder::OutputType
 };
 
 pub(crate) fn txid(n: u64) -> Txid {
@@ -46,10 +45,6 @@ pub(crate) fn recipient() -> ScriptBuf {
     .script_pubkey()
 }
 
-pub(crate) fn recipient_address_as_output_type() -> OutputType {
-  OutputType::Address(recipient_as_address())
-}
-
 pub(crate) fn recipient_as_address() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse::<Address<NetworkUnchecked>>()
@@ -68,10 +63,6 @@ pub(crate) fn change(n: u64) -> Address {
   .parse::<Address<NetworkUnchecked>>()
   .unwrap()
   .assume_checked()
-}
-
-pub(crate) fn change_as_output_type(n: u64) -> OutputType {
-  OutputType::Address(change(n))
 }
 
 pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {

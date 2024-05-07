@@ -22,6 +22,7 @@ pub mod resume;
 pub mod runics;
 pub mod sats;
 pub mod send;
+pub mod burn;
 mod shared_args;
 pub mod transactions;
 
@@ -47,6 +48,8 @@ pub(crate) enum Subcommand {
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
+  #[command(about = "Burn sat or inscription")]
+  Burn(burn::Burn),
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
   #[command(about = "Create new wallet")]
@@ -106,6 +109,7 @@ impl WalletCommand {
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
+      Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
       Subcommand::Dump => dump::run(wallet),

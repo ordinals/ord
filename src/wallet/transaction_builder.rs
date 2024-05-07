@@ -98,21 +98,6 @@ impl From<bitcoin::address::Error> for Error {
   }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum OutputType {
-  Address(Address),
-  ScriptBuf(ScriptBuf),
-}
-
-impl OutputType {
-  fn script_pubkey(&self) -> ScriptBuf {
-    match self {
-      OutputType::Address(addr) => addr.script_pubkey(),
-      OutputType::ScriptBuf(script) => script.clone(),
-    }
-  }
-}
-
 #[derive(Debug, PartialEq)]
 pub struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, TxOut>,

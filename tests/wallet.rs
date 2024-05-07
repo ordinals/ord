@@ -22,3 +22,4 @@ mod sats;
 mod selection;
 mod send;
 mod transactions;
+mod burn;
