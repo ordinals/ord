@@ -21,6 +21,7 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
+  rune_not_found::RuneNotFoundHtml,
   sat::SatHtml,
 };
 
@@ -47,6 +48,7 @@ mod preview;
 mod range;
 mod rare;
 pub mod rune;
+pub mod rune_not_found;
 pub mod runes;
 pub mod sat;
 pub mod status;

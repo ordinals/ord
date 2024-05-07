@@ -453,6 +453,9 @@ mod tests {
   }
 
   #[test]
+  #[allow(clippy::identity_op)]
+  #[allow(clippy::erasing_op)]
+  #[allow(clippy::zero_prefixed_literal)]
   fn unlock_height() {
     #[track_caller]
     fn case(rune: &str, height: u32) {
@@ -472,7 +475,6 @@ mod tests {
     case("ZZZZZZZZZZZZ", START);
     case("AAAAAAAAAAAAA", START);
     case("ZZXZUDIVTVQA", START + 1);
-
     case("ZZXZUDIVTVQA", START + INTERVAL * 00 + 1);
   }
 }

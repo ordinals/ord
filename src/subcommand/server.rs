@@ -10,7 +10,8 @@ use {
     InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
     ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
+    TransactionHtml,
   },
   axum::{
     body,
@@ -674,32 +675,55 @@ impl Server {
           .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
-      let (id, entry, parent) = index
-        .rune(rune)?
-        .ok_or_not_found(|| format!("rune {rune}"))?;
+      if let Some((id, entry, parent)) = index.rune(rune)? {
+        let block_height = index.block_height()?.unwrap_or(Height(0));
 
-      let block_height = index.block_height()?.unwrap_or(Height(0));
+        let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
 
-      let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
-
-      Ok(if accept_json {
-        Json(api::Rune {
-          entry,
-          id,
-          mintable,
-          parent,
+        Ok(if accept_json {
+          Json(api::Rune {
+            entry,
+            id,
+            mintable,
+            parent,
+          })
+          .into_response()
+        } else {
+          RuneHtml {
+            entry,
+            id,
+            mintable,
+            parent,
+          }
+          .page(server_config)
+          .into_response()
         })
-        .into_response()
       } else {
-        RuneHtml {
-          entry,
-          id,
-          mintable,
-          parent,
+        let unlock_height = rune.unlock_height(server_config.chain.network());
+        let etchable;
+        let reserved;
+
+        if let Some(height) = unlock_height {
+          etchable = index.block_count()? >= height;
+          reserved = false;
+        } else {
+          etchable = false;
+          reserved = true;
         }
-        .page(server_config)
-        .into_response()
-      })
+
+        let response = RuneNotFoundHtml {
+          etchable,
+          reserved,
+          rune,
+          unlock_height,
+        };
+
+        Ok(if accept_json {
+          Json(response).into_response()
+        } else {
+          response.page(server_config).into_response()
+        })
+      }
     })
   }
 
@@ -2558,8 +2582,6 @@ mod tests {
 
     let rune = Rune(RUNE);
 
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
     server.etch(
       Runestone {
         edicts: vec![Edict {
@@ -2808,8 +2830,6 @@ mod tests {
 
     let rune = Rune(RUNE);
 
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
@@ -2971,8 +2991,6 @@ mod tests {
     server.mine_blocks(1);
 
     let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let (txid, id) = server.etch(
       Runestone {
@@ -3136,8 +3154,6 @@ mod tests {
     server.mine_blocks(1);
 
     let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let (txid, id) = server.etch(
       Runestone {
