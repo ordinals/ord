@@ -5,13 +5,11 @@ use {
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
-    lot::Lot,
     reorg::Reorg,
     updater::Updater,
   },
   super::*,
   crate::{
-    runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
@@ -24,14 +22,12 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
+    Database, DatabaseError, MultimapTableHandle,
     ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
+    StorageError, Table, TableHandle, TableStats, WriteTransaction,
   },
   std::{
-    collections::HashMap,
-    io::{BufWriter, Write},
-    sync::Once,
+    collections::HashMap, io::{BufWriter, Write}, sync::Once
   },
 };
 
@@ -63,6 +59,7 @@ define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
+define_table! { RUNE_ID_TO_OUTPOINTS_BALANCE, RuneIdValue, &[u8] }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
@@ -308,6 +305,7 @@ impl Index {
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+        tx.open_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
@@ -970,6 +968,22 @@ impl Index {
     Ok(((id, balance), len))
   }
 
+  // a buffer with size: 36 + balance size
+  pub(crate) fn encode_rune_outpoints_balance(outpoint: OutPoint, balance: u128, buffer: &mut Vec<u8>) {
+    buffer.extend_from_slice(&outpoint.store());
+    varint::encode_to_vec(balance, buffer);
+  }
+
+  pub(crate) fn decode_rune_outpoints_balance(buffer: &[u8]) -> Result<((OutPoint, u128), usize)> {
+    let mut len = 0;
+    let outpoint_value : [u8; 36] = buffer[len..len + 36].try_into().unwrap();
+    len += 36;
+    let outpoint = OutPoint::load(outpoint_value);
+    let (balance, balance_len) = varint::decode(&buffer[len..]).unwrap();
+    len += balance_len;
+    Ok(((outpoint, balance), len))
+  }
+
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
@@ -1066,6 +1080,7 @@ impl Index {
 
   pub(crate) fn get_rune_specific_balances(&self, rune: Rune) -> Result<BTreeMap<OutPoint, u128>> {
     let mut result: BTreeMap<OutPoint, u128> = BTreeMap::new();
+    let rtx = self.database.begin_read()?;
 
     // get rune id
     let Some(id) = self.database
@@ -1077,35 +1092,24 @@ impl Index {
       return Ok(BTreeMap::new());
     };
 
-    let rune_id = RuneId::load(id);
-    
-    for entry in self
-      .database
-      .begin_read()?
-      .open_table(OUTPOINT_TO_RUNE_BALANCES)?
-      .iter()?
-    {
-      let (outpoint, balances_buffer) = entry?;
-      let outpoint = OutPoint::load(*outpoint.value());
-      let balances_buffer = balances_buffer.value();
+    // get a list of outpoints of a specific rune
+    let Some(outpoints_balance_buffer) = rtx
+      .open_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?
+      .get(id)?
+    else {
+      return Ok(BTreeMap::new());
+    };
+    let buffer = outpoints_balance_buffer.value();
 
-      let mut i = 0;
-      let mut query_balance = 0;
-      while i < balances_buffer.len() {
-        let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
-        i += length;
+    // retrieve rune balances
+    let mut i = 0;
+    while i < buffer.len() {
+      let ((outpoint, amount), length) = Index::decode_rune_outpoints_balance(&buffer[i..]).unwrap();
+      i += length;
 
-        if rune_id == id {
-          query_balance = balance;
-          break;
-        }
-      }
-
-      if query_balance > 0 {
-        *result
-          .entry(outpoint)
-          .or_default() += query_balance
-      }
+      *result
+        .entry(outpoint)
+        .or_default() += amount
     }
 
     Ok(result)
@@ -2292,6 +2296,32 @@ impl Index {
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};
+
+  #[test]
+  fn test_encode_decode_rune_to_outpoints_balance() {
+    let outpoint = OutPoint {
+      txid: Txid::all_zeros(),
+      vout: 2
+    };
+
+    // 5 outpoints
+    let mut buffer: Vec<u8> = Vec::new();
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+
+    let mut i = 0;
+    let arr_buffer = buffer.as_slice();
+    while i < buffer.len() {
+      let ((d_outpoint, d_balance), len) = Index::decode_rune_outpoints_balance(&arr_buffer[i..]).unwrap();
+      i += len;
+
+      assert_eq!(outpoint, d_outpoint);
+      assert_eq!(1000, d_balance);
+    }
+  }
 
   #[test]
   fn height_limit() {
