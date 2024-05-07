@@ -6,7 +6,7 @@ use super::*;
 pub struct Rune(pub u128);
 
 impl Rune {
-  const RESERVED: u128 = 6402364363415443603228541259936211926;
+  pub const RESERVED: u128 = 6402364363415443603228541259936211926;
   const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
   const STEPS: &'static [u128] = &[
     0,
