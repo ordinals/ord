@@ -711,17 +711,17 @@ impl Server {
           reserved = true;
         }
 
-        let response = RuneNotFoundHtml {
-          etchable,
-          reserved,
-          rune,
-          unlock_height,
-        };
-
         Ok(if accept_json {
-          Json(response).into_response()
+          StatusCode::NOT_FOUND.into_response()
         } else {
-          response.page(server_config).into_response()
+          RuneNotFoundHtml {
+            etchable,
+            reserved,
+            rune,
+            unlock_height,
+          }
+          .page(server_config)
+          .into_response()
         })
       }
     })
