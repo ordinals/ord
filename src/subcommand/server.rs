@@ -2751,6 +2751,33 @@ mod tests {
   }
 
   #[test]
+  fn runes_not_etched_show_unlock_height() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/rune/{}", Rune(RUNE)),
+      StatusCode::OK,
+      ".*<title>Rune AAAAAAAAAAAAA</title>.*
+<dl>
+  <dt>unlock height</dt>
+  <dd>0</dd>
+  <dt>etchable</dt>
+  <dd>true</dd>
+</dl>.*
+",
+    );
+  }
+
+  #[test]
   fn runes_are_displayed_on_runes_page() {
     let server = TestServer::builder()
       .chain(Chain::Regtest)
