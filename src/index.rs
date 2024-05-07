@@ -973,7 +973,7 @@ impl Index {
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SpacedRune, Pile)>> {
+  ) -> Result<BTreeMap<SpacedRune, Pile>> {
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -981,12 +981,12 @@ impl Index {
     let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(Vec::new());
+      return Ok(BTreeMap::new());
     };
 
     let balances_buffer = balances.value();
 
-    let mut balances = Vec::new();
+    let mut balances = BTreeMap::new();
     let mut i = 0;
     while i < balances_buffer.len() {
       let ((id, amount), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
@@ -994,14 +994,14 @@ impl Index {
 
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
-      balances.push((
+      balances.insert(
         entry.spaced_rune,
         Pile {
           amount,
           divisibility: entry.divisibility,
           symbol: entry.symbol,
         },
-      ));
+      );
     }
 
     Ok(balances)
@@ -1782,12 +1782,12 @@ impl Index {
     };
 
     let max_id = RuneId {
-      block: block_height + 1,
-      tx: 0,
+      block: block_height,
+      tx: u32::MAX,
     };
 
     let runes = rune_id_to_rune_entry
-      .range(min_id.store()..max_id.store())?
+      .range(min_id.store()..=max_id.store())?
       .map(|result| result.map(|(_, entry)| RuneEntry::load(entry.value()).spaced_rune))
       .collect::<Result<Vec<SpacedRune>, StorageError>>()?;
 

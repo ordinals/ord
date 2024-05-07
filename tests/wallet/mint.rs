@@ -489,3 +489,90 @@ fn minting_rune_with_postage_dust() {
   .expected_stderr("error: postage below dust limit of 330sat\n")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn minting_is_allowed_when_mint_begins_next_block() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  core.mine_blocks(1);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 1,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        symbol: '¢',
+        supply: "111.1".parse().unwrap(),
+        terms: Some(batch::Terms {
+          cap: 1,
+          offset: Some(batch::Range {
+            end: None,
+            start: Some(1),
+          }),
+          amount: "111.1".parse().unwrap(),
+          height: None,
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<mint::Output>();
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    output.pile,
+    Pile {
+      amount: 1111,
+      divisibility: 1,
+      symbol: Some('¢'),
+    }
+  );
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        output.rune,
+        vec![(
+          OutPoint {
+            txid: output.mint,
+            vout: 1
+          },
+          output.pile,
+        )]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
+    }
+  );
+}

@@ -343,7 +343,7 @@ fn get_output() {
         InscriptionId { txid, index: 2 },
       ],
       indexed: true,
-      runes: Vec::new(),
+      runes: BTreeMap::new(),
       sat_ranges: Some(vec![
         (5000000000, 10000000000,),
         (10000000000, 15000000000,),
@@ -634,4 +634,74 @@ fn get_runes() {
       prev: None,
     }
   );
+}
+
+#[test]
+fn get_runes_balances() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(3);
+
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+  let rune2 = Rune(RUNE + 2);
+
+  let e0 = etch(&core, &ord, rune0);
+  let e1 = etch(&core, &ord, rune1);
+  let e2 = etch(&core, &ord, rune2);
+
+  core.mine_blocks(1);
+
+  let rune_balances: BTreeMap<Rune, BTreeMap<OutPoint, u128>> = vec![
+    (
+      rune0,
+      vec![(
+        OutPoint {
+          txid: e0.output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune1,
+      vec![(
+        OutPoint {
+          txid: e1.output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+    (
+      rune2,
+      vec![(
+        OutPoint {
+          txid: e2.output.reveal,
+          vout: 1,
+        },
+        1000,
+      )]
+      .into_iter()
+      .collect(),
+    ),
+  ]
+  .into_iter()
+  .collect();
+
+  let response = ord.json_request("/runes/balances");
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_balance_json: BTreeMap<Rune, BTreeMap<OutPoint, u128>> =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(runes_balance_json, rune_balances);
 }

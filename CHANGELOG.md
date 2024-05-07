@@ -1,6 +1,86 @@
 Changelog
 =========
 
+[0.18.4](https://github.com/ordinals/ord/releases/tag/0.18.4) - 2023-05-02
+--------------------------------------------------------------------------
+
+### Added
+- Clarify that inscriptions must be served from URLs with path /content/<INSCRIPTION_ID> ([#3209](https://github.com/ordinals/ord/pull/3209) by [Vanniix](https://github.com/Vanniix))
+
+### Changed
+- Persist config files for ord env command ([#3715](https://github.com/ordinals/ord/pull/3715) by [twosatsmaxi](https://github.com/twosatsmaxi))
+- Do not show runic outputs in cardinals command ([#3656](https://github.com/ordinals/ord/pull/3656) by [raphjaph](https://github.com/raphjaph))
+
+### Fixed
+- Fix send runes ([#3484](https://github.com/ordinals/ord/pull/3484) by [raphjaph](https://github.com/raphjaph))
+- Allow longer request body for JSON API ([#3655](https://github.com/ordinals/ord/pull/3655) by [raphjaph](https://github.com/raphjaph))
+- Allow minting if mint begins next block ([#3659](https://github.com/ordinals/ord/pull/3659) by [casey](https://github.com/casey))
+
+### Misc
+- Add alt text to preview image ([#3713](https://github.com/ordinals/ord/pull/3713) by [losingle](https://github.com/losingle))
+- Remove duplicate endpoint from explorer.md ([#3716](https://github.com/ordinals/ord/pull/3716) by [cryptoni9n](https://github.com/cryptoni9n))
+- Use correct content type for .mjs inscriptions ([#3712](https://github.com/ordinals/ord/pull/3712) by [casey](https://github.com/casey))
+- Add support for mjs files ([#3653](https://github.com/ordinals/ord/pull/3653) by [elocremarc](https://github.com/elocremarc))
+- Fix typo on sat hunting page ([#3668](https://github.com/ordinals/ord/pull/3668) by [cryptoni9n](https://github.com/cryptoni9n))
+- Use contains_key instead of get / is_some ([#3705](https://github.com/ordinals/ord/pull/3705) by [knowmost](https://github.com/knowmost))
+- Update sat-hunting.md with how to transfer specific sats ([#3666](https://github.com/ordinals/ord/pull/3666) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix zh.po translations ([#3588](https://github.com/ordinals/ord/pull/3588) by [losingle](https://github.com/losingle))
+- Update sparrow-wallet.md --name flag update ([#3635](https://github.com/ordinals/ord/pull/3635) by [taha-abbasi](https://github.com/taha-abbasi))
+
+[0.18.3](https://github.com/ordinals/ord/releases/tag/0.18.3) - 2023-04-19
+--------------------------------------------------------------------------
+
+### Added
+- Add `dry-run` flag to `resume` command ([#3592](https://github.com/ordinals/ord/pull/3592) by [felipelincoln](https://github.com/felipelincoln))
+- Add back runes balances API ([#3571](https://github.com/ordinals/ord/pull/3571) by [lugondev](https://github.com/lugondev))
+- Show premine percentage ([#3567](https://github.com/ordinals/ord/pull/3567) by [raphjaph](https://github.com/raphjaph))
+- Add default content proxy and decompress to env command ([#3509](https://github.com/ordinals/ord/pull/3509) by [jahvi](https://github.com/jahvi))
+
+### Changed
+- Resume cycles through all pending etchings ([#3566](https://github.com/ordinals/ord/pull/3566) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Check rune minimum at height before sending ([#3626](https://github.com/ordinals/ord/pull/3626) by [raphjaph](https://github.com/raphjaph))
+- Update recursion.md with consistant syntax ([#3585](https://github.com/ordinals/ord/pull/3585) by [zmeyer44](https://github.com/zmeyer44))
+- Add test Rune cannot be minted less than limit amount ([#3556](https://github.com/ordinals/ord/pull/3556) by [lugondev](https://github.com/lugondev))
+- Clear etching when rune commitment is spent ([#3618](https://github.com/ordinals/ord/pull/3618) by [felipelincoln](https://github.com/felipelincoln))
+- Remove timeout for wallet client ([#3621](https://github.com/ordinals/ord/pull/3621) by [raphjaph](https://github.com/raphjaph))
+- Remove duplicated word ([#3598](https://github.com/ordinals/ord/pull/3598) by [oxSaturn](https://github.com/oxSaturn))
+- Address runes review comments ([#3605](https://github.com/ordinals/ord/pull/3605) by [casey](https://github.com/casey))
+- Generate sample batch.yaml in env command ([#3530](https://github.com/ordinals/ord/pull/3530) by [twosatsmaxi](https://github.com/twosatsmaxi))
+
+[0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2023-04-17
+--------------------------------------------------------------------------
+
+### Migration
+- Wallet databases are now stored in the `/wallets` subdirectory of the data
+  dir. To use old wallet databases with 0.18.2, move `<WALLET_NAME>.redb` files
+  into the `/wallets` subdirectory of the data dir. Currently, the only
+  information stored in wallet databases are pending etchings.
+
+### Changed
+- Store wallets in /wallets subdir of data dir ([#3553](https://github.com/ordinals/ord/pull/3553) by [casey](https://github.com/casey))
+- Remove /runes/balances page ([#3555](https://github.com/ordinals/ord/pull/3555) by [lugondev](https://github.com/lugondev))
+- Forbid etching below rune activation height ([#3523](https://github.com/ordinals/ord/pull/3523) by [casey](https://github.com/casey))
+
+### Added
+- Add command to export BIP-329 labels for wallet outputs ([#3120](https://github.com/ordinals/ord/pull/3120) by [casey](https://github.com/casey))
+- Display etched runes on /block ([#3366](https://github.com/ordinals/ord/pull/3366) by [lugondev](https://github.com/lugondev))
+- Emit rune-related events ([#3219](https://github.com/ordinals/ord/pull/3219) by [felipelincoln](https://github.com/felipelincoln))
+- Lookup rune by number ([#3440](https://github.com/ordinals/ord/pull/3440) by [lugondev](https://github.com/lugondev))
+- Add runes pagination ([#3215](https://github.com/ordinals/ord/pull/3215) by [lugondev](https://github.com/lugondev))
+
+### Misc
+- Document turbo flag ([#3579](https://github.com/ordinals/ord/pull/3579) by [gmart7t2](https://github.com/gmart7t2))
+- Add open mint tests ([#3558](https://github.com/ordinals/ord/pull/3558) by [lugondev](https://github.com/lugondev))
+- Fix typos ([#3541](https://github.com/ordinals/ord/pull/3541) by [StevenMia](https://github.com/StevenMia))
+- Fix typo in zh.po ([#3540](https://github.com/ordinals/ord/pull/3540) by [blackj-x](https://github.com/blackj-x))
+- Lock runes commit output ([#3504](https://github.com/ordinals/ord/pull/3504) by [raphjaph](https://github.com/raphjaph))
+- Address runes review comments ([#3547](https://github.com/ordinals/ord/pull/3547) by [casey](https://github.com/casey))
+- Add Red Had build instructions to readme ([#3531](https://github.com/ordinals/ord/pull/3531) by [rongyi](https://github.com/rongyi))
+- Fix typo in recursion docs ([#3529](https://github.com/ordinals/ord/pull/3529) by [nix-eth](https://github.com/nix-eth))
+- Put rune higher on /inscription ([#3363](https://github.com/ordinals/ord/pull/3363) by [lugondev](https://github.com/lugondev))
+
 [0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2023-04-11
 --------------------------------------------------------------------------
 

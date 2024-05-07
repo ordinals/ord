@@ -137,10 +137,10 @@ impl Plan {
       let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
       let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
 
-      Ok(Some(Box::new(wallet.wait_for_maturation(
+      wallet.save_etching(
         &rune_info.rune.rune,
-        commit.clone(),
-        reveal.clone(),
+        &commit,
+        &reveal,
         self.output(
           commit.txid(),
           None,
@@ -151,7 +151,11 @@ impl Plan {
           self.inscriptions.clone(),
           rune.clone(),
         ),
-      )?)))
+      )?;
+
+      Ok(Some(Box::new(
+        wallet.wait_for_maturation(rune_info.rune.rune)?,
+      )))
     } else {
       let reveal = match wallet
         .bitcoin_client()
