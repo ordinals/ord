@@ -26,7 +26,6 @@ impl Burn {
       outgoing: self.outgoing,
     };
 
-    // Execute the Send command
     send_command.run(wallet)
   }
 }

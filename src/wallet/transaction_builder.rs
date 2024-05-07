@@ -393,8 +393,8 @@ impl TransactionBuilder {
             .pop()
             .unwrap_or_else(|| panic!("not enough change addresses"))
             .script_pubkey(),
-          value: (value - target).to_sat()
-        })
+          value: (value - target).to_sat(),
+        });
       }
     }
 
@@ -1413,7 +1413,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1438,7 +1438,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1460,7 +1460,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::UtxoContainsAdditionalInscriptions {
@@ -1551,7 +1551,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1500)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1578,7 +1578,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::Dust {
@@ -1606,7 +1606,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
@@ -1657,7 +1657,7 @@ mod tests {
             .unwrap()
             .assume_checked()
             .script_pubkey(),
-          value: 0
+          value: 0,
         }
       ],
     );
@@ -1679,7 +1679,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(707)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1706,7 +1706,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1733,7 +1733,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(5.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1760,7 +1760,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(6.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1782,7 +1782,7 @@ mod tests {
         [recipient_as_address(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::DuplicateAddress(recipient_as_address()))
@@ -1804,7 +1804,7 @@ mod tests {
         [change(0), change(0)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Err(Error::DuplicateAddress(change(0)))
@@ -1826,7 +1826,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(2.0).unwrap(),
         Target::Value(Amount::from_sat(1500)),
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1853,7 +1853,7 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(250.0).unwrap(),
         Target::Postage,
-        Network::Testnet
+        Network::Testnet,
       )
       .build_transaction(),
       Ok(Transaction {
@@ -1886,7 +1886,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1933,7 +1933,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     )
     .select_outgoing()
     .unwrap()
@@ -1987,7 +1987,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     );
 
     assert_eq!(
@@ -2044,7 +2044,7 @@ mod tests {
       [change(0), change(1)],
       fee_rate,
       Target::ExactPostage(Amount::from_sat(66_000)),
-      Network::Testnet
+      Network::Testnet,
     )
     .build_transaction()
     .unwrap();
@@ -2081,7 +2081,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     );
 
     assert_eq!(
@@ -2108,7 +2108,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     );
 
     assert_eq!(
@@ -2134,7 +2134,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     );
 
     assert_eq!(
@@ -2160,7 +2160,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      Network::Testnet
+      Network::Testnet,
     );
 
     assert_eq!(

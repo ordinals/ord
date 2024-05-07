@@ -22,9 +22,9 @@ pub mod resume;
 pub mod runics;
 pub mod sats;
 pub mod send;
-pub mod burn;
 mod shared_args;
 pub mod transactions;
+pub mod burn;
 
 #[derive(Debug, Parser)]
 pub(crate) struct WalletCommand {
