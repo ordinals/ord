@@ -262,6 +262,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/decode/:txid", get(Self::decode_tx))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -910,6 +911,31 @@ impl Server {
         }
         .page(server_config)
         .into_response()
+      })
+    })
+  }
+
+  async fn decode_tx(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+      let inscriptions = ParsedEnvelope::from_transaction(&transaction);
+      let runestone = Runestone::decipher(&transaction);
+
+      Ok(if accept_json {
+        Json(api::RawOutput {
+          inscriptions,
+          runestone,
+        })
+        .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
       })
     })
   }

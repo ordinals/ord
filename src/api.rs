@@ -192,3 +192,9 @@ pub struct SatInscriptions {
   pub more: bool,
   pub page: u64,
 }
+
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
+pub struct RawOutput {
+  pub inscriptions: Vec<ParsedEnvelope>,
+  pub runestone: Option<Artifact>,
+}
