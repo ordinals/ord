@@ -5,11 +5,13 @@ use {
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
+    lot::Lot,
     reorg::Reorg,
     updater::Updater,
   },
   super::*,
   crate::{
+    runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
@@ -22,9 +24,9 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
-    Database, DatabaseError, MultimapTableHandle,
+    Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
     ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableHandle, TableStats, WriteTransaction,
+    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap, io::{BufWriter, Write}, sync::Once
@@ -1093,13 +1095,13 @@ impl Index {
     };
 
     // get a list of outpoints of a specific rune
-    let Some(outpoints_balance_buffer) = rtx
+    let Some(guard) = rtx
       .open_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?
       .get(id)?
     else {
       return Ok(BTreeMap::new());
     };
-    let buffer = outpoints_balance_buffer.value();
+    let buffer = guard.value();
 
     // retrieve rune balances
     let mut i = 0;
