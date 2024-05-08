@@ -1,8 +1,9 @@
-use {super::*, crate::wallet::entry::EtchingEntry};
+use super::*;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct PendingOutput {
-  pub etchings: Vec<EtchingEntry>,
+  pub rune: SpacedRune,
+  pub commit: Txid,
 }
 #[derive(Debug, Parser)]
 pub(crate) struct Pending {}
@@ -12,9 +13,16 @@ impl Pending {
     let etchings = wallet
       .pending_etchings()?
       .into_iter()
-      .map(|(_, entry)| entry)
-      .collect();
+      .map(|(rune, entry)| {
+        let spaced_rune = rune.to_string().parse::<SpacedRune>().unwrap();
 
-    Ok(Some(Box::new(PendingOutput { etchings }) as Box<dyn Output>))
+        PendingOutput {
+          rune: spaced_rune,
+          commit: entry.commit.txid()
+        }
+      })
+      .collect::<Vec<PendingOutput>>();
+
+    Ok(Some(Box::new(etchings) as Box<dyn Output>))
   }
 }
