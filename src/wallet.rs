@@ -367,7 +367,7 @@ impl Wallet {
         }
         Maturity::CommitSpent(txid) => {
           self.clear_etching(rune)?;
-          bail!("rune commitment {} spent, can't send reveal tx", txid);
+          eprintln!("{}", txid)
         }
         _ => {}
       }
