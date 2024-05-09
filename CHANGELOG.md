@@ -1,6 +1,20 @@
 Changelog
 =========
 
+[0.18.5](https://github.com/ordinals/ord/releases/tag/0.18.5) - 2023-05-09
+--------------------------------------------------------------------------
+
+### Added
+- Allow specifying different output formats (#3424)
+- Allow higher rpcworkqueue limit conf (#3615)
+- Show progress bar for etching (#3673)
+
+### Fixed
+- Update sat-hunting.md (#3724)
+- Update runes.md docs (#3681)
+- Patch some omissions in the Chinese translation (#3694)
+- Bump rustfmt version 2018 to 2021 (#3721)
+
 [0.18.4](https://github.com/ordinals/ord/releases/tag/0.18.4) - 2023-05-02
 --------------------------------------------------------------------------
 
