@@ -2531,7 +2531,7 @@ msgid ""
 "opcodes in the runestone `OP_RETURN`, invalid varints, or unrecognized "
 "runestone fields."
 msgstr ""
-"由于多种原因，符石可能会形成错误，包括符石`OOP_RETURN`中的非推送数据操作码、"
+"由于多种原因，符石可能会形成错误，包括符石`OP_RETURN`中的非推送数据操作码、"
 "无效的变长整数或无法识别的符石字段。"
 
 #: src/runes.md:150
@@ -2767,12 +2767,18 @@ msgstr "组装有效载荷缓冲区"
 
 #: src/runes/specification.md:117
 msgid ""
-"The payload buffer is assembled by concatenating data pushes. If a non-data "
-"push opcode is encountered, the deciphered runestone is a cenotaph with no "
-"etching, mint, or edicts."
+"The payload buffer is assembled by concatenating data pushes, after `OP_13`, in the matching script pubkey."
 msgstr ""
-"通过连接数据推送来组装有效载荷缓冲区。如果遇到非数据推送操作码，"
-"则解读的符石是没有铭刻、铸造或法令的纪念碑。"
+"有效载荷缓冲区是通过将匹配的脚本 pubkey 中 `OP_13` 之后的数据推送连接起来而组装成的。"
+
+#: src/runes/specification.md:120
+msgid ""
+"Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is "
+"encountered, i.e., any opcode equal to or greater than opcode 79, the "
+"deciphered runestone is a cenotaph with no etching, mint, or edicts."
+msgstr ""
+"数据推送是操作码 0 到 78 之间的操作码。如果遇到大于或等于操作码 79 的操作码，"
+"则解密的符文是一个没有雕刻、铸造或法令的纪念碑。"
 
 #: src/runes/specification.md:121
 msgid "Decoding the Integer Sequence"
@@ -3047,6 +3053,13 @@ msgstr "`Etching`标志表示此交易包含蚀刻。"
 msgid ""
 "The `Terms` flag marks this transaction's etching as having open mint terms."
 msgstr "`Terms`标志表示此交易的蚀刻具有开放的铸币条款。"
+
+#: src/runes/specification.md:275
+msgid ""
+"The `Turbo` flag marks this transaction's etching as opting into future "
+"protocol changes. These protocol changes may increase light client validation "
+"costs, or just be highly degenerate."
+msgstr "`Turbo`标记将此交易的蚀刻设置为选择未来协议可以更改。这些协议更改可能会增加轻客户端验证成本，或者仅仅是高度退化的。"
 
 #: src/runes/specification.md:271
 msgid "The `Cenotaph` flag is unrecognized."
@@ -3431,7 +3444,7 @@ msgid ""
 "If `rune` is present, it must be unlocked as of the block in which the "
 "etching appears."
 msgstr ""
-" 如果存在 `rune `，则它必须在蚀刻出现的区块中解锁。"
+" 如果存在 `rune`，则它必须在蚀刻出现的区块中解锁。"
 
 #: src/runes/specification.md:447
 msgid ""
@@ -3477,11 +3490,11 @@ msgid ""
 "endian integer with trailing zero bytes elided, present in an input witness "
 "tapscript where the output being spent has at least six confirmations."
 msgstr ""
-"承诺commitment包括在输入见证tapscript中推送的符文名称数据，编码为省略尾随零字节的小端整数，其中被花费的输出至少有六次确认。"
+"承诺 `commitment` 包括在输入见证 `tapscript` 中推送的符文名称数据，编码为省略尾随零字节的小端整数，其中被花费的输出至少有六次确认。"
 
 #: src/runes/specification.md:468
 msgid "If a valid commitment is not present, the etching is ignored."
-msgstr " 如果没有有效的承诺commitment，蚀刻将被忽略。"
+msgstr " 如果没有有效的承诺 `commitment`，蚀刻将被忽略。"
 
 #: src/runes/specification.md:472
 msgid ""
