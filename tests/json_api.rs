@@ -1,4 +1,8 @@
-use {super::*, bitcoin::BlockHash};
+use {
+  super::*,
+  bitcoin::BlockHash,
+  ord::{Envelope, Inscription},
+};
 
 #[test]
 fn get_sat_without_sat_index() {
@@ -704,4 +708,47 @@ fn get_runes_balances() {
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
   pretty_assert_eq!(runes_balance_json, rune_balances);
+}
+
+#[test]
+fn get_decode_tx() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(3);
+
+  let envelope = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
+
+  let txid = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, envelope.clone())],
+    ..default()
+  });
+
+  let transaction = core.mine_blocks(1)[0].txdata[0].clone();
+
+  let inscriptions = vec![Envelope {
+    payload: Inscription {
+      body: Some(vec![98, 97, 114]),
+      content_type: Some(b"text/plain;charset=utf-8".into()),
+      ..default()
+    },
+    input: 0,
+    offset: 0,
+    pushnum: false,
+    stutter: false,
+  }];
+  let runestone = Runestone::decipher(&transaction);
+  let response = ord.json_request(format!("/decode/{txid}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert_eq!(
+    serde_json::from_str::<api::RawOutput>(&response.text().unwrap()).unwrap(),
+    api::RawOutput {
+      inscriptions,
+      runestone,
+    }
+  );
 }
