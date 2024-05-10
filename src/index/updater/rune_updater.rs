@@ -10,7 +10,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
-  pub(super) rune_id_to_outpoints_balance: &'a mut Table<'tx, RuneIdValue, &'static [u8]>,
+  pub(super) rune_id_to_outpoints_balance: &'a mut MultimapTable<'tx, RuneIdValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
@@ -172,7 +172,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     // update rune to outpoints, balance
-    let mut outpoints_balance_buffer_map : HashMap<RuneId, Vec<u8>> = HashMap::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
         continue;
@@ -214,14 +213,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           })?;
         }
 
-        // concat to current rune_id if exists
-        outpoints_balance_buffer_map
-          .entry(id)
-          .or_default()
-          .extend(outpoints_balance_buffer);
-
         self.rune_id_to_outpoints_balance
-          .insert(id.store(), outpoints_balance_buffer_map.get(&id).unwrap().as_slice())?;
+          .insert(id.store(), outpoints_balance_buffer.as_slice())?;
       }
 
       self

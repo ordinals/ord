@@ -51,6 +51,7 @@ const SCHEMA_VERSION: u64 = 25;
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_multimap_table! { RUNE_ID_TO_OUTPOINTS_BALANCE, RuneIdValue, &[u8] }
 define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
@@ -61,7 +62,6 @@ define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
-define_table! { RUNE_ID_TO_OUTPOINTS_BALANCE, RuneIdValue, &[u8] }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
@@ -298,6 +298,7 @@ impl Index {
         tx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_multimap_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?;
         tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
@@ -307,7 +308,6 @@ impl Index {
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-        tx.open_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
@@ -1095,19 +1095,15 @@ impl Index {
     };
 
     // get a list of outpoints of a specific rune
-    let Some(guard) = rtx
-      .open_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?
-      .get(id)?
-    else {
-      return Ok(BTreeMap::new());
-    };
-    let buffer = guard.value();
+    let outpoints_balance = rtx
+      .open_multimap_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?
+      .get(id)?;
 
     // retrieve rune balances
-    let mut i = 0;
-    while i < buffer.len() {
-      let ((outpoint, amount), length) = Index::decode_rune_outpoints_balance(&buffer[i..]).unwrap();
-      i += length;
+    for i in outpoints_balance {
+      let guard = i?;
+      let buffer = guard.value();
+      let ((outpoint, amount), _) = Index::decode_rune_outpoints_balance(&buffer).unwrap();
 
       *result
         .entry(outpoint)
