@@ -490,6 +490,11 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           let ((id, balance), len) = Index::decode_rune_balance(&buffer[i..]).unwrap();
           i += len;
           *unallocated.entry(id).or_default() += balance;
+
+          let mut outpoints_balance_buffer: Vec<u8> = Vec::new();
+          Index::encode_rune_outpoints_balance(input.previous_output, balance, &mut outpoints_balance_buffer);
+          // this is supposed to have no error as rune_id_to_outpoints_balance should have the outpoint like in outpoint_to_balances
+          let _ = self.rune_id_to_outpoints_balance.remove(id.store(), outpoints_balance_buffer.as_slice());
         }
       }
     }
