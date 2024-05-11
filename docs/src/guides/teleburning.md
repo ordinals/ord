@@ -27,7 +27,7 @@ The ENS domain name [rodarmor.eth](https://app.ens.domains/rodarmor.eth), was
 teleburned to [inscription
 zero](https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0).
 
-Running the inscription ID of inscription zero is
+The inscription ID of inscription zero is
 `6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`.
 
 Passing `6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0` to
