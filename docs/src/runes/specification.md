@@ -1,4 +1,4 @@
-awRunes Does Not Have a Specification
+Runes Does Not Have a Specification
 ===================================
 
 The Runes reference implementation, `ord`, is the normative specification of
