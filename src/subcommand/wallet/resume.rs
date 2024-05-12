@@ -28,7 +28,7 @@ impl Resume {
 
         ensure!(
           pending_etching.is_some(),
-          "rune `{spaced_rune}` does not correspond to any pending etching."
+          "rune {spaced_rune} does not correspond to any pending etching."
         );
 
         vec![(spaced_rune.rune, pending_etching.unwrap())]
