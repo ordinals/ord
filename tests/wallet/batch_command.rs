@@ -2664,7 +2664,7 @@ fn batch_inscribe_errors_if_pending_etchings() {
 
     assert_regex_match!(
       buffer,
-      "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+      "Waiting for rune .* commitment [[:xdigit:]]{64} to mature…\n"
     );
 
     core.mine_blocks(1);

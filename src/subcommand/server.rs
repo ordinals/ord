@@ -14,7 +14,7 @@ use {
   },
   axum::{
     body,
-    extract::{Extension, Json, Path, Query},
+    extract::{DefaultBodyLimit, Extension, Json, Path, Query},
     http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -260,6 +260,7 @@ impl Server {
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
+        .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
@@ -285,7 +286,13 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
-        .with_state(server_config);
+        .with_state(server_config.clone());
+
+      let router = if server_config.json_api_enabled {
+        router.layer(DefaultBodyLimit::disable())
+      } else {
+        router
+      };
 
       let router = if let Some((username, password)) = settings.credentials() {
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
@@ -609,19 +616,23 @@ impl Server {
 
   async fn outputs(
     Extension(index): Extension<Arc<Index>>,
-    _: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let mut response = Vec::new();
-      for outpoint in outputs {
-        let (output_info, _) = index
-          .get_output_info(outpoint)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?;
+      Ok(if accept_json {
+        let mut response = Vec::new();
+        for outpoint in outputs {
+          let (output_info, _) = index
+            .get_output_info(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?;
 
-        response.push(output_info);
-      }
-      Ok(Json(response).into_response())
+          response.push(output_info);
+        }
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
@@ -747,6 +758,34 @@ impl Server {
         }
         .page(server_config)
         .into_response()
+      })
+    })
+  }
+
+  async fn runes_balances(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        Json(
+          index
+            .get_rune_balance_map()?
+            .into_iter()
+            .map(|(rune, balances)| {
+              (
+                rune,
+                balances
+                  .into_iter()
+                  .map(|(outpoint, pile)| (outpoint, pile.amount))
+                  .collect(),
+              )
+            })
+            .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
+        )
+        .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
       })
     })
   }
@@ -1541,21 +1580,25 @@ impl Server {
 
   async fn inscriptions_json(
     Extension(index): Extension<Arc<Index>>,
-    _: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
     Json(inscriptions): Json<Vec<InscriptionId>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let mut response = Vec::new();
-      for inscription in inscriptions {
-        let query = query::Inscription::Id(inscription);
-        let (info, _, _) = index
-          .inscription_info(query)?
-          .ok_or_not_found(|| format!("inscription {query}"))?;
+      Ok(if accept_json {
+        let mut response = Vec::new();
+        for inscription in inscriptions {
+          let query = query::Inscription::Id(inscription);
+          let (info, _, _) = index
+            .inscription_info(query)?
+            .ok_or_not_found(|| format!("inscription {query}"))?;
 
-        response.push(info);
-      }
+          response.push(info);
+        }
 
-      Ok(Json(response).into_response())
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
@@ -2558,6 +2601,14 @@ mod tests {
   }
 
   #[test]
+  fn html_runes_balances_not_found() {
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_response("/runes/balances", StatusCode::NOT_FOUND, "");
+  }
+
+  #[test]
   fn fallback() {
     let server = TestServer::new();
 
@@ -2844,6 +2895,8 @@ mod tests {
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
+  <dt>premine percentage</dt>
+  <dd>100%</dd>
   <dt>burned</dt>
   <dd>0\u{A0}%</dd>
   <dt>divisibility</dt>
@@ -3183,7 +3236,9 @@ mod tests {
             divisibility: 1,
             symbol: None,
           }
-        )],
+        )]
+        .into_iter()
+        .collect(),
         spent: false,
       }
     );
