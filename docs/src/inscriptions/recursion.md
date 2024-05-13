@@ -42,6 +42,8 @@ The recursive endpoints are:
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
 - `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
+- `/r/parents/<INSCRIPTION_ID>`: the first 100 parent inscription ids.
+- `/r/parents/<INSCRIPTION_ID>/<PAGE>`: the set of 100 parent inscription ids on `<PAGE>`.
 - `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
 - `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
 - `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example.

@@ -241,6 +241,11 @@ impl Server {
           get(Self::children_recursive_paginated),
         )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
+        .route("/r/parents/:inscription_id", get(Self::parents_recursive))
+        .route(
+          "/r/parents/:inscription_id/:page",
+          get(Self::parents_recursive_paginated),
+        )
         .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
         .route(
           "/r/sat/:sat_number/:page",
@@ -1839,6 +1844,28 @@ impl Server {
         .page(server_config)
         .into_response(),
       )
+    })
+  }
+
+  async fn parents_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::parents_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+  }
+
+  async fn parents_recursive_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((inscription_id, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let child = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let (ids, more) = index.get_parents_by_sequence_number_paginated(child.parents, page)?;
+
+      Ok(Json(api::Parents { ids, more, page }).into_response())
     })
   }
 
@@ -5967,6 +5994,74 @@ next
     assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn parents_recursive_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let mut parent_ids = Vec::new();
+    let mut inputs = Vec::new();
+    for i in 0..111 {
+      parent_ids.push(InscriptionId {
+        txid: server.core.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+          ..default()
+        }),
+        index: 0,
+      });
+
+      inputs.push((i + 2, 1, 0, Witness::default()));
+
+      server.mine_blocks(1);
+    }
+
+    inputs.insert(
+      0,
+      (
+        112,
+        0,
+        0,
+        Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("hello".into()),
+          parents: parent_ids.iter().map(|id| id.value()).collect(),
+          ..default()
+        }
+        .to_witness(),
+      ),
+    );
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &inputs,
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    let first_parent_inscription_id = parent_ids[0];
+    let hundredth_parent_inscription_id = parent_ids[99];
+    let hundred_first_parent_inscription_id = parent_ids[100];
+    let hundred_eleventh_parent_inscription_id = parent_ids[110];
+
+    let parents_json = server.get_json::<api::Parents>(format!("/r/parents/{inscription_id}"));
+
+    assert_eq!(parents_json.ids.len(), 100);
+    assert_eq!(parents_json.ids[0], first_parent_inscription_id);
+    assert_eq!(parents_json.ids[99], hundredth_parent_inscription_id);
+    assert!(parents_json.more);
+    assert_eq!(parents_json.page, 0);
+
+    let parents_json = server.get_json::<api::Parents>(format!("/r/parents/{inscription_id}/1"));
+
+    assert_eq!(parents_json.ids.len(), 11);
+    assert_eq!(parents_json.ids[0], hundred_first_parent_inscription_id);
+    assert_eq!(parents_json.ids[10], hundred_eleventh_parent_inscription_id);
+    assert!(!parents_json.more);
+    assert_eq!(parents_json.page, 1);
   }
 
   #[test]

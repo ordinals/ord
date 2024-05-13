@@ -163,6 +163,13 @@ impl Output {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Parents {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: usize,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
   pub block: u32,
   pub charms: Vec<Charm>,
