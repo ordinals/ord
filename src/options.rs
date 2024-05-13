@@ -21,6 +21,8 @@ pub struct Options {
     help = "Authenticate to Bitcoin Core RPC as <BITCOIN_RPC_USERNAME>."
   )]
   pub(crate) bitcoin_rpc_username: Option<String>,
+  #[arg(long, help = "Max <N> requests in flight. [default: 12]")]
+  pub(crate) bitcoin_rpc_limit: Option<u32>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
   #[arg(
@@ -63,8 +65,8 @@ pub struct Options {
   pub(crate) index_transactions: bool,
   #[arg(long, help = "Run in integration test mode.")]
   pub(crate) integration_test: bool,
-  #[arg(long, help = "Minify JSON output.")]
-  pub(crate) minify: bool,
+  #[clap(long, short, long, help = "Specify output format. [default: json]")]
+  pub(crate) format: Option<OutputFormat>,
   #[arg(
     long,
     short,

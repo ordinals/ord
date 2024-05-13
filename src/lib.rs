@@ -26,7 +26,7 @@ use {
     into_usize::IntoUsize,
     representation::Representation,
     settings::Settings,
-    subcommand::{Subcommand, SubcommandResult},
+    subcommand::{OutputFormat, Subcommand, SubcommandResult},
     tally::Tally,
   },
   anyhow::{anyhow, bail, ensure, Context, Error},
@@ -252,7 +252,7 @@ pub fn main() {
 
   let args = Arguments::parse();
 
-  let minify = args.options.minify;
+  let format = args.options.format;
 
   match args.run() {
     Err(err) => {
@@ -274,7 +274,7 @@ pub fn main() {
     }
     Ok(output) => {
       if let Some(output) = output {
-        output.print_json(minify);
+        output.print(format.unwrap_or_default());
       }
       gracefully_shutdown_indexer();
     }
