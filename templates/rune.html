@@ -50,12 +50,35 @@
 %% } else {
   <dd>no</dd>
 %% }
-  <dt>supply</dt>
+  <dt>current supply</dt>
   <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
+  %% if let Some(terms) = self.entry.terms {
+    %% if let Some(symbol) = self.entry.symbol {
+      <dt>maximum supply</dt>
+      <dd>{{ (terms.cap.unwrap_or_default() * terms.amount.unwrap_or_default()) + self.entry.premine }}{{ symbol }}</dd>
+    %% } } else {
+      <dt>maximum supply</dt>
+      <dd>Unable to calculate maximum supply</dd>
+      %% }
+  %% if let Some(terms) = self.entry.terms {
+    %% if let Some(symbol) = self.entry.symbol {
+      <dt>supply progress</dt>
+  <dd>{{ self.entry.pile(self.entry.supply()) }} of {{ (terms.cap.unwrap_or_default() * terms.amount.unwrap_or_default()) + self.entry.premine }}{{ symbol }} </dd>
+  %% } } else {
+    <dt>supply progress</dt>
+    <dd>Unable to calculate supply progress</dd>
+    %% }
   <dt>premine</dt>
   <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
-  <dt>premine percentage</dt>
+  <dt>premine percentage of current supply</dt>
   <dd>{{ Decimal { value: ((self.entry.premine as f64 / self.entry.supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
+  %% if let Some(terms) = self.entry.terms {
+  <dt>premine percentage of maximum supply</dt>
+  <dd>{{ Decimal { value: ((self.entry.premine as f64 / ((terms.cap.unwrap_or_default() as f64 * terms.amount.unwrap_or_default() as f64) + self.entry.premine as f64)) * 10000.0) as u128, scale: 2 } }}%</dd>
+  %% } else {
+    <dt>premine percentage of maximum supply</dt>
+    <dd>Unable to calculate premine percentage of maximum supply</dd>
+  %% }
   <dt>burned</dt>
   <dd>{{ self.entry.pile(self.entry.burned) }}</dd>
   <dt>divisibility</dt>
