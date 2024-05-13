@@ -763,7 +763,7 @@ fn get_rune_specific_balances() {
 
   core.mine_blocks(3);
 
-  let runes = vec![Rune(RUNE), Rune(RUNE + 1), Rune(RUNE + 2)];
+  let runes = [Rune(RUNE), Rune(RUNE + 1), Rune(RUNE + 2)];
   let mut etched: Vec<Etched> = Vec::new();
 
   runes.iter()
@@ -817,7 +817,7 @@ fn get_rune_specific_balances() {
   etched.iter()
     .enumerate()
     .for_each(|(i, e)| {
-      let response = ord.json_request(format!("/rune/{}/balances", e.id.to_string()));
+      let response = ord.json_request(format!("/rune/{}/balances", e.id));
       assert_eq!(response.status(), StatusCode::OK);
 
       let runes_balance_json: BTreeMap<OutPoint, u128> =

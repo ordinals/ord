@@ -1103,7 +1103,7 @@ impl Index {
     for i in outpoints_balance {
       let guard = i?;
       let buffer = guard.value();
-      let ((outpoint, amount), _) = Index::decode_rune_outpoints_balance(&buffer).unwrap();
+      let ((outpoint, amount), _) = Index::decode_rune_outpoints_balance(buffer).unwrap();
 
       *result
         .entry(outpoint)
