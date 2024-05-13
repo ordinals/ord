@@ -13,8 +13,8 @@ impl Pending {
     let etchings = wallet
       .pending_etchings()?
       .into_iter()
-      .map(|(rune, entry)| {
-        let spaced_rune = rune.to_string().parse::<SpacedRune>().unwrap();
+      .map(|(_, entry)| {
+        let spaced_rune = entry.output.rune.unwrap().rune;
 
         PendingOutput {
           rune: spaced_rune,

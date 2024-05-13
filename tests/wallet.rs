@@ -11,6 +11,7 @@ mod inscriptions;
 mod label;
 mod mint;
 mod outputs;
+mod pending;
 mod receive;
 mod restore;
 #[cfg(unix)]
