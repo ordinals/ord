@@ -136,20 +136,24 @@ impl Context {
 
     // convert from outpoint -> <rune, balance> to rune -> <outpoint, balance>
     let mut rune_outpoints_balance: HashMap<RuneId, BTreeMap<OutPoint, u128>> = HashMap::new();
-    balances
-      .iter()
-      .for_each(|outpoint| {
-        for r in outpoint.1.iter() {
-          *rune_outpoints_balance
-            .entry(r.0)
-            .or_default()
-            .entry(outpoint.0)
-            .or_default() += r.1;
-        }
-      });
+    balances.iter().for_each(|outpoint| {
+      for r in outpoint.1.iter() {
+        *rune_outpoints_balance
+          .entry(r.0)
+          .or_default()
+          .entry(outpoint.0)
+          .or_default() += r.1;
+      }
+    });
 
     for i in rune_outpoints_balance {
-      pretty_assert_eq!(i.1, self.index.get_rune_specific_balances(self.index.get_rune_by_id(i.0).unwrap().unwrap()).unwrap());
+      pretty_assert_eq!(
+        i.1,
+        self
+          .index
+          .get_rune_specific_balances(self.index.get_rune_by_id(i.0).unwrap().unwrap())
+          .unwrap()
+      );
     }
 
     let mut outstanding: HashMap<RuneId, u128> = HashMap::new();

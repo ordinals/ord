@@ -29,7 +29,9 @@ use {
     StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
-    collections::HashMap, io::{BufWriter, Write}, sync::Once
+    collections::HashMap,
+    io::{BufWriter, Write},
+    sync::Once,
   },
 };
 
@@ -971,14 +973,18 @@ impl Index {
   }
 
   // a buffer with size: 36 + balance size
-  pub(crate) fn encode_rune_outpoints_balance(outpoint: OutPoint, balance: u128, buffer: &mut Vec<u8>) {
+  pub(crate) fn encode_rune_outpoints_balance(
+    outpoint: OutPoint,
+    balance: u128,
+    buffer: &mut Vec<u8>,
+  ) {
     buffer.extend_from_slice(&outpoint.store());
     varint::encode_to_vec(balance, buffer);
   }
 
   pub(crate) fn decode_rune_outpoints_balance(buffer: &[u8]) -> Result<((OutPoint, u128), usize)> {
     let mut len = 0;
-    let outpoint_value : [u8; 36] = buffer[len..len + 36].try_into().unwrap();
+    let outpoint_value: [u8; 36] = buffer[len..len + 36].try_into().unwrap();
     len += 36;
     let outpoint = OutPoint::load(outpoint_value);
     let (balance, balance_len) = varint::decode(&buffer[len..]).unwrap();
@@ -1085,7 +1091,8 @@ impl Index {
     let rtx = self.database.begin_read()?;
 
     // get rune id
-    let Some(id) = self.database
+    let Some(id) = self
+      .database
       .begin_read()?
       .open_table(RUNE_TO_RUNE_ID)?
       .get(rune.0)?
@@ -1105,9 +1112,7 @@ impl Index {
       let buffer = guard.value();
       let ((outpoint, amount), _) = Index::decode_rune_outpoints_balance(buffer).unwrap();
 
-      *result
-        .entry(outpoint)
-        .or_default() += amount
+      *result.entry(outpoint).or_default() += amount
     }
 
     Ok(result)
@@ -2299,7 +2304,7 @@ mod tests {
   fn test_encode_decode_rune_to_outpoints_balance() {
     let outpoint = OutPoint {
       txid: Txid::all_zeros(),
-      vout: 2
+      vout: 2,
     };
 
     // 5 outpoints
@@ -2313,7 +2318,8 @@ mod tests {
     let mut i = 0;
     let arr_buffer = buffer.as_slice();
     while i < buffer.len() {
-      let ((d_outpoint, d_balance), len) = Index::decode_rune_outpoints_balance(&arr_buffer[i..]).unwrap();
+      let ((d_outpoint, d_balance), len) =
+        Index::decode_rune_outpoints_balance(&arr_buffer[i..]).unwrap();
       i += len;
 
       assert_eq!(outpoint, d_outpoint);

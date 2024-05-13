@@ -804,12 +804,7 @@ impl Server {
       };
 
       Ok(if accept_json {
-        Json(
-          index
-            .get_rune_specific_balances(rune)
-            .unwrap()
-        )
-        .into_response()
+        Json(index.get_rune_specific_balances(rune).unwrap()).into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
       })

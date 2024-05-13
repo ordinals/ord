@@ -766,10 +766,9 @@ fn get_rune_specific_balances() {
   let runes = [Rune(RUNE), Rune(RUNE + 1), Rune(RUNE + 2)];
   let mut etched: Vec<Etched> = Vec::new();
 
-  runes.iter()
-    .for_each(|rune| {
-      etched.push(etch(&core, &ord, *rune))
-    });
+  runes
+    .iter()
+    .for_each(|rune| etched.push(etch(&core, &ord, *rune)));
 
   core.mine_blocks(1);
 
@@ -814,15 +813,16 @@ fn get_rune_specific_balances() {
   .into_iter()
   .collect();
 
-  etched.iter()
-    .enumerate()
-    .for_each(|(i, e)| {
-      let response = ord.json_request(format!("/rune/{}/balances", e.id));
-      assert_eq!(response.status(), StatusCode::OK);
+  etched.iter().enumerate().for_each(|(i, e)| {
+    let response = ord.json_request(format!("/rune/{}/balances", e.id));
+    assert_eq!(response.status(), StatusCode::OK);
 
-      let runes_balance_json: BTreeMap<OutPoint, u128> =
-        serde_json::from_str(&response.text().unwrap()).unwrap();
+    let runes_balance_json: BTreeMap<OutPoint, u128> =
+      serde_json::from_str(&response.text().unwrap()).unwrap();
 
-      pretty_assert_eq!(runes_balance_json, rune_balances.entry(runes[i]).or_default().to_owned());
-    });
+    pretty_assert_eq!(
+      runes_balance_json,
+      rune_balances.entry(runes[i]).or_default().to_owned()
+    );
+  });
 }
