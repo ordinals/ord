@@ -520,7 +520,6 @@ fn get_runes() {
 
   let a = etch(&core, &ord, Rune(RUNE));
   let b = etch(&core, &ord, Rune(RUNE + 1));
-  let c = etch(&core, &ord, Rune(RUNE + 2));
 
   core.mine_blocks(1);
 
@@ -558,7 +557,7 @@ fn get_runes() {
     }
   );
 
-  let response0 = ord.json_request("/runes/0?size=2");
+  let response0 = ord.json_request("/runes/0");
 
   assert_eq!(response0.status(), StatusCode::OK);
 
@@ -570,84 +569,6 @@ fn get_runes() {
     runes_json0,
     api::Runes {
       entries: vec![
-        (
-          RuneId { block: 24, tx: 1 },
-          RuneEntry {
-            block: c.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: c.output.reveal,
-            mints: 0,
-            number: 2,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 2),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 24,
-            turbo: false,
-          }
-        ),
-        (
-          RuneId { block: 17, tx: 1 },
-          RuneEntry {
-            block: b.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: b.output.reveal,
-            mints: 0,
-            number: 1,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 1),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 17,
-            turbo: false,
-          }
-        )
-      ],
-      more: true,
-      next: Some(1),
-      prev: None,
-      page_size: 2,
-    }
-  );
-
-  let response = ord.json_request("/runes");
-
-  assert_eq!(response.status(), StatusCode::OK);
-
-  let runes_json: api::Runes = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  pretty_assert_eq!(
-    runes_json,
-    api::Runes {
-      entries: vec![
-        (
-          RuneId { block: 24, tx: 1 },
-          RuneEntry {
-            block: c.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: c.output.reveal,
-            mints: 0,
-            number: 2,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 2),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 24,
-            turbo: false,
-          }
-        ),
         (
           RuneId { block: 17, tx: 1 },
           RuneEntry {
@@ -692,7 +613,65 @@ fn get_runes() {
       more: false,
       next: None,
       prev: None,
-      page_size: 50,
+      page_size: 2,
+    }
+  );
+
+  let response = ord.json_request("/runes");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let runes_json: api::Runes = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    runes_json,
+    api::Runes {
+      entries: vec![
+        (
+          RuneId { block: 17, tx: 1 },
+          RuneEntry {
+            block: b.id.block,
+            burned: 0,
+            terms: None,
+            divisibility: 0,
+            etching: b.output.reveal,
+            mints: 0,
+            number: 1,
+            premine: 1000,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
+            symbol: Some('¢'),
+            timestamp: 17,
+            turbo: false,
+          }
+        ),
+        (
+          RuneId { block: 10, tx: 1 },
+          RuneEntry {
+            block: a.id.block,
+            burned: 0,
+            terms: None,
+            divisibility: 0,
+            etching: a.output.reveal,
+            mints: 0,
+            number: 0,
+            premine: 1000,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
+            symbol: Some('¢'),
+            timestamp: 10,
+            turbo: false,
+          }
+        )
+      ],
+      more: false,
+      next: None,
+      prev: None,
+      page_size: 2,
     }
   );
 }

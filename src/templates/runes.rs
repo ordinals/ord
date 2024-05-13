@@ -6,7 +6,7 @@ pub struct RunesHtml {
   pub more: bool,
   pub prev: Option<usize>,
   pub next: Option<usize>,
-  pub page_size: u32,
+  pub page_size: usize,
 }
 
 impl PageContent for RunesHtml {
