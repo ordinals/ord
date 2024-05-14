@@ -39,6 +39,6 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       }
     })
     .collect::<Vec<RunicUtxo>>();
-  
+
   Ok(Some(Box::new(runic_utxos)))
 }
