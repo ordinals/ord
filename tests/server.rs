@@ -313,6 +313,7 @@ fn recursive_inscription_endpoint() {
       charms: vec![Charm::Coin, Charm::Uncommon],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
+      delegate: None,
       fee: 138,
       height: 2,
       id: inscription.id,

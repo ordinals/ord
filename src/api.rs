@@ -103,6 +103,8 @@ pub struct InscriptionRecursive {
   pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub delegate: Option<InscriptionId>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,

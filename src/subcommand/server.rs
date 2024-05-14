@@ -984,6 +984,7 @@ impl Server {
           charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
+          delegate: inscription.delegate(),
           fee: entry.fee,
           height: entry.height,
           id: inscription_id,
@@ -6090,6 +6091,13 @@ next
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
     server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegate,
+      Some(delegate)
+    );
   }
 
   #[test]
