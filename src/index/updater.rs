@@ -656,14 +656,8 @@ impl<'index> Updater<'index> {
       let outpoints = script_pubkey_to_outpoint.get(&txin.script_sig.as_bytes())?;
 
       for result in outpoints.into_iter() {
-        let outpoint =  result?;
-
-
-
-
+        let outpoint = result?;
       }
-
-
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
