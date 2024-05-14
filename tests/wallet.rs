@@ -2,6 +2,7 @@ use super::*;
 
 mod authentication;
 mod balance;
+mod runics;
 mod batch_command;
 mod cardinals;
 mod create;

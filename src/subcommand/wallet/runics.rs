@@ -3,9 +3,7 @@ use super::*;
 #[derive(Serialize, Deserialize)]
 pub struct RunicUtxo {
   pub output: OutPoint,
-  pub rune: SpacedRune,
-  pub rune_balance: u128,
-  pub amount: u64,
+  pub runes: BTreeMap<SpacedRune, Decimal>,
 }
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
@@ -14,24 +12,33 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let runic_utxos = unspent_outputs
     .iter()
-    .flat_map(|(output, txout)| {
+    .filter_map(|(output, _)| {
       if runic_utxos.contains(output) {
-        wallet
-          .get_runes_balances_for_output(output)
-          .unwrap()
-          .into_iter()
-          .map(|(rune, pile)| RunicUtxo {
-            rune,
-            rune_balance: pile.amount,
-            amount: txout.value,
-            output: *output,
-          })
-          .collect()
+        let rune_balances = wallet.get_runes_balances_for_output(output).ok()?;
+        let mut runes = BTreeMap::new();
+
+        for (spaced_rune, pile) in rune_balances {
+          runes
+            .entry(spaced_rune)
+            .and_modify(|decimal: &mut Decimal| {
+              assert_eq!(decimal.scale, pile.divisibility);
+              decimal.value += pile.amount;
+            })
+            .or_insert(Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            });
+        }
+
+        Some(RunicUtxo {
+          output: *output,
+          runes,
+        })
       } else {
-        vec![]
+        None  
       }
     })
     .collect::<Vec<RunicUtxo>>();
-
+  
   Ok(Some(Box::new(runic_utxos)))
 }
