@@ -343,6 +343,7 @@ impl<'index> Updater<'index> {
         .iter()
         .map(|(_, txid)| txid)
         .collect::<HashSet<_>>();
+
       for (tx, _) in &block.txdata {
         for input in &tx.input {
           let prev_output = input.previous_output;
@@ -628,6 +629,53 @@ impl<'index> Updater<'index> {
       "Wrote {sat_ranges_written} sat ranges from {outputs_in_block} outputs in {} ms",
       (Instant::now() - start).as_millis(),
     );
+
+    let index_addresses = true;
+
+    if index_addresses {
+      let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
+      for (tx, txid) in &block.txdata {
+        self.index_tx_outputs(&tx, &txid, &mut script_pubkey_to_outpoint)?;
+      }
+    };
+
+    Ok(())
+  }
+
+  fn index_tx_outputs(
+    &mut self,
+    tx: &Transaction,
+    txid: &Txid,
+    script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
+  ) -> Result {
+    for txin in &tx.input {
+      if txin.previous_output.is_null() {
+        continue;
+      }
+
+      let outpoints = script_pubkey_to_outpoint.get(&txin.script_sig.as_bytes())?;
+
+      for result in outpoints.into_iter() {
+        let outpoint =  result?;
+
+
+
+
+      }
+
+
+    }
+
+    for (vout, txout) in tx.output.iter().enumerate() {
+      script_pubkey_to_outpoint.insert(
+        txout.script_pubkey.as_bytes(),
+        OutPoint {
+          txid: txid.clone(),
+          vout: vout.try_into().unwrap(),
+        }
+        .store(),
+      )?;
+    }
 
     Ok(())
   }
