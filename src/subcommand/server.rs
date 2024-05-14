@@ -1227,6 +1227,7 @@ impl Server {
         confirmations: info.confirmations,
         difficulty: info.difficulty,
         hash,
+        fr_10th: stats.fee_rate_percentiles.fr_10th.to_sat(),
         height: info.height.try_into().unwrap(),
         max_fee: stats.max_fee.to_sat(),
         max_fee_rate: stats.max_fee_rate.to_sat(),
@@ -6142,6 +6143,7 @@ next
         hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
           .parse()
           .unwrap(),
+        fr_10th: 0,
         height: 0,
         max_fee: 0,
         max_fee_rate: 0,
@@ -6181,6 +6183,7 @@ next
         hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
           .parse()
           .unwrap(),
+        fr_10th: 0,
         height: 1,
         max_fee: 0,
         max_fee_rate: 0,
