@@ -631,7 +631,7 @@ impl<'index> Updater<'index> {
     if self.index.index_addresses {
       let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
       for (tx, txid) in &block.txdata {
-        self.index_transaction_addresses(&tx, &txid, &mut script_pubkey_to_outpoint)?;
+        self.index_transaction_addresses(tx, txid, &mut script_pubkey_to_outpoint)?;
       }
     };
 
@@ -665,8 +665,8 @@ impl<'index> Updater<'index> {
       script_pubkey_to_outpoint.insert(
         txout.script_pubkey.as_bytes(),
         OutPoint {
-          txid: txid.clone(),
-          vout: vout.try_into().unwrap(), // TODO
+          txid: *txid,
+          vout: vout.try_into().unwrap(),
         }
         .store(),
       )?;

@@ -2207,14 +2207,15 @@ impl Index {
   pub(crate) fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
     let rtx = self.database.begin_read()?;
 
-    Ok(
-      rtx
-        .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
-        .get(address.script_pubkey().as_bytes())?
-        .into_iter()
-        .map(|value| OutPoint::load(value.unwrap().value())) // TODO
-        .collect(),
-    )
+    rtx
+      .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
+      .get(address.script_pubkey().as_bytes())?
+      .map(|result| {
+        result
+          .map_err(|err| anyhow!(err.to_string()))
+          .map(|value| OutPoint::load(value.value()))
+      })
+      .collect::<Result<Vec<_>>>()
   }
 
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {

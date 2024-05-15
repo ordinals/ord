@@ -47,10 +47,7 @@ pub struct Options {
   pub(crate) height_limit: Option<u32>,
   #[arg(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
-  #[arg(
-    long,
-    help = "Track addresses of all outputs."
-  )]
+  #[arg(long, help = "Track addresses of all outputs.")]
   pub(crate) index_addresses: bool,
   #[arg(
     long,
