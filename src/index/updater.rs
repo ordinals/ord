@@ -308,7 +308,7 @@ impl<'index> Updater<'index> {
 
   fn index_block(
     &mut self,
-    outpoint_sender: &mut Sender<OutPoint>,
+    utxo_sender: &mut Sender<OutPoint>,
     utxo_receiver: &mut Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
@@ -368,10 +368,24 @@ impl<'index> Updater<'index> {
             continue;
           }
           // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
-          outpoint_sender.blocking_send(prev_output)?;
+          utxo_sender.blocking_send(prev_output)?;
         }
       }
     }
+
+    if self.index.index_addresses {
+      let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
+      for (tx, txid) in &block.txdata {
+        self.index_transaction_addresses(
+          tx,
+          txid,
+          utxo_cache,
+          utxo_receiver,
+          &mut script_pubkey_to_outpoint,
+          &mut outpoint_to_txout,
+        )?;
+      }
+    };
 
     let mut content_type_to_count = wtx.open_table(CONTENT_TYPE_TO_COUNT)?;
     let mut height_to_block_header = wtx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
@@ -630,13 +644,6 @@ impl<'index> Updater<'index> {
       (Instant::now() - start).as_millis(),
     );
 
-    if self.index.index_addresses {
-      let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
-      for (tx, txid) in &block.txdata {
-        self.index_transaction_addresses(tx, txid, &mut script_pubkey_to_outpoint)?;
-      }
-    };
-
     Ok(())
   }
 
@@ -644,7 +651,10 @@ impl<'index> Updater<'index> {
     &mut self,
     tx: &Transaction,
     txid: &Txid,
+    utxo_cache: &mut HashMap<OutPoint, TxOut>,
+    utxo_receiver: &mut Receiver<TxOut>,
     script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
+    outpoint_to_txout: &mut Table<&OutPointValue, TxOutValue>,
   ) -> Result {
     for txin in &tx.input {
       let output = txin.previous_output;
@@ -652,15 +662,21 @@ impl<'index> Updater<'index> {
         continue;
       }
 
-      // get this from value cache or add own utxo table (OUTPOINT_TO_TXOUT)
-      let script_pubkey = &self
-        .index
-        .client
-        .get_raw_transaction(&output.txid, None)?
-        .output[output.vout as usize]
-        .script_pubkey;
+      // multi-level cache for UTXO set to get to the script pubkey
+      let txout = if let Some(txout) = utxo_cache.get(&txin.previous_output) {
+        txout.clone() // TODO
+      } else if let Some(value) = outpoint_to_txout.get(&txin.previous_output.store())? {
+        TxOut::load(value.value())
+      } else {
+        utxo_receiver.blocking_recv().ok_or_else(|| {
+          anyhow!(
+            "failed to get transaction for {}",
+            txin.previous_output.txid
+          )
+        })?
+      };
 
-      script_pubkey_to_outpoint.remove(&script_pubkey.as_bytes(), output.store())?;
+      script_pubkey_to_outpoint.remove(&txout.script_pubkey.as_bytes(), output.store())?;
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
