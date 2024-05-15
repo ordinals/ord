@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxOutValue, TxidValue,
     },
     event::Event,
     lot::Lot,
@@ -62,7 +62,7 @@ define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { OUTPOINT_TO_TXOUT, &OutPointValue, TxOutValue }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -310,7 +310,7 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-        tx.open_table(OUTPOINT_TO_VALUE)?;
+        tx.open_table(OUTPOINT_TO_TXOUT)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
@@ -462,7 +462,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(OUTPOINT_TO_VALUE)?
+        .open_table(OUTPOINT_TO_TXOUT)?
         .get(&output.store())?
         .is_some(),
     )

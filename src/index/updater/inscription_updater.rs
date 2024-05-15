@@ -52,7 +52,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
-  pub(super) outpoint_to_value: &'a mut Table<'tx, &'static OutPointValue, u64>,
+  pub(super) outpoint_to_txout: &'a mut Table<'tx, &'static OutPointValue, TxOutValue>,
   pub(super) reward: u64,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
@@ -63,8 +63,8 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) sequence_number_to_satpoint: &'a mut Table<'tx, u32, &'static SatPointValue>,
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
-  pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
-  pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) utxo_cache: &'a mut HashMap<OutPoint, TxOut>,
+  pub(super) utxo_receiver: &'a mut Receiver<TxOut>,
 }
 
 impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
@@ -114,21 +114,25 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       let offset = total_input_value;
 
       // multi-level cache for UTXO set to get to the input amount
-      let current_input_value = if let Some(value) = self.value_cache.remove(&tx_in.previous_output)
+      let current_input_value = if let Some(txout) = self.utxo_cache.remove(&tx_in.previous_output)
       {
-        value
+        txout.value
       } else if let Some(value) = self
-        .outpoint_to_value
+        .outpoint_to_txout
         .remove(&tx_in.previous_output.store())?
       {
-        value.value()
+        TxOut::load(value.value()).value
       } else {
-        self.value_receiver.blocking_recv().ok_or_else(|| {
-          anyhow!(
-            "failed to get transaction for {}",
-            tx_in.previous_output.txid
-          )
-        })?
+        self
+          .utxo_receiver
+          .blocking_recv()
+          .ok_or_else(|| {
+            anyhow!(
+              "failed to get transaction for {}",
+              tx_in.previous_output.txid
+            )
+          })?
+          .value
       };
 
       total_input_value += current_input_value;
@@ -291,8 +295,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut range_to_vout = BTreeMap::new();
     let mut new_locations = Vec::new();
     let mut output_value = 0;
-    for (vout, tx_out) in tx.output.iter().enumerate() {
-      let end = output_value + tx_out.value;
+    for (vout, txout) in tx.output.iter().enumerate() {
+      let end = output_value + txout.value;
 
       while let Some(flotsam) = inscriptions.peek() {
         if flotsam.offset >= end {
@@ -314,12 +318,12 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       output_value = end;
 
-      self.value_cache.insert(
+      self.utxo_cache.insert(
         OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
         },
-        tx_out.value,
+        txout.clone(), // TODO
       );
     }
 

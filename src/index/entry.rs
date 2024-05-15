@@ -224,6 +224,7 @@ impl Entry for RuneEntry {
         offset,
       }),
       timestamp,
+
       turbo,
     }
   }
@@ -423,6 +424,26 @@ impl Entry for OutPoint {
   }
 }
 
+pub(super) type TxOutValue = (
+  u64,     // value
+  Vec<u8>, // script_pubkey
+);
+
+impl Entry for TxOut {
+  type Value = TxOutValue;
+
+  fn load(value: Self::Value) -> Self {
+    Self {
+      value: value.0,
+      script_pubkey: ScriptBuf::from_bytes(value.1),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.value, self.script_pubkey.to_bytes())
+  }
+}
+
 pub(super) type SatPointValue = [u8; 44];
 
 impl Entry for SatPoint {
@@ -483,6 +504,19 @@ impl Entry for Txid {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn txout_entry() {
+    let txout = TxOut {
+      value: u64::MAX,
+      script_pubkey: ScriptBuf::new(),
+    };
+
+    let value = (u64::MAX, Vec::new());
+
+    assert_eq!(txout.clone().store(), value);
+    assert_eq!(TxOut::load(value), txout);
+  }
 
   #[test]
   fn inscription_entry() {
