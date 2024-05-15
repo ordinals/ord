@@ -18,6 +18,7 @@ pub struct Settings {
   height_limit: Option<u32>,
   hidden: Option<HashSet<InscriptionId>>,
   index: Option<PathBuf>,
+  index_addresses: bool,
   index_cache_size: Option<usize>,
   index_runes: bool,
   index_sats: bool,
@@ -133,6 +134,7 @@ impl Settings {
           .collect(),
       ),
       index: self.index.or(source.index),
+      index_addresses: self.index_addresses || source.index_addresses,
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
       index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
@@ -168,6 +170,7 @@ impl Settings {
       height_limit: options.height_limit,
       hidden: None,
       index: options.index,
+      index_addresses: options.index_addresses,
       index_cache_size: options.index_cache_size,
       index_runes: options.index_runes,
       index_sats: options.index_sats,
@@ -247,6 +250,7 @@ impl Settings {
       height_limit: get_u32("HEIGHT_LIMIT")?,
       hidden: inscriptions("HIDDEN")?,
       index: get_path("INDEX"),
+      index_addresses: get_bool("INDEX_ADDRESSES"),
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
       index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
@@ -277,6 +281,7 @@ impl Settings {
       height_limit: None,
       hidden: None,
       index: None,
+      index_addresses: true,
       index_cache_size: None,
       index_runes: true,
       index_sats: true,
@@ -350,6 +355,7 @@ impl Settings {
       height_limit: self.height_limit,
       hidden: self.hidden,
       index: Some(index),
+      index_addresses: self.index_addresses,
       index_cache_size: Some(match self.index_cache_size {
         Some(index_cache_size) => index_cache_size,
         None => {
@@ -510,6 +516,10 @@ impl Settings {
 
   pub(crate) fn index(&self) -> &Path {
     self.index.as_ref().unwrap()
+  }
+
+  pub(crate) fn index_addresses(&self) -> bool {
+    self.index_addresses
   }
 
   pub(crate) fn index_inscriptions(&self) -> bool {
@@ -1003,6 +1013,7 @@ mod tests {
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
       ("INDEX", "index"),
       ("INDEX_CACHE_SIZE", "4"),
+      ("INDEX_ADDRESSES", "1"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_SPENT_SATS", "1"),
@@ -1046,6 +1057,7 @@ mod tests {
           .collect()
         ),
         index: Some("index".into()),
+        index_addresses: true,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
@@ -1079,6 +1091,7 @@ mod tests {
           "--datadir=/data/dir",
           "--first-inscription-height=2",
           "--height-limit=3",
+          "--index-addresses",
           "--index-cache-size=4",
           "--index-runes",
           "--index-sats",
@@ -1108,6 +1121,7 @@ mod tests {
         height_limit: Some(3),
         hidden: None,
         index: Some("index".into()),
+        index_addresses: true,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,

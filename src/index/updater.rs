@@ -381,7 +381,6 @@ impl<'index> Updater<'index> {
       wtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
     let mut sat_to_sequence_number = wtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
     let mut satpoint_to_sequence_number = wtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
-    let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
     let mut sequence_number_to_children = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
@@ -437,7 +436,6 @@ impl<'index> Updater<'index> {
       reward: Height(self.height).subsidy(),
       sat_to_sequence_number: &mut sat_to_sequence_number,
       satpoint_to_sequence_number: &mut satpoint_to_sequence_number,
-      script_pubkey_to_outpoint: &mut script_pubkey_to_outpoint,
       sequence_number_to_children: &mut sequence_number_to_children,
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
       sequence_number_to_satpoint: &mut sequence_number_to_satpoint,
@@ -630,34 +628,37 @@ impl<'index> Updater<'index> {
       (Instant::now() - start).as_millis(),
     );
 
-    let index_addresses = true;
-
-    if index_addresses {
+    if self.index.index_addresses {
       let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
       for (tx, txid) in &block.txdata {
-        self.index_tx_outputs(&tx, &txid, &mut script_pubkey_to_outpoint)?;
+        self.index_transaction_addresses(&tx, &txid, &mut script_pubkey_to_outpoint)?;
       }
     };
 
     Ok(())
   }
 
-  fn index_tx_outputs(
+  fn index_transaction_addresses(
     &mut self,
     tx: &Transaction,
     txid: &Txid,
     script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
   ) -> Result {
     for txin in &tx.input {
-      if txin.previous_output.is_null() {
+      let output = txin.previous_output;
+      if output.is_null() {
         continue;
       }
 
-      let outpoints = script_pubkey_to_outpoint.get(&txin.script_sig.as_bytes())?;
+      // get this from value cache or add own utxo table (OUTPOINT_TO_TXOUT)
+      let script_pubkey = &self
+        .index
+        .client
+        .get_raw_transaction(&output.txid, None)?
+        .output[output.vout as usize]
+        .script_pubkey;
 
-      for result in outpoints.into_iter() {
-        let outpoint = result?;
-      }
+      script_pubkey_to_outpoint.remove(&script_pubkey.as_bytes(), output.store())?;
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
@@ -665,7 +666,7 @@ impl<'index> Updater<'index> {
         txout.script_pubkey.as_bytes(),
         OutPoint {
           txid: txid.clone(),
-          vout: vout.try_into().unwrap(),
+          vout: vout.try_into().unwrap(), // TODO
         }
         .store(),
       )?;

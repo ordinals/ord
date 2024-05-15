@@ -488,6 +488,7 @@ fn get_status() {
   pretty_assert_eq!(
     status_json,
     api::Status {
+      address_index: false,
       blessed_inscriptions: 1,
       chain: Chain::Regtest,
       content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],

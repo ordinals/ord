@@ -2,6 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   crate::subcommand::server::ServerConfig,
+  address::AddressHtml,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -29,6 +30,7 @@ pub use {
   transaction::TransactionHtml,
 };
 
+pub mod address;
 pub mod block;
 pub mod blocks;
 mod children;

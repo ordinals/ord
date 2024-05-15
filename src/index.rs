@@ -48,7 +48,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 25;
+const SCHEMA_VERSION: u64 = 26;
 
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
@@ -91,6 +91,7 @@ pub(crate) enum Statistic {
   IndexTransactions = 12,
   IndexSpentSats = 13,
   InitialSyncTime = 14,
+  IndexAddresses = 15,
 }
 
 impl Statistic {
@@ -190,12 +191,13 @@ pub struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u32>,
+  index_addresses: bool,
   index_runes: bool,
   index_sats: bool,
   index_spent_sats: bool,
   index_transactions: bool,
-  settings: Settings,
   path: PathBuf,
+  settings: Settings,
   started: DateTime<Utc>,
   unrecoverably_reorged: AtomicBool,
 }
@@ -328,6 +330,12 @@ impl Index {
 
           Self::set_statistic(
             &mut statistics,
+            Statistic::IndexAddresses,
+            u64::from(settings.index_addresses()),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
             Statistic::IndexRunes,
             u64::from(settings.index_runes()),
           )?;
@@ -404,15 +412,16 @@ impl Index {
       Err(error) => bail!("failed to open index: {error}"),
     };
 
+    let index_addresses;
     let index_runes;
     let index_sats;
     let index_spent_sats;
     let index_transactions;
-    // let index_addresses;
 
     {
       let tx = database.begin_read()?;
       let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
+      index_addresses = Self::is_statistic_set(&statistics, Statistic::IndexAddresses)?;
       index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
       index_spent_sats = Self::is_statistic_set(&statistics, Statistic::IndexSpentSats)?;
@@ -431,6 +440,7 @@ impl Index {
       first_inscription_height: settings.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: settings.height_limit(),
+      index_addresses,
       index_runes,
       index_sats,
       index_spent_sats,
@@ -456,6 +466,10 @@ impl Index {
         .get(&output.store())?
         .is_some(),
     )
+  }
+
+  pub(crate) fn has_address_index(&self) -> bool {
+    self.index_addresses
   }
 
   pub(crate) fn has_rune_index(&self) -> bool {
@@ -504,6 +518,7 @@ impl Index {
     content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
 
     Ok(StatusHtml {
+      address_index: statistic(Statistic::IndexAddresses)? != 0,
       blessed_inscriptions,
       chain: self.settings.chain(),
       content_type_counts,
@@ -2185,6 +2200,19 @@ impl Index {
       inscriptions
         .into_iter()
         .map(|(_sequence_number, satpoint, inscription_id)| (satpoint, inscription_id))
+        .collect(),
+    )
+  }
+
+  pub(crate) fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
+    let rtx = self.database.begin_read()?;
+
+    Ok(
+      rtx
+        .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
+        .get(address.script_pubkey().as_bytes())?
+        .into_iter()
+        .map(|value| OutPoint::load(value.unwrap().value())) // TODO
         .collect(),
     )
   }
@@ -6269,6 +6297,67 @@ mod tests {
         vout: 0,
       })
       .unwrap());
+  }
+
+  #[test]
+  fn output_addresses_are_updated() {
+    let context = Context::builder().arg("--index-addresses").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let transaction = context.index.get_transaction(txid).unwrap().unwrap();
+
+    let first_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context.index.get_address_info(&first_address).unwrap(),
+      vec![OutPoint {
+        txid: transaction.txid(),
+        vout: 0
+      }]
+    );
+
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      p2tr: true,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let transaction = context.index.get_transaction(txid).unwrap().unwrap();
+
+    let second_address = context
+      .index
+      .settings
+      .chain()
+      .address_from_script(&transaction.output[0].script_pubkey)
+      .unwrap();
+
+    assert_eq!(
+      context.index.get_address_info(&first_address).unwrap(),
+      Vec::new(),
+    );
+
+    assert_eq!(
+      context.index.get_address_info(&second_address).unwrap(),
+      vec![OutPoint {
+        txid: transaction.txid(),
+        vout: 0
+      }]
+    );
   }
 
   #[test]

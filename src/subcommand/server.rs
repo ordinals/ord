@@ -6,9 +6,9 @@ use {
   },
   super::*,
   crate::templates::{
-    BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml, InputHtml,
-    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
     PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
@@ -180,6 +180,7 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/address/:address", get(Self::address))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
@@ -820,6 +821,35 @@ impl Server {
 
   async fn install_script() -> Redirect {
     Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
+  }
+
+  async fn address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !index.has_address_index() {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      }
+
+      let address = address
+        .require_network(server_config.chain.network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let outputs = index.get_address_info(&address)?;
+
+      Ok(if accept_json {
+        Json(outputs).into_response()
+      } else {
+        AddressHtml { address, outputs }
+          .page(server_config)
+          .into_response()
+      })
+    })
   }
 
   async fn block(
@@ -3325,6 +3355,8 @@ mod tests {
   <dt>version</dt>
   <dd>.*</dd>
   <dt>unrecoverably reorged</dt>
+  <dd>false</dd>
+  <dt>address index</dt>
   <dd>false</dd>
   <dt>rune index</dt>
   <dd>false</dd>

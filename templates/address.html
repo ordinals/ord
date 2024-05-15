@@ -1,0 +1,7 @@
+<h1>Address {{ self.address }}</h1>
+<h2>Outputs</h2>
+<ul>
+%% for output in self.outputs.iter() {
+  <li><a href=/output/{{ output }}>{{ output }}</a></li>
+%% }
+</ul>

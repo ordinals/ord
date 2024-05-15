@@ -57,7 +57,6 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
-  pub(super) script_pubkey_to_outpoint: &'a mut MultimapTable<'tx, &'static [u8], OutPointValue>,
   pub(super) satpoint_to_sequence_number: &'a mut MultimapTable<'tx, &'static SatPointValue, u32>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
