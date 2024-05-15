@@ -224,7 +224,6 @@ impl Entry for RuneEntry {
         offset,
       }),
       timestamp,
-
       turbo,
     }
   }
