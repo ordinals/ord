@@ -240,8 +240,14 @@ impl Server {
           "/r/children/:inscription_id/:page",
           get(Self::children_recursive_paginated),
         )
-        .route("/r/children/:inscription_id/inscriptions", get(Self::child_inscriptions_recursive))
-        .route("/r/children/:inscription_id/inscriptions/:page", get(Self::child_inscriptions_recursive_paginated))
+        .route(
+          "/r/children/:inscription_id/inscriptions",
+          get(Self::child_inscriptions_recursive),
+        )
+        .route(
+          "/r/children/:inscription_id/inscriptions/:page",
+          get(Self::child_inscriptions_recursive_paginated),
+        )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
         .route(
@@ -1749,26 +1755,31 @@ impl Server {
           )
         };
 
-        inscriptions.push(
-          api::InscriptionRecursive {
-            charms: Charm::charms(entry.charms),
-            content_type: inscription.content_type().map(|s| s.to_string()),
-            content_length: inscription.content_length(),
-            delegate: inscription.delegate(),
-            fee: entry.fee,
-            height: entry.height,
-            id: inscription_id,
-            number: entry.inscription_number,
-            output: satpoint.outpoint,
-            value: output.as_ref().map(|o| o.value),
-            sat: entry.sat,
-            satpoint,
-            timestamp: timestamp(entry.timestamp.into()).timestamp(),
-          }
-        );
+        inscriptions.push(api::InscriptionRecursive {
+          charms: Charm::charms(entry.charms),
+          content_type: inscription.content_type().map(|s| s.to_string()),
+          content_length: inscription.content_length(),
+          delegate: inscription.delegate(),
+          fee: entry.fee,
+          height: entry.height,
+          id: inscription_id,
+          number: entry.inscription_number,
+          output: satpoint.outpoint,
+          value: output.as_ref().map(|o| o.value),
+          sat: entry.sat,
+          satpoint,
+          timestamp: timestamp(entry.timestamp.into()).timestamp(),
+        });
       }
 
-      Ok(Json(api::ChildInscriptions { inscriptions, more, page }).into_response())
+      Ok(
+        Json(api::ChildInscriptions {
+          inscriptions,
+          more,
+          page,
+        })
+        .into_response(),
+      )
     })
   }
 
@@ -6072,8 +6083,9 @@ next
 
     server.mine_blocks(1);
 
-    let child_inscriptions_json =
-      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions"));
+    let child_inscriptions_json = server.get_json::<api::ChildInscriptions>(format!(
+      "/r/children/{parent_inscription_id}/inscriptions"
+    ));
     assert_eq!(child_inscriptions_json.inscriptions.len(), 0);
 
     let mut builder = script::Builder::new();
@@ -6104,37 +6116,75 @@ next
     let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
     let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
 
-    let child_inscriptions_json =
-      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions"));
+    let child_inscriptions_json = server.get_json::<api::ChildInscriptions>(format!(
+      "/r/children/{parent_inscription_id}/inscriptions"
+    ));
 
     assert_eq!(child_inscriptions_json.inscriptions.len(), 100);
 
-    assert_eq!(child_inscriptions_json.inscriptions[0].id, first_child_inscription_id);
-    assert_eq!(child_inscriptions_json.inscriptions[0].content_length, Some(0));
-    assert_eq!(child_inscriptions_json.inscriptions[0].content_type, Some("text/plain".into()));
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].id,
+      first_child_inscription_id
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].content_length,
+      Some(0)
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].content_type,
+      Some("text/plain".into())
+    );
     assert_eq!(child_inscriptions_json.inscriptions[0].number, 1); // parent is #0, 1st child is #1
 
-    assert_eq!(child_inscriptions_json.inscriptions[99].id, hundredth_child_inscription_id);
-    assert_eq!(child_inscriptions_json.inscriptions[99].content_length, Some(99));
-    assert_eq!(child_inscriptions_json.inscriptions[99].content_type, Some("text/plain".into()));
+    assert_eq!(
+      child_inscriptions_json.inscriptions[99].id,
+      hundredth_child_inscription_id
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[99].content_length,
+      Some(99)
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[99].content_type,
+      Some("text/plain".into())
+    );
     assert_eq!(child_inscriptions_json.inscriptions[99].number, -99); // all but 1st child are cursed
 
     assert!(child_inscriptions_json.more);
     assert_eq!(child_inscriptions_json.page, 0);
 
-    let child_inscriptions_json =
-      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions/1"));
+    let child_inscriptions_json = server.get_json::<api::ChildInscriptions>(format!(
+      "/r/children/{parent_inscription_id}/inscriptions/1"
+    ));
 
     assert_eq!(child_inscriptions_json.inscriptions.len(), 11);
 
-    assert_eq!(child_inscriptions_json.inscriptions[0].id, hundred_first_child_inscription_id);
-    assert_eq!(child_inscriptions_json.inscriptions[0].content_length, Some(100));
-    assert_eq!(child_inscriptions_json.inscriptions[0].content_type, Some("text/plain".into()));
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].id,
+      hundred_first_child_inscription_id
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].content_length,
+      Some(100)
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[0].content_type,
+      Some("text/plain".into())
+    );
     assert_eq!(child_inscriptions_json.inscriptions[0].number, -100);
 
-    assert_eq!(child_inscriptions_json.inscriptions[10].id, hundred_eleventh_child_inscription_id);
-    assert_eq!(child_inscriptions_json.inscriptions[10].content_length, Some(110));
-    assert_eq!(child_inscriptions_json.inscriptions[10].content_type, Some("text/plain".into()));
+    assert_eq!(
+      child_inscriptions_json.inscriptions[10].id,
+      hundred_eleventh_child_inscription_id
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[10].content_length,
+      Some(110)
+    );
+    assert_eq!(
+      child_inscriptions_json.inscriptions[10].content_type,
+      Some("text/plain".into())
+    );
     assert_eq!(child_inscriptions_json.inscriptions[10].number, -110);
 
     assert!(!child_inscriptions_json.more);
