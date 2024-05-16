@@ -655,7 +655,6 @@ impl<'index> Updater<'index> {
     outpoint_to_txout: &mut Table<&OutPointValue, TxOutValue>,
   ) -> Result {
     for txin in &tx.input {
-      log::debug!("Inside input iterator: {:?}", txin);
       let output = txin.previous_output;
       if output.is_null() {
         continue;
@@ -663,27 +662,22 @@ impl<'index> Updater<'index> {
 
       // multi-level cache for UTXO set to get to the script pubkey
       let txout = if let Some(txout) = utxo_cache.get(&txin.previous_output) {
-        log::debug!("Inside utxo cache {:?}", txout);
         txout.clone() // TODO
       } else if let Some(value) = outpoint_to_txout.get(&txin.previous_output.store())? {
-        log::debug!("Inside utxo table");
         TxOut::load(value.value())
       } else {
-        log::debug!("Inside tx fetcher");
         self
           .index
           .client
           .get_raw_transaction(&output.txid, None)?
           .output[output.vout as usize]
-          .clone()
+          .clone() // TODO
       };
-      log::debug!("Inside input iterator: {:?}", txout);
 
       script_pubkey_to_outpoint.remove(&txout.script_pubkey.as_bytes(), output.store())?;
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
-      log::debug!("Inside output iterator: {:?}", txout);
       script_pubkey_to_outpoint.insert(
         txout.script_pubkey.as_bytes(),
         OutPoint {
@@ -694,7 +688,6 @@ impl<'index> Updater<'index> {
       )?;
     }
 
-    log::info!("Finished");
     Ok(())
   }
 
