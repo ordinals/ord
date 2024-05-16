@@ -240,6 +240,8 @@ impl Server {
           "/r/children/:inscription_id/:page",
           get(Self::children_recursive_paginated),
         )
+        .route("/r/children/:inscription_id/inscriptions", get(Self::child_inscriptions_recursive))
+        .route("/r/children/:inscription_id/inscriptions/:page", get(Self::child_inscriptions_recursive_paginated))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
         .route(
@@ -984,6 +986,7 @@ impl Server {
           charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
+          delegate: inscription.delegate(),
           fee: entry.fee,
           height: entry.height,
           id: inscription_id,
@@ -1689,6 +1692,83 @@ impl Server {
         index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
 
       Ok(Json(api::Children { ids, more, page }).into_response())
+    })
+  }
+
+  async fn child_inscriptions_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::child_inscriptions_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+  }
+
+  async fn child_inscriptions_recursive_paginated(
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let parent_sequence_number = index
+        .get_inscription_entry(parent)?
+        .ok_or_not_found(|| format!("inscription {parent}"))?
+        .sequence_number;
+
+      let (ids, more) =
+        index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
+
+      let mut inscriptions = Vec::new();
+
+      for inscription_id in ids {
+        let inscription = index
+          .get_inscription_by_id(inscription_id)?
+          .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+        let entry = index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap();
+
+        let satpoint = index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .ok()
+          .flatten()
+          .unwrap();
+
+        let output = if satpoint.outpoint == unbound_outpoint() {
+          None
+        } else {
+          Some(
+            index
+              .get_transaction(satpoint.outpoint.txid)?
+              .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+              .output
+              .into_iter()
+              .nth(satpoint.outpoint.vout.try_into().unwrap())
+              .ok_or_not_found(|| {
+                format!("inscription {inscription_id} current transaction output")
+              })?,
+          )
+        };
+
+        inscriptions.push(
+          api::InscriptionRecursive {
+            charms: Charm::charms(entry.charms),
+            content_type: inscription.content_type().map(|s| s.to_string()),
+            content_length: inscription.content_length(),
+            delegate: inscription.delegate(),
+            fee: entry.fee,
+            height: entry.height,
+            id: inscription_id,
+            number: entry.inscription_number,
+            output: satpoint.outpoint,
+            value: output.as_ref().map(|o| o.value),
+            sat: entry.sat,
+            satpoint,
+            timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          }
+        );
+      }
+
+      Ok(Json(api::ChildInscriptions { inscriptions, more, page }).into_response())
     })
   }
 
@@ -5967,6 +6047,98 @@ next
     assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn child_inscriptions_recursive_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/children/{parent_inscription_id}/inscriptions"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let child_inscriptions_json =
+      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions"));
+    assert_eq!(child_inscriptions_json.inscriptions.len(), 0);
+
+    let mut builder = script::Builder::new();
+    let mut body = String::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some(body.clone().into()),
+        parents: vec![parent_inscription_id.value()],
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+      body.push_str("x");
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
+
+    let child_inscriptions_json =
+      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions"));
+
+    assert_eq!(child_inscriptions_json.inscriptions.len(), 100);
+
+    assert_eq!(child_inscriptions_json.inscriptions[0].id, first_child_inscription_id);
+    assert_eq!(child_inscriptions_json.inscriptions[0].content_length, Some(0));
+    assert_eq!(child_inscriptions_json.inscriptions[0].content_type, Some("text/plain".into()));
+    assert_eq!(child_inscriptions_json.inscriptions[0].number, 1); // parent is #0, 1st child is #1
+
+    assert_eq!(child_inscriptions_json.inscriptions[99].id, hundredth_child_inscription_id);
+    assert_eq!(child_inscriptions_json.inscriptions[99].content_length, Some(99));
+    assert_eq!(child_inscriptions_json.inscriptions[99].content_type, Some("text/plain".into()));
+    assert_eq!(child_inscriptions_json.inscriptions[99].number, -99); // all but 1st child are cursed
+
+    assert!(child_inscriptions_json.more);
+    assert_eq!(child_inscriptions_json.page, 0);
+
+    let child_inscriptions_json =
+      server.get_json::<api::ChildInscriptions>(format!("/r/children/{parent_inscription_id}/inscriptions/1"));
+
+    assert_eq!(child_inscriptions_json.inscriptions.len(), 11);
+
+    assert_eq!(child_inscriptions_json.inscriptions[0].id, hundred_first_child_inscription_id);
+    assert_eq!(child_inscriptions_json.inscriptions[0].content_length, Some(100));
+    assert_eq!(child_inscriptions_json.inscriptions[0].content_type, Some("text/plain".into()));
+    assert_eq!(child_inscriptions_json.inscriptions[0].number, -100);
+
+    assert_eq!(child_inscriptions_json.inscriptions[10].id, hundred_eleventh_child_inscription_id);
+    assert_eq!(child_inscriptions_json.inscriptions[10].content_length, Some(110));
+    assert_eq!(child_inscriptions_json.inscriptions[10].content_type, Some("text/plain".into()));
+    assert_eq!(child_inscriptions_json.inscriptions[10].number, -110);
+
+    assert!(!child_inscriptions_json.more);
+    assert_eq!(child_inscriptions_json.page, 1);
   }
 
   #[test]
