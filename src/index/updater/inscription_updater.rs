@@ -42,7 +42,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) chain: Chain,
   pub(super) content_type_to_count: &'a mut Table<'tx, Option<&'static [u8]>, u64>,
   pub(super) cursed_inscription_count: u64,
-  pub(super) event_sender: Option<&'a Sender<Event>>,
+  pub(super) event_sender: Option<&'a mpsc::Sender<Event>>,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
@@ -64,7 +64,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   pub(super) utxo_cache: &'a mut HashMap<OutPoint, TxOut>,
-  pub(super) txout_receiver: &'a mut Receiver<TxOut>,
+  pub(super) txout_receiver: &'a mut broadcast::Receiver<TxOut>,
 }
 
 impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
@@ -122,7 +122,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       {
         TxOut::load(value.value())
       } else {
-        self.txout_receiver.blocking_recv().ok_or_else(|| {
+        self.txout_receiver.blocking_recv().map_err(|_| {
           anyhow!(
             "failed to get transaction for {}",
             txin.previous_output.txid
@@ -319,9 +319,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           vout: vout.try_into().unwrap(),
           txid,
         })
-        .or_insert(
-          txout.clone(), // TODO
-        );
+        .or_insert(txout.clone());
     }
 
     for (new_satpoint, mut flotsam) in new_locations.into_iter() {
