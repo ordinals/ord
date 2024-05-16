@@ -73,6 +73,28 @@ define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MyInscription {
+  pub inscription_number: i32,
+  pub id: InscriptionId,
+  pub sat_point: SatPoint,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub body: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_encoding: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_type: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metaprotocol: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub parent: Option<Vec<InscriptionId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pointer: Option<u64>,
+  pub address: String,
+}
+
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
   Schema = 0,
@@ -651,8 +673,9 @@ impl Index {
     }
   }
 
-  pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
+  pub(crate) fn export(&self, filename: &String, _include_addresses: bool) -> Result {
     let mut writer = BufWriter::new(fs::File::create(filename)?);
+
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -683,33 +706,59 @@ impl Index {
           .value(),
       );
 
-      write!(
-        writer,
-        "{}\t{}\t{}",
-        entry.inscription_number, entry.id, satpoint
-      )?;
+      let address = if satpoint.outpoint == unbound_outpoint() {
+        "unbound".to_string()
+      } else {
+        let output = self
+          .get_transaction(satpoint.outpoint.txid)?
+          .unwrap()
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .unwrap();
+        self
+          .settings
+          .chain()
+          .address_from_script(&output.script_pubkey)
+          .map(|address| address.to_string())
+          .unwrap_or_else(|e| e.to_string())
+      };
 
-      if include_addresses {
-        let address = if satpoint.outpoint == unbound_outpoint() {
-          "unbound".to_string()
-        } else {
-          let output = self
-            .get_transaction(satpoint.outpoint.txid)?
-            .unwrap()
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .unwrap();
-          self
-            .settings
-            .chain()
-            .address_from_script(&output.script_pubkey)
-            .map(|address| address.to_string())
-            .unwrap_or_else(|e| e.to_string())
-        };
-        write!(writer, "\t{}", address)?;
+      // get all parents
+      let mut page_index = 0;
+      let mut all_parents = vec![];
+      let mut has_more = true;
+      while has_more {
+        let (parents, more_parents) =
+          self.get_parents_by_sequence_number_paginated(entry.parents.clone(), page_index)?;
+        all_parents.extend(parents);
+        has_more = more_parents;
+        page_index += 1;
       }
-      writeln!(writer)?;
+      let parents = match all_parents.is_empty() {
+        true => None,
+        false => Some(all_parents),
+      };
+
+      // get content
+      let inscription = self.get_inscription_by_id(entry.id)?.unwrap();
+      let my_inscription = MyInscription {
+        inscription_number: entry.inscription_number,
+        id: entry.id,
+        sat_point: satpoint,
+        body: inscription.clone().into_body(),
+        content_type: inscription.content_type_string(),
+        content_encoding: inscription.content_encoding_string(),
+        metadata: inscription.metadata.clone(),
+        metaprotocol: inscription.metaprotocol_string(),
+        parent: parents,
+        pointer: inscription.pointer(),
+        address,
+      };
+
+      let line =
+        serde_json::to_string(&my_inscription).expect("Unable to serialize my_inscription");
+      writeln!(writer, "{}", line).expect("unable to write data to file");
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
