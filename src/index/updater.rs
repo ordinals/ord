@@ -251,7 +251,7 @@ impl<'index> Updater<'index> {
     // A block probably has no more than 20k inputs
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
 
-    // Batch 2048 missing inputs at a time, arbitrarily chosen
+    // Batch 2048 missing inputs at a time, arbitrarily chosen size
     const BATCH_SIZE: usize = 2048;
 
     let (outpoint_sender, mut outpoint_receiver) = mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
@@ -291,7 +291,7 @@ impl<'index> Updater<'index> {
             outpoints.push(outpoint);
           }
 
-          // Break outpoints into chunks for parallel requests
+          // Break outputs into chunks for parallel requests
           let chunk_size = (outpoints.len() / parallel_requests) + 1;
           let mut futs = Vec::with_capacity(parallel_requests);
           for chunk in outpoints.chunks(chunk_size) {
@@ -308,7 +308,7 @@ impl<'index> Updater<'index> {
             }
           };
 
-          // Send all tx output values back in order
+          // Send all tx outputs back in order
           for (i, tx) in txs.iter().flatten().enumerate() {
             let Ok(_) =
               txout_sender.send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].clone())
@@ -351,22 +351,24 @@ impl<'index> Updater<'index> {
     let index_inscriptions = self.height >= self.index.first_inscription_height
       && self.index.settings.index_inscriptions();
 
-    // If value_receiver still has values something went wrong with the last block
-    // Could be an assert, shouldn't recover from this and commit the last block
+    // If the receiver still has inputs something went wrong in the last
+    // block and we shouldn't recover from this and commit the last block
     if index_inscriptions {
-      let Err(TryRecvError::Empty) = txout_receiver.try_recv() else {
-        return Err(anyhow!("Previous block did not consume all input values"));
-      };
+      assert!(
+        matches!(txout_receiver.try_recv(), Err(TryRecvError::Empty)),
+        "Previous block did not consume all inputs"
+      );
     }
 
-    if let Some(address_txout_receiver) = address_txout_receiver {
-      let Err(TryRecvError::Empty) = address_txout_receiver.try_recv() else {
-        return Err(anyhow!("Previous block did not consume all input values"));
-      };
+    if let Some(receiver) = address_txout_receiver {
+      assert!(
+        matches!(receiver.try_recv(), Err(TryRecvError::Empty)),
+        "Previous block did not consume all inputs"
+      );
     }
 
     if index_inscriptions || self.index.index_addresses {
-      // Send all missing input outpoints to be fetched right away
+      // Send all missing input outpoints to be fetched
       let txids = block
         .txdata
         .iter()
@@ -376,25 +378,24 @@ impl<'index> Updater<'index> {
       for (tx, _) in &block.txdata {
         for input in &tx.input {
           let prev_output = input.previous_output;
-          // We don't need coinbase input value
+          // We don't need coinbase inputs
           if prev_output.is_null() {
             continue;
           }
-          // We don't need input values from txs earlier in the block, since they'll be added to value_cache
-          // when the tx is indexed
+          // We don't need inputs from txs earlier in the block, since
+          // they'll be added to cache when the tx is indexed
           if txids.contains(&prev_output.txid) {
             continue;
           }
-          // We don't need input values we already have in our value_cache from earlier blocks
+          // We don't need inputs we already have in our cache from earlier blocks
           if utxo_cache.contains_key(&prev_output) {
             continue;
           }
-          // We don't need input values we already have in our outpoint_to_value table from earlier blocks that
-          // were committed to db already
+          // We don't need inputs we already have in our database
           if outpoint_to_txout.get(&prev_output.store())?.is_some() {
             continue;
           }
-          // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
+          // Send this outpoint to background thread to be fetched
           output_sender.blocking_send(prev_output)?;
         }
       }
