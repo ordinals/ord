@@ -1065,7 +1065,9 @@ impl Server {
     task::block_in_place(|| {
       let query = query.trim();
 
-      if re::HASH.is_match(query) {
+      if re::ADDRESS.is_match(query) {
+        Ok(Redirect::to(&format!("/address/{query}")))
+      } else if re::HASH.is_match(query) {
         if index.block_header(query.parse().unwrap())?.is_some() {
           Ok(Redirect::to(&format!("/block/{query}")))
         } else {

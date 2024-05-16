@@ -5,6 +5,9 @@ fn re(s: &'static str) -> Regex {
 }
 
 lazy_static! {
+  pub(crate) static ref ADDRESS: Regex = re(
+    r"((bc1p|tb1p|bcrt1p)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{58}|(bc1|tb1|bcrt1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})"
+  );
   pub(crate) static ref HASH: Regex = re(r"[[:xdigit:]]{64}");
   pub(crate) static ref INSCRIPTION_ID: Regex = re(r"[[:xdigit:]]{64}i\d+");
   pub(crate) static ref INSCRIPTION_NUMBER: Regex = re(r"-?[0-9]+");
