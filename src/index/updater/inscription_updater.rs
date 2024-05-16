@@ -313,13 +313,15 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       output_value = end;
 
-      self.utxo_cache.insert(
-        OutPoint {
+      self
+        .utxo_cache
+        .entry(OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
-        },
-        txout.clone(), // TODO
-      );
+        })
+        .or_insert(
+          txout.clone(), // TODO
+        );
     }
 
     for (new_satpoint, mut flotsam) in new_locations.into_iter() {

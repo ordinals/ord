@@ -76,14 +76,14 @@ impl<'index> Updater<'index> {
     let (mut output_sender, mut txout_receiver) = Self::spawn_fetcher(&self.index.settings)?;
 
     let mut uncommitted = 0;
-    let mut value_cache = HashMap::new();
+    let mut utxo_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
       self.index_block(
         &mut output_sender,
         &mut txout_receiver,
         &mut wtx,
         block,
-        &mut value_cache,
+        &mut utxo_cache,
       )?;
 
       if let Some(progress_bar) = &mut progress_bar {
@@ -101,8 +101,8 @@ impl<'index> Updater<'index> {
       uncommitted += 1;
 
       if uncommitted == self.index.settings.commit_interval() {
-        self.commit(wtx, value_cache)?;
-        value_cache = HashMap::new();
+        self.commit(wtx, utxo_cache)?;
+        utxo_cache = HashMap::new();
         uncommitted = 0;
         wtx = self.index.begin_write()?;
         let height = wtx
@@ -140,7 +140,7 @@ impl<'index> Updater<'index> {
     }
 
     if uncommitted > 0 {
-      self.commit(wtx, value_cache)?;
+      self.commit(wtx, utxo_cache)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -678,14 +678,15 @@ impl<'index> Updater<'index> {
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
+      let vout: u32 = vout.try_into().unwrap();
       script_pubkey_to_outpoint.insert(
         txout.script_pubkey.as_bytes(),
-        OutPoint {
-          txid: *txid,
-          vout: vout.try_into().unwrap(),
-        }
-        .store(),
+        OutPoint { txid: *txid, vout }.store(),
       )?;
+
+      utxo_cache
+        .entry(OutPoint { txid: *txid, vout })
+        .or_insert(txout.clone());
     }
 
     Ok(())
