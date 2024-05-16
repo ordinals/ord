@@ -73,14 +73,14 @@ impl<'index> Updater<'index> {
 
     let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
 
-    let (mut utxo_sender, mut utxo_receiver) = Self::spawn_fetcher(&self.index.settings)?;
+    let (mut output_sender, mut txout_receiver) = Self::spawn_fetcher(&self.index.settings)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
       self.index_block(
-        &mut utxo_sender,
-        &mut utxo_receiver,
+        &mut output_sender,
+        &mut txout_receiver,
         &mut wtx,
         block,
         &mut value_cache,
@@ -308,8 +308,8 @@ impl<'index> Updater<'index> {
 
   fn index_block(
     &mut self,
-    utxo_sender: &mut Sender<OutPoint>,
-    utxo_receiver: &mut Receiver<TxOut>,
+    output_sender: &mut Sender<OutPoint>,
+    txout_receiver: &mut Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
     utxo_cache: &mut HashMap<OutPoint, TxOut>,
@@ -329,7 +329,7 @@ impl<'index> Updater<'index> {
 
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
-    let Err(TryRecvError::Empty) = utxo_receiver.try_recv() else {
+    let Err(TryRecvError::Empty) = txout_receiver.try_recv() else {
       return Err(anyhow!("Previous block did not consume all input values"));
     };
 
@@ -368,7 +368,7 @@ impl<'index> Updater<'index> {
             continue;
           }
           // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
-          utxo_sender.blocking_send(prev_output)?;
+          output_sender.blocking_send(prev_output)?;
         }
       }
     }
@@ -380,7 +380,6 @@ impl<'index> Updater<'index> {
           tx,
           txid,
           utxo_cache,
-          utxo_receiver,
           &mut script_pubkey_to_outpoint,
           &mut outpoint_to_txout,
         )?;
@@ -460,7 +459,7 @@ impl<'index> Updater<'index> {
       transaction_id_to_transaction: &mut transaction_id_to_transaction,
       unbound_inscriptions,
       utxo_cache,
-      utxo_receiver,
+      txout_receiver,
     };
 
     if self.index.index_sats {
@@ -652,11 +651,11 @@ impl<'index> Updater<'index> {
     tx: &Transaction,
     txid: &Txid,
     utxo_cache: &mut HashMap<OutPoint, TxOut>,
-    utxo_receiver: &mut Receiver<TxOut>,
     script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
     outpoint_to_txout: &mut Table<&OutPointValue, TxOutValue>,
   ) -> Result {
     for txin in &tx.input {
+      log::debug!("Inside input iterator: {:?}", txin);
       let output = txin.previous_output;
       if output.is_null() {
         continue;
@@ -664,22 +663,27 @@ impl<'index> Updater<'index> {
 
       // multi-level cache for UTXO set to get to the script pubkey
       let txout = if let Some(txout) = utxo_cache.get(&txin.previous_output) {
+        log::debug!("Inside utxo cache {:?}", txout);
         txout.clone() // TODO
       } else if let Some(value) = outpoint_to_txout.get(&txin.previous_output.store())? {
+        log::debug!("Inside utxo table");
         TxOut::load(value.value())
       } else {
-        utxo_receiver.blocking_recv().ok_or_else(|| {
-          anyhow!(
-            "failed to get transaction for {}",
-            txin.previous_output.txid
-          )
-        })?
+        log::debug!("Inside tx fetcher");
+        self
+          .index
+          .client
+          .get_raw_transaction(&output.txid, None)?
+          .output[output.vout as usize]
+          .clone()
       };
+      log::debug!("Inside input iterator: {:?}", txout);
 
       script_pubkey_to_outpoint.remove(&txout.script_pubkey.as_bytes(), output.store())?;
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
+      log::debug!("Inside output iterator: {:?}", txout);
       script_pubkey_to_outpoint.insert(
         txout.script_pubkey.as_bytes(),
         OutPoint {
@@ -690,6 +694,7 @@ impl<'index> Updater<'index> {
       )?;
     }
 
+    log::info!("Finished");
     Ok(())
   }
 

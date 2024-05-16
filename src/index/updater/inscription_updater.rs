@@ -64,7 +64,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   pub(super) utxo_cache: &'a mut HashMap<OutPoint, TxOut>,
-  pub(super) utxo_receiver: &'a mut Receiver<TxOut>,
+  pub(super) txout_receiver: &'a mut Receiver<TxOut>,
 }
 
 impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
@@ -122,7 +122,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       {
         TxOut::load(value.value())
       } else {
-        self.utxo_receiver.blocking_recv().ok_or_else(|| {
+        self.txout_receiver.blocking_recv().ok_or_else(|| {
           anyhow!(
             "failed to get transaction for {}",
             txin.previous_output.txid

@@ -6302,12 +6302,15 @@ mod tests {
 
   #[test]
   fn output_addresses_are_updated() {
-    let context = Context::builder().arg("--index-addresses").build();
+    let context = Context::builder()
+      .arg("--index-addresses")
+      .arg("--index-sats")
+      .build();
 
-    context.mine_blocks(1);
+    context.mine_blocks(2);
 
     let txid = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
+      inputs: &[(1, 0, 0, Witness::new()), (2, 0, 0, Witness::new())],
       ..Default::default()
     });
 
@@ -6331,7 +6334,7 @@ mod tests {
     );
 
     let txid = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 1, 0, Witness::new())],
+      inputs: &[(3, 1, 0, Witness::new())],
       p2tr: true,
       ..Default::default()
     });
