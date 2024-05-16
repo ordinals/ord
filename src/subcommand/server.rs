@@ -6087,7 +6087,7 @@ next
         ..default()
       }
       .append_reveal_script_to_builder(builder);
-      body.push_str("x");
+      body.push('x');
     }
 
     let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
