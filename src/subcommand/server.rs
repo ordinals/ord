@@ -1258,7 +1258,7 @@ impl Server {
           stats.fee_rate_percentiles.fr_25th.to_sat(),
           stats.fee_rate_percentiles.fr_50th.to_sat(),
           stats.fee_rate_percentiles.fr_75th.to_sat(),
-          stats.fee_rate_percentiles.fr_90th.to_sat()
+          stats.fee_rate_percentiles.fr_90th.to_sat(),
         ],
         height: info.height.try_into().unwrap(),
         max_fee: stats.max_fee.to_sat(),
