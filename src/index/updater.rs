@@ -818,6 +818,8 @@ impl<'index> Updater<'index> {
     }
 
     {
+      log::info!("Flushing utxo cache with {} entries", utxo_cache.len());
+
       let mut outpoint_to_txout = wtx.open_table(OUTPOINT_TO_TXOUT)?;
 
       for (outpoint, txout) in utxo_cache {

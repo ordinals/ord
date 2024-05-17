@@ -1657,7 +1657,7 @@ impl Index {
         && self
           .client
           .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
-          .is_none(),
+          .is_none(), // TODO: Can I replace this with a call to OUTPOINT_TO_TXOUT for every configuration option?
     )
   }
 
@@ -2218,12 +2218,12 @@ impl Index {
       .collect::<Result<Vec<_>>>()
   }
 
-  pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
-    let sat_ranges = self.list(outpoint)?;
+  pub(crate) fn get_output_info(&self, output: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
+    let sat_ranges = self.list(output)?;
 
     let indexed;
 
-    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    let txout = if output == OutPoint::null() || output == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(ranges) = &sat_ranges {
@@ -2239,30 +2239,30 @@ impl Index {
         script_pubkey: ScriptBuf::new(),
       }
     } else {
-      indexed = self.contains_output(&outpoint)?;
+      indexed = self.contains_output(&output)?;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
+      let Some(tx) = self.get_transaction(output.txid)? else {
         return Ok(None);
       };
 
-      let Some(output) = tx.output.into_iter().nth(outpoint.vout as usize) else {
+      let Some(txout) = tx.output.into_iter().nth(output.vout as usize) else {
         return Ok(None);
       };
 
-      output
+      txout
     };
 
-    let inscriptions = self.get_inscriptions_on_output(outpoint)?;
+    let inscriptions = self.get_inscriptions_on_output(output)?;
 
-    let runes = self.get_rune_balances_for_outpoint(outpoint)?;
+    let runes = self.get_rune_balances_for_outpoint(output)?;
 
-    let spent = self.is_output_spent(outpoint)?;
+    let spent = self.is_output_spent(output)?;
 
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
         inscriptions,
-        outpoint,
+        output,
         txout.clone(),
         indexed,
         runes,
