@@ -15,6 +15,7 @@ pub mod inscriptions;
 mod label;
 pub mod mint;
 pub mod outputs;
+pub mod pending;
 pub mod receive;
 pub mod restore;
 pub mod resume;
@@ -48,8 +49,6 @@ pub(crate) enum Subcommand {
   Batch(batch_command::Batch),
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
-  #[command(about = "List unspent runic outputs in wallet")]
-  Runics,
   #[command(about = "Create new wallet")]
   Create(create::Create),
   #[command(about = "Dump wallet descriptors")]
@@ -64,12 +63,16 @@ pub(crate) enum Subcommand {
   Mint(mint::Mint),
   #[command(about = "List all unspent outputs in wallet")]
   Outputs,
+  #[command(about = "List pending etchings")]
+  Pending(pending::Pending),
   #[command(about = "Generate receive address")]
   Receive(receive::Receive),
   #[command(about = "Restore wallet")]
   Restore(restore::Restore),
   #[command(about = "Resume pending etchings")]
   Resume(resume::Resume),
+  #[command(about = "List unspent runic outputs in wallet")]
+  Runics,
   #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
@@ -104,7 +107,6 @@ impl WalletCommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
-      Subcommand::Runics => runics::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
       Subcommand::Dump => dump::run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
@@ -112,8 +114,10 @@ impl WalletCommand {
       Subcommand::Label => label::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
       Subcommand::Outputs => outputs::run(wallet),
+      Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
       Subcommand::Resume(resume) => resume.run(wallet),
+      Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
