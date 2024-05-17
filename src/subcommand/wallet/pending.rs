@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct PendingOutput {
-  pub rune: SpacedRune,
   pub commit: Txid,
+  pub rune: SpacedRune,
 }
 #[derive(Debug, Parser)]
 pub(crate) struct Pending {}
