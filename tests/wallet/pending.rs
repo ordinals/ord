@@ -86,12 +86,5 @@ fn wallet_pending() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::pending::PendingOutput>>();
 
-  assert_eq!(
-    output
-      .first()
-      .unwrap()
-      .rune
-      .rune,
-    Rune(RUNE)
-  );
+  assert_eq!(output.first().unwrap().rune.rune, Rune(RUNE));
 }

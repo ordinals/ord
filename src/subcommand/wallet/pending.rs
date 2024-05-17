@@ -18,7 +18,7 @@ impl Pending {
 
         PendingOutput {
           rune: spaced_rune,
-          commit: entry.commit.txid()
+          commit: entry.commit.txid(),
         }
       })
       .collect::<Vec<PendingOutput>>();
