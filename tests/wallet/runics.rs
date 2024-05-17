@@ -1,4 +1,7 @@
-use {super::*, ord::{decimal::Decimal, subcommand::wallet::runics::RunicUtxo}};
+use {
+  super::*,
+  ord::{decimal::Decimal, subcommand::wallet::runics::RunicUtxo},
+};
 
 #[test]
 fn wallet_runics() {
@@ -48,6 +51,4 @@ fn wallet_runics() {
     .into_iter()
     .collect()
   );
-    
-  
 }

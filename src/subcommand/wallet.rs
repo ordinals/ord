@@ -8,7 +8,6 @@ use {
 pub mod balance;
 mod batch_command;
 pub mod cardinals;
-pub mod runics;
 pub mod create;
 pub mod dump;
 pub mod inscribe;
@@ -19,6 +18,7 @@ pub mod outputs;
 pub mod receive;
 pub mod restore;
 pub mod resume;
+pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;

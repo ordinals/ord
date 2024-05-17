@@ -2,7 +2,6 @@ use super::*;
 
 mod authentication;
 mod balance;
-mod runics;
 mod batch_command;
 mod cardinals;
 mod create;
@@ -16,6 +15,7 @@ mod receive;
 mod restore;
 #[cfg(unix)]
 mod resume;
+mod runics;
 mod sats;
 mod selection;
 mod send;

@@ -14,7 +14,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     .iter()
     .filter_map(|(output, _)| {
       if runic_utxos.contains(output) {
-        let rune_balances = wallet.get_runes_balances_for_output(output).ok()?;
+        let rune_balances = wallet.get_runes_balances_in_output(output).ok()?;
         let mut runes = BTreeMap::new();
 
         for (spaced_rune, pile) in rune_balances {
@@ -35,7 +35,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
           runes,
         })
       } else {
-        None  
+        None
       }
     })
     .collect::<Vec<RunicUtxo>>();
