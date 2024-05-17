@@ -1660,7 +1660,7 @@ impl Index {
       return Ok(false);
     };
 
-    if !info.in_active_chain.unwrap_or_default() {
+    if info.blockhash.is_none() {
       return Ok(false);
     }
 
