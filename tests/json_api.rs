@@ -745,8 +745,8 @@ fn get_decode_tx() {
   assert_eq!(response.status(), StatusCode::OK);
 
   assert_eq!(
-    serde_json::from_str::<api::RawOutput>(&response.text().unwrap()).unwrap(),
-    api::RawOutput {
+    serde_json::from_str::<api::Decode>(&response.text().unwrap()).unwrap(),
+    api::Decode {
       inscriptions,
       runestone,
     }

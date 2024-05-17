@@ -262,7 +262,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
-        .route("/decode/:txid", get(Self::decode_tx))
+        .route("/decode/:txid", get(Self::decode))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -915,7 +915,7 @@ impl Server {
     })
   }
 
-  async fn decode_tx(
+  async fn decode(
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
     AcceptJson(accept_json): AcceptJson,
@@ -929,7 +929,7 @@ impl Server {
       let runestone = Runestone::decipher(&transaction);
 
       Ok(if accept_json {
-        Json(api::RawOutput {
+        Json(api::Decode {
           inscriptions,
           runestone,
         })
