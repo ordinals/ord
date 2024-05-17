@@ -574,7 +574,7 @@
 <p>If an edict would allocate more runes than are currently unallocated, the <code>amount</code> is reduced to the number of currently unallocated runes. In other words, the edict allocates all remaining unallocated units of rune <code>id</code>.</p>
 <p>Because the ID of an etched rune is not known before it is included in a block, ID <code>0:0</code> is used to mean the rune being etched in this transaction, if any.</p>
 <p>An edict with <code>amount</code> zero allocates all remaining units of rune <code>id</code>.</p>
-<p>An edict with <code>output</code> equal to the number of transaction outputs allocates <code>amount</code> runes to each non-<code>OP_RETURN</code> output.</p>
+<p>An edict with <code>output</code> equal to the number of transaction outputs allocates <code>amount</code> runes to each non-<code>OP_RETURN</code> output in order.</p>
 <p>An edict with <code>amount</code> zero and <code>output</code> equal to the number of transaction outputs divides all unallocated units of rune <code>id</code> between each non-<code>OP_RETURN</code> output. If the number of unallocated runes is not divisible by the number of non-<code>OP_RETURN</code> outputs, 1 additional rune is assigned to the first <code>R</code> non-<code>OP_RETURN</code> outputs, where <code>R</code> is the remainder after dividing the balance of unallocated units of rune <code>id</code> by the number of non-<code>OP_RETURN</code> outputs.</p>
 <p>If any edict in a runestone has a rune ID with <code>block</code> zero and <code>tx</code> greater than zero, or <code>output</code> greater than the number of transaction outputs, the runestone is a cenotaph.</p>
 <p>Note that edicts in cenotaphs are not processed, and all input runes are burned.</p>

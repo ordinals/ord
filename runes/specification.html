@@ -659,7 +659,7 @@ words, the edict allocates all remaining unallocated units of rune <code>id</cod
 ID <code>0:0</code> is used to mean the rune being etched in this transaction, if any.</p>
 <p>An edict with <code>amount</code> zero allocates all remaining units of rune <code>id</code>.</p>
 <p>An edict with <code>output</code> equal to the number of transaction outputs allocates
-<code>amount</code> runes to each non-<code>OP_RETURN</code> output.</p>
+<code>amount</code> runes to each non-<code>OP_RETURN</code> output in order.</p>
 <p>An edict with <code>amount</code> zero and <code>output</code> equal to the number of transaction
 outputs divides all unallocated units of rune <code>id</code> between each non-<code>OP_RETURN</code>
 output. If the number of unallocated runes is not divisible by the number of
