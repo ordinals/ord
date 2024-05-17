@@ -8,7 +8,7 @@ pub struct ResumeOutput {
 pub(crate) struct Resume {
   #[arg(long, help = "Don't broadcast transactions.")]
   pub(crate) dry_run: bool,
-  #[arg(long, help = "Rune to resume.")]
+  #[arg(long, help = "Pending <RUNE> etching to resume.")]
   pub(crate) rune: Option<SpacedRune>,
 }
 
@@ -23,8 +23,7 @@ impl Resume {
       let spaced_rune = self.rune;
 
       let pending_etchings = if let Some(spaced_rune) = spaced_rune {
-        let pending_etching = wallet
-          .load_etching(spaced_rune.rune)?;
+        let pending_etching = wallet.load_etching(spaced_rune.rune)?;
 
         ensure!(
           pending_etching.is_some(),

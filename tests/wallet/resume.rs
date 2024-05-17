@@ -27,7 +27,12 @@ fn get_batchfile() -> batch::File {
   }
 }
 
-fn inscribe_batch(batchfile: &batch::File, tempdir: &Arc<TempDir>, core: &mockcore::Handle, ord: &TestServer) {
+fn inscribe_batch(
+  batchfile: &batch::File,
+  tempdir: &Arc<TempDir>,
+  core: &mockcore::Handle,
+  ord: &TestServer,
+) {
   let mut spawn =
     CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
       .temp_dir(tempdir.clone())
@@ -110,7 +115,7 @@ fn wallet_resume() {
 }
 
 #[test]
-fn wallet_resume_by_rune() {
+fn wallet_resume_by_rune_name() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
 
