@@ -8,18 +8,19 @@ pub(crate) struct List {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
+  //pub list: Option<(api::Output, TxOut)>,
+  pub list: api::Output,
   pub ranges: Option<Vec<Range>>,
-  pub spent: bool,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Range {
-  pub end: u64,
+  pub start: u64,
   pub name: String,
   pub offset: u64,
   pub rarity: Rarity,
+  pub end: u64,
   pub size: u64,
-  pub start: u64,
 }
 
 impl List {
@@ -39,11 +40,15 @@ impl List {
 
     let ranges = index.list(self.outpoint)?;
 
-    let spent = index.is_output_spent(self.outpoint)?;
+    //let list = index.get_output_info(self.outpoint)?;
+    let (list, _txout) = match index.get_output_info(self.outpoint)? {
+      Some((output, txout)) => (output, txout),
+      None => return Ok(None),
+  };
 
     Ok(Some(Box::new(Output {
-      spent,
-      ranges: ranges.map(output_ranges),
+      ranges: ranges.map(output_ranges),   
+      list,
     })))
   }
 }
