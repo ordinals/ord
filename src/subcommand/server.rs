@@ -231,6 +231,7 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/blockinfo/:query", get(Self::block_info))
+        .route("/r/inscriptions/:height/:page", get(Self::inscriptions_in_block_paginated_json))
         .route(
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
@@ -1798,6 +1799,42 @@ impl Server {
       })
     })
   }
+
+  async fn inscriptions_in_block_paginated_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path((block_height, page_index)): Path<(u32, u32)>,
+    
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let page_size = 100;
+
+      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
+      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+
+      let mut inscriptions = index
+        .get_inscriptions_in_block(block_height)?
+        .into_iter()
+        .skip(page_index_usize.saturating_mul(page_size_usize))
+        .take(page_size_usize.saturating_add(1))
+        .collect::<Vec<InscriptionId>>();
+
+      let more = inscriptions.len() > page_size_usize;
+
+      if more {
+        inscriptions.pop();
+      }
+
+      Ok(Json(api::Inscriptions {
+          ids: inscriptions,
+          page_index,
+          more,
+        })
+        .into_response())
+    
+      })
+    
+  }
+
 
   async fn parents(
     Extension(server_config): Extension<Arc<ServerConfig>>,
