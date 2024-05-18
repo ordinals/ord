@@ -44,10 +44,10 @@ impl List {
     let (list, _txout) = match index.get_output_info(self.outpoint)? {
       Some((output, txout)) => (output, txout),
       None => return Ok(None),
-  };
+    };
 
     Ok(Some(Box::new(Output {
-      ranges: ranges.map(output_ranges),   
+      ranges: ranges.map(output_ranges),
       list,
     })))
   }
