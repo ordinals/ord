@@ -42,7 +42,7 @@ use {
 fn output_found() {
   let core = mockcore::spawn();
   let output = CommandBuilder::new(
-      "--index-sats list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    "--index-sats list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
   )
   .core(&core)
   .run_and_deserialize_output::<Output>();
@@ -72,7 +72,6 @@ fn output_found() {
       }
   );
 }
-
 
 #[test]
 fn output_not_found() {
