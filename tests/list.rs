@@ -23,7 +23,17 @@ fn output_found() {
         size: 50 * COIN_VALUE,
         start: 0,
       }]),
-      spent: false,
+      list: api::Output {
+        address: None, 
+        indexed: false,
+        inscriptions: vec![], 
+        runes: BTreeMap::new(), 
+        sat_ranges: Some(vec![(0, 5000000000)]), 
+        script_pubkey: "76a91489abcdefabbaabbaabbaabbaabbaabbaabbaabba88ac".to_string(),
+        spent: false,
+        transaction: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".to_string(),
+        value: 5000000000,
+      } 
     }
   );
 }
