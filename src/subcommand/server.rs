@@ -1803,7 +1803,6 @@ impl Server {
   async fn inscriptions_in_block_paginated_json(
     Extension(index): Extension<Arc<Index>>,
     Path((block_height, page_index)): Path<(u32, u32)>,
-    
   ) -> ServerResult {
     task::block_in_place(|| {
       let page_size = 100;
