@@ -32,5 +32,5 @@ fuzz_target!(|input: Vec<Vec<u8>>| {
     version: 2,
   };
 
-  Runestone::from_transaction(&tx);
+  Runestone::decipher(&tx);
 });
