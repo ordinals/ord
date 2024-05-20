@@ -2906,19 +2906,13 @@ mod tests {
   <dd>1</dd>
   <dt>mint</dt>
   <dd>no</dd>
-  <dt>current supply</dt>
+  <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
-  <dt>maximum supply</dt>
-        <dd>Unable to calculate maximum supply</dd>
-            <dt>supply progress</dt>
-    <dd>Unable to calculate supply progress</dd>
-      <dt>premine</dt>
+  <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
-  <dt>premine percentage of current supply</dt>
+  <dt>premine percentage</dt>
   <dd>100%</dd>
-      <dt>premine percentage of maximum supply</dt>
-    <dd>Unable to calculate premine percentage of maximum supply</dd>
-    <dt>burned</dt>
+  <dt>burned</dt>
   <dd>0\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
