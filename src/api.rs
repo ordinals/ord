@@ -3,9 +3,12 @@ use {
   serde_hex::{SerHex, Strict},
 };
 
-pub use crate::templates::{
-  BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
-  TransactionHtml as Transaction,
+pub use crate::{
+  subcommand::decode::RawOutput as Decode,
+  templates::{
+    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
+    TransactionHtml as Transaction,
+  },
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
