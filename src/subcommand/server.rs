@@ -1891,7 +1891,17 @@ impl Server {
 
       let (ids, more) = index.get_parents_by_sequence_number_paginated(child.parents, page)?;
 
-      Ok(Json(api::Parents { ids, more, page }).into_response())
+      let page_index =
+        u32::try_from(page).map_err(|_| anyhow!("page index {} out of range", page))?;
+
+      Ok(
+        Json(api::Inscriptions {
+          ids,
+          more,
+          page_index,
+        })
+        .into_response(),
+      )
     })
   }
 
@@ -6073,21 +6083,22 @@ next
     let hundred_first_parent_inscription_id = parent_ids[100];
     let hundred_eleventh_parent_inscription_id = parent_ids[110];
 
-    let parents_json = server.get_json::<api::Parents>(format!("/r/parents/{inscription_id}"));
+    let parents_json = server.get_json::<api::Inscriptions>(format!("/r/parents/{inscription_id}"));
 
     assert_eq!(parents_json.ids.len(), 100);
     assert_eq!(parents_json.ids[0], first_parent_inscription_id);
     assert_eq!(parents_json.ids[99], hundredth_parent_inscription_id);
     assert!(parents_json.more);
-    assert_eq!(parents_json.page, 0);
+    assert_eq!(parents_json.page_index, 0);
 
-    let parents_json = server.get_json::<api::Parents>(format!("/r/parents/{inscription_id}/1"));
+    let parents_json =
+      server.get_json::<api::Inscriptions>(format!("/r/parents/{inscription_id}/1"));
 
     assert_eq!(parents_json.ids.len(), 11);
     assert_eq!(parents_json.ids[0], hundred_first_parent_inscription_id);
     assert_eq!(parents_json.ids[10], hundred_eleventh_parent_inscription_id);
     assert!(!parents_json.more);
-    assert_eq!(parents_json.page, 1);
+    assert_eq!(parents_json.page_index, 1);
   }
 
   #[test]
