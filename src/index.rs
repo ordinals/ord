@@ -2215,9 +2215,9 @@ impl Index {
   }
 
   pub(crate) fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
-    let rtx = self.database.begin_read()?;
-
-    rtx
+    self
+      .database
+      .begin_read()?
       .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
       .get(address.script_pubkey().as_bytes())?
       .map(|result| {
@@ -2225,7 +2225,7 @@ impl Index {
           .map_err(|err| anyhow!(err.to_string()))
           .map(|value| OutPoint::load(value.value()))
       })
-      .collect::<Result<Vec<_>>>()
+      .collect()
   }
 
   pub(crate) fn get_output_info(&self, output: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
