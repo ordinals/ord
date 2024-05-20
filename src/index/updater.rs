@@ -414,6 +414,7 @@ impl<'index> Updater<'index> {
           utxo_cache,
           &mut script_pubkey_to_outpoint,
           &mut outpoint_to_txout,
+          index_inscriptions,
         )?;
       }
     };
@@ -686,6 +687,7 @@ impl<'index> Updater<'index> {
     utxo_cache: &mut HashMap<OutPoint, TxOut>,
     script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
     outpoint_to_txout: &mut Table<&OutPointValue, TxOutValue>,
+    index_inscriptions: bool,
   ) -> Result {
     for txin in &tx.input {
       let output = txin.previous_output;
@@ -706,6 +708,12 @@ impl<'index> Updater<'index> {
           )
         })?
       };
+
+      // We remove these values in the InscriptionUpdater only when indexing inscriptions
+      if !index_inscriptions {
+        utxo_cache.remove(&output);
+        outpoint_to_txout.remove(&output.store())?;
+      }
 
       script_pubkey_to_outpoint.remove(&txout.script_pubkey.as_bytes(), output.store())?;
     }
