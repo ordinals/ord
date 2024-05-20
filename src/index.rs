@@ -1654,10 +1654,20 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && self
-          .client
-          .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
-          .is_none(), // TODO: Can I replace this with a call to OUTPOINT_TO_TXOUT for every configuration option?
+        // If we are not indexing inscriptions or addresses this table does not get built
+        && if self.settings.index_inscriptions() || self.settings.index_addresses() {
+          self
+            .database
+            .begin_read()?
+            .open_table(OUTPOINT_TO_TXOUT)?
+            .get(&outpoint.store())?
+            .is_none()
+        } else {
+          self
+            .client
+            .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
+            .is_none()
+        },
     )
   }
 
