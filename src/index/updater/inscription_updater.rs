@@ -122,9 +122,9 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       {
         TxOut::load(value.value())
       } else {
-        self.txout_receiver.blocking_recv().map_err(|_| {
+        self.txout_receiver.blocking_recv().map_err(|err| {
           anyhow!(
-            "failed to get transaction for {}",
+            "failed to get transaction for {}: {err}",
             txin.previous_output.txid
           )
         })?
@@ -313,13 +313,13 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       output_value = end;
 
-      self
-        .utxo_cache
-        .entry(OutPoint {
+      self.utxo_cache.insert(
+        OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
-        })
-        .or_insert(txout.clone());
+        },
+        txout.clone(),
+      );
     }
 
     for (new_satpoint, mut flotsam) in new_locations.into_iter() {

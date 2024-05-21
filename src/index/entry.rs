@@ -508,10 +508,10 @@ mod tests {
   fn txout_entry() {
     let txout = TxOut {
       value: u64::MAX,
-      script_pubkey: ScriptBuf::new(),
+      script_pubkey: change(0).script_pubkey(),
     };
 
-    let value = (u64::MAX, Vec::new());
+    let value = (u64::MAX, change(0).script_pubkey().to_bytes());
 
     assert_eq!(txout.clone().store(), value);
     assert_eq!(TxOut::load(value), txout);

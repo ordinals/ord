@@ -1654,8 +1654,8 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        // If we are not indexing inscriptions or addresses this table does not get built
-        && if self.settings.index_inscriptions() || self.settings.index_addresses() {
+        // If we are not addresses this table does not always get built
+        && if self.settings.index_addresses() {
           self
             .database
             .begin_read()?
@@ -6321,6 +6321,7 @@ mod tests {
 
     let txid = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new()), (2, 0, 0, Witness::new())],
+      outputs: 2,
       ..Default::default()
     });
 
@@ -6335,12 +6336,20 @@ mod tests {
       .address_from_script(&transaction.output[0].script_pubkey)
       .unwrap();
 
+    let first_address_second_output = OutPoint {
+      txid: transaction.txid(),
+      vout: 1,
+    };
+
     assert_eq!(
       context.index.get_address_info(&first_address).unwrap(),
-      vec![OutPoint {
-        txid: transaction.txid(),
-        vout: 0
-      }]
+      [
+        OutPoint {
+          txid: transaction.txid(),
+          vout: 0
+        },
+        first_address_second_output
+      ]
     );
 
     let txid = context.core.broadcast_tx(TransactionTemplate {
@@ -6362,12 +6371,12 @@ mod tests {
 
     assert_eq!(
       context.index.get_address_info(&first_address).unwrap(),
-      Vec::new(),
+      [first_address_second_output]
     );
 
     assert_eq!(
       context.index.get_address_info(&second_address).unwrap(),
-      vec![OutPoint {
+      [OutPoint {
         txid: transaction.txid(),
         vout: 0
       }]

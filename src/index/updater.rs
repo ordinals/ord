@@ -401,13 +401,10 @@ impl<'index> Updater<'index> {
       }
     }
 
-    if self.index.index_addresses {
-      let Some(address_txout_receiver) = address_txout_receiver else {
-        unreachable!()
-      };
+    if let Some(address_txout_receiver) = address_txout_receiver {
       let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
       for (tx, txid) in &block.txdata {
-        self.index_transaction_addresses(
+        self.index_transaction_output_script_pubkeys(
           tx,
           txid,
           address_txout_receiver,
@@ -679,7 +676,7 @@ impl<'index> Updater<'index> {
     Ok(())
   }
 
-  fn index_transaction_addresses(
+  fn index_transaction_output_script_pubkeys(
     &mut self,
     tx: &Transaction,
     txid: &Txid,
@@ -701,15 +698,15 @@ impl<'index> Updater<'index> {
       } else if let Some(value) = outpoint_to_txout.get(&txin.previous_output.store())? {
         TxOut::load(value.value())
       } else {
-        txout_receiver.blocking_recv().map_err(|_| {
+        txout_receiver.blocking_recv().map_err(|err| {
           anyhow!(
-            "failed to get transaction for {}",
+            "failed to get transaction for {}: {err}",
             txin.previous_output.txid
           )
         })?
       };
 
-      // We remove these values in the InscriptionUpdater only when indexing inscriptions
+      // If we are indexing inscriptions, the InscriptionUpdater will remove these
       if !index_inscriptions {
         utxo_cache.remove(&output);
         outpoint_to_txout.remove(&output.store())?;
@@ -725,9 +722,7 @@ impl<'index> Updater<'index> {
         OutPoint { txid: *txid, vout }.store(),
       )?;
 
-      utxo_cache
-        .entry(OutPoint { txid: *txid, vout })
-        .or_insert(txout.clone());
+      utxo_cache.insert(OutPoint { txid: *txid, vout }, txout.clone());
     }
 
     Ok(())
