@@ -31,8 +31,8 @@ mod tests {
       "<h1>Address bc1phuq0vkls6w926zdaem6x9n02z2gg7j2xfudgwddyey7uyquarlgsh40ev8</h1>
 <h2>Outputs</h2>
 <ul>
-  <li><a href=/output/1{64}:1>1{64}:1</a></li>
-  <li><a href=/output/2{64}:2>2{64}:2</a></li>
+  <li><a class=monospace href=/output/1{64}:1>1{64}:1</a></li>
+  <li><a class=monospace href=/output/2{64}:2>2{64}:2</a></li>
 </ul>.*"
         .unindent()
     );
