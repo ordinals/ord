@@ -2221,7 +2221,7 @@ impl Index {
       .get(address.script_pubkey().as_bytes())?
       .map(|result| {
         result
-          .map_err(|err| anyhow!(err.to_string()))
+          .map_err(|err| anyhow!(err))
           .map(|value| OutPoint::load(value.value()))
       })
       .collect()
