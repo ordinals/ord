@@ -334,6 +334,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   {}
   <dt>supply</dt>
   <dd>{premine} {symbol}</dd>
+  <dt>mint progress</dt>
+  <dd>{premine} {symbol} of ({supply}) {symbol}</dd>
   <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
   <dt>premine percentage</dt>
