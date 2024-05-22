@@ -841,7 +841,9 @@ impl Server {
         .require_network(server_config.chain.network())
         .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let outputs = index.get_address_info(&address)?;
+      let mut outputs = index.get_address_info(&address)?;
+
+      outputs.sort();
 
       Ok(if accept_json {
         Json(outputs).into_response()
