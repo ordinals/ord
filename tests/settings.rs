@@ -21,6 +21,7 @@ fn default() {
   "height_limit": null,
   "hidden": \[\],
   "index": ".*index\.redb",
+  "index_addresses": false,
   "index_cache_size": \d+,
   "index_runes": false,
   "index_sats": false,
