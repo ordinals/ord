@@ -92,7 +92,7 @@ impl RuneEntry {
           .unwrap_or_default()
   }
 
-    pub fn max_supply(&self) -> u128 {
+  pub fn max_supply(&self) -> u128 {
     let cap = self.terms.map_or(0, |terms| terms.cap.unwrap_or_default());
     self.premine
       + cap
