@@ -76,7 +76,7 @@ Examples
 
 - `/r/blockinfo/0`:
 
-Note: `feerate_percentiles` are feerates at the 10th, 25th, 50th, 75th, and 90th percentile in sat/vB).
+Note: `feerate_percentiles` are feerates at the 10th, 25th, 50th, 75th, and 90th percentile in sat/vB.
 
 ```json
 {
