@@ -54,7 +54,7 @@ fn address_page_shows_outputs() {
   ord.assert_response_regex(
     format!("/address/{address}"),
     format!(
-      ".*<h1>Address {address}</h1>.*<a href=/output/{}.*",
+      ".*<h1>Address {address}</h1>.*<a class=monospace href=/output/{}.*",
       OutPoint {
         txid: send.txid,
         vout: 0
