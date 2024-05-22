@@ -3,41 +3,6 @@ use {
   ord::subcommand::list::{Output, Range},
 };
 
-// #[test]
-// fn output_found() {
-//   let core = mockcore::spawn();
-//   let output = CommandBuilder::new(
-//     "--index-sats list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-//   )
-//   .core(&core)
-//   .run_and_deserialize_output::<Output>();
-
-//   assert_eq!(
-//     output,
-//     Output {
-//       ranges: Some(vec![Range {
-//         end: 50 * COIN_VALUE,
-//         name: "nvtdijuwxlp".into(),
-//         offset: 0,
-//         rarity: "mythic".parse().unwrap(),
-//         size: 50 * COIN_VALUE,
-//         start: 0,
-//       }]),
-//       list: api::Output {
-//         address: None,
-//         indexed: false,
-//         inscriptions: vec![],
-//         runes: BTreeMap::new(),
-//         sat_ranges: Some(vec![(0, 5000000000)]),
-//         script_pubkey: "76a91489abcdefabbaabbaabbaabbaabbaabbaabbaabba88ac".to_string(),
-//         spent: false,
-//         transaction: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".to_string(),
-//         value: 5000000000,
-//       }
-//     }
-//   );
-// }
-
 #[test]
 fn output_found() {
   let core = mockcore::spawn();
