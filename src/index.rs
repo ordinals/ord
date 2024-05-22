@@ -518,7 +518,7 @@ impl Index {
     content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
 
     Ok(StatusHtml {
-      address_index: statistic(Statistic::IndexAddresses)? != 0,
+      address_index: self.has_address_index(),
       blessed_inscriptions,
       chain: self.settings.chain(),
       content_type_counts,
@@ -531,9 +531,9 @@ impl Index {
         self.settings.chain().network(),
         Height(next_height),
       ),
-      rune_index: statistic(Statistic::IndexRunes)? != 0,
+      rune_index: self.has_rune_index(),
       runes: statistic(Statistic::Runes)?,
-      sat_index: statistic(Statistic::IndexSats)? != 0,
+      sat_index: self.has_sat_index(),
       started: self.started,
       transaction_index: statistic(Statistic::IndexTransactions)? != 0,
       unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
@@ -1654,7 +1654,6 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        // If we are not addresses this table does not always get built
         && if self.settings.index_addresses() {
           self
             .database
