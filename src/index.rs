@@ -988,7 +988,7 @@ impl Index {
     Ok(((id, balance), len))
   }
 
-  pub(crate) fn get_rune_balances_for_outpoint(
+  pub(crate) fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
   ) -> Result<BTreeMap<SpacedRune, Pile>> {
@@ -1520,7 +1520,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscriptions_on_output(
+  pub(crate) fn get_inscriptions_for_output(
     &self,
     outpoint: OutPoint,
   ) -> Result<Vec<InscriptionId>> {
@@ -2261,9 +2261,9 @@ impl Index {
       txout
     };
 
-    let inscriptions = self.get_inscriptions_on_output(outpoint)?;
+    let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
-    let runes = self.get_rune_balances_for_outpoint(outpoint)?;
+    let runes = self.get_rune_balances_for_output(outpoint)?;
 
     let spent = self.is_output_spent(outpoint)?;
 
@@ -3413,7 +3413,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+          .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         []
       );
@@ -3423,7 +3423,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+          .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         [inscription_id]
       );
@@ -3438,7 +3438,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
+          .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         []
       );
@@ -3446,7 +3446,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint {
+          .get_inscriptions_for_output(OutPoint {
             txid: send_id,
             vout: 0,
           })
@@ -3476,7 +3476,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint {
+          .get_inscriptions_for_output(OutPoint {
             txid: first,
             vout: 0
           })
