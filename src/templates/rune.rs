@@ -85,6 +85,8 @@ mod tests {
   </dd>
   <dt>supply</dt>
   <dd>100.123456889\u{A0}%</dd>
+  <dt>mint progress</dt>
+  <dd>100.123456889\u{A0}% of 101.12345689\u{A0}%</dd>
   <dt>premine</dt>
   <dd>0.123456789\u{A0}%</dd>
   <dt>premine percentage</dt>
