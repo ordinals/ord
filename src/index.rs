@@ -1884,6 +1884,7 @@ impl Index {
   pub(crate) fn inscription_info(
     &self,
     query: query::Inscription,
+    child: Option<usize>,
   ) -> Result<Option<(api::Inscription, Option<TxOut>, Inscription)>> {
     let rtx = self.database.begin_read()?;
 
@@ -1906,6 +1907,23 @@ impl Index {
 
     let Some(sequence_number) = sequence_number else {
       return Ok(None);
+    };
+
+    let sequence_number = if let Some(child) = child {
+      let Some(child) = rtx
+        .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
+        .get(sequence_number)?
+        .skip(child)
+        .next()
+        .transpose()?
+        .map(|child| child.value())
+      else {
+        return Ok(None);
+      };
+
+      child
+    } else {
+      sequence_number
     };
 
     let sequence_number_to_inscription_entry =
