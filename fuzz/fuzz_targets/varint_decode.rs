@@ -6,7 +6,7 @@ fuzz_target!(|input: &[u8]| {
   let mut i = 0;
 
   while i < input.len() {
-    let Some((decoded, length)) = varint::decode(&input[i..]) else {
+    let Ok((decoded, length)) = varint::decode(&input[i..]) else {
       break;
     };
     let mut encoded = Vec::new();
