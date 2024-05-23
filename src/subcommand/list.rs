@@ -8,7 +8,6 @@ pub(crate) struct List {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  //pub list: Option<(api::Output, TxOut)>,
   pub list: api::Output,
   pub ranges: Option<Vec<Range>>,
 }
