@@ -1913,8 +1913,7 @@ impl Index {
       let Some(child) = rtx
         .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
         .get(sequence_number)?
-        .skip(child)
-        .next()
+        .nth(child)
         .transpose()?
         .map(|child| child.value())
       else {
