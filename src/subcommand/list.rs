@@ -40,7 +40,6 @@ impl List {
 
     let ranges = index.list(self.outpoint)?;
 
-    //let list = index.get_output_info(self.outpoint)?;
     let (list, _txout) = match index.get_output_info(self.outpoint)? {
       Some((output, txout)) => (output, txout),
       None => return Ok(None),
