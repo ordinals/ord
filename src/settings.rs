@@ -18,6 +18,7 @@ pub struct Settings {
   height_limit: Option<u32>,
   hidden: Option<HashSet<InscriptionId>>,
   index: Option<PathBuf>,
+  index_addresses: bool,
   index_cache_size: Option<usize>,
   index_runes: bool,
   index_sats: bool,
@@ -31,7 +32,7 @@ pub struct Settings {
 }
 
 impl Settings {
-  pub(crate) fn load(options: Options) -> Result<Settings> {
+  pub fn load(options: Options) -> Result<Settings> {
     let mut env = BTreeMap::<String, String>::new();
 
     for (var, value) in env::vars_os() {
@@ -57,7 +58,7 @@ impl Settings {
     Self::merge(options, env)
   }
 
-  pub(crate) fn merge(options: Options, env: BTreeMap<String, String>) -> Result<Self> {
+  pub fn merge(options: Options, env: BTreeMap<String, String>) -> Result<Self> {
     let settings = Settings::from_options(options).or(Settings::from_env(env)?);
 
     let config_path = if let Some(path) = &settings.config {
@@ -106,7 +107,7 @@ impl Settings {
     Ok(settings)
   }
 
-  pub(crate) fn or(self, source: Settings) -> Self {
+  pub fn or(self, source: Settings) -> Self {
     Self {
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
       bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
@@ -133,6 +134,7 @@ impl Settings {
           .collect(),
       ),
       index: self.index.or(source.index),
+      index_addresses: self.index_addresses || source.index_addresses,
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
       index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
@@ -146,7 +148,7 @@ impl Settings {
     }
   }
 
-  pub(crate) fn from_options(options: Options) -> Self {
+  pub fn from_options(options: Options) -> Self {
     Self {
       bitcoin_data_dir: options.bitcoin_data_dir,
       bitcoin_rpc_limit: options.bitcoin_rpc_limit,
@@ -168,6 +170,7 @@ impl Settings {
       height_limit: options.height_limit,
       hidden: None,
       index: options.index,
+      index_addresses: options.index_addresses,
       index_cache_size: options.index_cache_size,
       index_runes: options.index_runes,
       index_sats: options.index_sats,
@@ -181,7 +184,7 @@ impl Settings {
     }
   }
 
-  pub(crate) fn from_env(env: BTreeMap<String, String>) -> Result<Self> {
+  pub fn from_env(env: BTreeMap<String, String>) -> Result<Self> {
     let get_bool = |key| {
       env
         .get(key)
@@ -247,6 +250,7 @@ impl Settings {
       height_limit: get_u32("HEIGHT_LIMIT")?,
       hidden: inscriptions("HIDDEN")?,
       index: get_path("INDEX"),
+      index_addresses: get_bool("INDEX_ADDRESSES"),
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
       index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
@@ -260,7 +264,7 @@ impl Settings {
     })
   }
 
-  pub(crate) fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
+  pub fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
     Self {
       bitcoin_data_dir: Some(dir.into()),
       bitcoin_rpc_password: None,
@@ -277,6 +281,7 @@ impl Settings {
       height_limit: None,
       hidden: None,
       index: None,
+      index_addresses: true,
       index_cache_size: None,
       index_runes: true,
       index_sats: true,
@@ -290,7 +295,7 @@ impl Settings {
     }
   }
 
-  pub(crate) fn or_defaults(self) -> Result<Self> {
+  pub fn or_defaults(self) -> Result<Self> {
     let chain = self.chain.unwrap_or_default();
 
     let bitcoin_data_dir = match &self.bitcoin_data_dir {
@@ -350,6 +355,7 @@ impl Settings {
       height_limit: self.height_limit,
       hidden: self.hidden,
       index: Some(index),
+      index_addresses: self.index_addresses,
       index_cache_size: Some(match self.index_cache_size {
         Some(index_cache_size) => index_cache_size,
         None => {
@@ -370,7 +376,7 @@ impl Settings {
     })
   }
 
-  pub(crate) fn default_data_dir() -> Result<PathBuf> {
+  pub fn default_data_dir() -> Result<PathBuf> {
     Ok(
       dirs::data_dir()
         .context("could not get data dir")?
@@ -378,7 +384,7 @@ impl Settings {
     )
   }
 
-  pub(crate) fn bitcoin_credentials(&self) -> Result<Auth> {
+  pub fn bitcoin_credentials(&self) -> Result<Auth> {
     if let Some((user, pass)) = &self
       .bitcoin_rpc_username
       .as_ref()
@@ -390,7 +396,7 @@ impl Settings {
     }
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self, wallet: Option<String>) -> Result<Client> {
+  pub fn bitcoin_rpc_client(&self, wallet: Option<String>) -> Result<Client> {
     let rpc_url = self.bitcoin_rpc_url(wallet);
 
     let bitcoin_credentials = self.bitcoin_credentials()?;
@@ -451,15 +457,15 @@ impl Settings {
     Ok(client)
   }
 
-  pub(crate) fn chain(&self) -> Chain {
+  pub fn chain(&self) -> Chain {
     self.chain.unwrap()
   }
 
-  pub(crate) fn commit_interval(&self) -> usize {
+  pub fn commit_interval(&self) -> usize {
     self.commit_interval.unwrap()
   }
 
-  pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
+  pub fn cookie_file(&self) -> Result<PathBuf> {
     if let Some(cookie_file) = &self.cookie_file {
       return Ok(cookie_file.clone());
     }
@@ -481,22 +487,22 @@ impl Settings {
     Ok(path.join(".cookie"))
   }
 
-  pub(crate) fn credentials(&self) -> Option<(&str, &str)> {
+  pub fn credentials(&self) -> Option<(&str, &str)> {
     self
       .server_username
       .as_deref()
       .zip(self.server_password.as_deref())
   }
 
-  pub(crate) fn data_dir(&self) -> PathBuf {
+  pub fn data_dir(&self) -> PathBuf {
     self.data_dir.as_ref().unwrap().into()
   }
 
-  pub(crate) fn first_inscription_height(&self) -> u32 {
+  pub fn first_inscription_height(&self) -> u32 {
     self.first_inscription_height.unwrap()
   }
 
-  pub(crate) fn first_rune_height(&self) -> u32 {
+  pub fn first_rune_height(&self) -> u32 {
     if self.integration_test {
       0
     } else {
@@ -504,43 +510,47 @@ impl Settings {
     }
   }
 
-  pub(crate) fn height_limit(&self) -> Option<u32> {
+  pub fn height_limit(&self) -> Option<u32> {
     self.height_limit
   }
 
-  pub(crate) fn index(&self) -> &Path {
+  pub fn index(&self) -> &Path {
     self.index.as_ref().unwrap()
   }
 
-  pub(crate) fn index_inscriptions(&self) -> bool {
+  pub fn index_addresses(&self) -> bool {
+    self.index_addresses
+  }
+
+  pub fn index_inscriptions(&self) -> bool {
     !self.no_index_inscriptions
   }
 
-  pub(crate) fn index_runes(&self) -> bool {
+  pub fn index_runes(&self) -> bool {
     self.index_runes
   }
 
-  pub(crate) fn index_cache_size(&self) -> usize {
+  pub fn index_cache_size(&self) -> usize {
     self.index_cache_size.unwrap()
   }
 
-  pub(crate) fn index_sats(&self) -> bool {
+  pub fn index_sats(&self) -> bool {
     self.index_sats
   }
 
-  pub(crate) fn index_spent_sats(&self) -> bool {
+  pub fn index_spent_sats(&self) -> bool {
     self.index_spent_sats
   }
 
-  pub(crate) fn index_transactions(&self) -> bool {
+  pub fn index_transactions(&self) -> bool {
     self.index_transactions
   }
 
-  pub(crate) fn integration_test(&self) -> bool {
+  pub fn integration_test(&self) -> bool {
     self.integration_test
   }
 
-  pub(crate) fn is_hidden(&self, inscription_id: InscriptionId) -> bool {
+  pub fn is_hidden(&self, inscription_id: InscriptionId) -> bool {
     self
       .hidden
       .as_ref()
@@ -548,7 +558,7 @@ impl Settings {
       .unwrap_or_default()
   }
 
-  pub(crate) fn bitcoin_rpc_url(&self, wallet_name: Option<String>) -> String {
+  pub fn bitcoin_rpc_url(&self, wallet_name: Option<String>) -> String {
     let base_url = self.bitcoin_rpc_url.as_ref().unwrap();
     match wallet_name {
       Some(wallet_name) => format!("{base_url}/wallet/{wallet_name}"),
@@ -556,11 +566,11 @@ impl Settings {
     }
   }
 
-  pub(crate) fn bitcoin_rpc_limit(&self) -> u32 {
+  pub fn bitcoin_rpc_limit(&self) -> u32 {
     self.bitcoin_rpc_limit.unwrap()
   }
 
-  pub(crate) fn server_url(&self) -> Option<&str> {
+  pub fn server_url(&self) -> Option<&str> {
     self.server_url.as_deref()
   }
 }
@@ -1003,6 +1013,7 @@ mod tests {
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
       ("INDEX", "index"),
       ("INDEX_CACHE_SIZE", "4"),
+      ("INDEX_ADDRESSES", "1"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_SPENT_SATS", "1"),
@@ -1046,6 +1057,7 @@ mod tests {
           .collect()
         ),
         index: Some("index".into()),
+        index_addresses: true,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
@@ -1079,6 +1091,7 @@ mod tests {
           "--datadir=/data/dir",
           "--first-inscription-height=2",
           "--height-limit=3",
+          "--index-addresses",
           "--index-cache-size=4",
           "--index-runes",
           "--index-sats",
@@ -1108,6 +1121,7 @@ mod tests {
         height_limit: Some(3),
         hidden: None,
         index: Some("index".into()),
+        index_addresses: true,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
