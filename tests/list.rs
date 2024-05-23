@@ -25,7 +25,7 @@ fn output_found() {
           }]),
           list: api::Output {
               address: None,
-              indexed: true, // Updated to match actual output
+              indexed: true,
               inscriptions: vec![],
               runes: BTreeMap::new(),
               sat_ranges: Some(vec![(0, 5000000000)]),
