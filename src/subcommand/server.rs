@@ -203,6 +203,10 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
+        .route(
+          "/inscription/:inscription_query/:child",
+          get(Self::inscription_child),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
@@ -1588,8 +1592,27 @@ impl Server {
   async fn inscription(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Inscription>>,
     AcceptJson(accept_json): AcceptJson,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Inscription>>,
+  ) -> ServerResult {
+    Self::inscription_inner(server_config, &index, accept_json, query, None).await
+  }
+
+  async fn inscription_child(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path((DeserializeFromStr(query), child)): Path<(DeserializeFromStr<query::Inscription>, usize)>,
+  ) -> ServerResult {
+    Self::inscription_inner(server_config, &index, accept_json, query, Some(child)).await
+  }
+
+  async fn inscription_inner(
+    server_config: Arc<ServerConfig>,
+    index: &Index,
+    accept_json: bool,
+    query: query::Inscription,
+    child: Option<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
       if let query::Inscription::Sat(_) = query {
@@ -1599,7 +1622,7 @@ impl Server {
       }
 
       let (info, txout, inscription) = index
-        .inscription_info(query)?
+        .inscription_info(query, child)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
       Ok(if accept_json {
@@ -1643,7 +1666,7 @@ impl Server {
         for inscription in inscriptions {
           let query = query::Inscription::Id(inscription);
           let (info, _, _) = index
-            .inscription_info(query)?
+            .inscription_info(query, None)?
             .ok_or_not_found(|| format!("inscription {query}"))?;
 
           response.push(info);
@@ -2305,7 +2328,12 @@ mod tests {
       regex: impl AsRef<str>,
     ) {
       let response = self.get(path);
-      assert_eq!(response.status(), status);
+      assert_eq!(
+        response.status(),
+        status,
+        "response: {}",
+        response.text().unwrap()
+      );
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
@@ -5247,6 +5275,87 @@ next
     <div class=center>
       <a href=/children/{parent_inscription_id}>all</a>
     </div>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn inscription_child() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(2);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let child_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+        (2, 1, 0, Default::default()),
+      ],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let child0 = InscriptionId {
+      txid: child_txid,
+      index: 0,
+    };
+
+    server.assert_response_regex(
+      format!("/inscription/{parent_inscription_id}/0"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Inscription 1</title>.*
+.*<dt>id</dt>
+.*<dd class=monospace>{child0}</dd>.*"
+      ),
+    );
+
+    let child1 = InscriptionId {
+      txid: child_txid,
+      index: 1,
+    };
+
+    server.assert_response_regex(
+      format!("/inscription/{parent_inscription_id}/1"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Inscription -1</title>.*
+.*<dt>id</dt>
+.*<dd class=monospace>{child1}</dd>.*"
       ),
     );
   }
