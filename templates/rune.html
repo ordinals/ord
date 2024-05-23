@@ -53,7 +53,7 @@
   <dt>supply</dt>
   <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
   <dt>mint progress</dt>
-  <dd>{{ self.entry.pile(self.entry.supply()) }} of {{ self.entry.pile(self.entry.max_supply()) }}</dd>
+  <dd>{{ Decimal { value: ((self.entry.supply() as f64 / self.entry.max_supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
   <dt>premine</dt>
   <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
   <dt>premine percentage</dt>
