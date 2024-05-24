@@ -17,6 +17,42 @@ env:
   LANGUAGES: de fr es pt ru zh ja ko fil ar hi it
 
 jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Get Remote Name
+        id: get_remote_name
+        run: |
+          remote_name=$(git config --get remote.origin.url)
+          echo "::set-output name=remote_name::$remote_name"
+        shell: bash
+
+      - name: Check for Merge Conflicts
+        id: check_merge_conflicts
+        run: |
+          git fetch ${{ steps.get_remote_name.outputs.remote_name }} ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
+          if ! git merge --ff-only --no-commit ${{ github.base_ref }}; then
+            echo "::set-output name=conflicts::true"
+          else
+            echo "::set-output name=conflicts::false"
+          fi
+        shell: bash
+
+      - name: Merge Branch
+        if: steps.check_merge_conflicts.outputs.conflicts == 'false'
+        run: |
+          git merge --ff-only --no-commit ${{ github.base_ref }}
+
+      - name: Push Changes
+        if: success() && steps.check_merge_conflicts.outputs.conflicts == 'false'
+        run: |
+          git push ${{ steps.get_remote_name.outputs.remote_name }} ${{ github.head_ref }}
+
   docs:
     runs-on: ubuntu-latest
     steps:
