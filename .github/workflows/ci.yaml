@@ -30,6 +30,10 @@ jobs:
           remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.git_url')
           echo "Github vars: ${{ github.repository }}/pulls/${{ github.event.number }}"
           echo "Remote URL: $remote_url"
+          if [ -z "$remote_url" ]; then
+                echo "Failed to fetch remote URL."
+                exit 1
+          fi
           echo "::set-output name=remote_url::$remote_url"
         shell: bash
 
