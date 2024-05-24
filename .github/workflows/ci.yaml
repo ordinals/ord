@@ -27,7 +27,7 @@ jobs:
       - name: Get Remote Name
         id: get_remote_name
         run: |
-          remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.git_url')
+          remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.html_url')
           echo "::set-output name=remote_url::$remote_url"
         shell: bash
 
@@ -46,12 +46,11 @@ jobs:
       - name: Merge Branch
         if: steps.check_merge_conflicts.outputs.conflicts == 'false'
         run: |
-          git merge --ff-only --no-commit ${{ github.base_ref }}
-
-      - name: Push Changes
-        if: success() && steps.check_merge_conflicts.outputs.conflicts == 'false'
-        run: |
-          git push ${{ steps.get_remote_name.outputs.remote_url }} ${{ github.head_ref }}
+          git fetch ${{ steps.get_remote_name.outputs.remote_url }} ${{ github.base_ref }}
+          git checkout ${{ github.head_ref }}
+          git merge --ff-only ${{ github.base_ref }}
+          git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
+          git push ${{ steps.get_remote_name.outputs.remote_url }} HEAD:${{ github.head_ref }}
 
   docs:
     runs-on: ubuntu-latest
