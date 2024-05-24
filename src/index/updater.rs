@@ -402,14 +402,15 @@ impl<'index> Updater<'index> {
     }
 
     if let Some(address_txout_receiver) = address_txout_receiver {
-      let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
+      let mut script_pubkey_hash_to_outpoint =
+        wtx.open_multimap_table(SCRIPT_PUBKEY_HASH_TO_OUTPOINT)?;
       for (tx, txid) in &block.txdata {
         self.index_transaction_output_script_pubkeys(
           tx,
           txid,
           address_txout_receiver,
           utxo_cache,
-          &mut script_pubkey_to_outpoint,
+          &mut script_pubkey_hash_to_outpoint,
           &mut outpoint_to_txout,
           index_inscriptions,
         )?;
@@ -682,7 +683,7 @@ impl<'index> Updater<'index> {
     txid: &Txid,
     txout_receiver: &mut broadcast::Receiver<TxOut>,
     utxo_cache: &mut HashMap<OutPoint, TxOut>,
-    script_pubkey_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
+    script_pubkey_hash_to_outpoint: &mut MultimapTable<&[u8], OutPointValue>,
     outpoint_to_txout: &mut Table<&OutPointValue, TxOutValue>,
     index_inscriptions: bool,
   ) -> Result {
@@ -712,13 +713,20 @@ impl<'index> Updater<'index> {
         outpoint_to_txout.remove(&output.store())?;
       }
 
-      script_pubkey_to_outpoint.remove(&txout.script_pubkey.as_bytes(), output.store())?;
+      let script_pubkey_hash =
+        bitcoin::hashes::sha256::Hash::hash(txout.script_pubkey.as_bytes()).to_byte_array();
+
+      script_pubkey_hash_to_outpoint.remove(&script_pubkey_hash.as_slice(), output.store())?;
     }
 
     for (vout, txout) in tx.output.iter().enumerate() {
       let vout: u32 = vout.try_into().unwrap();
-      script_pubkey_to_outpoint.insert(
-        txout.script_pubkey.as_bytes(),
+
+      let script_pubkey_hash =
+        bitcoin::hashes::sha256::Hash::hash(txout.script_pubkey.as_bytes()).to_byte_array();
+
+      script_pubkey_hash_to_outpoint.insert(
+        script_pubkey_hash.as_slice(),
         OutPoint { txid: *txid, vout }.store(),
       )?;
 

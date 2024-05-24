@@ -53,7 +53,7 @@ const SCHEMA_VERSION: u64 = 26;
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
-define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
+define_multimap_table! { SCRIPT_PUBKEY_HASH_TO_OUTPOINT, &[u8], OutPointValue }
 define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
@@ -301,7 +301,7 @@ impl Index {
 
         tx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
-        tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
+        tx.open_multimap_table(SCRIPT_PUBKEY_HASH_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
         tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
@@ -2231,11 +2231,14 @@ impl Index {
   }
 
   pub(crate) fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
+    let script_pubkey_hash =
+      bitcoin::hashes::sha256::Hash::hash(address.script_pubkey().as_bytes()).to_byte_array();
+
     self
       .database
       .begin_read()?
-      .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
-      .get(address.script_pubkey().as_bytes())?
+      .open_multimap_table(SCRIPT_PUBKEY_HASH_TO_OUTPOINT)?
+      .get(script_pubkey_hash.as_slice())?
       .map(|result| {
         result
           .map_err(|err| anyhow!(err))
