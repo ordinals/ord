@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: chinthakagodawita/autoupdate@v1.7.0
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '${{ secrets.AUTOUPDATE }}'
 
   docs:
     runs-on: ubuntu-latest
