@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Auto Update
         uses: chinthakagodawita/autoupdate@v1.7.0
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 
   docs:
