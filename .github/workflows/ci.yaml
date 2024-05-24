@@ -25,8 +25,8 @@ jobs:
 
       - name: Merge if no Conflicts
         run: |
-          if git merge --ff-only --no-commit ${{ github.base_ref }}; then
-            git merge --ff-only ${{ github.base_ref }}
+          if git merge --no-commit ${{ github.base_ref }}; then
+            git merge ${{ github.base_ref }}
             git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
             git push ${{ steps.get_remote_name.outputs.remote_name }} HEAD:${{ github.head_ref }}
           fi
