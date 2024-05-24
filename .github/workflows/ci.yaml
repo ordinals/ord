@@ -18,7 +18,6 @@ env:
 
 jobs:
   autoupdate:
-    name: autoupdate
     runs-on: ubuntu-latest
     steps:
       - uses: chinthakagodawita/autoupdate@v1.7.0
