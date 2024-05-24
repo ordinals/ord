@@ -17,24 +17,12 @@ env:
   LANGUAGES: de fr es pt ru zh ja ko fil ar hi it
 
 jobs:
-  merge:
+  auto-update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Auto Update
+        uses: chinthakagodawita/autoupdate@v1.7.0
 
-      - name: Merge Master into PR Branch if no Conflicts
-        run: |
-          head_repo_name=$(basename "${{ github.event.pull_request.head.repo.clone_url }}" .git)
-          if git merge --no-commit master; then
-            if git diff --quiet --cached; then
-              echo "No changes to commit."
-            else
-              git commit -m "Merge branch master into ${{ github.head_ref }}"
-              git push $head_repo_name HEAD:${{ github.head_ref }}
-            fi
-          fi
-        shell: bash
 
   docs:
     runs-on: ubuntu-latest
