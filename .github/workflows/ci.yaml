@@ -23,15 +23,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Merge if no Conflicts
+      - name: Merge Master into PR Branch if no Conflicts
         run: |
           head_repo_name=$(basename "${{ github.event.pull_request.base.repo.clone_url }}" .git)
-          if git merge --no-commit ${{ github.base_ref }}; then
+          if git merge --no-commit master; then
             if git diff --quiet --cached; then
               echo "No changes to commit."
             else
-              git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
-              git push ${head_repo_name} HEAD:${{ github.head_ref }}
+              git commit -m "Merge branch master into ${{ github.head_ref }}"
+              git push $head_repo_name HEAD:${{ github.head_ref }}
             fi
           fi
         shell: bash
