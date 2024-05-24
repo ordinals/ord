@@ -50,6 +50,7 @@ pub struct BlockInfo {
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
+  pub feerate_percentiles: [u64; 5],
   pub height: u32,
   pub max_fee: u64,
   pub max_fee_rate: u64,

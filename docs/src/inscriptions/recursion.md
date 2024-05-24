@@ -78,6 +78,9 @@ Examples
 
 - `/r/blockinfo/0`:
 
+Note: `feerate_percentiles` are feerates at the 10th, 25th, 50th, 75th, and 90th
+percentile in sats/vB.
+
 ```json
 {
   "average_fee": 0,
@@ -87,6 +90,7 @@ Examples
   "confirmations": 0,
   "difficulty": 0.0,
   "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "feerate_percentiles": [0, 0, 0, 0, 0],
   "height": 0,
   "max_fee": 0,
   "max_fee_rate": 0,
