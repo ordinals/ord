@@ -203,6 +203,10 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
+        .route(
+          "/inscription/:inscription_query/:child",
+          get(Self::inscription_child),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
@@ -1292,6 +1296,13 @@ impl Server {
         confirmations: info.confirmations,
         difficulty: info.difficulty,
         hash,
+        feerate_percentiles: [
+          stats.fee_rate_percentiles.fr_10th.to_sat(),
+          stats.fee_rate_percentiles.fr_25th.to_sat(),
+          stats.fee_rate_percentiles.fr_50th.to_sat(),
+          stats.fee_rate_percentiles.fr_75th.to_sat(),
+          stats.fee_rate_percentiles.fr_90th.to_sat(),
+        ],
         height: info.height.try_into().unwrap(),
         max_fee: stats.max_fee.to_sat(),
         max_fee_rate: stats.max_fee_rate.to_sat(),
@@ -1588,8 +1599,27 @@ impl Server {
   async fn inscription(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Inscription>>,
     AcceptJson(accept_json): AcceptJson,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Inscription>>,
+  ) -> ServerResult {
+    Self::inscription_inner(server_config, &index, accept_json, query, None).await
+  }
+
+  async fn inscription_child(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path((DeserializeFromStr(query), child)): Path<(DeserializeFromStr<query::Inscription>, usize)>,
+  ) -> ServerResult {
+    Self::inscription_inner(server_config, &index, accept_json, query, Some(child)).await
+  }
+
+  async fn inscription_inner(
+    server_config: Arc<ServerConfig>,
+    index: &Index,
+    accept_json: bool,
+    query: query::Inscription,
+    child: Option<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
       if let query::Inscription::Sat(_) = query {
@@ -1599,7 +1629,7 @@ impl Server {
       }
 
       let (info, txout, inscription) = index
-        .inscription_info(query)?
+        .inscription_info(query, child)?
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
       Ok(if accept_json {
@@ -1643,7 +1673,7 @@ impl Server {
         for inscription in inscriptions {
           let query = query::Inscription::Id(inscription);
           let (info, _, _) = index
-            .inscription_info(query)?
+            .inscription_info(query, None)?
             .ok_or_not_found(|| format!("inscription {query}"))?;
 
           response.push(info);
@@ -2305,7 +2335,12 @@ mod tests {
       regex: impl AsRef<str>,
     ) {
       let response = self.get(path);
-      assert_eq!(response.status(), status);
+      assert_eq!(
+        response.status(),
+        status,
+        "response: {}",
+        response.text().unwrap()
+      );
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
@@ -2979,6 +3014,8 @@ mod tests {
   <dd>no</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
+  <dt>mint progress</dt>
+  <dd>100%</dd>
   <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>premine percentage</dt>
@@ -5252,6 +5289,87 @@ next
   }
 
   #[test]
+  fn inscription_child() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(2);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let child_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("hello".into()),
+            parents: vec![parent_inscription_id.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+        (2, 1, 0, Default::default()),
+      ],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let child0 = InscriptionId {
+      txid: child_txid,
+      index: 0,
+    };
+
+    server.assert_response_regex(
+      format!("/inscription/{parent_inscription_id}/0"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Inscription 1</title>.*
+.*<dt>id</dt>
+.*<dd class=monospace>{child0}</dd>.*"
+      ),
+    );
+
+    let child1 = InscriptionId {
+      txid: child_txid,
+      index: 1,
+    };
+
+    server.assert_response_regex(
+      format!("/inscription/{parent_inscription_id}/1"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Inscription -1</title>.*
+.*<dt>id</dt>
+.*<dd class=monospace>{child1}</dd>.*"
+      ),
+    );
+  }
+
+  #[test]
   fn inscription_with_parent_page() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
@@ -6310,6 +6428,7 @@ next
         hash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
           .parse()
           .unwrap(),
+        feerate_percentiles: [0, 0, 0, 0, 0],
         height: 0,
         max_fee: 0,
         max_fee_rate: 0,
@@ -6349,6 +6468,7 @@ next
         hash: "56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85"
           .parse()
           .unwrap(),
+        feerate_percentiles: [0, 0, 0, 0, 0],
         height: 1,
         max_fee: 0,
         max_fee_rate: 0,
