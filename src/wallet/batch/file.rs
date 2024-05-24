@@ -9,7 +9,7 @@ pub struct File {
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
-  pub etching: Option<Etching>,
+  pub etching: Option<batch::Etching>,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
 }
@@ -129,14 +129,14 @@ impl File {
         }
       }
 
-      inscriptions.push(Inscription::from_file(
+      inscriptions.push(Inscription::new(
         wallet.chain(),
         compress,
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
         self.parent.into_iter().collect(),
-        &entry.file,
+        entry.file.clone(),
         Some(pointer),
         self
           .etching
@@ -146,7 +146,7 @@ impl File {
       let postage = if self.mode == Mode::SatPoints {
         let satpoint = entry
           .satpoint
-          .ok_or_else(|| anyhow!("no satpoint specified for {}", entry.file.display()))?;
+          .ok_or_else(|| anyhow!("no satpoint specified for entry {i}"))?;
 
         let txout = utxos
           .get(&satpoint.outpoint)
@@ -393,10 +393,11 @@ inscriptions:
               end: Some(9000),
             }),
           }),
+          turbo: true,
         }),
         inscriptions: vec![
           batch::Entry {
-            file: "mango.avif".into(),
+            file: Some("mango.avif".into()),
             delegate: Some(
               "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
                 .parse()
@@ -424,12 +425,12 @@ inscriptions:
             ..default()
           },
           batch::Entry {
-            file: "token.json".into(),
+            file: Some("token.json".into()),
             metaprotocol: Some("DOPEPROTOCOL-42069".into()),
             ..default()
           },
           batch::Entry {
-            file: "tulip.png".into(),
+            file: Some("tulip.png".into()),
             destination: Some(
               "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
                 .parse()
@@ -445,5 +446,22 @@ inscriptions:
         ],
       }
     );
+  }
+
+  #[test]
+  fn batchfile_no_delegate_no_file_allowed() {
+    let tempdir = TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: shared-output
+inscriptions:
+  -
+"#,
+    )
+    .unwrap();
+
+    assert!(batch::File::load(batch_file.as_path()).is_ok());
   }
 }

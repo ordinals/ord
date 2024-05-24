@@ -275,9 +275,11 @@ impl State {
       );
     }
 
-    self.mempool.push(tx.clone());
+    let txid = tx.txid();
 
-    tx.txid()
+    self.mempool.push(tx);
+
+    txid
   }
 
   pub(crate) fn mempool(&self) -> &[Transaction] {

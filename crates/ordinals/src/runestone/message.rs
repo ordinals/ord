@@ -1,7 +1,7 @@
 use super::*;
 
 pub(super) struct Message {
-  pub(super) flaws: u32,
+  pub(super) flaw: Option<Flaw>,
   pub(super) edicts: Vec<Edict>,
   pub(super) fields: HashMap<u128, VecDeque<u128>>,
 }
@@ -10,7 +10,7 @@ impl Message {
   pub(super) fn from_integers(tx: &Transaction, payload: &[u128]) -> Self {
     let mut edicts = Vec::new();
     let mut fields = HashMap::<u128, VecDeque<u128>>::new();
-    let mut flaws = 0;
+    let mut flaw = None;
 
     for i in (0..payload.len()).step_by(2) {
       let tag = payload[i];
@@ -19,17 +19,17 @@ impl Message {
         let mut id = RuneId::default();
         for chunk in payload[i + 1..].chunks(4) {
           if chunk.len() != 4 {
-            flaws |= Flaw::TrailingIntegers.flag();
+            flaw.get_or_insert(Flaw::TrailingIntegers);
             break;
           }
 
           let Some(next) = id.next(chunk[0], chunk[1]) else {
-            flaws |= Flaw::EdictRuneId.flag();
+            flaw.get_or_insert(Flaw::EdictRuneId);
             break;
           };
 
           let Some(edict) = Edict::from_integers(tx, next, chunk[2], chunk[3]) else {
-            flaws |= Flaw::EdictOutput.flag();
+            flaw.get_or_insert(Flaw::EdictOutput);
             break;
           };
 
@@ -40,7 +40,7 @@ impl Message {
       }
 
       let Some(&value) = payload.get(i + 1) else {
-        flaws |= Flaw::TruncatedField.flag();
+        flaw.get_or_insert(Flaw::TruncatedField);
         break;
       };
 
@@ -48,7 +48,7 @@ impl Message {
     }
 
     Self {
-      flaws,
+      flaw,
       edicts,
       fields,
     }

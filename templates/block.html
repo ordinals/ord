@@ -21,6 +21,14 @@ prev
 next
 %% }
 </div>
+<h2>{{"Rune".tally(self.runes.len())}}</h2>
+%% if self.runes.len() > 0 {
+<ul>
+  %% for spaced_rune in &self.runes {
+  <li><a href=/rune/{{ spaced_rune }}>{{ spaced_rune }}</a></li>
+  %% }
+</ul>
+%% }
 <h2>{{"Inscription".tally(self.inscription_count)}}</h2>
 <div class=thumbnails>
 %% for id in &self.featured_inscriptions {

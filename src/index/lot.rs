@@ -7,7 +7,7 @@ use {
 };
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Default, Serialize, Deserialize)]
-pub(super) struct Lot(pub(super) u128);
+pub struct Lot(pub u128);
 
 impl Lot {
   #[cfg(test)]

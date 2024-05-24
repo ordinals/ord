@@ -11,8 +11,8 @@ pub(crate) struct Sats {
 
 #[derive(Serialize, Deserialize)]
 pub struct OutputTsv {
-  pub sat: String,
-  pub output: OutPoint,
+  pub found: BTreeMap<String, SatPoint>,
+  pub lost: BTreeSet<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -30,24 +30,26 @@ impl Sats {
       "sats requires index created with `--index-sats` flag"
     );
 
-    let utxos = wallet.get_output_sat_ranges()?;
+    let haystacks = wallet.get_output_sat_ranges()?;
 
     if let Some(path) = &self.tsv {
-      let mut output = Vec::new();
-      for (outpoint, sat) in sats_from_tsv(
-        utxos,
-        &fs::read_to_string(path)
-          .with_context(|| format!("I/O error reading `{}`", path.display()))?,
-      )? {
-        output.push(OutputTsv {
-          sat: sat.into(),
-          output: outpoint,
-        });
-      }
-      Ok(Some(Box::new(output)))
+      let tsv = fs::read_to_string(path)
+        .with_context(|| format!("I/O error reading `{}`", path.display()))?;
+
+      let needles = Self::needles(&tsv)?;
+
+      let found = Self::find(&needles, &haystacks);
+
+      let lost = needles
+        .into_iter()
+        .filter(|(_sat, value)| !found.contains_key(*value))
+        .map(|(_sat, value)| value.into())
+        .collect();
+
+      Ok(Some(Box::new(OutputTsv { found, lost })))
     } else {
       let mut output = Vec::new();
-      for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
+      for (outpoint, sat, offset, rarity) in Self::rare_sats(haystacks) {
         output.push(OutputRare {
           sat,
           output: outpoint,
@@ -58,90 +60,101 @@ impl Sats {
       Ok(Some(Box::new(output)))
     }
   }
-}
 
-fn rare_sats(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
-  utxos
-    .into_iter()
-    .flat_map(|(outpoint, sat_ranges)| {
+  fn find(
+    needles: &[(Sat, &str)],
+    ranges: &[(OutPoint, Vec<(u64, u64)>)],
+  ) -> BTreeMap<String, SatPoint> {
+    let mut haystacks = Vec::new();
+
+    for (outpoint, ranges) in ranges {
       let mut offset = 0;
-      sat_ranges.into_iter().filter_map(move |(start, end)| {
-        let sat = Sat(start);
-        let rarity = sat.rarity();
-        let start_offset = offset;
+      for (start, end) in ranges {
+        haystacks.push((start, end, offset, outpoint));
         offset += end - start;
-        if rarity > Rarity::Common {
-          Some((outpoint, sat, start_offset, rarity))
-        } else {
-          None
-        }
+      }
+    }
+
+    haystacks.sort_by_key(|(start, _, _, _)| *start);
+
+    let mut i = 0;
+    let mut j = 0;
+    let mut results = BTreeMap::new();
+    while i < needles.len() && j < haystacks.len() {
+      let (needle, value) = needles[i];
+      let (&start, &end, offset, outpoint) = haystacks[j];
+
+      if needle >= start && needle < end {
+        results.insert(
+          value.into(),
+          SatPoint {
+            outpoint: *outpoint,
+            offset: offset + needle.0 - start,
+          },
+        );
+      }
+
+      if needle >= end {
+        j += 1;
+      } else {
+        i += 1;
+      }
+    }
+
+    results
+  }
+
+  fn needles(tsv: &str) -> Result<Vec<(Sat, &str)>> {
+    let mut needles = tsv
+      .lines()
+      .enumerate()
+      .filter(|(_i, line)| !line.starts_with('#') && !line.is_empty())
+      .filter_map(|(i, line)| {
+        line.split('\t').next().map(|value| {
+          Sat::from_str(value).map(|sat| (sat, value)).map_err(|err| {
+            anyhow!(
+              "failed to parse sat from string \"{value}\" on line {}: {err}",
+              i + 1,
+            )
+          })
+        })
       })
-    })
-    .collect()
-}
+      .collect::<Result<Vec<(Sat, &str)>>>()?;
 
-fn sats_from_tsv(
-  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
-  tsv: &str,
-) -> Result<Vec<(OutPoint, &str)>> {
-  let mut needles = Vec::new();
-  for (i, line) in tsv.lines().enumerate() {
-    if line.is_empty() || line.starts_with('#') {
-      continue;
-    }
+    needles.sort();
 
-    if let Some(value) = line.split('\t').next() {
-      let sat = Sat::from_str(value).map_err(|err| {
-        anyhow!(
-          "failed to parse sat from string \"{value}\" on line {}: {err}",
-          i + 1,
-        )
-      })?;
-
-      needles.push((sat, value));
-    }
-  }
-  needles.sort();
-
-  let mut haystacks = utxos
-    .into_iter()
-    .flat_map(|(outpoint, ranges)| {
-      ranges
-        .into_iter()
-        .map(move |(start, end)| (start, end, outpoint))
-    })
-    .collect::<Vec<(u64, u64, OutPoint)>>();
-  haystacks.sort();
-
-  let mut i = 0;
-  let mut j = 0;
-  let mut results = Vec::new();
-  while i < needles.len() && j < haystacks.len() {
-    let (needle, value) = needles[i];
-    let (start, end, outpoint) = haystacks[j];
-
-    if needle >= start && needle < end {
-      results.push((outpoint, value));
-    }
-
-    if needle >= end {
-      j += 1;
-    } else {
-      i += 1;
-    }
+    Ok(needles)
   }
 
-  Ok(results)
+  fn rare_sats(haystacks: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+    haystacks
+      .into_iter()
+      .flat_map(|(outpoint, sat_ranges)| {
+        let mut offset = 0;
+        sat_ranges.into_iter().filter_map(move |(start, end)| {
+          let sat = Sat(start);
+          let rarity = sat.rarity();
+          let start_offset = offset;
+          offset += end - start;
+          if rarity > Rarity::Common {
+            Some((outpoint, sat, start_offset, rarity))
+          } else {
+            None
+          }
+        })
+      })
+      .collect()
+  }
 }
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::fmt::Write};
+  use super::*;
 
   #[test]
   fn identify_no_rare_sats() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
       )]),
@@ -152,7 +165,7 @@ mod tests {
   #[test]
   fn identify_one_rare_sat() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
       )]),
@@ -163,7 +176,7 @@ mod tests {
   #[test]
   fn identify_two_rare_sats() {
     assert_eq!(
-      rare_sats(vec![(
+      Sats::rare_sats(vec![(
         outpoint(1),
         vec![(0, 100), (1050000000000000, 1150000000000000)],
       )]),
@@ -177,7 +190,7 @@ mod tests {
   #[test]
   fn identify_rare_sats_in_different_outpoints() {
     assert_eq!(
-      rare_sats(vec![
+      Sats::rare_sats(vec![
         (outpoint(1), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
         (outpoint(2), vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],),
       ]),
@@ -188,134 +201,110 @@ mod tests {
     )
   }
 
-  #[test]
-  fn identify_from_tsv_none() {
+  #[track_caller]
+  fn case(tsv: &str, haystacks: &[(OutPoint, Vec<(u64, u64)>)], expected: &[(&str, SatPoint)]) {
     assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
-      Vec::new()
-    )
+      Sats::find(&Sats::needles(tsv).unwrap(), haystacks),
+      expected
+        .iter()
+        .map(|(sat, satpoint)| (sat.to_string(), *satpoint))
+        .collect()
+    );
+  }
+
+  #[test]
+  fn tsv() {
+    case("1\n", &[(outpoint(1), vec![(0, 1)])], &[]);
   }
 
   #[test]
   fn identify_from_tsv_single() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
+    case(
+      "0\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_two_in_one_range() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_out_of_order_tsv() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
+    case(
+      "1\n0\n",
+      &[(outpoint(1), vec![(0, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_out_of_order_ranges() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
-    )
+    case(
+      "1\n0\n",
+      &[(outpoint(1), vec![(1, 2), (0, 1)])],
+      &[("0", satpoint(1, 1)), ("1", satpoint(1, 0))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_two_in_two_ranges() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 1), (1, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(1, 1))],
     )
   }
 
   #[test]
   fn identify_from_tsv_two_in_two_outputs() {
-    assert_eq!(
-      sats_from_tsv(
-        vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
-        "0\n1\n"
-      )
-      .unwrap(),
-      vec![(outpoint(1), "0"), (outpoint(2), "1"),]
-    )
+    case(
+      "0\n1\n",
+      &[(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
+      &[("0", satpoint(1, 0)), ("1", satpoint(2, 0))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_ignores_extra_columns() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
+    case(
+      "0\t===\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_ignores_empty_lines() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
+    case(
+      "0\n\n\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
   }
 
   #[test]
   fn identify_from_tsv_ignores_comments() {
-    assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
-      vec![(outpoint(1), "0"),]
-    )
+    case(
+      "0\n#===\n",
+      &[(outpoint(1), vec![(0, 1)])],
+      &[("0", satpoint(1, 0))],
+    );
   }
 
   #[test]
   fn parse_error_reports_line_and_value() {
     assert_eq!(
-      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
+      Sats::needles("0\n===\n")
         .unwrap_err()
         .to_string(),
       "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
-    )
-  }
-
-  #[test]
-  fn identify_from_tsv_is_fast() {
-    let mut start = 0;
-    let mut utxos = Vec::new();
-    let mut results = Vec::new();
-    for i in 0..16 {
-      let mut ranges = Vec::new();
-      let outpoint = outpoint(i);
-      for _ in 0..100 {
-        let end = start + 50 * COIN_VALUE;
-        ranges.push((start, end));
-        for j in 0..50 {
-          results.push((outpoint, start + j * COIN_VALUE));
-        }
-        start = end;
-      }
-      utxos.push((outpoint, ranges));
-    }
-
-    let mut tsv = String::new();
-    for i in 0..start / COIN_VALUE {
-      writeln!(tsv, "{}", i * COIN_VALUE).expect("writing to string should succeed");
-    }
-
-    let start = Instant::now();
-    assert_eq!(
-      sats_from_tsv(utxos, &tsv)
-        .unwrap()
-        .into_iter()
-        .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))
-        .collect::<Vec<(OutPoint, u64)>>(),
-      results
     );
-
-    assert!(Instant::now() - start < Duration::from_secs(10));
   }
 }

@@ -114,9 +114,12 @@ OP_13`. If deciphering fails, later matching outputs are not considered.
 
 #### Assembling the Payload Buffer
 
-The payload buffer is assembled by concatenating data pushes. If a non-data
-push opcode is encountered, the deciphered runestone is a cenotaph with no
-etching, mint, or edicts.
+The payload buffer is assembled by concatenating data pushes, after `OP_13`, in
+the matching script pubkey.
+
+Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is
+encountered, i.e., any opcode equal to or greater than opcode 79, the
+deciphered runestone is a cenotaph with no etching, mint, or edicts.
 
 #### Decoding the Integer Sequence
 
@@ -260,6 +263,7 @@ FLAG_VALUE`:
 enum Flag {
   Etching = 0,
   Terms = 1,
+  Turbo = 2,
   Cenotaph = 127,
 }
 ```
@@ -267,6 +271,10 @@ enum Flag {
 The `Etching` flag marks this transaction as containing an etching.
 
 The `Terms` flag marks this transaction's etching as having open mint terms.
+
+The `Turbo` flag marks this transaction's etching as opting into future
+protocol changes. These protocol changes may increase light client validation
+costs, or just be highly degenerate.
 
 The `Cenotaph` flag is unrecognized.
 

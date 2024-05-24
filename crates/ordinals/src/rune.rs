@@ -143,7 +143,7 @@ impl FromStr for Rune {
     let mut x = 0u128;
     for (i, c) in s.chars().enumerate() {
       if i > 0 {
-        x += 1;
+        x = x.checked_add(1).ok_or(Error::Range)?;
       }
       x = x.checked_mul(26).ok_or(Error::Range)?;
       match c {
@@ -224,7 +224,11 @@ mod tests {
   fn from_str_error() {
     assert_eq!(
       "BCGDENLQRQWDSLRUGSNLBTMFIJAW".parse::<Rune>().unwrap_err(),
-      Error::Range
+      Error::Range,
+    );
+    assert_eq!(
+      "BCGDENLQRQWDSLRUGSNLBTMFIJAVX".parse::<Rune>().unwrap_err(),
+      Error::Range,
     );
     assert_eq!("x".parse::<Rune>().unwrap_err(), Error::Character('x'));
   }

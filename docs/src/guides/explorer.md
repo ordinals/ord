@@ -87,7 +87,6 @@ what is shown in the HTML. These endpoints are:
 - `/inscriptions/<FROM>`
 - `/inscriptions/<FROM>/<N>`
 - `/output/<OUTPOINT>`
-- `/output/<OUTPOINT>`
 - `/sat/<SAT>`
 
 To get a list of the latest 100 inscriptions you would do:

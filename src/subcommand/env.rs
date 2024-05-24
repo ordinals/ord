@@ -1,4 +1,4 @@
-use {super::*, colored::Colorize, std::net::TcpListener};
+use {super::*, crate::wallet::batch, colored::Colorize, std::net::TcpListener};
 
 struct KillOnDrop(process::Child);
 
@@ -17,6 +17,16 @@ impl Drop for KillOnDrop {
 pub(crate) struct Env {
   #[arg(default_value = "env", help = "Create env in <DIRECTORY>.")]
   directory: PathBuf,
+  #[arg(
+    long,
+    help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
+  )]
+  pub(crate) decompress: bool,
+  #[arg(
+    long,
+    help = "Proxy `/content/INSCRIPTION_ID` requests to `<CONTENT_PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+  )]
+  pub(crate) content_proxy: Option<Url>,
 }
 
 #[derive(Serialize)]
@@ -50,24 +60,60 @@ impl Env {
 
     fs::create_dir_all(&absolute)?;
 
-    fs::write(
-      absolute.join("bitcoin.conf"),
-      format!(
-        "regtest=1
+    let bitcoin_conf = absolute.join("bitcoin.conf");
+
+    if !bitcoin_conf.try_exists()? {
+      fs::write(
+        bitcoin_conf,
+        format!(
+          "datacarriersize=1000000
+regtest=1
 datadir={absolute_str}
 listen=0
 txindex=1
 [regtest]
 rpcport={bitcoind_port}
 ",
-      ),
-    )?;
+        ),
+      )?;
+    }
+
+    fs::write(absolute.join("inscription.txt"), "FOO")?;
+
+    let yaml = serde_yaml::to_string(&batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: "FOO".parse::<SpacedRune>().unwrap(),
+        supply: "2000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          amount: "1000".parse().unwrap(),
+          cap: 1,
+          ..default()
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("env/inscription.txt".into()),
+        ..default()
+      }],
+      ..default()
+    })
+    .unwrap();
+
+    let batch_yaml = absolute.join("batch.yaml");
+
+    if !batch_yaml.try_exists()? {
+      fs::write(absolute.join("batch.yaml"), yaml)?;
+    }
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
         .arg(format!("-conf={}", absolute.join("bitcoin.conf").display()))
         .stdout(Stdio::null())
-        .spawn()?,
+        .spawn()
+        .expect("failed to start bitcoind"),
     );
 
     loop {
@@ -82,23 +128,36 @@ rpcport={bitcoind_port}
 
     let config = absolute.join("ord.yaml");
 
-    fs::write(
-      config,
-      serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
-    )?;
+    if !config.try_exists()? {
+      fs::write(
+        config,
+        serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
+      )?;
+    }
 
     let ord = std::env::current_exe()?;
 
-    let _ord = KillOnDrop(
-      Command::new(&ord)
-        .arg("--datadir")
-        .arg(&absolute)
-        .arg("server")
-        .arg("--polling-interval=100ms")
-        .arg("--http-port")
-        .arg(ord_port.to_string())
-        .spawn()?,
-    );
+    let decompress = self.decompress;
+    let content_proxy = self.content_proxy.map(|url| url.to_string());
+
+    let mut command = Command::new(&ord);
+    let ord_server = command
+      .arg("--datadir")
+      .arg(&absolute)
+      .arg("server")
+      .arg("--polling-interval=100ms")
+      .arg("--http-port")
+      .arg(ord_port.to_string());
+
+    if decompress {
+      ord_server.arg("--decompress");
+    }
+
+    if let Some(content_proxy) = content_proxy {
+      ord_server.arg("--content-proxy").arg(content_proxy);
+    }
+
+    let _ord = KillOnDrop(ord_server.spawn()?);
 
     thread::sleep(Duration::from_millis(250));
 

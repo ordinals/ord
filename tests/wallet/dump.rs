@@ -55,7 +55,7 @@ fn dump_and_restore_descriptors_with_minify() {
 
   create_wallet(&core, &ord);
 
-  let output = CommandBuilder::new("--minify wallet dump")
+  let output = CommandBuilder::new("--format minify wallet dump")
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*")
