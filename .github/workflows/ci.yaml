@@ -17,14 +17,14 @@ env:
   LANGUAGES: de fr es pt ru zh ja ko fil ar hi it
 
 jobs:
-  auto-update:
+  autoupdate:
+    name: autoupdate
     runs-on: ubuntu-latest
     steps:
       - name: Auto Update
         uses: chinthakagodawita/autoupdate@v1.7.0
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-
 
   docs:
     runs-on: ubuntu-latest
