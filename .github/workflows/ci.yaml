@@ -27,8 +27,8 @@ jobs:
       - name: Get Remote Name
         id: get_remote_name
         run: |
-          remote_name=$(git config --get remote.origin.url)
-          echo "::set-output name=remote_name::$remote_name"
+          remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.git_url')
+          echo "::set-output name=remote_url::$remote_url"
         shell: bash
 
       - name: Check for Merge Conflicts
