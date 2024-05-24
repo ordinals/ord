@@ -28,6 +28,8 @@ jobs:
         id: get_remote_name
         run: |
           remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.git_url')
+          echo "Github vars: ${{ github.repository }}/pulls/${{ github.event.number }}"
+          echo "Remote URL: $remote_url"
           echo "::set-output name=remote_url::$remote_url"
         shell: bash
 
