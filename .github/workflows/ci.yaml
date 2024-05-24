@@ -35,6 +35,7 @@ jobs:
         id: check_merge_conflicts
         run: |
           git fetch ${{ steps.get_remote_name.outputs.remote_url }} ${{ github.head_ref }}
+          echo "${{ steps.get_remote_name.outputs.remote_url }}/${{ github.head_ref }}"
           git checkout ${{ github.head_ref }}
           if ! git merge --ff-only --no-commit ${{ github.base_ref }}; then
             echo "::set-output name=conflicts::true"
