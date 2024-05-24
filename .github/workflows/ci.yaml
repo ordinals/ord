@@ -25,10 +25,14 @@ jobs:
 
       - name: Merge if no Conflicts
         run: |
+          head_repo_name=$(basename "${{ github.event.pull_request.base.repo.clone_url }}" .git)
           if git merge --no-commit ${{ github.base_ref }}; then
-            git merge ${{ github.base_ref }}
-            git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
-            git push ${{ steps.get_remote_name.outputs.remote_name }} HEAD:${{ github.head_ref }}
+            if git diff --quiet --cached; then
+              echo "No changes to commit."
+            else
+              git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
+              git push ${head_repo_name} HEAD:${{ github.head_ref }}
+            fi
           fi
         shell: bash
 
