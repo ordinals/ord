@@ -29,30 +29,27 @@ jobs:
         run: |
           remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.html_url')
           echo "::set-output name=remote_url::$remote_url"
-        shell: bash
 
-      - name: Check for Merge Conflicts
+      - name: Checkout Pull Request Branch
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ steps.get_remote_name.outputs.remote_url }}
+          ref: ${{ github.head_ref }}
+          shell: bash
+
+      - name: Merge if no Conflicts
         id: check_merge_conflicts
         run: |
           git fetch ${{ steps.get_remote_name.outputs.remote_url }} ${{ github.head_ref }}
           echo "${{ steps.get_remote_name.outputs.remote_url }}/${{ github.head_ref }}"
           echo $(git branch -a)
           git checkout ${{ github.head_ref }}
-          if ! git merge --ff-only --no-commit ${{ github.base_ref }}; then
-            echo "::set-output name=conflicts::true"
-          else
-            echo "::set-output name=conflicts::false"
+          if git merge --ff-only --no-commit ${{ github.base_ref }}; then
+            git merge --ff-only ${{ github.base_ref }}
+            git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
+            git push ${{ steps.get_remote_name.outputs.remote_url }} HEAD:${{ github.head_ref }}
           fi
         shell: bash
-
-      - name: Merge Branch
-        if: steps.check_merge_conflicts.outputs.conflicts == 'false'
-        run: |
-          git fetch ${{ steps.get_remote_name.outputs.remote_url }} ${{ github.base_ref }}
-          git checkout ${{ github.head_ref }}
-          git merge --ff-only ${{ github.base_ref }}
-          git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
-          git push ${{ steps.get_remote_name.outputs.remote_url }} HEAD:${{ github.head_ref }}
 
   docs:
     runs-on: ubuntu-latest
