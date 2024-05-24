@@ -2,14 +2,21 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
-  #[arg(help = "List sats in <OUTPOINT>.")]
+  #[arg(help = "List information for <OUTPOINT>.")]
   outpoint: OutPoint,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub list: api::Output,
-  pub ranges: Option<Vec<Range>>,
+  pub address: Option<Address<NetworkUnchecked>>,
+  pub indexed: bool,
+  pub inscriptions: Vec<InscriptionId>,
+  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub sat_ranges: Option<Vec<Range>>,
+  pub script_pubkey: String,
+  pub spent: bool,
+  pub transaction: String,
+  pub value: u64,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -37,16 +44,21 @@ impl List {
       "output not found"
     }
 
-    let ranges = index.list(self.outpoint)?;
-
     let (list, _txout) = match index.get_output_info(self.outpoint)? {
       Some((output, txout)) => (output, txout),
       None => return Ok(None),
     };
 
     Ok(Some(Box::new(Output {
-      ranges: ranges.map(output_ranges),
-      list,
+      address: list.address,
+      indexed: list.indexed,
+      inscriptions: list.inscriptions,
+      runes: list.runes,
+      sat_ranges: list.sat_ranges.map(output_ranges),
+      script_pubkey: list.script_pubkey,
+      spent: list.spent,
+      transaction: list.transaction,
+      value: list.value,
     })))
   }
 }
