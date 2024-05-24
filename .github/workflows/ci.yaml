@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: chinthakagodawita/autoupdate@v1.7.0
-        env:
+        with:
           GITHUB_TOKEN: '${{ secrets.AUTOUPDATE }}'
 
   docs:
