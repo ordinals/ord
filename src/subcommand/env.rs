@@ -4,9 +4,7 @@ struct KillOnDrop(process::Child);
 
 impl Drop for KillOnDrop {
   fn drop(&mut self) {
-    let _ = Command::new("kill")
-      .arg(self.0.id().to_string())
-      .status();
+    let _ = Command::new("kill").arg(self.0.id().to_string()).status();
 
     let _ = self.0.kill();
 
