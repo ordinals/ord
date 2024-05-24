@@ -19,7 +19,6 @@ env:
 jobs:
   merge:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -27,14 +26,16 @@ jobs:
       - name: Get Remote Name
         id: get_remote_name
         run: |
-          remote=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.full_name')
-          echo "::set-output name=remote_url::$remote"
+          remote_url=$(curl -sS "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}" | jq -r '.head.repo.html_url')
+          git remote add pr-origin $remote_url
+          echo "::set-output name=remote_name::pr-origin"
 
       - name: Checkout Pull Request Branch
         uses: actions/checkout@v2
         with:
-          repository: ${{ steps.get_remote_name.outputs.remote }}
+          repository: ${{ github.repository }}
           ref: ${{ github.head_ref }}
+          remote: ${{ steps.get_remote_name.outputs.remote_name }}
 
       - name: Merge if no Conflicts
         id: check_merge_conflicts
@@ -42,7 +43,7 @@ jobs:
           if git merge --ff-only --no-commit ${{ github.base_ref }}; then
             git merge --ff-only ${{ github.base_ref }}
             git commit -m "Merge branch '${{ github.base_ref }}' into '${{ github.head_ref }}'"
-            git push ${{ steps.get_remote_name.outputs.remote }} HEAD:${{ github.head_ref }}
+            git push ${{ steps.get_remote_name.outputs.remote_name }} HEAD:${{ github.head_ref }}
           fi
         shell: bash
 
