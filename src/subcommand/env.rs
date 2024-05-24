@@ -4,12 +4,13 @@ struct KillOnDrop(process::Child);
 
 impl Drop for KillOnDrop {
   fn drop(&mut self) {
-    assert!(Command::new("kill")
+    let _ = Command::new("kill")
       .arg(self.0.id().to_string())
-      .status()
-      .unwrap()
-      .success());
-    self.0.wait().unwrap();
+      .status();
+
+    let _ = self.0.kill();
+
+    let _ = self.0.wait();
   }
 }
 
