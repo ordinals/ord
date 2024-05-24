@@ -1682,7 +1682,6 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
       Ok(if accept_json {
-<<<<<<< HEAD
         Json(api::Inscription {
           address: info
             .output
@@ -1722,9 +1721,6 @@ impl Server {
           // ---- Ordzaar ----
         })
         .into_response()
-=======
-        Json(info).into_response()
->>>>>>> upstream-0-18-5
       } else {
         InscriptionHtml {
           chain: server_config.chain,
@@ -1745,7 +1741,7 @@ impl Server {
           rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
-          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(),
+          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(), 
         }
         .page(server_config)
         .into_response()

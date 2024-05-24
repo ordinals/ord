@@ -1,16 +1,7 @@
 use {
   super::*,
   base64::Engine,
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-  bitcoin::{
-    consensus::Decodable,
-    psbt::Psbt,
-    secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-    Witness,
-  },
-========
   bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
   std::io::Cursor,
 };
 
@@ -262,28 +253,6 @@ impl Api for Server {
     vout: u32,
     _include_mempool: Option<bool>,
   ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-    Ok(
-      self
-        .state()
-        .utxos
-        .get(&OutPoint { txid, vout })
-        .map(|&value| GetTxOutResult {
-          bestblock: BlockHash::all_zeros(),
-          confirmations: 0,
-          value,
-          script_pub_key: GetRawTransactionResultVoutScriptPubKey {
-            asm: String::new(),
-            hex: Vec::new(),
-            req_sigs: None,
-            type_: None,
-            addresses: Vec::new(),
-            address: None,
-          },
-          coinbase: false,
-        }),
-    )
-========
     let state = self.state();
 
     let Some(value) = state.utxos.get(&OutPoint { txid, vout }) else {
@@ -314,7 +283,6 @@ impl Api for Server {
       },
       value: *value,
     }))
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
@@ -539,9 +507,6 @@ impl Api for Server {
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
 
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-    self.state.lock().unwrap().mempool.push(tx.clone());
-========
     let mut state = self.state.lock().unwrap();
 
     for tx_in in &tx.input {
@@ -566,7 +531,6 @@ impl Api for Server {
     }
 
     state.mempool.push(tx.clone());
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
 
     Ok(tx.txid().to_string())
   }
@@ -708,11 +672,7 @@ impl Api for Server {
     let blockhash = tx_height.map(|tx_height| state.hashes[usize::try_from(*tx_height).unwrap()]);
 
     if verbose.unwrap_or(false) {
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-      match self.state().transactions.get(&txid) {
-========
       match state.transactions.get(&txid) {
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
         Some(transaction) => Ok(
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
@@ -732,13 +692,8 @@ impl Api for Server {
                 n: n.try_into().unwrap(),
                 value: Amount::from_sat(output.value),
                 script_pub_key: GetRawTransactionResultVoutScriptPubKey {
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-                  asm: String::new(),
-                  hex: Vec::new(),
-========
                   asm: output.script_pubkey.to_asm_string(),
                   hex: output.script_pubkey.clone().into(),
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
                   req_sigs: None,
                   type_: None,
                   addresses: Vec::new(),
@@ -871,16 +826,7 @@ impl Api for Server {
     _label: Option<String>,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error> {
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/server.rs
-    let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
-
-    Ok(address)
-========
     Ok(self.state().new_address(false))
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/server.rs
   }
 
   fn list_transactions(
