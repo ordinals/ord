@@ -25,7 +25,7 @@ jobs:
 
       - name: Merge Master into PR Branch if no Conflicts
         run: |
-          head_repo_name=$(basename "${{ github.event.pull_request.base.repo.clone_url }}" .git)
+          head_repo_name=$(basename "${{ github.event.pull_request.head.repo.clone_url }}" .git)
           if git merge --no-commit master; then
             if git diff --quiet --cached; then
               echo "No changes to commit."
