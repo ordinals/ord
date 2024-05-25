@@ -420,10 +420,13 @@ impl Server {
       }
 
       let rune = match rune_query {
-        query::Rune::SpacedRune(spaced_rune) => spaced_rune.rune,
-        query::Rune::RuneId(rune_id) => index
+        query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
+        query::Rune::Id(rune_id) => index
           .get_rune_by_id(rune_id)?
           .ok_or_not_found(|| format!("rune {rune_id}"))?,
+        query::Rune::Number(number) => index
+          .get_rune_by_number(usize::try_from(number).unwrap())?
+          .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
       let (id, entry, _) = index
@@ -1682,45 +1685,7 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {query}"))?;
 
       Ok(if accept_json {
-        Json(api::Inscription {
-          address: info
-            .output
-            .as_ref()
-            .and_then(|o| {
-              server_config
-                .chain
-                .address_from_script(&o.script_pubkey)
-                .ok()
-            })
-            .map(|address| address.to_string()),
-          charms: Charm::charms(info.charms),
-          children: info.children,
-          content_length: info.inscription.content_length(),
-          content_type: info.inscription.content_type().map(|s| s.to_string()),
-          effective_content_type: effective_mime_type,
-          fee: info.entry.fee,
-          height: info.entry.height,
-          id: info.entry.id,
-          next: info.next,
-          number: info.entry.inscription_number,
-          parents: info.parents,
-          previous: info.previous,
-          rune: info.rune,
-          sat: info.entry.sat,
-          satpoint: info.satpoint,
-          timestamp: timestamp(info.entry.timestamp.into()).timestamp(),
-          value: info.output.as_ref().map(|o| o.value),
-
-          // ---- Ordzaar ----
-          inscription_sequence: info.entry.sequence_number,
-          delegate: info.inscription.delegate(),
-          content_encoding: info
-            .inscription
-            .content_encoding_str()
-            .map(|s| s.to_string()),
-          // ---- Ordzaar ----
-        })
-        .into_response()
+        Json(info).into_response()
       } else {
         InscriptionHtml {
           chain: server_config.chain,
