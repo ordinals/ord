@@ -114,6 +114,7 @@ pub struct InscriptionRecursive {
   pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
+  pub delegate: Option<InscriptionId>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
