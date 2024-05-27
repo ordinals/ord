@@ -267,9 +267,8 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .route("/update", get(Self::update))
         // ---- Ordzaar routes ----
-        // Deprecated: Ordzaar custom routes should use"ordzar" prefix/path
+        // Deprecated: Ordzaar custom routes should use"ordzaar" prefix/path
         // to prevent duplication with the Ord server paths.
-        .route("/inscriptions", post(Self::ordzaar_inscriptions_from_ids))
         .route("/ordinals/:outpoint", get(Self::ordzaar_ordinals_from_outpoint))
 
         .route("/ordzaar/inscriptions", post(Self::ordzaar_inscriptions_from_ids))
