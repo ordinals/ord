@@ -6348,7 +6348,7 @@ next
     let child_inscriptions_json = server.get_json::<api::ChildInscriptions>(format!(
       "/r/children/{parent_inscription_id}/inscriptions"
     ));
-    assert_eq!(child_inscriptions_json.inscriptions.len(), 0);
+    assert_eq!(child_inscriptions_json.children.len(), 0);
 
     let mut builder = script::Builder::new();
     for _ in 0..111 {
@@ -6380,19 +6380,19 @@ next
       "/r/children/{parent_inscription_id}/inscriptions"
     ));
 
-    assert_eq!(child_inscriptions_json.inscriptions.len(), 100);
+    assert_eq!(child_inscriptions_json.children.len(), 100);
 
     assert_eq!(
-      child_inscriptions_json.inscriptions[0].id,
+      child_inscriptions_json.children[0].id,
       first_child_inscription_id
     );
-    assert_eq!(child_inscriptions_json.inscriptions[0].number, 1); // parent is #0, 1st child is #1
+    assert_eq!(child_inscriptions_json.children[0].number, 1); // parent is #0, 1st child is #1
 
     assert_eq!(
-      child_inscriptions_json.inscriptions[99].id,
+      child_inscriptions_json.children[99].id,
       hundredth_child_inscription_id
     );
-    assert_eq!(child_inscriptions_json.inscriptions[99].number, -99); // all but 1st child are cursed
+    assert_eq!(child_inscriptions_json.children[99].number, -99); // all but 1st child are cursed
 
     assert!(child_inscriptions_json.more);
     assert_eq!(child_inscriptions_json.page, 0);
@@ -6401,19 +6401,19 @@ next
       "/r/children/{parent_inscription_id}/inscriptions/1"
     ));
 
-    assert_eq!(child_inscriptions_json.inscriptions.len(), 11);
+    assert_eq!(child_inscriptions_json.children.len(), 11);
 
     assert_eq!(
-      child_inscriptions_json.inscriptions[0].id,
+      child_inscriptions_json.children[0].id,
       hundred_first_child_inscription_id
     );
-    assert_eq!(child_inscriptions_json.inscriptions[0].number, -100);
+    assert_eq!(child_inscriptions_json.children[0].number, -100);
 
     assert_eq!(
-      child_inscriptions_json.inscriptions[10].id,
+      child_inscriptions_json.children[10].id,
       hundred_eleventh_child_inscription_id
     );
-    assert_eq!(child_inscriptions_json.inscriptions[10].number, -110);
+    assert_eq!(child_inscriptions_json.children[10].number, -110);
 
     assert!(!child_inscriptions_json.more);
     assert_eq!(child_inscriptions_json.page, 1);
