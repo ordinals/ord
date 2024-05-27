@@ -82,7 +82,7 @@ pub struct Children {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ChildInscriptions {
-  pub inscriptions: Vec<ChildInscriptionRecursive>,
+  pub children: Vec<ChildInscriptionRecursive>,
   pub more: bool,
   pub page: usize,
 }

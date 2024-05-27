@@ -1815,36 +1815,37 @@ impl Server {
       let (ids, more) =
         index.get_children_by_sequence_number_paginated(parent_sequence_number, 100, page)?;
 
-      let mut inscriptions = Vec::new();
+      let children = ids
+        .into_iter()
+        .map(|inscription_id| {
+          let entry = index
+            .get_inscription_entry(inscription_id)
+            .unwrap()
+            .unwrap();
 
-      for inscription_id in ids {
-        let entry = index
-          .get_inscription_entry(inscription_id)
-          .unwrap()
-          .unwrap();
+          let satpoint = index
+            .get_inscription_satpoint_by_id(inscription_id)
+            .ok()
+            .flatten()
+            .unwrap();
 
-        let satpoint = index
-          .get_inscription_satpoint_by_id(inscription_id)
-          .ok()
-          .flatten()
-          .unwrap();
-
-        inscriptions.push(api::ChildInscriptionRecursive {
-          charms: Charm::charms(entry.charms),
-          fee: entry.fee,
-          height: entry.height,
-          id: inscription_id,
-          number: entry.inscription_number,
-          output: satpoint.outpoint,
-          sat: entry.sat,
-          satpoint,
-          timestamp: timestamp(entry.timestamp.into()).timestamp(),
-        });
-      }
+          api::ChildInscriptionRecursive {
+            charms: Charm::charms(entry.charms),
+            fee: entry.fee,
+            height: entry.height,
+            id: inscription_id,
+            number: entry.inscription_number,
+            output: satpoint.outpoint,
+            sat: entry.sat,
+            satpoint,
+            timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          }
+        })
+        .collect();
 
       Ok(
         Json(api::ChildInscriptions {
-          inscriptions,
+          children,
           more,
           page,
         })

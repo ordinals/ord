@@ -142,7 +142,7 @@ percentile in sats/vB.
 
 ```json
 {
-  "inscriptions": [
+  "children": [
     {
       "charms": [
         "cursed"
