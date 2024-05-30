@@ -28,7 +28,7 @@ fn cargo_version() -> String {
   let cargo_version = env!("CARGO_PKG_VERSION").into();
 
   let Some(output) = Command::new("git")
-    .args(&["describe", "--tags", "--exact-match"])
+    .args(["describe", "--tags", "--exact-match"])
     .output()
     .ok()
   else {
