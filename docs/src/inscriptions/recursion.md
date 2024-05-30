@@ -40,6 +40,8 @@ The recursive endpoints are:
 - `/r/blocktime`: UNIX time stamp of latest block.
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
+- `/r/children/<INSCRIPTION_ID>/inscriptions`: details of the first 100 child inscriptions.
+- `/r/children/<INSCRIPTION_ID>/inscriptions/<PAGE>`: details of the set of 100 child inscriptions on `<PAGE>`.
 - `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
 - `/r/parents/<INSCRIPTION_ID>`: the first 100 parent inscription ids.
@@ -133,6 +135,44 @@ percentile in sats/vB.
    ],
    "more":false,
    "page":49
+}
+```
+
+- `/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/inscriptions/49`:
+
+```json
+{
+  "children": [
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "number": -223695,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683785,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188588",
+      "timestamp": 1698326262
+    },
+      ...
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936",
+      "number": -223731,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683821,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188624",
+      "timestamp": 1698326262
+    }
+  ],
+  "more": false,
+  "page": 49
 }
 ```
 

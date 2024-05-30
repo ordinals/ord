@@ -80,6 +80,13 @@ pub struct Children {
   pub page: usize,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptions {
+  pub children: Vec<ChildInscriptionRecursive>,
+  pub more: bool,
+  pub page: usize,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
@@ -117,6 +124,19 @@ pub struct InscriptionRecursive {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptionRecursive {
+  pub charms: Vec<Charm>,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
