@@ -936,6 +936,8 @@ combined, collage-style, in unique combinations in multiple inscriptions.</p>
 <li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: the first 100 child inscription ids.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: the set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</code>: details of the first 100 child inscriptions.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</code>: details of the set of 100 child inscriptions on <code>&lt;PAGE&gt;</code>.</li>
 <li><code>/r/inscription/&lt;INSCRIPTION_ID&gt;</code>: information about an inscription</li>
 <li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: JSON string containing the hex-encoded CBOR metadata.</li>
 <li><code>/r/parents/&lt;INSCRIPTION_ID&gt;</code>: the first 100 parent inscription ids.</li>
@@ -1021,6 +1023,43 @@ percentile in sats/vB.</p>
    ],
    "more":false,
    "page":49
+}
+</code></pre>
+<ul>
+<li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/inscriptions/49</code>:</li>
+</ul>
+<pre><code class="language-json">{
+  "children": [
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "number": -223695,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683785,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188588",
+      "timestamp": 1698326262
+    },
+      ...
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936",
+      "number": -223731,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683821,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188624",
+      "timestamp": 1698326262
+    }
+  ],
+  "more": false,
+  "page": 49
 }
 </code></pre>
 <ul>

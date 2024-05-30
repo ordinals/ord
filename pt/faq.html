@@ -275,7 +275,7 @@
 <p>E quanto às taxas, você pode perguntar? Boa pergunta! Vamos imaginar a mesma transação, desta vez com uma taxa de dois satoshis. Transações com taxas enviam mais satoshis nas entradas do que são recebidos pelas saídas, então para transformar nossa transação em uma que paga taxas, removeremos a segunda saída:</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>Os satoshis <var>e</var>&amp; <var>f</var>agora não têm para onde ir nas saídas:</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>Então eles vão, como taxas, para o minerador que minerou o bloco. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">O BIP</a> tem os detalhes, mas resumindo, as taxas pagas pelas transações são tratadas como entradas extras para a transação coinbase e são ordenadas como suas transações correspondentes são ordenadas no bloco. A transação coinbase do bloco pode ter a seguinte aparência:</p>

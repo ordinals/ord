@@ -275,7 +275,7 @@
 <p>À ce stade, vous vous demandez peut-être ce qu’il adviendra des frais... Bonne question ! Imaginons la même transaction, cette fois avec des frais de deux satoshis. Les transactions avec frais contiennent plus de satoshis dans les entrées que les sorties de transactions n’en reçoivent, donc pour convertir notre transaction en une transaction avec frais, nous allons supprimer la deuxième sortie de transaction :</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>Les satoshis <var>e</var>et <var>f</var>n’ont désormais nulle part où aller dans les sorties :</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>Ils vont donc au mineur qui a miné le bloc en tant que frais. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">Le BIP</a> donne les détails, mais en résumé, les frais payés par les transactions sont traités comme des entrées supplémentaires dans la transaction coinbase, et sont organisés selon l’ordre de leurs transactions correspondantes dans le bloc. La transaction coinbase du bloc pourrait ressembler à ceci :</p>

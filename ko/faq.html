@@ -275,7 +275,7 @@
 <p>수수료는 어떻게 되는가? 좋은 질문이다! 동일한 트랜잭션에 이번에는 2사토시 수수료가 있다고 가정해 보자. 수수료가 있는 트랜잭션은 출력에서 받는 것보다 더 많은 사토시를 입력으로 전송하므로, 수수료를 지불하는 트랜잭션으로 만들기 위해 두 번째 출력을 제거하자:</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>사토시 <var>e</var>그리고 <var>f</var>는 이제 출력에 갈 곳이 없다:</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>따라서 블록을 채굴한 채굴자에게 수수료로 지급된다. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a>에 자세한 내용이 나와 있지만, 간단히 말해 트랜잭션이 지불한 수수료는 코인베이스 트랜잭션에 대한 추가 입력으로 취급되며, 이의 순서는 해당 트랜잭션이 블록에서 어떻게 정렬되는지에 따라서 정해진다. 해당 블록의 코인베이스 트랜잭션은 다음과 같이 보일 수 있다:</p>

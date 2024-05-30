@@ -275,7 +275,7 @@
 <p>你可能会问交易费用呢？ 好问题！ 让我们想象一下同一笔交易，这次是两个聪的费用。收费交易在输入中发送的聪 多于输出接收的聪，因此为了使我们的交易成为支付费用的交易，我们将删除第二个输出：</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>聪<var>e</var>和 <var>f</var>现在在输出中无处可去</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>所以他们作为“费用”去到挖这个区块的矿工那里。<a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP</a> 有更详细的描述,但简而言之，交易支付的费用被视为对Coinbase交易的额外输入，并按照其对应的交易在区块中的顺序进行排序。该区块的Coinbase交易可能是这样的:</p>

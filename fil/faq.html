@@ -275,7 +275,7 @@
 <p>Paano ang tungkol sa fees? Magandang tanong! Isipin natin ang parehong transaksyon, sa pagkakataong ito ay may bayad na dalawang satoshi. Ang mga transaksyong may mga bayarin ay nagpapadala ng mas maraming satoshi sa mga input kaysa sa natatanggap nila sa mga output, kaya para gawing isang transaksyon ang nagbabayad, aalisin natin ang pangalawang output:</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>Ang Satoshis<var>e</var>at <var>f</var>ay wala nang slot sa output:</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>Kaya't bumalik sila sa miner na nagmimina ng block bilang bayad. Para sa detalyeng kaalaman, mabuting bisitahin ang <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a>, ngunit sa kabuuan, ang mga bayarin na binayaran ng mga transaksyon ay itinuturing bilang karagdagang mga entry sa transaksyon ng coinbase, at ordered sa parehong paraan tulad ng mga kaukulang transaksyon na ordered sa block. Maaaring ganito ang hitsura ng transaksyon sa coinbase ng block:</p>

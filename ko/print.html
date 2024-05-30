@@ -514,7 +514,7 @@ OP_ENDIF
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
 <p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
-<p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content, content type  and content encoding of the delegate. This can be used to cheaply create copies  of an inscription.</p>
+<p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content, content type and content encoding of the delegate. This can be used to cheaply create copies of an inscription.</p>
 <h3 id="설명서"><a class="header" href="#설명서">설명서</a></h3>
 <p>To create an inscription I with delegate inscription D:</p>
 <ul>
@@ -707,6 +707,8 @@ OP_ENDIF
 <li><code>/r/blocktime</code>: UNIX time stamp of latest block.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: the first 100 child inscription ids.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: the set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</code>: details of the first 100 child inscriptions.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</code>: details of the set of 100 child inscriptions on <code>&lt;PAGE&gt;</code>.</li>
 <li><code>/r/inscription/&lt;INSCRIPTION_ID&gt;</code>: information about an inscription</li>
 <li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: JSON string containing the hex-encoded CBOR metadata.</li>
 <li><code>/r/parents/&lt;INSCRIPTION_ID&gt;</code>: the first 100 parent inscription ids.</li>
@@ -787,6 +789,43 @@ OP_ENDIF
    ],
    "more":false,
    "page":49
+}
+</code></pre>
+<ul>
+<li><code>/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/inscriptions/49</code>:</li>
+</ul>
+<pre><code class="language-json">{
+  "children": [
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "number": -223695,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683785,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188588",
+      "timestamp": 1698326262
+    },
+      ...
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936",
+      "number": -223731,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683821,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188624",
+      "timestamp": 1698326262
+    }
+  ],
+  "more": false,
+  "page": 49
 }
 </code></pre>
 <ul>
@@ -1251,7 +1290,7 @@ OP_ENDIF
 <p>수수료는 어떻게 되는가? 좋은 질문이다! 동일한 트랜잭션에 이번에는 2사토시 수수료가 있다고 가정해 보자. 수수료가 있는 트랜잭션은 출력에서 받는 것보다 더 많은 사토시를 입력으로 전송하므로, 수수료를 지불하는 트랜잭션으로 만들기 위해 두 번째 출력을 제거하자:</p>
 <pre><code>[2] [1] [3] → [4]
 </code></pre>
-<p>사토시 <var>e</var>그리고 <var>f</var>는 이제 출력에 갈 곳이 없다:</p>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
 <pre><code>[a b] [c] [d e f] → [a b c d]
 </code></pre>
 <p>따라서 블록을 채굴한 채굴자에게 수수료로 지급된다. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a>에 자세한 내용이 나와 있지만, 간단히 말해 트랜잭션이 지불한 수수료는 코인베이스 트랜잭션에 대한 추가 입력으로 취급되며, 이의 순서는 해당 트랜잭션이 블록에서 어떻게 정렬되는지에 따라서 정해진다. 해당 블록의 코인베이스 트랜잭션은 다음과 같이 보일 수 있다:</p>
@@ -2219,7 +2258,8 @@ $ord outputs
 <p><a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>가 획득했다!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-현상금-2"><a class="header" href="#오디널-현상금-2">오디널 현상금 2</a></h1>
 <h2 id="기준-2"><a class="header" href="#기준-2">기준</a></h2>
-<p>제출 주소로 <span class=uncommon>uncommon</span>SAT를 보낸다:✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>Send an <span class=uncommon>uncommon</span> sat to the submission address:</p>
+<p>✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
 <p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
 <p>제출하기 전에 제출 주소에 트랜잭션이 수신되지 않았는지 확인하자. 첫 번째 성공적인 제출에 대해서만 보상이 지급된다.</p>
 <h2 id="보상-2"><a class="header" href="#보상-2">보상</a></h2>
