@@ -21,7 +21,35 @@ fn git_commit() -> Option<String> {
       .stdout,
   )
   .ok()
-  .map(|branch| branch.into())
+  .map(|commit| commit.into())
+}
+
+fn cargo_version() -> String {
+  let cargo_version = env!("CARGO_PKG_VERSION").into();
+
+  let Some(output) = Command::new("git")
+    .args(&["describe", "--tags", "--exact-match"])
+    .output()
+    .ok()
+  else {
+    return cargo_version;
+  };
+
+  str::from_utf8(&output.stdout)
+    .ok()
+    .and_then(|tag| {
+      if tag.is_empty() {
+        Some(format!(
+          "{}-{}",
+          cargo_version,
+          git_commit().unwrap_or_default()
+        ))
+      } else {
+        assert_eq!(tag, cargo_version);
+        None
+      }
+    })
+    .unwrap_or(env!("CARGO_PKG_VERSION").into())
 }
 
 fn main() {
@@ -33,4 +61,5 @@ fn main() {
     "cargo:rustc-env=GIT_COMMIT={}",
     git_commit().unwrap_or_default()
   );
+  println!("cargo:rustc-env=CARGO_PKG_VERSION={}", cargo_version());
 }
