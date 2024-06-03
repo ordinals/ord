@@ -153,7 +153,7 @@ impl Send {
         postage,
         wallet.chain().network()
       )
-        .build_transaction()?,
+      .build_transaction()?,
     )
   }
 
