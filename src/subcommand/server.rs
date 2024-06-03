@@ -1005,16 +1005,26 @@ impl Server {
 
   async fn metadata(
     Extension(index): Extension<Arc<Index>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<Json<String>> {
+  ) -> ServerResult {
     task::block_in_place(|| {
-      let metadata = index
-        .get_inscription_by_id(inscription_id)?
-        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
+        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+          Self::proxy_recursive(proxy, &format!("/r/metadata/{}", inscription_id))
+        } else {
+          Err(ServerError::NotFound(format!(
+            "{} not found",
+            inscription_id
+          )))
+        };
+      };
+
+      let metadata = inscription
         .metadata
         .ok_or_not_found(|| format!("inscription {inscription_id} metadata"))?;
 
-      Ok(Json(hex::encode(metadata)))
+      Ok(Json(hex::encode(metadata)).into_response())
     })
   }
 
@@ -1384,6 +1394,32 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  fn proxy_recursive(proxy: &Url, path: &String) -> ServerResult<Response> {
+    let response = reqwest::blocking::Client::new()
+      .get(format!("{}{}", proxy, path))
+      .send()
+      .map_err(|err| anyhow!(err))?;
+
+    let mut headers = response.headers().clone();
+
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_str(&format!(
+        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
+      ))
+      .map_err(|err| ServerError::Internal(Error::from(err)))?,
+    );
+
+    Ok(
+      (
+        response.status(),
+        headers,
+        response.bytes().map_err(|err| anyhow!(err))?,
+      )
+        .into_response(),
+    )
   }
 
   fn proxy_content(proxy: &Url, inscription_id: InscriptionId) -> ServerResult<Response> {
@@ -6551,7 +6587,7 @@ next
   }
 
   #[test]
-  fn proxy() {
+  fn content_proxy() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
@@ -6582,6 +6618,57 @@ next
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
     server_with_proxy.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn metadata_proxy() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let mut metadata = Vec::new();
+    ciborium::into_writer("bar", &mut metadata).unwrap();
+
+    let inscription = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      metadata: Some(metadata.clone()), // TODO
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(
+      format!("/r/metadata/{id}"),
+      StatusCode::OK,
+      &format!("\"{}\"", hex::encode(metadata.clone())),
+    );
+
+    let server_with_proxy = TestServer::builder()
+      .chain(Chain::Regtest)
+      .server_option("--content-proxy", server.url.as_ref())
+      .build();
+
+    server_with_proxy.mine_blocks(1);
+
+    server.assert_response(
+      format!("/r/metadata/{id}"),
+      StatusCode::OK,
+      &format!("\"{}\"", hex::encode(metadata.clone())),
+    );
+
+    server_with_proxy.assert_response(
+      format!("/r/metadata/{id}"),
+      StatusCode::OK,
+      &format!("\"{}\"", hex::encode(metadata.clone())),
+    );
   }
 
   #[test]
