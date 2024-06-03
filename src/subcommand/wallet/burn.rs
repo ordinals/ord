@@ -16,16 +16,74 @@ pub struct Burn {
 
 impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let burn_script = script::Builder::new().push_opcode(opcodes::all::OP_RETURN).into_script();
+    let unsigned_transaction = match self.outgoing {
+      Outgoing::InscriptionId(id) => {
+        let inscription_info_map = wallet.inscription_info();
+        let inscription_info = inscription_info_map
+          .get(&id)
+          .ok_or_else(|| anyhow!("inscription {id} not found"))?;
 
-    let send_command = send::Send {
-      dry_run: self.dry_run,
-      fee_rate: self.fee_rate,
-      postage: self.postage,
-      address: send::ParsedAddress::ScriptBuf(burn_script),
-      outgoing: self.outgoing,
+        if inscription_info.value.unwrap() > 10000 {
+          return Err(anyhow!("The amount of sats where the inscription is on exceeds 10000"));
+        }
+
+        Self::create_unsigned_burn_transaction(
+          &wallet,
+          inscription_info.satpoint,
+          self.postage,
+          self.fee_rate,
+        )?
+      }
+      _ => panic!("Outgoing type is not an inscription"),
     };
 
-    send_command.run(wallet)
+    let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
+
+    Ok(Some(Box::new(crate::subcommand::wallet::send::Output {
+      txid,
+      psbt,
+      outgoing: self.outgoing,
+      fee,
+    })))
+  }
+
+  fn create_unsigned_burn_transaction(
+    wallet: &Wallet,
+    satpoint: SatPoint,
+    postage: Option<Amount>,
+    fee_rate: FeeRate
+  ) -> Result<Transaction> {
+    let runic_outputs = wallet.get_runic_outputs()?;
+
+    ensure!(
+      !runic_outputs.contains(&satpoint.outpoint),
+      "runic outpoints may not be burned"
+    );
+
+    let change = [wallet.get_change_address()?, wallet.get_change_address()?];
+
+    let postage = if let Some(postage) = postage {
+      Target::ExactPostage(postage)
+    } else {
+      Target::Postage
+    };
+
+    let burn_script = script::Builder::new().push_opcode(opcodes::all::OP_RETURN).into_script();
+
+    Ok(
+      TransactionBuilder::new(
+        satpoint,
+        wallet.inscriptions().clone(),
+        wallet.utxos().clone(),
+        wallet.locked_utxos().clone().into_keys().collect(),
+        runic_outputs,
+        burn_script,
+        change,
+        fee_rate,
+        postage,
+        wallet.chain().network()
+      )
+        .build_transaction()?,
+    )
   }
 }

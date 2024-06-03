@@ -65,7 +65,6 @@ impl Charm {
       Self::Unbound => "🔓",
       Self::Uncommon => "🌱",
       Self::Vindicated => "\u{2764}\u{fe0f}\u{200d}\u{1f525}",
-      Self::Burned => "💀🔥",
     }
   }
 

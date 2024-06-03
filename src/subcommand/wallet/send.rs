@@ -1,32 +1,18 @@
-use {super::*, crate::outgoing::Outgoing, base64::Engine, bitcoin::{psbt::Psbt}};
-
-#[derive(Clone, Copy)]
-struct AddressParser;
-
-#[derive(Clone, Debug, PartialEq)]
-pub(crate) enum ParsedAddress {
-  Address(Address<NetworkUnchecked>),
-  ScriptBuf(ScriptBuf),
-}
-
-fn parse_address(arg: &str) -> Result<ParsedAddress, bitcoin::address::Error> {
-  Ok(ParsedAddress::Address(Address::from_str(arg)?))
-}
+use {super::*, crate::outgoing::Outgoing};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   #[arg(long, help = "Don't sign or broadcast transaction")]
   pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
-  pub(crate) fee_rate: FeeRate,
+  fee_rate: FeeRate,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
   )]
   pub(crate) postage: Option<Amount>,
-  #[arg(value_parser = parse_address)]
-  pub(crate) address: ParsedAddress,
-  pub(crate) outgoing: Outgoing,
+  address: Address<NetworkUnchecked>,
+  outgoing: Outgoing,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,25 +25,18 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let recipient = match self.address {
-      ParsedAddress::Address(address) => {
-        address
-          .clone()
-          .require_network(wallet.chain().network())?
-          .script_pubkey()
-      }
-      ParsedAddress::ScriptBuf(script_buf) => {
-        script_buf.clone()
-      }
-    };
+    let address = self
+      .address
+      .clone()
+      .require_network(wallet.chain().network())?;
 
     let unsigned_transaction = match self.outgoing {
       Outgoing::Amount(amount) => {
-        Self::create_unsigned_send_amount_transaction(&wallet, recipient, amount, self.fee_rate)?
+        Self::create_unsigned_send_amount_transaction(&wallet, address, amount, self.fee_rate)?
       }
       Outgoing::Rune { decimal, rune } => Self::create_unsigned_send_runes_transaction(
         &wallet,
-        recipient,
+        address,
         rune,
         decimal,
         self.postage.unwrap_or(TARGET_POSTAGE),
@@ -65,7 +44,7 @@ impl Send {
       )?,
       Outgoing::InscriptionId(id) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        recipient,
+        address,
         wallet
           .inscription_info()
           .get(&id)
@@ -77,7 +56,7 @@ impl Send {
       )?,
       Outgoing::SatPoint(satpoint) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        recipient,
+        address,
         satpoint,
         self.postage,
         self.fee_rate,
@@ -85,7 +64,7 @@ impl Send {
       )?,
       Outgoing::Sat(sat) => Self::create_unsigned_send_satpoint_transaction(
         &wallet,
-        recipient,
+        address,
         wallet.find_sat_in_outputs(sat)?,
         self.postage,
         self.fee_rate,
@@ -93,56 +72,7 @@ impl Send {
       )?,
     };
 
-    let unspent_outputs = wallet.utxos();
-
-    let (txid, psbt) = if self.dry_run {
-      let psbt = wallet
-        .bitcoin_client()
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
-          Some(false),
-          None,
-          None,
-        )?
-        .psbt;
-
-      (unsigned_transaction.txid(), psbt)
-    } else {
-      let psbt = wallet
-        .bitcoin_client()
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
-          Some(true),
-          None,
-          None,
-        )?
-        .psbt;
-
-      let signed_tx = wallet
-        .bitcoin_client()
-        .finalize_psbt(&psbt, None)?
-        .hex
-        .ok_or_else(|| anyhow!("unable to sign transaction"))?;
-
-      (
-        wallet.bitcoin_client().send_raw_transaction(&signed_tx)?,
-        psbt,
-      )
-    };
-
-    let mut fee = 0;
-    for txin in unsigned_transaction.input.iter() {
-      let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
-        panic!("input {} not found in utxos", txin.previous_output);
-      };
-      fee += txout.value;
-    }
-
-    for txout in unsigned_transaction.output.iter() {
-      fee = fee.checked_sub(txout.value).unwrap();
-    }
+    let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(Output {
       txid,
@@ -154,7 +84,7 @@ impl Send {
 
   fn create_unsigned_send_amount_transaction(
     wallet: &Wallet,
-    destination: ScriptBuf,
+    destination: Address,
     amount: Amount,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
@@ -165,7 +95,7 @@ impl Send {
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![TxOut {
-        script_pubkey: destination,
+        script_pubkey: destination.script_pubkey(),
         value: amount.to_sat(),
       }],
     };
@@ -181,7 +111,7 @@ impl Send {
 
   fn create_unsigned_send_satpoint_transaction(
     wallet: &Wallet,
-    destination: ScriptBuf,
+    destination: Address,
     satpoint: SatPoint,
     postage: Option<Amount>,
     fee_rate: FeeRate,
@@ -217,7 +147,7 @@ impl Send {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        destination,
+        destination.script_pubkey(),
         change,
         fee_rate,
         postage,
@@ -229,7 +159,7 @@ impl Send {
 
   fn create_unsigned_send_runes_transaction(
     wallet: &Wallet,
-    destination: ScriptBuf,
+    destination: Address,
     spaced_rune: SpacedRune,
     decimal: Decimal,
     postage: Amount,
@@ -343,13 +273,13 @@ impl Send {
             value: postage.to_sat(),
           },
           TxOut {
-            script_pubkey: destination,
+            script_pubkey: destination.script_pubkey(),
             value: postage.to_sat(),
           },
         ]
       } else {
         vec![TxOut {
-          script_pubkey: destination,
+          script_pubkey: destination.script_pubkey(),
           value: postage.to_sat(),
         }]
       },
