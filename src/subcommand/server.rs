@@ -1011,7 +1011,7 @@ impl Server {
     task::block_in_place(|| {
       let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
         return if let Some(proxy) = server_config.content_proxy.as_ref() {
-          Self::proxy_recursive(proxy, &format!("/r/metadata/{}", inscription_id))
+          Self::proxy_recursive(proxy, &format!("/metadata/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
             "{} not found",
@@ -1398,7 +1398,7 @@ impl Server {
 
   fn proxy_recursive(proxy: &Url, path: &String) -> ServerResult<Response> {
     let response = reqwest::blocking::Client::new()
-      .get(format!("{}{}", proxy, path))
+      .get(format!("{}r{}", proxy, path))
       .send()
       .map_err(|err| anyhow!(err))?;
 
@@ -6632,7 +6632,7 @@ next
     let inscription = Inscription {
       content_type: Some("text/html".into()),
       body: Some("foo".into()),
-      metadata: Some(metadata.clone()), // TODO
+      metadata: Some(metadata.clone()),
       ..default()
     };
 
