@@ -1,6 +1,7 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Flaw {
   EdictOutput,
   EdictRuneId,
@@ -12,25 +13,6 @@ pub enum Flaw {
   UnrecognizedEvenTag,
   UnrecognizedFlag,
   Varint,
-}
-
-impl Flaw {
-  pub const ALL: [Self; 10] = [
-    Self::EdictOutput,
-    Self::EdictRuneId,
-    Self::InvalidScript,
-    Self::Opcode,
-    Self::SupplyOverflow,
-    Self::TrailingIntegers,
-    Self::TruncatedField,
-    Self::UnrecognizedEvenTag,
-    Self::UnrecognizedFlag,
-    Self::Varint,
-  ];
-
-  pub fn flag(self) -> u32 {
-    1 << (self as u32)
-  }
 }
 
 impl Display for Flaw {
@@ -47,11 +29,5 @@ impl Display for Flaw {
       Self::UnrecognizedFlag => write!(f, "unrecognized field"),
       Self::Varint => write!(f, "invalid varint"),
     }
-  }
-}
-
-impl From<Flaw> for u32 {
-  fn from(cenotaph: Flaw) -> Self {
-    cenotaph.flag()
   }
 }

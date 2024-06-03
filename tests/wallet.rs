@@ -8,6 +8,7 @@ mod create;
 mod dump;
 mod inscribe;
 mod inscriptions;
+mod label;
 mod mint;
 mod outputs;
 mod receive;

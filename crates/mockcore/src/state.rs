@@ -8,23 +8,6 @@ use {
 };
 
 #[derive(Debug)]
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/state.rs
-pub(crate) struct State {
-  pub(crate) blocks: BTreeMap<BlockHash, Block>,
-  pub(crate) change_addresses: Vec<Address>,
-  pub(crate) descriptors: Vec<String>,
-  pub(crate) fail_lock_unspent: bool,
-  pub(crate) hashes: Vec<BlockHash>,
-  pub(crate) loaded_wallets: BTreeSet<String>,
-  pub(crate) locked: BTreeSet<OutPoint>,
-  pub(crate) mempool: Vec<Transaction>,
-  pub(crate) network: Network,
-  pub(crate) nonce: u32,
-  pub(crate) transactions: BTreeMap<Txid, Transaction>,
-  pub(crate) utxos: BTreeMap<OutPoint, Amount>,
-  pub(crate) version: usize,
-  pub(crate) wallets: BTreeSet<String>,
-========
 pub struct State {
   pub blocks: BTreeMap<BlockHash, Block>,
   pub descriptors: Vec<String>,
@@ -42,7 +25,6 @@ pub struct State {
   pub receive_addresses: Vec<Address>,
   pub change_addresses: Vec<Address>,
   pub wallets: BTreeSet<String>,
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/state.rs
 }
 
 impl State {
@@ -66,10 +48,7 @@ impl State {
       mempool: Vec::new(),
       network,
       nonce: 0,
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/state.rs
-========
       receive_addresses: Vec::new(),
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/state.rs
       transactions: BTreeMap::new(),
       txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
@@ -275,9 +254,11 @@ impl State {
       );
     }
 
-    self.mempool.push(tx.clone());
+    let txid = tx.txid();
 
-    tx.txid()
+    self.mempool.push(tx);
+
+    txid
   }
 
   pub(crate) fn mempool(&self) -> &[Transaction] {

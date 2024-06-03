@@ -166,9 +166,10 @@ fn etch(core: &mockcore::Handle, ord: &TestServer, rune: Rune) -> Etched {
         premine: "1000".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
+        turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: "inscription.jpeg".into(),
+        file: Some("inscription.jpeg".into()),
         ..default()
       }],
       ..default()
@@ -186,7 +187,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
       .ord(ord);
 
   for inscription in &batchfile.inscriptions {
-    builder = builder.write(&inscription.file, "inscription");
+    builder = builder.write(&inscription.file.clone().unwrap(), "inscription");
   }
 
   let mut spawn = builder.spawn();
@@ -199,10 +200,10 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   assert_regex_match!(
     buffer,
-    "Waiting for rune commitment [[:xdigit:]]{64} to mature…\n"
+    "Waiting for rune .* commitment [[:xdigit:]]{64} to mature…\n"
   );
 
-  core.mine_blocks(6);
+  core.mine_blocks(5);
 
   let output = spawn.run_and_deserialize_output::<Batch>();
 
@@ -225,6 +226,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     supply,
     symbol,
     terms,
+    turbo,
   } = batchfile.etching.unwrap();
 
   {
@@ -334,12 +336,16 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dd>{premine} {symbol}</dd>
   <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
+  <dt>premine percentage</dt>
+  <dd>.*</dd>
   <dt>burned</dt>
   <dd>0 {symbol}</dd>
   <dt>divisibility</dt>
   <dd>{divisibility}</dd>
   <dt>symbol</dt>
   <dd>{symbol}</dd>
+  <dt>turbo</dt>
+  <dd>{turbo}</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>
@@ -352,7 +358,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   let batch::RuneInfo {
     destination,
     location,
-    rune,
+    rune: _,
   } = output.rune.clone().unwrap();
 
   if premine.to_integer(divisibility).unwrap() > 0 {
@@ -365,27 +371,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     assert!(core.state().is_wallet_address(&destination));
 
     let location = location.unwrap();
-
-    ord.assert_response_regex(
-      "/runes/balances",
-      format!(
-        ".*<tr>
-    <td><a href=/rune/{rune}>{rune}</a></td>
-    <td>
-      <table>
-        <tr>
-          <td class=monospace>
-            <a href=/output/{location}>{location}</a>
-          </td>
-          <td class=monospace>
-            {premine}\u{A0}{symbol}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>.*"
-      ),
-    );
 
     assert_eq!(core.address(location), destination);
   } else {

@@ -215,7 +215,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             pointer: inscription.payload.pointer(),
-            reinscription: inscribed_offsets.get(&offset).is_some(),
+            reinscription: inscribed_offsets.contains_key(&offset),
             unbound: current_input_value == 0
               || curse == Some(Curse::UnrecognizedEvenField)
               || inscription.payload.unrecognized_even_field,

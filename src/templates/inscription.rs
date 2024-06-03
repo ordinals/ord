@@ -404,9 +404,9 @@ mod tests {
         <h1>Inscription 1</h1>
         .*
         <dl>
-          .*
           <dt>rune</dt>
           <dd><a href=/rune/A•A>A•A</a></dd>
+          .*
         </dl>
       "
       .unindent()

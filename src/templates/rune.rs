@@ -42,6 +42,7 @@ mod tests {
           },
           symbol: Some('%'),
           timestamp: 0,
+          turbo: true,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: true,
@@ -86,12 +87,16 @@ mod tests {
   <dd>100.123456889\u{A0}%</dd>
   <dt>premine</dt>
   <dd>0.123456789\u{A0}%</dd>
+  <dt>premine percentage</dt>
+  <dd>0.12%</dd>
   <dt>burned</dt>
   <dd>123456789.123456789\u{A0}%</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
   <dd>%</dd>
+  <dt>turbo</dt>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
@@ -120,6 +125,7 @@ mod tests {
           },
           symbol: Some('%'),
           timestamp: 0,
+          turbo: false,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -129,6 +135,40 @@ mod tests {
 <dl>.*
   <dt>mint</dt>
   <dd>no</dd>
+.*</dl>
+"
+    );
+  }
+
+  #[test]
+  fn display_no_turbo() {
+    assert_regex_match!(
+      RuneHtml {
+        entry: RuneEntry {
+          block: 0,
+          burned: 123456789123456789,
+          terms: None,
+          divisibility: 9,
+          etching: Txid::all_zeros(),
+          mints: 0,
+          number: 25,
+          premine: 0,
+          spaced_rune: SpacedRune {
+            rune: Rune(u128::MAX),
+            spacers: 1
+          },
+          symbol: Some('%'),
+          timestamp: 0,
+          turbo: false,
+        },
+        id: RuneId { block: 10, tx: 9 },
+        mintable: false,
+        parent: None,
+      },
+      "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+<dl>.*
+  <dt>turbo</dt>
+  <dd>false</dd>
 .*</dl>
 "
     );
@@ -158,6 +198,7 @@ mod tests {
           },
           symbol: Some('%'),
           timestamp: 0,
+          turbo: false,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,

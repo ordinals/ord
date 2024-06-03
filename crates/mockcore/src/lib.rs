@@ -138,12 +138,7 @@ pub struct TransactionTemplate<'a> {
   pub p2tr: bool,
 }
 
-<<<<<<<< HEAD:crates/test-bitcoincore-rpc/src/lib.rs
-#[derive(Serialize, Deserialize)]
-========
-#[derive(Serialize, Deserialize, Debug)]
->>>>>>>> origin/ordzaar-master-0-17-1:crates/mockcore/src/lib.rs
-pub struct JsonOutPoint {
+#[derive(Serialize, Deserialize, Debug)]pub struct JsonOutPoint {
   txid: Txid,
   vout: u32,
 }

@@ -57,7 +57,8 @@ can be run with the following network flags:
 | Signet  | `--signet` or `-s` |
 | Regtest | `--regtest` or `-r` |
 
-Regtest doesn't require downloading the blockchain or indexing ord.
+Regtest doesn't require downloading the blockchain since you create your own
+private blockchain, so indexing `ord` is almost instantaneous.
 
 Example
 -------
