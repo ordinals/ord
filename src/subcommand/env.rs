@@ -23,7 +23,7 @@ pub(crate) struct Env {
   pub(crate) decompress: bool,
   #[arg(
     long,
-    help = "Proxy `/content/INSCRIPTION_ID` and `/r/metadata/INSCRIPTION_ID` requests to `<PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+    help = "Proxy `/content/INSCRIPTION_ID` and other recursive endpoints to `<PROXY>` if the inscription is not present on current chain."
   )]
   pub(crate) proxy: Option<Url>,
 }
