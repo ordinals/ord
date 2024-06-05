@@ -134,4 +134,56 @@ for name in `ls $tempdir`; do
   fi
 done
 
+# Function to add $dest to the PATH
+add_to_path() {
+  local profile_file=$1
+  if ! grep -q "export PATH=\"$dest:\$PATH\"" "$profile_file"; then
+    echo "export PATH=\"$dest:\$PATH\"" >> "$profile_file"
+    echo "Added $dest to PATH in $profile_file"
+  else
+    echo "$dest is already in the PATH in $profile_file"
+  fi
+}
+
+# Determine the current shell
+current_shell=$(echo $SHELL)
+
+# Modify the appropriate profile file based on the shell
+case $current_shell in
+  */bash)
+    if [ -f "$HOME/.bash_profile" ]; then
+      add_to_path "$HOME/.bash_profile"
+    elif [ -f "$HOME/.bashrc" ]; then
+      add_to_path "$HOME/.bashrc"
+    else
+      add_to_path "$HOME/.profile"
+    fi
+    ;;
+  */zsh)
+    add_to_path "$HOME/.zshrc"
+    ;;
+  */ksh)
+    add_to_path "$HOME/.kshrc"
+    ;;
+  */csh|*/tcsh)
+    add_to_path "$HOME/.cshrc"
+    ;;
+  *)
+    echo "Unsupported shell: $current_shell"
+    ;;
+esac
+
+# Source the profile file to update the current session
+if [ -f "$HOME/.bash_profile" ]; then
+  source "$HOME/.bash_profile"
+elif [ -f "$HOME/.bashrc" ]; then
+  source "$HOME/.bashrc"
+elif [ -f "$HOME/.zshrc" ]; then
+  source "$HOME/.zshrc"
+elif [ -f "$HOME/.kshrc" ]; then
+  source "$HOME/.kshrc"
+elif [ -f "$HOME/.cshrc" ]; then
+  source "$HOME/.cshrc"
+fi
+
 rm -rf $tempdir
