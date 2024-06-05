@@ -128,9 +128,9 @@ pub struct Server {
   pub(crate) no_sync: bool,
   #[arg(
     long,
-    help = "Proxy `/content/INSCRIPTION_ID` requests to `<CONTENT_PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+    help = "Proxy `/content/INSCRIPTION_ID` and `/r/metadata/INSCRIPTION_ID` requests to `<PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
   )]
-  pub(crate) content_proxy: Option<Url>,
+  pub(crate) proxy: Option<Url>,
   #[arg(
     long,
     default_value = "5s",
@@ -170,7 +170,7 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
-        content_proxy: self.content_proxy.clone(),
+        proxy: self.proxy.clone(),
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
@@ -1010,7 +1010,7 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+        return if let Some(proxy) = server_config.proxy.as_ref() {
           Self::proxy(proxy, &format!("r/metadata/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
@@ -1035,7 +1035,7 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+        return if let Some(proxy) = server_config.proxy.as_ref() {
           Self::proxy(proxy, &format!("r/inscription/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
@@ -1443,7 +1443,7 @@ impl Server {
       }
 
       let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
-        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+        return if let Some(proxy) = server_config.proxy.as_ref() {
           Self::proxy(proxy, &format!("content/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
@@ -1810,7 +1810,7 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       let Some(parent) = index.get_inscription_entry(parent)? else {
-        return if let Some(proxy) = server_config.content_proxy.as_ref() {
+        return if let Some(proxy) = server_config.proxy.as_ref() {
           Self::proxy(proxy, &format!("r/children/{}/{}", parent, page))
         } else {
           Err(ServerError::NotFound(format!(
@@ -6608,7 +6608,7 @@ next
 
     let server_with_proxy = TestServer::builder()
       .chain(Chain::Regtest)
-      .server_option("--content-proxy", server.url.as_ref())
+      .server_option("--proxy", server.url.as_ref())
       .build();
 
     server_with_proxy.mine_blocks(1);
@@ -6650,7 +6650,7 @@ next
 
     let server_with_proxy = TestServer::builder()
       .chain(Chain::Regtest)
-      .server_option("--content-proxy", server.url.as_ref())
+      .server_option("--proxy", server.url.as_ref())
       .build();
 
     server_with_proxy.mine_blocks(1);
@@ -6726,7 +6726,7 @@ next
 
     let server_with_proxy = TestServer::builder()
       .chain(Chain::Regtest)
-      .server_option("--content-proxy", server.url.as_ref())
+      .server_option("--proxy", server.url.as_ref())
       .build();
 
     server_with_proxy.mine_blocks(1);
@@ -6787,7 +6787,7 @@ next
 
     let server_with_proxy = TestServer::builder()
       .chain(Chain::Regtest)
-      .server_option("--content-proxy", server.url.as_ref())
+      .server_option("--proxy", server.url.as_ref())
       .build();
 
     server_with_proxy.mine_blocks(1);
