@@ -1,3 +1,4 @@
+use bitcoin::consensus::encode::serialize_hex;
 use {
   self::{
     entry::{
@@ -75,6 +76,7 @@ define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MyInscription {
+  pub sequence_number: u32,
   pub inscription_number: i32,
   pub id: InscriptionId,
   pub sat_point: SatPoint,
@@ -92,6 +94,7 @@ pub struct MyInscription {
   pub parent: Option<Vec<InscriptionId>>,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub pointer: Option<u64>,
+  pub is_p2pk: bool,
   pub address: String,
 }
 
@@ -673,7 +676,9 @@ impl Index {
     }
   }
 
-  pub(crate) fn export(&self, filename: &String, _include_addresses: bool) -> Result {
+  pub(crate) fn export(&self, filename: &String, _include_address: bool) -> Result {
+    let start_time = Instant::now();
+
     let mut writer = BufWriter::new(fs::File::create(filename)?);
 
     let rtx = self.database.begin_read()?;
@@ -692,10 +697,19 @@ impl Index {
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
+    let mut ok_count: u64 = 0;
+    let mut unbound_count: u64 = 0;
+    let mut cursed_count: u64 = 0;
+    let mut p2pk_count: u64 = 0;
+    let mut total_num: u64 = 0;
+
+    let report_interval = 1024 * 1024;
+
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
       .iter()?
     {
+      total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
       let entry = InscriptionEntry::load(entry.1.value());
@@ -705,6 +719,16 @@ impl Index {
           .unwrap()
           .value(),
       );
+
+      if entry.inscription_number < 0 {
+        cursed_count += 1;
+      }
+
+      if satpoint.outpoint == unbound_outpoint() {
+        unbound_count += 1;
+      }
+
+      let mut is_p2pk = false;
 
       let address = if satpoint.outpoint == unbound_outpoint() {
         "unbound".to_string()
@@ -716,12 +740,19 @@ impl Index {
           .into_iter()
           .nth(satpoint.outpoint.vout.try_into().unwrap())
           .unwrap();
-        self
-          .settings
-          .chain()
-          .address_from_script(&output.script_pubkey)
-          .map(|address| address.to_string())
-          .unwrap_or_else(|e| e.to_string())
+
+        if (&output).script_pubkey.is_p2pk() {
+          is_p2pk = true;
+          p2pk_count += 1;
+          (&output).script_pubkey.to_hex_string()
+        } else {
+          self
+            .settings
+            .chain()
+            .address_from_script(&output.script_pubkey)
+            .map(|address| address.to_string())
+            .unwrap_or_else(|_e| "non-standard".to_string())
+        }
       };
 
       // get all parents
@@ -743,6 +774,7 @@ impl Index {
       // get content
       let inscription = self.get_inscription_by_id(entry.id)?.unwrap();
       let my_inscription = MyInscription {
+        sequence_number,
         inscription_number: entry.inscription_number,
         id: entry.id,
         sat_point: satpoint,
@@ -753,18 +785,42 @@ impl Index {
         metaprotocol: inscription.metaprotocol_string(),
         parent: parents,
         pointer: inscription.pointer(),
+        is_p2pk,
         address,
       };
 
       let line =
         serde_json::to_string(&my_inscription).expect("Unable to serialize my_inscription");
       writeln!(writer, "{}", line).expect("unable to write data to file");
+      ok_count += 1;
+
+      if ok_count % report_interval == 0 {
+        println!(
+          "doing. {} inscriptions({} cursed, {} p2pk) exported in {:?}, unbound count: {}",
+          ok_count,
+          cursed_count,
+          p2pk_count,
+          start_time.elapsed(),
+          unbound_count
+        );
+      }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
     }
     writer.flush()?;
+
+    println!(
+      "job done. {} inscriptions({} cursed, {} p2pk) exported in {:?}, unbound count: {}. total num: {}",
+      ok_count,
+      cursed_count,
+      p2pk_count,
+      start_time.elapsed(),
+      unbound_count,
+      total_num,
+    );
+
     Ok(())
   }
 
