@@ -23,9 +23,9 @@ pub(crate) struct Env {
   pub(crate) decompress: bool,
   #[arg(
     long,
-    help = "Proxy `/content/INSCRIPTION_ID` requests to `<CONTENT_PROXY>/content/INSCRIPTION_ID` if the inscription is not present on current chain."
+    help = "Proxy `/content/INSCRIPTION_ID` and other recursive endpoints to `<PROXY>` if the inscription is not present on current chain."
   )]
-  pub(crate) content_proxy: Option<Url>,
+  pub(crate) proxy: Option<Url>,
 }
 
 #[derive(Serialize)]
@@ -137,7 +137,7 @@ rpcport={bitcoind_port}
     let ord = std::env::current_exe()?;
 
     let decompress = self.decompress;
-    let content_proxy = self.content_proxy.map(|url| url.to_string());
+    let proxy = self.proxy.map(|url| url.to_string());
 
     let mut command = Command::new(&ord);
     let ord_server = command
@@ -152,8 +152,8 @@ rpcport={bitcoind_port}
       ord_server.arg("--decompress");
     }
 
-    if let Some(content_proxy) = content_proxy {
-      ord_server.arg("--content-proxy").arg(content_proxy);
+    if let Some(proxy) = proxy {
+      ord_server.arg("--proxy").arg(proxy);
     }
 
     let _ord = KillOnDrop(ord_server.spawn()?);
