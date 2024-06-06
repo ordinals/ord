@@ -333,14 +333,14 @@ your dependencies before making the final inscription on mainnet.</p>
 <h3 id="mainnet-dependencies"><a class="header" href="#mainnet-dependencies">Mainnet Dependencies</a></h3>
 <p>To avoid having to change dependency inscription IDs to mainnet inscription IDs,
 you may utilize a content proxy when testing. <code>ord server</code> accepts a
-<code>--content-proxy</code> option, which takes the URL of a another <code>ord server</code>
+<code>--proxy</code> option, which takes the URL of a another <code>ord server</code>
 instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content
 proxy is set and the inscription is not found, <code>ord server</code> will forward the
 request to the content proxy. This allows you to run a test <code>ord server</code>
 instance with a mainnet content proxy. You can then use mainnet inscription IDs
 in your test inscription, which will then return the content of the mainnet
 inscriptions.</p>
-<pre><code>ord --regtest server --content-proxy https://ordinals.com
+<pre><code>ord --regtest server --proxy https://ordinals.com
 </code></pre>
 
                     </main>

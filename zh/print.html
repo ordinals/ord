@@ -2218,8 +2218,8 @@ $ord outputs
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
 </code></pre>
 <h3 id="主网依赖"><a class="header" href="#主网依赖">主网依赖</a></h3>
-<p>为了避免在测试时必须将依赖铭文ID更改为主网铭文ID，你可以在测试时使用内容代理。<code>ord server</code>接受一个<code>--content-proxy</code>选项，它需要另一个<code>ord server</code>实例的URL。当设置了内容代理并且铭文未找到时，向<code>/content/&lt;INSCRIPTION_ID&gt;</code>发出请求，<code>ord server</code>将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的测试<code>ord server</code>实例。然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文的内容。</p>
-<pre><code>ord --regtest server --content-proxy https://ordinals.com
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<pre><code>ord --regtest server --proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinals赏金计划提示"><a class="header" href="#ordinals赏金计划提示">Ordinals赏金计划提示</a></h1>
 <ul>
