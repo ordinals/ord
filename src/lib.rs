@@ -115,7 +115,7 @@ pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
-mod settings;
+pub mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
