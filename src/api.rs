@@ -6,8 +6,7 @@ use {
 pub use crate::{
   subcommand::decode::RawOutput as Decode,
   templates::{
-    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
-    TransactionHtml as Transaction,
+    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status
   },
 };
 
@@ -19,6 +18,7 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
+  pub txdata: Vec<Transaction>
 }
 
 impl Block {
@@ -36,6 +36,7 @@ impl Block {
       best_height: best_height.0,
       inscriptions,
       runes,
+      txdata: block.txdata,
     }
   }
 }
