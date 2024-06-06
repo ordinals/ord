@@ -155,7 +155,7 @@ fn send_inscription_by_sat() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace>{address}</dd>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
 }
