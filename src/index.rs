@@ -107,7 +107,7 @@ impl From<Statistic> for u64 {
 }
 
 #[derive(Serialize)]
-pub(crate) struct Info {
+pub struct Info {
   blocks_indexed: u32,
   branch_pages: u64,
   fragmented_bytes: u64,
@@ -121,7 +121,7 @@ pub(crate) struct Info {
   stored_bytes: u64,
   tables: BTreeMap<String, TableInfo>,
   total_bytes: u64,
-  pub(crate) transactions: Vec<TransactionInfo>,
+  pub transactions: Vec<TransactionInfo>,
   tree_height: u32,
   utxos_indexed: u64,
 }
@@ -154,9 +154,9 @@ impl From<TableStats> for TableInfo {
 }
 
 #[derive(Serialize)]
-pub(crate) struct TransactionInfo {
-  pub(crate) starting_block_count: u32,
-  pub(crate) starting_timestamp: u128,
+pub struct TransactionInfo {
+  pub starting_block_count: u32,
+  pub starting_timestamp: u128,
 }
 
 pub(crate) trait BitcoinCoreRpcResultExt<T> {
@@ -457,7 +457,7 @@ impl Index {
     self.durability = durability;
   }
 
-  pub(crate) fn contains_output(&self, output: &OutPoint) -> Result<bool> {
+  pub fn contains_output(&self, output: &OutPoint) -> Result<bool> {
     Ok(
       self
         .database
@@ -468,19 +468,19 @@ impl Index {
     )
   }
 
-  pub(crate) fn has_address_index(&self) -> bool {
+  pub fn has_address_index(&self) -> bool {
     self.index_addresses
   }
 
-  pub(crate) fn has_rune_index(&self) -> bool {
+  pub fn has_rune_index(&self) -> bool {
     self.index_runes
   }
 
-  pub(crate) fn has_sat_index(&self) -> bool {
+  pub fn has_sat_index(&self) -> bool {
     self.index_sats
   }
 
-  pub(crate) fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -541,7 +541,7 @@ impl Index {
     })
   }
 
-  pub(crate) fn info(&self) -> Result<Info> {
+  pub fn info(&self) -> Result<Info> {
     let stats = self.database.begin_write()?.stats()?;
 
     let rtx = self.database.begin_read()?;
@@ -669,7 +669,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
+  pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
     let mut writer = BufWriter::new(fs::File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
@@ -803,19 +803,19 @@ impl Index {
       .inscription_number
   }
 
-  pub(crate) fn block_count(&self) -> Result<u32> {
+  pub fn block_count(&self) -> Result<u32> {
     self.begin_read()?.block_count()
   }
 
-  pub(crate) fn block_height(&self) -> Result<Option<Height>> {
+  pub fn block_height(&self) -> Result<Option<Height>> {
     self.begin_read()?.block_height()
   }
 
-  pub(crate) fn block_hash(&self, height: Option<u32>) -> Result<Option<BlockHash>> {
+  pub fn block_hash(&self, height: Option<u32>) -> Result<Option<BlockHash>> {
     self.begin_read()?.block_hash(height)
   }
 
-  pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u32, BlockHash)>> {
+  pub fn blocks(&self, take: usize) -> Result<Vec<(u32, BlockHash)>> {
     let rtx = self.begin_read()?;
 
     let block_count = rtx.block_count()?;
@@ -836,7 +836,7 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_sat_satpoints(&self) -> Result<Vec<(Sat, SatPoint)>> {
+  pub fn rare_sat_satpoints(&self) -> Result<Vec<(Sat, SatPoint)>> {
     let rtx = self.database.begin_read()?;
 
     let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
@@ -851,7 +851,7 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
+  pub fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
     Ok(
       self
         .database
@@ -862,7 +862,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
+  pub fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
     Ok(
       self
         .database
@@ -873,7 +873,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_rune_by_number(&self, number: usize) -> Result<Option<Rune>> {
+  pub fn get_rune_by_number(&self, number: usize) -> Result<Option<Rune>> {
     match self
       .database
       .begin_read()?
@@ -890,10 +890,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn rune(
-    &self,
-    rune: Rune,
-  ) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
+  pub fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
     let rtx = self.database.begin_read()?;
 
     let Some(id) = rtx
@@ -926,7 +923,7 @@ impl Index {
     Ok(Some((RuneId::load(id), entry, parent)))
   }
 
-  pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
+  pub fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
     let mut entries = Vec::new();
 
     for result in self
@@ -942,7 +939,7 @@ impl Index {
     Ok(entries)
   }
 
-  pub(crate) fn runes_paginated(
+  pub fn runes_paginated(
     &self,
     page_size: usize,
     page_index: usize,
@@ -967,13 +964,13 @@ impl Index {
     Ok((entries, more))
   }
 
-  pub(crate) fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
+  pub fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
     varint::encode_to_vec(id.block.into(), buffer);
     varint::encode_to_vec(id.tx.into(), buffer);
     varint::encode_to_vec(balance, buffer);
   }
 
-  pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Result<((RuneId, u128), usize)> {
+  pub fn decode_rune_balance(buffer: &[u8]) -> Result<((RuneId, u128), usize)> {
     let mut len = 0;
     let (block, block_len) = varint::decode(&buffer[len..])?;
     len += block_len;
@@ -988,7 +985,7 @@ impl Index {
     Ok(((id, balance), len))
   }
 
-  pub(crate) fn get_rune_balances_for_output(
+  pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
   ) -> Result<BTreeMap<SpacedRune, Pile>> {
@@ -1025,9 +1022,7 @@ impl Index {
     Ok(balances)
   }
 
-  pub(crate) fn get_rune_balance_map(
-    &self,
-  ) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
+  pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
     let outpoint_balances = self.get_rune_balances()?;
 
     let rtx = self.database.begin_read()?;
@@ -1082,7 +1077,7 @@ impl Index {
     Ok(rune_balances)
   }
 
-  pub(crate) fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
+  pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
     let mut result = Vec::new();
 
     for entry in self
@@ -1109,19 +1104,19 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
+  pub fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
     self.client.get_block_header(&hash).into_option()
   }
 
-  pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
+  pub fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
     self.client.get_block_header_info(&hash).into_option()
   }
 
-  pub(crate) fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
+  pub fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
     self.client.get_block_stats(height).into_option()
   }
 
-  pub(crate) fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
+  pub fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
     Ok(
       self
         .client
@@ -1132,11 +1127,11 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
+  pub fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_collections_paginated(
+  pub fn get_collections_paginated(
     &self,
     page_size: usize,
     page_index: usize,
@@ -1234,7 +1229,7 @@ impl Index {
       .collect()
   }
 
-  pub(crate) fn get_children_by_sequence_number_paginated(
+  pub fn get_children_by_sequence_number_paginated(
     &self,
     sequence_number: u32,
     page_size: usize,
@@ -1269,7 +1264,7 @@ impl Index {
     Ok((children, more))
   }
 
-  pub(crate) fn get_parents_by_sequence_number_paginated(
+  pub fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
     page_index: usize,
@@ -1300,7 +1295,7 @@ impl Index {
     Ok((parents, more_parents))
   }
 
-  pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
+  pub fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
     let rtx = self.database.begin_read()?;
 
     let transaction_id_to_rune = rtx.open_table(TRANSACTION_ID_TO_RUNE)?;
@@ -1317,7 +1312,7 @@ impl Index {
     Ok(Some(RuneEntry::load(entry.value()).spaced_rune))
   }
 
-  pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
+  pub fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
@@ -1341,7 +1336,7 @@ impl Index {
     Ok(ids)
   }
 
-  pub(crate) fn get_inscription_ids_by_sat_paginated(
+  pub fn get_inscription_ids_by_sat_paginated(
     &self,
     sat: Sat,
     page_size: u64,
@@ -1378,7 +1373,7 @@ impl Index {
     Ok((ids, more))
   }
 
-  pub(crate) fn get_inscription_id_by_sat_indexed(
+  pub fn get_inscription_id_by_sat_indexed(
     &self,
     sat: Sat,
     inscription_index: isize,
@@ -1435,7 +1430,7 @@ impl Index {
     Ok(inscription_id)
   }
 
-  pub(crate) fn get_inscription_satpoint_by_id(
+  pub fn get_inscription_satpoint_by_id(
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<SatPoint>> {
@@ -1457,7 +1452,7 @@ impl Index {
     Ok(satpoint)
   }
 
-  pub(crate) fn get_inscription_by_id(
+  pub fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
@@ -1473,7 +1468,7 @@ impl Index {
     }))
   }
 
-  pub(crate) fn inscription_count(&self, txid: Txid) -> Result<u32> {
+  pub fn inscription_count(&self, txid: Txid) -> Result<u32> {
     let start = InscriptionId { index: 0, txid };
 
     let end = InscriptionId {
@@ -1493,7 +1488,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
+  pub fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       self
         .database
@@ -1504,7 +1499,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscriptions_on_output_with_satpoints(
+  pub fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
@@ -1520,10 +1515,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscriptions_for_output(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Vec<InscriptionId>> {
+  pub fn get_inscriptions_for_output(&self, outpoint: OutPoint) -> Result<Vec<InscriptionId>> {
     Ok(
       self
         .get_inscriptions_on_output_with_satpoints(outpoint)?
@@ -1533,7 +1525,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
+  pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
@@ -1552,7 +1544,7 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
-  pub(crate) fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
+  pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;
 
@@ -1580,7 +1572,7 @@ impl Index {
     Ok(None)
   }
 
-  pub(crate) fn find_range(
+  pub fn find_range(
     &self,
     range_start: Sat,
     range_end: Sat,
@@ -1633,7 +1625,7 @@ impl Index {
     Ok(Some(result))
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
+  pub fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
     Ok(
       self
         .database
@@ -1650,7 +1642,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
+  pub fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
@@ -1670,7 +1662,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn is_output_in_active_chain(&self, outpoint: OutPoint) -> Result<bool> {
+  pub fn is_output_in_active_chain(&self, outpoint: OutPoint) -> Result<bool> {
     if outpoint == OutPoint::null() {
       return Ok(true);
     }
@@ -1698,7 +1690,7 @@ impl Index {
     Ok(true)
   }
 
-  pub(crate) fn block_time(&self, height: Height) -> Result<Blocktime> {
+  pub fn block_time(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
     let rtx = self.database.begin_read()?;
@@ -1732,7 +1724,7 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_inscriptions_paginated(
+  pub fn get_inscriptions_paginated(
     &self,
     page_size: u32,
     page_index: u32,
@@ -1768,7 +1760,7 @@ impl Index {
     Ok((inscriptions, more))
   }
 
-  pub(crate) fn get_inscriptions_in_block(&self, block_height: u32) -> Result<Vec<InscriptionId>> {
+  pub fn get_inscriptions_in_block(&self, block_height: u32) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let height_to_last_sequence_number = rtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
@@ -1798,7 +1790,7 @@ impl Index {
       .collect::<Result<Vec<InscriptionId>>>()
   }
 
-  pub(crate) fn get_runes_in_block(&self, block_height: u64) -> Result<Vec<SpacedRune>> {
+  pub fn get_runes_in_block(&self, block_height: u64) -> Result<Vec<SpacedRune>> {
     let rtx = self.database.begin_read()?;
 
     let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -1821,7 +1813,7 @@ impl Index {
     Ok(runes)
   }
 
-  pub(crate) fn get_highest_paying_inscriptions_in_block(
+  pub fn get_highest_paying_inscriptions_in_block(
     &self,
     block_height: u32,
     n: usize,
@@ -1852,7 +1844,7 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_home_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+  pub fn get_home_inscriptions(&self) -> Result<Vec<InscriptionId>> {
     Ok(
       self
         .database
@@ -1865,7 +1857,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u32, InscriptionId)>> {
+  pub fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u32, InscriptionId)>> {
     Ok(
       self
         .database
@@ -2082,7 +2074,7 @@ impl Index {
     )))
   }
 
-  pub(crate) fn get_inscription_entry(
+  pub fn get_inscription_entry(
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<InscriptionEntry>> {
@@ -2230,7 +2222,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
+  pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
     self
       .database
       .begin_read()?
@@ -2244,7 +2236,7 @@ impl Index {
       .collect()
   }
 
-  pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
+  pub fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
     let indexed;
