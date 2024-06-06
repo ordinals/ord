@@ -20,6 +20,7 @@ fn default() {
   "first_inscription_height": 767430,
   "height_limit": null,
   "hidden": \[\],
+  "http_port": null,
   "index": ".*index\.redb",
   "index_addresses": false,
   "index_cache_size": \d+,
