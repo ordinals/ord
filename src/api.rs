@@ -1,12 +1,14 @@
 use {
   super::*,
   serde_hex::{SerHex, Strict},
+  bitcoin::blockdata::transaction::Transaction as Txdata
 };
 
 pub use crate::{
   subcommand::decode::RawOutput as Decode,
   templates::{
-    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status
+    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
+    TransactionHtml as Transaction,
   },
 };
 
@@ -18,7 +20,7 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
-  pub txdata: Vec<Transaction>
+  pub txdata: Vec<Txdata>,
 }
 
 impl Block {
