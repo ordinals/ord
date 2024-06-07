@@ -2236,7 +2236,20 @@ impl Index {
       .collect()
   }
 
-  pub fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
+  pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
+    let outpoint_to_txout = self.database.begin_read()?.open_table(OUTPOINT_TO_TXOUT)?;
+
+    let mut acc = 0;
+    for output in outputs {
+      if let Some(value) = outpoint_to_txout.get(&output.store())? {
+        acc += TxOut::load(value.value()).value;
+      };
+    }
+
+    Ok(acc)
+  }
+
+  pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
     let indexed;

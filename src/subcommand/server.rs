@@ -862,12 +862,18 @@ impl Server {
 
       outputs.sort();
 
+      let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
+
       Ok(if accept_json {
         Json(outputs).into_response()
       } else {
-        AddressHtml { address, outputs }
-          .page(server_config)
-          .into_response()
+        AddressHtml {
+          address,
+          outputs,
+          sat_balance,
+        }
+        .page(server_config)
+        .into_response()
       })
     })
   }
