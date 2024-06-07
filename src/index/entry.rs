@@ -289,16 +289,16 @@ impl Entry for RuneId {
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub(crate) struct InscriptionEntry {
-  pub(crate) charms: u16,
-  pub(crate) fee: u64,
-  pub(crate) height: u32,
-  pub(crate) id: InscriptionId,
-  pub(crate) inscription_number: i32,
-  pub(crate) parents: Vec<u32>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) sequence_number: u32,
-  pub(crate) timestamp: u32,
+pub struct InscriptionEntry {
+  pub charms: u16,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub inscription_number: i32,
+  pub parents: Vec<u32>,
+  pub sat: Option<Sat>,
+  pub sequence_number: u32,
+  pub timestamp: u32,
 }
 
 pub(crate) type InscriptionEntryValue = (
