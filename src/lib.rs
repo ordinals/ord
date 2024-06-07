@@ -220,7 +220,7 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
-pub fn shutdown(){
+pub fn shutdown() {
   SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
 }
 
