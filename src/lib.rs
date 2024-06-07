@@ -220,10 +220,14 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
+pub fn shutdown(){
+  SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+}
+
 fn gracefully_shutdown_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
     // We explicitly set this to true to notify the thread to not take on new work
-    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    shutdown();
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
