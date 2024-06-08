@@ -1,7 +1,6 @@
 use {
   super::*,
   serde_hex::{SerHex, Strict},
-  bitcoin::blockdata::transaction::Transaction as Txdata
 };
 
 pub use crate::{
@@ -20,7 +19,7 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
-  pub txdata: Vec<Txdata>,
+  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
 }
 
 impl Block {
@@ -38,7 +37,7 @@ impl Block {
       best_height: best_height.0,
       inscriptions,
       runes,
-      txdata: block.txdata,
+      transactions: block.txdata,
     }
   }
 }
