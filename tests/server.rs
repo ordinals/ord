@@ -35,6 +35,35 @@ fn run() {
 }
 
 #[test]
+fn address_page_shows_outputs_and_sat_balance() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_args(&core, &["--index-addresses"]);
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(1);
+
+  let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
+
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 13.3 {address} 2btc"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/address/{address}"),
+    format!(
+      ".*<h1>Address {address}</h1>.*<dd>200000000</dd>.*<a class=monospace href=/output/{}.*",
+      OutPoint {
+        txid: send.txid,
+        vout: 0
+      }
+    ),
+  );
+}
+
+#[test]
 fn inscription_page() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn(&core);
@@ -60,7 +89,7 @@ fn inscription_page() {
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
-  <dd class=monospace>bc1.*</dd>
+  <dd class=monospace><a href=/address/bc1.*>bc1.*</a></dd>
   <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
@@ -190,7 +219,7 @@ fn inscription_page_after_send() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace><a href=/address/bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</a></dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
     ),
   )
 }
@@ -313,6 +342,7 @@ fn recursive_inscription_endpoint() {
       charms: vec![Charm::Coin, Charm::Uncommon],
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
+      delegate: None,
       fee: 138,
       height: 2,
       id: inscription.id,
