@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Copy, Clone)]
-pub(crate) enum Blocktime {
+pub enum Blocktime {
   Confirmed(DateTime<Utc>),
   Expected(DateTime<Utc>),
 }
