@@ -198,6 +198,7 @@ fn sending_rune_does_not_send_inscription() {
        --chain regtest
        --index-runes
        wallet send
+       --postage 11111sat
        --fee-rate 0
        bcrt1pyrmadgg78e38ewfv0an8c6eppk2fttv5vnuvz04yza60qau5va0saknu8k
        1000:{rune}

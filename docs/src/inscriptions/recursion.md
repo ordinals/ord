@@ -40,8 +40,12 @@ The recursive endpoints are:
 - `/r/blocktime`: UNIX time stamp of latest block.
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
+- `/r/children/<INSCRIPTION_ID>/inscriptions`: details of the first 100 child inscriptions.
+- `/r/children/<INSCRIPTION_ID>/inscriptions/<PAGE>`: details of the set of 100 child inscriptions on `<PAGE>`.
 - `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
+- `/r/parents/<INSCRIPTION_ID>`: the first 100 parent inscription ids.
+- `/r/parents/<INSCRIPTION_ID>/<PAGE>`: the set of 100 parent inscription ids on `<PAGE>`.
 - `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
 - `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
 - `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example.
@@ -76,6 +80,9 @@ Examples
 
 - `/r/blockinfo/0`:
 
+Note: `feerate_percentiles` are feerates at the 10th, 25th, 50th, 75th, and 90th
+percentile in sats/vB.
+
 ```json
 {
   "average_fee": 0,
@@ -85,6 +92,7 @@ Examples
   "confirmations": 0,
   "difficulty": 0.0,
   "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "feerate_percentiles": [0, 0, 0, 0, 0],
   "height": 0,
   "max_fee": 0,
   "max_fee_rate": 0,
@@ -130,6 +138,44 @@ Examples
 }
 ```
 
+- `/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/inscriptions/49`:
+
+```json
+{
+  "children": [
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
+      "number": -223695,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683785,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188588",
+      "timestamp": 1698326262
+    },
+      ...
+    {
+      "charms": [
+        "cursed"
+      ],
+      "fee": 44,
+      "height": 813929,
+      "id": "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936",
+      "number": -223731,
+      "output": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0",
+      "sat": 1897135510683821,
+      "satpoint": "dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188624",
+      "timestamp": 1698326262
+    }
+  ],
+  "more": false,
+  "page": 49
+}
+```
+
 - `/r/inscription/3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0`
 
 ```json
@@ -137,6 +183,7 @@ Examples
   "charms": [],
   "content_type": "image/png",
   "content_length": 144037,
+  "delegate": null,
   "fee": 36352,
   "height": 209,
   "id": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0",
@@ -172,21 +219,5 @@ Examples
 ```json
 {
    "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
-}
-```
-
-- `/r/children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49`:
-
-```json
-{
-   "ids":[
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4901",
-      ...
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4935",
-      "7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936"
-   ],
-   "more":false,
-   "page":49
 }
 ```

@@ -27,7 +27,7 @@ A transaction output may hold balances of any number of runes.
 
 Runes are identified by IDs, which consist of the block in which a rune was
 etched and the index of the etching transaction within that block, represented
-in text as `BLOCK:TX`. For example, the ID of the rune minted in the 20th
+in text as `BLOCK:TX`. For example, the ID of the rune etched in the 20th
 transaction of the 500th block is `500:20`.
 
 Etching
@@ -38,8 +38,8 @@ properties. Once set, these properties are immutable, even to its etcher.
 
 ### Name
 
-Names consist of the letters A through Z and are between one and twenty-eight
-characters long. For example `UNCOMMONGOODS` is a rune name.
+Names consist of the letters A through Z and are between one and twenty-six
+letters long. For example `UNCOMMONGOODS` is a rune name.
 
 Names may contain spacers, represented as bullets, to aid readability.
 `UNCOMMONGOODS` might be etched as `UNCOMMON•GOODS`.
@@ -47,6 +47,9 @@ Names may contain spacers, represented as bullets, to aid readability.
 The uniqueness of a name does not depend on spacers. Thus, a rune may not be
 etched with the same sequence of letters as an existing rune, even if it has
 different spacers.
+
+Spacers can only be placed between two letters. Finally, spacers do not
+count towards the letter count.
 
 ### Divisibility
 

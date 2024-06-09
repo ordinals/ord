@@ -47,6 +47,15 @@ impl From<Statistic> for u64 {
   }
 }
 
+#[derive(Debug, PartialEq)]
+pub(crate) enum Maturity {
+  BelowMinimumHeight(u64),
+  CommitNotFound,
+  CommitSpent(Txid),
+  ConfirmationsPending(u32),
+  Mature,
+}
+
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
@@ -217,10 +226,10 @@ impl Wallet {
     Ok(runic_outputs)
   }
 
-  pub(crate) fn get_runes_balances_for_output(
+  pub(crate) fn get_runes_balances_in_output(
     &self,
     output: &OutPoint,
-  ) -> Result<Vec<(SpacedRune, Pile)>> {
+  ) -> Result<BTreeMap<SpacedRune, Pile>> {
     Ok(
       self
         .output_info
@@ -228,22 +237,6 @@ impl Wallet {
         .ok_or(anyhow!("output not found in wallet"))?
         .runes
         .clone(),
-    )
-  }
-
-  pub(crate) fn get_rune_balance_in_output(&self, output: &OutPoint, rune: Rune) -> Result<u128> {
-    Ok(
-      self
-        .get_runes_balances_for_output(output)?
-        .iter()
-        .map(|(spaced_rune, pile)| {
-          if spaced_rune.rune == rune {
-            pile.amount
-          } else {
-            0
-          }
-        })
-        .sum(),
     )
   }
 
@@ -296,37 +289,43 @@ impl Wallet {
     self.settings.integration_test()
   }
 
-  pub(crate) fn is_mature(&self, rune: Rune, commit: &Transaction) -> Result<bool> {
-    let transaction = self
-      .bitcoin_client()
-      .get_transaction(&commit.txid(), Some(true))
-      .into_option()?;
+  fn is_above_minimum_at_height(&self, rune: Rune) -> Result<bool> {
+    Ok(
+      rune
+        >= Rune::minimum_at_height(
+          self.chain().network(),
+          Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
+        ),
+    )
+  }
 
-    if let Some(transaction) = transaction {
-      if u32::try_from(transaction.info.confirmations).unwrap() + 1
-        >= Runestone::COMMIT_CONFIRMATIONS.into()
-        && rune
-          >= Rune::minimum_at_height(
-            self.chain().network(),
-            Height(u32::try_from(self.bitcoin_client().get_block_count()? + 1).unwrap()),
-          )
+  pub(crate) fn check_maturity(&self, rune: Rune, commit: &Transaction) -> Result<Maturity> {
+    Ok(
+      if let Some(commit_tx) = self
+        .bitcoin_client()
+        .get_transaction(&commit.txid(), Some(true))
+        .into_option()?
       {
-        let tx_out = self
+        let current_confirmations = u32::try_from(commit_tx.info.confirmations)?;
+        if self
           .bitcoin_client()
-          .get_tx_out(&commit.txid(), 0, Some(true))?;
-
-        if let Some(tx_out) = tx_out {
-          if tx_out.confirmations + 1 >= Runestone::COMMIT_CONFIRMATIONS.into() {
-            return Ok(true);
-          }
+          .get_tx_out(&commit.txid(), 0, Some(true))?
+          .is_none()
+        {
+          Maturity::CommitSpent(commit_tx.info.txid)
+        } else if !self.is_above_minimum_at_height(rune)? {
+          Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
+        } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS.into() {
+          Maturity::ConfirmationsPending(
+            u32::from(Runestone::COMMIT_CONFIRMATIONS) - current_confirmations - 1,
+          )
         } else {
-          self.clear_etching(rune)?;
-          bail!("rune commitment spent, can't send reveal tx");
+          Maturity::Mature
         }
-      }
-    }
-
-    Ok(false)
+      } else {
+        Maturity::CommitNotFound
+      },
+    )
   }
 
   pub(crate) fn wait_for_maturation(&self, rune: Rune) -> Result<batch::Output> {
@@ -340,14 +339,37 @@ impl Wallet {
       entry.commit.txid()
     );
 
+    let mut pending_confirmations: u32 = Runestone::COMMIT_CONFIRMATIONS.into();
+
+    let progress = ProgressBar::new(pending_confirmations.into()).with_style(
+      ProgressStyle::default_bar()
+        .template("Maturing in...[{eta}] {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len}")
+        .unwrap()
+        .progress_chars("█▓▒░ "),
+    );
+
     loop {
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         eprintln!("Suspending batch. Run `ord wallet resume` to continue.");
         return Ok(entry.output);
       }
 
-      if self.is_mature(rune, &entry.commit)? {
-        break;
+      match self.check_maturity(rune, &entry.commit)? {
+        Maturity::Mature => {
+          progress.finish_with_message("Rune matured, submitting...");
+          break;
+        }
+        Maturity::ConfirmationsPending(remaining) => {
+          if remaining < pending_confirmations {
+            pending_confirmations = remaining;
+            progress.inc(1);
+          }
+        }
+        Maturity::CommitSpent(txid) => {
+          self.clear_etching(rune)?;
+          bail!("rune commitment {} spent, can't send reveal tx", txid);
+        }
+        _ => {}
       }
 
       if !self.integration_test() {

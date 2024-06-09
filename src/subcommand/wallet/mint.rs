@@ -42,7 +42,7 @@ impl Mint {
     let postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
     let amount = rune_entry
-      .mintable(block_height)
+      .mintable(block_height + 1)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
     let chain = wallet.chain();
@@ -53,7 +53,7 @@ impl Mint {
     };
 
     ensure!(
-      destination.script_pubkey().dust_value() < postage,
+      destination.script_pubkey().dust_value() <= postage,
       "postage below dust limit of {}sat",
       destination.script_pubkey().dust_value().to_sat()
     );

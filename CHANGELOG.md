@@ -1,6 +1,46 @@
 Changelog
 =========
 
+[0.18.5](https://github.com/ordinals/ord/releases/tag/0.18.5) - 2023-05-09
+--------------------------------------------------------------------------
+
+### Added
+- Allow specifying different output formats ([#3424](https://github.com/ordinals/ord/pull/3424) by [bingryan](https://github.com/bingryan))
+- Allow higher rpcworkqueue limit conf ([#3615](https://github.com/ordinals/ord/pull/3615) by [JeremyRubin](https://github.com/JeremyRubin))
+- Show progress bar for etching ([#3673](https://github.com/ordinals/ord/pull/3673) by [twosatsmaxi](https://github.com/twosatsmaxi))
+
+### Fixed
+- Update sat-hunting.md ([#3724](https://github.com/ordinals/ord/pull/3724) by [cryptoni9n](https://github.com/cryptoni9n))
+- Update runes.md docs ([#3681](https://github.com/ordinals/ord/pull/3681) by [hantuzun](https://github.com/hantuzun))
+- Patch some omissions in the Chinese translation ([#3694](https://github.com/ordinals/ord/pull/3694) by [shadowv0vshadow](https://github.com/shadowv0vshadow))
+- Bump rustfmt version 2018 to 2021 ([#3721](https://github.com/ordinals/ord/pull/3721) by [bingryan](https://github.com/bingryan))
+
+[0.18.4](https://github.com/ordinals/ord/releases/tag/0.18.4) - 2023-05-02
+--------------------------------------------------------------------------
+
+### Added
+- Clarify that inscriptions must be served from URLs with path /content/<INSCRIPTION_ID> ([#3209](https://github.com/ordinals/ord/pull/3209) by [Vanniix](https://github.com/Vanniix))
+
+### Changed
+- Persist config files for ord env command ([#3715](https://github.com/ordinals/ord/pull/3715) by [twosatsmaxi](https://github.com/twosatsmaxi))
+- Do not show runic outputs in cardinals command ([#3656](https://github.com/ordinals/ord/pull/3656) by [raphjaph](https://github.com/raphjaph))
+
+### Fixed
+- Fix send runes ([#3484](https://github.com/ordinals/ord/pull/3484) by [raphjaph](https://github.com/raphjaph))
+- Allow longer request body for JSON API ([#3655](https://github.com/ordinals/ord/pull/3655) by [raphjaph](https://github.com/raphjaph))
+- Allow minting if mint begins next block ([#3659](https://github.com/ordinals/ord/pull/3659) by [casey](https://github.com/casey))
+
+### Misc
+- Add alt text to preview image ([#3713](https://github.com/ordinals/ord/pull/3713) by [losingle](https://github.com/losingle))
+- Remove duplicate endpoint from explorer.md ([#3716](https://github.com/ordinals/ord/pull/3716) by [cryptoni9n](https://github.com/cryptoni9n))
+- Use correct content type for .mjs inscriptions ([#3712](https://github.com/ordinals/ord/pull/3712) by [casey](https://github.com/casey))
+- Add support for mjs files ([#3653](https://github.com/ordinals/ord/pull/3653) by [elocremarc](https://github.com/elocremarc))
+- Fix typo on sat hunting page ([#3668](https://github.com/ordinals/ord/pull/3668) by [cryptoni9n](https://github.com/cryptoni9n))
+- Use contains_key instead of get / is_some ([#3705](https://github.com/ordinals/ord/pull/3705) by [knowmost](https://github.com/knowmost))
+- Update sat-hunting.md with how to transfer specific sats ([#3666](https://github.com/ordinals/ord/pull/3666) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix zh.po translations ([#3588](https://github.com/ordinals/ord/pull/3588) by [losingle](https://github.com/losingle))
+- Update sparrow-wallet.md --name flag update ([#3635](https://github.com/ordinals/ord/pull/3635) by [taha-abbasi](https://github.com/taha-abbasi))
+
 [0.18.3](https://github.com/ordinals/ord/releases/tag/0.18.3) - 2023-04-19
 --------------------------------------------------------------------------
 
