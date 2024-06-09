@@ -41,6 +41,7 @@ The recursive endpoints are:
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
 - `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
+- `/r/inscriptions/<QUERY>/<PAGE>`: information about inscriptions in a block,`<QUERY>`. Paginated,`<PAGE>`. 
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
 - `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
 - `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
@@ -146,6 +147,22 @@ Examples
   "satpoint": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0:0",
   "timestamp": 1708312562,
   "value": 10000
+}
+```
+
+- `/r/inscriptions/800000/0`
+
+```json
+{
+   "ids": [
+    "965f866bf8623bbf956c1b2aeec1efc1ad162fd428ab7fb89f128a0754ebbc32i0",
+    "1d11c135b165b5d9fe07f1b015ed21536aa1c235ff75cd7da5e73746d464cc97i0",
+    ...
+     "0981a67c05405eb30810d2e1fcc3b383ede360a7cfed7b901e663fa2d902e2dbi0",
+    "366469b47dd78d49c9c62cffc0d3ff999b32b7e6139b6b3b18ed3ae28769fbe9i0"
+  ],
+  "more": true,
+  "page_index": 0
 }
 ```
 
