@@ -60,22 +60,86 @@ fn airdrop() {
     }
   );
 
-  pretty_assert_eq!(
-    CommandBuilder::new(format!(
+  let output =  CommandBuilder::new(format!(
       "--regtest wallet airdrop --rune {} --fee-rate 1 --destinations whitelist.tsv",
       Rune(RUNE)
     ))
     .write("whitelist.tsv", "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw\nbcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw\nbcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw")
     .core(&core)
     .ord(&ord)
-    .run_and_deserialize_output::<Airdrop>(),
-    Airdrop {
-      rune: SpacedRune {
-        rune: Rune(RUNE),
-        spacers: 0,
-      },
-      psbt: "".into(),
-      txid: Txid::all_zeros(),
+    .run_and_deserialize_output::<Airdrop>();
+
+  pretty_assert_eq!(
+    output.rune,
+    SpacedRune {
+      rune: Rune(RUNE),
+      spacers: 0,
+    },
+  );
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: vec![(
+        SpacedRune::new(Rune(RUNE), 0),
+        vec![
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 250,
+              divisibility: 1,
+              symbol: Some('¢')
+            }
+          ),
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 2
+            },
+            Pile {
+              amount: 250,
+              divisibility: 1,
+              symbol: Some('¢')
+            }
+          ),
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 3
+            },
+            Pile {
+              amount: 250,
+              divisibility: 1,
+              symbol: Some('¢')
+            }
+          ),
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 4
+            },
+            Pile {
+              amount: 250,
+              divisibility: 1,
+              symbol: Some('¢')
+            }
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),]
+      .into_iter()
+      .collect(),
     }
   );
 }

@@ -759,7 +759,7 @@ fn sending_rune_works() {
     Rune(RUNE)
   ))
   .core(&core)
-    .ord(&ord)
+  .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);

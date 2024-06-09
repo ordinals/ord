@@ -107,7 +107,7 @@ impl Airdrop {
       edicts: vec![Edict {
         amount: 0,
         id,
-        output: u32::try_from(destinations.len()).unwrap() + 1,
+        output: u32::try_from(destinations.len()).unwrap() + 2, // TODO
       }],
       ..default()
     };
@@ -122,7 +122,7 @@ impl Airdrop {
       .into_iter()
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
-        value: postage.to_sat(),
+        value: destination.script_pubkey().dust_value().to_sat(), // TODO
       })
       .collect::<Vec<TxOut>>();
 
