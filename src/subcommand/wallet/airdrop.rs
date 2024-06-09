@@ -58,6 +58,7 @@ impl Airdrop {
       .flatten()
       .collect::<Result<Vec<Address>>>()?;
 
+    // maybe just take the address.dust_limit() for every provided address?
     let postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
     ensure!(
@@ -69,7 +70,7 @@ impl Airdrop {
 
     let rune = self.rune.rune;
 
-    let Some((id, rune_entry, _)) = wallet.get_rune(rune)? else {
+    let Some((id, _rune_entry, _)) = wallet.get_rune(rune)? else {
       bail!("rune {rune} has not been etched");
     };
 
@@ -87,7 +88,7 @@ impl Airdrop {
         continue;
       }
 
-      let runes = wallet.get_runes_balances_for_output(&output)?;
+      let runes = wallet.get_runes_balances_in_output(&output)?;
 
       // makes sure input contains only one type of rune
       if runes
@@ -106,7 +107,7 @@ impl Airdrop {
       edicts: vec![Edict {
         amount: 0,
         id,
-        output: destinations.len() as u32 + 1,
+        output: u32::try_from(destinations.len()).unwrap() + 1,
       }],
       ..default()
     };
