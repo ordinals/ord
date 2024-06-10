@@ -84,3 +84,8 @@ OP_ENDIF
 
 Which would then be concatenated into
 `{"very":"long","metadata":"is","finally":"done"}`.
+
+### On-chain Examples
+
+* Each [member](https://ordinals.com/inscription/ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1) in the FUN collection has metadata that describe its attributes.
+* [This inscription](https://ordinals.com/inscription/454700af2cffd3a872daeb89598a891f5fe9936225838a8c4522f491f246ca0ai0) uses its own metadata to draw the ordinal image.
