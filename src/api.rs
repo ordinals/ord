@@ -19,6 +19,7 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
+  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
 }
 
 impl Block {
@@ -36,6 +37,7 @@ impl Block {
       best_height: best_height.0,
       inscriptions,
       runes,
+      transactions: block.txdata,
     }
   }
 }

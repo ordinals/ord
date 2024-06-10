@@ -396,6 +396,7 @@ fn get_block() {
       height: 0,
       inscriptions: Vec::new(),
       runes: Vec::new(),
+      transactions: block_json.transactions.clone(),
     }
   );
 }
