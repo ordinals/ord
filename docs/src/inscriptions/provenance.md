@@ -80,3 +80,10 @@ recognized and tracked by old versions of `ord`.
 
 A collection can be closed by burning the collection's parent inscription,
 which guarantees that no more items in the collection can be issued.
+
+### On-chain Examples
+
+* [Inscription 0](http://ordinals.com/inscription/0) is the parent inscription for Casey's sugar skull collection, a grandparent for the FUN! collection, and the grandparent for [the sleepiest rune](https://ordinals.com/rune/ZZZZZZZZZZZZZZZZZZZZZZZZZZ).
+* With the [Rug Me](https://ordinals.com/inscription/f87a6b16a1224b65f9c8ea55e1718585b3075373581689e343860c12a70d15c7i41) collection, owners are able to change the background color by inscribing a child to it.
+* This [Bitcoin Magazine Cover](https://ordinals.com/inscription/60902330) renders the children as part of the parent inscription.
+* [The yellow_ord_bot](http://ordinals.com/inscription/17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0) has many different quotes as cursed children.
