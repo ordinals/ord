@@ -2,6 +2,8 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Airdrop {
+  #[clap(long, help = "Send <AMOUNT> to every address.")]
+  amount: Decimal,
   #[clap(long, help = "Use <FEE_RATE> sats/vbyte for airdrop transaction.")]
   fee_rate: FeeRate,
   #[clap(long, help = "Airdrop <RUNE>. May contain `.` or `•`as spacers.")]
@@ -26,6 +28,9 @@ pub struct Output {
   pub psbt: String,
   pub txid: Txid,
 }
+
+// This should probable also take how many should be airdropped per address
+//
 
 impl Airdrop {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
