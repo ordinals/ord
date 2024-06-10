@@ -13,6 +13,7 @@ ExecStart=/usr/local/bin/ord \
   --chain ${CHAIN} \
   --config-dir /var/lib/ord \
   --datadir /var/lib/ord \
+  --index-addresses \
   --index-runes \
   --index-sats \
   server \
