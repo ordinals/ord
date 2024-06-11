@@ -16,13 +16,12 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
         Ok(sat_ranges) => Some(
           sat_ranges
             .into_iter()
-            .map(|(_, ranges)| {
+            .flat_map(|(_, ranges)| {
               ranges
                 .into_iter()
                 .map(|(start, end)| format!("{}-{}", start, end))
                 .collect::<Vec<_>>()
             })
-            .flatten()
             .collect::<Vec<_>>()
             .join(", "),
         ),
