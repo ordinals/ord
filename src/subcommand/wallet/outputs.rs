@@ -26,7 +26,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
             .collect::<Vec<_>>()
             .join(", "),
         ),
-        Err(e) => Some(format!("Error: {}", e.to_string())),
+        Err(e) => Some(format!("Error: {}", e)),
       }
     } else {
       None
