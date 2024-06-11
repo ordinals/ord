@@ -26,13 +26,12 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
             .collect::<Vec<_>>()
             .join(", "),
         ),
-        Err(e) => Some(format!("Error: {}", e.to_string())), // Optionally, handle errors differently
+        Err(e) => Some(format!("Error: {}", e.to_string())),
       }
     } else {
       None
     };
 
-    // Push the formatted output into the outputs vector
     outputs.push(Output {
       output: *output,
       amount: txout.value,
