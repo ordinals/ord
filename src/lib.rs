@@ -115,7 +115,7 @@ pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
-mod settings;
+pub mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
@@ -220,10 +220,13 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
-fn gracefully_shutdown_indexer() {
+pub fn shut_down() {
+  SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+}
+
+fn gracefully_shut_down_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
-    // We explicitly set this to true to notify the thread to not take on new work
-    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    shut_down();
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
@@ -246,7 +249,7 @@ pub fn main() {
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
 
-    gracefully_shutdown_indexer();
+    gracefully_shut_down_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
@@ -268,7 +271,7 @@ pub fn main() {
         eprintln!("{}", err.backtrace());
       }
 
-      gracefully_shutdown_indexer();
+      gracefully_shut_down_indexer();
 
       process::exit(1);
     }
@@ -276,7 +279,7 @@ pub fn main() {
       if let Some(output) = output {
         output.print(format.unwrap_or_default());
       }
-      gracefully_shutdown_indexer();
+      gracefully_shut_down_indexer();
     }
   }
 }

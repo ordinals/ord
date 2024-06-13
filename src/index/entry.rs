@@ -92,6 +92,15 @@ impl RuneEntry {
           .unwrap_or_default()
   }
 
+  pub fn max_supply(&self) -> u128 {
+    self.premine
+      + self.terms.and_then(|terms| terms.cap).unwrap_or_default()
+        * self
+          .terms
+          .and_then(|terms| terms.amount)
+          .unwrap_or_default()
+  }
+
   pub fn pile(&self, amount: u128) -> Pile {
     Pile {
       amount,
@@ -280,16 +289,16 @@ impl Entry for RuneId {
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub(crate) struct InscriptionEntry {
-  pub(crate) charms: u16,
-  pub(crate) fee: u64,
-  pub(crate) height: u32,
-  pub(crate) id: InscriptionId,
-  pub(crate) inscription_number: i32,
-  pub(crate) parents: Vec<u32>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) sequence_number: u32,
-  pub(crate) timestamp: u32,
+pub struct InscriptionEntry {
+  pub charms: u16,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub inscription_number: i32,
+  pub parents: Vec<u32>,
+  pub sat: Option<Sat>,
+  pub sequence_number: u32,
+  pub timestamp: u32,
 }
 
 pub(crate) type InscriptionEntryValue = (
@@ -423,6 +432,26 @@ impl Entry for OutPoint {
   }
 }
 
+pub(super) type TxOutValue = (
+  u64,     // value
+  Vec<u8>, // script_pubkey
+);
+
+impl Entry for TxOut {
+  type Value = TxOutValue;
+
+  fn load(value: Self::Value) -> Self {
+    Self {
+      value: value.0,
+      script_pubkey: ScriptBuf::from_bytes(value.1),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.value, self.script_pubkey.to_bytes())
+  }
+}
+
 pub(super) type SatPointValue = [u8; 44];
 
 impl Entry for SatPoint {
@@ -483,6 +512,19 @@ impl Entry for Txid {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn txout_entry() {
+    let txout = TxOut {
+      value: u64::MAX,
+      script_pubkey: change(0).script_pubkey(),
+    };
+
+    let value = (u64::MAX, change(0).script_pubkey().to_bytes());
+
+    assert_eq!(txout.clone().store(), value);
+    assert_eq!(TxOut::load(value), txout);
+  }
 
   #[test]
   fn inscription_entry() {

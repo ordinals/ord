@@ -42,7 +42,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) chain: Chain,
   pub(super) content_type_to_count: &'a mut Table<'tx, Option<&'static [u8]>, u64>,
   pub(super) cursed_inscription_count: u64,
-  pub(super) event_sender: Option<&'a Sender<Event>>,
+  pub(super) event_sender: Option<&'a mpsc::Sender<Event>>,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
@@ -52,7 +52,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
-  pub(super) outpoint_to_value: &'a mut Table<'tx, &'static OutPointValue, u64>,
+  pub(super) outpoint_to_txout: &'a mut Table<'tx, &'static OutPointValue, TxOutValue>,
   pub(super) reward: u64,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
@@ -63,8 +63,8 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) sequence_number_to_satpoint: &'a mut Table<'tx, u32, &'static SatPointValue>,
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
-  pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
-  pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) utxo_cache: &'a mut HashMap<OutPoint, TxOut>,
+  pub(super) txout_receiver: &'a mut broadcast::Receiver<TxOut>,
 }
 
 impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
@@ -85,9 +85,9 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let inscriptions = !envelopes.is_empty();
     let mut envelopes = envelopes.into_iter().peekable();
 
-    for (input_index, tx_in) in tx.input.iter().enumerate() {
+    for (input_index, txin) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
-      if tx_in.previous_output.is_null() {
+      if txin.previous_output.is_null() {
         total_input_value += Height(self.height).subsidy();
         continue;
       }
@@ -96,7 +96,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output(
         self.satpoint_to_sequence_number,
         self.sequence_number_to_entry,
-        tx_in.previous_output,
+        txin.previous_output,
       )? {
         let offset = total_input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
@@ -114,24 +114,23 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       let offset = total_input_value;
 
       // multi-level cache for UTXO set to get to the input amount
-      let current_input_value = if let Some(value) = self.value_cache.remove(&tx_in.previous_output)
-      {
-        value
+      let txout = if let Some(txout) = self.utxo_cache.remove(&txin.previous_output) {
+        txout
       } else if let Some(value) = self
-        .outpoint_to_value
-        .remove(&tx_in.previous_output.store())?
+        .outpoint_to_txout
+        .remove(&txin.previous_output.store())?
       {
-        value.value()
+        TxOut::load(value.value())
       } else {
-        self.value_receiver.blocking_recv().ok_or_else(|| {
+        self.txout_receiver.blocking_recv().map_err(|err| {
           anyhow!(
-            "failed to get transaction for {}",
-            tx_in.previous_output.txid
+            "failed to get transaction for {}: {err}",
+            txin.previous_output.txid
           )
         })?
       };
 
-      total_input_value += current_input_value;
+      total_input_value += txout.value;
 
       // go through all inscriptions in this input
       while let Some(inscription) = envelopes.peek() {
@@ -216,7 +215,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             parents: inscription.payload.parents(),
             pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.contains_key(&offset),
-            unbound: current_input_value == 0
+            unbound: txout.value == 0
               || curse == Some(Curse::UnrecognizedEvenField)
               || inscription.payload.unrecognized_even_field,
             vindicated: curse.is_some() && jubilant,
@@ -291,8 +290,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut range_to_vout = BTreeMap::new();
     let mut new_locations = Vec::new();
     let mut output_value = 0;
-    for (vout, tx_out) in tx.output.iter().enumerate() {
-      let end = output_value + tx_out.value;
+    for (vout, txout) in tx.output.iter().enumerate() {
+      let end = output_value + txout.value;
 
       while let Some(flotsam) = inscriptions.peek() {
         if flotsam.offset >= end {
@@ -314,12 +313,12 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       output_value = end;
 
-      self.value_cache.insert(
+      self.utxo_cache.insert(
         OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
         },
-        tx_out.value,
+        txout.clone(),
       );
     }
 

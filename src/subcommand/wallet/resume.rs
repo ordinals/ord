@@ -8,6 +8,8 @@ pub struct ResumeOutput {
 pub(crate) struct Resume {
   #[arg(long, help = "Don't broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[arg(long, help = "Pending <RUNE> etching to resume.")]
+  pub(crate) rune: Option<SpacedRune>,
 }
 
 impl Resume {
@@ -18,7 +20,22 @@ impl Resume {
         break;
       }
 
-      for (rune, entry) in wallet.pending_etchings()? {
+      let spaced_rune = self.rune;
+
+      let pending_etchings = if let Some(spaced_rune) = spaced_rune {
+        let pending_etching = wallet.load_etching(spaced_rune.rune)?;
+
+        ensure!(
+          pending_etching.is_some(),
+          "rune {spaced_rune} does not correspond to any pending etching."
+        );
+
+        vec![(spaced_rune.rune, pending_etching.unwrap())]
+      } else {
+        wallet.pending_etchings()?
+      };
+
+      for (rune, entry) in pending_etchings {
         if self.dry_run {
           etchings.push(batch::Output {
             reveal_broadcast: false,

@@ -15,15 +15,22 @@ fn output_found() {
   assert_eq!(
     output,
     Output {
-      ranges: Some(vec![Range {
+      address: None,
+      indexed: true,
+      inscriptions: vec![],
+      runes: BTreeMap::new(),
+      sat_ranges: Some(vec![Range {
         end: 50 * COIN_VALUE,
         name: "nvtdijuwxlp".into(),
         offset: 0,
         rarity: "mythic".parse().unwrap(),
         size: 50 * COIN_VALUE,
         start: 0,
-      }]),
+       }]),
+      script_pubkey: "OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG".to_string(),
       spent: false,
+      transaction: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".to_string(),
+      value: 5000000000,
     }
   );
 }
