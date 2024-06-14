@@ -13,7 +13,7 @@ impl Export {
     let index = Index::open(&settings)?;
 
     index.update()?;
-    index.export(&self.tsv, self.include_addresses)?;
+    index.export(&self.tsv, true)?;
 
     Ok(None)
   }

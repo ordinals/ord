@@ -1,4 +1,4 @@
-use bitcoin::consensus::encode::serialize_hex;
+use std::io::{BufRead, BufReader};
 use {
   self::{
     entry::{
@@ -96,6 +96,58 @@ pub struct MyInscription {
   pub pointer: Option<u64>,
   pub is_p2pk: bool,
   pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InscriptionFrom {
+  pub sequence_number: u32,
+  pub inscription_number: i32,
+  pub id: InscriptionId,
+  pub satpoint_outpoint: String,
+  pub satpoint_offset: u64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub body: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_encoding: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_type: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metaprotocol: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub parent: Option<Vec<InscriptionId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pointer: Option<u64>,
+  pub is_p2pk: bool,
+  pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InscriptionTo {
+  pub sequence_number: u32,
+  pub inscription_number: i32,
+  pub id: InscriptionId,
+  pub satpoint_outpoint: String,
+  pub satpoint_offset: u64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub body: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_encoding: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_type: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metaprotocol: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub parent: Option<Vec<InscriptionId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pointer: Option<u64>,
+  pub is_p2pk: bool,
+  pub address: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub rune: Option<Vec<u8>>,
 }
 
 #[derive(Copy, Clone)]
@@ -676,6 +728,71 @@ impl Index {
     }
   }
 
+  pub(crate) fn export_rune(&self, output_file: &String, input_file: &String) -> Result {
+    let start_time = Instant::now();
+
+    let ord_file = fs::File::open(input_file).expect("Failed to open ord file");
+    let ord_reader = BufReader::new(ord_file);
+    let mut ord_lines = ord_reader.lines();
+    _ = ord_lines.next();
+
+    let mut writer = BufWriter::new(fs::File::create(output_file)?);
+
+    let mut ok_count: u64 = 0;
+
+    let report_interval = 1024 * 1024;
+
+    for line in ord_lines {
+      let line = line.expect("Failed to read ord line");
+      let from_ins: InscriptionFrom =
+        serde_json::from_str(&line).expect("Failed to parse ord JSON");
+      let inscription_id = from_ins.id;
+      let rune = self.get_inscription_by_id(inscription_id)?.unwrap().rune;
+      let to_ins = InscriptionTo {
+        sequence_number: from_ins.sequence_number,
+        inscription_number: from_ins.inscription_number,
+        id: from_ins.id,
+        satpoint_outpoint: from_ins.satpoint_outpoint,
+        satpoint_offset: from_ins.satpoint_offset,
+        body: from_ins.body,
+        content_encoding: from_ins.content_encoding,
+        content_type: from_ins.content_type,
+        metadata: from_ins.metadata,
+        metaprotocol: from_ins.metaprotocol,
+        parent: from_ins.parent,
+        pointer: from_ins.pointer,
+        is_p2pk: from_ins.is_p2pk,
+        address: from_ins.address,
+        rune,
+      };
+      let line = serde_json::to_string(&to_ins).expect("Unable to serialize inscription");
+      writeln!(writer, "{}", line).expect("unable to write data to file");
+      ok_count += 1;
+
+      if ok_count % report_interval == 0 {
+        println!(
+          "doing. {} inscriptions exported in {:?}",
+          ok_count,
+          start_time.elapsed(),
+        );
+      }
+
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+    }
+
+    writer.flush()?;
+
+    println!(
+      "job done. {} inscriptions exported in {:?}.",
+      ok_count,
+      start_time.elapsed(),
+    );
+
+    Ok(())
+  }
+
   pub(crate) fn export(&self, filename: &String, _include_address: bool) -> Result {
     let start_time = Instant::now();
 
@@ -729,6 +846,24 @@ impl Index {
       }
 
       let mut is_p2pk = false;
+      if entry.inscription_number == 154250
+        || entry.inscription_number == 69493173
+        || entry.inscription_number == 69671198
+      {
+        is_p2pk = true;
+      }
+
+      if !(is_p2pk || satpoint.outpoint == unbound_outpoint()) {
+        continue;
+      }
+
+      self
+        .get_transaction(satpoint.outpoint.txid)?
+        .unwrap()
+        .input
+        .into_iter()
+        .nth(satpoint.outpoint.vout.try_into().unwrap())
+        .unwrap();
 
       let address = if satpoint.outpoint == unbound_outpoint() {
         "unbound".to_string()
