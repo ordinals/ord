@@ -1,4 +1,5 @@
 use super::*;
+use clap::Parser;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sats {
@@ -7,6 +8,11 @@ pub(crate) struct Sats {
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
   tsv: Option<PathBuf>,
+  #[arg(
+    long,
+    help = "Display list of all sat ranges in wallet and special sats."
+  )]
+  all: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -31,6 +37,25 @@ impl Sats {
     );
 
     let haystacks = wallet.get_output_sat_ranges()?;
+
+    if self.all {
+      let mut ranges: Vec<(u64, u64)> = haystacks
+        .iter()
+        .flat_map(|(_, ranges)| ranges)
+        .cloned()
+        .collect();
+
+      ranges.sort_by(|a, b| a.0.cmp(&b.0));
+
+      let formatted_ranges: Vec<String> = ranges
+        .iter()
+        .map(|range| format!("{} - {}", range.0, range.1))
+        .collect();
+
+      let result = format!("[{}]", formatted_ranges.join(", \n"));
+
+      println!("{}", result);
+    }
 
     if let Some(path) = &self.tsv {
       let tsv = fs::read_to_string(path)
