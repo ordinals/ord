@@ -72,6 +72,8 @@
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+  <dt>sat name</dt>
+  <dd>{{ sat.name() }}</dd>
 %% }
 %% if let Some(metaprotocol) = self.inscription.metaprotocol() {
   <dt>metaprotocol</dt>
