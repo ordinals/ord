@@ -14,7 +14,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 touch ~/.hushlogin
 
-hostnamectl set-hostname $DOMAIN
+# hostnamectl set-hostname $DOMAIN
 
 apt-get install --yes \
   acl \
@@ -33,6 +33,7 @@ ufw default allow outgoing
 ufw default deny incoming
 
 ufw allow 8080
+ufw allow 8443
 ufw allow http
 ufw allow https
 ufw allow ssh
@@ -40,22 +41,22 @@ ufw allow ssh
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
-    CSP_ORIGIN=ordinals.com
+    CSP_ORIGIN=ord.ephemera.gallery
     ufw allow 8333
     ;;
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
-    CSP_ORIGIN=regtest.ordinals.com
+    CSP_ORIGIN=regtest.ord.ephemera.gallery
     ufw allow 18444
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
-    CSP_ORIGIN=signet.ordinals.com
+    CSP_ORIGIN=signet.ord.ephemera.gallery
     ufw allow 38333
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
-    CSP_ORIGIN=testnet.ordinals.com
+    CSP_ORIGIN=testnet.ord.ephemera.gallery
     ufw allow 18333
     ;;
   *)
@@ -131,7 +132,7 @@ systemctl daemon-reload
 systemctl enable ord
 systemctl restart ord
 
-while ! curl --fail https://$DOMAIN/status > /dev/null; do
-  echo "Waiting for ord at https://$DOMAIN/status…"
+while ! curl --fail http://$CSP_ORIGIN:8080/status > /dev/null; do
+  echo "Waiting for ord at https://$CSP_ORIGIN:8080/status…"
   sleep 1
 done
