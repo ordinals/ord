@@ -107,6 +107,26 @@ impl Rune {
 
     bytes[..end].into()
   }
+
+  pub fn from_commitment(bytes: Vec<u8>) -> Self {
+    let mut arr = [0u8; 16];
+    for (place, element) in arr.iter_mut().zip(bytes.iter()) {
+      *place = *element;
+    }
+    Rune(u128::from_le_bytes(arr))
+  }
+}
+
+pub fn from_commitment(bytes: Option<Vec<u8>>) -> Option<u128> {
+    let bytes = match bytes {
+        Some(bytes) => bytes,
+        None => return None,
+    };
+  let mut arr = [0u8; 16];
+  for (place, element) in arr.iter_mut().zip(bytes.iter()) {
+    *place = *element;
+  }
+  Some(u128::from_le_bytes(arr))
 }
 
 impl Display for Rune {
@@ -176,7 +196,57 @@ impl std::error::Error for Error {}
 
 #[cfg(test)]
 mod tests {
+  use rand::Rng;
   use super::*;
+
+  #[test]
+  fn converts_from_commitment() {
+    fn case(r: u128) {
+      let rune = Rune(r);
+      let commitment = rune.commitment();
+      let recovered_rune = from_commitment(Some(commitment.clone())).unwrap();
+      assert_eq!(r, recovered_rune);
+      println!("r: {}, commitment: {:?}, recovered_rune: {}", r, commitment.clone(), recovered_rune);
+    }
+    let mut rng = rand::thread_rng();
+    for _ in 0..2 { // replace with the number of tests you want to run
+      case(rng.gen());
+    }
+    case(0);
+    case(u128::MAX);
+  }
+
+  #[test]
+  fn converts_from_commitment_2() {
+    fn case(r: u128) {
+      let rune = Rune(r);
+      let commitment = rune.commitment();
+      let recovered_rune = from_commitment(Some(commitment)).unwrap();
+      assert_eq!(r, recovered_rune);
+    }
+    let mut rng = rand::thread_rng();
+    for _ in 0..1000 { // replace with the number of tests you want to run
+      case(rng.gen());
+    }
+    case(0);
+    case(u128::MAX);
+  }
+
+  #[test]
+  fn it_converts_from_commitment() {
+    fn case(r: u128) {
+      let rune = Rune(r);
+      let commitment = rune.commitment();
+      let recovered_rune = Rune::from_commitment(commitment);
+      assert_eq!(rune.0, recovered_rune.0);
+    }
+    let mut rng = rand::thread_rng();
+    for _ in 0..1000 { // replace with the number of tests you want to run
+      case(rng.gen());
+    }
+    case(0);
+    case(u128::MAX);
+  }
 
   #[test]
   fn round_trip() {
