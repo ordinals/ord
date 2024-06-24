@@ -711,7 +711,11 @@ impl Index {
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
-    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+    writeln!(
+      writer,
+      "# export at block height {}, ord in: [0, {})",
+      blocks_indexed, blocks_indexed
+    )?; // [0, height)
 
     log::info!("exporting database tables to {filename}");
 
