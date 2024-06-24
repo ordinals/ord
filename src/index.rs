@@ -79,55 +79,6 @@ pub struct MyInscription {
   pub sequence_number: u32,
   pub inscription_number: i32,
   pub id: InscriptionId,
-  pub sat_point: SatPoint,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub body: Option<Vec<u8>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub content_encoding: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub content_type: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub metadata: Option<Vec<u8>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub metaprotocol: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub parent: Option<Vec<InscriptionId>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub pointer: Option<u64>,
-  pub is_p2pk: bool,
-  pub address: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct InscriptionFrom {
-  pub sequence_number: u32,
-  pub inscription_number: i32,
-  pub id: InscriptionId,
-  pub satpoint_outpoint: String,
-  pub satpoint_offset: u64,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub body: Option<Vec<u8>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub content_encoding: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub content_type: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub metadata: Option<Vec<u8>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub metaprotocol: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub parent: Option<Vec<InscriptionId>>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub pointer: Option<u64>,
-  pub is_p2pk: bool,
-  pub address: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct InscriptionTo {
-  pub sequence_number: u32,
-  pub inscription_number: i32,
-  pub id: InscriptionId,
   pub satpoint_outpoint: String,
   pub satpoint_offset: u64,
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -147,7 +98,7 @@ pub struct InscriptionTo {
   pub is_p2pk: bool,
   pub address: String,
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub rune: Option<Vec<u8>>,
+  pub rune: Option<u128>,
 }
 
 #[derive(Copy, Clone)]
@@ -226,6 +177,18 @@ impl From<TableStats> for TableInfo {
       tree_height: stats.tree_height(),
     }
   }
+}
+
+pub fn from_commitment(bytes: Option<Vec<u8>>) -> Option<u128> {
+  let bytes = match bytes {
+    Some(bytes) => bytes,
+    None => return None,
+  };
+  let mut arr = [0u8; 16];
+  for (place, element) in arr.iter_mut().zip(bytes.iter()) {
+    *place = *element;
+  }
+  Some(u128::from_le_bytes(arr))
 }
 
 #[derive(Serialize)]
@@ -728,72 +691,12 @@ impl Index {
     }
   }
 
-  pub(crate) fn export_rune(&self, output_file: &String, input_file: &String) -> Result {
-    let start_time = Instant::now();
-
-    let ord_file = fs::File::open(input_file).expect("Failed to open ord file");
-    let ord_reader = BufReader::new(ord_file);
-    let mut ord_lines = ord_reader.lines();
-    _ = ord_lines.next();
-
-    let mut writer = BufWriter::new(fs::File::create(output_file)?);
-
-    let mut ok_count: u64 = 0;
-
-    let report_interval = 1024 * 1024;
-
-    for line in ord_lines {
-      let line = line.expect("Failed to read ord line");
-      let from_ins: InscriptionFrom =
-        serde_json::from_str(&line).expect("Failed to parse ord JSON");
-      let inscription_id = from_ins.id;
-      let rune = self.get_inscription_by_id(inscription_id)?.unwrap().rune;
-      let to_ins = InscriptionTo {
-        sequence_number: from_ins.sequence_number,
-        inscription_number: from_ins.inscription_number,
-        id: from_ins.id,
-        satpoint_outpoint: from_ins.satpoint_outpoint,
-        satpoint_offset: from_ins.satpoint_offset,
-        body: from_ins.body,
-        content_encoding: from_ins.content_encoding,
-        content_type: from_ins.content_type,
-        metadata: from_ins.metadata,
-        metaprotocol: from_ins.metaprotocol,
-        parent: from_ins.parent,
-        pointer: from_ins.pointer,
-        is_p2pk: from_ins.is_p2pk,
-        address: from_ins.address,
-        rune,
-      };
-      let line = serde_json::to_string(&to_ins).expect("Unable to serialize inscription");
-      writeln!(writer, "{}", line).expect("unable to write data to file");
-      ok_count += 1;
-
-      if ok_count % report_interval == 0 {
-        println!(
-          "doing. {} inscriptions exported in {:?}",
-          ok_count,
-          start_time.elapsed(),
-        );
-      }
-
-      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        break;
-      }
-    }
-
-    writer.flush()?;
-
-    println!(
-      "job done. {} inscriptions exported in {:?}.",
-      ok_count,
-      start_time.elapsed(),
-    );
-
-    Ok(())
-  }
-
-  pub(crate) fn export(&self, filename: &String, _include_address: bool) -> Result {
+  pub(crate) fn export(
+    &self,
+    filename: &String,
+    gt_sequence: u32,
+    _include_address: bool,
+  ) -> Result {
     let start_time = Instant::now();
 
     let mut writer = BufWriter::new(fs::File::create(filename)?);
@@ -829,6 +732,9 @@ impl Index {
       total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
+      if sequence_number <= gt_sequence {
+        continue;
+      }
       let entry = InscriptionEntry::load(entry.1.value());
       let satpoint = SatPoint::load(
         *sequence_number_to_satpoint
@@ -912,7 +818,8 @@ impl Index {
         sequence_number,
         inscription_number: entry.inscription_number,
         id: entry.id,
-        sat_point: satpoint,
+        satpoint_outpoint: satpoint.outpoint.to_string(),
+        satpoint_offset: satpoint.offset,
         body: inscription.clone().into_body(),
         content_type: inscription.content_type_string(),
         content_encoding: inscription.content_encoding_string(),
@@ -922,6 +829,7 @@ impl Index {
         pointer: inscription.pointer(),
         is_p2pk,
         address,
+        rune: from_commitment(inscription.rune),
       };
 
       let line =
