@@ -2236,6 +2236,26 @@ impl Index {
       .collect()
   }
 
+  pub(crate) fn get_rune_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<Vec<(SpacedRune, u128)>> {
+    let outpoint_to_rune_balances = self.database.begin_read()?.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+    let id_to_rune_entry = self.database.begin_read()?.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+    let mut acc = Vec::new();
+
+    for output in outputs {
+      if let Some(value) = outpoint_to_rune_balances.get(&output.store())? {
+        // Convert the decoded rune balance to a SpacedRune Struct
+        let ((id, amount), _length) = Index::decode_rune_balance(&value.value()).unwrap();
+        let rune_entry = RuneEntry::load(id_to_rune_entry.get(id.store())?.unwrap().value()).spaced_rune;
+        acc.push((rune_entry, amount));
+
+      }
+    }
+
+    Ok(acc)
+
+
+  }
+
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
     let outpoint_to_txout = self.database.begin_read()?.open_table(OUTPOINT_TO_TXOUT)?;
 

@@ -2,12 +2,16 @@
 <dl>
   <dt>sat balance</dt>
   <dd>{{ self.sat_balance }}</dd>
+  <dt>runes balances</dt>
+  %% for (rune, amount) in self.runes_balances.iter() {
+  <dd>{{ rune }}: {{ amount }}</dd>
+  %% }
   <dt>outputs</dt>
   <dd>
     <ul>
-%% for output in self.outputs.iter() {
-      <li><a class=monospace href=/output/{{ output }}>{{ output }}</a></li>
-%% }
+    %% for output in self.outputs.iter() {
+          <li><a class=monospace href=/output/{{ output }}>{{ output }}</a></li>
+    %% }
     </ul>
   </dd>
 </dl>

@@ -63,6 +63,35 @@ fn address_page_shows_outputs_and_sat_balance() {
   );
 }
 
+
+#[test]
+fn address_page_shows_runes_balances2(){
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord = TestServer::spawn_with_args(&core,  &["--index-runes", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE)).id;
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:{}", Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(1);
+  core.mine_blocks(6);
+
+  ord.assert_response_regex(
+    format!("/address/bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"),
+    format!(
+      ".*<dd>{}: 1000</dd>.*",
+      Rune(RUNE)
+    ),
+  );
+}
+
 #[test]
 fn inscription_page() {
   let core = mockcore::spawn();
