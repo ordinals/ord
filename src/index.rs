@@ -758,6 +758,7 @@ impl Index {
       }
 
       // get address
+      let mut is_p2pk = false;
       let address = if satpoint.outpoint == unbound_outpoint() {
         "unbound".to_string()
       } else {
@@ -770,6 +771,7 @@ impl Index {
           .unwrap();
 
         if (&output).script_pubkey.is_p2pk() {
+          is_p2pk = true;
           p2pk_count += 1;
           (&output).script_pubkey.to_hex_string()
         } else {
