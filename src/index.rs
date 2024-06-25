@@ -74,12 +74,13 @@ define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct MyInscription {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InscriptionOutput {
   pub sequence_number: u32,
   pub inscription_number: i32,
   pub id: InscriptionId,
-  pub satpoint_outpoint: String,
+  // ord crate has different version of bitcoin dependency, using string for compatibility
+  pub satpoint_outpoint: String, // txid:vout
   pub satpoint_offset: u64,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub body: Option<Vec<u8>>,
@@ -95,7 +96,7 @@ pub struct MyInscription {
   pub parent: Option<Vec<InscriptionId>>,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub pointer: Option<u64>,
-  pub is_p2pk: bool,
+  pub is_p2pk: bool, // If true, address field is script
   pub address: String,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub rune: Option<u128>,
@@ -721,13 +722,15 @@ impl Index {
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
-    let mut ok_count: u64 = 0;
+    let mut recorded: u64 = 0;
     let mut unbound_count: u64 = 0;
     let mut cursed_count: u64 = 0;
     let mut p2pk_count: u64 = 0;
     let mut total_num: u64 = 0;
 
     let report_interval = 1024 * 1024;
+
+    let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
@@ -750,31 +753,11 @@ impl Index {
       if entry.inscription_number < 0 {
         cursed_count += 1;
       }
-
       if satpoint.outpoint == unbound_outpoint() {
         unbound_count += 1;
       }
 
-      let mut is_p2pk = false;
-      if entry.inscription_number == 154250
-        || entry.inscription_number == 69493173
-        || entry.inscription_number == 69671198
-      {
-        is_p2pk = true;
-      }
-
-      if !(is_p2pk || satpoint.outpoint == unbound_outpoint()) {
-        continue;
-      }
-
-      self
-        .get_transaction(satpoint.outpoint.txid)?
-        .unwrap()
-        .input
-        .into_iter()
-        .nth(satpoint.outpoint.vout.try_into().unwrap())
-        .unwrap();
-
+      // get address
       let address = if satpoint.outpoint == unbound_outpoint() {
         "unbound".to_string()
       } else {
@@ -787,7 +770,6 @@ impl Index {
           .unwrap();
 
         if (&output).script_pubkey.is_p2pk() {
-          is_p2pk = true;
           p2pk_count += 1;
           (&output).script_pubkey.to_hex_string()
         } else {
@@ -801,50 +783,56 @@ impl Index {
       };
 
       // get all parents
-      let mut page_index = 0;
-      let mut all_parents = vec![];
-      let mut has_more = true;
-      while has_more {
-        let (parents, more_parents) =
-          self.get_parents_by_sequence_number_paginated(entry.parents.clone(), page_index)?;
-        all_parents.extend(parents);
-        has_more = more_parents;
-        page_index += 1;
-      }
-      let parents = match all_parents.is_empty() {
-        true => None,
-        false => Some(all_parents),
+      let parents = if entry.parents.is_empty() {
+        None
+      } else {
+        Some(
+          entry
+            .parents
+            .into_iter()
+            .map(|parent_sequence_number| {
+              InscriptionEntry::load(
+                seqnum_table
+                  .get(parent_sequence_number)
+                  .unwrap()
+                  .unwrap()
+                  .value(),
+              )
+              .id
+            })
+            .collect(),
+        )
       };
 
       // get content
-      let inscription = self.get_inscription_by_id(entry.id)?.unwrap();
-      let my_inscription = MyInscription {
+      let inscription_src = self.get_inscription_by_id(entry.id)?.unwrap();
+      let inscription_out = InscriptionOutput {
         sequence_number,
         inscription_number: entry.inscription_number,
         id: entry.id,
         satpoint_outpoint: satpoint.outpoint.to_string(),
         satpoint_offset: satpoint.offset,
-        body: inscription.clone().into_body(),
-        content_type: inscription.content_type_string(),
-        content_encoding: inscription.content_encoding_string(),
-        metadata: inscription.metadata.clone(),
-        metaprotocol: inscription.metaprotocol_string(),
+        body: inscription_src.clone().into_body(),
+        content_type: inscription_src.content_type_string(),
+        content_encoding: inscription_src.content_encoding_string(),
+        metadata: inscription_src.metadata.clone(),
+        metaprotocol: inscription_src.metaprotocol_string(),
         parent: parents,
-        pointer: inscription.pointer(),
+        pointer: inscription_src.pointer(),
         is_p2pk,
         address,
-        rune: from_commitment(inscription.rune),
+        rune: from_commitment(inscription_src.rune),
       };
 
       let line =
-        serde_json::to_string(&my_inscription).expect("Unable to serialize my_inscription");
+        serde_json::to_string(&inscription_out).expect("Unable to serialize my_inscription");
       writeln!(writer, "{}", line).expect("unable to write data to file");
-      ok_count += 1;
+      recorded += 1;
 
-      if ok_count % report_interval == 0 {
+      if recorded % report_interval == 0 {
         println!(
           "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}.",
-          ok_count,
+          recorded,
           cursed_count,
           p2pk_count,
           unbound_count,
@@ -860,7 +848,7 @@ impl Index {
 
     println!(
       "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included) in block heights: (0,{}]",
-      ok_count,
+      recorded,
       cursed_count,
       p2pk_count,
       unbound_count,
