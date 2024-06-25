@@ -713,7 +713,7 @@ impl Index {
 
     writeln!(
       writer,
-      "# export at block height {}, ord in: [0, {})",
+      "# export at block height {}, inscriptions in: [0, {})",
       blocks_indexed, blocks_indexed
     )?; // [0, height)
 
@@ -843,12 +843,12 @@ impl Index {
 
       if ok_count % report_interval == 0 {
         println!(
-          "doing. {} inscriptions({} cursed, {} p2pk) exported in {:?}, unbound count: {}",
+          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}.",
           ok_count,
           cursed_count,
           p2pk_count,
+          unbound_count,
           start_time.elapsed(),
-          unbound_count
         );
       }
 
@@ -859,13 +859,15 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} inscriptions({} cursed, {} p2pk) exported in {:?}, unbound count: {}. total num: {}",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included) in block heights: (0,{}]",
       ok_count,
       cursed_count,
       p2pk_count,
-      start_time.elapsed(),
       unbound_count,
+      start_time.elapsed(),
       total_num,
+      gt_sequence,
+      blocks_indexed,
     );
 
     Ok(())
