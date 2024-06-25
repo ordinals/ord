@@ -6,6 +6,8 @@ pub(crate) struct Export {
   include_addresses: bool,
   #[arg(long, help = "Write export to <TSV>")]
   tsv: String,
+  #[arg(long, help = "Export from sequence number <GT_SEQUENCE>")]
+  gt_sequnce: u32,
 }
 
 impl Export {
@@ -13,7 +15,7 @@ impl Export {
     let index = Index::open(&settings)?;
 
     index.update()?;
-    index.export(&self.tsv, self.include_addresses)?;
+    index.export(&self.tsv, self.gt_sequnce, true)?;
 
     Ok(None)
   }

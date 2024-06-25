@@ -230,8 +230,20 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  pub(crate) fn content_type_string(&self) -> Option<String> {
+    str::from_utf8(self.content_type.as_ref()?)
+      .ok()
+      .map(|s| s.to_string())
+  }
+
   pub(crate) fn content_encoding(&self) -> Option<HeaderValue> {
     HeaderValue::from_str(str::from_utf8(self.content_encoding.as_ref()?).unwrap_or_default()).ok()
+  }
+
+  pub(crate) fn content_encoding_string(&self) -> Option<String> {
+    str::from_utf8(self.content_encoding.as_ref()?)
+      .ok()
+      .map(|s| s.to_string())
   }
 
   pub(crate) fn delegate(&self) -> Option<InscriptionId> {
@@ -244,6 +256,12 @@ impl Inscription {
 
   pub(crate) fn metaprotocol(&self) -> Option<&str> {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
+  }
+
+  pub(crate) fn metaprotocol_string(&self) -> Option<String> {
+    str::from_utf8(self.metaprotocol.as_ref()?)
+      .ok()
+      .map(|s| s.to_string())
   }
 
   pub(crate) fn parents(&self) -> Vec<InscriptionId> {

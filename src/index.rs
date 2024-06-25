@@ -1,3 +1,4 @@
+use std::io::{BufRead, BufReader};
 use {
   self::{
     entry::{
@@ -72,6 +73,34 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InscriptionOutput {
+  pub sequence_number: u32,
+  pub inscription_number: i32,
+  pub id: InscriptionId,
+  // ord crate has different version of bitcoin dependency, using string for compatibility
+  pub satpoint_outpoint: String, // txid:vout
+  pub satpoint_offset: u64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub body: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_encoding: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub content_type: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<Vec<u8>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metaprotocol: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub parent: Option<Vec<InscriptionId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pointer: Option<u64>,
+  pub is_p2pk: bool, // If true, address field is script
+  pub address: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub rune: Option<u128>,
+}
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -149,6 +178,18 @@ impl From<TableStats> for TableInfo {
       tree_height: stats.tree_height(),
     }
   }
+}
+
+pub fn from_commitment(bytes: Option<Vec<u8>>) -> Option<u128> {
+  let bytes = match bytes {
+    Some(bytes) => bytes,
+    None => return None,
+  };
+  let mut arr = [0u8; 16];
+  for (place, element) in arr.iter_mut().zip(bytes.iter()) {
+    *place = *element;
+  }
+  Some(u128::from_le_bytes(arr))
 }
 
 #[derive(Serialize)]
@@ -651,8 +692,16 @@ impl Index {
     }
   }
 
-  pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
+  pub(crate) fn export(
+    &self,
+    filename: &String,
+    gt_sequence: u32,
+    _include_address: bool,
+  ) -> Result {
+    let start_time = Instant::now();
+
     let mut writer = BufWriter::new(fs::File::create(filename)?);
+
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -663,18 +712,36 @@ impl Index {
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
-    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+    writeln!(
+      writer,
+      "# export at block height {}, inscriptions in: [0, {})",
+      blocks_indexed, blocks_indexed
+    )?; // [0, height)
 
     log::info!("exporting database tables to {filename}");
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
+    let mut recorded: u64 = 0;
+    let mut unbound_count: u64 = 0;
+    let mut cursed_count: u64 = 0;
+    let mut p2pk_count: u64 = 0;
+    let mut total_num: u64 = 0;
+
+    let report_interval = 1024 * 1024;
+
+    let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
       .iter()?
     {
+      total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
+      if sequence_number <= gt_sequence {
+        continue;
+      }
       let entry = InscriptionEntry::load(entry.1.value());
       let satpoint = SatPoint::load(
         *sequence_number_to_satpoint
@@ -683,39 +750,116 @@ impl Index {
           .value(),
       );
 
-      write!(
-        writer,
-        "{}\t{}\t{}",
-        entry.inscription_number, entry.id, satpoint
-      )?;
+      if entry.inscription_number < 0 {
+        cursed_count += 1;
+      }
+      if satpoint.outpoint == unbound_outpoint() {
+        unbound_count += 1;
+      }
 
-      if include_addresses {
-        let address = if satpoint.outpoint == unbound_outpoint() {
-          "unbound".to_string()
+      // get address
+      let mut is_p2pk = false;
+      let address = if satpoint.outpoint == unbound_outpoint() {
+        "unbound".to_string()
+      } else {
+        let output = self
+          .get_transaction(satpoint.outpoint.txid)?
+          .unwrap()
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .unwrap();
+
+        if (&output).script_pubkey.is_p2pk() {
+          is_p2pk = true;
+          p2pk_count += 1;
+          (&output).script_pubkey.to_hex_string()
         } else {
-          let output = self
-            .get_transaction(satpoint.outpoint.txid)?
-            .unwrap()
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .unwrap();
           self
             .settings
             .chain()
             .address_from_script(&output.script_pubkey)
             .map(|address| address.to_string())
-            .unwrap_or_else(|e| e.to_string())
-        };
-        write!(writer, "\t{}", address)?;
+            .unwrap_or_else(|_e| "non-standard".to_string())
+        }
+      };
+
+      // get all parents
+      let parents = if entry.parents.is_empty() {
+        None
+      } else {
+        Some(
+          entry
+            .parents
+            .into_iter()
+            .map(|parent_sequence_number| {
+              InscriptionEntry::load(
+                seqnum_table
+                  .get(parent_sequence_number)
+                  .unwrap()
+                  .unwrap()
+                  .value(),
+              )
+              .id
+            })
+            .collect(),
+        )
+      };
+
+      // get content
+      let inscription_src = self.get_inscription_by_id(entry.id)?.unwrap();
+      let inscription_out = InscriptionOutput {
+        sequence_number,
+        inscription_number: entry.inscription_number,
+        id: entry.id,
+        satpoint_outpoint: satpoint.outpoint.to_string(),
+        satpoint_offset: satpoint.offset,
+        body: inscription_src.clone().into_body(),
+        content_type: inscription_src.content_type_string(),
+        content_encoding: inscription_src.content_encoding_string(),
+        metadata: inscription_src.metadata.clone(),
+        metaprotocol: inscription_src.metaprotocol_string(),
+        parent: parents,
+        pointer: inscription_src.pointer(),
+        is_p2pk,
+        address,
+        rune: from_commitment(inscription_src.rune),
+      };
+
+      let line =
+        serde_json::to_string(&inscription_out).expect("Unable to serialize my_inscription");
+      writeln!(writer, "{}", line).expect("unable to write data to file");
+      recorded += 1;
+
+      if recorded % report_interval == 0 {
+        println!(
+          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}.",
+          recorded,
+          cursed_count,
+          p2pk_count,
+          unbound_count,
+          start_time.elapsed(),
+        );
       }
-      writeln!(writer)?;
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
     }
     writer.flush()?;
+
+    println!(
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included) in block heights: (0,{}]",
+      recorded,
+      cursed_count,
+      p2pk_count,
+      unbound_count,
+      start_time.elapsed(),
+      total_num,
+      gt_sequence,
+      blocks_indexed,
+    );
+
     Ok(())
   }
 
