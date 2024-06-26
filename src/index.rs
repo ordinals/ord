@@ -1,3 +1,4 @@
+use hdrhistogram::Histogram;
 use std::io::{BufRead, BufReader};
 use {
   self::{
@@ -718,7 +719,7 @@ impl Index {
       blocks_indexed, blocks_indexed
     )?; // [0, height)
 
-    log::info!("exporting database tables to {filename}");
+    log::info!("exporting database tables to {output_filename}");
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
@@ -731,6 +732,7 @@ impl Index {
     let report_interval = 1024 * 1024;
 
     let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let mut body_size_hist = Histogram::<u64>::new_with_bounds(0, 4 * 1024 * 1024, 2).unwrap();
 
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
@@ -809,7 +811,7 @@ impl Index {
         )
       };
 
-      // get content
+      // make inscription
       let inscription_src = self.get_inscription_by_id(entry.id)?.unwrap();
       let inscription_out = InscriptionOutput {
         sequence_number,
@@ -828,6 +830,14 @@ impl Index {
         address,
         rune: from_commitment(inscription_src.rune),
       };
+
+      // add histogram record
+      let body_size = if let Some(ref body) = inscription_out.body {
+        body.len() as u64
+      } else {
+        0
+      };
+      body_size_hist.record(body_size).unwrap();
 
       let line =
         serde_json::to_string(&inscription_out).expect("Unable to serialize my_inscription");
@@ -852,7 +862,7 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included) in block heights: (0,{}]",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included, >= {} not included) in block heights: (0,{}]",
       recorded,
       cursed_count,
       p2pk_count,
@@ -860,8 +870,18 @@ impl Index {
       start_time.elapsed(),
       total_num,
       gt_sequence,
+      lt_sequence,
       blocks_indexed,
     );
+    println!("Percentiles distribution of inscription body size: ");
+    for v in body_size_hist.iter_recorded() {
+      println!(
+        "{}'th percentile is {} with {} samples",
+        v.percentile(),
+        v.value_iterated_to(),
+        v.count_at_value()
+      );
+    }
 
     Ok(())
   }
