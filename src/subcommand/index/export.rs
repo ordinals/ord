@@ -2,12 +2,12 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Export {
-  #[arg(long, help = "Include addresses in export")]
-  include_addresses: bool,
-  #[arg(long, help = "Write export to <TSV>")]
-  tsv: String,
-  #[arg(long, help = "Export from sequence number <GT_SEQUENCE>")]
-  gt_sequnce: u32,
+  #[arg(long, help = "Write export to <output>")]
+  output: String,
+  #[arg(long, help = "Export sequence number > <gt_sequence>")]
+  gt_sequence: u32,
+  #[arg(long, help = "Export sequence number < <lt_sequence>")]
+  lt_sequence: u32,
 }
 
 impl Export {
@@ -15,7 +15,7 @@ impl Export {
     let index = Index::open(&settings)?;
 
     index.update()?;
-    index.export(&self.tsv, self.gt_sequnce, true)?;
+    index.export(&self.output, self.gt_sequence, self.lt_sequence)?;
 
     Ok(None)
   }

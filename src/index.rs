@@ -1,3 +1,4 @@
+use hdrhistogram::Histogram;
 use std::io::{BufRead, BufReader};
 use {
   self::{
@@ -694,13 +695,13 @@ impl Index {
 
   pub(crate) fn export(
     &self,
-    filename: &String,
+    output_filename: &String,
     gt_sequence: u32,
-    _include_address: bool,
+    lt_sequence: u32,
   ) -> Result {
     let start_time = Instant::now();
 
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(fs::File::create(output_filename)?);
 
     let rtx = self.database.begin_read()?;
 
@@ -718,7 +719,7 @@ impl Index {
       blocks_indexed, blocks_indexed
     )?; // [0, height)
 
-    log::info!("exporting database tables to {filename}");
+    log::info!("exporting database tables to {output_filename}");
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
@@ -727,10 +728,12 @@ impl Index {
     let mut cursed_count: u64 = 0;
     let mut p2pk_count: u64 = 0;
     let mut total_num: u64 = 0;
+    let mut body_none_count: u64 = 0;
 
     let report_interval = 1024 * 1024;
 
     let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let mut body_size_hist = Histogram::<u64>::new_with_bounds(1, 4 * 1024 * 1024, 2).unwrap();
 
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
@@ -739,6 +742,9 @@ impl Index {
       total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
+      if sequence_number >= lt_sequence {
+        break;
+      }
       if sequence_number <= gt_sequence {
         continue;
       }
@@ -806,7 +812,7 @@ impl Index {
         )
       };
 
-      // get content
+      // make inscription
       let inscription_src = self.get_inscription_by_id(entry.id)?.unwrap();
       let inscription_out = InscriptionOutput {
         sequence_number,
@@ -826,8 +832,19 @@ impl Index {
         rune: from_commitment(inscription_src.rune),
       };
 
-      let line =
-        serde_json::to_string(&inscription_out).expect("Unable to serialize my_inscription");
+      // add histogram record
+      let body_size = if let Some(ref body) = inscription_out.body {
+        body.len() as u64
+      } else {
+        0
+      };
+      if body_size != 0 {
+        body_size_hist.record(body_size).unwrap();
+      } else {
+        body_none_count += 1;
+      }
+
+      let line = serde_json::to_string(&inscription_out).expect("Unable to serialize inscription");
       writeln!(writer, "{}", line).expect("unable to write data to file");
       recorded += 1;
 
@@ -849,16 +866,33 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}. {} inscriptions(<= {} included) in block heights: (0,{}]",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= {} included, >= {} not included) in block heights: [0,{})",
       recorded,
       cursed_count,
       p2pk_count,
       unbound_count,
+      body_none_count,
       start_time.elapsed(),
       total_num,
       gt_sequence,
+      lt_sequence,
       blocks_indexed,
     );
+
+    let percentiles = [
+      1.00, 5.00, 10.00, 20.00, 30.00, 40.00, 50.00, 60.00, 70.00, 80.00, 90.00, 95.00, 99.00,
+      99.50, 99.90, 99.95, 99.99,
+    ];
+    let body_size_min = body_size_hist.min();
+    let body_size_max = body_size_hist.max();
+    let body_size_mean = body_size_hist.mean();
+    println!("Percentiles distribution of inscription body size(>0), min={}, max={}, mean={:.2}, stdev={:.2}: ",
+             body_size_min, body_size_max, body_size_mean, body_size_hist.stdev());
+    for &p in &percentiles {
+      let v = body_size_hist.value_at_percentile(p);
+      let count = body_size_hist.count_at(v);
+      println!("| {:6.2}th=[{}] (samples: {})", p, v, count);
+    }
 
     Ok(())
   }

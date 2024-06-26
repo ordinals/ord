@@ -44,10 +44,38 @@ impl Info {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use bitcoin::consensus::deserzialize;
+  use base64::encode as base64_encode;
   use bitcoin::consensus::encode::serialize_hex;
   use bitcoin::secp256k1::PublicKey;
   use bitcoin::{Address, Script, ScriptBuf};
+  use hex::encode as hex_encode;
+
+  #[test]
+  fn test_hex_vec() {
+    let body: Vec<u8> = vec![
+      100, 97, 116, 101, 58, 109, 111, 100, 105, 102, 121, 0, 50, 48, 50, 50, 45, 49, 50, 45, 49,
+      54, 84, 49, 57, 58, 52, 55, 58, 51, 50, 43, 48, 48, 58, 48, 48, 199, 250, 29, 113, 0, 0, 0,
+      25, 116, 69, 88, 116, 83, 111, 102, 116, 119, 97, 114, 101, 0, 103, 110, 111, 109, 101, 45,
+      115, 99, 114, 101, 101, 110, 115, 104, 111, 116, 239, 3, 191, 62, 0, 0, 0, 0, 73, 69, 78, 68,
+      174, 66, 96, 130,
+    ];
+
+    let hex_body = hex_encode(&body);
+
+    let base64_body = base64_encode(&body);
+
+    println!("Byte array format: {:?}", body);
+    println!("Byte array length: {}", format!("{:?}", body).len());
+
+    println!("Hex string format: {}", hex_body);
+    println!("Hex string length: {}", format!("{:?}", hex_body).len());
+
+    println!("Base64 string format: {}", base64_body);
+    println!(
+      "Base64 string length: {}",
+      format!("{:?}", base64_body).len()
+    );
+  }
 
   // #[test]
   // fn test_gen_utxo_data_from_csv_line() {
