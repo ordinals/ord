@@ -694,13 +694,13 @@ impl Index {
 
   pub(crate) fn export(
     &self,
-    filename: &String,
+    output_filename: &String,
     gt_sequence: u32,
-    _include_address: bool,
+    lt_sequence: u32,
   ) -> Result {
     let start_time = Instant::now();
 
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(fs::File::create(output_filename)?);
 
     let rtx = self.database.begin_read()?;
 
@@ -739,6 +739,9 @@ impl Index {
       total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
+      if sequence_number >= lt_sequence {
+        break;
+      }
       if sequence_number <= gt_sequence {
         continue;
       }
