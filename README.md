@@ -7,6 +7,8 @@ Export inscriptions.
 
 ### Example
 
+get inscriptions with sequence number in range (1, 10000) from `index.redb` and export to `new_test_2`:
+
 ```bash
 ./ord --index=~/btc/ord/index/index.redb --cookie-file=~/bitcoincore/.cookie index export --output ~/moe/btc/ord/dump/new_test_2 --gt-sequence 1 --lt-sequence 10000
 job done. 9998 recorded(cursed: 13, p2pk: 0, unbound: 0, 0-body: 1) exported in 141.470550973s. 10001 inscriptions(<= 1 included, >= 10000 not included) in block heights: [0,843911)
