@@ -290,7 +290,7 @@ pub fn main() {
             eprintln!("because:");
           }
 
-          eprintln!("    - {err}");
+          eprintln!("- {err}");
         }
 
         if let Some(backtrace) = err.backtrace() {
