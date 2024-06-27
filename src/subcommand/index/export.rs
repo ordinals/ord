@@ -5,9 +5,9 @@ pub(crate) struct Export {
   #[arg(long, help = "Write export to <output>")]
   output: String,
   #[arg(long, help = "Export sequence number > <gt_sequence>")]
-  gt_sequence: u32,
+  gt_sequence: Option<u32>,
   #[arg(long, help = "Export sequence number < <lt_sequence>")]
-  lt_sequence: u32,
+  lt_sequence: Option<u32>,
 }
 
 impl Export {

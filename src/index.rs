@@ -696,8 +696,8 @@ impl Index {
   pub(crate) fn export(
     &self,
     output_filename: &String,
-    gt_sequence: u32,
-    lt_sequence: u32,
+    gt_sequence: Option<u32>,
+    lt_sequence: Option<u32>,
   ) -> Result {
     let start_time = Instant::now();
 
@@ -742,12 +742,18 @@ impl Index {
       total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
-      if sequence_number >= lt_sequence {
-        break;
+      // if sequence_number is not in the range, skip
+      if let Some(lt_sequence) = lt_sequence {
+        if sequence_number >= lt_sequence {
+          break;
+        }
       }
-      if sequence_number <= gt_sequence {
-        continue;
+      if let Some(gt_sequence) = gt_sequence {
+        if sequence_number <= gt_sequence {
+          continue;
+        }
       }
+
       let entry = InscriptionEntry::load(entry.1.value());
       let satpoint = SatPoint::load(
         *sequence_number_to_satpoint
@@ -866,7 +872,7 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= {} included, >= {} not included) in block heights: [0,{})",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= gt_sequence included, >= lt_sequence not included) in block heights: [0,{})",
       recorded,
       cursed_count,
       p2pk_count,
@@ -874,8 +880,6 @@ impl Index {
       body_none_count,
       start_time.elapsed(),
       total_num,
-      gt_sequence,
-      lt_sequence,
       blocks_indexed,
     );
 
