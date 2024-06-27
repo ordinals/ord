@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
-pub(crate) enum OrdError {
+pub(crate) enum SnafuError {
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
@@ -19,8 +19,8 @@ pub(crate) enum OrdError {
   },
 }
 
-impl From<Error> for OrdError {
-  fn from(err: Error) -> OrdError {
+impl From<Error> for SnafuError {
+  fn from(err: Error) -> SnafuError {
     Self::Anyhow { err }
   }
 }

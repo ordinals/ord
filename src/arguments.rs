@@ -20,7 +20,7 @@ pub(crate) struct Arguments {
 }
 
 impl Arguments {
-  pub(crate) fn run(self) -> Result<Option<Box<dyn subcommand::Output>>, OrdError> {
+  pub(crate) fn run(self) -> SnafuResult<Option<Box<dyn subcommand::Output>>> {
     let mut env: BTreeMap<String, String> = BTreeMap::new();
 
     for (variable, value) in env::vars_os() {
@@ -36,7 +36,7 @@ impl Arguments {
         key.into(),
         value
           .into_string()
-          .map_err(|value| OrdError::EnvVarUnicode {
+          .map_err(|value| SnafuError::EnvVarUnicode {
             backtrace: Backtrace::capture(),
             value,
             variable: variable.into(),

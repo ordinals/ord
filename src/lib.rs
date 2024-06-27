@@ -47,7 +47,7 @@ use {
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
-  error::{OrdError, ResultExt},
+  error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
   http::HeaderMap,
   lazy_static::lazy_static,
@@ -127,6 +127,7 @@ pub mod templates;
 pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
+type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -266,7 +267,7 @@ pub fn main() {
     Err(err) => {
       eprintln!("error: {err}");
 
-      if let OrdError::Anyhow { err } = err {
+      if let SnafuError::Anyhow { err } = err {
         for (i, err) in err.chain().skip(1).enumerate() {
           if i == 0 {
             eprintln!();
