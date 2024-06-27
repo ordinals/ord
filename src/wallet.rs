@@ -72,7 +72,7 @@ pub(crate) struct Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn get_output_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+  pub(crate) fn get_wallet_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
       self.has_sat_index,
       "ord index must be built with `--index-sats` to use `--sat`"
@@ -90,10 +90,7 @@ impl Wallet {
     Ok(output_sat_ranges)
   }
 
-  pub(crate) fn get_output_sat_range(
-    &self,
-    output: &OutPoint,
-  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+  pub(crate) fn get_output_sat_ranges(&self, output: &OutPoint) -> Result<Vec<(u64, u64)>> {
     ensure!(
       self.has_sat_index,
       "ord index must be built with `--index-sats` to see sat ranges"
@@ -101,8 +98,7 @@ impl Wallet {
 
     if let Some(info) = self.output_info.get(output) {
       if let Some(sat_ranges) = &info.sat_ranges {
-        // Return the sat ranges for the specific output
-        Ok(vec![(*output, sat_ranges.clone())])
+        Ok(sat_ranges.clone())
       } else {
         bail!("output {output} in wallet but is spent according to ord server");
       }
