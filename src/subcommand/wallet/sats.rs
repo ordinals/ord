@@ -7,10 +7,7 @@ pub(crate) struct Sats {
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
   tsv: Option<PathBuf>,
-  #[arg(
-    long,
-    help = "Display list of all sat ranges in wallet"
-  )]
+  #[arg(long, help = "Display list of all sat ranges in wallet")]
   all: bool,
 }
 
