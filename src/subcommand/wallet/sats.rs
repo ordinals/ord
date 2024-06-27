@@ -10,7 +10,7 @@ pub(crate) struct Sats {
   tsv: Option<PathBuf>,
   #[arg(
     long,
-    help = "Display list of all sat ranges in wallet and special sats."
+    help = "Display list of all sat ranges in wallet"
   )]
   all: bool,
 }
