@@ -274,7 +274,7 @@ pub fn main() {
             eprintln!("because:");
           }
 
-          eprintln!("    - {err}");
+          eprintln!("- {err}");
         }
 
         if env::var_os("RUST_BACKTRACE")
