@@ -134,7 +134,7 @@ mod tests {
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
           <dt>sat name</dt>
-          <dd><a href=/sat/nvtdijuwxlo></a></dd>
+          <dd><a href=/sat/nvtdijuwxlo>nvtdijuwxlo</a></dd>
           <dt>preview</dt>
           .*
         </dl>
