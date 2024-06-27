@@ -91,6 +91,6 @@ fn sats_from_tsv_file_not_found() {
     .core(&core)
     .ord(&ord)
     .expected_exit_code(1)
-    .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
+    .stderr_regex("error: I/O error reading `.*`\n\nbecause:.*")
     .run_and_extract_stdout();
 }
