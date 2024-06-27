@@ -735,24 +735,21 @@ impl Index {
     let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut body_size_hist = Histogram::<u64>::new_with_bounds(1, 4 * 1024 * 1024, 2).unwrap();
 
-    for result in rtx
-      .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
-      .iter()?
-    {
+    let seq_ins_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let range = (gt_sequence, lt_sequence);
+    let entry_range_iter = match range {
+      (Some(gt_sequence), Some(lt_sequence)) => {
+        seq_ins_table.range(gt_sequence + 1..lt_sequence)?
+      }
+      (Some(gt_sequence), None) => seq_ins_table.range(gt_sequence + 1..)?,
+      (None, Some(lt_sequence)) => seq_ins_table.range(..lt_sequence)?,
+      (None, None) => seq_ins_table.iter()?,
+    };
+
+    for result in entry_range_iter {
       total_num += 1;
       let entry = result?;
       let sequence_number = entry.0.value();
-      // if sequence_number is not in the range, skip
-      if let Some(lt_sequence) = lt_sequence {
-        if sequence_number >= lt_sequence {
-          break;
-        }
-      }
-      if let Some(gt_sequence) = gt_sequence {
-        if sequence_number <= gt_sequence {
-          continue;
-        }
-      }
 
       let entry = InscriptionEntry::load(entry.1.value());
       let satpoint = SatPoint::load(
