@@ -265,9 +265,10 @@ the server and show `info`-level log messages and above:
 ```
 $ RUST_LOG=info cargo run server
 ```
-Set the
-`RUST_BACKTRACE` environment variable in order to turn on full rust tracktrace. For example, run
-the server and turn on debugging and full backtrace:
+
+Set the `RUST_BACKTRACE` environment variable in order to turn on full rust
+backtrace. For example, run the server and turn on debugging and full backtrace:
+
 ```
 $ RUST_BACKTRACE=1 RUST_LOG=debug ord server
 ```
