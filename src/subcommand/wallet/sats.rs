@@ -49,7 +49,7 @@ impl Sats {
 
       let formatted_ranges: Vec<String> = ranges
         .iter()
-        .map(|range| format!("{} - {}", range.0, range.1))
+        .map(|range| format!("{}-{}", range.0, range.1))
         .collect();
 
       let result = format!("[{}]", formatted_ranges.join(", \n"));
