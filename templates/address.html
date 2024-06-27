@@ -3,15 +3,19 @@
   <dt>sat balance</dt>
   <dd>{{ self.sat_balance }}</dd>
   <dt>runes balances</dt>
-  %% for (rune, amount) in self.runes_balances.iter() {
-  <dd>{{ rune }}: {{ amount }}</dd>
-  %% }
+%% for (rune, decimal, symbol) in self.runes_balances.iter() {
+%% if let Some(symbol) = symbol {
+  <dd>{{ rune }}: {{ decimal }}{{ symbol }}</dd>
+%% } else {
+  <dd>{{ rune }}: {{ decimal }}</dd>
+%% }
+%% }
   <dt>outputs</dt>
   <dd>
     <ul>
-    %% for output in self.outputs.iter() {
-          <li><a class=monospace href=/output/{{ output }}>{{ output }}</a></li>
-    %% }
+%% for output in self.outputs.iter() {
+      <li><a class=monospace href=/output/{{ output }}>{{ output }}</a></li>
+%% }
     </ul>
   </dd>
 </dl>

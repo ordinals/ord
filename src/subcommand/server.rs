@@ -864,7 +864,7 @@ impl Server {
 
       let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
 
-      let runes_balances = index.get_rune_balances_for_outputs(&outputs)?;
+      let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
       Ok(if accept_json {
         Json(outputs).into_response()
@@ -874,7 +874,6 @@ impl Server {
           outputs,
           sat_balance,
           runes_balances,
-
         }
         .page(server_config)
         .into_response()
