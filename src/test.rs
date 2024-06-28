@@ -41,8 +41,7 @@ pub(crate) fn address() -> Address {
 }
 
 pub(crate) fn recipient() -> ScriptBuf {
-  recipient_as_address()
-    .script_pubkey()
+  recipient_as_address().script_pubkey()
 }
 
 pub(crate) fn recipient_as_address() -> Address {

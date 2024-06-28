@@ -537,7 +537,7 @@ impl Plan {
       commit_change,
       self.commit_fee_rate,
       Target::Value(target_value),
-      chain.network()
+      chain.network(),
     )
     .build_transaction()?;
 

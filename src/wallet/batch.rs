@@ -721,7 +721,7 @@ mod tests {
     let reveal_addresses = vec![
       recipient_as_address(),
       recipient_as_address(),
-      recipient_as_address()
+      recipient_as_address(),
     ];
 
     let inscriptions = vec![
@@ -1027,7 +1027,7 @@ mod tests {
     let reveal_addresses = vec![
       recipient_as_address(),
       recipient_as_address(),
-      recipient_as_address()
+      recipient_as_address(),
     ];
 
     let inscriptions = vec![
@@ -1100,7 +1100,7 @@ mod tests {
     let reveal_addresses = vec![
       recipient_as_address(),
       recipient_as_address(),
-      recipient_as_address()
+      recipient_as_address(),
     ];
 
     let inscriptions = vec![

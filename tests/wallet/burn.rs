@@ -1,4 +1,4 @@
-use {super::*};
+use super::*;
 
 #[test]
 fn inscriptions_can_be_burned() {
@@ -14,9 +14,7 @@ fn inscriptions_can_be_burned() {
 
   core.mine_blocks(1);
 
-  let output = CommandBuilder::new(format!(
-    "wallet burn --fee-rate 1 {inscription}",
-  ))
+  let output = CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
     .stdout_regex(r".*")
@@ -66,13 +64,11 @@ fn inscriptions_on_large_utxos_are_protected() {
 
   core.mine_blocks(1);
 
-  let output = CommandBuilder::new(format!(
-    "wallet burn --fee-rate 1 {inscription}",
-  ))
+  CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
     .stdout_regex(r".*")
-    .expected_stderr(format!("error: The amount of sats where the inscription is on exceeds 10000\n"))
+    .expected_stderr("error: The amount of sats where the inscription is on exceeds 10000\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

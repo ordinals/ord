@@ -1,8 +1,4 @@
-use {
-  super::*,
-  base64::Engine,
-  bitcoin::psbt::Psbt,
-};
+use {super::*, base64::Engine, bitcoin::psbt::Psbt};
 
 pub(super) fn sign_transaction(
   wallet: &Wallet,

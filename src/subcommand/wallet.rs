@@ -3,11 +3,12 @@ use {
   crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
-  sign_transaction::*
+  sign_transaction::*,
 };
 
 pub mod balance;
 mod batch_command;
+pub mod burn;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -24,9 +25,8 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
-pub mod transactions;
-pub mod burn;
 mod sign_transaction;
+pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) struct WalletCommand {

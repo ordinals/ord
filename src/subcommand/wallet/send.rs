@@ -151,7 +151,7 @@ impl Send {
         change,
         fee_rate,
         postage,
-        wallet.chain().network()
+        wallet.chain().network(),
       )
       .build_transaction()?,
     )

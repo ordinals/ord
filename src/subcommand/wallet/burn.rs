@@ -1,4 +1,4 @@
-use {super::*, crate::outgoing::Outgoing, bitcoin::{opcodes}};
+use {super::*, crate::outgoing::Outgoing, bitcoin::opcodes};
 
 #[derive(Debug, Parser)]
 pub struct Burn {
@@ -24,7 +24,9 @@ impl Burn {
           .ok_or_else(|| anyhow!("inscription {id} not found"))?;
 
         if inscription_info.value.unwrap() > 10000 {
-          return Err(anyhow!("The amount of sats where the inscription is on exceeds 10000"));
+          return Err(anyhow!(
+            "The amount of sats where the inscription is on exceeds 10000"
+          ));
         }
 
         Self::create_unsigned_burn_transaction(
@@ -51,7 +53,7 @@ impl Burn {
     wallet: &Wallet,
     satpoint: SatPoint,
     postage: Option<Amount>,
-    fee_rate: FeeRate
+    fee_rate: FeeRate,
   ) -> Result<Transaction> {
     let runic_outputs = wallet.get_runic_outputs()?;
 
@@ -68,7 +70,9 @@ impl Burn {
       Target::Postage
     };
 
-    let burn_script = script::Builder::new().push_opcode(opcodes::all::OP_RETURN).into_script();
+    let burn_script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_RETURN)
+      .into_script();
 
     Ok(
       TransactionBuilder::new(
@@ -81,9 +85,9 @@ impl Burn {
         change,
         fee_rate,
         postage,
-        wallet.chain().network()
+        wallet.chain().network(),
       )
-        .build_transaction()?,
+      .build_transaction()?,
     )
   }
 }

@@ -13,7 +13,7 @@ use {
   mockcore::TransactionTemplate,
   ord::{
     api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, InscriptionId, RuneEntry, TARGET_POSTAGE
+    wallet::batch, InscriptionId, RuneEntry, TARGET_POSTAGE,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
@@ -99,7 +99,11 @@ fn sats(
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
 }
 
-fn inscribe_with_custom_postage(core: &mockcore::Handle, ord: &TestServer, postage: Option<u64>) -> (InscriptionId, Txid) {
+fn inscribe_with_custom_postage(
+  core: &mockcore::Handle,
+  ord: &TestServer,
+  postage: Option<u64>,
+) -> (InscriptionId, Txid) {
   core.mine_blocks(1);
 
   let mut command_str = format!(
