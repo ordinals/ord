@@ -32,7 +32,7 @@ impl Sats {
       "sats requires index created with `--index-sats` flag"
     );
 
-    let haystacks = wallet.get_output_sat_ranges()?;
+    let haystacks = wallet.get_wallet_sat_ranges()?;
 
     if self.all {
       let mut ranges: Vec<(u64, u64)> = haystacks
