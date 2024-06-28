@@ -47,6 +47,7 @@ use {
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
+  error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
   http::HeaderMap,
   lazy_static::lazy_static,
@@ -58,10 +59,13 @@ use {
   reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
+  snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
+    backtrace::BacktraceStatus,
     cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
+    ffi::OsString,
     fmt::{self, Display, Formatter},
     fs,
     io::{self, Cursor, Read},
@@ -104,6 +108,7 @@ mod blocktime;
 pub mod chain;
 pub mod decimal;
 mod deserialize_from_str;
+mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
@@ -115,13 +120,14 @@ pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
-mod settings;
+pub mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
 pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
+type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -220,10 +226,13 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
-fn gracefully_shutdown_indexer() {
+pub fn shut_down() {
+  SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+}
+
+fn gracefully_shut_down_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
-    // We explicitly set this to true to notify the thread to not take on new work
-    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    shut_down();
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
@@ -246,7 +255,7 @@ pub fn main() {
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
 
-    gracefully_shutdown_indexer();
+    gracefully_shut_down_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
@@ -257,18 +266,42 @@ pub fn main() {
   match args.run() {
     Err(err) => {
       eprintln!("error: {err}");
-      err
-        .chain()
-        .skip(1)
-        .for_each(|cause| eprintln!("because: {cause}"));
-      if env::var_os("RUST_BACKTRACE")
-        .map(|val| val == "1")
-        .unwrap_or_default()
-      {
-        eprintln!("{}", err.backtrace());
+
+      if let SnafuError::Anyhow { err } = err {
+        for (i, err) in err.chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if env::var_os("RUST_BACKTRACE")
+          .map(|val| val == "1")
+          .unwrap_or_default()
+        {
+          eprintln!("{}", err.backtrace());
+        }
+      } else {
+        for (i, err) in err.iter_chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if let Some(backtrace) = err.backtrace() {
+          if backtrace.status() == BacktraceStatus::Captured {
+            eprintln!("backtrace:");
+            eprintln!("{backtrace}");
+          }
+        }
       }
 
-      gracefully_shutdown_indexer();
+      gracefully_shut_down_indexer();
 
       process::exit(1);
     }
@@ -276,7 +309,7 @@ pub fn main() {
       if let Some(output) = output {
         output.print(format.unwrap_or_default());
       }
-      gracefully_shutdown_indexer();
+      gracefully_shut_down_indexer();
     }
   }
 }
