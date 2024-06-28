@@ -35,7 +35,16 @@ mod tests {
           scale: 0,
           value: 20000,
         },
-        Some('R'),
+        Some('R')),(
+        SpacedRune {
+          rune: Rune::from_str("ANOTHERTEESTRUNE").unwrap(),
+          spacers: 0,
+        },
+        Decimal {
+          scale: 0,
+          value: 10000,
+        },
+        Some('F'),
       )],
     }
   }
@@ -58,7 +67,7 @@ mod tests {
   #[test]
   fn test_runes_balances_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>runes balances</dt>\n\s*<dd>TEEEEEEEEESTRUNE: 20000R</dd>.*"#;
+    let expected_pattern = r#".*<dt>runes balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 

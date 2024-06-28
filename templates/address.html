@@ -5,7 +5,7 @@
   <dt>runes balances</dt>
 %% for (rune, decimal, symbol) in self.runes_balances.iter() {
 %% if let Some(symbol) = symbol {
-  <dd>{{ rune }}: {{ decimal }}{{ symbol }}</dd>
+  <dd><a class=monospace href=/rune/{{ rune }}>{{ rune }}</a>: {{ decimal }}{{ symbol }}</dd>
 %% } else {
   <dd>{{ rune }}: {{ decimal }}</dd>
 %% }
