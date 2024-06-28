@@ -108,15 +108,15 @@ fn sats_all() {
   let output = CommandBuilder::new("--index-sats wallet sats --all")
     .core(&core)
     .ord(&ord)
-    .run_and_deserialize_output::<BTreeMap<OutPoint, Vec<String>>>();
+    .run_and_deserialize_output::<Vec<OutputAll>>();
 
   assert_eq!(
     output,
-    vec![(
-      format!("{second_coinbase}:0").parse::<OutPoint>().unwrap(),
-      vec![format!("{}-{}", 50 * COIN_VALUE, 100 * COIN_VALUE)]
-    )]
+    vec![OutputAll {
+      output: format!("{second_coinbase}:0").parse::<OutPoint>().unwrap(),
+      ranges: vec![format!("{}-{}", 50 * COIN_VALUE, 100 * COIN_VALUE)],
+    }]
     .into_iter()
-    .collect()
+    .collect::<Vec<OutputAll>>()
   );
 }

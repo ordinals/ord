@@ -30,10 +30,10 @@ pub struct OutputRare {
   pub rarity: Rarity,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct OutputAll {
-  pub ranges: BTreeMap<OutPoint, Vec<String>>,
-  pub rare: Vec<OutputRare>,
+  pub output: OutPoint,
+  pub ranges: Vec<String>,
 }
 
 impl Sats {
@@ -49,16 +49,14 @@ impl Sats {
       Ok(Some(Box::new(
         haystacks
           .into_iter()
-          .map(|(outpoint, ranges)| {
-            (
-              outpoint,
-              ranges
-                .into_iter()
-                .map(|range| format!("{}-{}", range.0, range.1))
-                .collect::<Vec<String>>(),
-            )
+          .map(|(outpoint, ranges)| OutputAll {
+            output: outpoint,
+            ranges: ranges
+              .into_iter()
+              .map(|range| format!("{}-{}", range.0, range.1))
+              .collect::<Vec<String>>(),
           })
-          .collect::<BTreeMap<OutPoint, Vec<String>>>(),
+          .collect::<Vec<OutputAll>>(),
       )))
     } else if let Some(path) = &self.tsv {
       let tsv = fs::read_to_string(path)
