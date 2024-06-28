@@ -30,7 +30,7 @@ impl Sats {
       "sats requires index created with `--index-sats` flag"
     );
 
-    let haystacks = wallet.get_output_sat_ranges()?;
+    let haystacks = wallet.get_wallet_sat_ranges()?;
 
     if let Some(path) = &self.tsv {
       let tsv = fs::read_to_string(path)

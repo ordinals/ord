@@ -62,7 +62,7 @@ pub(crate) enum Subcommand {
   #[command(about = "Mint a rune")]
   Mint(mint::Mint),
   #[command(about = "List all unspent outputs in wallet")]
-  Outputs,
+  Outputs(outputs::Outputs),
   #[command(about = "List pending etchings")]
   Pending(pending::Pending),
   #[command(about = "Generate receive address")]
@@ -113,7 +113,7 @@ impl WalletCommand {
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
-      Subcommand::Outputs => outputs::run(wallet),
+      Subcommand::Outputs(outputs) => outputs.run(wallet),
       Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
       Subcommand::Resume(resume) => resume.run(wallet),
