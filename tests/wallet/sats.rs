@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::sats::{OutputRare, OutputTsv},
+  ord::subcommand::wallet::sats::{OutputAll, OutputRare, OutputTsv},
 };
 
 #[test]
@@ -91,6 +91,32 @@ fn sats_from_tsv_file_not_found() {
     .core(&core)
     .ord(&ord)
     .expected_exit_code(1)
-    .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
+    .stderr_regex("error: I/O error reading `.*`\n\nbecause:.*")
     .run_and_extract_stdout();
+}
+
+#[test]
+fn sats_all() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
+
+  let output = CommandBuilder::new("--index-sats wallet sats --all")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<OutputAll>>();
+
+  assert_eq!(
+    output,
+    vec![OutputAll {
+      output: format!("{second_coinbase}:0").parse::<OutPoint>().unwrap(),
+      ranges: vec![format!("{}-{}", 50 * COIN_VALUE, 100 * COIN_VALUE)],
+    }]
+    .into_iter()
+    .collect::<Vec<OutputAll>>()
+  );
 }

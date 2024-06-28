@@ -215,12 +215,9 @@ impl Index {
 
     let path = settings.index().to_owned();
 
-    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
-      bail!(
-        "failed to create data dir `{}`: {err}",
-        path.parent().unwrap().display()
-      );
-    }
+    let data_dir = path.parent().unwrap();
+
+    fs::create_dir_all(data_dir).snafu_context(error::Io { path: data_dir })?;
 
     let index_cache_size = settings.index_cache_size();
 
