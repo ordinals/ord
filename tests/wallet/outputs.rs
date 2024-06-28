@@ -79,7 +79,7 @@ fn outputs_includes_sat_ranges() {
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
-  let output = CommandBuilder::new("wallet outputs")
+  let output = CommandBuilder::new("wallet outputs --ranges")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
