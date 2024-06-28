@@ -517,7 +517,7 @@ ID `0:0` is used to mean the rune being etched in this transaction, if any.
 An edict with `amount` zero allocates all remaining units of rune `id`.
 
 An edict with `output` equal to the number of transaction outputs allocates
-`amount` runes to each non-`OP_RETURN` output.
+`amount` runes to each non-`OP_RETURN` output in order.
 
 An edict with `amount` zero and `output` equal to the number of transaction
 outputs divides all unallocated units of rune `id` between each non-`OP_RETURN`

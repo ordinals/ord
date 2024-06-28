@@ -4,9 +4,16 @@ use super::*;
 pub(crate) struct Sats {
   #[arg(
     long,
+    conflicts_with = "all",
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
   tsv: Option<PathBuf>,
+  #[arg(
+    long,
+    conflicts_with = "tsv",
+    help = "Display list of all sat ranges in wallet."
+  )]
+  all: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -23,6 +30,12 @@ pub struct OutputRare {
   pub rarity: Rarity,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct OutputAll {
+  pub output: OutPoint,
+  pub ranges: Vec<String>,
+}
+
 impl Sats {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
@@ -30,9 +43,22 @@ impl Sats {
       "sats requires index created with `--index-sats` flag"
     );
 
-    let haystacks = wallet.get_output_sat_ranges()?;
+    let haystacks = wallet.get_wallet_sat_ranges()?;
 
-    if let Some(path) = &self.tsv {
+    if self.all {
+      Ok(Some(Box::new(
+        haystacks
+          .into_iter()
+          .map(|(outpoint, ranges)| OutputAll {
+            output: outpoint,
+            ranges: ranges
+              .into_iter()
+              .map(|range| format!("{}-{}", range.0, range.1))
+              .collect::<Vec<String>>(),
+          })
+          .collect::<Vec<OutputAll>>(),
+      )))
+    } else if let Some(path) = &self.tsv {
       let tsv = fs::read_to_string(path)
         .with_context(|| format!("I/O error reading `{}`", path.display()))?;
 
@@ -57,6 +83,7 @@ impl Sats {
           rarity,
         });
       }
+
       Ok(Some(Box::new(output)))
     }
   }
