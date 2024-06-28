@@ -4,10 +4,15 @@ use super::*;
 pub(crate) struct Sats {
   #[arg(
     long,
+    conflicts_with = "all",
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
   tsv: Option<PathBuf>,
-  #[arg(long, help = "Display list of all sat ranges in wallet")]
+  #[arg(
+    long,
+    conflicts_with = "tsv",
+    help = "Display list of all sat ranges in wallet."
+  )]
   all: bool,
 }
 
@@ -25,6 +30,12 @@ pub struct OutputRare {
   pub rarity: Rarity,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct OutputAll {
+  pub ranges: BTreeMap<OutPoint, Vec<String>>,
+  pub rare: Vec<OutputRare>,
+}
+
 impl Sats {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
@@ -35,25 +46,21 @@ impl Sats {
     let haystacks = wallet.get_wallet_sat_ranges()?;
 
     if self.all {
-      let mut ranges: Vec<(u64, u64)> = haystacks
-        .iter()
-        .flat_map(|(_, ranges)| ranges)
-        .cloned()
-        .collect();
-
-      ranges.sort_by(|a, b| a.0.cmp(&b.0));
-
-      let formatted_ranges: Vec<String> = ranges
-        .iter()
-        .map(|range| format!("{}-{}", range.0, range.1))
-        .collect();
-
-      let result = format!("[{}]", formatted_ranges.join(", \n"));
-
-      println!("{}", result);
-    }
-
-    if let Some(path) = &self.tsv {
+      Ok(Some(Box::new(
+        haystacks
+          .into_iter()
+          .map(|(outpoint, ranges)| {
+            (
+              outpoint,
+              ranges
+                .into_iter()
+                .map(|range| format!("{}-{}", range.0, range.1))
+                .collect::<Vec<String>>(),
+            )
+          })
+          .collect::<BTreeMap<OutPoint, Vec<String>>>(),
+      )))
+    } else if let Some(path) = &self.tsv {
       let tsv = fs::read_to_string(path)
         .with_context(|| format!("I/O error reading `{}`", path.display()))?;
 
@@ -78,6 +85,7 @@ impl Sats {
           rarity,
         });
       }
+
       Ok(Some(Box::new(output)))
     }
   }
