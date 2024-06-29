@@ -101,7 +101,7 @@ fn address_page_shows_multiple_runes() {
   create_wallet(&core, &ord);
 
   etch(&core, &ord, Rune(RUNE));
-  etch(&core, &ord, Rune(RUNE+1));
+  etch(&core, &ord, Rune(RUNE + 1));
 
   let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
 
@@ -118,7 +118,7 @@ fn address_page_shows_multiple_runes() {
 
   CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 {address} 1000:{}",
-    Rune(RUNE+1)
+    Rune(RUNE + 1)
   ))
   .core(&core)
   .ord(&ord)
@@ -129,10 +129,12 @@ fn address_page_shows_multiple_runes() {
 
   ord.assert_response_regex(
     format!("/address/{address}"),
-    format!(".*<dd>.*{}.*: 1000¢</dd>.*<dd>.*{}.*: 1000¢</dd>.*", Rune(RUNE), Rune(RUNE+1)),
+    format!(
+      ".*<dd>.*{}.*: 1000¢</dd>.*<dd>.*{}.*: 1000¢</dd>.*",
+      Rune(RUNE),
+      Rune(RUNE + 1)
+    ),
   );
-
-
 }
 
 #[test]
@@ -173,7 +175,6 @@ fn address_page_shows_aggregated_runes_balance() {
     format!("/address/{address}"),
     format!(".*<dd>.*{}.*: 500¢</dd>.*", Rune(RUNE)),
   );
-
 }
 
 #[test]

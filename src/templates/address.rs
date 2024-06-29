@@ -26,26 +26,30 @@ mod tests {
         .unwrap(),
       outputs: vec![outpoint(1), outpoint(2)],
       sat_balance: 99,
-      runes_balances: vec![(
-        SpacedRune {
-          rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
-          spacers: 0,
-        },
-        Decimal {
-          scale: 0,
-          value: 20000,
-        },
-        Some('R')),(
-        SpacedRune {
-          rune: Rune::from_str("ANOTHERTEESTRUNE").unwrap(),
-          spacers: 0,
-        },
-        Decimal {
-          scale: 0,
-          value: 10000,
-        },
-        Some('F'),
-      )],
+      runes_balances: vec![
+        (
+          SpacedRune {
+            rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
+            spacers: 0,
+          },
+          Decimal {
+            scale: 0,
+            value: 20000,
+          },
+          Some('R'),
+        ),
+        (
+          SpacedRune {
+            rune: Rune::from_str("ANOTHERTEESTRUNE").unwrap(),
+            spacers: 0,
+          },
+          Decimal {
+            scale: 0,
+            value: 10000,
+          },
+          Some('F'),
+        ),
+      ],
     }
   }
 
