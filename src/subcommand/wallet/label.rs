@@ -23,7 +23,7 @@ struct Line {
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut lines: Vec<Line> = Vec::new();
 
-  let sat_ranges = wallet.get_output_sat_ranges()?;
+  let sat_ranges = wallet.get_wallet_sat_ranges()?;
 
   let mut inscriptions_by_output: BTreeMap<OutPoint, BTreeMap<u64, Vec<InscriptionId>>> =
     BTreeMap::new();
