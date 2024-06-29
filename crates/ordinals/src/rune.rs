@@ -89,7 +89,7 @@ impl Rune {
 
     let mut min = 0;
     let mut max = 26;
-    let mut step: usize = 12;
+    let mut step: usize = 11; // 0,1,2,3,4,5,6,7,8,9,10,11 (12 steps)
 
     for (i, val) in Self::STEPS.windows(2).enumerate() {
       if self.n() == 0 {
@@ -468,13 +468,24 @@ mod tests {
       );
     }
     const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
-    // const END: u32 = START + SUBSIDY_HALVING_INTERVAL;
+    const END: u32 = START + SUBSIDY_HALVING_INTERVAL;
     const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
     case("ZZYZXBRKWXVA", START);
     case("ZZZZZZZZZZZZ", START);
     case("AAAAAAAAAAAAA", START);
     case("ZZXZUDIVTVQA", START + 1);
-    case("ZZXZUDIVTVQA", START + INTERVAL * 00 + 1);
+
+    case("A", END - 0 * INTERVAL - 0 * (INTERVAL / 26));
+    case("B", END - 0 * INTERVAL - 1 * (INTERVAL / 26) - 1);
+    case("C", END - 0 * INTERVAL - 2 * (INTERVAL / 26) - 1);
+    case("D", END - 0 * INTERVAL - 3 * (INTERVAL / 26) - 1);
+
+    case("AA", END - 1 * INTERVAL - 0 * (INTERVAL / 26));
+    case("BA", END - 1 * INTERVAL - 1 * (INTERVAL / 26) - 1);
+    case("CA", END - 1 * INTERVAL - 2 * (INTERVAL / 26) - 1);
+    case("DA", END - 1 * INTERVAL - 3 * (INTERVAL / 26) - 1);
+
+    case("AAA", END - 2 * INTERVAL - 0 * (INTERVAL / 26));
   }
 }
