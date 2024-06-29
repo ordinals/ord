@@ -269,8 +269,7 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
-        .route("/r/tx/:txid", get(Self::transaction))
-
+        .route("/r/tx/:txid", get(Self::transaction_json))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -972,6 +971,32 @@ impl Server {
       })
     })
   }
+
+  async fn transaction_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+   ) -> ServerResult {
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+      let inscription_count = index.inscription_count(txid)?;
+
+
+      Ok(Json(api::Transaction {
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
+        })
+        .into_response()
+      )
+    })
+  }
+
 
   async fn decode(
     Extension(index): Extension<Arc<Index>>,
