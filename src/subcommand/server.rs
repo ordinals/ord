@@ -2065,36 +2065,59 @@ impl Server {
   }
 
   async fn transactions_in_block_paginated_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((block_height, page_index)): Path<(u32, u32)>,
-   ) -> ServerResult {
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
     task::block_in_place(|| {
-      let page_size = 100;
+      let (block, height) = match query {
+        query::Block::Height(height) => {
+          let block = index
+            .get_block_by_height(height)?
+            .ok_or_not_found(|| format!("block {height}"))?;
 
-      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
-      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+          (block, height)
+        }
+        query::Block::Hash(hash) => {
+          let info = index
+            .block_header_info(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
 
-      let mut transactions = index
-        .list_transactions(block_height)?
-        .skip(page_index_usize.saturating_mul(page_size_usize))
-        .take(page_size_usize.saturating_add(1))
- 
-      let more = transactions.len() > page_size_usize;
+          let block = index
+            .get_block_by_hash(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
 
-      if more {
-        transactions.pop();
-      }
+          (block, u32::try_from(info.height).unwrap())
+        }
+      };
 
-      Json(api::Block::new(
-        block,
-        Height(block_height),
-        Self::index_height(&index)?,
-        transactions,
-        
-      ))
-      .into_response()
-    
+      let runes = index.get_runes_in_block(u64::from(height))?;
+      Ok(if accept_json {
+        let inscriptions = index.get_inscriptions_in_block(height)?;
+        Json(api::Block::new(
+          block,
+          Height(height),
+          Self::index_height(&index)?,
+          inscriptions,
+          runes,
+        ))
+        .into_response()
+      } else {
+        let (featured_inscriptions, total_num) =
+          index.get_highest_paying_inscriptions_in_block(height, 8)?;
+        BlockHtml::new(
+          block,
+          Height(height),
+          Self::index_height(&index)?,
+          total_num,
+          featured_inscriptions,
+          runes,
+        )
+        .page(server_config)
+        .into_response()
       })
+    })
     
   }
 
