@@ -50,7 +50,7 @@ pub(crate) enum Subcommand {
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
-  #[command(about = "Burn sat or inscription")]
+  #[command(about = "Burn an inscription")]
   Burn(burn::Burn),
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
