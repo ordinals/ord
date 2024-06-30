@@ -2065,13 +2065,11 @@ impl Server {
   }
 
   async fn transactions_in_block_paginated_json(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let accept_json = true;
-       let (block, height) = match query {
+        let (block, height) = match query {
         query::Block::Height(height) => {
           let block = index
             .get_block_by_height(height)?
@@ -2094,30 +2092,14 @@ impl Server {
        let runes = index.get_runes_in_block(u64::from(height))?; 
        let inscriptions = index
         .get_inscriptions_in_block(height)?;
-        Ok(if accept_json {
-        
-         Json(api::Block::new(
+        Ok(Json(api::Block::new(
           block,
           Height(height),
           Self::index_height(&index)?,
           inscriptions,
           runes,
         ))
-        .into_response()
-      } else {
-        let (featured_inscriptions, total_num) =
-          index.get_highest_paying_inscriptions_in_block(height, 8)?;
-        BlockHtml::new(
-          block,
-          Height(height),
-          Self::index_height(&index)?,
-          total_num,
-          featured_inscriptions,
-          runes,
-        )
-        .page(server_config)
-        .into_response()
-      })
+        .into_response())
     })
     
     
