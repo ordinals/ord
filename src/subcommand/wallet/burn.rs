@@ -35,7 +35,7 @@ impl Burn {
           self.fee_rate,
         )?
       }
-      _ => panic!("Outgoing type is not an inscription"),
+      _ => panic!("Only inscriptions can be burned for now"),
     };
 
     let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
