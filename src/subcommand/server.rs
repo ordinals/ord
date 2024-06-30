@@ -270,7 +270,7 @@ impl Server {
           get(Self::sat_inscription_at_index),
         )
         .route("/r/tx/:txid", get(Self::transaction_json))
-        .route("/r/txs/:height/:page", get(Self::transactions_in_block_paginated_json))
+        .route("/r/txs/:query", get(Self::transactions_in_block_paginated_json))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -2068,10 +2068,10 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
-    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let (block, height) = match query {
+      let accept_json = true;
+       let (block, height) = match query {
         query::Block::Height(height) => {
           let block = index
             .get_block_by_height(height)?
@@ -2091,11 +2091,11 @@ impl Server {
           (block, u32::try_from(info.height).unwrap())
         }
       };
-
-      let runes = index.get_runes_in_block(u64::from(height))?;
-      Ok(if accept_json {
-        let inscriptions = index.get_inscriptions_in_block(height)?;
-        Json(api::Block::new(
+       let runes = index.get_runes_in_block(u64::from(height))?;
+        Ok(if accept_json {
+         let inscriptions = index
+        .get_inscriptions_in_block(height)?;
+         Json(api::Block::new(
           block,
           Height(height),
           Self::index_height(&index)?,
@@ -2118,6 +2118,7 @@ impl Server {
         .into_response()
       })
     })
+    
     
   }
 
