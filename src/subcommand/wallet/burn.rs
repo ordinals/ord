@@ -18,8 +18,7 @@ impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let unsigned_transaction = match self.outgoing {
       Outgoing::InscriptionId(id) => {
-        let inscription_info_map = wallet.inscription_info();
-        let inscription_info = inscription_info_map
+        let inscription_info = wallet.inscription_info()
           .get(&id)
           .ok_or_else(|| anyhow!("inscription {id} not found"))?;
 
