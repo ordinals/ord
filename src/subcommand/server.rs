@@ -2091,10 +2091,11 @@ impl Server {
           (block, u32::try_from(info.height).unwrap())
         }
       };
-       let runes = index.get_runes_in_block(u64::from(height))?;
-        Ok(if accept_json {
-         let inscriptions = index
+       let runes = index.get_runes_in_block(u64::from(height))?; 
+       let inscriptions = index
         .get_inscriptions_in_block(height)?;
+        Ok(if accept_json {
+        
          Json(api::Block::new(
           block,
           Height(height),
