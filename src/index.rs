@@ -782,7 +782,11 @@ impl Index {
         if (&output).script_pubkey.is_p2pk() {
           is_p2pk = true;
           p2pk_count += 1;
-          (&output).script_pubkey.to_hex_string()
+          (&output)
+            .script_pubkey
+            .p2pk_public_key()
+            .unwrap()
+            .to_string()
         } else {
           self
             .settings
