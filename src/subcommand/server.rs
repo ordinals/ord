@@ -2067,7 +2067,7 @@ impl Server {
   async fn transactions_in_block_paginated_json(
     Extension(index): Extension<Arc<Index>>,
     Path((block_height, page_index)): Path<(u32, u32)>,
-  ) -> ServerResult {
+   ) -> ServerResult {
     task::block_in_place(|| {
       let page_size = 100;
 
@@ -2075,30 +2075,28 @@ impl Server {
       let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
 
       let mut transactions = index
-        .get_transactions_in_block(block_height)?
-        .into_iter()
+        .list_transactions(block_height)?
         .skip(page_index_usize.saturating_mul(page_size_usize))
         .take(page_size_usize.saturating_add(1))
-        .collect::<Vec<InscriptionId>>();
-
+ 
       let more = transactions.len() > page_size_usize;
 
       if more {
         transactions.pop();
       }
 
-      Ok(Json(api::Inscriptions {
-          ids: inscriptions,
-          page_index,
-          more,
-        })
-        .into_response())
+      Json(api::Block::new(
+        block,
+        Height(block_height),
+        Self::index_height(&index)?,
+        transactions,
+        
+      ))
+      .into_response()
     
       })
     
   }
-
-
 
   async fn parents(
     Extension(server_config): Extension<Arc<ServerConfig>>,
