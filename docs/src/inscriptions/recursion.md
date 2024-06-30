@@ -221,3 +221,12 @@ percentile in sats/vB.
    "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 ```
+
+### On-chain Examples
+
+* [OnChain Monkey Genesis (BTC)](https://ordinals.com/children/fb162a46943e5d7d31d72ee2c8c850e66c1ca5d0d453068aa63883528285ed21i0) was one of the earliest collections to use recursion to create its PFP art. 
+* [Blob](https://ordinals.com/inscription/67285791) is a recursive generative collection that seeds its generation with metadata and uses threeJS, React 3 Fiber and other libraries recursively. 
+* The [Abstractii Genesis](https://ordinals.com/inscription/b2de70a5658d3659b74a9a349e02ed9396318eab844073b6f35e726dea9e103ei0) collection uses the inscriptions ID as a seed to generate its art.
+* The [Abstractii Evolved](https://ordinals.com/inscription/c56795a454a30bb6866686770f14d015d53f3cf2ddfa5154e34a7cd1120a51efi0) generative collection uses the recursive blockheight endpoint as a seed to generate its art.
+* [This code](http://ordinals.com/content/eafb859825cd843587d39552eb7a52f352e9621cd16b63b8702c1b8ea44faf1ci0) is called recursively in [this inscription](https://ordinals.com/inscription/60445754) to generate music.
+* [This code](https://ordinals.com/content/e48af8aebe608656a3739393d1270d88285ab3051fb800743509d82bcf163623i0) is called recursively in [this inscription](https://ordinals.com/inscription/70940369) allowing it to function as a pixel art drawing program.
