@@ -92,6 +92,7 @@ impl Display for Error {
 }
 
 impl std::error::Error for Error {}
+
 impl From<bitcoin::address::Error> for Error {
   fn from(_: bitcoin::address::Error) -> Self {
     Self::InvalidAddress
