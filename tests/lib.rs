@@ -74,6 +74,7 @@ mod wallet;
 
 const RUNE: u128 = 99246114928149462;
 
+type Airdrop = ord::subcommand::wallet::airdrop::Output;
 type Balance = ord::subcommand::wallet::balance::Output;
 type Batch = ord::wallet::batch::Output;
 type Create = ord::subcommand::wallet::create::Output;

@@ -1,10 +1,13 @@
 use {
   super::*,
   crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
+  base64::Engine,
+  bitcoin::psbt::Psbt,
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
 };
 
+pub mod airdrop;
 pub mod balance;
 mod batch_command;
 pub mod cardinals;
@@ -43,6 +46,8 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
+  #[command(about = "Airdrop rune in wallet")]
+  Airdrop(airdrop::Airdrop),
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
@@ -104,6 +109,7 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
+      Subcommand::Airdrop(airdrop) => airdrop.run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),

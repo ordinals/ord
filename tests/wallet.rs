@@ -1,5 +1,6 @@
 use super::*;
 
+mod airdrop;
 mod authentication;
 mod balance;
 mod batch_command;
