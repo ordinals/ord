@@ -2,6 +2,14 @@
 <dl>
   <dt>sat balance</dt>
   <dd>{{ self.sat_balance }}</dd>
+  <dt>runes balances</dt>
+%% for (rune, decimal, symbol) in self.runes_balances.iter() {
+%% if let Some(symbol) = symbol {
+  <dd><a class=monospace href=/rune/{{ rune }}>{{ rune }}</a>: {{ decimal }}{{ symbol }}</dd>
+%% } else {
+  <dd>{{ rune }}: {{ decimal }}</dd>
+%% }
+%% }
   <dt>outputs</dt>
   <dd>
     <ul>

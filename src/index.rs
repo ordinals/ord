@@ -2233,6 +2233,40 @@ impl Index {
       .collect()
   }
 
+  pub(crate) fn get_aggregated_rune_balances_for_outputs(
+    &self,
+    outputs: &Vec<OutPoint>,
+  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+    let mut runes = BTreeMap::new();
+
+    for output in outputs {
+      let rune_balances = self.get_rune_balances_for_output(*output)?;
+
+      for (spaced_rune, pile) in rune_balances {
+        runes
+          .entry(spaced_rune)
+          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert((
+            Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            },
+            pile.symbol,
+          ));
+      }
+    }
+
+    Ok(
+      runes
+        .into_iter()
+        .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
+        .collect(),
+    )
+  }
+
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
     let outpoint_to_txout = self.database.begin_read()?.open_table(OUTPOINT_TO_TXOUT)?;
 

@@ -248,7 +248,7 @@ impl State {
       tx.output.insert(
         template.op_return_index.unwrap_or(tx.output.len()),
         TxOut {
-          value: 0,
+          value: template.op_return_value.unwrap_or_default(),
           script_pubkey,
         },
       );
