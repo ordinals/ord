@@ -625,8 +625,6 @@ impl Index {
   }
 
   pub fn update(&self) -> Result {
-    SHUTTING_DOWN.store(false, atomic::Ordering::Relaxed);
-
     loop {
       let wtx = self.begin_write()?;
 
