@@ -14,10 +14,11 @@ pub enum Charm {
   Uncommon = 9,
   Vindicated = 10,
   Mythic = 11,
+  Burned = 12,
 }
 
 impl Charm {
-  pub const ALL: [Self; 12] = [
+  pub const ALL: [Self; 13] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -30,6 +31,7 @@ impl Charm {
     Self::Unbound,
     Self::Lost,
     Self::Vindicated,
+    Self::Burned,
   ];
 
   fn flag(self) -> u16 {
@@ -62,6 +64,7 @@ impl Charm {
       Self::Unbound => "🔓",
       Self::Uncommon => "🌱",
       Self::Vindicated => "❤️‍🔥",
+      Self::Burned => "🔥",
     }
   }
 
@@ -91,6 +94,7 @@ impl Display for Charm {
         Self::Unbound => "unbound",
         Self::Uncommon => "uncommon",
         Self::Vindicated => "vindicated",
+        Self::Burned => "burned",
       }
     )
   }
@@ -113,6 +117,7 @@ impl FromStr for Charm {
       "unbound" => Self::Unbound,
       "uncommon" => Self::Uncommon,
       "vindicated" => Self::Vindicated,
+      "burned" => Self::Burned,
       _ => return Err(format!("invalid charm `{s}`")),
     })
   }
