@@ -52,19 +52,19 @@ impl Charm {
 
   pub fn icon(self) -> &'static str {
     match self {
+      Self::Burned => "🔥",
       Self::Coin => "🪙",
       Self::Cursed => "👹",
       Self::Epic => "🪻",
       Self::Legendary => "🌝",
       Self::Lost => "🤔",
       Self::Mythic => "🎃",
-      Self::Nineball => "9️⃣",
+      Self::Nineball => "\u{39}\u{fe0f}\u{20e3}",
       Self::Rare => "🧿",
       Self::Reinscription => "♻️",
       Self::Unbound => "🔓",
       Self::Uncommon => "🌱",
-      Self::Vindicated => "❤️‍🔥",
-      Self::Burned => "🔥",
+      Self::Vindicated => "\u{2764}\u{fe0f}\u{200d}\u{1f525}",
     }
   }
 
@@ -82,6 +82,7 @@ impl Display for Charm {
       f,
       "{}",
       match self {
+        Self::Burned => "burned",
         Self::Coin => "coin",
         Self::Cursed => "cursed",
         Self::Epic => "epic",
@@ -94,7 +95,6 @@ impl Display for Charm {
         Self::Unbound => "unbound",
         Self::Uncommon => "uncommon",
         Self::Vindicated => "vindicated",
-        Self::Burned => "burned",
       }
     )
   }
