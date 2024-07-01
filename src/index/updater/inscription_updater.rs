@@ -487,10 +487,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           charms |= sat.charms();
         }
 
-        if let Some(output) = self.utxo_cache.get(&new_satpoint.outpoint) {
-          if output.script_pubkey.is_op_return() {
-            Charm::Burned.set(&mut charms);
-          }
+        if op_return {
+          Charm::Burned.set(&mut charms);
         }
 
         if new_satpoint.outpoint == OutPoint::null() {
