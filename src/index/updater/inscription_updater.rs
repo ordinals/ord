@@ -326,7 +326,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       );
     }
 
-    for (new_satpoint, mut flotsam, is_burned) in new_locations.into_iter() {
+    for (new_satpoint, mut flotsam, op_return) in new_locations.into_iter() {
       let new_satpoint = match flotsam.origin {
         Origin::New {
           pointer: Some(pointer),
@@ -348,7 +348,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, is_burned)?;
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, op_return)?;
     }
 
     if is_coinbase {
@@ -395,7 +395,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
-    is_burned: bool,
+    op_return: bool,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
@@ -410,7 +410,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .unwrap()
           .value();
 
-        if is_burned {
+        if op_return {
           let entry = InscriptionEntry::load(
             self
               .sequence_number_to_entry
