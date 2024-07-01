@@ -105,6 +105,7 @@ impl FromStr for Charm {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(match s {
+      "burned" => Self::Burned,
       "coin" => Self::Coin,
       "cursed" => Self::Cursed,
       "epic" => Self::Epic,
@@ -117,7 +118,6 @@ impl FromStr for Charm {
       "unbound" => Self::Unbound,
       "uncommon" => Self::Uncommon,
       "vindicated" => Self::Vindicated,
-      "burned" => Self::Burned,
       _ => return Err(format!("invalid charm `{s}`")),
     })
   }
