@@ -306,7 +306,11 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
-        new_locations.push((new_satpoint, inscriptions.next().unwrap()));
+        new_locations.push((
+          new_satpoint,
+          inscriptions.next().unwrap(),
+          txout.script_pubkey.is_op_return(),
+        ));
       }
 
       range_to_vout.insert((output_value, end), vout.try_into().unwrap());
@@ -322,7 +326,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       );
     }
 
-    for (new_satpoint, mut flotsam) in new_locations.into_iter() {
+    for (new_satpoint, mut flotsam, op_return) in new_locations.into_iter() {
       let new_satpoint = match flotsam.origin {
         Origin::New {
           pointer: Some(pointer),
@@ -344,7 +348,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, op_return)?;
     }
 
     if is_coinbase {
@@ -353,7 +357,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, false)?;
       }
       self.lost_sats += self.reward - output_value;
       Ok(())
@@ -391,6 +395,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
+    op_return: bool,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
@@ -404,6 +409,24 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .get(&inscription_id.store())?
           .unwrap()
           .value();
+
+        if op_return {
+          let entry = InscriptionEntry::load(
+            self
+              .sequence_number_to_entry
+              .get(&sequence_number)?
+              .unwrap()
+              .value(),
+          );
+
+          let mut charms = entry.charms;
+          Charm::Burned.set(&mut charms);
+
+          self.sequence_number_to_entry.insert(
+            sequence_number,
+            &InscriptionEntry { charms, ..entry }.store(),
+          )?;
+        }
 
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::InscriptionTransferred {
@@ -462,6 +485,10 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
         if let Some(sat) = sat {
           charms |= sat.charms();
+        }
+
+        if op_return {
+          Charm::Burned.set(&mut charms);
         }
 
         if new_satpoint.outpoint == OutPoint::null() {
