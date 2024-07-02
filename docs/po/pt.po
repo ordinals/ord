@@ -1954,7 +1954,7 @@ msgstr "Localizar o output da runestone"
 msgid "Outputs are searched for the first script pubkey that beings with `OP_RETURN OP_13`. If deciphering fails, later matching outputs are not considered."
 msgstr ""
 "Os outputs são pesquisados para a primeira pubkey do script que seja com `OP_RETURN OP_13`. Se a decifração falhar, os outputs correspondentes posteriores "
-não são considerados."
+"não são considerados."
 
 #: src/runes/specification.md:115
 msgid "Assembling the Payload Buffer"
