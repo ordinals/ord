@@ -1,5 +1,7 @@
 use {super::*, crate::outgoing::Outgoing, bitcoin::opcodes};
 
+const MAX_BURN_SATS: u64 = 10000;
+
 #[derive(Debug, Parser)]
 pub struct Burn {
   #[arg(long, help = "Don't sign or broadcast transaction")]
@@ -24,10 +26,15 @@ impl Burn {
           .ok_or_else(|| anyhow!("inscription {id} not found"))?
           .clone();
 
-        if inscription_info.value.unwrap() > 10000 {
+        if inscription_info.value.unwrap() > MAX_BURN_SATS {
           return Err(anyhow!(
-            "The amount of sats where the inscription is on exceeds 10000"
+            "The amount of sats where the inscription is on exceeds {}",
+            MAX_BURN_SATS
           ));
+        }
+
+        if self.postage.unwrap_or_default() > Amount::from_sat(MAX_BURN_SATS) {
+          return Err(anyhow!("Target postage exceeds {}", MAX_BURN_SATS));
         }
 
         Self::create_unsigned_burn_transaction(
@@ -42,7 +49,7 @@ impl Burn {
 
     let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
 
-    Ok(Some(Box::new(crate::subcommand::wallet::send::Output {
+    Ok(Some(Box::new(send::Output {
       txid,
       psbt,
       outgoing: self.outgoing,
