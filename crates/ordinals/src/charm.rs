@@ -95,7 +95,6 @@ impl Display for Charm {
         Self::Unbound => "unbound",
         Self::Uncommon => "uncommon",
         Self::Vindicated => "vindicated",
-        Self::Burned => "burned",
       }
     )
   }
@@ -119,7 +118,6 @@ impl FromStr for Charm {
       "unbound" => Self::Unbound,
       "uncommon" => Self::Uncommon,
       "vindicated" => Self::Vindicated,
-      "burned" => Self::Burned,
       _ => return Err(format!("invalid charm `{s}`")),
     })
   }
