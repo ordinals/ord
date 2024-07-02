@@ -1674,7 +1674,7 @@ msgid ""
 "runes. A rune with divisibility 0 may not be divided. A unit of a rune with divisibility 1 may be divided into ten sub-units, a rune with divisibility 2 may be divided into a "
 "hundred, and so on."
 msgstr ""
-A divisibilidade de uma rune é a finura com que pode ser dividida nas suas unidades atómicas. A divisibilidade é expressa como o número de dígitos permitidos após o ponto decimal "
+"A divisibilidade de uma rune é a finura com que pode ser dividida nas suas unidades atómicas. A divisibilidade é expressa como o número de dígitos permitidos após o ponto decimal "
 "numa quantidade de runes. Uma rune com divisibilidade 0 não pode ser dividida. Uma unidade de uma rune com divisibilidade 1 pode ser dividida em dez subunidades, uma rune com "
 "divisibilidade 2 pode ser dividida em cem, e assim em diante."
 
