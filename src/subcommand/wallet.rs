@@ -3,10 +3,12 @@ use {
   crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
+  sign_transaction::*,
 };
 
 pub mod balance;
 mod batch_command;
+pub mod burn;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -23,6 +25,7 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
+mod sign_transaction;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -47,6 +50,8 @@ pub(crate) enum Subcommand {
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
+  #[command(about = "Burn an inscription")]
+  Burn(burn::Burn),
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
   #[command(about = "Create new wallet")]
@@ -106,6 +111,7 @@ impl WalletCommand {
     match self.subcommand {
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
+      Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
       Subcommand::Dump => dump::run(wallet),
