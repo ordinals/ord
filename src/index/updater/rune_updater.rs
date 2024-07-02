@@ -10,6 +10,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
+  pub(super) rune_id_to_outpoints_balance: &'a mut MultimapTable<'tx, RuneIdValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
   pub(super) sequence_number_to_rune_id: &'a mut Table<'tx, u32, RuneIdValue>,
@@ -170,6 +171,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
+    // update rune to outpoints, balance
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
         continue;
@@ -198,6 +200,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       for (id, balance) in balances {
         Index::encode_rune_balance(id, balance.n(), &mut buffer);
 
+        let mut outpoints_balance_buffer: Vec<u8> = Vec::new();
+        Index::encode_rune_outpoints_balance(outpoint, balance.n(), &mut outpoints_balance_buffer);
+
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::RuneTransferred {
             outpoint,
@@ -207,6 +212,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             amount: balance.0,
           })?;
         }
+
+        self
+          .rune_id_to_outpoints_balance
+          .insert(id.store(), outpoints_balance_buffer.as_slice())?;
       }
 
       self
@@ -482,6 +491,17 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           let ((id, balance), len) = Index::decode_rune_balance(&buffer[i..]).unwrap();
           i += len;
           *unallocated.entry(id).or_default() += balance;
+
+          let mut outpoints_balance_buffer: Vec<u8> = Vec::new();
+          Index::encode_rune_outpoints_balance(
+            input.previous_output,
+            balance,
+            &mut outpoints_balance_buffer,
+          );
+          // this is supposed to have no error as rune_id_to_outpoints_balance should have the outpoint like in outpoint_to_balances
+          let _ = self
+            .rune_id_to_outpoints_balance
+            .remove(id.store(), outpoints_balance_buffer.as_slice());
         }
       }
     }

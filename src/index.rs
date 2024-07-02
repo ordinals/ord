@@ -48,11 +48,12 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 26;
+const SCHEMA_VERSION: u64 = 27;
 
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_multimap_table! { RUNE_ID_TO_OUTPOINTS_BALANCE, RuneIdValue, &[u8] }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
@@ -300,6 +301,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_multimap_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?;
         tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
@@ -982,6 +984,26 @@ impl Index {
     Ok(((id, balance), len))
   }
 
+  // a buffer with size: 36 + balance size
+  pub(crate) fn encode_rune_outpoints_balance(
+    outpoint: OutPoint,
+    balance: u128,
+    buffer: &mut Vec<u8>,
+  ) {
+    buffer.extend_from_slice(&outpoint.store());
+    varint::encode_to_vec(balance, buffer);
+  }
+
+  pub(crate) fn decode_rune_outpoints_balance(buffer: &[u8]) -> Result<((OutPoint, u128), usize)> {
+    let mut len = 0;
+    let outpoint_value: [u8; 36] = buffer[len..len + 36].try_into().unwrap();
+    len += 36;
+    let outpoint = OutPoint::load(outpoint_value);
+    let (balance, balance_len) = varint::decode(&buffer[len..]).unwrap();
+    len += balance_len;
+    Ok(((outpoint, balance), len))
+  }
+
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
@@ -1072,6 +1094,38 @@ impl Index {
     }
 
     Ok(rune_balances)
+  }
+
+  pub(crate) fn get_rune_specific_balances(&self, rune: Rune) -> Result<BTreeMap<OutPoint, u128>> {
+    let mut result: BTreeMap<OutPoint, u128> = BTreeMap::new();
+    let rtx = self.database.begin_read()?;
+
+    // get rune id
+    let Some(id) = self
+      .database
+      .begin_read()?
+      .open_table(RUNE_TO_RUNE_ID)?
+      .get(rune.0)?
+      .map(|guard| guard.value())
+    else {
+      return Ok(BTreeMap::new());
+    };
+
+    // get a list of outpoints of a specific rune
+    let outpoints_balance = rtx
+      .open_multimap_table(RUNE_ID_TO_OUTPOINTS_BALANCE)?
+      .get(id)?;
+
+    // retrieve rune balances
+    for i in outpoints_balance {
+      let guard = i?;
+      let buffer = guard.value();
+      let ((outpoint, amount), _) = Index::decode_rune_outpoints_balance(buffer).unwrap();
+
+      *result.entry(outpoint).or_default() += amount
+    }
+
+    Ok(result)
   }
 
   pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
@@ -2339,6 +2393,33 @@ impl Index {
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};
+
+  #[test]
+  fn test_encode_decode_rune_to_outpoints_balance() {
+    let outpoint = OutPoint {
+      txid: Txid::all_zeros(),
+      vout: 2,
+    };
+
+    // 5 outpoints
+    let mut buffer: Vec<u8> = Vec::new();
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+    Index::encode_rune_outpoints_balance(outpoint, 1000, &mut buffer);
+
+    let mut i = 0;
+    let arr_buffer = buffer.as_slice();
+    while i < buffer.len() {
+      let ((d_outpoint, d_balance), len) =
+        Index::decode_rune_outpoints_balance(&arr_buffer[i..]).unwrap();
+      i += len;
+
+      assert_eq!(outpoint, d_outpoint);
+      assert_eq!(1000, d_balance);
+    }
+  }
 
   #[test]
   fn height_limit() {
