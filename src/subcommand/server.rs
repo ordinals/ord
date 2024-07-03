@@ -984,9 +984,8 @@ impl Server {
         .ok_or_not_found(|| format!("transaction {txid}"))?;
 
       let inscription_count = index.inscription_count(txid)?;
-
-
-      Ok(Json(api::Transaction {
+ 
+       Ok(Json(api::Transaction {
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
           inscription_count,
@@ -2089,15 +2088,10 @@ impl Server {
           (block, u32::try_from(info.height).unwrap())
         }
       };
-       let runes = index.get_runes_in_block(u64::from(height))?; 
-       let inscriptions = index
-        .get_inscriptions_in_block(height)?;
-        Ok(Json(api::Block::new(
+         Ok(Json(api::BlockTxs::new(
           block,
           Height(height),
           Self::index_height(&index)?,
-          inscriptions,
-          runes,
         ))
         .into_response())
     })

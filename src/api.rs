@@ -43,6 +43,32 @@ impl Block {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockTxs {
+  pub best_height: u32,
+  pub hash: BlockHash,
+  pub height: u32,
+  pub target: BlockHash,
+  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
+}
+
+impl BlockTxs {
+  pub(crate) fn new(
+    block: bitcoin::Block,
+    height: Height,
+    best_height: Height,
+  ) -> Self {
+    Self {
+      hash: block.header.block_hash(),
+      target: target_as_block_hash(block.header.target()),
+      height: height.0,
+      best_height: best_height.0,
+      transactions: block.txdata,
+    }
+  }
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
   pub average_fee: u64,
   pub average_fee_rate: u64,
