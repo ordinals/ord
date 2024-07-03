@@ -212,6 +212,10 @@ impl Server {
         .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
+          "/inscriptions/output/:outpoint",
+          get(Self::inscriptions_by_outpoint),
+        )
+        .route(
           "/inscriptions/block/:height",
           get(Self::inscriptions_in_block),
         )
@@ -651,6 +655,38 @@ impl Server {
     })
   }
 
+  async fn inscriptions_by_outpoint(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let (output_info, txout) = index
+        .get_output_info(outpoint)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+        let mut response = Vec::new();
+
+        let inscriptions = index.get_inscriptions_for_output(outpoint)?;
+  
+        for inscription in inscriptions {
+          let query = query::Inscription::Id(inscription);
+          let (info, _, _) = index
+            .inscription_info(query, None)?
+            .ok_or_not_found(|| format!("inscription {query}"))?;
+  
+          response.push(info);
+        }
+
+      Ok(if accept_json {
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
   async fn range(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
@@ -917,7 +953,11 @@ impl Server {
         }
       }
       
-      Ok(Json(response).into_response())
+      Ok(if accept_json {
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
