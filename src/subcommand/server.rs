@@ -181,7 +181,10 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/address/:address", get(Self::address))
-        .route("/address/:address/inscriptions", get(Self::inscriptions_by_address))
+        .route(
+          "/address/:address/inscriptions",
+          get(Self::inscriptions_by_address),
+        )
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
@@ -666,18 +669,18 @@ impl Server {
         .get_output_info(outpoint)?
         .ok_or_not_found(|| format!("output {outpoint}"))?;
 
-        let mut response = Vec::new();
+      let mut response = Vec::new();
 
-        let inscriptions = index.get_inscriptions_for_output(outpoint)?;
-  
-        for inscription in inscriptions {
-          let query = query::Inscription::Id(inscription);
-          let (info, _, _) = index
-            .inscription_info(query, None)?
-            .ok_or_not_found(|| format!("inscription {query}"))?;
-  
-          response.push(info);
-        }
+      let inscriptions = index.get_inscriptions_for_output(outpoint)?;
+
+      for inscription in inscriptions {
+        let query = query::Inscription::Id(inscription);
+        let (info, _, _) = index
+          .inscription_info(query, None)?
+          .ok_or_not_found(|| format!("inscription {query}"))?;
+
+        response.push(info);
+      }
 
       Ok(if accept_json {
         Json(response).into_response()
@@ -918,7 +921,6 @@ impl Server {
     })
   }
 
-
   async fn inscriptions_by_address(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -948,11 +950,11 @@ impl Server {
           let (info, _, _) = index
             .inscription_info(query, None)?
             .ok_or_not_found(|| format!("inscription {query}"))?;
-  
+
           response.push(info);
         }
       }
-      
+
       Ok(if accept_json {
         Json(response).into_response()
       } else {
@@ -960,7 +962,6 @@ impl Server {
       })
     })
   }
-
 
   async fn block(
     Extension(server_config): Extension<Arc<ServerConfig>>,
