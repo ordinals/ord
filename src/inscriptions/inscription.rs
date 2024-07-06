@@ -106,6 +106,21 @@ impl Inscription {
     })
   }
 
+  pub fn content_hash(&self) -> String {
+    let mut bytes = Vec::new();
+
+    if let Some(content_type) = &self.content_type {
+      bytes.extend(content_type);
+    }
+
+    if let Some(body) = &self.body {
+      bytes.extend(body);
+    }
+
+    let digest = bitcoin::hashes::sha256::Hash::hash(&bytes);
+    hex::encode(&digest[0..20])
+  }
+
   pub fn pointer_value(pointer: u64) -> Vec<u8> {
     let mut bytes = pointer.to_le_bytes().to_vec();
 

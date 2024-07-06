@@ -81,6 +81,15 @@ impl<'index> Updater<'index> {
     let mut uncommitted = 0;
     let mut utxo_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
+      let event_sender = self.index.event_sender.as_ref();
+
+      if let Some(sender) = event_sender {
+        let evt = Event::BlockStart {
+          block_height: self.height,
+        };
+        sender.blocking_send(evt)?;
+      }
+
       self.index_block(
         &mut output_sender,
         &mut address_txout_receiver,
@@ -89,6 +98,13 @@ impl<'index> Updater<'index> {
         block,
         &mut utxo_cache,
       )?;
+
+      if let Some(sender) = event_sender {
+        let evt = Event::BlockEnd {
+          block_height: self.height - 1,
+        };
+        sender.blocking_send(evt)?;
+      }
 
       if let Some(progress_bar) = &mut progress_bar {
         progress_bar.inc(1);

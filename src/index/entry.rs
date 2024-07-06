@@ -509,6 +509,36 @@ impl Entry for Txid {
   }
 }
 
+pub type BlockEventHashValue = [u8; 64];
+
+pub type BlockEventHash = (String, String);
+
+impl Entry for BlockEventHash {
+  type Value = BlockEventHashValue;
+
+  fn load(value: Self::Value) -> Self {
+    let block_event_hash = &value[0..32];
+
+    let cumulative_block_event_hash = &value[32..64];
+
+    (
+      hex::encode(block_event_hash),
+      hex::encode(cumulative_block_event_hash),
+    )
+  }
+
+  fn store(self) -> Self::Value {
+    let block_event_hash = hex::decode(self.0).unwrap();
+
+    let cumulative_block_event_hash = hex::decode(self.1).unwrap();
+
+    [block_event_hash, cumulative_block_event_hash]
+      .concat()
+      .try_into()
+      .unwrap()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
