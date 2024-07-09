@@ -1532,8 +1532,7 @@ impl Index {
         self
           .get_inscriptions_on_output_with_satpoints(*outpoint)?
           .iter()
-          .map(|(_satpoint, inscription_id)| *inscription_id)
-          .collect::<Vec<InscriptionId>>(),
+          .map(|(_satpoint, inscription_id)| *inscription_id),
       );
     }
 

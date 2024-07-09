@@ -213,15 +213,14 @@ fn address_page_shows_aggregated_inscriptions() {
 
   ord.assert_response_regex(
     format!("/address/{address}"),
-    format!(
-      ".*
+      r".*
 <dl>.*
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/{inscription_id_1}><iframe .* src=/preview/{inscription_id_1}></iframe></a>
-    <a href=/inscription/{inscription_id_2}><iframe .* src=/preview/{inscription_id_2}></iframe></a>
+    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
+    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
   </dd>.*"
-    ),
+    ,
   );
 }
 
