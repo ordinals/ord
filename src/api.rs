@@ -48,7 +48,18 @@ pub struct BlockTxs {
   pub hash: BlockHash,
   pub height: u32,
   pub target: BlockHash,
-  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
+  pub parsed_transactions: Vec<ParsedTransaction>,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParsedTransaction {
+  pub txid: bitcoin::Txid,
+  input: Vec<ParsedInput>,
+  output: Vec<bitcoin::TxOut>,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct ParsedInput {
+    previous_output: bitcoin::OutPoint,
+    sequence: Sequence,
 }
 
 impl BlockTxs {
@@ -57,16 +68,14 @@ impl BlockTxs {
     height: Height,
     best_height: Height,
   ) -> Self {
-    Self {
       hash: block.header.block_hash(),
       target: target_as_block_hash(block.header.target()),
       height: height.0,
       best_height: best_height.0,
-      transactions: block.txdata,
-    }
+      parsed_transactions,
+      }
   }
 }
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
