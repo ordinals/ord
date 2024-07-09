@@ -215,12 +215,9 @@ impl Index {
 
     let path = settings.index().to_owned();
 
-    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
-      bail!(
-        "failed to create data dir `{}`: {err}",
-        path.parent().unwrap().display()
-      );
-    }
+    let data_dir = path.parent().unwrap();
+
+    fs::create_dir_all(data_dir).snafu_context(error::Io { path: data_dir })?;
 
     let index_cache_size = settings.index_cache_size();
 
@@ -2234,6 +2231,40 @@ impl Index {
           .map(|value| OutPoint::load(value.value()))
       })
       .collect()
+  }
+
+  pub(crate) fn get_aggregated_rune_balances_for_outputs(
+    &self,
+    outputs: &Vec<OutPoint>,
+  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+    let mut runes = BTreeMap::new();
+
+    for output in outputs {
+      let rune_balances = self.get_rune_balances_for_output(*output)?;
+
+      for (spaced_rune, pile) in rune_balances {
+        runes
+          .entry(spaced_rune)
+          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert((
+            Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            },
+            pile.symbol,
+          ));
+      }
+    }
+
+    Ok(
+      runes
+        .into_iter()
+        .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
+        .collect(),
+    )
   }
 
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {

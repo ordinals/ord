@@ -20,29 +20,30 @@ pub(crate) struct Arguments {
 }
 
 impl Arguments {
-  pub(crate) fn run(self) -> SubcommandResult {
+  pub(crate) fn run(self) -> SnafuResult<Option<Box<dyn subcommand::Output>>> {
     let mut env: BTreeMap<String, String> = BTreeMap::new();
 
-    for (var, value) in env::vars_os() {
-      let Some(var) = var.to_str() else {
+    for (variable, value) in env::vars_os() {
+      let Some(variable) = variable.to_str() else {
         continue;
       };
 
-      let Some(key) = var.strip_prefix("ORD_") else {
+      let Some(key) = variable.strip_prefix("ORD_") else {
         continue;
       };
 
       env.insert(
         key.into(),
-        value.into_string().map_err(|value| {
-          anyhow!(
-            "environment variable `{var}` not valid unicode: `{}`",
-            value.to_string_lossy()
-          )
-        })?,
+        value
+          .into_string()
+          .map_err(|value| SnafuError::EnvVarUnicode {
+            backtrace: Backtrace::capture(),
+            value,
+            variable: variable.into(),
+          })?,
       );
     }
 
-    self.subcommand.run(Settings::load(self.options)?)
+    Ok(self.subcommand.run(Settings::load(self.options)?)?)
   }
 }

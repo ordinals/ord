@@ -1,19 +1,39 @@
 use super::*;
 
+#[derive(Debug, Parser)]
+pub(crate) struct Outputs {
+  #[arg(short, long, help = "Show list of sat <RANGES> in outputs.")]
+  ranges: bool,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Output {
   pub output: OutPoint,
   pub amount: u64,
+  pub sat_ranges: Vec<String>,
 }
 
-pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let mut outputs = Vec::new();
-  for (output, txout) in wallet.utxos() {
-    outputs.push(Output {
-      output: *output,
-      amount: txout.value,
-    });
-  }
+impl Outputs {
+  pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    let mut outputs = Vec::new();
+    for (output, txout) in wallet.utxos() {
+      let sat_ranges = if wallet.has_sat_index() && self.ranges {
+        wallet
+          .get_output_sat_ranges(output)?
+          .into_iter()
+          .map(|(start, end)| format!("{start}-{end}"))
+          .collect()
+      } else {
+        Vec::new()
+      };
 
-  Ok(Some(Box::new(outputs)))
+      outputs.push(Output {
+        output: *output,
+        amount: txout.value,
+        sat_ranges,
+      });
+    }
+
+    Ok(Some(Box::new(outputs)))
+  }
 }

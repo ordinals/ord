@@ -47,6 +47,7 @@ use {
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
+  error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
   http::HeaderMap,
   lazy_static::lazy_static,
@@ -58,10 +59,13 @@ use {
   reqwest::Url,
   serde::{Deserialize, Deserializer, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
+  snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
+    backtrace::BacktraceStatus,
     cmp::{self, Reverse},
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
+    ffi::OsString,
     fmt::{self, Display, Formatter},
     fs,
     io::{self, Cursor, Read},
@@ -104,6 +108,7 @@ mod blocktime;
 pub mod chain;
 pub mod decimal;
 mod deserialize_from_str;
+mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
@@ -122,6 +127,7 @@ pub mod templates;
 pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
+type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -220,6 +226,10 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
+pub fn cancel_shutdown() {
+  SHUTTING_DOWN.store(false, atomic::Ordering::Relaxed);
+}
+
 pub fn shut_down() {
   SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
 }
@@ -260,15 +270,39 @@ pub fn main() {
   match args.run() {
     Err(err) => {
       eprintln!("error: {err}");
-      err
-        .chain()
-        .skip(1)
-        .for_each(|cause| eprintln!("because: {cause}"));
-      if env::var_os("RUST_BACKTRACE")
-        .map(|val| val == "1")
-        .unwrap_or_default()
-      {
-        eprintln!("{}", err.backtrace());
+
+      if let SnafuError::Anyhow { err } = err {
+        for (i, err) in err.chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if env::var_os("RUST_BACKTRACE")
+          .map(|val| val == "1")
+          .unwrap_or_default()
+        {
+          eprintln!("{}", err.backtrace());
+        }
+      } else {
+        for (i, err) in err.iter_chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if let Some(backtrace) = err.backtrace() {
+          if backtrace.status() == BacktraceStatus::Captured {
+            eprintln!("backtrace:");
+            eprintln!("{backtrace}");
+          }
+        }
       }
 
       gracefully_shut_down_indexer();
