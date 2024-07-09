@@ -864,6 +864,8 @@ impl Server {
 
       let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
 
+      let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
+
       let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
       Ok(if accept_json {
@@ -872,6 +874,7 @@ impl Server {
         AddressHtml {
           address,
           outputs,
+          inscriptions,
           sat_balance,
           runes_balances,
         }

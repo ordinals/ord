@@ -1522,6 +1522,24 @@ impl Index {
     )
   }
 
+  pub fn get_inscriptions_for_outputs(
+    &self,
+    outpoints: &Vec<OutPoint>,
+  ) -> Result<Vec<InscriptionId>> {
+    let mut inscriptions = Vec::new();
+    for outpoint in outpoints {
+      inscriptions.extend(
+        self
+          .get_inscriptions_on_output_with_satpoints(*outpoint)?
+          .iter()
+          .map(|(_satpoint, inscription_id)| *inscription_id)
+          .collect::<Vec<InscriptionId>>(),
+      );
+    }
+
+    Ok(inscriptions)
+  }
+
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
