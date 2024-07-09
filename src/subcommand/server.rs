@@ -62,23 +62,6 @@ struct Search {
 #[folder = "static"]
 struct StaticAssets;
 
-struct StaticHtml {
-  title: &'static str,
-  html: &'static str,
-}
-
-impl PageContent for StaticHtml {
-  fn title(&self) -> String {
-    self.title.into()
-  }
-}
-
-impl Display for StaticHtml {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    f.write_str(self.html)
-  }
-}
-
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
