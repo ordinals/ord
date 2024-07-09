@@ -68,6 +68,20 @@ impl BlockTxs {
     height: Height,
     best_height: Height,
   ) -> Self {
+     let parsed_transactions: Vec<ParsedTransaction> = block.txdata.iter().map(|tx| {
+       let pruned_inputs: Vec<ParsedInput> = tx.input.iter().map(|input| {
+          ParsedInput {
+              previous_output: input.previous_output,
+              sequence: input.sequence,
+          }
+      }).collect();
+       ParsedTransaction {
+          txid: tx.txid(),
+          input: pruned_inputs,
+          output: tx.output.clone(), // Clone outputs
+      }
+  }).collect();     
+       Self {
       hash: block.header.block_hash(),
       target: target_as_block_hash(block.header.target()),
       height: height.0,
