@@ -1655,7 +1655,9 @@ msgid "Names may contain spacers, represented as bullets, to aid readability. `U
 msgstr "Os nomes podem conter separadores, representados como pontos, para ajudar na legibilidade. `UNCOMMONGOODS` pode ser gravado como `UNCOMMON•GOODS`."
 
 #: src/runes.md:47
-msgid "The uniqueness of a name does not depend on spacers. Thus, a rune may not be etched with the same sequence of letters as an existing rune, even if it has different spacers."
+msgid ""
+"The uniqueness of a name does not depend on spacers. Thus, a rune may not be etched with the same sequence of letters as an existing rune, even if "
+"it has different spacers."
 msgstr ""
 "A singularidade de um nome não depende dos separadores. Assim, uma rune não pode ser gravada com a mesma sequência de letras de uma rune existente, mesmo que "
 "tenha separadores diferentes."
@@ -1708,10 +1710,12 @@ msgid "Terms"
 msgstr "Termos"
 
 #: src/runes.md:80
-msgid "A rune may have an open mint, allowing anyone to create and allocate units of that rune for themselves. An open mint is subject to terms, which are set upon etching."
+msgid ""
+"A rune may have an open mint, allowing anyone to create and allocate units of that rune for themselves."
+"An open mint is subject to terms, which are set upon etching."
 msgstr ""
-"Uma rune pode ter um mint aberto, permitindo a qualquer pessoa criar e atribuir unidades dessa rune para si própria. Um mint aberto está sujeito a termos, que são definidos "
-"na altura da gravação."
+"Uma rune pode ter um mint aberto, permitindo a qualquer pessoa criar e atribuir unidades dessa rune para si própria."
+"Um mint aberto está sujeito a termos, que são definidos na altura da gravação."
 
 #: src/runes.md:84
 msgid ""
@@ -1774,7 +1778,9 @@ msgid "Minting"
 msgstr "Mintar"
 
 #: src/runes.md:119
-msgid "While a rune's mint is open, anyone may create a mint transaction that creates a fixed amount of new units of that rune, subject to the terms of the mint."
+msgid ""
+"While a rune's mint is open, anyone may create a mint transaction that creates a fixed amount of new units of that rune, subject to "
+"the terms of the mint."
 msgstr ""
 "Enquanto o mint de uma rune estiver aberta, qualquer pessoa pode criar uma transação de mint que crie uma quantidade fixa de novas unidades dessa rune, sujeita aos "
 "termos do mint."
@@ -1797,10 +1803,11 @@ msgstr "Éditos (Edicts)"
 
 #: src/runes.md:131
 msgid ""
-"A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number. Edicts are processed in order, allocating unallocated runes to outputs."
+"A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number."
+"Edicts are processed in order, allocating unallocated runes to outputs."
 msgstr ""
-"Uma rune pode conter qualquer número de éditos. Os éditos são constituídos por um ID de uma rune, uma quantidade e um número de output. Os éditos são processados por ordem, atribuindo "
-"as runes não atribuídas às outputs."
+"Uma rune pode conter qualquer número de éditos. Os éditos são constituídos por um ID de uma rune, uma quantidade e um número de output."
+"Os éditos são processados por ordem, atribuindo as runes não atribuídas às outputs."
 
 #: src/runes.md:137
 msgid ""
@@ -1951,10 +1958,12 @@ msgid "Locating the Runestone Output"
 msgstr "Localizar o output da runestone"
 
 #: src/runes/specification.md:112
-msgid "Outputs are searched for the first script pubkey that beings with `OP_RETURN OP_13`. If deciphering fails, later matching outputs are not considered."
+msgid ""
+"Outputs are searched for the first script pubkey that beings with `OP_RETURN OP_13`."
+"If deciphering fails, later matching outputs are not considered."
 msgstr ""
-"Os outputs são pesquisados para a primeira pubkey do script que seja com `OP_RETURN OP_13`. Se a decifração falhar, os outputs correspondentes posteriores "
-"não são considerados."
+"Os outputs são pesquisados para a primeira pubkey do script que seja com `OP_RETURN OP_13`."
+"Se a decifração falhar, os outputs correspondentes posteriores não são considerados."
 
 #: src/runes/specification.md:115
 msgid "Assembling the Payload Buffer"
@@ -2105,8 +2114,7 @@ msgstr ""
 
 #: src/runes/specification.md:205
 msgid "Note that if a cenotaph is produced here, the cenotaph is not empty, meaning that it contains the fields and edicts, which may include an etching and mint."
-msgstr ""
-"Note-se que, se um cenotáfio for produzido aqui, o cenotáfio não está vazio, o que significa que contém os campos e os éditos, que podem incluir uma gravura e um mint."
+msgstr "Note-se que, se um cenotáfio for produzido aqui, o cenotáfio não está vazio, o que significa que contém os campos e os éditos, que podem incluir uma gravura e um mint."
 
 #: src/runes/specification.md:208
 msgid "Parsing the Runestone"
@@ -2122,9 +2130,7 @@ msgstr "É analisado a partir da mensagem não assinada utilizando as seguintes 
 
 #: src/runes/specification.md:246
 msgid "Note that tags are grouped by parity, i.e., whether they are even or odd. Unrecognized odd tags are ignored. Unrecognized even tags produce a cenotaph."
-msgstr ""
-"Note que as etiquetas são agrupadas por paridade, ou seja, se são pares ou ímpares. As etiquetas ímpares não reconhecidas são ignoradas. Os tags pares não reconhecidos "
-"produzem um cenotáfio."
+msgstr "Note que as etiquetas são agrupadas por paridade, ou seja, se são pares ou ímpares. As etiquetas ímpares não reconhecidas são ignoradas. Os tags pares não reconhecidos produzem um cenotáfio."
 
 #: src/runes/specification.md:249
 msgid "All unused tags are reserved for use by the protocol, may be assigned at any time, and must not be used."
@@ -2176,8 +2182,7 @@ msgstr "Rune"
 
 #: src/runes/specification.md:286
 msgid "The `Rune` field contains the name of the rune being etched. If the `Etching` flag is set but the `Rune` field is omitted, a reserved rune name is allocated."
-msgstr ""
-"O campo `Rune` contém o nome da rune que está a ser gravada. Se a bandeira `Etching` estiver definida mas o campo `Rune` for omitido, é atribuído um nome de rune reservado."
+msgstr "O campo `Rune` contém o nome da rune que está a ser gravada. Se a bandeira `Etching` estiver definida mas o campo `Rune` for omitido, é atribuído um nome de rune reservado."
 
 #: src/runes/specification.md:292
 msgid "The `Premine` field contains the amount of premined runes."
@@ -2475,8 +2480,7 @@ msgstr "`6402364363415443603228541259936211926` corresponde ao nome da rune `AAA
 
 #: src/runes/specification.md:452
 msgid "If `rune` is present, it must be unlocked as of the block in which the etching appears."
-msgstr "Se a `rune` estiver presente, deve ser desbloqueada a partir do bloco em que a gravura aparece.
-"
+msgstr "Se a `rune` estiver presente, deve ser desbloqueada a partir do bloco em que a gravura aparece."
 
 #: src/runes/specification.md:455
 msgid "Initially, all rune names of length thirteen and longer, up until the first reserved rune name, are unlocked."
@@ -2554,9 +2558,7 @@ msgstr ""
 
 #: src/runes/specification.md:514
 msgid "Because the ID of an etched rune is not known before it is included in a block, ID `0:0` is used to mean the rune being etched in this transaction, if any."
-msgstr ""
-"Uma vez que o ID de uma rune gravada não é conhecido antes de ser incluído num bloco, o ID `0:0` é utilizado para significar a rune que está a ser gravada nesta transação, "
-"caso exista."
+msgstr "Uma vez que o ID de uma rune gravada não é conhecido antes de ser incluído num bloco, o ID `0:0` é utilizado para significar a rune que está a ser gravada nesta transação, caso exista."
 
 #: src/runes/specification.md:517
 msgid "An edict with `amount` zero allocates all remaining units of rune `id`."
@@ -2577,11 +2579,8 @@ msgstr ""
 "dividir o saldo de unidades não atribuídas de `id` de rune pelo número de outputs não `OP_RETURN`."
 
 #: src/runes/specification.md:529
-msgid ""
-"If any edict in a runestone has a rune ID with `block` zero and `tx` greater than zero, or `output` greater than the number of transaction outputs, the runestone is a cenotaph."
-msgstr ""
-"Se qualquer édito numa rune tiver uma ID de rune com `block` zero e `tx` superior a zero, ou um `output` superior ao número de outputs de transação, a rune "
-"é um cenotáfio."
+msgid "If any edict in a runestone has a rune ID with `block` zero and `tx` greater than zero, or `output` greater than the number of transaction outputs, the runestone is a cenotaph."
+msgstr "Se qualquer édito numa rune tiver uma ID de rune com `block` zero e `tx` superior a zero, ou um `output` superior ao número de outputs de transação, a rune é um cenotáfio."
 
 #: src/runes/specification.md:533
 msgid "Note that edicts in cenotaphs are not processed, and all input runes are burned."
