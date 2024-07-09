@@ -1,3 +1,5 @@
+use event_hasher::EventHasher;
+
 use super::*;
 
 pub mod balances;
@@ -16,6 +18,7 @@ pub mod supply;
 pub mod teleburn;
 pub mod traits;
 pub mod wallet;
+pub mod event_hasher;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
@@ -66,10 +69,36 @@ impl Subcommand {
       Self::Parse(parse) => parse.run(),
       Self::Runes => runes::run(settings),
       Self::Server(server) => {
-        let index = Arc::new(Index::open(&settings)?);
+        let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
+
+        let index = Arc::new(Index::open_with_event_sender(&settings, Some(event_sender)).unwrap());
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(settings, index, handle)
+        log::info!("server run ...");
+
+
+        let setting_clone = settings.clone();
+        let receiver_thread = thread::spawn(move || {
+
+          let hasher = EventHasher::create(&setting_clone).unwrap();
+          log::info!("Hashing start");
+          if let Err(error) = hasher.run(&mut event_receiver) {
+            log::warn!("Hashing error: {error}");
+          }
+
+          log::info!("Hashing end");
+
+         });
+
+        let result = server.run(settings, index, handle);
+
+        log::info!("server end ...");
+
+        if receiver_thread.join().is_err() {
+          log::warn!("Receiver thread panicked; join failed");
+        }
+
+        result
       }
       Self::Settings => settings::run(settings),
       Self::Subsidy(subsidy) => subsidy.run(),
