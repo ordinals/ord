@@ -1611,7 +1611,7 @@ msgid ""
 "A runestone output's script pubkey begins with an `OP_RETURN`, followed by `OP_13`, followed by zero or more data pushes. These data pushes are concatenated and decoded into a "
 "sequence of 128-bit integers, and finally parsed into a runestone."
 msgstr ""
-"O output da pubkey de uma runestone começa com `OP_RETURN`, seguido por `OP_13`, seguido por zero ou mais dados inseridos. Estes dados são concatenados e"
+"O output da pubkey de uma runestone começa com `OP_RETURN`, seguido por `OP_13`, seguido por zero ou mais dados inseridos. Estes dados são concatenados e "
 "descodificados numa sequência de números inteiros de 128 bits e finalmente analisados numa runestone."
 
 #: src/runes.md:21
@@ -1640,8 +1640,7 @@ msgstr "Gravações"
 
 #: src/runes.md:36
 msgid "Runes come into existence by being etched. Etching creates a rune and sets its properties. Once set, these properties are immutable, even to its etcher."
-msgstr ""
-"As runes passam a existir ao serem gravadas. A gravação cria uma rune e estabelece as suas propriedades. Uma vez estabelecidas, estas propriedades são imutáveis, mesmo para o seu gravador."
+msgstr "As runes passam a existir ao serem gravadas. A gravação cria uma rune e estabelece as suas propriedades. Uma vez estabelecidas, estas propriedades são imutáveis, mesmo para o seu gravador."
 
 #: src/runes.md:39 src/runes/specification.md:420
 msgid "Name"
