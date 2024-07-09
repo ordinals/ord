@@ -383,7 +383,7 @@ msgid ""
 "some hints…"
 msgstr ""
 "Os humanos são colecionadores e, como os satoshis agora podem ser rastreados e "
-“transferidos, as pessoas naturalmente desejarão coletá-los. Teóricos de Ordinals "
+"transferidos, as pessoas naturalmente desejarão coletá-los. Teóricos de Ordinals "
 "podem decidir por si mesmos quais sats são raros e desejáveis, mas existem"
 "algumas dicas..."
 
@@ -392,7 +392,7 @@ msgid ""
 "Bitcoin has periodic events, some frequent, some more uncommon, and these "
 "naturally lend themselves to a system of rarity. These periodic events are:"
 msgstr ""
-“O Bitcoin tem eventos periódicos, alguns frequentes, outros mais incomuns, e estes "
+"O Bitcoin tem eventos periódicos, alguns frequentes, outros mais incomuns, e estes "
 "naturalmente se prestam a um sistema de raridade. Esses eventos periódicos são:"
 
 #: src/overview.md:62
@@ -716,7 +716,7 @@ msgid ""
 "745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in "
 "circulation."
 msgstr ""
-“No momento, mesmo os satoshis incomuns são bastante raros. No momento em que este manual foi escrito, “
+"No momento, mesmo os satoshis incomuns são bastante raros. No momento em que este manual foi escrito, "
 "745.855 satoshis incomuns haviam sido minerados - 1 para cada 25,6 bitcoins em "
 "circulação."
 
@@ -1186,7 +1186,7 @@ msgid ""
 "Lightning Network."
 msgstr ""
 "Tags não reconhecidas são interpretadas de maneira diferente dependendo se são "
-"pares ou ímpares, seguindo a regra \"não há problema ser ímpar\" usada pela
+"pares ou ímpares, seguindo a regra \"não há problema ser ímpar\" usada pela "
 "Rede Lightning."
 
 #: src/inscriptions.md:89
@@ -1548,7 +1548,7 @@ msgstr "Remixando o conteúdo das inscrições existentes."
 msgid ""
 "Publishing snippets of code, images, audio, or stylesheets as shared public "
 "resources."
-msgstr  ""
+msgstr ""
 "Publicar trechos de código, imagens, áudio ou stylesheets como recursos públicos "
 "compartilhados."
 
@@ -1617,6 +1617,7 @@ msgstr ""
 #: src/runes.md:21
 msgid "A transaction may have at most one runestone."
 msgstr "Uma transação pode ter, no máximo, uma runestone."
+
 #: src/runes.md:23
 msgid "A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs."
 msgstr "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das input de uma transação para as suas outputs."
@@ -3148,7 +3149,7 @@ msgid ""
 "than the user experience for RGB and Taro NFTs."
 msgstr ""
 "A teoria ordinal foi projetada desde o início para artefatos digitais, "
-enquanto o principal caso de uso de RGB e Taro são tokens fungíveis, então a "
+"enquanto o principal caso de uso de RGB e Taro são tokens fungíveis, então a "
 "experiência do usuário para inscrições provavelmente será mais simples e refinada "
 "do que a experiência do usuário para NFTs do RGB e Taro."
 
@@ -3655,7 +3656,6 @@ msgid ""
 "`ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is "
 "entirely funded by donations. If you can, please consider donating!"
 msgstr ""
-Translation result
 "Ordinals tem código aberto e é financiado pela comunidade. O atual mantenedor "
 "principal do `ord` é [raphjaph](https://github.com/raphjaph/). O trabalho de Raph "
 "no `ord` é inteiramente financiado por doações. Se você puder, por favor considere doar!"
@@ -3942,7 +3942,7 @@ msgstr "Criando inscrições com `ord wallet inscribe`"
 
 #: src/guides/inscriptions.md:28
 msgid "Sending inscriptions with `ord wallet send`"
-msgstr ""Enviando inscrições com `ord wallet send`"
+msgstr "Enviando inscrições com `ord wallet send`"
 
 #: src/guides/inscriptions.md:29
 msgid "Receiving inscriptions with `ord wallet receive`"
@@ -4030,7 +4030,7 @@ msgstr ""
 
 #: src/guides/inscriptions.md:69
 msgid "Syncing the Bitcoin Blockchain"
-msgstr ""Sincronizando a Blockchain do Bitcoin"
+msgstr "Sincronizando a Blockchain do Bitcoin"
 
 #: src/guides/inscriptions.md:72
 msgid "To sync the chain, run:"
