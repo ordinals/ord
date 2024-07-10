@@ -3,9 +3,12 @@ use {
   serde_hex::{SerHex, Strict},
 };
 
-pub use crate::templates::{
-  BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
-  TransactionHtml as Transaction,
+pub use crate::{
+  subcommand::decode::RawOutput as Decode,
+  templates::{
+    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
+    TransactionHtml as Transaction,
+  },
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -16,6 +19,7 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
+  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
 }
 
 impl Block {
@@ -33,6 +37,7 @@ impl Block {
       best_height: best_height.0,
       inscriptions,
       runes,
+      transactions: block.txdata,
     }
   }
 }
@@ -47,6 +52,7 @@ pub struct BlockInfo {
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
+  pub feerate_percentiles: [u64; 5],
   pub height: u32,
   pub max_fee: u64,
   pub max_fee_rate: u64,
@@ -72,6 +78,13 @@ pub struct BlockInfo {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Children {
   pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: usize,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptions {
+  pub children: Vec<ChildInscriptionRecursive>,
   pub more: bool,
   pub page: usize,
 }
@@ -109,6 +122,7 @@ pub struct InscriptionRecursive {
   pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
+  pub delegate: Option<InscriptionId>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
@@ -118,6 +132,19 @@ pub struct InscriptionRecursive {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptionRecursive {
+  pub charms: Vec<Charm>,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

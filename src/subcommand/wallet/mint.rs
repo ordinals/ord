@@ -53,7 +53,7 @@ impl Mint {
     };
 
     ensure!(
-      destination.script_pubkey().dust_value() < postage,
+      destination.script_pubkey().dust_value() <= postage,
       "postage below dust limit of {}sat",
       destination.script_pubkey().dust_value().to_sat()
     );
