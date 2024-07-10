@@ -1,8 +1,14 @@
 use super::*;
+use bitcoin::address::Error as AddressError;
+
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
-pub(crate) enum SnafuError {
+pub enum SnafuError {
+  #[snafu(display("Invalid chain `{}`", chain))]
+  InvalidChain { chain: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion { source: AddressError },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
