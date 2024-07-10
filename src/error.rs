@@ -1,7 +1,6 @@
 use super::*;
 use bitcoin::address::Error as AddressError;
 
-
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
