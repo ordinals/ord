@@ -211,6 +211,7 @@ impl Server {
           get(Self::parents_paginated),
         )
         .route("/preview/:inscription_id", get(Self::preview))
+        .route("/pushtx", post(Self::push_tx))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
           "/r/blockhash/:height",
@@ -1646,6 +1647,27 @@ impl Server {
           Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
         }
       }
+    })
+  }
+
+  async fn push_tx(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Json(tx): Json<String>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let response = index.client.send_raw_transaction(tx);
+        match response {
+          Ok(response) => Json(response).into_response(),
+          Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(bitcoincore_rpc::jsonrpc::error::RpcError{message, ..}))) => {
+            Json(message).into_response()
+          }
+          _ => Json("error").into_response(),
+        }
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
