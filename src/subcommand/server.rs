@@ -62,23 +62,6 @@ struct Search {
 #[folder = "static"]
 struct StaticAssets;
 
-struct StaticHtml {
-  title: &'static str,
-  html: &'static str,
-}
-
-impl PageContent for StaticHtml {
-  fn title(&self) -> String {
-    self.title.into()
-  }
-}
-
-impl Display for StaticHtml {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    f.write_str(self.html)
-  }
-}
-
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
@@ -864,6 +847,8 @@ impl Server {
 
       let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
 
+      let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
+
       let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
       Ok(if accept_json {
@@ -872,6 +857,7 @@ impl Server {
         AddressHtml {
           address,
           outputs,
+          inscriptions,
           sat_balance,
           runes_balances,
         }
