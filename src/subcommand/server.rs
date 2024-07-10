@@ -1653,18 +1653,25 @@ impl Server {
   async fn push_tx(
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
-    Json(tx): Json<String>,
+    Json(txs): Json<Vec<String>>,
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
-        let response = index.client.send_raw_transaction(tx);
-        match response {
-          Ok(response) => Json(response).into_response(),
-          Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(bitcoincore_rpc::jsonrpc::error::RpcError{message, ..}))) => {
-            Json(message).into_response()
-          }
-          _ => Json("error").into_response(),
-        }
+        Json(
+          txs
+            .into_iter()
+            .map(|tx| match index.client.send_raw_transaction(tx) {
+              Ok(response) => response.to_string(),
+              Err(bitcoincore_rpc::Error::JsonRpc(
+                bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+                  bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+                ),
+              )) => message,
+              _ => "error".to_string(),
+            })
+            .collect::<Vec<String>>(),
+        )
+        .into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
