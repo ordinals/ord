@@ -451,7 +451,7 @@ impl Server {
           "this server has no rune index".to_string(),
         ));
       }
-      let runes = index.get_rune_balances_for_outpoint(outpoint)?;
+      let runes = index.get_rune_balances_for_output(outpoint)?;
 
       let response: Vec<ordzaar::runes::RuneOutpoint> = runes
         .into_iter()
@@ -481,7 +481,7 @@ impl Server {
             "error parsing outpoint: {outpoint_str}"
           )));
         }
-        let runes = index.get_rune_balances_for_outpoint(outpoint_result.unwrap())?;
+        let runes = index.get_rune_balances_for_output(outpoint_result.unwrap())?;
 
         let response: Vec<ordzaar::runes::RuneOutpoint> = runes
           .into_iter()
@@ -1822,7 +1822,7 @@ impl Server {
           rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
-          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(), 
+          timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(),
         }
         .page(server_config)
         .into_response()
