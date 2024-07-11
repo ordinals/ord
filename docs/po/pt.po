@@ -1592,7 +1592,7 @@ msgstr "`/blocktime`: marca de tempo UNIX do bloco mais recente."
 
 #: src/runes.md:4
 msgid "Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native digital commodities."
-msgstr "As runes permitem que as transações de Bitcoin gravem, mintam e transfiram mercadorias digitais nativas do Bitcoin."
+msgstr "As runes permitem que as transações de Bitcoin gravem, mintem e transfiram artefatos digitais nativas do Bitcoin."
 
 #: src/runes.md:7
 msgid "Whereas every inscription is unique, every unit of a rune is the same. They are interchangeable tokens, fit for a variety of purposes."
@@ -1612,26 +1612,26 @@ msgid ""
 "sequence of 128-bit integers, and finally parsed into a runestone."
 msgstr ""
 "O output da pubkey de uma runestone começa com `OP_RETURN`, seguido por `OP_13`, seguido por zero ou mais dados inseridos. Estes dados são concatenados e "
-"descodificados numa sequência de números inteiros de 128 bits e finalmente analisados numa runestone."
+"descodificados numa sequência de números inteiros de 128 bits e finalmente transformados numa runestone."
 
 #: src/runes.md:21
 msgid "A transaction may have at most one runestone."
 msgstr "Uma transação pode ter, no máximo, uma runestone."
 
 #: src/runes.md:23
-msgid "A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs."
+msgid "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das entradas (input) de uma transação para as suas saídas (outputs)."
 msgstr "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das input de uma transação para as suas outputs."
 
 #: src/runes.md:26
 msgid "A transaction output may hold balances of any number of runes."
-msgstr "Uma output de transação pode conter saldos de qualquer número de runes."
+msgstr "Uma saída (output) de transação pode conter saldos de qualquer número de runes."
 
 #: src/runes.md:28
 msgid ""
 "Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as `BLOCK:TX`. "
 "For example, the ID of the rune etched in the 20th transaction of the 500th block is `500:20`."
 msgstr ""
-"Uma output de transação pode conter saldos de qualquer número de runes. As runes são identificadas por IDs, que consistem no bloco em que uma rune foi gravada e no índice da transação de gravação dentro desse bloco, representados em texto como `BLOCO:TX`. "
+"As runes são identificadas por IDs, que consistem no bloco em que uma rune foi gravada e no índice da transação de gravação dentro desse bloco, representados em texto como `BLOCO:TX`. "
 "Por exemplo, o ID da rune gravada na 20ª transação do 500º bloco é `500:20`."
 
 #: src/runes.md:33
@@ -1640,7 +1640,7 @@ msgstr "Gravações"
 
 #: src/runes.md:36
 msgid "Runes come into existence by being etched. Etching creates a rune and sets its properties. Once set, these properties are immutable, even to its etcher."
-msgstr "As runes passam a existir ao serem gravadas. A gravação cria uma rune e estabelece as suas propriedades. Uma vez estabelecidas, estas propriedades são imutáveis, mesmo para o seu gravador."
+msgstr "As runes passam a existir ao serem gravadas. A gravação cria uma rune e estabelece as suas propriedades. Uma vez estabelecidas, estas propriedades são imutáveis, mesmo para o seu criador (etcher)."
 
 #: src/runes.md:39 src/runes/specification.md:420
 msgid "Name"
@@ -1676,7 +1676,7 @@ msgid ""
 "runes. A rune with divisibility 0 may not be divided. A unit of a rune with divisibility 1 may be divided into ten sub-units, a rune with divisibility 2 may be divided into a "
 "hundred, and so on."
 msgstr ""
-"A divisibilidade de uma rune é a finura com que pode ser dividida nas suas unidades atómicas. A divisibilidade é expressa como o número de dígitos permitidos após o ponto decimal "
+"A divisibilidade de uma rune é o quanto que pode ser dividida nas suas unidades atómicas. A divisibilidade é expressa como o número de dígitos permitidos após o ponto decimal "
 "numa quantidade de runes. Uma rune com divisibilidade 0 não pode ser dividida. Uma unidade de uma rune com divisibilidade 1 pode ser dividida em dez subunidades, uma rune com "
 "divisibilidade 2 pode ser dividida em cem, e assim em diante."
 
@@ -1699,7 +1699,7 @@ msgstr "Se uma rune não tiver um símbolo, deve ser usado o sinal de moeda gen�
 
 #: src/runes.md:73 src/runes/specification.md:290
 msgid "Premine"
-msgstr "Pré-minar"
+msgstr "Pré-mineração"
 
 #: src/runes.md:75
 msgid "The etcher of a rune may optionally allocate to themselves units of the rune being etched. This allocation is called a premine."
@@ -1715,7 +1715,7 @@ msgid ""
 "An open mint is subject to terms, which are set upon etching."
 msgstr ""
 "Uma rune pode ter um mint aberto, permitindo a qualquer pessoa criar e atribuir unidades dessa rune para si própria."
-"Um mint aberto está sujeito a termos, que são definidos na altura da gravação."
+"Um mint aberto está sujeito a termos, que são definidos no momento da criação da Rune (Etching)"
 
 #: src/runes.md:84
 msgid ""
@@ -1867,7 +1867,7 @@ msgid ""
 "`ord`, and the code of `ord` itself should always be consulted to confirm the correctness of any prose description."
 msgstr ""
 "Nada do que ler aqui ou noutro lugar, para além do código `ord`, é uma especificação. Esta descrição em prosa do protocolo runes é "
-"fornecida como um guia para o comportamento do `ord`, e o código do próprio `ord` deve ser sempre consultado para confirmar a correção de qualquer descrição em prosa do mesmo."
+"fornecida como um guia para o comportamento do `ord`, e o código do próprio `ord` deve ser sempre consultado para confirmar a exatidão de qualquer descrição em prosa do mesmo."
 
 #: src/runes/specification.md:12
 msgid ""
@@ -2166,7 +2166,7 @@ msgid ""
 "degenerate."
 msgstr ""
 "O sinalizador `Turbo` marca a gravação desta transação como tendo optado por futuras alterações de protocolo. Estas alterações de protocolo podem aumentar os custos de validação "
-"do cliente ligeiro, ou simplesmente ser altamente degeneradas."
+"do cliente levemente, ou simplesmente ser muito alta."
 
 #: src/runes/specification.md:279
 msgid "The `Cenotaph` flag is unrecognized."
@@ -2186,7 +2186,7 @@ msgstr "O campo `Rune` contém o nome da rune que está a ser gravada. Se a band
 
 #: src/runes/specification.md:292
 msgid "The `Premine` field contains the amount of premined runes."
-msgstr "O campo `Premine` contém a quantidade de runes pré-minadas."
+msgstr "O campo `Premine` contém a quantidade de runes pré-mineradas."
 
 #: src/runes/specification.md:296
 msgid "The `Cap` field contains the allowed number of mints."
@@ -2198,7 +2198,7 @@ msgstr "O campo `Amount` contém a quantidade de runes que cada transação de m
 
 #: src/runes/specification.md:302
 msgid "HeightStart and HeightEnd"
-msgstr "HeightStart e HeightEnd"
+msgstr "(altura inicial) HeightStart e (altura final) HeightEnd"
 
 #: src/runes/specification.md:304
 msgid ""
@@ -2210,7 +2210,7 @@ msgstr ""
 
 #: src/runes/specification.md:308
 msgid "OffsetStart and OffsetEnd"
-msgstr "OffsetStart e OffsetEnd"
+msgstr "(desvio inicial) OffsetStart e (desvio final) OffsetEnd"
 
 #: src/runes/specification.md:310
 msgid ""
@@ -2380,7 +2380,7 @@ msgstr "Executar a runestone"
 
 #: src/runes/specification.md:398
 msgid "Runestones are executed in the order their transactions are included in blocks."
-msgstr "Os marcos de execução são executados pela `ord`em em que as suas transacções são incluídas nos blocos."
+msgstr "As runestones são executados na ordem em que as suas transações são incluídas nos blocos."
 
 #: src/runes/specification.md:400
 msgid "Etchings"
