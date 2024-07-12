@@ -22,7 +22,7 @@ impl Display for Outgoing {
 }
 
 impl FromStr for Outgoing {
-  type Err = Error;
+  type Err = SnafuError;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     lazy_static! {
@@ -63,22 +63,57 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if re::SAT_NAME.is_match(s) {
-      Self::Sat(s.parse()?)
+    if re::SAT_NAME.is_match(s) {
+      Ok(Outgoing::Sat(s.parse().context(
+        SnafuError::UnrecognizedSat {
+          input: s.to_string(),
+        },
+      )?))
     } else if re::SATPOINT.is_match(s) {
-      Self::SatPoint(s.parse()?)
+      Ok(Outgoing::SatPoint(s.parse().context(
+        SnafuError::UnrecognizedSatPoint {
+          input: s.to_string(),
+        },
+      )?))
     } else if re::INSCRIPTION_ID.is_match(s) {
-      Self::InscriptionId(s.parse()?)
+      Ok(Outgoing::InscriptionId(s.parse().context(
+        SnafuError::UnrecognizedInscriptionId {
+          input: s.to_string(),
+        },
+      )?))
     } else if AMOUNT.is_match(s) {
-      Self::Amount(s.parse()?)
+      Ok(Outgoing::Amount(s.parse().context(
+        SnafuError::UnrecognizedAmount {
+          input: s.to_string(),
+        },
+      )?))
     } else if let Some(captures) = RUNE.captures(s) {
-      Self::Rune {
-        decimal: captures[1].parse()?,
-        rune: captures[2].parse()?,
-      }
+      let decimal = captures
+        .get(1)
+        .ok_or_else(|| SnafuError::UnrecognizedRune {
+          input: s.to_string(),
+        })?
+        .as_str()
+        .parse()
+        .context(SnafuError::UnrecognizedRune {
+          input: s.to_string(),
+        })?;
+      let rune = captures
+        .get(2)
+        .ok_or_else(|| SnafuError::UnrecognizedRune {
+          input: s.to_string(),
+        })?
+        .as_str()
+        .parse()
+        .context(SnafuError::UnrecognizedRune {
+          input: s.to_string(),
+        })?;
+      Ok(Outgoing::Rune { decimal, rune })
     } else {
-      bail!("unrecognized outgoing: {s}");
-    })
+      Err(SnafuError::UnrecognizedOutgoing {
+        input: s.to_string(),
+      })
+    }
   }
 }
 

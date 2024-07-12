@@ -1,8 +1,25 @@
 use super::*;
+use bitcoin::address::Error as AddressError;
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
-pub(crate) enum SnafuError {
+pub enum SnafuError {
+  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
+  UnrecognizedAmount { input: String },
+  #[snafu(display("Unrecognized outgoing rune: `{}`", input))]
+  UnrecognizedRune { input: String },
+  #[snafu(display("Unrecognized outgoing sat: `{}`", input))]
+  UnrecognizedSat { input: String },
+  #[snafu(display("Unrecognized outgoing sat point: `{}`", input))]
+  UnrecognizedSatPoint { input: String },
+  #[snafu(display("Unrecognized outgoing inscription ID: `{}`", input))]
+  UnrecognizedInscriptionId { input: String },
+  #[snafu(display("Unrecognized outgoing: `{}`", input))]
+  UnrecognizedOutgoing { input: String },
+  #[snafu(display("Invalid chain `{}`", chain))]
+  InvalidChain { chain: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion { source: AddressError },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
