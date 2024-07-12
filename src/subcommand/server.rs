@@ -58,6 +58,15 @@ struct Search {
   query: String,
 }
 
+#[derive(Clone, Serialize)]
+struct PushTxResult {
+  success: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  txid: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  error: Option<String>,
+}
+
 #[derive(RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
@@ -1657,21 +1666,37 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
-        Json(
-          txs
-            .into_iter()
-            .map(|tx| match index.client.send_raw_transaction(tx) {
-              Ok(response) => response.to_string(),
-              Err(bitcoincore_rpc::Error::JsonRpc(
-                bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-                  bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
-                ),
-              )) => message,
-              _ => "error".to_string(),
-            })
-            .collect::<Vec<String>>(),
+        let result = txs
+          .into_iter()
+          .map(|tx| match index.client.send_raw_transaction(tx) {
+            Ok(response) => PushTxResult {
+              success: true,
+              txid: Some(response.to_string()),
+              error: None,
+            },
+            Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+              bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+            ))) => PushTxResult {
+              success: false,
+              txid: None,
+              error: Some(message),
+            },
+            _ => PushTxResult {
+              success: false,
+              txid: None,
+              error: Some("error".to_string()),
+            },
+          })
+          .collect::<Vec<PushTxResult>>();
+        (
+          if result.iter().any(|x| !x.success) {
+            StatusCode::BAD_REQUEST
+          } else {
+            StatusCode::OK
+          },
+          Json(result),
         )
-        .into_response()
+          .into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
