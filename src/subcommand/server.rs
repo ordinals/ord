@@ -1668,24 +1668,32 @@ impl Server {
       Ok(if accept_json {
         let result = txs
           .into_iter()
-          .map(|tx| match index.client.send_raw_transaction(tx) {
-            Ok(response) => PushTxResult {
-              success: true,
-              txid: Some(response.to_string()),
-              error: None,
-            },
-            Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-              bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
-            ))) => PushTxResult {
-              success: false,
-              txid: None,
-              error: Some(message),
-            },
-            _ => PushTxResult {
-              success: false,
-              txid: None,
-              error: Some("error".to_string()),
-            },
+          .map(|tx| {
+            let txid: Result<Txid, bitcoincore_rpc::Error> = index.client.call(
+              "sendrawtransaction",
+              &[tx.into(), 0.1.into(), 0.00010000.into()],
+            );
+            match txid {
+              Ok(response) => PushTxResult {
+                success: true,
+                txid: Some(response.to_string()),
+                error: None,
+              },
+              Err(bitcoincore_rpc::Error::JsonRpc(
+                bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+                  bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+                ),
+              )) => PushTxResult {
+                success: false,
+                txid: None,
+                error: Some(message),
+              },
+              _ => PushTxResult {
+                success: false,
+                txid: None,
+                error: Some("error".to_string()),
+              },
+            }
           })
           .collect::<Vec<PushTxResult>>();
         (
