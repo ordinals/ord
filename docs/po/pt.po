@@ -1619,8 +1619,8 @@ msgid "A transaction may have at most one runestone."
 msgstr "Uma transação pode ter, no máximo, uma runestone."
 
 #: src/runes.md:23
-msgid "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das entradas (input) de uma transação para as suas saídas (outputs)."
-msgstr "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das input de uma transação para as suas outputs."
+msgid "A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs."
+msgstr "Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das entradas (input) de uma transação para as suas saídas (outputs)."
 
 #: src/runes.md:26
 msgid "A transaction output may hold balances of any number of runes."
