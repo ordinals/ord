@@ -32,6 +32,26 @@ Percentiles distribution of inscription body size(>0), min=1, max=3915775, mean=
 |  99.99th=[3915775] (samples: 1)
 ```
 
+### Update Satpoint
+
+generate utxo list by [utxo dump tool](https://github.com/in3rsha/bitcoin-utxo-dump):
+
+```shell
+bitcoin-utxo-dump -f count,txid,vout,height,coinbase,amount,script,type,address -db <chainstate_clone_path> -o <utxo_list_path>
+```
+
+generate outpoint:address mapping db by utxo list:
+
+```shell
+ord index utxo --input <utxo_list_path> --output <output.redb>
+```
+
+update satpoint of inscriptions:
+
+```shell
+ord --index=~/btc/ord/index/index.redb --cookie-file=~/bitcoincore/.cookie index export --output ~/btc/ord/dump/ord_0_852202 --gt-sequence 72370129 --input ~/btc/ord/dump/ord_0_849667 --changes-output ~/btc/ord/dump/ord_0_852202_from_849667_changes --utxo-source ~/btc/utxo/utxo_address_0_852202.redb
+```
+
 ## Pre-requisites
 
 ### Start `bitcond` server

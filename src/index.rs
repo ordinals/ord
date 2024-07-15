@@ -74,6 +74,14 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+pub(crate) const UTXO_INDEX_TABLE: TableDefinition<&[u8], &[u8]> =
+  TableDefinition::new("utxo_index");
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RichAddress {
+  pub script_type: String,
+  pub address: Option<String>,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InscriptionOutput {
@@ -696,6 +704,9 @@ impl Index {
   pub(crate) fn export(
     &self,
     output_filename: &String,
+    input_filename: Option<String>,
+    changes_filename: Option<String>,
+    utxo_filename: &String,
     gt_sequence: Option<u32>,
     lt_sequence: Option<u32>,
   ) -> Result {
@@ -703,7 +714,9 @@ impl Index {
 
     let mut writer = BufWriter::new(fs::File::create(output_filename)?);
 
+    let utxo_databse = Database::open(utxo_filename)?;
     let rtx = self.database.begin_read()?;
+    let utxo_rtx = utxo_databse.begin_read()?;
 
     let blocks_indexed = rtx
       .open_table(HEIGHT_TO_BLOCK_HEADER)?
@@ -712,30 +725,82 @@ impl Index {
       .transpose()?
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
-
     writeln!(
       writer,
       "# export at block height {}, inscriptions in: [0, {})",
       blocks_indexed, blocks_indexed
-    )?; // [0, height)
+    )?;
 
-    log::info!("exporting database tables to {output_filename}");
+    let satpoint_table = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
+    let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let utxo_table = utxo_rtx.open_table(UTXO_INDEX_TABLE)?;
+    let seq_ins_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
-
+    // export stats counter
     let mut recorded: u64 = 0;
     let mut unbound_count: u64 = 0;
+    let mut non_standard_count: u64 = 0;
     let mut cursed_count: u64 = 0;
     let mut p2pk_count: u64 = 0;
     let mut total_num: u64 = 0;
     let mut body_none_count: u64 = 0;
-
     let report_interval = 1024 * 1024;
-
-    let seqnum_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut body_size_hist = Histogram::<u64>::new_with_bounds(1, 4 * 1024 * 1024, 2).unwrap();
 
-    let seq_ins_table = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    // update ordinals satpoint & address if needed
+    if let Some(input_filename) = input_filename {
+      let mut changes_writer = BufWriter::new(fs::File::create(changes_filename.unwrap()).unwrap());
+
+      let mut csv_reader =
+        BufReader::with_capacity(8 * 1024 * 1024, fs::File::open(input_filename)?);
+
+      for line in csv_reader.by_ref().lines() {
+        let line = line?;
+
+        if line.starts_with("#export at") {
+          continue;
+        }
+
+        let mut origin: InscriptionOutput = serde_json::from_str(&line).unwrap();
+        let new_satpoint =
+          SatPoint::load(*satpoint_table.get(origin.sequence_number)?.unwrap().value());
+        if new_satpoint.outpoint.to_string() != origin.satpoint_outpoint {
+          let line = format!(
+            "sequence_number: {}, old: {}, new: {}",
+            origin.sequence_number,
+            origin.satpoint_outpoint,
+            new_satpoint.outpoint.to_string()
+          );
+          writeln!(changes_writer, "{}", line).expect("unable to write data to file");
+
+          origin.satpoint_outpoint = new_satpoint.outpoint.to_string();
+          origin.satpoint_offset = new_satpoint.offset;
+          // get address
+          let mut is_p2pk = false;
+          let address = if new_satpoint.outpoint == unbound_outpoint() {
+            "unbound".to_string()
+          } else {
+            let output_bytes = bcs::to_bytes(&new_satpoint.outpoint.to_string()).unwrap();
+            let rich_address_value = utxo_table.get(output_bytes.as_slice())?.unwrap();
+            let rich_address: RichAddress = bcs::from_bytes(rich_address_value.value()).unwrap();
+            if rich_address.script_type == "p2pk" {
+              is_p2pk = true;
+            }
+            if let Some(address) = rich_address.address {
+              address
+            } else {
+              "non-standard".to_string()
+            }
+          };
+          origin.is_p2pk = is_p2pk;
+          origin.address = address;
+        }
+        let line = serde_json::to_string(&origin).expect("Unable to serialize inscription");
+        writeln!(writer, "{}", line).expect("unable to write data to file");
+      }
+      changes_writer.flush()?;
+    }
+
     let range = (gt_sequence, lt_sequence);
     let entry_range_iter = match range {
       (Some(gt_sequence), Some(lt_sequence)) => {
@@ -752,48 +817,30 @@ impl Index {
       let sequence_number = entry.0.value();
 
       let entry = InscriptionEntry::load(entry.1.value());
-      let satpoint = SatPoint::load(
-        *sequence_number_to_satpoint
-          .get(sequence_number)?
-          .unwrap()
-          .value(),
-      );
+      let satpoint = SatPoint::load(*satpoint_table.get(sequence_number)?.unwrap().value());
 
       if entry.inscription_number < 0 {
         cursed_count += 1;
-      }
-      if satpoint.outpoint == unbound_outpoint() {
-        unbound_count += 1;
       }
 
       // get address
       let mut is_p2pk = false;
       let address = if satpoint.outpoint == unbound_outpoint() {
+        unbound_count += 1;
         "unbound".to_string()
       } else {
-        let output = self
-          .get_transaction(satpoint.outpoint.txid)?
-          .unwrap()
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .unwrap();
-
-        if (&output).script_pubkey.is_p2pk() {
+        let output_bytes = bcs::to_bytes(&satpoint.outpoint.to_string()).unwrap();
+        let rich_address_value = utxo_table.get(output_bytes.as_slice())?.unwrap();
+        let rich_address: RichAddress = bcs::from_bytes(rich_address_value.value()).unwrap();
+        if rich_address.script_type == "p2pk" {
           is_p2pk = true;
           p2pk_count += 1;
-          (&output)
-            .script_pubkey
-            .p2pk_public_key()
-            .unwrap()
-            .to_string()
+        }
+        if let Some(address) = rich_address.address {
+          address
         } else {
-          self
-            .settings
-            .chain()
-            .address_from_script(&output.script_pubkey)
-            .map(|address| address.to_string())
-            .unwrap_or_else(|_e| "non-standard".to_string())
+          non_standard_count += 1;
+          "non-standard".to_string()
         }
       };
 
@@ -857,11 +904,13 @@ impl Index {
 
       if recorded % report_interval == 0 {
         println!(
-          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}) exported in {:?}.",
+          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}, non-non-standard: {}, 0-body: {}) exported in {:?}.",
           recorded,
           cursed_count,
           p2pk_count,
           unbound_count,
+          non_standard_count,
+          body_none_count,
           start_time.elapsed(),
         );
       }
@@ -873,11 +922,12 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= gt_sequence included, >= lt_sequence not included) in block heights: [0,{})",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, non-non-standard: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= gt_sequence included, >= lt_sequence not included) in block heights: [0,{})",
       recorded,
       cursed_count,
       p2pk_count,
       unbound_count,
+      non_standard_count,
       body_none_count,
       start_time.elapsed(),
       total_num,
