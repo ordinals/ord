@@ -64,7 +64,7 @@
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
-  <dd class=monospace>{{ address }}</dd>
+  <dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
   <dd>{{ output.value }}</dd>
@@ -72,6 +72,8 @@
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+  <dt>sat name</dt>
+  <dd><a href=/sat/{{ sat.name() }}>{{ sat.name() }}</a></dd>
 %% }
 %% if let Some(metaprotocol) = self.inscription.metaprotocol() {
   <dt>metaprotocol</dt>
