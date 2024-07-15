@@ -1,7 +1,7 @@
 `ord`
 =====
 
-Export inscriptions.
+Export inscriptions in specific struct.
 
 ## Usage
 
