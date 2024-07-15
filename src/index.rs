@@ -781,15 +781,21 @@ impl Index {
             "unbound".to_string()
           } else {
             let output_bytes = bcs::to_bytes(&new_satpoint.outpoint.to_string()).unwrap();
-            let rich_address_value = utxo_table.get(output_bytes.as_slice())?.unwrap();
-            let rich_address: RichAddress = bcs::from_bytes(rich_address_value.value()).unwrap();
-            if rich_address.script_type == "p2pk" {
-              is_p2pk = true;
-            }
-            if let Some(address) = rich_address.address {
-              address
-            } else {
+            let rich_address_value = utxo_table.get(output_bytes.as_slice())?;
+            if rich_address_value.is_none() {
+              println!("utxo not found: {}", new_satpoint.outpoint.to_string());
               "non-standard".to_string()
+            } else {
+              let rich_address: RichAddress =
+                bcs::from_bytes(rich_address_value.unwrap().value()).unwrap();
+              if rich_address.script_type == "p2pk" {
+                is_p2pk = true;
+              }
+              if let Some(address) = rich_address.address {
+                address
+              } else {
+                "non-standard".to_string()
+              }
             }
           };
           origin.is_p2pk = is_p2pk;
@@ -830,17 +836,24 @@ impl Index {
         "unbound".to_string()
       } else {
         let output_bytes = bcs::to_bytes(&satpoint.outpoint.to_string()).unwrap();
-        let rich_address_value = utxo_table.get(output_bytes.as_slice())?.unwrap();
-        let rich_address: RichAddress = bcs::from_bytes(rich_address_value.value()).unwrap();
-        if rich_address.script_type == "p2pk" {
-          is_p2pk = true;
-          p2pk_count += 1;
-        }
-        if let Some(address) = rich_address.address {
-          address
-        } else {
+        let rich_address_value = utxo_table.get(output_bytes.as_slice())?;
+        if rich_address_value.is_none() {
           non_standard_count += 1;
+          println!("utxo not found: {}", satpoint.outpoint.to_string());
           "non-standard".to_string()
+        } else {
+          let rich_address: RichAddress =
+            bcs::from_bytes(rich_address_value.unwrap().value()).unwrap();
+          if rich_address.script_type == "p2pk" {
+            is_p2pk = true;
+            p2pk_count += 1;
+          }
+          if let Some(address) = rich_address.address {
+            address
+          } else {
+            non_standard_count += 1;
+            "non-standard".to_string()
+          }
         }
       };
 
@@ -904,7 +917,7 @@ impl Index {
 
       if recorded % report_interval == 0 {
         println!(
-          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}, non-non-standard: {}, 0-body: {}) exported in {:?}.",
+          "doing. {} inscriptions recorded(cursed: {}, p2pk: {}, unbound: {}, non-standard: {}, 0-body: {}) exported in {:?}.",
           recorded,
           cursed_count,
           p2pk_count,
@@ -922,7 +935,7 @@ impl Index {
     writer.flush()?;
 
     println!(
-      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, non-non-standard: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= gt_sequence included, >= lt_sequence not included) in block heights: [0,{})",
+      "job done. {} recorded(cursed: {}, p2pk: {}, unbound: {}, non-standard: {}, 0-body: {}) exported in {:?}. {} inscriptions(<= gt_sequence included, >= lt_sequence not included) in block heights: [0,{})",
       recorded,
       cursed_count,
       p2pk_count,

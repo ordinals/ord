@@ -148,4 +148,15 @@ mod tests {
       Address::from_script(&script_buf, bitcoin::Network::Bitcoin).unwrap()
     );
   }
+
+  #[test]
+  fn test_script_type() {
+    let script = "21036c6565662c206f6e7464656b2c2067656e6965742e2e2e202020202020202020ac";
+    let script_buf = ScriptBuf::from_hex(&script).unwrap();
+    println!("{:?}", script_buf.is_p2pk());
+    println!(
+      "{:?}",
+      Address::from_script(&script_buf, bitcoin::Network::Bitcoin)
+    )
+  }
 }

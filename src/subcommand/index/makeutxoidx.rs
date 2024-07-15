@@ -59,7 +59,12 @@ fn gen_utxo_data_from_csv_line(line: &str) -> (String, RichAddress) {
   let mut rich_address = RichAddress {
     script_type: str_list[7].to_string(),
     address: if str_list[8].is_empty() {
-      None
+      let script = str_list[6].to_string();
+      let script_buf = ScriptBuf::from_hex(&script).unwrap();
+      match Address::from_script(&script_buf, bitcoin::Network::Bitcoin) {
+        Ok(address) => Some(address.to_string()),
+        Err(_) => None,
+      }
     } else {
       Some(str_list[8].to_string())
     },
