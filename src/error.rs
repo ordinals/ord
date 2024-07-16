@@ -2,7 +2,25 @@ use super::*;
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
-pub(crate) enum SnafuError {
+pub enum SnafuError {
+  #[snafu(display("Failed to parse address `{}`", input))]
+  AddressParseError { input: String },
+  #[snafu(display("Failed to parse hash `{}`", input))]
+  HashParseError { input: String },
+  #[snafu(display("Failed to parse inscription ID `{}`", input))]
+  InscriptionIdParseError { input: String },
+  #[snafu(display("Failed to parse integer `{}`", input))]
+  IntegerParseError { input: String },
+  #[snafu(display("Failed to parse out point `{}`", input))]
+  OutPointParseError { input: String },
+  #[snafu(display("Failed to parse rune `{}`", input))]
+  RuneParseError { input: String },
+  #[snafu(display("Failed to parse sat `{}`", input))]
+  SatParseError { input: String },
+  #[snafu(display("Failed to parse sat point `{}`", input))]
+  SatPointParseError { input: String },
+  #[snafu(display("Unrecognized representation `{}`", input))]
+  UnrecognizedRepresentation { input: String },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
