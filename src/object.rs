@@ -13,22 +13,56 @@ pub enum Object {
 }
 
 impl FromStr for Object {
-  type Err = Error;
+  type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self> {
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
     use Representation::*;
 
-    match Representation::from_str(s)? {
-      Address => Ok(Self::Address(s.parse()?)),
-      Decimal | Degree | Percentile | Name => Ok(Self::Sat(s.parse()?)),
+    match Representation::from_str(s).context(SnafuError::UnrecognizedObject {
+      input: s.to_string(),
+    })? {
+      Address => Ok(Self::Address(s.parse().context(
+        SnafuError::AddressParseError {
+          input: s.to_string(),
+        },
+      )?)),
+      Decimal | Degree | Percentile | Name => {
+        Ok(Self::Sat(s.parse().context(SnafuError::SatParseError {
+          input: s.to_string(),
+        })?))
+      }
       Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(s)?.to_byte_array(),
+        bitcoin::hashes::sha256::Hash::from_str(s)
+          .context(SnafuError::HashParseError {
+            input: s.to_string(),
+          })?
+          .to_byte_array(),
       )),
-      InscriptionId => Ok(Self::InscriptionId(s.parse()?)),
-      Integer => Ok(Self::Integer(s.parse()?)),
-      OutPoint => Ok(Self::OutPoint(s.parse()?)),
-      Rune => Ok(Self::Rune(s.parse()?)),
-      SatPoint => Ok(Self::SatPoint(s.parse()?)),
+      InscriptionId => Ok(Self::InscriptionId(s.parse().context(
+        SnafuError::InscriptionIdParseError {
+          input: s.to_string(),
+        },
+      )?)),
+      Integer => Ok(Self::Integer(s.parse().context(
+        SnafuError::IntegerParseError {
+          input: s.to_string(),
+        },
+      )?)),
+      OutPoint => Ok(Self::OutPoint(s.parse().context(
+        SnafuError::OutPointParseError {
+          input: s.to_string(),
+        },
+      )?)),
+      Rune => Ok(Self::Rune(s.parse().context(
+        SnafuError::RuneParseError {
+          input: s.to_string(),
+        },
+      )?)),
+      SatPoint => Ok(Self::SatPoint(s.parse().context(
+        SnafuError::SatPointParseError {
+          input: s.to_string(),
+        },
+      )?)),
     }
   }
 }

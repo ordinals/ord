@@ -4,6 +4,24 @@ use bitcoin::address::Error as AddressError;
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
+  #[snafu(display("Failed to parse address `{}`", input))]
+  AddressParseError { input: String },
+  #[snafu(display("Failed to parse hash `{}`", input))]
+  HashParseError { input: String },
+  #[snafu(display("Failed to parse inscription ID `{}`", input))]
+  InscriptionIdParseError { input: String },
+  #[snafu(display("Failed to parse integer `{}`", input))]
+  IntegerParseError { input: String },
+  #[snafu(display("Failed to parse out point `{}`", input))]
+  OutPointParseError { input: String },
+  #[snafu(display("Failed to parse rune `{}`", input))]
+  RuneParseError { input: String },
+  #[snafu(display("Failed to parse sat `{}`", input))]
+  SatParseError { input: String },
+  #[snafu(display("Failed to parse sat point `{}`", input))]
+  SatPointParseError { input: String },
+  #[snafu(display("Unrecognized object `{}`", input))]
+  UnrecognizedObject { input: String },
   #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
   UnrecognizedAmount { input: String },
   #[snafu(display("Unrecognized outgoing rune: `{}`", input))]
