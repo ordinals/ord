@@ -160,9 +160,8 @@ publish-tag-and-crate revision='master':
   cd ../..
   rm -rf tmp/release
 
-list-outdated-dependencies:
-  cargo outdated -R
-  cd test-bitcoincore-rpc && cargo outdated -R
+outdated:
+  cargo outdated -R --workspace
 
 update-modern-normalize:
   curl \

@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct AddressHtml {
   pub(crate) address: Address,
   pub(crate) outputs: Vec<OutPoint>,
+  pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat_balance: u64,
   pub(crate) runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
 }
@@ -25,6 +26,7 @@ mod tests {
         .require_network(Network::Bitcoin)
         .unwrap(),
       outputs: vec![outpoint(1), outpoint(2)],
+      inscriptions: vec![inscription_id(1)],
       sat_balance: 99,
       runes_balances: vec![
         (
@@ -65,6 +67,13 @@ mod tests {
   fn test_sat_balance_rendering() {
     let address_html = setup();
     let expected_pattern = r#".*<dt>sat balance</dt>\n\s*<dd>99</dd>.*"#;
+    assert_regex_match!(address_html, expected_pattern);
+  }
+
+  #[test]
+  fn test_inscriptions_rendering() {
+    let address_html = setup();
+    let expected_pattern = r#".*<dt>inscriptions</dt>\n\s*<dd class=thumbnails>.*<a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>.*</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 
