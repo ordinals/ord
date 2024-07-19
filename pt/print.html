@@ -300,8 +300,8 @@
 <p>AAtivos arbitrários, como NFTs, tokens de segurança, contas ou stablecoins podem ser anexados a satoshis usando números ordinais como identificadores estáveis.</p>
 <p>Ordinals é um projeto de código aberto, desenvolvido <a href="https://github.com/ordinals/ord">no GitHub</a>. O projeto consiste em um BIP que descreve o esquema ordinal, um índice que se comunica com um nó Bitcoin Core para rastrear a localização de todos os satoshis, uma carteira que permite fazer transações com reconhecimento de Ordinals, um explorador de blocos para exploração interativa da blockchain, funcionalidade para inscrever artefatos digitais nos satoshis e este manual.</p>
 <h2 id="raridade"><a class="header" href="#raridade">Raridade</a></h2>
-<p>Os humanos são colecionadores e, como os satoshis agora podem ser rastreados e podem decidir por si mesmos quais sats são raros e desejáveis, mas existemalgumas dicas...</p>
-<p>naturalmente se prestam a um sistema de raridade. Esses eventos periódicos são:</p>
+<p>Os humanos são colecionadores e, como os satoshis agora podem ser rastreados e transferidos, as pessoas naturalmente desejarão coletá-los. Teóricos de Ordinals podem decidir por si mesmos quais sats são raros e desejáveis, mas existemalgumas dicas...</p>
+<p>O Bitcoin tem eventos periódicos, alguns frequentes, outros mais incomuns, e estes naturalmente se prestam a um sistema de raridade. Esses eventos periódicos são:</p>
 <ul>
 <li>
 <p><em>Blocos</em>: Um novo bloco é minerado aproximadamente a cada 10 minutos, a partir de agora e até o fim dos tempos.</p>
@@ -400,7 +400,7 @@
 <li><code>lendário</code>: 0</li>
 <li><code>mítico</code>: 1</li>
 </ul>
-<p>745.855 satoshis incomuns haviam sido minerados - 1 para cada 25,6 bitcoins em circulação.</p>
+<p>No momento, mesmo os satoshis incomuns são bastante raros. No momento em que este manual foi escrito, 745.855 satoshis incomuns haviam sido minerados - 1 para cada 25,6 bitcoins em circulação.</p>
 <h2 id="nomes"><a class="header" href="#nomes">Nomes</a></h2>
 <p>Cada satoshi tem um nome, composto pelas letras de <em>A</em> a <em>Z</em>, que ficam mais curtos quanto mais no futuro o satoshi foi minerado. Eles poderiam começar curtos e ficarem mais longos, mas então todos os nomes bons e curtos ficariam presos no bloco Gênesis, satoshis do qual são impossíveis de gastar.</p>
 <p>Por exemplo, o nome de 1905530482684727° é "iaiufjszmoba". O nome do último satoshi a ser minerado é "a". Cada combinação de 10 caracteres ou menos já existe, ou existirá algum dia.</p>
@@ -479,7 +479,7 @@ OP_ENDIF
 <li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
 </ul>
 <p>O início do corpo e o final dos campos são indicados com um push de dados vazio.</p>
-<p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra "não há problema ser ímpar" usada pelRede Lightning.</p>
+<p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra "não há problema ser ímpar" usada pela Rede Lightning.</p>
 <p>Etiquetas pares são usadas para campos que podem afetar a criação, atribuição inicial ou transferência de uma inscrição. Assim, inscrições com campos pares não reconhecidos devem ser exibidas como "não vinculadas", ou seja, sem localização.</p>
 <p>Tags ímpares são usadas para campos que não afetam a criação, atribuição inicial ou transferência, como metadados adicionais, e, portanto, podem ser ignorados com segurança.</p>
 <h2 id="ids-das-inscrições"><a class="header" href="#ids-das-inscrições">IDs das Inscrições</a></h2>
@@ -688,7 +688,7 @@ OP_ENDIF
 <p>Remixando o conteúdo das inscrições existentes.</p>
 </li>
 <li>
-<p>"Publicar trechos de código, imagens, áudio ou stylesheets como recursos públicos compartilhados.</p>
+<p>Publicar trechos de código, imagens, áudio ou stylesheets como recursos públicos compartilhados.</p>
 </li>
 <li>
 <p>Coleções de arte generativas onde um algoritmo é inscrito como JavaScript e instanciado a partir de múltiplas inscrições com sementes únicas.</p>
@@ -881,69 +881,69 @@ OP_ENDIF
 <p>When upscaling image inscriptions other than AVIF, <code>image-rendering: pixelated</code> should be used. This is desirable when upscaling pixel art, since it preserves the sharp edges of pixels. It is undesirable when upscaling non-pixel art, but should still be used for visual compatibility with the <code>ord</code> explorer.</p>
 <p>When upscaling AVIF and JPEG XL inscriptions, <code>image-rendering: auto</code> should be used. This allows inscribers to opt-in to non-pixelated upscaling for non-pixel art inscriptions. Until such time as JPEG XL is widely supported by browsers, it is not a recommended image format.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="runes"><a class="header" href="#runes">Runes</a></h1>
-<p>Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native digital commodities.</p>
-<p>Whereas every inscription is unique, every unit of a rune is the same. They are interchangeable tokens, fit for a variety of purposes.</p>
-<h2 id="runestones"><a class="header" href="#runestones">Runestones</a></h2>
-<p>Rune protocol messages, called runestones, are stored in Bitcoin transaction outputs.</p>
-<p>A runestone output's script pubkey begins with an <code>OP_RETURN</code>, followed by <code>OP_13</code>, followed by zero or more data pushes. These data pushes are concatenated and decoded into a sequence of 128-bit integers, and finally parsed into a runestone.</p>
-<p>A transaction may have at most one runestone.</p>
-<p>A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs.</p>
-<p>A transaction output may hold balances of any number of runes.</p>
-<p>Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th transaction of the 500th block is <code>500:20</code>.</p>
-<h2 id="etching"><a class="header" href="#etching">Etching</a></h2>
-<p>Runes come into existence by being etched. Etching creates a rune and sets its properties. Once set, these properties are immutable, even to its etcher.</p>
-<h3 id="name"><a class="header" href="#name">Name</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-six letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
-<p>Names may contain spacers, represented as bullets, to aid readability. <code>UNCOMMONGOODS</code> might be etched as <code>UNCOMMON•GOODS</code>.</p>
-<p>The uniqueness of a name does not depend on spacers. Thus, a rune may not be etched with the same sequence of letters as an existing rune, even if it has different spacers.</p>
-<p>Spacers can only be placed between two letters. Finally, spacers do not count towards the letter count.</p>
-<h3 id="divisibility"><a class="header" href="#divisibility">Divisibility</a></h3>
-<p>A rune's divisibility is how finely it may be divided into its atomic units. Divisibility is expressed as the number of digits permissible after the decimal point in an amount of runes. A rune with divisibility 0 may not be divided. A unit of a rune with divisibility 1 may be divided into ten sub-units, a rune with divisibility 2 may be divided into a hundred, and so on.</p>
-<h3 id="symbol"><a class="header" href="#symbol">Symbol</a></h3>
-<p>A rune's currency symbol is a single Unicode code point, for example <code>$</code>, <code>⧉</code>, or <code>🧿</code>, displayed after quantities of that rune.</p>
-<p>101 atomic units of a rune with divisibility 2 and symbol <code>🧿</code> would be rendered as <code>1.01 🧿</code>.</p>
-<p>If a rune does not have a symbol, the generic currency sign <code>¤</code>, also called a scarab, should be used.</p>
-<h3 id="premine"><a class="header" href="#premine">Premine</a></h3>
-<p>The etcher of a rune may optionally allocate to themselves units of the rune being etched. This allocation is called a premine.</p>
-<h3 id="terms"><a class="header" href="#terms">Terms</a></h3>
+<p>As runes permitem que as transações de Bitcoin gravem, mintem e transfiram artefatos digitais nativas do Bitcoin.</p>
+<p>Enquanto cada inscrição é única, cada unidade de uma rune é a mesma. São tokens intercambiáveis, adequados para uma variedade de propósitos.</p>
+<h2 id="pedras-rúnicas-runestones"><a class="header" href="#pedras-rúnicas-runestones">Pedras Rúnicas (Runestones)</a></h2>
+<p>As mensagens do protocolo rune, chamadas runestones, são armazenadas em resultados de transação no Bitcoin.</p>
+<p>O output da pubkey de uma runestone começa com <code>OP_RETURN</code>, seguido por <code>OP_13</code>, seguido por zero ou mais dados inseridos. Estes dados são concatenados e descodificados numa sequência de números inteiros de 128 bits e finalmente transformados numa runestone.</p>
+<p>Uma transação pode ter, no máximo, uma runestone.</p>
+<p>Uma runestone pode gravar uma nova rune, mintar uma rune existente, e transferir runes das entradas (input) de uma transação para as suas saídas (outputs).</p>
+<p>Uma saída (output) de transação pode conter saldos de qualquer número de runes.</p>
+<p>As runes são identificadas por IDs, que consistem no bloco em que uma rune foi gravada e no índice da transação de gravação dentro desse bloco, representados em texto como <code>BLOCO:TX</code>. Por exemplo, o ID da rune gravada na 20ª transação do 500º bloco é <code>500:20</code>.</p>
+<h2 id="gravações"><a class="header" href="#gravações">Gravações</a></h2>
+<p>As runes passam a existir ao serem gravadas. A gravação cria uma rune e estabelece as suas propriedades. Uma vez estabelecidas, estas propriedades são imutáveis, mesmo para o seu criador (etcher).</p>
+<h3 id="nome"><a class="header" href="#nome">Nome</a></h3>
+<p>Os nomes consistem nas letras de A a Z e têm entre uma e vinte e seis letras de comprimento. Por exemplo, <code>UNCOMMONGOODS</code> é um nome de uma rune.</p>
+<p>Os nomes podem conter separadores, representados como pontos, para ajudar na legibilidade. <code>UNCOMMONGOODS</code> pode ser gravado como <code>UNCOMMON•GOODS</code>.</p>
+<p>A singularidade de um nome não depende dos separadores. Assim, uma rune não pode ser gravada com a mesma sequência de letras de uma rune existente, mesmo que tenha separadores diferentes.</p>
+<p>Os separadores só podem ser colocados entre duas letras. Por fim, os separadores não contam para o número total de letras.</p>
+<h3 id="divisibilidade"><a class="header" href="#divisibilidade">Divisibilidade</a></h3>
+<p>A divisibilidade de uma rune é o quanto que pode ser dividida nas suas unidades atómicas. A divisibilidade é expressa como o número de dígitos permitidos após o ponto decimal numa quantidade de runes. Uma rune com divisibilidade 0 não pode ser dividida. Uma unidade de uma rune com divisibilidade 1 pode ser dividida em dez subunidades, uma rune com divisibilidade 2 pode ser dividida em cem, e assim em diante.</p>
+<h3 id="símbolo"><a class="header" href="#símbolo">Símbolo</a></h3>
+<p>O símbolo monetário de uma rune é um único ponto de código Unicode, por exemplo <code>$</code>, <code>⧉</code>, ou <code>🧿</code>, exibido após a quantidade dessa rune. "</p>
+<p>101 unidades atómicas de uma rune com divisibilidade 2 e símbolo <code>🧿</code> seriam representadas como <code>1.01 🧿</code>.</p>
+<p>Se uma rune não tiver um símbolo, deve ser usado o sinal de moeda genérico <code>¤</code>, também chamado de escaravelho.</p>
+<h3 id="pré-mineração"><a class="header" href="#pré-mineração">Pré-mineração</a></h3>
+<p>O gravador de uma rune pode, opcionalmente, atribuir a si próprio unidades da rune que está a ser gravada. Esta atribuição é designada por pré-mineração.</p>
+<h3 id="termos"><a class="header" href="#termos">Termos</a></h3>
 <p>A rune may have an open mint, allowing anyone to create and allocate units of that rune for themselves. An open mint is subject to terms, which are set upon etching.</p>
-<p>A mint is open while all terms of the mint are satisfied, and closed when any of them are not. For example, a mint may be limited to a starting height, an ending height, and a cap, and will be open between the starting height and ending height, or until the cap is reached, whichever comes first.</p>
-<h4 id="cap"><a class="header" href="#cap">Cap</a></h4>
-<p>The number of times a rune may be minted is its cap. A mint is closed once the cap is reached.</p>
-<h4 id="amount"><a class="header" href="#amount">Amount</a></h4>
-<p>Each mint transaction creates a fixed amount of new units of a rune.</p>
-<h4 id="start-height"><a class="header" href="#start-height">Start Height</a></h4>
-<p>A mint is open starting in the block with the given start height.</p>
-<h4 id="end-height"><a class="header" href="#end-height">End Height</a></h4>
-<p>A rune may not be minted in or after the block with the given end height.</p>
-<h4 id="start-offset"><a class="header" href="#start-offset">Start Offset</a></h4>
-<p>A mint is open starting in the block whose height is equal to the start offset plus the height of the block in which the rune was etched.</p>
-<h4 id="end-offset"><a class="header" href="#end-offset">End Offset</a></h4>
-<p>A rune may not be minted in or after the block whose height is equal to the end offset plus the height of the block in which the rune was etched.</p>
-<h2 id="minting"><a class="header" href="#minting">Minting</a></h2>
-<p>While a rune's mint is open, anyone may create a mint transaction that creates a fixed amount of new units of that rune, subject to the terms of the mint.</p>
-<h2 id="transferring"><a class="header" href="#transferring">Transferring</a></h2>
-<p>When transaction inputs contain runes, or new runes are created by a premine or mint, those runes are transferred to that transaction's outputs. A transaction's runestone may change how input runes transfer to outputs.</p>
-<h3 id="edicts"><a class="header" href="#edicts">Edicts</a></h3>
+<p>Um mint está aberto enquanto todos os termos do mint forem satisfeitos e fechado quando algum deles não o for. Por exemplo, um mint pode estar limitado a uma altura inicial, uma altura final e um limite, e estará aberto entre a altura inicial e a altura final, ou até que o limite seja atingido, consoante o que ocorrer primeiro.</p>
+<h4 id="limite"><a class="header" href="#limite">Limite</a></h4>
+<p>O número de vezes que uma rune pode ser mintada é o seu limite. Um mint acaba quando o limite é atingido.</p>
+<h4 id="quantidade"><a class="header" href="#quantidade">Quantidade</a></h4>
+<p>Cada transação de um mint cria uma quantidade fixa de novas unidades de uma rune.</p>
+<h4 id="altura-inicial"><a class="header" href="#altura-inicial">Altura Inicial</a></h4>
+<p>Um mint começa a partir do bloco com a altura inicial indicada.</p>
+<h4 id="altura-final"><a class="header" href="#altura-final">Altura Final</a></h4>
+<p>Uma rune não pode ser mintada no bloco ou após o bloco com da altura final indicada.</p>
+<h4 id="desvio-inicial"><a class="header" href="#desvio-inicial">Desvio inicial</a></h4>
+<p>O mint é aberto a partir do bloco cuja altura é igual ao desvio inicial mais a altura do bloco em que a rune foi gravada.</p>
+<h4 id="desvio-final"><a class="header" href="#desvio-final">Desvio Final</a></h4>
+<p>Uma rune não pode ser mintada no bloco cuja altura é igual ao desvio final mais a altura do bloco em que a rune foi gravada.</p>
+<h2 id="mintar"><a class="header" href="#mintar">Mintar</a></h2>
+<p>Enquanto o mint de uma rune estiver aberta, qualquer pessoa pode criar uma transação de mint que crie uma quantidade fixa de novas unidades dessa rune, sujeita aos termos do mint.</p>
+<h2 id="transferência"><a class="header" href="#transferência">Transferência</a></h2>
+<p>Quando os input de uma transação contêm runes, ou quando novas runes são criadas por uma pré-mineração ou mint, essas runes são transferidas para os outputs desta transação. O runestone de uma transação pode alterar a forma de como os inputs de runes são transferidos para os outputs.</p>
+<h3 id="Éditos-edicts"><a class="header" href="#Éditos-edicts">Éditos (Edicts)</a></h3>
 <p>A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number. Edicts are processed in order, allocating unallocated runes to outputs.</p>
 <h3 id="pointer-1"><a class="header" href="#pointer-1">Pointer</a></h3>
-<p>After all edicts are processed, remaining unallocated runes are transferred to the transaction's first non-<code>OP_RETURN</code> output. A runestone may optionally contain a pointer that specifies an alternative default output.</p>
-<h3 id="burning"><a class="header" href="#burning">Burning</a></h3>
-<p>Runes may be burned by transferring them to an <code>OP_RETURN</code> output with an edict or pointer.</p>
-<h2 id="cenotaphs"><a class="header" href="#cenotaphs">Cenotaphs</a></h2>
-<p>Runestones may be malformed for a number of reasons, including non-pushdata opcodes in the runestone <code>OP_RETURN</code>, invalid varints, or unrecognized runestone fields.</p>
-<p>Malformed runestones are termed <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaphs</a>.</p>
-<p>Runes input to a transaction with a cenotaph are burned. Runes etched in a transaction with a cenotaph are set as unmintable. Mints in a transaction with a cenotaph count towards the mint cap, but the minted runes are burned.</p>
-<p>Cenotaphs are an upgrade mechanism, allowing runestones to be given new semantics that change how runes are created and transferred, while not misleading unupgraded clients as to the location of those runes, as unupgraded clients will see those runes as having been burned.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="runes-does-not-have-a-specification"><a class="header" href="#runes-does-not-have-a-specification">Runes Does Not Have a Specification</a></h1>
-<p>The Runes reference implementation, <code>ord</code>, is the normative specification of the Runes protocol.</p>
-<p>Nothing you read here or elsewhere, aside from the code of <code>ord</code>, is a specification. This prose description of the runes protocol is provided as a guide to the behavior of <code>ord</code>, and the code of <code>ord</code> itself should always be consulted to confirm the correctness of any prose description.</p>
-<p>If, due to a bug in <code>ord</code>, this document diverges from the actual behavior of <code>ord</code> and it is impractically disruptive to change <code>ord</code>'s behavior, this document will be amended to agree with <code>ord</code>'s actual behavior.</p>
-<p>Users of alternative implementations do so at their own risk, and services wishing to integrate Runes are strongly encouraged to use <code>ord</code> itself to make Runes transactions, and to determine the state of runes, mints, and balances.</p>
-<h2 id="runestones-1"><a class="header" href="#runestones-1">Runestones</a></h2>
-<p>Rune protocol messages are termed "runestones".</p>
-<p>The Runes protocol activates on block 840,000. Runestones in earlier blocks are ignored.</p>
-<p>Abstractly, runestones contain the following fields:</p>
+<p>Depois de todos os éditos serem processados, as runes não atribuídas restantes são transferidas para o primeiro output não <code>OP_RETURN</code> da transação. Uma rune pode, opcionalmente, conter um ponteiro que especifica um output alternativo padrão.</p>
+<h3 id="queimar"><a class="header" href="#queimar">Queimar</a></h3>
+<p>As runes podem ser queimadas transferindo-as para um output <code>OP_RETURN</code> com um édito ou ponteiro.</p>
+<h2 id="cenotáfios"><a class="header" href="#cenotáfios">Cenotáfios</a></h2>
+<p>As runestones podem ser mal formadas por várias razões, incluindo “non-pushdata opcodes” na runestone <code>OP_RETURN</code>, variantes inválidos, ou campos de runestone não reconhecidos.</p>
+<p>As runes malformadas são designadas por <a href="https://es.wikipedia.org/wiki/Cenotafio">cenotáfios</a>.</p>
+<p>As runes introduzidas numa transação com um cenotáfio são queimadas. As runes gravadas numa transação com um cenotáfio são consideradas não-mintáveis. Os mints numa transação com um cenotáfio contam para o limite de mints, mas as runes mintadas são queimadas.</p>
+<p>Os cenotáfios são um mecanismo de atualização, permitindo que as runestones recebam novas semânticas que alteram a forma de como as runes são criadas e transferidas, sem enganar os clientes não atualizados quanto à localização dessas runes, uma vez que os clientes não atualizados verão essas runes como tendo sido queimadas.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="as-runes-não-têm-uma-especificação"><a class="header" href="#as-runes-não-têm-uma-especificação">As Runes não têm uma Especificação</a></h1>
+<p><code>ord</code> é a implementação de referência das Runes e constitui a especificação normativa do protocolo de Runes.</p>
+<p>Nada do que ler aqui ou noutro lugar, para além do código <code>ord</code>, é uma especificação. Esta descrição em prosa do protocolo runes é fornecida como um guia para o comportamento do <code>ord</code>, e o código do próprio <code>ord</code> deve ser sempre consultado para confirmar a exatidão de qualquer descrição em prosa do mesmo.</p>
+<p>Se, devido a um bug no <code>ord</code>, este documento divergir do comportamento real do <code>ord</code> e for impraticável alterar o comportamento do <code>ord</code>, este documento será corrigido para concordar com o comportamento real do <code>ord</code>.</p>
+<p>Os utilizadores de implementações alternativas fazem-no por sua responsabilidade e risco, e os serviços que desejem integrar Runes são fortemente encorajados a usar o próprio <code>ord</code> para fazer transações de Runes, e para determinar o estado das runes, mints e saldos.</p>
+<h2 id="pedras-rúnicas-runestones-1"><a class="header" href="#pedras-rúnicas-runestones-1">Pedras Rúnicas (Runestones)</a></h2>
+<p>As mensagens do protocolo Rune são designadas por "runestones".</p>
+<p>O protocolo das Runes foi ativado no bloco 840.000. As runestones de blocos anteriores são ignoradas.</p>
+<p>Em termos abstractos, as runestones contêm os seguintes campos:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Runestone {
@@ -953,7 +953,7 @@ OP_ENDIF
   pointer: Option&lt;u32&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Runes are created by etchings:</p>
+<p>As runes são criadas por gravuras (etchings):</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Etching {
@@ -965,7 +965,7 @@ OP_ENDIF
   terms: Option&lt;Terms&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Which may contain mint terms:</p>
+<p>Que podem conter termos de mintar:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Terms {
@@ -975,7 +975,7 @@ OP_ENDIF
   offset: (Option&lt;u64&gt;, Option&lt;u64&gt;),
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Runes are transferred by edict:</p>
+<p>As runes são transferidas por éditos (edict):</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Edict {
@@ -984,7 +984,7 @@ OP_ENDIF
   output: u32,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Rune IDs are encoded as the block height and transaction index of the transaction in which the rune was etched:</p>
+<p>Os IDs das runes são codificadas como a altura do bloco e o índice de transação da transação em que a rune foi gravada:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct RuneId {
@@ -992,43 +992,43 @@ OP_ENDIF
   tx: u32,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Rune IDs are represented in text as <code>BLOCK:TX</code>.</p>
-<p>Rune names are encoded as modified base-26 integers:</p>
+<p>Os IDs das runes são representados em texto como <code>BLOCK:TX</code>.</p>
+<p>Os nomes das runes são codificados como números inteiros de base-26 modificados:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Rune(u128);
 <span class="boring">}</span></code></pre></pre>
-<h3 id="deciphering"><a class="header" href="#deciphering">Deciphering</a></h3>
-<p>Runestones are deciphered from transactions with the following steps:</p>
+<h3 id="decifrar"><a class="header" href="#decifrar">Decifrar</a></h3>
+<p>As runestones são decifradas a partir das transacções com os seguintes passos:</p>
 <ol>
 <li>
-<p>Find the first transaction output whose script pubkey begins with <code>OP_RETURN OP_13</code>.</p>
+<p>Encontrar o primeiro output da transação cujo script pubkey começa por <code>OP_RETURN OP_13</code>.</p>
 </li>
 <li>
-<p>Concatenate all following data pushes into a payload buffer.</p>
+<p>Concatenar todos os dados seguintes num buffer de carga útil.</p>
 </li>
 <li>
-<p>Decode a sequence 128-bit <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a> integers from the payload buffer.</p>
+<p>Descodificar uma sequência de números inteiros <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a> de 128 bits a partir do buffer de carga útil.</p>
 </li>
 <li>
-<p>Parse the sequence of integers into an untyped message.</p>
+<p>Analisar a sequência de números inteiros numa mensagem não escrita. (untyped).</p>
 </li>
 <li>
-<p>Parse the untyped message into a runestone.</p>
+<p>Analisar a mensagem não escrita (untyped) numa runestone.</p>
 </li>
 </ol>
-<p>Deciphering may produce a malformed runestone, termed a <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaph</a>.</p>
-<h4 id="locating-the-runestone-output"><a class="header" href="#locating-the-runestone-output">Locating the Runestone Output</a></h4>
+<p>A descodificação pode produzir uma runestone malformada, designada por <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotáfio</a>.</p>
+<h4 id="localizar-o-output-da-runestone"><a class="header" href="#localizar-o-output-da-runestone">Localizar o output da runestone</a></h4>
 <p>Outputs are searched for the first script pubkey that beings with <code>OP_RETURN OP_13</code>. If deciphering fails, later matching outputs are not considered.</p>
-<h4 id="assembling-the-payload-buffer"><a class="header" href="#assembling-the-payload-buffer">Assembling the Payload Buffer</a></h4>
-<p>The payload buffer is assembled by concatenating data pushes, after <code>OP_13</code>, in the matching script pubkey.</p>
-<p>Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is encountered, i.e., any opcode equal to or greater than opcode 79, the deciphered runestone is a cenotaph with no etching, mint, or edicts.</p>
-<h4 id="decoding-the-integer-sequence"><a class="header" href="#decoding-the-integer-sequence">Decoding the Integer Sequence</a></h4>
-<p>A sequence of 128-bit integers are decoded from the payload as LEB128 varints.</p>
-<p>LEB128 varints are encoded as sequence of bytes, each of which has the most-significant bit set, except for the last.</p>
-<p>If a LEB128 varint contains more than 18 bytes, would overflow a u128, or is truncated, meaning that the end of the payload buffer is reached before encountering a byte with the continuation bit not set, the decoded runestone is a cenotaph with no etching, mint, or edicts.</p>
-<h4 id="parsing-the-message"><a class="header" href="#parsing-the-message">Parsing the Message</a></h4>
-<p>The integer sequence is parsed into an untyped message:</p>
+<h4 id="montar-o-buffer-da-carga-útil-payload"><a class="header" href="#montar-o-buffer-da-carga-útil-payload">Montar o buffer da carga útil (payload)</a></h4>
+<p>A memória intermédia da carga útil é montada concatenando os envios de dados, após <code>OP_13</code>, na pubkey do script correspondente.</p>
+<p>Os data pushes são os opcodes 0 a 78, inclusive. Se for encontrado um opcode non-data push, i.e., qualquer opcode igual ou superior ao opcode 79, a runestone decifrada é um cenotáfio sem gravura, mint ou édito.</p>
+<h4 id="descodificação-da-sequência-de-inteiros"><a class="header" href="#descodificação-da-sequência-de-inteiros">Descodificação da sequência de inteiros</a></h4>
+<p>Uma sequência de números inteiros de 128 bits é descodificada a partir da carga útil como varints LEB128.</p>
+<p>Os varints LEB128 são codificados como uma sequência de bytes, cada um dos quais com o bit mais significativo definido, exceto o último.</p>
+<p>Se uma varint LEB128 contiver mais de 18 bytes, ia ultrapassar (overflow) um u128, ou é truncada, o que significa que o fim da memória intermédia do payload é atingido antes de se encontrar um byte com o bit de continuação não definido, a runestone descodificada é um cenotáfio sem gravação, mints ou éditos.</p>
+<h4 id="analisar-a-mensagem"><a class="header" href="#analisar-a-mensagem">Analisar a mensagem</a></h4>
+<p>A sequência de inteiros é analisada numa mensagem não escrita (untyped):</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Message {
@@ -1036,8 +1036,8 @@ OP_ENDIF
   edicts: Vec&lt;Edict&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>The integers are interpreted as a sequence of tag/value pairs, with duplicate tags appending their value to the field value.</p>
-<p>If a tag with value zero is encountered, all following integers are interpreted as a series of four-integer edicts, each consisting of a rune ID block height, rune ID transaction index, amount, and output.</p>
+<p>Os números inteiros são interpretados como uma sequência de pares etiqueta/valor (tag/value), com etiquetas duplicadas que acrescentam o seu valor ao valor do campo.</p>
+<p>Se for encontrada uma etiqueta com valor zero, todos os números inteiros seguintes são interpretados como uma série de éditos de quatro números, cada um consistindo numa altura de bloco de ID de rune, índice de transação de ID de rune, montante e output.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Edict {
@@ -1046,37 +1046,37 @@ OP_ENDIF
   output: u32,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Rune ID block heights and transaction indices in edicts are delta encoded.</p>
-<p>Edict rune ID decoding starts with a base block height and transaction index of zero. When decoding each rune ID, first the encoded block height delta is added to the base block height. If the block height delta is zero, the next integer is a transaction index delta. If the block height delta is greater than zero, the next integer is instead an absolute transaction index.</p>
-<p>This implies that edicts must first be sorted by rune ID before being encoded in a runestone.</p>
-<p>For example, to encode the following edicts:</p>
-<div class="table-wrapper"><table><thead><tr><th>block</th><th>TX</th><th>amount</th><th>output</th></tr></thead><tbody>
+<p>As alturas dos blocos ID de rune e os índices de transação nos éditos são codificados em delta.</p>
+<p>A descodificação do ID da rune do édito começa com uma altura de bloco de base e um índice de transação de zero. Ao descodificar cada ID de rune, primeiro o delta da altura do bloco codificado é adicionado à altura do bloco de base. Se o delta da altura do bloco for zero, o número inteiro seguinte é um delta do índice de transação. Se o delta da altura do bloco for superior a zero, o número inteiro seguinte é um índice de transação absoluto.</p>
+<p>Isto implica que os éditos devem primeiro ser ordenados por ID de rune antes de serem codificados numa runestone.</p>
+<p>Por exemplo, para codificar os seguintes éditos:</p>
+<div class="table-wrapper"><table><thead><tr><th>bloco</th><th>TX</th><th>quantidade</th><th>output</th></tr></thead><tbody>
 <tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
 <tr><td>50</td><td>1</td><td>25</td><td>4</td></tr>
 <tr><td>10</td><td>7</td><td>1</td><td>8</td></tr>
 <tr><td>10</td><td>5</td><td>10</td><td>3</td></tr>
 </tbody></table>
 </div>
-<p>They are first sorted by block height and transaction index:</p>
-<div class="table-wrapper"><table><thead><tr><th>block</th><th>TX</th><th>amount</th><th>output</th></tr></thead><tbody>
+<p>Em primeiro lugar, são ordenados pela altura do bloco e pelo índice da transação:</p>
+<div class="table-wrapper"><table><thead><tr><th>bloco</th><th>TX</th><th>quantidade</th><th>output</th></tr></thead><tbody>
 <tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
 <tr><td>10</td><td>5</td><td>10</td><td>3</td></tr>
 <tr><td>10</td><td>7</td><td>1</td><td>8</td></tr>
 <tr><td>50</td><td>1</td><td>25</td><td>4</td></tr>
 </tbody></table>
 </div>
-<p>And then delta encoded as:</p>
-<div class="table-wrapper"><table><thead><tr><th>block delta</th><th>TX delta</th><th>amount</th><th>output</th></tr></thead><tbody>
+<p>E depois codificado em delta como:</p>
+<div class="table-wrapper"><table><thead><tr><th>Bloco Delta</th><th>TX delta</th><th>quantidade</th><th>output</th></tr></thead><tbody>
 <tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
 <tr><td>0</td><td>0</td><td>10</td><td>3</td></tr>
 <tr><td>0</td><td>2</td><td>1</td><td>8</td></tr>
 <tr><td>40</td><td>1</td><td>25</td><td>4</td></tr>
 </tbody></table>
 </div>
-<p>If an edict output is greater than the number of outputs of the transaction, an edict rune ID is encountered with block zero and nonzero transaction index, or a field is truncated, meaning a tag is encountered without a value, the decoded runestone is a cenotaph.</p>
-<p>Note that if a cenotaph is produced here, the cenotaph is not empty, meaning that it contains the fields and edicts, which may include an etching and mint.</p>
-<h4 id="parsing-the-runestone"><a class="header" href="#parsing-the-runestone">Parsing the Runestone</a></h4>
-<p>The runestone:</p>
+<p>Se a output de um édito for superior ao número de outputs da transação, se for encontrada uma ID de rune de édito com bloco zero e índice de transação diferente de zero ou se um campo for truncado, ou seja, se for encontrada uma etiqueta sem valor, a rune descodificada é um cenotáfio.</p>
+<p>Note-se que, se um cenotáfio for produzido aqui, o cenotáfio não está vazio, o que significa que contém os campos e os éditos, que podem incluir uma gravura e um mint.</p>
+<h4 id="analisar-a-runestone"><a class="header" href="#analisar-a-runestone">Analisar a runestone</a></h4>
+<p>A runestone:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Runestone {
@@ -1086,7 +1086,7 @@ OP_ENDIF
   pointer: Option&lt;u32&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Is parsed from the unsigned message using the following tags:</p>
+<p>É analisado a partir da mensagem não assinada utilizando as seguintes etiquetas:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>enum Tag {
@@ -1110,12 +1110,12 @@ OP_ENDIF
   Nop = 127,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Note that tags are grouped by parity, i.e., whether they are even or odd. Unrecognized odd tags are ignored. Unrecognized even tags produce a cenotaph.</p>
-<p>All unused tags are reserved for use by the protocol, may be assigned at any time, and must not be used.</p>
-<h5 id="body"><a class="header" href="#body">Body</a></h5>
-<p>The <code>Body</code> tag marks the end of the runestone's fields, causing all following integers to be interpreted as edicts.</p>
-<h5 id="flags"><a class="header" href="#flags">Flags</a></h5>
-<p>The <code>Flag</code> field contains a bitmap of flags, whose position is <code>1 &lt;&lt; FLAG_VALUE</code>:</p>
+<p>Note que as etiquetas são agrupadas por paridade, ou seja, se são pares ou ímpares. As etiquetas ímpares não reconhecidas são ignoradas. Os tags pares não reconhecidos produzem um cenotáfio.</p>
+<p>Todas as etiquetas não utilizadas estão reservadas para utilização pelo protocolo, podem ser atribuídas em qualquer altura e não devem ser utilizadas.</p>
+<h5 id="corpo-body"><a class="header" href="#corpo-body">Corpo (Body)</a></h5>
+<p>A etiqueta <code>Body</code> marca o fim dos campos da runestone, fazendo com que todos os números inteiros seguintes sejam interpretados como éditos.</p>
+<h5 id="bandeiras-flag"><a class="header" href="#bandeiras-flag">Bandeiras (Flag)</a></h5>
+<p>O campo <code>Flag</code> contém um mapa de bits de bandeiras, cuja posição é <code>1 &lt;&lt; FLAG_VALUE</code>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>enum Flag {
@@ -1125,74 +1125,74 @@ OP_ENDIF
   Cenotaph = 127,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>The <code>Etching</code> flag marks this transaction as containing an etching.</p>
-<p>The <code>Terms</code> flag marks this transaction's etching as having open mint terms.</p>
-<p>The <code>Turbo</code> flag marks this transaction's etching as opting into future protocol changes. These protocol changes may increase light client validation costs, or just be highly degenerate.</p>
-<p>The <code>Cenotaph</code> flag is unrecognized.</p>
-<p>If the value of the flags field after removing recognized flags is nonzero, the runestone is a cenotaph.</p>
+<p>A marca <code>Etching</code> assinala esta transação como incluindo uma gravura.</p>
+<p>O sinalizador <code>Terms</code> marca a gravação desta transação como tendo termos de mint abertos.</p>
+<p>O sinalizador <code>Turbo</code> marca a gravação desta transação como tendo optado por futuras alterações de protocolo. Estas alterações de protocolo podem aumentar os custos de validação do cliente levemente, ou simplesmente ser muito alta.</p>
+<p>A bandeira <code>Cenotaph</code> não é reconhecida.</p>
+<p>Se o valor do campo flags após remover as flags reconhecidas for diferente de zero, a runestone é um cenotáfio.</p>
 <h5 id="rune"><a class="header" href="#rune">Rune</a></h5>
-<p>The <code>Rune</code> field contains the name of the rune being etched. If the <code>Etching</code> flag is set but the <code>Rune</code> field is omitted, a reserved rune name is allocated.</p>
-<h5 id="premine-1"><a class="header" href="#premine-1">Premine</a></h5>
-<p>The <code>Premine</code> field contains the amount of premined runes.</p>
-<h5 id="cap-1"><a class="header" href="#cap-1">Cap</a></h5>
-<p>The <code>Cap</code> field contains the allowed number of mints.</p>
-<h5 id="amount-1"><a class="header" href="#amount-1">Amount</a></h5>
-<p>The <code>Amount</code> field contains the amount of runes each mint transaction receives.</p>
-<h5 id="heightstart-and-heightend"><a class="header" href="#heightstart-and-heightend">HeightStart and HeightEnd</a></h5>
-<p>The <code>HeightStart</code> and <code>HeightEnd</code> fields contain the mint's starting and ending absolute block heights, respectively. The mint is open starting in the block with height <code>HeightStart</code>, and closes in the block with height <code>HeightEnd</code>.</p>
-<h5 id="offsetstart-and-offsetend"><a class="header" href="#offsetstart-and-offsetend">OffsetStart and OffsetEnd</a></h5>
-<p>The <code>OffsetStart</code> and <code>OffsetEnd</code> fields contain the mint's starting and ending block heights, relative to the block in which the etching is mined. The mint is open starting in the block with height <code>OffsetStart</code> + <code>ETCHING_HEIGHT</code>, and closes in the block with height <code>OffsetEnd</code> + <code>ETCHING_HEIGHT</code>.</p>
+<p>O campo <code>Rune</code> contém o nome da rune que está a ser gravada. Se a bandeira <code>Etching</code> estiver definida mas o campo <code>Rune</code> for omitido, é atribuído um nome de rune reservado.</p>
+<h5 id="pré-mineração-1"><a class="header" href="#pré-mineração-1">Pré-mineração</a></h5>
+<p>O campo <code>Premine</code> contém a quantidade de runes pré-mineradas.</p>
+<h5 id="limite-1"><a class="header" href="#limite-1">Limite</a></h5>
+<p>O campo <code>Cap</code> contém o número permitido de mints</p>
+<h5 id="quantidade-1"><a class="header" href="#quantidade-1">Quantidade</a></h5>
+<p>O campo <code>Amount</code> contém a quantidade de runes que cada transação de mint recebe.</p>
+<h5 id="altura-inicial-heightstart-e-altura-final-heightend"><a class="header" href="#altura-inicial-heightstart-e-altura-final-heightend">(altura inicial) HeightStart e (altura final) HeightEnd</a></h5>
+<p>Os campos <code>HeightStart</code> e <code>HeightEnd</code> contêm as alturas absolutas do início e do fim do bloco do mint, respetivamente. O mint está aberto a partir do bloco com a altura <code>HeightStart</code> e fecha no bloco com a altura <code>HeightEnd</code>.</p>
+<h5 id="desvio-inicial-offsetstart-e-desvio-final-offsetend"><a class="header" href="#desvio-inicial-offsetstart-e-desvio-final-offsetend">(desvio inicial) OffsetStart e (desvio final) OffsetEnd</a></h5>
+<p>Os campos <code>OffsetStart</code> e <code>OffsetEnd</code> contêm as alturas inicial e final do bloco do mint, relativamente ao bloco em que a gravura é extraída. o mint abre no bloco com a altura <code>OffsetStart + ETCHING_HEIGHT</code>, e fecha no bloco com a altura <code>OffsetEnd</code> + <code>ETCHING_HEIGHT</code>.</p>
 <h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
-<p>The <code>Mint</code> field contains the Rune ID of the rune to be minted in this transaction.</p>
+<p>O campo <code>Mint</code> contém o ID da rune a ser mintada nesta transação.</p>
 <h5 id="pointer-2"><a class="header" href="#pointer-2">Pointer</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output.</p>
-<h5 id="cenotaph"><a class="header" href="#cenotaph">Cenotaph</a></h5>
-<p>The <code>Cenotaph</code> field is unrecognized.</p>
-<h5 id="divisibility-1"><a class="header" href="#divisibility-1">Divisibility</a></h5>
-<p>The <code>Divisibility</code> field, raised to the power of ten, is the number of subunits in a super unit of runes.</p>
-<p>For example, the amount <code>1234</code> of different runes with divisibility 0 through 3 is displayed as follows:</p>
-<div class="table-wrapper"><table><thead><tr><th>Divisibility</th><th>Display</th></tr></thead><tbody>
+<p>O campo <code>Pointer</code> contém o índice do output para a qual as runes não atribuídas pelos éditos devem ser transferidas. Se o campo Pointer (ponteiro) estiver ausente, as runes não atribuídas são transferidas para a primeira output que não seja <code>OP_RETURN</code>.</p>
+<h5 id="cenotáfio"><a class="header" href="#cenotáfio">Cenotáfio</a></h5>
+<p>O campo do <code>Cenotaph</code> não é reconhecido.</p>
+<h5 id="divisibilidade-1"><a class="header" href="#divisibilidade-1">Divisibilidade</a></h5>
+<p>O campo <code>Divisibility</code>, elevado à potência de dez, é o número de subunidades numa super unidade de runes.</p>
+<p>Por exemplo, a quantidade <code>1234</code> de diferentes runes com divisibilidade de 0 a 3 é apresentada da seguinte forma:</p>
+<div class="table-wrapper"><table><thead><tr><th>Divisibilidade</th><th>Visualização</th></tr></thead><tbody>
 <tr><td>0</td><td>1234</td></tr>
 <tr><td>1</td><td>123.4</td></tr>
 <tr><td>2</td><td>12.34</td></tr>
 <tr><td>3</td><td>1.234</td></tr>
 </tbody></table>
 </div>
-<h5 id="spacers"><a class="header" href="#spacers">Spacers</a></h5>
-<p>The <code>Spacers</code> field is a bitfield of <code>•</code> spacers that should be displayed between the letters of the rune's name.</p>
-<p>The Nth field of the bitfield, starting from the least significant, determines whether or not a spacer should be displayed between the Nth and N+1th character, starting from the left of the rune's name.</p>
-<p>For example, the rune name <code>AAAA</code> rendered with different spacers:</p>
-<div class="table-wrapper"><table><thead><tr><th>Spacers</th><th>Display</th></tr></thead><tbody>
+<h5 id="espaçadores"><a class="header" href="#espaçadores">Espaçadores</a></h5>
+<p>O campo <code>Spacers</code> é um campo de bits de <code>•</code> espaçadores que devem ser apresentados entre as letras do nome da rune.</p>
+<p>O campo N do campo de bits, começando pelo menos significativo, determina se deve ou não ser apresentado um espaçador entre o N e o N+1 caráter, começando pela esquerda do nome da rune.</p>
+<p>Por exemplo, o nome da rune <code>AAAA</code> é apresentado com espaçadores diferentes:</p>
+<div class="table-wrapper"><table><thead><tr><th>Espaçadores</th><th>Visualização</th></tr></thead><tbody>
 <tr><td>0b1</td><td>A•AAA</td></tr>
 <tr><td>0b11</td><td>A•A•AA</td></tr>
 <tr><td>0b10</td><td>AA•AA</td></tr>
 <tr><td>0b111</td><td>A•A•A•A</td></tr>
 </tbody></table>
 </div>
-<p>Trailing spacers are ignored.</p>
-<h5 id="symbol-1"><a class="header" href="#symbol-1">Symbol</a></h5>
-<p>The <code>Symbol</code> field is the Unicode codepoint of the Rune's currency symbol, which should be displayed after amounts of that rune. If a rune does not have a currency symbol, the generic currency character <code>¤</code> should be used.</p>
-<p>For example, if the <code>Symbol</code> is <code>#</code> and the divisibility is 2, the amount of <code>1234</code> units should be displayed as <code>12.34 #</code>.</p>
+<p>Os espaçadores à direita são ignorados.</p>
+<h5 id="símbolo-1"><a class="header" href="#símbolo-1">Símbolo</a></h5>
+<p>O campo <code>Symbol</code> é o ponto de código Unicode do símbolo de moeda da rune, que deve ser apresentado após os montantes dessa rune. Se uma rune não tiver um símbolo de moeda, deve ser usado o carácter genérico de moeda <code>¤</code>.</p>
+<p>Por exemplo, se o <code>Symbol</code> é <code>#</code> e a divisibilidade é 2, a quantidade de <code>1234</code> unidades deve ser apresentada como <code>12.34 #</code>.</p>
 <h5 id="nop"><a class="header" href="#nop">Nop</a></h5>
-<p>The <code>Nop</code> field is unrecognized.</p>
-<h4 id="cenotaphs-1"><a class="header" href="#cenotaphs-1">Cenotaphs</a></h4>
-<p>Cenotaphs have the following effects:</p>
+<p>O campo Nop não é reconhecido.</p>
+<h4 id="cenotáfios-1"><a class="header" href="#cenotáfios-1">Cenotáfios</a></h4>
+<p>Os cenotáfios têm os seguintes efeitos:</p>
 <ul>
 <li>
-<p>All runes input to a transaction containing a cenotaph are burned.</p>
+<p>Todas as runes introduzidas numa transação que contenha um cenotáfio são queimadas.</p>
 </li>
 <li>
-<p>If the runestone that produced the cenotaph contained an etching, the etched rune has supply zero and is unmintable.</p>
+<p>Se a runestone que produziu o cenotáfio continha uma gravura, a rune gravada tem fornecimento zero e não pode ser mintada.</p>
 </li>
 <li>
-<p>If the runestone that produced the cenotaph is a mint, the mint counts against the mint cap and the minted runes are burned.</p>
+<p>Se a runestone que produziu o cenotáfio for um mint, o mint conta para o limite de mints e as runes mintadas são queimadas.</p>
 </li>
 </ul>
-<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of inputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, or trailing integers not part of an edict.</p>
-<h4 id="executing-the-runestone"><a class="header" href="#executing-the-runestone">Executing the Runestone</a></h4>
-<p>Runestones are executed in the order their transactions are included in blocks.</p>
-<h5 id="etchings"><a class="header" href="#etchings">Etchings</a></h5>
-<p>A runestone may contain an etching:</p>
+<p>Cenotáfios podem ser criados se uma runestone contiver uma tag par não reconhecida, uma flag não reconhecida, um édito com um número de saída maior que o número de entradas, um ID de rune com bloco zero e índice de transação diferente de zero, um varint mal formado, uma instrução non-datapush no script pubkey da saída da runestone, uma tag sem um valor subsequente, ou inteiros finais que não fazem parte de um édito.</p>
+<h4 id="executar-a-runestone"><a class="header" href="#executar-a-runestone">Executar a runestone</a></h4>
+<p>As runestones são executados na ordem em que as suas transações são incluídas nos blocos.</p>
+<h5 id="gravuras"><a class="header" href="#gravuras">Gravuras</a></h5>
+<p>Uma runestone pode conter uma gravura:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Etching {
@@ -1204,9 +1204,9 @@ OP_ENDIF
   terms: Option&lt;Terms&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p><code>rune</code> is the name of the rune to be etched, encoded as modified base-26 integer.</p>
-<p>Rune names consist of the letters A through Z, with the following encoding:</p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Encoding</th></tr></thead><tbody>
+<p><code>rune</code>  é o nome da rune a ser gravada, codificado como um número inteiro de base-26 modificado.</p>
+<p>Os nomes das runes consistem nas letras de A a Z, com a seguinte codificação:</p>
+<div class="table-wrapper"><table><thead><tr><th>Nome</th><th>Codificação</th></tr></thead><tbody>
 <tr><td>A</td><td>0</td></tr>
 <tr><td>B</td><td>1</td></tr>
 <tr><td>…</td><td>…</td></tr>
@@ -1220,9 +1220,9 @@ OP_ENDIF
 <tr><td>BA</td><td>52</td></tr>
 </tbody></table>
 </div>
-<p>And so on and so on.</p>
-<p>Rune names <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> and above are reserved.</p>
-<p>If <code>rune</code> is omitted a reserved rune name is allocated as follows:</p>
+<p>E assim em diante.</p>
+<p>Os nomes de runes <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> e superiores estão reservados.</p>
+<p>Se a <code>rune</code> for omitida, é atribuído um nome de rune reservado da seguinte forma</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn reserve(block: u64, tx: u32) -&gt; Rune {
@@ -1232,20 +1232,20 @@ OP_ENDIF
   )
 }
 <span class="boring">}</span></code></pre></pre>
-<p><code>6402364363415443603228541259936211926</code> corresponds to the rune name <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code>.</p>
-<p>If <code>rune</code> is present, it must be unlocked as of the block in which the etching appears.</p>
-<p>Initially, all rune names of length thirteen and longer, up until the first reserved rune name, are unlocked.</p>
-<p>Runes begin unlocking in block 840,000, the block in which the runes protocol activates.</p>
-<p>Thereafter, every 17,500 block period, the next shortest length of rune names is continuously unlocked. So, between block 840,000 and block 857,500, the twelve-character rune names are unlocked, between block 857,500 and block 875,000 the eleven character rune names are unlocked, and so on and so on, until the one-character rune names are unlocked between block 1,032,500 and block 1,050,000. See the <code>ord</code> codebase for the precise unlocking schedule.</p>
-<p>To prevent front running an etching that has been broadcast but not mined, if a non-reserved rune name is being etched, the etching transaction must contain a valid commitment to the name being etched.</p>
-<p>A commitment consists of a data push of the rune name, encoded as a little-endian integer with trailing zero bytes elided, present in an input witness tapscript where the output being spent has at least six confirmations.</p>
-<p>If a valid commitment is not present, the etching is ignored.</p>
-<h4 id="minting-1"><a class="header" href="#minting-1">Minting</a></h4>
-<p>A runestone may mint a rune by including the rune's ID in the <code>Mint</code> field.</p>
-<p>If the mint is open, the mint amount is added to the unallocated runes in the transaction's inputs. These runes may be transferred using edicts, and will otherwise be transferred to the first non-<code>OP_RETURN</code> output, or the output designated by the <code>Pointer</code> field.</p>
-<p>Mints may be made in any transaction after an etching, including in the same block.</p>
-<h4 id="transferring-1"><a class="header" href="#transferring-1">Transferring</a></h4>
-<p>Runes are transferred by edict:</p>
+<p><code>6402364363415443603228541259936211926</code> corresponde ao nome da rune <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code>.</p>
+<p>Se a <code>rune</code> estiver presente, deve ser desbloqueada a partir do bloco em que a gravura aparece.</p>
+<p>Inicialmente, todos os nomes de runes de comprimento igual ou superior a treze, até ao primeiro nome de rune reservado, são desbloqueados.</p>
+<p>As runes começam a ser desbloqueadas no bloco 840.000, o bloco em que o protocolo de runes é ativado.</p>
+<p>A partir daí, a cada período de 17.500 blocos, o próximo comprimento mais curto de nomes de runes é continuamente desbloqueado. Assim, entre o bloco 840.000 e o bloco 857.500, os nomes das runes de doze caracteres são desbloqueados, entre o bloco 857.500 e o bloco 875.000 os nomes das runes de onze caracteres são desbloqueados, e assim sucessivamente, até que os nomes das runes de um carácter sejam desbloqueados entre o bloco 1.032.500 e o bloco 1.050.000. Vê a base de código <code>ord</code> para saberes o calendário exato do desbloqueio.</p>
+<p>Para evitar a execução antecipada de uma gravura que tenha sido transmitida mas não minerada, se um nome de rune não reservado estiver a ser gravado, a transação de gravura deve conter umcompromisso válido para o nome que está a ser gravado.</p>
+<p>Um compromisso consiste num envio de dados do nome da rune, codificado como um número inteiro little-endian com o zero byte final eliminado, presente num tapscript de testemunha de entrada em que a output que está a ser gasta tem pelo menos seis confirmações.</p>
+<p>Se não estiver presente um compromisso válido, a gravação é ignorada.</p>
+<h4 id="mintar-1"><a class="header" href="#mintar-1">Mintar</a></h4>
+<p>Uma runestone pode cunhar uma rune ao incluir o ID da rune no campo <code>Mint</code>.</p>
+<p>Se o mint estiver aberto, o montante do mint é adicionado às runes não atribuídas no input da transação. Estas runes podem ser transferidas através de éditos e, caso contrário, serão transferidas para o primeira output que não seja <code>OP_RETURN</code> ou para o output designado pelo campo <code>Pointer</code>.</p>
+<p>Os mints podem ser feitos em qualquer transação após uma gravação, incluindo no mesmo bloco.</p>
+<h4 id="transferência-1"><a class="header" href="#transferência-1">Transferência</a></h4>
+<p>As runes são transferidas por éditos (edict):</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Edict {
@@ -1254,16 +1254,16 @@ OP_ENDIF
   output: u32,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>A runestone may contain any number of edicts, which are processed in sequence.</p>
-<p>Before edicts are processed, input runes, as well as minted or premined runes, if any, are unallocated.</p>
-<p>Each edict decrements the unallocated balance of rune <code>id</code> and increments the balance allocated to transaction outputs of rune <code>id</code>.</p>
-<p>If an edict would allocate more runes than are currently unallocated, the <code>amount</code> is reduced to the number of currently unallocated runes. In other words, the edict allocates all remaining unallocated units of rune <code>id</code>.</p>
-<p>Because the ID of an etched rune is not known before it is included in a block, ID <code>0:0</code> is used to mean the rune being etched in this transaction, if any.</p>
-<p>An edict with <code>amount</code> zero allocates all remaining units of rune <code>id</code>.</p>
-<p>An edict with <code>output</code> equal to the number of transaction outputs allocates <code>amount</code> runes to each non-<code>OP_RETURN</code> output in order.</p>
-<p>An edict with <code>amount</code> zero and <code>output</code> equal to the number of transaction outputs divides all unallocated units of rune <code>id</code> between each non-<code>OP_RETURN</code> output. If the number of unallocated runes is not divisible by the number of non-<code>OP_RETURN</code> outputs, 1 additional rune is assigned to the first <code>R</code> non-<code>OP_RETURN</code> outputs, where <code>R</code> is the remainder after dividing the balance of unallocated units of rune <code>id</code> by the number of non-<code>OP_RETURN</code> outputs.</p>
-<p>If any edict in a runestone has a rune ID with <code>block</code> zero and <code>tx</code> greater than zero, or <code>output</code> greater than the number of transaction outputs, the runestone is a cenotaph.</p>
-<p>Note that edicts in cenotaphs are not processed, and all input runes are burned.</p>
+<p>Uma rune pode conter qualquer número de éditos, que são processados em sequência.</p>
+<p>Antes de os éditos serem processados, as runes de entrada, bem como as runes mintadas ou pré-minadas, se existirem, não são atribuídas.</p>
+<p>Cada édito diminui o saldo não alocado da rune id e aumenta o saldo alocado aos outputs da transação da rune <code>id</code>.</p>
+<p>Se um édito alocar mais runes do que as que não estão atualmente alocadas, o montante é reduzido para o número de runes atualmente não alocadas. Por outras palavras, o édito aloca todas as unidades restantes não alocadas da rune <code>id</code>.</p>
+<p>Uma vez que o ID de uma rune gravada não é conhecido antes de ser incluído num bloco, o ID <code>0:0</code> é utilizado para significar a rune que está a ser gravada nesta transação, caso exista.</p>
+<p>Um édito com <code>amount</code> zero aloca todas as unidades restantes da rune <code>id</code>.</p>
+<p>Um édito com <code>output</code> igual ao número de outputs da transação atribui o <code>amount</code> de runes a cada output não <code>OP_RETURN</code>, por ordem.</p>
+<p>Um decreto com <code>amount</code> zero e <code>output</code> igual ao número de outputs de transação divide todas as unidades não alocadas de <code>id</code> de rune entre cada output não-<code>OP_RETURN</code>. Se o número de runes não atribuídas não for divisível pelo número de outputs não <code>OP_RETURN</code>, é atribuída 1 rune adicional às primeiras <code>R</code> outputs não <code>OP_RETURN</code>, em que <code>R</code> é o resto após dividir o saldo de unidades não atribuídas de <code>id</code> de rune pelo número de outputs não <code>OP_RETURN</code>.</p>
+<p>Se qualquer édito numa rune tiver uma ID de rune com <code>block</code> zero e <code>tx</code> superior a zero, ou um <code>output</code> superior ao número de outputs de transação, a rune é um cenotáfio.</p>
+<p>Note que os éditos em cenotáfios não são processados, e todos os inputs das runes são queimados.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="perguntas-frequentes-sobre-teoria-ordinal"><a class="header" href="#perguntas-frequentes-sobre-teoria-ordinal">Perguntas frequentes sobre Teoria Ordinal</a></h1>
 <h2 id="o-que-é-a-teoria-ordinal"><a class="header" href="#o-que-é-a-teoria-ordinal">O que é a Teoria Ordinal?</a></h2>
 <p>A teoria ordinal é um protocolo para atribuir números de série aos satoshis, a menor subdivisão de um bitcoin, e rastrear esses satoshis à medida que são gastos nas transações.</p>
@@ -1332,7 +1332,7 @@ OP_ENDIF
 <p>As inscrições consistem em um tipo de conteúdo, também conhecido como tipo MIME, e conteúdo em si, que é uma sequência de bytes arbitrária. Este é o mesmo modelo de dados usado pela web e permite que o conteúdo da inscrição evolua com a web e venha a suportar qualquer tipo de conteúdo suportado por navegadores web, sem exigir alterações no protocolo subjacente.</p>
 <h3 id="rgb-e-ativos-do-taro"><a class="header" href="#rgb-e-ativos-do-taro">RGB e ativos do Taro?</a></h3>
 <p>RGB e Taro são protocolos de ativos de segunda camada construídos no Bitcoin. Comparados às inscrições, eles são muito mais complicados, mas com muito mais recursos.</p>
-<p>A teoria ordinal foi projetada desde o início para artefatos digitais, experiência do usuário para inscrições provavelmente será mais simples e refinada do que a experiência do usuário para NFTs do RGB e Taro.</p>
+<p>A teoria ordinal foi projetada desde o início para artefatos digitais, enquanto o principal caso de uso de RGB e Taro são tokens fungíveis, então a experiência do usuário para inscrições provavelmente será mais simples e refinada do que a experiência do usuário para NFTs do RGB e Taro.</p>
 <p>RGB e Taro armazenam conteúdo fora da cadeia (off-chain), o que requer infraestrutura adicional e pode ser perdido. Por outro lado, o conteúdo de inscrição é armazenado na cadeia (on-chain) e não pode ser perdido.</p>
 <p>Tanto a teoria ordinal quanto RGB e Taro são muito novos, então isso é especulação, mas o foco da teoria ordinal pode dar-lhe vantagem em termos de recursos para artefatos digitais, incluindo um modelo de conteúdo melhor e recursos como símbolos globalmente únicos.</p>
 <h3 id="ativos-do-counterparty"><a class="header" href="#ativos-do-counterparty">Ativos do Counterparty?</a></h3>
@@ -1476,7 +1476,7 @@ OP_ENDIF
 <li>Criando uma carteira Bitcoin Core</li>
 <li>Usando <code>ord wallet receive</code> para receber sats</li>
 <li>Criando inscrições com <code>ord wallet inscribe</code></li>
-<li>"Enviando inscrições com <code>ord wallet send</code></li>
+<li>Enviando inscrições com <code>ord wallet send</code></li>
 <li>Recebendo inscrições com <code>ord wallet receive</code></li>
 <li>Batch inscribing with <code>ord wallet inscribe --batch</code></li>
 </ol>
@@ -1495,7 +1495,7 @@ OP_ENDIF
 <pre><code>bitcoind -txindex
 </code></pre>
 <p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
-<h2 id="sincronizando-a-blockchain-do-bitcoin"><a class="header" href="#sincronizando-a-blockchain-do-bitcoin">"Sincronizando a Blockchain do Bitcoin</a></h2>
+<h2 id="sincronizando-a-blockchain-do-bitcoin"><a class="header" href="#sincronizando-a-blockchain-do-bitcoin">Sincronizando a Blockchain do Bitcoin</a></h2>
 <p>Para sincronizar a cadeia, execute:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
