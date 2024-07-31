@@ -35,8 +35,8 @@ msgstr "委托"
 msgid "Metadata"
 msgstr "元数据"
 
-#: src/SUMMARY.md:10 src/inscriptions/pointer.md:1 src/runes.md:132
-#: src/runes/specification.md:312
+#: src/SUMMARY.md:10 src/inscriptions/pointer.md:1 src/runes.md:135
+#: src/runes/specification.md:320
 msgid "Pointer"
 msgstr "指针"
 
@@ -56,7 +56,7 @@ msgstr "渲染"
 msgid "Runes"
 msgstr "符文｜福文🧧"
 
-#: src/SUMMARY.md:15 src/inscriptions/delegate.md:8
+#: src/SUMMARY.md:15 src/inscriptions/delegate.md:9
 #: src/inscriptions/provenance.md:14
 msgid "Specification"
 msgstr "规范"
@@ -93,7 +93,7 @@ msgstr "批量铸造"
 msgid "Collecting"
 msgstr "收藏"
 
-#: src/SUMMARY.md:24 src/guides/sat-hunting.md:239
+#: src/SUMMARY.md:24 src/guides/sat-hunting.md:233
 msgid "Sparrow Wallet"
 msgstr "麻雀钱包"
 
@@ -281,8 +281,8 @@ msgstr ""
 "序数是一种比特币的编号方案，允许跟踪和转移单个聪。这些数字被称作[序号]"
 "(https://ordinals.com)。比特币是按照它们被挖掘的顺序编号的，并从交易输入转移"
 "到交易输出（遵循先进先出原则）。编号方案和传输方案都依赖于 _顺序_，编号方案依"
-"赖于比特币被挖掘的 _顺序_，而传输方案依赖于交易输入和输出的 _顺序_。因此得名，"
-"_序数（Ordinals）_。"
+"赖于比特币被挖掘的 _顺序_，而传输方案依赖于交易输入和输出的 _顺序_。因此得"
+"名，_序数（Ordinals）_。"
 
 #: src/overview.md:13
 msgid ""
@@ -949,8 +949,8 @@ msgid ""
 "_should_ be, sometimes are, and what inscriptions _always_ are, by their "
 "very nature."
 msgstr ""
-"数字文物的定义旨在从其特定的本质上反映NFT _应该_ 是什么, 有时是什么, 以及铭文"
-" _始终_ 是什么 "
+"数字文物的定义旨在从其特定的本质上反映NFT _应该_ 是什么, 有时是什么, 以及铭"
+"文 _始终_ 是什么 "
 
 #: src/inscriptions.md:4
 msgid ""
@@ -1065,7 +1065,7 @@ msgid ""
 "The inscription content is contained within the input of a reveal "
 "transaction, and the inscription is made on the first sat of its input if it "
 "has no pointer field. This sat can then be tracked using the familiar rules "
-"of ordinal  theory, allowing it to be transferred, bought, sold, lost to "
+"of ordinal theory, allowing it to be transferred, bought, sold, lost to "
 "fees, and recovered."
 msgstr ""
 "铭文内容包含在reveal交易的输入中，并且铭文是铭刻在其第一个输出的第一个聪"
@@ -1220,13 +1220,13 @@ msgid "Indices"
 msgstr "指数"
 
 #: src/inscriptions.md:121 src/inscriptions.md:124
-#: src/runes/specification.md:193 src/runes/specification.md:194
-#: src/runes/specification.md:332 src/runes/specification.md:414
+#: src/runes/specification.md:196 src/runes/specification.md:197
+#: src/runes/specification.md:340 src/runes/specification.md:422
 msgid "0"
 msgstr ""
 
 #: src/inscriptions.md:121 src/inscriptions.md:123
-#: src/runes/specification.md:194 src/runes/specification.md:334
+#: src/runes/specification.md:197 src/runes/specification.md:342
 msgid "2"
 msgstr ""
 
@@ -1235,12 +1235,12 @@ msgid "i0, i1"
 msgstr ""
 
 #: src/inscriptions.md:122 src/inscriptions.md:125
-#: src/runes/specification.md:174 src/runes/specification.md:175
-#: src/runes/specification.md:176 src/runes/specification.md:183
-#: src/runes/specification.md:185 src/runes/specification.md:186
-#: src/runes/specification.md:192 src/runes/specification.md:194
-#: src/runes/specification.md:195 src/runes/specification.md:333
-#: src/runes/specification.md:415
+#: src/runes/specification.md:177 src/runes/specification.md:178
+#: src/runes/specification.md:179 src/runes/specification.md:186
+#: src/runes/specification.md:188 src/runes/specification.md:189
+#: src/runes/specification.md:195 src/runes/specification.md:197
+#: src/runes/specification.md:198 src/runes/specification.md:341
+#: src/runes/specification.md:423
 msgid "1"
 msgstr ""
 
@@ -1249,8 +1249,8 @@ msgid "i2"
 msgstr ""
 
 #: src/inscriptions.md:123 src/inscriptions.md:124
-#: src/runes/specification.md:177 src/runes/specification.md:184
-#: src/runes/specification.md:193 src/runes/specification.md:335
+#: src/runes/specification.md:180 src/runes/specification.md:187
+#: src/runes/specification.md:196 src/runes/specification.md:343
 msgid "3"
 msgstr ""
 
@@ -1258,8 +1258,8 @@ msgstr ""
 msgid "i3, i4, i5"
 msgstr ""
 
-#: src/inscriptions.md:125 src/runes/specification.md:175
-#: src/runes/specification.md:186 src/runes/specification.md:195
+#: src/inscriptions.md:125 src/runes/specification.md:178
+#: src/runes/specification.md:189 src/runes/specification.md:198
 msgid "4"
 msgstr ""
 
@@ -1322,19 +1322,58 @@ msgstr ""
 "文内容Content-Security-Policy”标头。"
 
 #: src/inscriptions.md:153
+msgid "Self-Reference"
+msgstr "自指"
+
+#: src/inscriptions.md:156
+msgid ""
+"The content of the inscription with ID `INSCRIPTION_ID` must served from the "
+"URL path `/content/<INSCRIPTION_ID>`."
+msgstr ""
+"ID为 `INSCRIPTION_ID` 的铭文内容必须从URL路径 `/content/<INSCRIPTION_ID>`取得."
+
+#: src/inscriptions.md:159
+msgid "This allows inscriptions to retrieve their own inscription ID with:"
+msgstr "现在你可以使用以下命令来铭刻你的递归铭文："
+
+#: src/inscriptions.md:161
+msgid ""
+"```js\n"
+"let inscription_id = window.location.pathname.split(\"/\").pop();\n"
+"```"
+msgstr ""
+
+#: src/inscriptions.md:165
+msgid ""
+"If an inscription with ID X delegates to an inscription with ID Y, that is "
+"to say, if inscription X contains a delegate field with value Y, the content "
+"of inscription X must be served from the URL path `/content/X`, _not_ `/"
+"content/Y`."
+msgstr ""
+"如果ID为X的铭文委托给ID为Y的铭文，也就说如果铭文X包含一个Y的委托字段，那么铭文X的内容"
+"必须从URL路径`/content/X`, _而并非_ `content/Y`。/"
+
+#: src/inscriptions.md:170
+msgid ""
+"This allows delegating inscriptions to use their own inscription ID as a "
+"seed for generative delegate content."
+msgstr ""
+"这允许委托铭文使用自己的铭文 ID 作为生成委托内容的种子seed。"
+
+#: src/inscriptions.md:173
 msgid "Reinscriptions"
 msgstr "再刻铭文"
 
-#: src/inscriptions.md:156
+#: src/inscriptions.md:176
 msgid ""
 "Previously inscribed sats can be reinscribed with the `--reinscribe` command "
 "if the inscription is present in the wallet. This will only append an "
 "inscription to a sat, not change the initial inscription."
 msgstr ""
-"如果钱包中存在铭文，之前铭刻的sats可以使用`--reinscribe`命令重新铭刻。"
-"这只会在一个sat上附加一个铭文，而不会改变初始铭文。"
+"如果钱包中存在铭文，之前铭刻的sats可以使用`--reinscribe`命令重新铭刻。这只会"
+"在一个sat上附加一个铭文，而不会改变初始铭文。"
 
-#: src/inscriptions.md:160
+#: src/inscriptions.md:180
 msgid ""
 "Reinscribe with satpoint: `ord wallet inscribe --fee-rate <FEE_RATE> --"
 "reinscribe --file <FILE> --satpoint <SATPOINT>`"
@@ -1342,7 +1381,7 @@ msgstr ""
 "如果铭文存在于钱包中，之前铭刻的sats可以使用--reinscribe命令进行重新铭刻。这"
 "将只会在一个sat上追加一个铭文，而不会改变最初的铭文。"
 
-#: src/inscriptions.md:163
+#: src/inscriptions.md:183
 msgid ""
 "Reinscribe on a sat (requires sat index): `ord --index-sats wallet inscribe "
 "--fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`"
@@ -1353,18 +1392,18 @@ msgstr ""
 #: src/inscriptions/delegate.md:4
 msgid ""
 "Inscriptions may nominate a delegate inscription. Requests for the content "
-"of an inscription with a delegate will instead return the content and "
-"content type of the delegate. This can be used to cheaply create copies of "
-"an inscription."
+"of an inscription with a delegate will instead return the content, content "
+"type  and content encoding of the delegate. This can be used to cheaply "
+"create copies  of an inscription."
 msgstr ""
 "铭文可以指定一个代理铭文。对带有代理的铭文内容的请求，将返回代理的内容和内容"
 "类型。这可以用来低成本地创建铭文的副本。"
 
-#: src/inscriptions/delegate.md:10
+#: src/inscriptions/delegate.md:11
 msgid "To create an inscription I with delegate inscription D:"
 msgstr "为父系铭文P创建一个子铭文C:"
 
-#: src/inscriptions/delegate.md:12
+#: src/inscriptions/delegate.md:13
 msgid ""
 "Create an inscription D. Note that inscription D does not have to exist when "
 "making inscription I. It may be inscribed later. Before inscription D is "
@@ -1373,7 +1412,7 @@ msgstr ""
 "创建一个铭文D。请注意，在创建铭文I时，铭文D不必已经存在。它可以稍后被铭刻。在"
 "铭文D被铭刻之前，对铭文I内容的请求将返回404错误"
 
-#: src/inscriptions/delegate.md:15
+#: src/inscriptions/delegate.md:16
 msgid ""
 "Include tag `11`, i.e. `OP_PUSH 11`, in I, with the value of the serialized "
 "binary inscription ID of D, serialized as the 32-byte `TXID`, followed by "
@@ -1382,7 +1421,7 @@ msgstr ""
 "在C中包含标签`3`，即`OP_PUSH 3`，其值为P的序列化二进制铭文ID序列化为32字节的"
 "`TXID`，后跟四字节的小端`INDEX`，不含末尾的零。"
 
-#: src/inscriptions/delegate.md:19 src/inscriptions/provenance.md:24
+#: src/inscriptions/delegate.md:20 src/inscriptions/provenance.md:24
 msgid ""
 "_NB_ The bytes of a bitcoin transaction ID are reversed in their text "
 "representation, so the serialized transaction ID will be in the opposite "
@@ -1391,13 +1430,13 @@ msgstr ""
 "_请注意_，比特币交易ID的字节在文本中的表现形式是反向的，所以序列化的交易ID会"
 "以相反的顺序呈现。"
 
-#: src/inscriptions/delegate.md:22 src/inscriptions/metadata.md:30
+#: src/inscriptions/delegate.md:23 src/inscriptions/metadata.md:30
 #: src/inscriptions/provenance.md:27 src/guides/reindexing.md:15
-#: src/guides/teleburning.md:23 src/guides/testing.md:62
+#: src/guides/teleburning.md:23 src/guides/testing.md:63
 msgid "Example"
 msgstr "示例"
 
-#: src/inscriptions/delegate.md:24
+#: src/inscriptions/delegate.md:25
 msgid ""
 "An example of an inscription which delegates to "
 "`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
@@ -1405,7 +1444,7 @@ msgstr ""
 "子铭文的一个示例 "
 "`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
 
-#: src/inscriptions/delegate.md:27
+#: src/inscriptions/delegate.md:28
 msgid ""
 "```\n"
 "OP_FALSE\n"
@@ -1418,11 +1457,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/inscriptions/delegate.md:36
+#: src/inscriptions/delegate.md:37
 msgid "Note that the value of tag `11` is decimal, not hex."
 msgstr "请注意，标签`11`的值是十进制的，而不是十六进制的。"
 
-#: src/inscriptions/delegate.md:38
+#: src/inscriptions/delegate.md:39
 msgid ""
 "The delegate field value uses the same encoding as the parent field. See "
 "[provenance](provenance.md) for more examples of inscription ID encodings;"
@@ -1607,7 +1646,7 @@ msgid ""
 msgstr ""
 "这可以用于一次性在不同的sat上创建多个铭文，否则它们将被制成在同一个sat上"
 
-#: src/inscriptions/pointer.md:18 src/inscriptions/recursion.md:62
+#: src/inscriptions/pointer.md:18 src/inscriptions/recursion.md:66
 msgid "Examples"
 msgstr "示例"
 
@@ -1928,26 +1967,50 @@ msgstr ""
 "`/r/children/<INSCRIPTION_ID>/<PAGE>`: 100个子铭文ID的合集 on `<PAGE>`."
 
 #: src/inscriptions/recursion.md:43
-msgid "`/r/inscription/:inscription_id`: information about an inscription"
-msgstr "`/r/inscription/:inscription_id`: 关于一个铭文的信息"
+msgid ""
+"`/r/children/<INSCRIPTION_ID>/inscriptions`: details of the first 100 child "
+"inscriptions."
+msgstr "`/r/children/<INSCRIPTION_ID>`: 前100个子铭文的ID."
 
 #: src/inscriptions/recursion.md:44
+msgid ""
+"`/r/children/<INSCRIPTION_ID>/inscriptions/<PAGE>`: details of the set of "
+"100 child inscriptions on `<PAGE>`."
+msgstr ""
+"`/r/children/<INSCRIPTION_ID>/<PAGE>`: 100个子铭文ID的合集 on `<PAGE>`."
+
+#: src/inscriptions/recursion.md:45
+msgid "`/r/inscription/<INSCRIPTION_ID>`: information about an inscription"
+msgstr "`/r/inscription/:inscription_id`: 关于一个铭文的信息"
+
+#: src/inscriptions/recursion.md:46
 msgid ""
 "`/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR "
 "metadata."
 msgstr ""
 "`/r/metadata/<INSCRIPTION_ID>`: 包含十六进制编码的 CBOR 元数据 的 JSON 字符串"
 
-#: src/inscriptions/recursion.md:45
+#: src/inscriptions/recursion.md:47
+msgid "`/r/parents/<INSCRIPTION_ID>`: the first 100 parent inscription ids."
+msgstr "`/r/children/<INSCRIPTION_ID>`: 前100个子铭文的ID."
+
+#: src/inscriptions/recursion.md:48
+msgid ""
+"`/r/parents/<INSCRIPTION_ID>/<PAGE>`: the set of 100 parent inscription ids "
+"on `<PAGE>`."
+msgstr ""
+"`/r/children/<INSCRIPTION_ID>/<PAGE>`: 100个子铭文ID的合集 on `<PAGE>`."
+
+#: src/inscriptions/recursion.md:49
 msgid "`/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat."
 msgstr "`/r/sat/<SAT_NUMBER>`: 在一个Sats上的头100个铭文ID."
 
-#: src/inscriptions/recursion.md:46
+#: src/inscriptions/recursion.md:50
 msgid ""
 "`/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`."
 msgstr "`/r/sat/<SAT_NUMBER>/<PAGE>`: 在 `<PAGE>`上的100个铭文ID合集."
 
-#: src/inscriptions/recursion.md:47
+#: src/inscriptions/recursion.md:51
 msgid ""
 "`/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all "
 "inscriptions on a sat. `<INDEX>` may be a negative number to index from the "
@@ -1956,7 +2019,7 @@ msgstr ""
 "`/r/sat/<SAT_NUMBER>/at/<INDEX>`: 所有`<INDEX>` 处在一个聪上的铭文ID "
 "`<INDEX>`可能是从索引往后的负数比如`0` 是第一个而 `-1` 是最近的."
 
-#: src/inscriptions/recursion.md:49
+#: src/inscriptions/recursion.md:53
 msgid ""
 "Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat "
 "notations like degree, percentile or decimal. We may expand to allow those "
@@ -1965,7 +2028,7 @@ msgstr ""
 "注意： `<SAT_NUMBER>` 仅允许使用sat的实际数字，不允许使用度数、百分位数或小数"
 "等其他sat表示法。我们可能会在将来考虑支持这些表示法。"
 
-#: src/inscriptions/recursion.md:53
+#: src/inscriptions/recursion.md:57
 msgid ""
 "Responses from the above recursive endpoints are JSON. For backwards "
 "compatibility additional endpoints are supported, some of which return plain-"
@@ -1974,49 +2037,55 @@ msgstr ""
 "来自上述递归端点的响应是 JSON。为了向后兼容，支持其他端点，其中一些返回纯文本"
 "响应。 "
 
-#: src/inscriptions/recursion.md:57
+#: src/inscriptions/recursion.md:61
 msgid "`/blockheight`: latest block height."
 msgstr "`/blockheight`：最新区块高度。"
 
-#: src/inscriptions/recursion.md:58
+#: src/inscriptions/recursion.md:62
 msgid "`/blockhash`: latest block hash."
 msgstr "`/blockhash`：最新的块哈希。"
 
-#: src/inscriptions/recursion.md:59
+#: src/inscriptions/recursion.md:63
 msgid "`/blockhash/<HEIGHT>`: block hash at given block height."
 msgstr "`/blockhash/<HEIGHT>`：给定块高度的块哈希。"
 
-#: src/inscriptions/recursion.md:60
+#: src/inscriptions/recursion.md:64
 msgid "`/blocktime`: UNIX time stamp of latest block."
 msgstr "`/blocktime`：最新块的 UNIX 时间戳。"
 
-#: src/inscriptions/recursion.md:65
+#: src/inscriptions/recursion.md:69
 msgid "`/r/blockhash/0`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:67
+#: src/inscriptions/recursion.md:71
 msgid ""
 "```json\n"
 "\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\"\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:71
+#: src/inscriptions/recursion.md:75
 msgid "`/r/blockheight`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:73
+#: src/inscriptions/recursion.md:77
 msgid ""
 "```json\n"
 "777000\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:77
+#: src/inscriptions/recursion.md:81
 msgid "`/r/blockinfo/0`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:79
+#: src/inscriptions/recursion.md:83
+msgid ""
+"Note: `feerate_percentiles` are feerates at the 10th, 25th, 50th, 75th, and "
+"90th percentile in sats/vB."
+msgstr ""
+
+#: src/inscriptions/recursion.md:86
 msgid ""
 "```json\n"
 "{\n"
@@ -2029,6 +2098,7 @@ msgid ""
 "  \"difficulty\": 0.0,\n"
 "  \"hash\": "
 "\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\",\n"
+"  \"feerate_percentiles\": [0, 0, 0, 0, 0],\n"
 "  \"height\": 0,\n"
 "  \"max_fee\": 0,\n"
 "  \"max_fee_rate\": 0,\n"
@@ -2055,24 +2125,24 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:111
+#: src/inscriptions/recursion.md:119
 msgid "`/r/blocktime`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:113
+#: src/inscriptions/recursion.md:121
 msgid ""
 "```json\n"
 "1700770905\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:117 src/inscriptions/recursion.md:178
+#: src/inscriptions/recursion.md:125
 msgid ""
 "`/r/"
 "children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/49`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:119 src/inscriptions/recursion.md:180
+#: src/inscriptions/recursion.md:127
 msgid ""
 "```json\n"
 "{\n"
@@ -2089,19 +2159,72 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:133
+#: src/inscriptions/recursion.md:141
 msgid ""
-"`r/"
+"`/r/"
+"children/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fai0/"
+"inscriptions/49`:"
+msgstr ""
+
+#: src/inscriptions/recursion.md:143
+msgid ""
+"```json\n"
+"{\n"
+"  \"children\": [\n"
+"    {\n"
+"      \"charms\": [\n"
+"        \"cursed\"\n"
+"      ],\n"
+"      \"fee\": 44,\n"
+"      \"height\": 813929,\n"
+"      \"id\": "
+"\"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4900\",\n"
+"      \"number\": -223695,\n"
+"      \"output\": "
+"\"dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0\",\n"
+"      \"sat\": 1897135510683785,\n"
+"      \"satpoint\": "
+"\"dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188588\",\n"
+"      \"timestamp\": 1698326262\n"
+"    },\n"
+"      ...\n"
+"    {\n"
+"      \"charms\": [\n"
+"        \"cursed\"\n"
+"      ],\n"
+"      \"fee\": 44,\n"
+"      \"height\": 813929,\n"
+"      \"id\": "
+"\"7cd66b8e3a63dcd2fada917119830286bca0637267709d6df1ca78d98a1b4487i4936\",\n"
+"      \"number\": -223731,\n"
+"      \"output\": "
+"\"dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0\",\n"
+"      \"sat\": 1897135510683821,\n"
+"      \"satpoint\": "
+"\"dcaaeacf58faea0927468ea5a93f33b7d7447841e66f75db5a655d735510c518:0:74188624\",\n"
+"      \"timestamp\": 1698326262\n"
+"    }\n"
+"  ],\n"
+"  \"more\": false,\n"
+"  \"page\": 49\n"
+"}\n"
+"```"
+msgstr ""
+
+#: src/inscriptions/recursion.md:179
+msgid ""
+"`/r/"
 "inscription/3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36i0`"
 msgstr ""
 
-#: src/inscriptions/recursion.md:135
+#: src/inscriptions/recursion.md:181
 msgid ""
 "```json\n"
 "{\n"
 "  \"charms\": [],\n"
 "  \"content_type\": \"image/png\",\n"
 "  \"content_length\": 144037,\n"
+"  \"delegate\": null,\n"
 "  \"fee\": 36352,\n"
 "  \"height\": 209,\n"
 "  \"id\": "
@@ -2118,24 +2241,24 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:152
+#: src/inscriptions/recursion.md:199
 msgid ""
 "`/r/"
 "metadata/35b66389b44535861c44b2b18ed602997ee11db9a30d384ae89630c9fc6f011fi3`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:154
+#: src/inscriptions/recursion.md:201
 msgid ""
 "```json\n"
 "\"a2657469746c65664d656d6f727966617574686f726e79656c6c6f775f6f72645f626f74\"\n"
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:158
+#: src/inscriptions/recursion.md:205
 msgid "`/r/sat/1023795949035695`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:160
+#: src/inscriptions/recursion.md:207
 msgid ""
 "```json\n"
 "{\n"
@@ -2148,11 +2271,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/inscriptions/recursion.md:170
+#: src/inscriptions/recursion.md:217
 msgid "`/r/sat/1023795949035695/at/-1`:"
 msgstr ""
 
-#: src/inscriptions/recursion.md:172
+#: src/inscriptions/recursion.md:219
 msgid ""
 "```json\n"
 "{\n"
@@ -2242,8 +2365,8 @@ msgid ""
 "Whereas every inscription is unique, every unit of a rune is the same. They "
 "are interchangeable tokens, fit for a variety of purposes."
 msgstr ""
-"虽然每个铭文都是独一无二的，但每个符文的每个单位都是相同的。它们是可互换的代币，适用于多种用途。"
-
+"虽然每个铭文都是独一无二的，但每个符文的每个单位都是相同的。它们是可互换的代"
+"币，适用于多种用途。"
 
 #: src/runes.md:10 src/runes/specification.md:20
 msgid "Runestones"
@@ -2253,8 +2376,7 @@ msgstr "符石"
 msgid ""
 "Rune protocol messages, called runestones, are stored in Bitcoin transaction "
 "outputs."
-msgstr ""
-"称为符石的符文协议消息，存储在比特币交易输出中。"
+msgstr "称为符石的符文协议消息，存储在比特币交易输出中。"
 
 #: src/runes.md:16
 msgid ""
@@ -2263,8 +2385,8 @@ msgid ""
 "concatenated and decoded into a sequence of 128-bit integers, and finally "
 "parsed into a runestone."
 msgstr ""
-"符石输出的脚本公钥以一个OP_RETURN开始，接着是OP_13，然后是零个或多个数据推送。"
-"这些数据推送被连接起来并解码成一系列128位整数，最终解析成一个符石。"
+"符石输出的脚本公钥以一个OP_RETURN开始，接着是OP_13，然后是零个或多个数据推"
+"送。这些数据推送被连接起来并解码成一系列128位整数，最终解析成一个符石。"
 
 #: src/runes.md:21
 msgid "A transaction may have at most one runestone."
@@ -2275,7 +2397,8 @@ msgid ""
 "A runestone may etch a new rune, mint an existing rune, and transfer runes "
 "from a transaction's inputs to its outputs."
 msgstr ""
-"符石可以刻画一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输出。"
+"符石可以刻画一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输"
+"出。"
 
 #: src/runes.md:26
 msgid "A transaction output may hold balances of any number of runes."
@@ -2285,11 +2408,11 @@ msgstr "一个交易输出可以持有任意数量的符文余额。"
 msgid ""
 "Runes are identified by IDs, which consist of the block in which a rune was "
 "etched and the index of the etching transaction within that block, "
-"represented in text as `BLOCK:TX`. For example, the ID of the rune minted in "
+"represented in text as `BLOCK:TX`. For example, the ID of the rune etched in "
 "the 20th transaction of the 500th block is `500:20`."
 msgstr ""
-"符文通过ID来识别，ID由刻画符文的区块和该区块内刻画交易的索引组成，以文本形式表示为`BLOCK:TX`。"
-"例如，在第500个区块的第20笔交易中铸造的符文的ID是`500:20`。"
+"符文通过ID来识别，ID由刻画符文的区块和该区块内刻画交易的索引组成，以文本形式"
+"表示为`BLOCK:TX`。例如，在第500个区块的第20笔交易中铸造的符文的ID是`500:20`。"
 
 #: src/runes.md:33
 msgid "Etching"
@@ -2300,26 +2423,28 @@ msgid ""
 "Runes come into existence by being etched. Etching creates a rune and sets "
 "its properties. Once set, these properties are immutable, even to its etcher."
 msgstr ""
-"符文通过刻画而产生。刻画创建一个符文并设置其属性。一旦设置，这些属性即使对其刻画者来说也是不可变的。"
+"符文通过刻画而产生。刻画创建一个符文并设置其属性。一旦设置，这些属性即使对其"
+"刻画者来说也是不可变的。"
 
-#: src/runes.md:39 src/runes/specification.md:412
+#: src/runes.md:39 src/runes/specification.md:420
 msgid "Name"
 msgstr "名字"
 
 #: src/runes.md:41
 msgid ""
-"Names consist of the letters A through Z and are between one and twenty-"
-"eight characters long. For example `UNCOMMONGOODS` is a rune name."
+"Names consist of the letters A through Z and are between one and twenty-six "
+"letters long. For example `UNCOMMONGOODS` is a rune name."
 msgstr ""
-"名称由A到Z的字母组成，长度在一到二十八个字符之间。例如`UNCOMMONGOODS`是一个符文名称。"
+"名称由A到Z的字母组成，长度在一到二十八个字符之间。例如`UNCOMMONGOODS`是一个符"
+"文名称。"
 
 #: src/runes.md:44
 msgid ""
 "Names may contain spacers, represented as bullets, to aid readability. "
 "`UNCOMMONGOODS` might be etched as `UNCOMMON•GOODS`."
 msgstr ""
-"名称可以包含空格符，表示为点符号，以帮助提高可读性。"
-"`UNCOMMONGOODS` 可能被刻画为`UNCOMMON•GOODS`。"
+"名称可以包含空格符，表示为点符号，以帮助提高可读性。`UNCOMMONGOODS` 可能被刻"
+"画为`UNCOMMON•GOODS`。"
 
 #: src/runes.md:47
 msgid ""
@@ -2327,14 +2452,21 @@ msgid ""
 "etched with the same sequence of letters as an existing rune, even if it has "
 "different spacers."
 msgstr ""
-"名称的唯一性不依赖于空格符。因此，即使空格符不同，也不能用与现有符文相同的字母序列来刻画一个符文。"
+"名称的唯一性不依赖于空格符。因此，即使空格符不同，也不能用与现有符文相同的字"
+"母序列来刻画一个符文。"
 
-#: src/runes.md:51 src/runes/specification.md:322
-#: src/runes/specification.md:330
+#: src/runes.md:51
+msgid ""
+"Spacers can only be placed between two letters. Finally, spacers do not "
+"count towards the letter count."
+msgstr ""
+
+#: src/runes.md:54 src/runes/specification.md:330
+#: src/runes/specification.md:338
 msgid "Divisibility"
 msgstr "可分性"
 
-#: src/runes.md:53
+#: src/runes.md:56
 msgid ""
 "A rune's divisibility is how finely it may be divided into its atomic units. "
 "Divisibility is expressed as the number of digits permissible after the "
@@ -2342,223 +2474,221 @@ msgid ""
 "divided. A unit of a rune with divisibility 1 may be divided into ten sub-"
 "units, a rune with divisibility 2 may be divided into a hundred, and so on."
 msgstr ""
-"符文的可分性是指它可以被细分到多少个原子单位。可分性以符文数量中允许的小数点后数字位数来表示。"
-"可分性为0的符文不能被分割。可分性为1的符文可以被分割成十个子单位，可分性为2的符文可以被分割成一百个，"
-"依此类推。"
+"符文的可分性是指它可以被细分到多少个原子单位。可分性以符文数量中允许的小数点"
+"后数字位数来表示。可分性为0的符文不能被分割。可分性为1的符文可以被分割成十个"
+"子单位，可分性为2的符文可以被分割成一百个，依此类推。"
 
-#: src/runes.md:59 src/runes/specification.md:357
+#: src/runes.md:62 src/runes/specification.md:365
 msgid "Symbol"
 msgstr "符号"
 
-#: src/runes.md:61
+#: src/runes.md:64
 msgid ""
 "A rune's currency symbol is a single Unicode code point, for example `$`, "
 "`⧉`, or `🧿`, displayed after quantities of that rune."
 msgstr ""
-"符文的货币符号是一个单一的Unicode代码点，例如`$`、`⧉`或`🧿`，显示在该符文数量之后。 "
-
-#: src/runes.md:64
-msgid ""
-"101 atomic units of a rune with divisibility 2 and symbol `🧿` would be "
-"rendered as `1.01 🧿`."
-msgstr ""
-"具有可分性2和符号`🧿`的101个原子单位的符文将被渲染为`1.01 🧿`。"
+"符文的货币符号是一个单一的Unicode代码点，例如`$`、`⧉`或`🧿`，显示在该符文数量"
+"之后。 "
 
 #: src/runes.md:67
 msgid ""
+"101 atomic units of a rune with divisibility 2 and symbol `🧿` would be "
+"rendered as `1.01 🧿`."
+msgstr "具有可分性2和符号`🧿`的101个原子单位的符文将被渲染为`1.01 🧿`。"
+
+#: src/runes.md:70
+msgid ""
 "If a rune does not have a symbol, the generic currency sign `¤`, also called "
 "a scarab, should be used."
-msgstr ""
-" 如果符文没有符号，应使用通用货币符号`¤`，也称为圣甲虫。"
+msgstr " 如果符文没有符号，应使用通用货币符号`¤`，也称为圣甲虫。"
 
-#: src/runes.md:70 src/runes/specification.md:282
+#: src/runes.md:73 src/runes/specification.md:290
 msgid "Premine"
 msgstr "预挖"
 
-#: src/runes.md:72
+#: src/runes.md:75
 msgid ""
 "The etcher of a rune may optionally allocate to themselves units of the rune "
 "being etched. This allocation is called a premine."
 msgstr ""
 " 刻画符文的人可以选择性地为自己分配被刻画的符文单位。这种分配称为预挖。"
 
-#: src/runes.md:75
+#: src/runes.md:78
 msgid "Terms"
 msgstr "条款"
 
-#: src/runes.md:77
+#: src/runes.md:80
 msgid ""
 "A rune may have an open mint, allowing anyone to create and allocate units "
 "of that rune for themselves. An open mint is subject to terms, which are set "
 "upon etching."
 msgstr ""
-"符文可以有一个开放的铸造，允许任何人为自己创建和分配符文单位。开放铸造受到刻画时设置的条款的约束"
+"符文可以有一个开放的铸造，允许任何人为自己创建和分配符文单位。开放铸造受到刻"
+"画时设置的条款的约束"
 
-#: src/runes.md:81
+#: src/runes.md:84
 msgid ""
 "A mint is open while all terms of the mint are satisfied, and closed when "
 "any of them are not. For example, a mint may be limited to a starting "
 "height, an ending height, and a cap, and will be open between the starting "
 "height and ending height, or until the cap is reached, whichever comes first."
 msgstr ""
-"只要铸造的所有条款都得到满足，铸造就是开放的，当其中任何一个不满足时，铸造就关闭了。"
-"例如，铸造可能被限制在一个开始高度、一个结束高度和一个上限之间，"
-"并且在开始高度和结束高度之间或直到达到上限时开放。"
+"只要铸造的所有条款都得到满足，铸造就是开放的，当其中任何一个不满足时，铸造就"
+"关闭了。例如，铸造可能被限制在一个开始高度、一个结束高度和一个上限之间，并且"
+"在开始高度和结束高度之间或直到达到上限时开放。"
 
-#: src/runes.md:86 src/runes/specification.md:286
+#: src/runes.md:89 src/runes/specification.md:294
 msgid "Cap"
 msgstr "上限"
 
-#: src/runes.md:88
+#: src/runes.md:91
 msgid ""
 "The number of times a rune may be minted is its cap. A mint is closed once "
 "the cap is reached."
-msgstr ""
-" 符文可以被铸造的次数是其上限。一旦达到上限，铸造就关闭了。"
+msgstr " 符文可以被铸造的次数是其上限。一旦达到上限，铸造就关闭了。"
 
-#: src/runes.md:91 src/runes/specification.md:290
+#: src/runes.md:94 src/runes/specification.md:298
 msgid "Amount"
 msgstr "数量"
 
-#: src/runes.md:93
+#: src/runes.md:96
 msgid "Each mint transaction creates a fixed amount of new units of a rune."
 msgstr " 每笔铸造交易创建一个固定数量的新符文单位。"
 
-#: src/runes.md:95
+#: src/runes.md:98
 msgid "Start Height"
 msgstr "开始高度"
 
-#: src/runes.md:97
+#: src/runes.md:100
 msgid "A mint is open starting in the block with the given start height."
 msgstr "铸造从给定开始高度的区块开始开放。"
 
-#: src/runes.md:99
+#: src/runes.md:102
 msgid "End Height"
 msgstr "结束高度"
 
-#: src/runes.md:101
+#: src/runes.md:104
 msgid ""
 "A rune may not be minted in or after the block with the given end height."
 msgstr "符文不能在给定结束高度的区块之后被铸造。"
 
-#: src/runes.md:103
+#: src/runes.md:106
 msgid "Start Offset"
 msgstr "起始偏移"
 
-#: src/runes.md:105
+#: src/runes.md:108
 msgid ""
 "A mint is open starting in the block whose height is equal to the start "
 "offset plus the height of the block in which the rune was etched."
-msgstr ""
-"铸造从其高度等于开始偏移加上刻画符文的区块的高度的区块开始开放。"
+msgstr "铸造从其高度等于开始偏移加上刻画符文的区块的高度的区块开始开放。"
 
-#: src/runes.md:108
+#: src/runes.md:111
 msgid "End Offset"
 msgstr "结束偏移"
 
-#: src/runes.md:110
+#: src/runes.md:113
 msgid ""
 "A rune may not be minted in or after the block whose height is equal to the "
 "end offset plus the height of the block in which the rune was etched."
 msgstr ""
 " 符文不能在其高度等于结束偏移加上刻画符文的区块的高度的区块之后被铸造。"
 
-#: src/runes.md:113 src/runes/specification.md:470
+#: src/runes.md:116 src/runes/specification.md:478
 msgid "Minting"
 msgstr "铸造"
 
-#: src/runes.md:116
+#: src/runes.md:119
 msgid ""
 "While a rune's mint is open, anyone may create a mint transaction that "
 "creates a fixed amount of new units of that rune, subject to the terms of "
 "the mint."
 msgstr ""
-"当符文的铸造是开放的时，任何人都可以创建一个铸造交易，根据铸造的条款创建一个固定数量的新符文单位。"
+"当符文的铸造是开放的时，任何人都可以创建一个铸造交易，根据铸造的条款创建一个"
+"固定数量的新符文单位。"
 
-#: src/runes.md:119 src/runes/specification.md:482
+#: src/runes.md:122 src/runes/specification.md:490
 msgid "Transferring"
 msgstr "转移"
 
-#: src/runes.md:122
+#: src/runes.md:125
 msgid ""
 "When transaction inputs contain runes, or new runes are created by a premine "
 "or mint, those runes are transferred to that transaction's outputs. A "
 "transaction's runestone may change how input runes transfer to outputs."
 msgstr ""
-"当交易输入包含符文，或者通过预挖或铸造创建了新的符文时，这些符文被转移到该交易的输出。"
-"交易的符石可能会改变输入符文转移到输出的方式。"
+"当交易输入包含符文，或者通过预挖或铸造创建了新的符文时，这些符文被转移到该交"
+"易的输出。交易的符石可能会改变输入符文转移到输出的方式。"
 
-#: src/runes.md:126
+#: src/runes.md:129
 msgid "Edicts"
 msgstr "法令"
 
-#: src/runes.md:128
+#: src/runes.md:131
 msgid ""
 "A runestone may contain any number of edicts. Edicts consist of a rune ID, "
 "an amount, and an output number. Edicts are processed in order, allocating "
 "unallocated runes to outputs."
 msgstr ""
-"符石可以包含任意数量的法令。法令由一个符文ID、一个数量和一个输出编号组成。"
-"法令按顺序处理，将未分配的符文分配给输出。"
+"符石可以包含任意数量的法令。法令由一个符文ID、一个数量和一个输出编号组成。法"
+"令按顺序处理，将未分配的符文分配给输出。"
 
-#: src/runes.md:134
+#: src/runes.md:137
 msgid ""
 "After all edicts are processed, remaining unallocated runes are transferred "
 "to the transaction's first non-`OP_RETURN` output. A runestone may "
 "optionally contain a pointer that specifies an alternative default output."
 msgstr ""
-"在所有法令处理完毕后，剩余的未分配符文被转移到交易的第一个非OP_RETURN输出。"
-"符石可以选择性地包含一个指针，指定一个替代的默认输出。"
+"在所有法令处理完毕后，剩余的未分配符文被转移到交易的第一个非OP_RETURN输出。符"
+"石可以选择性地包含一个指针，指定一个替代的默认输出。"
 
-#: src/runes.md:138
+#: src/runes.md:141
 msgid "Burning"
 msgstr "燃烧"
 
-#: src/runes.md:140
+#: src/runes.md:143
 msgid ""
 "Runes may be burned by transferring them to an `OP_RETURN` output with an "
 "edict or pointer."
-msgstr ""
-" 符文可以通过将它们转移到一个包含法令或指针的`OP_RETURN`输出来燃烧。"
+msgstr " 符文可以通过将它们转移到一个包含法令或指针的`OP_RETURN`输出来燃烧。"
 
-#: src/runes.md:143 src/runes/specification.md:370
+#: src/runes.md:146 src/runes/specification.md:378
 msgid "Cenotaphs"
 msgstr "墓碑"
 
-#: src/runes.md:146
+#: src/runes.md:149
 msgid ""
 "Runestones may be malformed for a number of reasons, including non-pushdata "
 "opcodes in the runestone `OP_RETURN`, invalid varints, or unrecognized "
 "runestone fields."
 msgstr ""
-"由于多种原因，符石可能会形成错误，包括符石`OP_RETURN`中的非推送数据操作码、"
-"无效的变长整数或无法识别的符石字段。"
+"由于多种原因，符石可能会形成错误，包括符石`OP_RETURN`中的非推送数据操作码、无"
+"效的变长整数或无法识别的符石字段。"
 
-#: src/runes.md:150
+#: src/runes.md:153
 msgid ""
 "Malformed runestones are termed [cenotaphs](https://en.wikipedia.org/wiki/"
 "Cenotaph)."
-msgstr ""
-" 形成错误的符石被称为[墓碑](https://en.wikipedia.org/wiki/Cenotaph)."
+msgstr " 形成错误的符石被称为[墓碑](https://en.wikipedia.org/wiki/Cenotaph)."
 
-#: src/runes.md:153
+#: src/runes.md:156
 msgid ""
 "Runes input to a transaction with a cenotaph are burned. Runes etched in a "
 "transaction with a cenotaph are set as unmintable. Mints in a transaction "
 "with a cenotaph count towards the mint cap, but the minted runes are burned."
 msgstr ""
-"输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸造。"
-"在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
+"输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸"
+"造。在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
 
-#: src/runes.md:157
+#: src/runes.md:160
 msgid ""
 "Cenotaphs are an upgrade mechanism, allowing runestones to be given new "
 "semantics that change how runes are created and transferred, while not "
 "misleading unupgraded clients as to the location of those runes, as "
 "unupgraded clients will see those runes as having been burned."
 msgstr ""
-"墓碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，"
-"同时不会误导未升级的客户端关于这些符文的位置，因为未升级的客户端会看到这些符文已经被燃烧。"
+"墓碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，同时不"
+"会误导未升级的客户端关于这些符文的位置，因为未升级的客户端会看到这些符文已经"
+"被燃烧。"
 
 #: src/runes/specification.md:1
 msgid "Runes Does Not Have a Specification"
@@ -2568,8 +2698,7 @@ msgstr "符文没有规范"
 msgid ""
 "The Runes reference implementation, `ord`, is the normative specification of "
 "the Runes protocol."
-msgstr ""
-" 符文的参考实现，即`ord`，是符文协议的规范性规格说明。"
+msgstr " 符文的参考实现，即`ord`，是符文协议的规范性规格说明。"
 
 #: src/runes/specification.md:7
 msgid ""
@@ -2578,9 +2707,9 @@ msgid ""
 "guide to the behavior of `ord`, and the code of `ord` itself should always "
 "be consulted to confirm the correctness of any prose description."
 msgstr ""
-"您在这里或其他地方阅读的内容，除了`ord`的代码之外，都不是规格说明。"
-"这篇关于符文协议的描述是作为`ord`行为的指南提供的，"
-"而`ord`的代码本身应始终被查询以确认任何描述的正确性。"
+"您在这里或其他地方阅读的内容，除了`ord`的代码之外，都不是规格说明。这篇关于符"
+"文协议的描述是作为`ord`行为的指南提供的，而`ord`的代码本身应始终被查询以确认"
+"任何描述的正确性。"
 
 #: src/runes/specification.md:12
 msgid ""
@@ -2588,8 +2717,8 @@ msgid ""
 "of `ord` and it is impractically disruptive to change `ord`'s behavior, this "
 "document will be amended to agree with `ord`'s actual behavior."
 msgstr ""
-"如果由于`ord`中的一个错误，本文档与`ord`的实际行为出现偏差，"
-"并且改变`ord`的行为实际上是不切实际的，那么本文档将被修订以符合`ord`的实际行为。"
+"如果由于`ord`中的一个错误，本文档与`ord`的实际行为出现偏差，并且改变`ord`的行"
+"为实际上是不切实际的，那么本文档将被修订以符合`ord`的实际行为。"
 
 #: src/runes/specification.md:16
 msgid ""
@@ -2598,8 +2727,8 @@ msgid ""
 "make Runes transactions, and to determine the state of runes, mints, and "
 "balances."
 msgstr ""
-"使用替代实现的用户需自担风险，强烈建议希望整合符文的服务使用`ord`本身来进行符文交易，"
-"并确定符文、铸币和余额的状态"
+"使用替代实现的用户需自担风险，强烈建议希望整合符文的服务使用`ord`本身来进行符"
+"文交易，并确定符文、铸币和余额的状态"
 
 #: src/runes/specification.md:23
 msgid "Rune protocol messages are termed \"runestones\"."
@@ -2615,7 +2744,7 @@ msgstr " 符文协议在区块840,000激活。早期区块中的符石将被忽�
 msgid "Abstractly, runestones contain the following fields:"
 msgstr " 抽象地，符石包含以下字段：1"
 
-#: src/runes/specification.md:30 src/runes/specification.md:209
+#: src/runes/specification.md:30 src/runes/specification.md:212
 msgid ""
 "```rust\n"
 "struct Runestone {\n"
@@ -2631,7 +2760,7 @@ msgstr ""
 msgid "Runes are created by etchings:"
 msgstr "符文是通过蚀刻创建的："
 
-#: src/runes/specification.md:41 src/runes/specification.md:396
+#: src/runes/specification.md:41 src/runes/specification.md:404
 msgid ""
 "```rust\n"
 "struct Etching {\n"
@@ -2661,12 +2790,12 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/runes/specification.md:63 src/runes/specification.md:484
+#: src/runes/specification.md:63 src/runes/specification.md:492
 msgid "Runes are transferred by edict:"
 msgstr "符文通过法令转移："
 
-#: src/runes/specification.md:65 src/runes/specification.md:151
-#: src/runes/specification.md:486
+#: src/runes/specification.md:65 src/runes/specification.md:154
+#: src/runes/specification.md:494
 msgid ""
 "```rust\n"
 "struct Edict {\n"
@@ -2681,8 +2810,7 @@ msgstr ""
 msgid ""
 "Rune IDs are encoded as the block height and transaction index of the "
 "transaction in which the rune was etched:"
-msgstr ""
-"符文 ID 被编码为蚀刻符文的交易的区块高度和交易索引："
+msgstr "符文 ID 被编码为蚀刻符文的交易的区块高度和交易索引："
 
 #: src/runes/specification.md:76
 msgid ""
@@ -2721,8 +2849,7 @@ msgstr "解读符石是通过以下步骤从交易中解码得到的："
 msgid ""
 "Find the first transaction output whose script pubkey begins with `OP_RETURN "
 "OP_13`."
-msgstr ""
-"查找第一个其脚本公钥以 `OP_RETURN` `OP_13` 开头的交易输出。"
+msgstr "查找第一个其脚本公钥以 `OP_RETURN` `OP_13` 开头的交易输出。"
 
 #: src/runes/specification.md:98
 msgid "Concatenate all following data pushes into a payload buffer."
@@ -2733,7 +2860,8 @@ msgid ""
 "Decode a sequence 128-bit [LEB128](https://en.wikipedia.org/wiki/LEB128) "
 "integers from the payload buffer."
 msgstr ""
-"从有效载荷缓冲区解码一系列 128 位的 [LEB128](https://en.wikipedia.org/wiki/LEB128) 整数。"
+"从有效载荷缓冲区解码一系列 128 位的 [LEB128](https://en.wikipedia.org/wiki/"
+"LEB128) 整数。"
 
 #: src/runes/specification.md:103
 msgid "Parse the sequence of integers into an untyped message."
@@ -2748,7 +2876,8 @@ msgid ""
 "Deciphering may produce a malformed runestone, termed a [cenotaph](https://"
 "en.wikipedia.org/wiki/Cenotaph)."
 msgstr ""
-" 解读可能会产生一个格式错误的符石，称为[纪念碑](https://en.wikipedia.org/wiki/Cenotaph)。"
+" 解读可能会产生一个格式错误的符石，称为[纪念碑](https://en.wikipedia.org/"
+"wiki/Cenotaph)。"
 
 #: src/runes/specification.md:110
 msgid "Locating the Runestone Output"
@@ -2759,7 +2888,8 @@ msgid ""
 "Outputs are searched for the first script pubkey that beings with `OP_RETURN "
 "OP_13`. If deciphering fails, later matching outputs are not considered."
 msgstr ""
-"搜索第一个脚本公钥以 `OP_RETURN` `OP_13` 开头的输出。如果解读失败，不会考虑后续匹配的输出。"
+"搜索第一个脚本公钥以 `OP_RETURN` `OP_13` 开头的输出。如果解读失败，不会考虑后"
+"续匹配的输出。"
 
 #: src/runes/specification.md:115
 msgid "Assembling the Payload Buffer"
@@ -2767,9 +2897,11 @@ msgstr "组装有效载荷缓冲区"
 
 #: src/runes/specification.md:117
 msgid ""
-"The payload buffer is assembled by concatenating data pushes, after `OP_13`, in the matching script pubkey."
+"The payload buffer is assembled by concatenating data pushes, after `OP_13`, "
+"in the matching script pubkey."
 msgstr ""
-"有效载荷缓冲区是通过将匹配的脚本 pubkey 中 `OP_13` 之后的数据推送连接起来而组装成的。"
+"有效载荷缓冲区是通过将匹配的脚本 pubkey 中 `OP_13` 之后的数据推送连接起来而组"
+"装成的。"
 
 #: src/runes/specification.md:120
 msgid ""
@@ -2780,43 +2912,44 @@ msgstr ""
 "数据推送是操作码 0 到 78 之间的操作码。如果遇到大于或等于操作码 79 的操作码，"
 "则解密的符文是一个没有雕刻、铸造或法令的纪念碑。"
 
-#: src/runes/specification.md:121
+#: src/runes/specification.md:124
 msgid "Decoding the Integer Sequence"
 msgstr "解码整数序列"
 
-#: src/runes/specification.md:123
+#: src/runes/specification.md:126
 msgid ""
 "A sequence of 128-bit integers are decoded from the payload as LEB128 "
 "varints."
-msgstr ""
-" 从有效载荷中解码一系列 128 位整数作为 LEB128 变长整数。"
+msgstr " 从有效载荷中解码一系列 128 位整数作为 LEB128 变长整数。"
 
-#: src/runes/specification.md:125
+#: src/runes/specification.md:128
 msgid ""
 "LEB128 varints are encoded as sequence of bytes, each of which has the most-"
 "significant bit set, except for the last."
 msgstr ""
-" LEB128 变长整数被编码为一系列字节，每个字节的最高有效位都被设置，最后一个字节除外。"
+" LEB128 变长整数被编码为一系列字节，每个字节的最高有效位都被设置，最后一个字"
+"节除外。"
 
-#: src/runes/specification.md:128
+#: src/runes/specification.md:131
 msgid ""
 "If a LEB128 varint contains more than 18 bytes, would overflow a u128, or is "
 "truncated, meaning that the end of the payload buffer is reached before "
 "encountering a byte with the continuation bit not set, the decoded runestone "
 "is a cenotaph with no etching, mint, or edicts."
 msgstr ""
-" 如果 LEB128 变长整数包含超过 18 个字节，会溢出一个 u128，或者是截断的，"
-"意味着在遇到未设置继续位的字节之前达到有效载荷缓冲区的末尾，解码的符石是没有铭刻、铸造或法令的纪念碑。"
+" 如果 LEB128 变长整数包含超过 18 个字节，会溢出一个 u128，或者是截断的，意味"
+"着在遇到未设置继续位的字节之前达到有效载荷缓冲区的末尾，解码的符石是没有铭"
+"刻、铸造或法令的纪念碑。"
 
-#: src/runes/specification.md:133
+#: src/runes/specification.md:136
 msgid "Parsing the Message"
 msgstr "解析消息"
 
-#: src/runes/specification.md:135
+#: src/runes/specification.md:138
 msgid "The integer sequence is parsed into an untyped message:"
 msgstr " 将整数序列解析为未类型化消息。"
 
-#: src/runes/specification.md:137
+#: src/runes/specification.md:140
 msgid ""
 "```rust\n"
 "struct Message {\n"
@@ -2826,28 +2959,27 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/runes/specification.md:144
+#: src/runes/specification.md:147
 msgid ""
 "The integers are interpreted as a sequence of tag/value pairs, with "
 "duplicate tags appending their value to the field value."
-msgstr ""
-"整数被解释为一系列标签/值对，重复的标签将其值附加到字段值上。"
+msgstr "整数被解释为一系列标签/值对，重复的标签将其值附加到字段值上。"
 
-#: src/runes/specification.md:147
+#: src/runes/specification.md:150
 msgid ""
 "If a tag with value zero is encountered, all following integers are "
 "interpreted as a series of four-integer edicts, each consisting of a rune ID "
 "block height, rune ID transaction index, amount, and output."
 msgstr ""
-"如果遇到值为零的标签，则所有后续的整数都被解释为一系列四整数法令，每个法令包括一个符文ID块高度、符文ID交易索引、数量和输出。"
+"如果遇到值为零的标签，则所有后续的整数都被解释为一系列四整数法令，每个法令包"
+"括一个符文ID块高度、符文ID交易索引、数量和输出。"
 
-#: src/runes/specification.md:159
+#: src/runes/specification.md:162
 msgid ""
 "Rune ID block heights and transaction indices in edicts are delta encoded."
-msgstr ""
-"法令中的符文ID块高度和交易索引采用增量编码。"
+msgstr "法令中的符文ID块高度和交易索引采用增量编码。"
 
-#: src/runes/specification.md:161
+#: src/runes/specification.md:164
 msgid ""
 "Edict rune ID decoding starts with a base block height and transaction index "
 "of zero. When decoding each rune ID, first the encoded block height delta is "
@@ -2855,123 +2987,122 @@ msgid ""
 "integer is a transaction index delta. If the block height delta is greater "
 "than zero, the next integer is instead an absolute transaction index."
 msgstr ""
-"解码法令符文ID时，起始于基础块高度和交易索引均为零。在解码每个符文ID时，"
-"首先将编码的块高度增量加到基础块高度上。如果块高度增量为零，则下一个整数是交易索引增量。"
-"如果块高度增量大于零，则下一个整数改为绝对交易索引。"
+"解码法令符文ID时，起始于基础块高度和交易索引均为零。在解码每个符文ID时，首先"
+"将编码的块高度增量加到基础块高度上。如果块高度增量为零，则下一个整数是交易索"
+"引增量。如果块高度增量大于零，则下一个整数改为绝对交易索引。"
 
-#: src/runes/specification.md:167
+#: src/runes/specification.md:170
 msgid ""
 "This implies that edicts must first be sorted by rune ID before being "
 "encoded in a runestone."
-msgstr ""
-" 这意味着在将法令编码进符石之前，必须先按符文ID对法令进行排序。"
+msgstr " 这意味着在将法令编码进符石之前，必须先按符文ID对法令进行排序。"
 
-#: src/runes/specification.md:170
+#: src/runes/specification.md:173
 msgid "For example, to encode the following edicts:"
 msgstr " 例如，要编码以下法令："
 
-#: src/runes/specification.md:172 src/runes/specification.md:181
+#: src/runes/specification.md:175 src/runes/specification.md:184
 msgid "block"
 msgstr "区块"
 
-#: src/runes/specification.md:172 src/runes/specification.md:181
+#: src/runes/specification.md:175 src/runes/specification.md:184
 msgid "TX"
 msgstr ""
 
-#: src/runes/specification.md:172 src/runes/specification.md:181
-#: src/runes/specification.md:190
+#: src/runes/specification.md:175 src/runes/specification.md:184
+#: src/runes/specification.md:193
 msgid "amount"
 msgstr "数量"
 
-#: src/runes/specification.md:172 src/runes/specification.md:181
-#: src/runes/specification.md:190
+#: src/runes/specification.md:175 src/runes/specification.md:184
+#: src/runes/specification.md:193
 msgid "output"
 msgstr "输出"
 
-#: src/runes/specification.md:174 src/runes/specification.md:176
-#: src/runes/specification.md:177 src/runes/specification.md:183
-#: src/runes/specification.md:184 src/runes/specification.md:185
-#: src/runes/specification.md:192 src/runes/specification.md:193
+#: src/runes/specification.md:177 src/runes/specification.md:179
+#: src/runes/specification.md:180 src/runes/specification.md:186
+#: src/runes/specification.md:187 src/runes/specification.md:188
+#: src/runes/specification.md:195 src/runes/specification.md:196
 msgid "10"
 msgstr ""
 
-#: src/runes/specification.md:174 src/runes/specification.md:177
-#: src/runes/specification.md:183 src/runes/specification.md:184
-#: src/runes/specification.md:192
+#: src/runes/specification.md:177 src/runes/specification.md:180
+#: src/runes/specification.md:186 src/runes/specification.md:187
+#: src/runes/specification.md:195
 msgid "5"
 msgstr ""
 
-#: src/runes/specification.md:175 src/runes/specification.md:186
-#: src/runes/specification.md:422
+#: src/runes/specification.md:178 src/runes/specification.md:189
+#: src/runes/specification.md:430
 msgid "50"
 msgstr ""
 
-#: src/runes/specification.md:175 src/runes/specification.md:186
-#: src/runes/specification.md:195 src/runes/specification.md:418
+#: src/runes/specification.md:178 src/runes/specification.md:189
+#: src/runes/specification.md:198 src/runes/specification.md:426
 msgid "25"
 msgstr ""
 
-#: src/runes/specification.md:176 src/runes/specification.md:185
+#: src/runes/specification.md:179 src/runes/specification.md:188
 msgid "7"
 msgstr ""
 
-#: src/runes/specification.md:176 src/runes/specification.md:185
-#: src/runes/specification.md:194
+#: src/runes/specification.md:179 src/runes/specification.md:188
+#: src/runes/specification.md:197
 msgid "8"
 msgstr ""
 
-#: src/runes/specification.md:179
+#: src/runes/specification.md:182
 msgid "They are first sorted by block height and transaction index:"
 msgstr "它们首先按区块高度和交易索引排序："
 
-#: src/runes/specification.md:188
+#: src/runes/specification.md:191
 msgid "And then delta encoded as:"
 msgstr "然后 delta 编码为："
 
-#: src/runes/specification.md:190
+#: src/runes/specification.md:193
 msgid "block delta"
 msgstr ""
 
-#: src/runes/specification.md:190
+#: src/runes/specification.md:193
 msgid "TX delta"
 msgstr ""
 
-#: src/runes/specification.md:195
+#: src/runes/specification.md:198
 msgid "40"
 msgstr ""
 
-#: src/runes/specification.md:197
+#: src/runes/specification.md:200
 msgid ""
 "If an edict output is greater than the number of outputs of the transaction, "
 "an edict rune ID is encountered with block zero and nonzero transaction "
 "index, or a field is truncated, meaning a tag is encountered without a "
 "value, the decoded runestone is a cenotaph."
 msgstr ""
-"如果法令输出大于交易的输出数量，则遇到块为零且交易索引非零的法令符文 ID，"
-"或者字段被截断，意味着遇到没有值的标签，解码后的符文石是纪念碑 。"
+"如果法令输出大于交易的输出数量，则遇到块为零且交易索引非零的法令符文 ID，或者"
+"字段被截断，意味着遇到没有值的标签，解码后的符文石是纪念碑 。"
 
-#: src/runes/specification.md:202
+#: src/runes/specification.md:205
 msgid ""
 "Note that if a cenotaph is produced here, the cenotaph is not empty, meaning "
 "that it contains the fields and edicts, which may include an etching and "
 "mint."
 msgstr ""
-"请注意，如果这里制作了一个纪念碑，那么这个纪念碑并不是空的，"
-"意味着它包含了字段和法令，这可能包括一种蚀刻和铸币。"
+"请注意，如果这里制作了一个纪念碑，那么这个纪念碑并不是空的，意味着它包含了字"
+"段和法令，这可能包括一种蚀刻和铸币。"
 
-#: src/runes/specification.md:205
+#: src/runes/specification.md:208
 msgid "Parsing the Runestone"
 msgstr "解析符石"
 
-#: src/runes/specification.md:207
+#: src/runes/specification.md:210
 msgid "The runestone:"
 msgstr "符石"
 
-#: src/runes/specification.md:218
+#: src/runes/specification.md:221
 msgid "Is parsed from the unsigned message using the following tags:"
 msgstr "使用以下标签从未签名的消息中解析："
 
-#: src/runes/specification.md:220
+#: src/runes/specification.md:223
 msgid ""
 "```rust\n"
 "enum Tag {\n"
@@ -2997,59 +3128,57 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/runes/specification.md:243
+#: src/runes/specification.md:246
 msgid ""
 "Note that tags are grouped by parity, i.e., whether they are even or odd. "
 "Unrecognized odd tags are ignored. Unrecognized even tags produce a cenotaph."
 msgstr ""
-"请注意，标签按奇偶性分组，即奇数还是偶数。"
-"无法识别的奇数标签将被忽略。无法识别的偶数标签会产生纪念碑。"
+"请注意，标签按奇偶性分组，即奇数还是偶数。无法识别的奇数标签将被忽略。无法识"
+"别的偶数标签会产生纪念碑。"
 
-#: src/runes/specification.md:246
+#: src/runes/specification.md:249
 msgid ""
 "All unused tags are reserved for use by the protocol, may be assigned at any "
 "time, and must not be used."
-msgstr ""
-"所有未使用的标签都保留供协议使用，可以随时分配，并且不得使用。"
+msgstr "所有未使用的标签都保留供协议使用，可以随时分配，并且不得使用。"
 
-#: src/runes/specification.md:249
+#: src/runes/specification.md:252
 msgid "Body"
 msgstr "主体"
 
-#: src/runes/specification.md:251
+#: src/runes/specification.md:254
 msgid ""
 "The `Body` tag marks the end of the runestone's fields, causing all "
 "following integers to be interpreted as edicts."
-msgstr ""
-"`主体`标签标记了符石字段的结束，导致所有后续的整数被解释为法令。"
+msgstr "`主体`标签标记了符石字段的结束，导致所有后续的整数被解释为法令。"
 
-#: src/runes/specification.md:254
+#: src/runes/specification.md:257
 msgid "Flags"
 msgstr "标记"
 
-#: src/runes/specification.md:256
+#: src/runes/specification.md:259
 msgid ""
 "The `Flag` field contains a bitmap of flags, whose position is `1 << "
 "FLAG_VALUE`:"
-msgstr ""
-" `标记`字段包含一个标志的位图，其位置为 `1 << FLAG_VALUE`："
+msgstr " `标记`字段包含一个标志的位图，其位置为 `1 << FLAG_VALUE`："
 
-#: src/runes/specification.md:259
+#: src/runes/specification.md:262
 msgid ""
 "```rust\n"
 "enum Flag {\n"
 "  Etching = 0,\n"
 "  Terms = 1,\n"
+"  Turbo = 2,\n"
 "  Cenotaph = 127,\n"
 "}\n"
 "```"
 msgstr ""
 
-#: src/runes/specification.md:267
+#: src/runes/specification.md:271
 msgid "The `Etching` flag marks this transaction as containing an etching."
 msgstr "`Etching`标志表示此交易包含蚀刻。"
 
-#: src/runes/specification.md:269
+#: src/runes/specification.md:273
 msgid ""
 "The `Terms` flag marks this transaction's etching as having open mint terms."
 msgstr "`Terms`标志表示此交易的蚀刻具有开放的铸币条款。"
@@ -3057,68 +3186,68 @@ msgstr "`Terms`标志表示此交易的蚀刻具有开放的铸币条款。"
 #: src/runes/specification.md:275
 msgid ""
 "The `Turbo` flag marks this transaction's etching as opting into future "
-"protocol changes. These protocol changes may increase light client validation "
-"costs, or just be highly degenerate."
-msgstr "`Turbo`标记将此交易的蚀刻设置为选择未来协议可以更改。这些协议更改可能会增加轻客户端验证成本，或者仅仅是高度退化的。"
+"protocol changes. These protocol changes may increase light client "
+"validation costs, or just be highly degenerate."
+msgstr ""
+"`Turbo`标记将此交易的蚀刻设置为选择未来协议可以更改。这些协议更改可能会增加轻"
+"客户端验证成本，或者仅仅是高度退化的。"
 
-#: src/runes/specification.md:271
+#: src/runes/specification.md:279
 msgid "The `Cenotaph` flag is unrecognized."
 msgstr "`Cenotaph`标志表示无法识别"
 
-#: src/runes/specification.md:273
+#: src/runes/specification.md:281
 msgid ""
 "If the value of the flags field after removing recognized flags is nonzero, "
 "the runestone is a cenotaph."
-msgstr ""
-" 如果在移除已识别标志后，标志字段的值非零，则该符石为纪念碑。"
+msgstr " 如果在移除已识别标志后，标志字段的值非零，则该符石为纪念碑。"
 
-#: src/runes/specification.md:276
+#: src/runes/specification.md:284
 msgid "Rune"
 msgstr "符文"
 
-#: src/runes/specification.md:278
+#: src/runes/specification.md:286
 msgid ""
 "The `Rune` field contains the name of the rune being etched. If the "
 "`Etching` flag is set but the `Rune` field is omitted, a reserved rune name "
 "is allocated."
 msgstr ""
-"符文 `Rune` 字段包含正在蚀刻的符文的名称。如果设置了蚀刻`Etching`标志但省略了符文`Rune`字段，"
-"则会分配一个保留的符文名称。"
+"符文 `Rune` 字段包含正在蚀刻的符文的名称。如果设置了蚀刻`Etching`标志但省略了"
+"符文`Rune`字段，则会分配一个保留的符文名称。"
 
-#: src/runes/specification.md:284
+#: src/runes/specification.md:292
 msgid "The `Premine` field contains the amount of premined runes."
 msgstr " 预铸`Premine`字段包含预铸符文的数量。"
 
-#: src/runes/specification.md:288
+#: src/runes/specification.md:296
 msgid "The `Cap` field contains the allowed number of mints."
 msgstr "上限`Cap` 字段包含允许的铸币次数。"
 
-#: src/runes/specification.md:292
+#: src/runes/specification.md:300
 msgid ""
 "The `Amount` field contains the amount of runes each mint transaction "
 "receives."
-msgstr ""
-"数量`Amount`字段包含每个铸币交易接收的符文数量。"
+msgstr "数量`Amount`字段包含每个铸币交易接收的符文数量。"
 
-#: src/runes/specification.md:294
+#: src/runes/specification.md:302
 msgid "HeightStart and HeightEnd"
 msgstr "起始高度和结束高度"
 
-#: src/runes/specification.md:296
+#: src/runes/specification.md:304
 msgid ""
 "The `HeightStart` and `HeightEnd` fields contain the mint's starting and "
 "ending absolute block heights, respectively. The mint is open starting in "
 "the block with height `HeightStart`, and closes in the block with height "
 "`HeightEnd`."
 msgstr ""
-"`起始高度`和`结束高度`字段分别包含铸币的起始和结束的绝对区块高度。"
-"铸币从具有`起始高度`的区块开始，并在具有`结束高度`的区块中关闭。"
+"`起始高度`和`结束高度`字段分别包含铸币的起始和结束的绝对区块高度。铸币从具有`"
+"起始高度`的区块开始，并在具有`结束高度`的区块中关闭。"
 
-#: src/runes/specification.md:300
+#: src/runes/specification.md:308
 msgid "OffsetStart and OffsetEnd"
 msgstr "起始偏移和结束偏移"
 
-#: src/runes/specification.md:302
+#: src/runes/specification.md:310
 msgid ""
 "The `OffsetStart` and `OffsetEnd` fields contain the mint's starting and "
 "ending block heights, relative to the block in which the etching is mined. "
@@ -3126,179 +3255,178 @@ msgid ""
 "`ETCHING_HEIGHT`, and closes in the block with height `OffsetEnd` + "
 "`ETCHING_HEIGHT`."
 msgstr ""
-"`起始偏移`和`结束偏移`字段包含铸币的起始和结束区块高度，相对于蚀刻被挖掘的区块。"
-"铸币从高度为`起始偏移` + `蚀刻高度`的区块开始，并在高度为`结束偏移` + `蚀刻高度`的区块中关闭。"
+"`起始偏移`和`结束偏移`字段包含铸币的起始和结束区块高度，相对于蚀刻被挖掘的区"
+"块。铸币从高度为`起始偏移` + `蚀刻高度`的区块开始，并在高度为`结束偏移` + `蚀"
+"刻高度`的区块中关闭。"
 
-#: src/runes/specification.md:307
+#: src/runes/specification.md:315
 msgid "Mint"
 msgstr "铸造"
 
-#: src/runes/specification.md:309
+#: src/runes/specification.md:317
 msgid ""
 "The `Mint` field contains the Rune ID of the rune to be minted in this "
 "transaction."
-msgstr ""
-" 铸造`Mint`字段包含此交易中将要铸造的符文的符文ID。"
+msgstr " 铸造`Mint`字段包含此交易中将要铸造的符文的符文ID。"
 
-#: src/runes/specification.md:314
+#: src/runes/specification.md:322
 msgid ""
 "The `Pointer` field contains the index of the output to which runes "
 "unallocated by edicts should be transferred. If the `Pointer` field is "
 "absent, unallocated runes are transferred to the first non-`OP_RETURN` "
 "output."
 msgstr ""
-"指针`Pointer`字段包含应将未分配的符文通过法令转移至的输出索引。如果缺少指针`Pointer`字段，"
-"则未分配的符文将转移到第一个非`OP_RETURN`输出。"
+"指针`Pointer`字段包含应将未分配的符文通过法令转移至的输出索引。如果缺少指针"
+"`Pointer`字段，则未分配的符文将转移到第一个非`OP_RETURN`输出。"
 
-#: src/runes/specification.md:318
+#: src/runes/specification.md:326
 msgid "Cenotaph"
 msgstr "纪念碑"
 
-#: src/runes/specification.md:320
+#: src/runes/specification.md:328
 msgid "The `Cenotaph` field is unrecognized."
 msgstr "纪念碑`Cenotaph` 字段无法识别。"
 
-#: src/runes/specification.md:324
+#: src/runes/specification.md:332
 msgid ""
 "The `Divisibility` field, raised to the power of ten, is the number of "
 "subunits in a super unit of runes."
 msgstr ""
 " 可分性`Divisibility`字段，提升十的幂次，是一个超级单位符文中的子单位数量。"
 
-#: src/runes/specification.md:327
+#: src/runes/specification.md:335
 msgid ""
 "For example, the amount `1234` of different runes with divisibility 0 "
 "through 3 is displayed as follows:"
-msgstr ""
-" 例如，不同符文的数量`1234`，其可分性为0至3，显示如下："
+msgstr " 例如，不同符文的数量`1234`，其可分性为0至3，显示如下："
 
-#: src/runes/specification.md:330 src/runes/specification.md:348
+#: src/runes/specification.md:338 src/runes/specification.md:356
 msgid "Display"
 msgstr "显示"
 
-#: src/runes/specification.md:332
+#: src/runes/specification.md:340
 msgid "1234"
 msgstr ""
 
-#: src/runes/specification.md:333
+#: src/runes/specification.md:341
 msgid "123.4"
 msgstr ""
 
-#: src/runes/specification.md:334
+#: src/runes/specification.md:342
 msgid "12.34"
 msgstr ""
 
-#: src/runes/specification.md:335
+#: src/runes/specification.md:343
 msgid "1.234"
 msgstr ""
 
-#: src/runes/specification.md:337 src/runes/specification.md:348
+#: src/runes/specification.md:345 src/runes/specification.md:356
 msgid "Spacers"
 msgstr "间隔符"
 
-#: src/runes/specification.md:339
+#: src/runes/specification.md:347
 msgid ""
 "The `Spacers` field is a bitfield of `•` spacers that should be displayed "
 "between the letters of the rune's name."
 msgstr ""
-" 间隔符`Spacers`字段是一个`•`位字段，用于表示符文名称字母之间是否应显示间隔符。"
+" 间隔符`Spacers`字段是一个`•`位字段，用于表示符文名称字母之间是否应显示间隔"
+"符。"
 
-#: src/runes/specification.md:342
+#: src/runes/specification.md:350
 msgid ""
 "The Nth field of the bitfield, starting from the least significant, "
 "determines whether or not a spacer should be displayed between the Nth and "
 "N+1th character, starting from the left of the rune's name."
 msgstr ""
-"位字段的第N个字段，从最不重要的位开始，决定从符文名称的左侧开始,"
-"是否在符文名称的第N个字符和第N+1个字符之间显示间隔符。"
+"位字段的第N个字段，从最不重要的位开始，决定从符文名称的左侧开始,是否在符文名"
+"称的第N个字符和第N+1个字符之间显示间隔符。"
 
-#: src/runes/specification.md:346
+#: src/runes/specification.md:354
 msgid "For example, the rune name `AAAA` rendered with different spacers:"
 msgstr " 例如，符文名`AAAA`在不同间隔符的渲染下："
 
-#: src/runes/specification.md:350
+#: src/runes/specification.md:358
 msgid "0b1"
 msgstr ""
 
-#: src/runes/specification.md:350
+#: src/runes/specification.md:358
 msgid "A•AAA"
 msgstr ""
 
-#: src/runes/specification.md:351
+#: src/runes/specification.md:359
 msgid "0b11"
 msgstr ""
 
-#: src/runes/specification.md:351
+#: src/runes/specification.md:359
 msgid "A•A•AA"
 msgstr ""
 
-#: src/runes/specification.md:352
+#: src/runes/specification.md:360
 msgid "0b10"
 msgstr ""
 
-#: src/runes/specification.md:352
+#: src/runes/specification.md:360
 msgid "AA•AA"
 msgstr ""
 
-#: src/runes/specification.md:353
+#: src/runes/specification.md:361
 msgid "0b111"
 msgstr ""
 
-#: src/runes/specification.md:353
+#: src/runes/specification.md:361
 msgid "A•A•A•A"
 msgstr ""
 
-#: src/runes/specification.md:355
+#: src/runes/specification.md:363
 msgid "Trailing spacers are ignored."
 msgstr "尾随间隔符将被忽略。"
 
-#: src/runes/specification.md:359
+#: src/runes/specification.md:367
 msgid ""
 "The `Symbol` field is the Unicode codepoint of the Rune's currency symbol, "
 "which should be displayed after amounts of that rune. If a rune does not "
 "have a currency symbol, the generic currency character `¤` should be used."
 msgstr ""
-"符号`Symbol`字段是符文货币符号的Unicode代码点，应在该符文金额之后显示。"
-"如果符文没有货币符号，则应使用通用货币字符 `¤`。"
+"符号`Symbol`字段是符文货币符号的Unicode代码点，应在该符文金额之后显示。如果符"
+"文没有货币符号，则应使用通用货币字符 `¤`。"
 
-#: src/runes/specification.md:363
+#: src/runes/specification.md:371
 msgid ""
 "For example, if the `Symbol` is `#` and the divisibility is 2, the amount of "
 "`1234` units should be displayed as `12.34 #`."
 msgstr ""
 " 例如，如果`符号`是`#`，可分性为2，那么`1234`单位的金额应显示为12.34#。"
 
-#: src/runes/specification.md:366
+#: src/runes/specification.md:374
 msgid "Nop"
 msgstr "Nop"
 
-#: src/runes/specification.md:368
+#: src/runes/specification.md:376
 msgid "The `Nop` field is unrecognized."
 msgstr "`Nop`字段无法识别。"
 
-#: src/runes/specification.md:372
+#: src/runes/specification.md:380
 msgid "Cenotaphs have the following effects:"
 msgstr " 纪念碑具有以下效果： "
 
-#: src/runes/specification.md:374
+#: src/runes/specification.md:382
 msgid "All runes input to a transaction containing a cenotaph are burned."
 msgstr " 包含纪念碑的交易中的所有输入符文都将被销毁。 "
 
-#: src/runes/specification.md:376
+#: src/runes/specification.md:384
 msgid ""
 "If the runestone that produced the cenotaph contained an etching, the etched "
 "rune has supply zero and is unmintable."
-msgstr ""
-" 如果产生纪念碑的符石包含蚀刻，那么蚀刻的符文供应量为零且无法铸造。 "
+msgstr " 如果产生纪念碑的符石包含蚀刻，那么蚀刻的符文供应量为零且无法铸造。 "
 
-#: src/runes/specification.md:379
+#: src/runes/specification.md:387
 msgid ""
 "If the runestone that produced the cenotaph is a mint, the mint counts "
 "against the mint cap and the minted runes are burned."
 msgstr ""
 " 如果产生纪念碑的符石是铸币，那么铸币将计入铸币上限，且铸造的符文将被销毁。 "
 
-#: src/runes/specification.md:382
+#: src/runes/specification.md:390
 msgid ""
 "Cenotaphs may be created if a runestone contains an unrecognized even tag, "
 "an unrecognized flag, an edict with an output number greater than the number "
@@ -3308,118 +3436,115 @@ msgid ""
 "edict."
 msgstr ""
 " 如果符石包含无法识别的偶数标签、无法识别的标志、输出编号大于输入数量的法令、"
-"区块为零且交易索引非零的符文ID、格式错误的varint、符石输出脚本公钥中的非数据推送指令、"
-"没有后续值的标签或不属于法令的尾随整数，则可能创建纪念碑。"
+"区块为零且交易索引非零的符文ID、格式错误的varint、符石输出脚本公钥中的非数据"
+"推送指令、没有后续值的标签或不属于法令的尾随整数，则可能创建纪念碑。"
 
-#: src/runes/specification.md:388
+#: src/runes/specification.md:396
 msgid "Executing the Runestone"
 msgstr "执行符石"
 
-#: src/runes/specification.md:390
+#: src/runes/specification.md:398
 msgid ""
 "Runestones are executed in the order their transactions are included in "
 "blocks."
-msgstr ""
-" 符石按照其交易被包含在区块中的顺序执行。"
+msgstr " 符石按照其交易被包含在区块中的顺序执行。"
 
-#: src/runes/specification.md:392
+#: src/runes/specification.md:400
 msgid "Etchings"
 msgstr "蚀刻"
 
-#: src/runes/specification.md:394
+#: src/runes/specification.md:402
 msgid "A runestone may contain an etching:"
 msgstr " 符石可能包含蚀刻： "
 
-#: src/runes/specification.md:407
+#: src/runes/specification.md:415
 msgid ""
 "`rune` is the name of the rune to be etched, encoded as modified base-26 "
 "integer."
-msgstr ""
-" `rune`是要蚀刻的符文的名称，编码为修改后的26进制整数。"
+msgstr " `rune`是要蚀刻的符文的名称，编码为修改后的26进制整数。"
 
-#: src/runes/specification.md:410
+#: src/runes/specification.md:418
 msgid ""
 "Rune names consist of the letters A through Z, with the following encoding:"
-msgstr ""
-"符文名称由字母A至Z组成，编码如下："
+msgstr "符文名称由字母A至Z组成，编码如下："
 
-#: src/runes/specification.md:412
+#: src/runes/specification.md:420
 msgid "Encoding"
 msgstr "编码"
 
-#: src/runes/specification.md:414
+#: src/runes/specification.md:422
 msgid "A"
 msgstr ""
 
-#: src/runes/specification.md:415
+#: src/runes/specification.md:423
 msgid "B"
 msgstr ""
 
-#: src/runes/specification.md:416 src/runes/specification.md:421
+#: src/runes/specification.md:424 src/runes/specification.md:429
 msgid "…"
 msgstr ""
 
-#: src/runes/specification.md:417
+#: src/runes/specification.md:425
 msgid "Y"
 msgstr ""
 
-#: src/runes/specification.md:417
+#: src/runes/specification.md:425
 msgid "24"
 msgstr ""
 
-#: src/runes/specification.md:418
+#: src/runes/specification.md:426
 msgid "Z"
 msgstr ""
 
-#: src/runes/specification.md:419
+#: src/runes/specification.md:427
 msgid "AA"
 msgstr ""
 
-#: src/runes/specification.md:419
+#: src/runes/specification.md:427
 msgid "26"
 msgstr ""
 
-#: src/runes/specification.md:420
+#: src/runes/specification.md:428
 msgid "AB"
 msgstr ""
 
-#: src/runes/specification.md:420
+#: src/runes/specification.md:428
 msgid "27"
 msgstr ""
 
-#: src/runes/specification.md:422
+#: src/runes/specification.md:430
 msgid "AY"
 msgstr ""
 
-#: src/runes/specification.md:423
+#: src/runes/specification.md:431
 msgid "AZ"
 msgstr ""
 
-#: src/runes/specification.md:423
+#: src/runes/specification.md:431
 msgid "51"
 msgstr ""
 
-#: src/runes/specification.md:424
+#: src/runes/specification.md:432
 msgid "BA"
 msgstr ""
 
-#: src/runes/specification.md:424
+#: src/runes/specification.md:432
 msgid "52"
 msgstr ""
 
-#: src/runes/specification.md:426
+#: src/runes/specification.md:434
 msgid "And so on and so on."
 msgstr "依此类推。"
 
-#: src/runes/specification.md:428
+#: src/runes/specification.md:436
 msgid "Rune names `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and above are reserved."
 msgstr " 符文名称`AAAAAAAAAAAAAAAAAAAAAAAAAAA`及以上被保留。"
 
-#: src/runes/specification.md:430
+#: src/runes/specification.md:438
 msgid "If `rune` is omitted a reserved rune name is allocated as follows:"
 msgstr "如果省略`rune`，则按以下方式分配保留的符文名称： "
 
-#: src/runes/specification.md:432
+#: src/runes/specification.md:440
 msgid ""
 "```rust\n"
 "fn reserve(block: u64, tx: u32) -> Rune {\n"
@@ -3431,7 +3556,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/runes/specification.md:441
+#: src/runes/specification.md:449
 msgid ""
 "`6402364363415443603228541259936211926` corresponds to the rune name "
 "`AAAAAAAAAAAAAAAAAAAAAAAAAAA`."
@@ -3439,28 +3564,26 @@ msgstr ""
 "`6402364363415443603228541259936211926` 对应于符文名称 "
 "`AAAAAAAAAAAAAAAAAAAAAAAAAAA`."
 
-#: src/runes/specification.md:444
+#: src/runes/specification.md:452
 msgid ""
 "If `rune` is present, it must be unlocked as of the block in which the "
 "etching appears."
-msgstr ""
-" 如果存在 `rune`，则它必须在蚀刻出现的区块中解锁。"
+msgstr " 如果存在 `rune`，则它必须在蚀刻出现的区块中解锁。"
 
-#: src/runes/specification.md:447
+#: src/runes/specification.md:455
 msgid ""
 "Initially, all rune names of length thirteen and longer, up until the first "
 "reserved rune name, are unlocked."
 msgstr ""
 " 最初，所有长度为十三及以上的符文名称，直到第一个保留的符文名称，都被解锁。"
 
-#: src/runes/specification.md:450
+#: src/runes/specification.md:458
 msgid ""
 "Runes begin unlocking in block 840,000, the block in which the runes "
 "protocol activates."
-msgstr ""
-" 符文从840,000区块开始解锁，即符文协议激活的区块。"
+msgstr " 符文从840,000区块开始解锁，即符文协议激活的区块。"
 
-#: src/runes/specification.md:453
+#: src/runes/specification.md:461
 msgid ""
 "Thereafter, every 17,500 block period, the next shortest length of rune "
 "names is continuously unlocked. So, between block 840,000 and block 857,500, "
@@ -3470,106 +3593,106 @@ msgid ""
 "and block 1,050,000. See the `ord` codebase for the precise unlocking "
 "schedule."
 msgstr ""
-"此后，每个17,500区块周期，连续解锁下一个最短长度的符文名称。"
-"因此，在840,000到857,500区块之间，解锁十二字符的符文名称，"
-"在857,500到875,000区块之间，解锁十一字符的符文名称，"
-"依此类推，直到在1,032,500到1,050,000区块之间解锁一个字符的符文名称。具体的解锁时间表请参见ord代码库。"
+"此后，每个17,500区块周期，连续解锁下一个最短长度的符文名称。因此，在840,000到"
+"857,500区块之间，解锁十二字符的符文名称，在857,500到875,000区块之间，解锁十一"
+"字符的符文名称，依此类推，直到在1,032,500到1,050,000区块之间解锁一个字符的符"
+"文名称。具体的解锁时间表请参见ord代码库。"
 
-#: src/runes/specification.md:460
+#: src/runes/specification.md:468
 msgid ""
 "To prevent front running an etching that has been broadcast but not mined, "
 "if a non-reserved rune name is being etched, the etching transaction must "
 "contain a valid commitment to the name being etched."
 msgstr ""
-" 为了防止对已广播但未挖掘的蚀刻进行前置操作，如果正在蚀刻非保留的符文名称，"
-"则蚀刻交易必须包含对正在蚀刻的名称的有效承诺。"
+" 为了防止对已广播但未挖掘的蚀刻进行前置操作，如果正在蚀刻非保留的符文名称，则"
+"蚀刻交易必须包含对正在蚀刻的名称的有效承诺。"
 
-#: src/runes/specification.md:464
+#: src/runes/specification.md:472
 msgid ""
 "A commitment consists of a data push of the rune name, encoded as a little-"
 "endian integer with trailing zero bytes elided, present in an input witness "
 "tapscript where the output being spent has at least six confirmations."
 msgstr ""
-"承诺 `commitment` 包括在输入见证 `tapscript` 中推送的符文名称数据，编码为省略尾随零字节的小端整数，其中被花费的输出至少有六次确认。"
+"承诺 `commitment` 包括在输入见证 `tapscript` 中推送的符文名称数据，编码为省略"
+"尾随零字节的小端整数，其中被花费的输出至少有六次确认。"
 
-#: src/runes/specification.md:468
+#: src/runes/specification.md:476
 msgid "If a valid commitment is not present, the etching is ignored."
 msgstr " 如果没有有效的承诺 `commitment`，蚀刻将被忽略。"
 
-#: src/runes/specification.md:472
+#: src/runes/specification.md:480
 msgid ""
 "A runestone may mint a rune by including the rune's ID in the `Mint` field."
-msgstr ""
-" 符石可以通过在铸币`Mint`字段中包含符文的ID来铸造符文。"
+msgstr " 符石可以通过在铸币`Mint`字段中包含符文的ID来铸造符文。"
 
-#: src/runes/specification.md:474
+#: src/runes/specification.md:482
 msgid ""
 "If the mint is open, the mint amount is added to the unallocated runes in "
 "the transaction's inputs. These runes may be transferred using edicts, and "
 "will otherwise be transferred to the first non-`OP_RETURN` output, or the "
 "output designated by the `Pointer` field."
 msgstr ""
-"如果铸币是开放的，铸币金额将添加到交易输入中的未分配符文中。这些符文可以使用法令转移，"
-"并且否则将转移到第一个非`OP_RETURN`输出，或由指针Pointer`字段指定的输出。"
+"如果铸币是开放的，铸币金额将添加到交易输入中的未分配符文中。这些符文可以使用"
+"法令转移，并且否则将转移到第一个非`OP_RETURN`输出，或由指针Pointer`字段指定的"
+"输出。"
 
-#: src/runes/specification.md:479
+#: src/runes/specification.md:487
 msgid ""
 "Mints may be made in any transaction after an etching, including in the same "
 "block."
-msgstr ""
-" 铸币可以在蚀刻之后的任何交易中进行，包括在同一个区块中。"
+msgstr " 铸币可以在蚀刻之后的任何交易中进行，包括在同一个区块中。"
 
-#: src/runes/specification.md:494
+#: src/runes/specification.md:502
 msgid ""
 "A runestone may contain any number of edicts, which are processed in "
 "sequence."
-msgstr ""
-" 符石可以包含任意数量的法令edicts，这些法令edicts按顺序处理。"
+msgstr " 符石可以包含任意数量的法令edicts，这些法令edicts按顺序处理。"
 
-#: src/runes/specification.md:496
+#: src/runes/specification.md:504
 msgid ""
 "Before edicts are processed, input runes, as well as minted or premined "
 "runes, if any, are unallocated."
 msgstr ""
 " 在处理法令edicts之前，输入符文以及铸造或预铸的符文（如果有）是未分配的。"
 
-#: src/runes/specification.md:499
+#: src/runes/specification.md:507
 msgid ""
 "Each edict decrements the unallocated balance of rune `id` and increments "
 "the balance allocated to transaction outputs of rune `id`."
 msgstr ""
 "每个法令将rune `id`的未分配余额减少，并将rune `id`的余额增加到交易输出。"
 
-#: src/runes/specification.md:502
+#: src/runes/specification.md:510
 msgid ""
 "If an edict would allocate more runes than are currently unallocated, the "
 "`amount` is reduced to the number of currently unallocated runes. In other "
 "words, the edict allocates all remaining unallocated units of rune `id`."
 msgstr ""
-"如果法令edict将分配的符文数量超过当前未分配的符文，则数量将减少到当前未分配的符文`数量`。"
-"换句话说，法令edict分配了rune`id`的所有剩余未分配单位。"
+"如果法令edict将分配的符文数量超过当前未分配的符文，则数量将减少到当前未分配的"
+"符文`数量`。换句话说，法令edict分配了rune`id`的所有剩余未分配单位。"
 
-#: src/runes/specification.md:506
+#: src/runes/specification.md:514
 msgid ""
 "Because the ID of an etched rune is not known before it is included in a "
 "block, ID `0:0` is used to mean the rune being etched in this transaction, "
 "if any."
 msgstr ""
-" 因为在蚀刻被包含在区块之前不知道蚀刻的符文的ID，所以使用ID `0:0`表示此交易中正在蚀刻的符文（如果有）。"
+" 因为在蚀刻被包含在区块之前不知道蚀刻的符文的ID，所以使用ID `0:0`表示此交易中"
+"正在蚀刻的符文（如果有）。"
 
-#: src/runes/specification.md:509
+#: src/runes/specification.md:517
 msgid "An edict with `amount` zero allocates all remaining units of rune `id`."
-msgstr ""
-"金额`amount`为零的法令分配了rune `id`的所有剩余单位。"
+msgstr "金额`amount`为零的法令分配了rune `id`的所有剩余单位。"
 
-#: src/runes/specification.md:511
+#: src/runes/specification.md:519
 msgid ""
 "An edict with `output` equal to the number of transaction outputs allocates "
-"`amount` runes to each non-`OP_RETURN` output."
+"`amount` runes to each non-`OP_RETURN` output in order."
 msgstr ""
-"输出`output` 等于交易输出数量`amount` 的法令将金额符文分配给每个非`OP_RETURN`输出。"
+"输出`output` 等于交易输出数量`amount` 的法令将金额符文分配给每个非`OP_RETURN`"
+"输出。"
 
-#: src/runes/specification.md:514
+#: src/runes/specification.md:522
 msgid ""
 "An edict with `amount` zero and `output` equal to the number of transaction "
 "outputs divides all unallocated units of rune `id` between each non-"
@@ -3579,24 +3702,25 @@ msgid ""
 "the balance of unallocated units of rune `id` by the number of non-"
 "`OP_RETURN` outputs."
 msgstr ""
-"金额`amount` 为零且输出等于交易输出`output` 数量的法令将所有未分配的rune `id`单位平均分配给每个非`OP_RETURN`输出。"
-"如果未分配的符文数量不能被非`OP_RETURN`输出的数量整除，则前`R`个非`OP_RETURN`输出将分配1个额外的符文，"
-"其中`R`是将未分配的rune `id`单位余额除以非`OP_RETURN`输出数量后的余数。"
+"金额`amount` 为零且输出等于交易输出`output` 数量的法令将所有未分配的rune `id`"
+"单位平均分配给每个非`OP_RETURN`输出。如果未分配的符文数量不能被非`OP_RETURN`"
+"输出的数量整除，则前`R`个非`OP_RETURN`输出将分配1个额外的符文，其中`R`是将未"
+"分配的rune `id`单位余额除以非`OP_RETURN`输出数量后的余数。"
 
-#: src/runes/specification.md:521
+#: src/runes/specification.md:529
 msgid ""
 "If any edict in a runestone has a rune ID with `block` zero and `tx` greater "
 "than zero, or `output` greater than the number of transaction outputs, the "
 "runestone is a cenotaph."
 msgstr ""
-"如果符石中的任何法令具有`区块`为零且`tx`大于零的符文ID，或`输出`大于交易输出数量，则符石是纪念碑。"
+"如果符石中的任何法令具有`区块`为零且`tx`大于零的符文ID，或`输出`大于交易输出"
+"数量，则符石是纪念碑。"
 
-#: src/runes/specification.md:525
+#: src/runes/specification.md:533
 msgid ""
 "Note that edicts in cenotaphs are not processed, and all input runes are "
 "burned."
-msgstr ""
-"注意，纪念碑中的法令不会被处理，所有输入符文都将被销毁。"
+msgstr "注意，纪念碑中的法令不会被处理，所有输入符文都将被销毁。"
 
 #: src/faq.md:1
 msgid "Ordinal Theory FAQ"
@@ -4806,31 +4930,31 @@ msgstr ""
 msgid "`/inscriptions/<FROM>/<N>`"
 msgstr ""
 
-#: src/guides/explorer.md:89 src/guides/explorer.md:90
+#: src/guides/explorer.md:89
 msgid "`/output/<OUTPOINT>`"
 msgstr ""
 
-#: src/guides/explorer.md:91
+#: src/guides/explorer.md:90
 msgid "`/sat/<SAT>`"
 msgstr ""
 
-#: src/guides/explorer.md:93
+#: src/guides/explorer.md:92
 msgid "To get a list of the latest 100 inscriptions you would do:"
 msgstr "你可以运行以下命令来得到最近的100个铭文的清单"
 
-#: src/guides/explorer.md:95
+#: src/guides/explorer.md:94
 msgid ""
 "```\n"
 "curl -s -H \"Accept: application/json\" 'http://0.0.0.0:80/inscriptions'\n"
 "```"
 msgstr ""
 
-#: src/guides/explorer.md:99
+#: src/guides/explorer.md:98
 msgid ""
 "To see information about a UTXO, which includes inscriptions inside it, do:"
 msgstr "要看到一个UTXO包含的铭文信息，运行:"
 
-#: src/guides/explorer.md:101
+#: src/guides/explorer.md:100
 msgid ""
 "```\n"
 "curl -s -H \"Accept: application/json\" 'http://0.0.0.0:80/output/"
@@ -4838,11 +4962,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/explorer.md:105
+#: src/guides/explorer.md:104
 msgid "Which returns:"
 msgstr "返回"
 
-#: src/guides/explorer.md:107
+#: src/guides/explorer.md:106
 msgid ""
 "```\n"
 "{\n"
@@ -4986,7 +5110,7 @@ msgid ""
 msgstr ""
 "配置你的Bitcoin Core阶段去维护一个交易索引，需要在`bitcoin.conf`里面添加:"
 
-#: src/guides/wallet.md:60 src/guides/sat-hunting.md:30
+#: src/guides/wallet.md:60 src/guides/sat-hunting.md:25
 msgid ""
 "```\n"
 "txindex=1\n"
@@ -5050,8 +5174,8 @@ msgid ""
 "`datadir` option because the cookie file will still be in the default "
 "location for `bitcoin-cli` and `ord` to find."
 msgstr ""
-"区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选"
-"项`blocksdir=<external_drive_path>`. 这比使用`datadir` 选项更简单， `bitcoin-"
+"区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项"
+"`blocksdir=<external_drive_path>`. 这比使用`datadir` 选项更简单， `bitcoin-"
 "cli` 和 `ord` 可以在默认的位置找到cookie文件"
 
 #: src/guides/wallet.md:98 src/guides/collecting/sparrow-wallet.md:173
@@ -5633,8 +5757,8 @@ msgid ""
 "the name of the rune. For example if you want to send 1000 of the EXAMPLE "
 "rune, you would use `1000:EXAMPLE`."
 msgstr ""
-"在 `RUNES_AMOUNT` 是要发送的符文数量，一个 `:` 字符，和符文的名字。"
-"例如，如果你想发送1000个EXAMPLE符文，你应该使用`1000:EXAMPLE`。"
+"在 `RUNES_AMOUNT` 是要发送的符文数量，一个 `:` 字符，和符文的名字。例如，如果"
+"你想发送1000个EXAMPLE符文，你应该使用`1000:EXAMPLE`。"
 
 #: src/guides/wallet.md:408
 msgid ""
@@ -5680,11 +5804,11 @@ msgstr "一旦交易确认，你可以使用以下命令确认收到"
 
 #: src/guides/batch-inscribing.md:4
 msgid ""
-"Multiple inscriptions can be created inscriptions at the same time using the "
-"[pointer field](./../inscriptions/pointer.md). This is especially helpful "
-"for collections, or other cases when multiple inscriptions should share the "
-"same parent, since the parent can passed into a reveal transaction that "
-"creates multiple children."
+"Multiple inscriptions can be created at the same time using the [pointer "
+"field](./../inscriptions/pointer.md). This is especially helpful for "
+"collections, or other cases when multiple inscriptions should share the same "
+"parent, since the parent can passed into a reveal transaction that creates "
+"multiple children."
 msgstr ""
 "可以使用[指针字段](./../inscriptions/pointer.md)来批量创建多个铭文. 这在创建"
 "需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多"
@@ -5757,6 +5881,15 @@ msgid ""
 "    offset:\n"
 "      start: 1000\n"
 "      end: 9000\n"
+"  # future runes protocol changes may be opt-in. this may be for a variety "
+"of\n"
+"  # reasons, including that they make light client validation harder, or "
+"simply\n"
+"  # because they are too degenerate.\n"
+"  #\n"
+"  # setting `turbo` to `true` opts in to these future protocol changes,\n"
+"  # whatever they may be.\n"
+"  turbo: true\n"
 "\n"
 "# inscriptions to inscribe\n"
 "inscriptions:\n"
@@ -6136,11 +6269,11 @@ msgstr ""
 "wallet` 参数来引用不同的钱包，例如："
 
 #: src/guides/collecting/sparrow-wallet.md:92
-msgid "`ord --wallet ord_from_sparrow wallet restore \"BIP39 SEED PHRASE\"`"
-msgstr ""
+msgid "`ord wallet --name ord_from_sparrow wallet restore --from mnemonic`"
+msgstr "`ord` 钱包可以从助记词恢复:"
 
 #: src/guides/collecting/sparrow-wallet.md:94
-msgid "`ord --wallet ord_from_sparrow wallet inscriptions`"
+msgid "`ord wallet --name ord_from_sparrow wallet inscriptions`"
 msgstr ""
 
 #: src/guides/collecting/sparrow-wallet.md:96
@@ -6687,169 +6820,180 @@ msgstr ""
 
 #: src/guides/sat-hunting.md:4
 msgid ""
-"_This guide is out of date. Since it was written, the `ord` binary was "
-"changed to only build the full satoshi index when the `--index-sats` flag is "
-"supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin "
-"Core wallet. See `ord wallet --help`._"
-msgstr ""
-"_本指南已过时。自编写以来，“ord”安装文件已更改仅当提供“--index-sats”标志时才"
-"构建完整的聪索引。此外，“ord”现在有一个内置钱包，其中包含比特币核心钱包。请参"
-"阅`ord wallet --help`。_"
-
-#: src/guides/sat-hunting.md:9
-msgid ""
 "Ordinal hunting is difficult but rewarding. The feeling of owning a wallet "
 "full of UTXOs, redolent with the scent of rare and exotic sats, is beyond "
 "compare."
 msgstr ""
+"寻找稀有序数是困难但有回报的。拥有一个钱包，里面装满了散发着稀有和奇特聪的香气的 UTXO，这种感觉无与伦比。"
 
-#: src/guides/sat-hunting.md:12
+#: src/guides/sat-hunting.md:7
 msgid ""
 "Ordinals are numbers for satoshis. Every satoshi has an ordinal number and "
 "every ordinal number has a satoshi."
 msgstr ""
+"序数是为聪（satoshi）编号的数字。每个聪都有一个序数，每个序数都对应一个聪。"
+"如果你想成为稀有聪的猎人，你应该认真阅读本章节的内容"
+
+#: src/guides/sat-hunting.md:10
+msgid "Preparation"
+msgstr "准备工作"
+
+#: src/guides/sat-hunting.md:13
+msgid "There are a few things you'll need before you start."
+msgstr "在开始之前，你应该需要做的一些事情"
 
 #: src/guides/sat-hunting.md:15
-msgid "Preparation"
-msgstr ""
-
-#: src/guides/sat-hunting.md:18
-msgid "There are a few things you'll need before you start."
-msgstr ""
-
-#: src/guides/sat-hunting.md:20
 msgid ""
 "First, you'll need a synced Bitcoin Core node with a transaction index. To "
 "turn on transaction indexing, pass `-txindex` on the command-line:"
 msgstr ""
+"首先，你需要一个已同步的带有交易索引的 Bitcoin Core 节点。"
+"要开启交易索引，在命令行里使用 `-txindex` :"
 
-#: src/guides/sat-hunting.md:23
+#: src/guides/sat-hunting.md:18
 msgid ""
 "```sh\n"
 "bitcoind -txindex\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:27
+#: src/guides/sat-hunting.md:22
 msgid ""
 "Or put the following in your [Bitcoin configuration file](https://github.com/"
 "bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):"
 msgstr ""
+"或者将以下内容放入你的 [比特币配置文件](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path)："
 
-#: src/guides/sat-hunting.md:34
+#: src/guides/sat-hunting.md:29
 msgid ""
 "Launch it and wait for it to catch up to the chain tip, at which point the "
 "following command should print out the current block height:"
 msgstr ""
+"启动它并等待其同步到链尖，此时以下命令应打印出当前的区块高度："
 
-#: src/guides/sat-hunting.md:37
+#: src/guides/sat-hunting.md:32
 msgid ""
 "```sh\n"
 "bitcoin-cli getblockcount\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:41
+#: src/guides/sat-hunting.md:36
 msgid "Second, you'll need a synced `ord` index."
 msgstr ""
+"其次，你需要一个已同步的 `ord` 索引。"
 
-#: src/guides/sat-hunting.md:43
+#: src/guides/sat-hunting.md:38
 msgid "Get a copy of `ord` from [the repo](https://github.com/ordinals/ord/)."
-msgstr ""
+msgstr "从 [ord 仓库](https://github.com/ordinals/ord/) 获取 `ord` 的副本。"
 
-#: src/guides/sat-hunting.md:45
+#: src/guides/sat-hunting.md:40
 msgid ""
-"Run `RUST_LOG=info ord index`. It should connect to your bitcoin core node "
+"Run `ord --index-sats server`. It should connect to your bitcoin core node "
 "and start indexing."
 msgstr ""
+"运行 `ord --index-sats server`。它应该会连接到你的比特币核心节点并开始索引。"
 
-#: src/guides/sat-hunting.md:48
-msgid "Wait for it to finish indexing."
+#: src/guides/sat-hunting.md:42
+msgid ""
+"Once it has finished indexing, leave the server running and submit new `ord` "
+"commands in a separate terminal session."
 msgstr ""
+"一旦索引完成，保持服务器运行，并在一个单独的终端会话中提交新的 `ord` 命令。"
 
-#: src/guides/sat-hunting.md:50
+#: src/guides/sat-hunting.md:44
 msgid "Third, you'll need a wallet with UTXOs that you want to search."
-msgstr ""
+msgstr "第三，你需要一个包含你想要搜索的 UTXO 的钱包。"
 
-#: src/guides/sat-hunting.md:52
+#: src/guides/sat-hunting.md:46
 msgid "Searching for Rare Ordinals"
-msgstr ""
+msgstr "搜索稀有的序数"
 
-#: src/guides/sat-hunting.md:55
+#: src/guides/sat-hunting.md:49
 msgid "Searching for Rare Ordinals in a Bitcoin Core Wallet"
-msgstr ""
+msgstr "在一个Bitcoin Core的钱包里搜索稀有的序数"
 
-#: src/guides/sat-hunting.md:57
+#: src/guides/sat-hunting.md:51
 msgid ""
 "The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
 "searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your "
 "wallet is named `foo`:"
 msgstr ""
+"命令 `ord wallet`  只是比特币核心 RPC API 的一个封装，"
+"所以在比特币核心钱包中搜索稀有序数很容易。假设你的钱包名为 `foo`："
 
-#: src/guides/sat-hunting.md:61
+#: src/guides/sat-hunting.md:55
 msgid "Load your wallet:"
-msgstr ""
+msgstr "加载你的钱包"
 
-#: src/guides/sat-hunting.md:63
+#: src/guides/sat-hunting.md:57
 msgid ""
 "```sh\n"
 "bitcoin-cli loadwallet foo\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:67
+#: src/guides/sat-hunting.md:61
 msgid "Display any rare ordinals wallet `foo`'s UTXOs:"
-msgstr ""
+msgstr "显示钱包 `foo` 的 UTXO 中的任何稀有序数："
 
-#: src/guides/sat-hunting.md:69
+#: src/guides/sat-hunting.md:63
 msgid ""
 "```sh\n"
 "ord --index-sats wallet --name foo sats\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:73
+#: src/guides/sat-hunting.md:67
 msgid "Searching for Rare Ordinals in a Non-Bitcoin Core Wallet"
-msgstr ""
+msgstr "在非Bitcoin Core钱包里搜索稀有的序数Ordinals"
 
-#: src/guides/sat-hunting.md:75
+#: src/guides/sat-hunting.md:69
 msgid ""
 "The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so "
 "to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to "
 "import your wallet's descriptors into Bitcoin Core."
 msgstr ""
+"命令 `ord wallet` 只是比特币核心 RPC API 的一个封装，所以要在非比特币核心钱包中搜索稀有序数，"
+"你需要将钱包的描述符导入到比特币核心中。"
 
-#: src/guides/sat-hunting.md:79
+#: src/guides/sat-hunting.md:73
 msgid ""
 "[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors."
 "md) describe the ways that wallets generate private keys and public keys."
 msgstr ""
+"[描述符](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors."
+"md) 描述了钱包生成私钥和公钥的方式。"
 
-#: src/guides/sat-hunting.md:82
+#: src/guides/sat-hunting.md:76
 msgid ""
 "You should only import descriptors into Bitcoin Core for your wallet's "
 "public keys, not its private keys."
 msgstr ""
+"你应该只将钱包公钥的描述符导入到比特币核心中，而不是私钥。"
 
-#: src/guides/sat-hunting.md:85
+#: src/guides/sat-hunting.md:79
 msgid ""
 "If your wallet's public key descriptor is compromised, an attacker will be "
 "able to see your wallet's addresses, but your funds will be safe."
 msgstr ""
+"如果你的钱包公钥描述符被泄露，攻击者将能够看到你的钱包地址，但你的资金将是安全的。"
 
-#: src/guides/sat-hunting.md:88
+#: src/guides/sat-hunting.md:82
 msgid ""
 "If your wallet's private key descriptor is compromised, an attacker can "
 "drain your wallet of funds."
 msgstr ""
+"如果你的钱包私钥描述符被泄露，攻击者可以耗尽你钱包中的资金。"
 
-#: src/guides/sat-hunting.md:91
+#: src/guides/sat-hunting.md:85
 msgid ""
 "Get the wallet descriptor from the wallet whose UTXOs you want to search for "
 "rare ordinals. It will look something like this:"
 msgstr ""
+"从你想要搜索稀有序数的 UTXO 所在的钱包中获取钱包描述符。它看起来会像这样："
 
-#: src/guides/sat-hunting.md:94
+#: src/guides/sat-hunting.md:88
 msgid ""
 "```\n"
 "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
@@ -6857,37 +7001,37 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:98
+#: src/guides/sat-hunting.md:92
 msgid "Create a watch-only wallet named `foo-watch-only`:"
-msgstr ""
+msgstr "创建一个名为 foo-watch-only 的仅观察钱包："
 
-#: src/guides/sat-hunting.md:100
+#: src/guides/sat-hunting.md:94
 msgid ""
 "```sh\n"
 "bitcoin-cli createwallet foo-watch-only true true\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:104
+#: src/guides/sat-hunting.md:98
 msgid "Feel free to give it a better name than `foo-watch-only`!"
-msgstr ""
+msgstr "你可以给它起一个比 foo-watch-only 更好的名字！"
 
-#: src/guides/sat-hunting.md:106
+#: src/guides/sat-hunting.md:100
 msgid "Load the `foo-watch-only` wallet:"
-msgstr ""
+msgstr "加载 `foo-watch-only` 钱包:"
 
-#: src/guides/sat-hunting.md:108 src/guides/sat-hunting.md:199
+#: src/guides/sat-hunting.md:102 src/guides/sat-hunting.md:193
 msgid ""
 "```sh\n"
 "bitcoin-cli loadwallet foo-watch-only\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:112
+#: src/guides/sat-hunting.md:106
 msgid "Import your wallet descriptors into `foo-watch-only`:"
-msgstr ""
+msgstr "将你的钱包描述符descriptors导入到 foo-watch-only 中："
 
-#: src/guides/sat-hunting.md:114
+#: src/guides/sat-hunting.md:108
 msgid ""
 "```sh\n"
 "bitcoin-cli importdescriptors \\\n"
@@ -6897,56 +7041,62 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:119
+#: src/guides/sat-hunting.md:113
 msgid ""
 "If you know the Unix timestamp when your wallet first started receive "
 "transactions, you may use it for the value of `\"timestamp\"` instead of "
 "`0`. This will reduce the time it takes for Bitcoin Core to search for your "
 "wallet's UTXOs."
 msgstr ""
+"如果你知道你的钱包首次开始接收交易的 Unix 时间戳，你可以使用它来替代 \"timestamp\" 的值 0。"
+"这将减少比特币核心搜索你钱包 UTXO 所需的时间。"
 
-#: src/guides/sat-hunting.md:124 src/guides/sat-hunting.md:225
+#: src/guides/sat-hunting.md:118 src/guides/sat-hunting.md:219
 msgid "Check that everything worked:"
-msgstr ""
+msgstr "检查一切是否正常"
 
-#: src/guides/sat-hunting.md:126 src/guides/sat-hunting.md:227
+#: src/guides/sat-hunting.md:120 src/guides/sat-hunting.md:221
 msgid ""
 "```sh\n"
 "bitcoin-cli getwalletinfo\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:130 src/guides/sat-hunting.md:231
+#: src/guides/sat-hunting.md:124 src/guides/sat-hunting.md:225
 msgid "Display your wallet's rare ordinals:"
-msgstr ""
+msgstr "显示你钱包里的稀有序数Ordinals"
 
-#: src/guides/sat-hunting.md:132 src/guides/sat-hunting.md:233
+#: src/guides/sat-hunting.md:126 src/guides/sat-hunting.md:227
 msgid ""
 "```sh\n"
 "ord wallet sats\n"
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:136
+#: src/guides/sat-hunting.md:130
 msgid ""
 "Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors"
 msgstr ""
+"在导出多路径描述符的钱包里搜索稀有的序数Ordinals"
 
-#: src/guides/sat-hunting.md:138
+#: src/guides/sat-hunting.md:132
 msgid ""
 "Some descriptors describe multiple paths in one descriptor using angle "
 "brackets, e.g., `<0;1>`. Multi-path descriptors are not yet supported by "
 "Bitcoin Core, so you'll first need to convert them into multiple "
 "descriptors, and then import those multiple descriptors into Bitcoin Core."
 msgstr ""
+"一些描述符使用尖括号（例如  `<0;1>`）在一个描述符中描述多个路径。"
+"比特币核心目前还不支持多路径描述符，所以你需要先将它们转换为多个描述符，然后将这些多个描述符导入到比特币核心中。"
 
-#: src/guides/sat-hunting.md:143
+#: src/guides/sat-hunting.md:137
 msgid ""
 "First get the multi-path descriptor from your wallet. It will look something "
 "like this:"
 msgstr ""
+"首先从你的钱包获取多路径描述符。它看起来会像这样："
 
-#: src/guides/sat-hunting.md:146
+#: src/guides/sat-hunting.md:140
 msgid ""
 "```\n"
 "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/"
@@ -6954,11 +7104,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:150
+#: src/guides/sat-hunting.md:144
 msgid "Create a descriptor for the receive address path:"
-msgstr ""
+msgstr "创建接收地址路径的描述符："
 
-#: src/guides/sat-hunting.md:152
+#: src/guides/sat-hunting.md:146
 msgid ""
 "```\n"
 "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/"
@@ -6966,11 +7116,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:156
+#: src/guides/sat-hunting.md:150
 msgid "And the change address path:"
-msgstr ""
+msgstr "以及找零地址路径的描述符："
 
-#: src/guides/sat-hunting.md:158
+#: src/guides/sat-hunting.md:152
 msgid ""
 "```\n"
 "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/"
@@ -6978,13 +7128,14 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:162
+#: src/guides/sat-hunting.md:156
 msgid ""
 "Get and note the checksum for the receive address descriptor, in this case "
 "`tpnxnxax`:"
 msgstr ""
+"获取并记下接收地址描述符的校验和，在这个例子中是 `tpnxnxax`："
 
-#: src/guides/sat-hunting.md:165
+#: src/guides/sat-hunting.md:159
 msgid ""
 "```sh\n"
 "bitcoin-cli getdescriptorinfo \\\n"
@@ -6993,7 +7144,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:170
+#: src/guides/sat-hunting.md:164
 msgid ""
 "```json\n"
 "{\n"
@@ -7008,11 +7159,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:180
+#: src/guides/sat-hunting.md:174
 msgid "And for the change address descriptor, in this case `64k8wnd7`:"
-msgstr ""
+msgstr "以及找零地址描述符的校验和，在这个例子中是 `64k8wnd7`7："
 
-#: src/guides/sat-hunting.md:182
+#: src/guides/sat-hunting.md:176
 msgid ""
 "```sh\n"
 "bitcoin-cli getdescriptorinfo \\\n"
@@ -7021,7 +7172,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:187
+#: src/guides/sat-hunting.md:181
 msgid ""
 "```json\n"
 "{\n"
@@ -7036,16 +7187,16 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:197
+#: src/guides/sat-hunting.md:191
 msgid "Load the wallet you want to import the descriptors into:"
-msgstr ""
+msgstr "加载你要导入描述符的钱包："
 
-#: src/guides/sat-hunting.md:203
+#: src/guides/sat-hunting.md:197
 msgid ""
 "Now import the descriptors, with the correct checksums, into Bitcoin Core."
-msgstr ""
+msgstr "现在将带有正确校验和的描述符导入到比特币核心中："
 
-#: src/guides/sat-hunting.md:205
+#: src/guides/sat-hunting.md:199
 msgid ""
 "```sh\n"
 "bitcoin-cli \\\n"
@@ -7067,35 +7218,53 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:220
+#: src/guides/sat-hunting.md:214
 msgid ""
 "If you know the Unix timestamp when your wallet first started receive "
 "transactions, you may use it for the value of the `\"timestamp\"` fields "
 "instead of `0`. This will reduce the time it takes for Bitcoin Core to "
 "search for your wallet's UTXOs."
 msgstr ""
+"如果你知道你的钱包首次开始接收交易的 Unix 时间戳，你可以使用它来替代 `\"timestamp\" `"
+"字段中的 `0`。这将减少比特币核心搜索你钱包 UTXO 所需的时间。"
 
-#: src/guides/sat-hunting.md:237
+#: src/guides/sat-hunting.md:231
 msgid "Exporting Descriptors"
-msgstr ""
+msgstr "输出描述符"
 
-#: src/guides/sat-hunting.md:241
+#: src/guides/sat-hunting.md:235
 msgid ""
 "Navigate to the `Settings` tab, then to `Script Policy`, and press the edit "
 "button to display the descriptor."
 msgstr ""
+"导航到 `设置 `标签，然后到 `脚本策略`，按下编辑按钮以显示描述符。"
 
-#: src/guides/sat-hunting.md:244
+#: src/guides/sat-hunting.md:238
 msgid "Transferring Ordinals"
+msgstr "转移Ordinals"
+
+#: src/guides/sat-hunting.md:240
+msgid ""
+"The `ord` wallet supports transferring specific satoshis by using the name "
+"of the satoshi. To send the satoshi `zonefruits`, do:"
+msgstr ""
+"`ord` 钱包支持通过使用 satoshi 的名称来转移特定的 satoshi。要发送名为 `zonefruits` 的 satoshi，可以执行以下操作："
+
+#: src/guides/sat-hunting.md:243
+msgid ""
+"```\n"
+"ord wallet send <RECEIVING_ADDRESS> zonefruits --fee-rate 21\n"
+"```"
 msgstr ""
 
-#: src/guides/sat-hunting.md:246
+#: src/guides/sat-hunting.md:247
 msgid ""
-"The `ord` wallet supports transferring specific satoshis. You can also use "
-"`bitcoin-cli` commands `createrawtransaction`, "
-"`signrawtransactionwithwallet`, and `sendrawtransaction`, how to do so is "
-"complex and outside the scope of this guide."
+"You can also use the `bitcoin-cli` commands `createrawtransaction`, "
+"`signrawtransactionwithwallet`, and `sendrawtransaction`, but this method "
+"can be complex and is outside the scope of this guide."
 msgstr ""
+"你也可以使用 `bitcoin-cli` 命令` createrawtransaction`、`signrawtransactionwithwallet` "
+"和 `sendrawtransaction`，但这种方法可能比较复杂，超出了本指南的范围。"
 
 #: src/guides/settings.md:4
 msgid ""
@@ -7189,6 +7358,7 @@ msgid ""
 "- 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0\n"
 "- 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0\n"
 "index: /var/lib/ord/index.redb\n"
+"index_addresses: true\n"
 "index_cache_size: 1000000000\n"
 "index_runes: true\n"
 "index_sats: true\n"
@@ -7202,27 +7372,27 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/settings.md:68
+#: src/guides/settings.md:69
 msgid "Hiding Inscription Content"
 msgstr "隐藏铭文内容"
 
-#: src/guides/settings.md:71
+#: src/guides/settings.md:72
 msgid ""
 "Inscription content can be selectively prevented from being served by `ord "
 "server`."
 msgstr "铭文内容可以被选择性地阻止由`ord server`提供服务。"
 
-#: src/guides/settings.md:74
+#: src/guides/settings.md:75
 msgid ""
 "Unlike other settings, this can only be configured with the configuration "
 "file or environment variables."
 msgstr "与其他设置不同，这只能通过配置文件或环境变量来配置。"
 
-#: src/guides/settings.md:77
+#: src/guides/settings.md:78
 msgid "To hide inscriptions with an environment variable:"
 msgstr "要在 ordinals.com 上隐藏铭文:"
 
-#: src/guides/settings.md:79
+#: src/guides/settings.md:80
 msgid ""
 "```\n"
 "export "
@@ -7231,11 +7401,11 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/settings.md:83
+#: src/guides/settings.md:84
 msgid "Or with the configuration file:"
 msgstr "或者使用配置文件"
 
-#: src/guides/settings.md:85
+#: src/guides/settings.md:86
 msgid ""
 "```yaml\n"
 "hidden:\n"
@@ -7295,7 +7465,7 @@ msgstr ""
 
 #: src/guides/teleburning.md:30
 msgid ""
-"Running the inscription ID of inscription zero is "
+"The inscription ID of inscription zero is "
 "`6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0`."
 msgstr ""
 "零号铭文的铭文ID是"
@@ -7475,104 +7645,106 @@ msgid "`--regtest` or `-r`"
 msgstr ""
 
 #: src/guides/testing.md:60
-msgid "Regtest doesn't require downloading the blockchain or indexing ord."
+msgid ""
+"Regtest doesn't require downloading the blockchain since you create your own "
+"private blockchain, so indexing `ord` is almost instantaneous."
 msgstr "Regtest不需要下载区块链或者建立ord索引"
 
-#: src/guides/testing.md:65
+#: src/guides/testing.md:66
 msgid "Run `bitcoind` in regtest with:"
 msgstr "在regtest里运行bitcoind，使用："
 
-#: src/guides/testing.md:67
+#: src/guides/testing.md:68
 msgid ""
 "```\n"
 "bitcoind -regtest -txindex\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:71
+#: src/guides/testing.md:72
 msgid "Run `ord server` in regtest with:"
 msgstr "在regtest里运行ord server，使用："
 
-#: src/guides/testing.md:73
+#: src/guides/testing.md:74
 msgid ""
 "```\n"
 "ord --regtest server\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:77
+#: src/guides/testing.md:78
 msgid "Create a wallet in regtest with:"
 msgstr "在regtest里创建钱包"
 
-#: src/guides/testing.md:79
+#: src/guides/testing.md:80
 msgid ""
 "```\n"
 "ord --regtest wallet create\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:83
+#: src/guides/testing.md:84
 msgid "Get a regtest receive address with:"
 msgstr "创建一个regtest接收地址"
 
-#: src/guides/testing.md:85
+#: src/guides/testing.md:86
 msgid ""
 "```\n"
 "ord --regtest wallet receive\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:89
+#: src/guides/testing.md:90
 msgid "Mine 101 blocks (to unlock the coinbase) with:"
 msgstr "挖取101个区块（解锁coinbase）使用："
 
-#: src/guides/testing.md:91
+#: src/guides/testing.md:92
 msgid ""
 "```\n"
 "bitcoin-cli -regtest generatetoaddress 101 <receive address>\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:95
+#: src/guides/testing.md:96
 msgid "Inscribe in regtest with:"
 msgstr "在regtest上铭刻"
 
-#: src/guides/testing.md:97
+#: src/guides/testing.md:98
 msgid ""
 "```\n"
 "ord --regtest wallet inscribe --fee-rate 1 --file <file>\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:101
+#: src/guides/testing.md:102
 msgid "Mine the inscription with:"
 msgstr "挖取铭文"
 
-#: src/guides/testing.md:103
+#: src/guides/testing.md:104
 msgid ""
 "```\n"
 "bitcoin-cli -regtest generatetoaddress 1 <receive address>\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:107
+#: src/guides/testing.md:108
 msgid ""
 "By default, browsers don't support compression over HTTP. To test compressed "
 "content over HTTP, use the `--decompress` flag:"
 msgstr ""
 
-#: src/guides/testing.md:110
+#: src/guides/testing.md:111
 msgid ""
 "```\n"
 "ord --regtest server --decompress\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:114
+#: src/guides/testing.md:115
 msgid "Testing Recursion"
 msgstr "测试递归"
 
-#: src/guides/testing.md:117
+#: src/guides/testing.md:118
 msgid ""
 "When testing out [recursion](../inscriptions/recursion.md), inscribe the "
 "dependencies first (example with [p5.js](https://p5js.org)):"
@@ -7580,20 +7752,20 @@ msgstr ""
 "测试 [recursion](../inscriptions/recursion.md) 时，首先记下依赖项（以 [p5.js]"
 "(https://p5js.org) 为例："
 
-#: src/guides/testing.md:120
+#: src/guides/testing.md:121
 msgid ""
 "```\n"
 "ord --regtest wallet inscribe --fee-rate 1 --file p5.js\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:124
+#: src/guides/testing.md:125
 msgid ""
 "This will return the inscription ID of the dependency which you can then "
 "reference in your inscription."
 msgstr "这应该返回一个`inscription_id`，然后您可以在递归铭文中引用它。"
 
-#: src/guides/testing.md:127
+#: src/guides/testing.md:128
 msgid ""
 "However, inscription IDs differ between mainnet and test chains, so you must "
 "change the inscription IDs in your inscription to the mainnet inscription "
@@ -7602,11 +7774,11 @@ msgstr ""
 "然而，铭文ID在主网和测试链之间是不同的，因此在在主网上进行最终铭文之前，你必"
 "须将你铭文中的铭文ID更改为你依赖项的主网铭文ID。"
 
-#: src/guides/testing.md:131
+#: src/guides/testing.md:132
 msgid "Then you can inscribe your recursive inscription with:"
 msgstr "现在你可以使用以下命令来铭刻你的递归铭文："
 
-#: src/guides/testing.md:133
+#: src/guides/testing.md:134
 msgid ""
 "```\n"
 "ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription."
@@ -7614,41 +7786,40 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/guides/testing.md:137
+#: src/guides/testing.md:138
 msgid "Finally you will have to mine some blocks and start the server:"
 msgstr "最终你可以挖取一些区块来开始服务器："
 
-#: src/guides/testing.md:139
+#: src/guides/testing.md:140
 msgid ""
 "```\n"
 "bitcoin-cli generatetoaddress 6 <receive address>\n"
 "```"
 msgstr ""
 
-#: src/guides/testing.md:143
+#: src/guides/testing.md:144
 msgid "Mainnet Dependencies"
 msgstr "主网依赖"
 
-#: src/guides/testing.md:145
+#: src/guides/testing.md:146
 msgid ""
 "To avoid having to change dependency inscription IDs to mainnet inscription "
 "IDs, you may utilize a content proxy when testing. `ord server` accepts a `--"
-"content-proxy` option, which takes the URL of a another `ord server` "
-"instance. When making a request to `/content/<INSCRIPTION_ID>` when a "
-"content proxy is set and the inscription is not found, `ord server` will "
-"forward the request to the content proxy. This allows you to run a test `ord "
-"server` instance with a mainnet content proxy. You can then use mainnet "
-"inscription IDs in your test inscription, which will then return the content "
-"of the mainnet inscriptions."
+"proxy` option, which takes the URL of a another `ord server` instance. When "
+"making a request to `/content/<INSCRIPTION_ID>` when a content proxy is set "
+"and the inscription is not found, `ord server` will forward the request to "
+"the content proxy. This allows you to run a test `ord server` instance with "
+"a mainnet content proxy. You can then use mainnet inscription IDs in your "
+"test inscription, which will then return the content of the mainnet "
+"inscriptions."
 msgstr ""
 "为了避免在测试时必须将依赖铭文ID更改为主网铭文ID，你可以在测试时使用内容代"
-"理。`ord server`接受一个`--proxy`选项，它需要另一个`ord server`实例的"
-"URL。当设置了内容代理并且铭文未找到时，向`/content/<INSCRIPTION_ID>`发出请"
-"求，`ord server`将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的"
-"测试`ord server`实例。然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文"
-"的内容。"
+"理。`ord server`接受一个`--proxy`选项，它需要另一个`ord server`实例的URL。当"
+"设置了内容代理并且铭文未找到时，向`/content/<INSCRIPTION_ID>`发出请求，`ord "
+"server`将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的测试`ord "
+"server`实例。然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文的内容。"
 
-#: src/guides/testing.md:155
+#: src/guides/testing.md:156
 msgid ""
 "```\n"
 "ord --regtest server --proxy https://ordinals.com\n"
@@ -7850,10 +8021,10 @@ msgid ""
 "sat 0, the first sat to be mined is `nvtdijuwxlp` and the name of sat "
 "2,099,999,997,689,999, the last sat to be mined, is `a`."
 msgstr ""
-"任务3有两个部分，都是基于 _序数名字_，序数名字是把序数数字用修改后的base-26进行"
-"的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的 _变长_，序数"
-"名字将变得 _更短_， 比如第一个开采的0号聪的名字是`nvtdijuwxlp`，而最后一个被开采"
-"的2,099,999,997,689,999号聪的名字，则是 `a`."
+"任务3有两个部分，都是基于 _序数名字_，序数名字是把序数数字用修改后的base-26进"
+"行的编码.为了避免将短名字锁定在不可花费的创世区块奖励中，随着序数的 _变长_，"
+"序数名字将变得 _更短_， 比如第一个开采的0号聪的名字是`nvtdijuwxlp`，而最后一"
+"个被开采的2,099,999,997,689,999号聪的名字，则是 `a`."
 
 #: src/bounty/3.md:14
 msgid ""
@@ -7982,6 +8153,16 @@ msgstr ""
 #: src/bounty/3.md:78
 msgid "Unclaimed!"
 msgstr "无人认领!"
+
+#~ msgid ""
+#~ "_This guide is out of date. Since it was written, the `ord` binary was "
+#~ "changed to only build the full satoshi index when the `--index-sats` flag "
+#~ "is supplied. Additionally, `ord` now has a built-in wallet that wraps a "
+#~ "Bitcoin Core wallet. See `ord wallet --help`._"
+#~ msgstr ""
+#~ "_本指南已过时。自编写以来，“ord”安装文件已更改仅当提供“--index-sats”标志时"
+#~ "才构建完整的聪索引。此外，“ord”现在有一个内置钱包，其中包含比特币核心钱"
+#~ "包。请参阅`ord wallet --help`。_"
 
 #~ msgid ""
 #~ "[Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www."
