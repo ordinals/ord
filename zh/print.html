@@ -463,7 +463,7 @@ OP_ENDIF
 </code></pre>
 <p>首先字符串<code>ord</code>被推送，以消除铭文与信封其他用途的歧义。</p>
 <p><code>OP_PUSH 1</code> 表示下一次推送包含内容类型， <code>OP_PUSH 0</code> 表示后续数据推送包含内容本身，大型铭文必须使用多次数据推送，因为 taproot 的少数限制之一是单个数据推送不得大于 520 字节。</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>铭文内容包含在reveal交易的输入中，并且铭文是铭刻在其第一个输出的第一个聪（Satoshi）上。我们可以使用熟悉的序数理论规则来跟踪这个聪 sat，允许它被转移、购买、出售、丢失和恢复。</p>
 <h2 id="内容"><a class="header" href="#内容">内容</a></h2>
 <p>铭文的数据模型是 HTTP 响应的数据模型，允许铭文由网络服务器提供服务并在网络浏览器中查看的内容。</p>
 <h2 id="字段"><a class="header" href="#字段">字段</a></h2>
@@ -502,13 +502,13 @@ OP_ENDIF
 <h2 id="沙盒化"><a class="header" href="#沙盒化">沙盒化</a></h2>
 <p>HTML 和 SVG 铭文被沙箱化，以防止引用链下内容，从而保持铭文的不可变性和独立性。</p>
 <p>这是通过在“iframes”中加载 HTML 和 SVG 铭文来完成的<code>sandbox</code> 属性，以及提供铭文内容Content-Security-Policy”标头。</p>
-<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
-<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
-<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<h2 id="自指"><a class="header" href="#自指">自指</a></h2>
+<p>ID为 <code>INSCRIPTION_ID</code> 的铭文内容必须从URL路径 <code>/content/&lt;INSCRIPTION_ID&gt;</code>取得.</p>
+<p>现在你可以使用以下命令来铭刻你的递归铭文：</p>
 <pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
 </code></pre>
-<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
-<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
+<p>如果ID为X的铭文委托给ID为Y的铭文，也就说如果铭文X包含一个Y的委托字段，那么铭文X的内容必须从URL路径<code>/content/X</code>, <em>而并非</em> <code>content/Y</code>。/</p>
+<p>这允许委托铭文使用自己的铭文 ID 作为生成委托内容的种子seed。</p>
 <h2 id="再刻铭文"><a class="header" href="#再刻铭文">再刻铭文</a></h2>
 <p>如果钱包中存在铭文，之前铭刻的sats可以使用<code>--reinscribe</code>命令重新铭刻。这只会在一个sat上附加一个铭文，而不会改变初始铭文。</p>
 <p>如果铭文存在于钱包中，之前铭刻的sats可以使用--reinscribe命令进行重新铭刻。这将只会在一个sat上追加一个铭文，而不会改变最初的铭文。</p>
@@ -707,12 +707,12 @@ OP_ENDIF
 <li><code>/blocktime</code>：最新块的 UNIX 时间戳。</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: 前100个子铭文的ID.</li>
 <li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: 100个子铭文ID的合集 on <code>&lt;PAGE&gt;</code>.</li>
-<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</code>: details of the first 100 child inscriptions.</li>
-<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</code>: details of the set of 100 child inscriptions on <code>&lt;PAGE&gt;</code>.</li>
-<li><code>/r/inscription/&lt;INSCRIPTION_ID&gt;</code>: information about an inscription</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: 前100个子铭文的ID.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: 100个子铭文ID的合集 on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/inscription/:inscription_id</code>: 关于一个铭文的信息</li>
 <li><code>/r/metadata/&lt;INSCRIPTION_ID&gt;</code>: 包含十六进制编码的 CBOR 元数据 的 JSON 字符串</li>
-<li><code>/r/parents/&lt;INSCRIPTION_ID&gt;</code>: the first 100 parent inscription ids.</li>
-<li><code>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: the set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;</code>: 前100个子铭文的ID.</li>
+<li><code>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</code>: 100个子铭文ID的合集 on <code>&lt;PAGE&gt;</code>.</li>
 <li><code>/r/sat/&lt;SAT_NUMBER&gt;</code>: 在一个Sats上的头100个铭文ID.</li>
 <li><code>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</code>: 在 <code>&lt;PAGE&gt;</code>上的100个铭文ID合集.</li>
 <li><code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</code>: 所有<code>&lt;INDEX&gt;</code> 处在一个聪上的铭文ID <code>&lt;INDEX&gt;</code>可能是从索引往后的负数比如<code>0</code> 是第一个而 <code>-1</code> 是最近的.</li>
@@ -889,11 +889,11 @@ OP_ENDIF
 <p>一笔交易最多可以有一个符石。</p>
 <p>符石可以刻画一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输出。</p>
 <p>一个交易输出可以持有任意数量的符文余额。</p>
-<p>Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th transaction of the 500th block is <code>500:20</code>.</p>
+<p>符文通过ID来识别，ID由刻画符文的区块和该区块内刻画交易的索引组成，以文本形式表示为<code>BLOCK:TX</code>。例如，在第500个区块的第20笔交易中铸造的符文的ID是<code>500:20</code>。</p>
 <h2 id="刻画"><a class="header" href="#刻画">刻画</a></h2>
 <p>符文通过刻画而产生。刻画创建一个符文并设置其属性。一旦设置，这些属性即使对其刻画者来说也是不可变的。</p>
 <h3 id="名字-1"><a class="header" href="#名字-1">名字</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-six letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
+<p>名称由A到Z的字母组成，长度在一到二十八个字符之间。例如<code>UNCOMMONGOODS</code>是一个符文名称。</p>
 <p>名称可以包含空格符，表示为点符号，以帮助提高可读性。<code>UNCOMMONGOODS</code> 可能被刻画为<code>UNCOMMON•GOODS</code>。</p>
 <p>名称的唯一性不依赖于空格符。因此，即使空格符不同，也不能用与现有符文相同的字母序列来刻画一个符文。</p>
 <p>Spacers can only be placed between two letters. Finally, spacers do not count towards the letter count.</p>
@@ -1260,7 +1260,7 @@ OP_ENDIF
 <p>如果法令edict将分配的符文数量超过当前未分配的符文，则数量将减少到当前未分配的符文<code>数量</code>。换句话说，法令edict分配了rune<code>id</code>的所有剩余未分配单位。</p>
 <p>因为在蚀刻被包含在区块之前不知道蚀刻的符文的ID，所以使用ID <code>0:0</code>表示此交易中正在蚀刻的符文（如果有）。</p>
 <p>金额<code>amount</code>为零的法令分配了rune <code>id</code>的所有剩余单位。</p>
-<p>An edict with <code>output</code> equal to the number of transaction outputs allocates <code>amount</code> runes to each non-<code>OP_RETURN</code> output in order.</p>
+<p>输出<code>output</code> 等于交易输出数量<code>amount</code> 的法令将金额符文分配给每个非<code>OP_RETURN</code>输出。</p>
 <p>金额<code>amount</code> 为零且输出等于交易输出<code>output</code> 数量的法令将所有未分配的rune <code>id</code>单位平均分配给每个非<code>OP_RETURN</code>输出。如果未分配的符文数量不能被非<code>OP_RETURN</code>输出的数量整除，则前<code>R</code>个非<code>OP_RETURN</code>输出将分配1个额外的符文，其中<code>R</code>是将未分配的rune <code>id</code>单位余额除以非<code>OP_RETURN</code>输出数量后的余数。</p>
 <p>如果符石中的任何法令具有<code>区块</code>为零且<code>tx</code>大于零的符文ID，或<code>输出</code>大于交易输出数量，则符石是纪念碑。</p>
 <p>注意，纪念碑中的法令不会被处理，所有输入符文都将被销毁。</p>
@@ -1671,7 +1671,7 @@ OP_ENDIF
 <pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="批量铸造"><a class="header" href="#批量铸造">批量铸造</a></h1>
-<p>Multiple inscriptions can be created at the same time using the <a href="guides/./../inscriptions/pointer.html">pointer field</a>. This is especially helpful for collections, or other cases when multiple inscriptions should share the same parent, since the parent can passed into a reveal transaction that creates multiple children.</p>
+<p>可以使用<a href="guides/./../inscriptions/pointer.html">指针字段</a>来批量创建多个铭文. 这在创建需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多个子铭文的揭示交易中。</p>
 <p>创建批量铭文，使用批处理文件<code>batch.yaml</code>, 运行</p>
 <pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>
@@ -1809,7 +1809,7 @@ inscriptions:
 <p>目前存在一个<a href="https://github.com/ordinals/ord/issues/1589">程序错误</a> 导致导入的钱包无法自动重新扫描区块链。为解决这个问题，你需要手动触发重新扫描，使用比特币核心命令行界面：</p>
 <p>然后，你可以使用<code>ord wallet inscriptions</code>检查你的钱包的铭文.</p>
 <p>注意，如果你之前已经用 <code>ord</code> 创建过一个钱包，那么你已经有一个默认名称的钱包，需要给你导入的钱包取一个不同的名称。你可以在所有的 <code>ord</code>命令中使用 <code>--wallet</code> 参数来引用不同的钱包，例如：</p>
-<p><code>ord wallet --name ord_from_sparrow wallet restore --from mnemonic</code></p>
+<p><code>ord</code> 钱包可以从助记词恢复:</p>
 <p><code>ord wallet --name ord_from_sparrow wallet inscriptions</code></p>
 <p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
 <h2 id="使用麻雀钱包发送铭文"><a class="header" href="#使用麻雀钱包发送铭文">使用麻雀钱包发送铭文</a></h2>
@@ -1907,114 +1907,114 @@ ord index update
 </code></pre>
 <p>您当然也可以自己设置数据目录的位置,<code>ord --datadir &lt;DIR&gt; index update</code> 或为其指定特定的文件名和路径,使用‘ord --index <FILENAME>索引运行’。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="猎聪"><a class="header" href="#猎聪">猎聪</a></h1>
-<p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.</p>
-<p>Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi.</p>
-<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
-<p>There are a few things you'll need before you start.</p>
+<p>寻找稀有序数是困难但有回报的。拥有一个钱包，里面装满了散发着稀有和奇特聪的香气的 UTXO，这种感觉无与伦比。</p>
+<p>序数是为聪（satoshi）编号的数字。每个聪都有一个序数，每个序数都对应一个聪。如果你想成为稀有聪的猎人，你应该认真阅读本章节的内容</p>
+<h2 id="准备工作"><a class="header" href="#准备工作">准备工作</a></h2>
+<p>在开始之前，你应该需要做的一些事情</p>
 <ol>
 <li>
-<p>First, you'll need a synced Bitcoin Core node with a transaction index. To turn on transaction indexing, pass <code>-txindex</code> on the command-line:</p>
+<p>首先，你需要一个已同步的带有交易索引的 Bitcoin Core 节点。要开启交易索引，在命令行里使用 <code>-txindex</code> :</p>
 <pre><code class="language-sh">bitcoind -txindex
 </code></pre>
-<p>Or put the following in your <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>:</p>
+<p>或者将以下内容放入你的 <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">比特币配置文件</a>：</p>
 <pre><code>txindex=1
 </code></pre>
-<p>Launch it and wait for it to catch up to the chain tip, at which point the following command should print out the current block height:</p>
+<p>启动它并等待其同步到链尖，此时以下命令应打印出当前的区块高度：</p>
 <pre><code class="language-sh">bitcoin-cli getblockcount
 </code></pre>
 </li>
 <li>
-<p>Second, you'll need a synced <code>ord</code> index.</p>
+<p>其次，你需要一个已同步的 <code>ord</code> 索引。</p>
 <ul>
 <li>
-<p>Get a copy of <code>ord</code> from <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
+<p>从 <a href="https://github.com/ordinals/ord/">ord 仓库</a> 获取 <code>ord</code> 的副本。</p>
 </li>
 <li>
-<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
+<p>运行 <code>ord --index-sats server</code>。它应该会连接到你的比特币核心节点并开始索引。</p>
 </li>
 <li>
-<p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
+<p>一旦索引完成，保持服务器运行，并在一个单独的终端会话中提交新的 <code>ord</code> 命令。</p>
 </li>
 </ul>
 </li>
 <li>
-<p>Third, you'll need a wallet with UTXOs that you want to search.</p>
+<p>第三，你需要一个包含你想要搜索的 UTXO 的钱包。</p>
 </li>
 </ol>
-<h2 id="searching-for-rare-ordinals"><a class="header" href="#searching-for-rare-ordinals">Searching for Rare Ordinals</a></h2>
-<h3 id="searching-for-rare-ordinals-in-a-bitcoin-core-wallet"><a class="header" href="#searching-for-rare-ordinals-in-a-bitcoin-core-wallet">Searching for Rare Ordinals in a Bitcoin Core Wallet</a></h3>
-<p>The <code>ord wallet</code> command is just a wrapper around Bitcoin Core's RPC API, so searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your wallet is named <code>foo</code>:</p>
+<h2 id="搜索稀有的序数"><a class="header" href="#搜索稀有的序数">搜索稀有的序数</a></h2>
+<h3 id="在一个bitcoin-core的钱包里搜索稀有的序数"><a class="header" href="#在一个bitcoin-core的钱包里搜索稀有的序数">在一个Bitcoin Core的钱包里搜索稀有的序数</a></h3>
+<p>命令 <code>ord wallet</code>  只是比特币核心 RPC API 的一个封装，所以在比特币核心钱包中搜索稀有序数很容易。假设你的钱包名为 <code>foo</code>：</p>
 <ol>
 <li>
-<p>Load your wallet:</p>
+<p>加载你的钱包</p>
 <pre><code class="language-sh">bitcoin-cli loadwallet foo
 </code></pre>
 </li>
 <li>
-<p>Display any rare ordinals wallet <code>foo</code>'s UTXOs:</p>
+<p>显示钱包 <code>foo</code> 的 UTXO 中的任何稀有序数：</p>
 <pre><code class="language-sh">ord --index-sats wallet --name foo sats
 </code></pre>
 </li>
 </ol>
-<h3 id="searching-for-rare-ordinals-in-a-non-bitcoin-core-wallet"><a class="header" href="#searching-for-rare-ordinals-in-a-non-bitcoin-core-wallet">Searching for Rare Ordinals in a Non-Bitcoin Core Wallet</a></h3>
-<p>The <code>ord wallet</code> command is just a wrapper around Bitcoin Core's RPC API, so to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to import your wallet's descriptors into Bitcoin Core.</p>
-<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">Descriptors</a> describe the ways that wallets generate private keys and public keys.</p>
-<p>You should only import descriptors into Bitcoin Core for your wallet's public keys, not its private keys.</p>
-<p>If your wallet's public key descriptor is compromised, an attacker will be able to see your wallet's addresses, but your funds will be safe.</p>
-<p>If your wallet's private key descriptor is compromised, an attacker can drain your wallet of funds.</p>
+<h3 id="在非bitcoin-core钱包里搜索稀有的序数ordinals"><a class="header" href="#在非bitcoin-core钱包里搜索稀有的序数ordinals">在非Bitcoin Core钱包里搜索稀有的序数Ordinals</a></h3>
+<p>命令 <code>ord wallet</code> 只是比特币核心 RPC API 的一个封装，所以要在非比特币核心钱包中搜索稀有序数，你需要将钱包的描述符导入到比特币核心中。</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">描述符</a> 描述了钱包生成私钥和公钥的方式。</p>
+<p>你应该只将钱包公钥的描述符导入到比特币核心中，而不是私钥。</p>
+<p>如果你的钱包公钥描述符被泄露，攻击者将能够看到你的钱包地址，但你的资金将是安全的。</p>
+<p>如果你的钱包私钥描述符被泄露，攻击者可以耗尽你钱包中的资金。</p>
 <ol>
 <li>
-<p>Get the wallet descriptor from the wallet whose UTXOs you want to search for rare ordinals. It will look something like this:</p>
+<p>从你想要搜索稀有序数的 UTXO 所在的钱包中获取钱包描述符。它看起来会像这样：</p>
 <pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
 </code></pre>
 </li>
 <li>
-<p>Create a watch-only wallet named <code>foo-watch-only</code>:</p>
+<p>创建一个名为 foo-watch-only 的仅观察钱包：</p>
 <pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
 </code></pre>
-<p>Feel free to give it a better name than <code>foo-watch-only</code>!</p>
+<p>你可以给它起一个比 foo-watch-only 更好的名字！</p>
 </li>
 <li>
-<p>Load the <code>foo-watch-only</code> wallet:</p>
+<p>加载 <code>foo-watch-only</code> 钱包:</p>
 <pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
 </code></pre>
 </li>
 <li>
-<p>Import your wallet descriptors into <code>foo-watch-only</code>:</p>
+<p>将你的钱包描述符descriptors导入到 foo-watch-only 中：</p>
 <pre><code class="language-sh">bitcoin-cli importdescriptors \
   '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
 </code></pre>
-<p>If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of <code>"timestamp"</code> instead of <code>0</code>. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs.</p>
+<p>如果你知道你的钱包首次开始接收交易的 Unix 时间戳，你可以使用它来替代 "timestamp" 的值 0。这将减少比特币核心搜索你钱包 UTXO 所需的时间。</p>
 </li>
 <li>
-<p>Check that everything worked:</p>
+<p>检查一切是否正常</p>
 <pre><code class="language-sh">bitcoin-cli getwalletinfo
 </code></pre>
 </li>
 <li>
-<p>Display your wallet's rare ordinals:</p>
+<p>显示你钱包里的稀有序数Ordinals</p>
 <pre><code class="language-sh">ord wallet sats
 </code></pre>
 </li>
 </ol>
-<h3 id="searching-for-rare-ordinals-in-a-wallet-that-exports-multi-path-descriptors"><a class="header" href="#searching-for-rare-ordinals-in-a-wallet-that-exports-multi-path-descriptors">Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors</a></h3>
-<p>Some descriptors describe multiple paths in one descriptor using angle brackets, e.g., <code>&lt;0;1&gt;</code>. Multi-path descriptors are not yet supported by Bitcoin Core, so you'll first need to convert them into multiple descriptors, and then import those multiple descriptors into Bitcoin Core.</p>
+<h3 id="在导出多路径描述符的钱包里搜索稀有的序数ordinals"><a class="header" href="#在导出多路径描述符的钱包里搜索稀有的序数ordinals">在导出多路径描述符的钱包里搜索稀有的序数Ordinals</a></h3>
+<p>一些描述符使用尖括号（例如  <code>&lt;0;1&gt;</code>）在一个描述符中描述多个路径。比特币核心目前还不支持多路径描述符，所以你需要先将它们转换为多个描述符，然后将这些多个描述符导入到比特币核心中。</p>
 <ol>
 <li>
-<p>First get the multi-path descriptor from your wallet. It will look something like this:</p>
+<p>首先从你的钱包获取多路径描述符。它看起来会像这样：</p>
 <pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
 </code></pre>
 </li>
 <li>
-<p>Create a descriptor for the receive address path:</p>
+<p>创建接收地址路径的描述符：</p>
 <pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
 </code></pre>
-<p>And the change address path:</p>
+<p>以及找零地址路径的描述符：</p>
 <pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
 </code></pre>
 </li>
 <li>
-<p>Get and note the checksum for the receive address descriptor, in this case <code>tpnxnxax</code>:</p>
+<p>获取并记下接收地址描述符的校验和，在这个例子中是 <code>tpnxnxax</code>：</p>
 <pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
 </code></pre>
@@ -2026,7 +2026,7 @@ ord index update
   "hasprivatekeys": false
 }
 </code></pre>
-<p>And for the change address descriptor, in this case <code>64k8wnd7</code>:</p>
+<p>以及找零地址描述符的校验和，在这个例子中是 <code>64k8wnd7</code>7：</p>
 <pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
   'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
 </code></pre>
@@ -2040,12 +2040,12 @@ ord index update
 </code></pre>
 </li>
 <li>
-<p>Load the wallet you want to import the descriptors into:</p>
+<p>加载你要导入描述符的钱包：</p>
 <pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
 </code></pre>
 </li>
 <li>
-<p>Now import the descriptors, with the correct checksums, into Bitcoin Core.</p>
+<p>现在将带有正确校验和的描述符导入到比特币核心中：</p>
 <pre><code class="language-sh">bitcoin-cli \
  importdescriptors \
  '[
@@ -2059,27 +2059,27 @@ ord index update
    }
  ]'
 </code></pre>
-<p>If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of the <code>"timestamp"</code> fields instead of <code>0</code>. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs.</p>
+<p>如果你知道你的钱包首次开始接收交易的 Unix 时间戳，你可以使用它来替代 <code>"timestamp" </code>字段中的 <code>0</code>。这将减少比特币核心搜索你钱包 UTXO 所需的时间。</p>
 </li>
 <li>
-<p>Check that everything worked:</p>
+<p>检查一切是否正常</p>
 <pre><code class="language-sh">bitcoin-cli getwalletinfo
 </code></pre>
 </li>
 <li>
-<p>Display your wallet's rare ordinals:</p>
+<p>显示你钱包里的稀有序数Ordinals</p>
 <pre><code class="language-sh">ord wallet sats
 </code></pre>
 </li>
 </ol>
-<h3 id="exporting-descriptors"><a class="header" href="#exporting-descriptors">Exporting Descriptors</a></h3>
+<h3 id="输出描述符"><a class="header" href="#输出描述符">输出描述符</a></h3>
 <h4 id="麻雀钱包"><a class="header" href="#麻雀钱包">麻雀钱包</a></h4>
-<p>Navigate to the <code>Settings</code> tab, then to <code>Script Policy</code>, and press the edit button to display the descriptor.</p>
-<h3 id="transferring-ordinals"><a class="header" href="#transferring-ordinals">Transferring Ordinals</a></h3>
-<p>The <code>ord</code> wallet supports transferring specific satoshis by using the name of the satoshi. To send the satoshi <code>zonefruits</code>, do:</p>
+<p>导航到 <code>设置 </code>标签，然后到 <code>脚本策略</code>，按下编辑按钮以显示描述符。</p>
+<h3 id="转移ordinals"><a class="header" href="#转移ordinals">转移Ordinals</a></h3>
+<p><code>ord</code> 钱包支持通过使用 satoshi 的名称来转移特定的 satoshi。要发送名为 <code>zonefruits</code> 的 satoshi，可以执行以下操作：</p>
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
-<p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>
+<p>你也可以使用 <code>bitcoin-cli</code> 命令<code> createrawtransaction</code>、<code>signrawtransactionwithwallet</code> 和 <code>sendrawtransaction</code>，但这种方法可能比较复杂，超出了本指南的范围。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="设置"><a class="header" href="#设置">设置</a></h1>
 <p><code>ord</code>可以通过命令行、环境变量、配置文件以及默认值进行配置。</p>
 <p>命令行的优先级高于环境变量，环境变量的优先级又高于配置文件，配置文件的优先级高于默认值。</p>
@@ -2141,7 +2141,7 @@ server_username: foo
 <p>以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这个哈希被序列化为36字节，其中前32字节包含交易ID， 最后四个字节包含大端序的铭文索引，并将其解释为一个Ethereum地址。</p>
 <h2 id="示例-5"><a class="header" href="#示例-5">示例</a></h2>
 <p>ENS 域名 <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, 被燃烧传输teleburned 到 <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
-<p>The inscription ID of inscription zero is <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
+<p>零号铭文的铭文ID是<code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>使用teleburn命令 <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code></p>
 <pre><code class="language-bash">$ ord teleburn 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -2179,7 +2179,7 @@ $ord outputs
 <tr><td>Regtest</td><td><code>--regtest</code> or <code>-r</code></td></tr>
 </tbody></table>
 </div>
-<p>Regtest doesn't require downloading the blockchain since you create your own private blockchain, so indexing <code>ord</code> is almost instantaneous.</p>
+<p>Regtest不需要下载区块链或者建立ord索引</p>
 <h2 id="示例-6"><a class="header" href="#示例-6">示例</a></h2>
 <p>在regtest里运行bitcoind，使用：</p>
 <pre><code>bitcoind -regtest -txindex
@@ -2218,7 +2218,7 @@ $ord outputs
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
 </code></pre>
 <h3 id="主网依赖"><a class="header" href="#主网依赖">主网依赖</a></h3>
-<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--proxy</code> option, which takes the URL of a another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
+<p>为了避免在测试时必须将依赖铭文ID更改为主网铭文ID，你可以在测试时使用内容代理。<code>ord server</code>接受一个<code>--proxy</code>选项，它需要另一个<code>ord server</code>实例的URL。当设置了内容代理并且铭文未找到时，向<code>/content/&lt;INSCRIPTION_ID&gt;</code>发出请求，<code>ord server</code>将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的测试<code>ord server</code>实例。然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文的内容。</p>
 <pre><code>ord --regtest server --proxy https://ordinals.com
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinals赏金计划提示"><a class="header" href="#ordinals赏金计划提示">Ordinals赏金计划提示</a></h1>

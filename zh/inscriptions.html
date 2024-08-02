@@ -268,7 +268,7 @@ OP_ENDIF
 </code></pre>
 <p>首先字符串<code>ord</code>被推送，以消除铭文与信封其他用途的歧义。</p>
 <p><code>OP_PUSH 1</code> 表示下一次推送包含内容类型， <code>OP_PUSH 0</code> 表示后续数据推送包含内容本身，大型铭文必须使用多次数据推送，因为 taproot 的少数限制之一是单个数据推送不得大于 520 字节。</p>
-<p>The inscription content is contained within the input of a reveal transaction, and the inscription is made on the first sat of its input if it has no pointer field. This sat can then be tracked using the familiar rules of ordinal theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.</p>
+<p>铭文内容包含在reveal交易的输入中，并且铭文是铭刻在其第一个输出的第一个聪（Satoshi）上。我们可以使用熟悉的序数理论规则来跟踪这个聪 sat，允许它被转移、购买、出售、丢失和恢复。</p>
 <h2 id="内容"><a class="header" href="#内容">内容</a></h2>
 <p>铭文的数据模型是 HTTP 响应的数据模型，允许铭文由网络服务器提供服务并在网络浏览器中查看的内容。</p>
 <h2 id="字段"><a class="header" href="#字段">字段</a></h2>
@@ -307,13 +307,13 @@ OP_ENDIF
 <h2 id="沙盒化"><a class="header" href="#沙盒化">沙盒化</a></h2>
 <p>HTML 和 SVG 铭文被沙箱化，以防止引用链下内容，从而保持铭文的不可变性和独立性。</p>
 <p>这是通过在“iframes”中加载 HTML 和 SVG 铭文来完成的<code>sandbox</code> 属性，以及提供铭文内容Content-Security-Policy”标头。</p>
-<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
-<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
-<p>This allows inscriptions to retrieve their own inscription ID with:</p>
+<h2 id="自指"><a class="header" href="#自指">自指</a></h2>
+<p>ID为 <code>INSCRIPTION_ID</code> 的铭文内容必须从URL路径 <code>/content/&lt;INSCRIPTION_ID&gt;</code>取得.</p>
+<p>现在你可以使用以下命令来铭刻你的递归铭文：</p>
 <pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
 </code></pre>
-<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
-<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
+<p>如果ID为X的铭文委托给ID为Y的铭文，也就说如果铭文X包含一个Y的委托字段，那么铭文X的内容必须从URL路径<code>/content/X</code>, <em>而并非</em> <code>content/Y</code>。/</p>
+<p>这允许委托铭文使用自己的铭文 ID 作为生成委托内容的种子seed。</p>
 <h2 id="再刻铭文"><a class="header" href="#再刻铭文">再刻铭文</a></h2>
 <p>如果钱包中存在铭文，之前铭刻的sats可以使用<code>--reinscribe</code>命令重新铭刻。这只会在一个sat上附加一个铭文，而不会改变初始铭文。</p>
 <p>如果铭文存在于钱包中，之前铭刻的sats可以使用--reinscribe命令进行重新铭刻。这将只会在一个sat上追加一个铭文，而不会改变最初的铭文。</p>

@@ -574,7 +574,7 @@
 <p>如果法令edict将分配的符文数量超过当前未分配的符文，则数量将减少到当前未分配的符文<code>数量</code>。换句话说，法令edict分配了rune<code>id</code>的所有剩余未分配单位。</p>
 <p>因为在蚀刻被包含在区块之前不知道蚀刻的符文的ID，所以使用ID <code>0:0</code>表示此交易中正在蚀刻的符文（如果有）。</p>
 <p>金额<code>amount</code>为零的法令分配了rune <code>id</code>的所有剩余单位。</p>
-<p>An edict with <code>output</code> equal to the number of transaction outputs allocates <code>amount</code> runes to each non-<code>OP_RETURN</code> output in order.</p>
+<p>输出<code>output</code> 等于交易输出数量<code>amount</code> 的法令将金额符文分配给每个非<code>OP_RETURN</code>输出。</p>
 <p>金额<code>amount</code> 为零且输出等于交易输出<code>output</code> 数量的法令将所有未分配的rune <code>id</code>单位平均分配给每个非<code>OP_RETURN</code>输出。如果未分配的符文数量不能被非<code>OP_RETURN</code>输出的数量整除，则前<code>R</code>个非<code>OP_RETURN</code>输出将分配1个额外的符文，其中<code>R</code>是将未分配的rune <code>id</code>单位余额除以非<code>OP_RETURN</code>输出数量后的余数。</p>
 <p>如果符石中的任何法令具有<code>区块</code>为零且<code>tx</code>大于零的符文ID，或<code>输出</code>大于交易输出数量，则符石是纪念碑。</p>
 <p>注意，纪念碑中的法令不会被处理，所有输入符文都将被销毁。</p>

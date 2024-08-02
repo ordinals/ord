@@ -258,11 +258,11 @@
 <p>一笔交易最多可以有一个符石。</p>
 <p>符石可以刻画一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输出。</p>
 <p>一个交易输出可以持有任意数量的符文余额。</p>
-<p>Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th transaction of the 500th block is <code>500:20</code>.</p>
+<p>符文通过ID来识别，ID由刻画符文的区块和该区块内刻画交易的索引组成，以文本形式表示为<code>BLOCK:TX</code>。例如，在第500个区块的第20笔交易中铸造的符文的ID是<code>500:20</code>。</p>
 <h2 id="刻画"><a class="header" href="#刻画">刻画</a></h2>
 <p>符文通过刻画而产生。刻画创建一个符文并设置其属性。一旦设置，这些属性即使对其刻画者来说也是不可变的。</p>
 <h3 id="名字"><a class="header" href="#名字">名字</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-six letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
+<p>名称由A到Z的字母组成，长度在一到二十八个字符之间。例如<code>UNCOMMONGOODS</code>是一个符文名称。</p>
 <p>名称可以包含空格符，表示为点符号，以帮助提高可读性。<code>UNCOMMONGOODS</code> 可能被刻画为<code>UNCOMMON•GOODS</code>。</p>
 <p>名称的唯一性不依赖于空格符。因此，即使空格符不同，也不能用与现有符文相同的字母序列来刻画一个符文。</p>
 <p>Spacers can only be placed between two letters. Finally, spacers do not count towards the letter count.</p>
