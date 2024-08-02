@@ -187,7 +187,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
       .ord(ord);
 
   for inscription in &batchfile.inscriptions {
-    builder = builder.write(&inscription.file.clone().unwrap(), "inscription");
+    builder = builder.write(inscription.file.clone().unwrap(), "inscription");
   }
 
   let mut spawn = builder.spawn();
