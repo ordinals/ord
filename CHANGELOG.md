@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.19.1](https://github.com/ordinals/ord/releases/tag/0.19.1) - 2024-07-18
+--------------------------------------------------------------------------
+
+### Changed
+- Commit twice to work around redb off-by-one bug ([#3856](https://github.com/ordinals/ord/pull/3856) by [casey](https://github.com/casey))
+
+### Misc
+- Change test-bitcoincore-rpc to mockcore in README.md ([#3842](https://github.com/ordinals/ord/pull/3842) by [TheHeBoy](https://github.com/TheHeBoy))
+
 [0.19.0](https://github.com/ordinals/ord/releases/tag/0.19.0) - 2024-07-09
 --------------------------------------------------------------------------
 
