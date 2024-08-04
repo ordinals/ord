@@ -321,8 +321,8 @@ transaction.
 
 The `Pointer` field contains the index of the output to which runes unallocated
 by edicts should be transferred. If the `Pointer` field is absent, unallocated
-runes are transferred to the first non-`OP_RETURN` output. 
-If the pointer is greater than the amount of outputs, runestone is a cenotaph.
+runes are transferred to the first non-`OP_RETURN` output. If the pointer is greater than the 
+number of outputs, the runestone is a cenotaph.
 
 ##### Cenotaph
 
