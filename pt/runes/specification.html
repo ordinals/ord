@@ -459,7 +459,7 @@
 <h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
 <p>O campo <code>Mint</code> contém o ID da rune a ser mintada nesta transação.</p>
 <h5 id="pointer"><a class="header" href="#pointer">Pointer</a></h5>
-<p>O campo <code>Pointer</code> contém o índice do output para a qual as runes não atribuídas pelos éditos devem ser transferidas. Se o campo Pointer (ponteiro) estiver ausente, as runes não atribuídas são transferidas para a primeira output que não seja <code>OP_RETURN</code>.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotáfio"><a class="header" href="#cenotáfio">Cenotáfio</a></h5>
 <p>O campo do <code>Cenotaph</code> não é reconhecido.</p>
 <h5 id="divisibilidade"><a class="header" href="#divisibilidade">Divisibilidade</a></h5>

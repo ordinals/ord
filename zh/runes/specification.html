@@ -459,7 +459,7 @@
 <h5 id="铸造"><a class="header" href="#铸造">铸造</a></h5>
 <p>铸造<code>Mint</code>字段包含此交易中将要铸造的符文的符文ID。</p>
 <h5 id="指针"><a class="header" href="#指针">指针</a></h5>
-<p>指针<code>Pointer</code>字段包含应将未分配的符文通过法令转移至的输出索引。如果缺少指针<code>Pointer</code>字段，则未分配的符文将转移到第一个非<code>OP_RETURN</code>输出。</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="纪念碑"><a class="header" href="#纪念碑">纪念碑</a></h5>
 <p>纪念碑<code>Cenotaph</code> 字段无法识别。</p>
 <h5 id="可分性"><a class="header" href="#可分性">可分性</a></h5>

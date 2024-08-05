@@ -459,7 +459,7 @@
 <h5 id="minteo"><a class="header" href="#minteo">Minteo</a></h5>
 <p>El campo <code>Mint</code> especifica el ID de la runa que se minteara en dicha transacción.</p>
 <h5 id="puntero"><a class="header" href="#puntero">Puntero</a></h5>
-<p>El campo <code>Pointer</code> indica el índice de la salida a la que deben transferirse las runas no asignadas por los edictos. Si el campo <code>Pointer</code> no está presente, las runas no asignadas se transfieren a la primera salida que no sea <code>OP_RETURN</code>.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotafio"><a class="header" href="#cenotafio">Cenotafio</a></h5>
 <p>El campo <code>Cenotaph</code> no es reconocido.</p>
 <h5 id="divisibilidad"><a class="header" href="#divisibilidad">Divisibilidad</a></h5>
