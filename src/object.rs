@@ -21,11 +21,9 @@ impl FromStr for Object {
     match Representation::from_str(s).context(SnafuError::UnrecognizedRepresentation {
       input: s.to_string(),
     })? {
-      Address => Ok(Self::Address(s.parse().context(
-        SnafuError::AddressParseError {
-          input: s.to_string(),
-        },
-      )?)),
+      Address => Ok(Self::Address(
+        s.parse().snafu_context(error::AddressParse { input: s })?,
+      )),
       Decimal | Degree | Percentile | Name => {
         Ok(Self::Sat(s.parse().context(SnafuError::SatParseError {
           input: s.to_string(),

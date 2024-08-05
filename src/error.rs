@@ -4,7 +4,10 @@ use super::*;
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
   #[snafu(display("Failed to parse address `{}`", input))]
-  AddressParseError { input: String },
+  AddressParse {
+    source: bitcoin::address::Error,
+    input: String,
+  },
   #[snafu(display("Failed to parse hash `{}`", input))]
   HashParseError { input: String },
   #[snafu(display("Failed to parse inscription ID `{}`", input))]
