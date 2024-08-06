@@ -735,7 +735,7 @@ mod tests {
   fn chunked_data_is_parsable() {
     let mut witness = Witness::new();
 
-    witness.push(&inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
+    witness.push(inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
 
     witness.push([]);
 

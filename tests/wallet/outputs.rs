@@ -19,6 +19,7 @@ fn outputs() {
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
+  assert!(output[0].sat_ranges.is_none());
 }
 
 #[test]
@@ -42,6 +43,7 @@ fn outputs_includes_locked_outputs() {
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
+  assert!(output[0].sat_ranges.is_none());
 }
 
 #[test]
@@ -65,6 +67,7 @@ fn outputs_includes_unbound_outputs() {
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
+  assert!(output[0].sat_ranges.is_none());
 }
 
 #[test]
@@ -86,5 +89,8 @@ fn outputs_includes_sat_ranges() {
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
-  assert_eq!(output[0].sat_ranges, vec!["5000000000-5001000000"]);
+  assert_eq!(
+    output[0].sat_ranges,
+    Some(vec!["5000000000-5001000000".to_string()])
+  );
 }

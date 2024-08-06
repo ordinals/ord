@@ -78,7 +78,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "alpha".into()
+      "beta".into()
     } else {
       self.config.chain.to_string()
     }
@@ -144,7 +144,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
+      <a href=/ title=home>Ordinals<sup>beta</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -174,7 +174,7 @@ mod tests {
         index_sats: true,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
     );
   }
 
@@ -188,7 +188,7 @@ mod tests {
         index_sats: false,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 
