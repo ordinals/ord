@@ -247,7 +247,7 @@ Note that tags are grouped by parity, i.e., whether they are even or odd.
 Unrecognized odd tags are ignored. Unrecognized even tags produce a cenotaph.
 
 All unused tags are reserved for use by the protocol, may be assigned at any
-time, and must not be used.
+time, and should not be used.
 
 ##### Body
 
