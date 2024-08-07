@@ -148,45 +148,53 @@ impl RawEnvelope {
     input: usize,
     offset: usize,
     stutter: bool,
-) -> Result<(bool, Option<Self>)> {
+  ) -> Result<(bool, Option<Self>)> {
     if !Self::accept(instructions, Op(opcodes::all::OP_IF))? {
-        return Ok((instructions.peek() == Some(&Ok(PushBytes((&[]).into()))), None));
+      return Ok((
+        instructions.peek() == Some(&Ok(PushBytes((&[]).into()))),
+        None,
+      ));
     }
     if !Self::accept(instructions, PushBytes((&PROTOCOL_ID).into()))? {
-        return Ok((instructions.peek() == Some(&Ok(PushBytes((&[]).into()))), None));
+      return Ok((
+        instructions.peek() == Some(&Ok(PushBytes((&[]).into()))),
+        None,
+      ));
     }
 
     let mut pushnum = false;
     let mut payload = Vec::new();
 
     while let Some(instruction) = instructions.next().transpose()? {
-        match instruction {
-            Op(opcodes::all::OP_ENDIF) => {
-                return Ok((
-                    false,
-                    Some(Envelope {
-                        input: input.try_into().unwrap(),
-                        offset: offset.try_into().unwrap(),
-                        payload,
-                        pushnum,
-                        stutter,
-                    }),
-                ));
-            }
-            Op(op) if op.to_u8() >= opcodes::all::OP_PUSHNUM_NEG1.to_u8()
-                      && op.to_u8() <= opcodes::all::OP_PUSHNUM_16.to_u8() => {
-                pushnum = true;
-                let num = match op {
-                    opcodes::all::OP_PUSHNUM_NEG1 => 0x81,
-                    _ => op.to_u8() - opcodes::all::OP_PUSHNUM_1.to_u8() + 1,
-                };
-                payload.push(vec![num]);
-            }
-            PushBytes(push) => {
-                payload.push(push.as_bytes().to_vec());
-            }
-            _ => return Ok((false, None)),
+      match instruction {
+        Op(opcodes::all::OP_ENDIF) => {
+          return Ok((
+            false,
+            Some(Envelope {
+              input: input.try_into().unwrap(),
+              offset: offset.try_into().unwrap(),
+              payload,
+              pushnum,
+              stutter,
+            }),
+          ));
         }
+        Op(op)
+          if op.to_u8() >= opcodes::all::OP_PUSHNUM_NEG1.to_u8()
+            && op.to_u8() <= opcodes::all::OP_PUSHNUM_16.to_u8() =>
+        {
+          pushnum = true;
+          let num = match op {
+            opcodes::all::OP_PUSHNUM_NEG1 => 0x81,
+            _ => op.to_u8() - opcodes::all::OP_PUSHNUM_1.to_u8() + 1,
+          };
+          payload.push(vec![num]);
+        }
+        PushBytes(push) => {
+          payload.push(push.as_bytes().to_vec());
+        }
+        _ => return Ok((false, None)),
+      }
     }
 
     Ok((false, None))
