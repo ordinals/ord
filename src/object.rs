@@ -15,38 +15,43 @@ pub enum Object {
 impl FromStr for Object {
   type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     use Representation::*;
 
-    match Representation::from_str(s)
-      .snafu_context(error::UnrecognizedRepresentation { input: s })?
+    match Representation::from_str(input)
+      .snafu_context(error::UnrecognizedRepresentation { input })?
     {
       Address => Ok(Self::Address(
-        s.parse().snafu_context(error::AddressParse { input: s })?,
+        input.parse().snafu_context(error::AddressParse { input })?,
       )),
       Decimal | Degree | Percentile | Name => Ok(Self::Sat(
-        s.parse().snafu_context(error::SatParse { input: s })?,
+        input.parse().snafu_context(error::SatParse { input })?,
       )),
       Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(s)
-          .snafu_context(error::HashParse { input: s })?
+        bitcoin::hashes::sha256::Hash::from_str(input)
+          .snafu_context(error::HashParse { input })?
           .to_byte_array(),
       )),
       InscriptionId => Ok(Self::InscriptionId(
-        s.parse()
-          .snafu_context(error::InscriptionIdParse { input: s })?,
+        input
+          .parse()
+          .snafu_context(error::InscriptionIdParse { input })?,
       )),
       Integer => Ok(Self::Integer(
-        s.parse().snafu_context(error::IntegerParse { input: s })?,
+        input.parse().snafu_context(error::IntegerParse { input })?,
       )),
       OutPoint => Ok(Self::OutPoint(
-        s.parse().snafu_context(error::OutPointParse { input: s })?,
+        input
+          .parse()
+          .snafu_context(error::OutPointParse { input })?,
       )),
       Rune => Ok(Self::Rune(
-        s.parse().snafu_context(error::RuneParse { input: s })?,
+        input.parse().snafu_context(error::RuneParse { input })?,
       )),
       SatPoint => Ok(Self::SatPoint(
-        s.parse().snafu_context(error::SatPointParse { input: s })?,
+        input
+          .parse()
+          .snafu_context(error::SatPointParse { input })?,
       )),
     }
   }
