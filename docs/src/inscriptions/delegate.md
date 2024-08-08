@@ -37,4 +37,9 @@ OP_ENDIF
 Note that the value of tag `11` is decimal, not hex.
 
 The delegate field value uses the same encoding as the parent field. See
-[provenance](provenance.md) for more examples of inscription ID encodings;
+[provenance](provenance.md) for more examples of inscription ID encodings
+
+### On-chain Examples
+
+* The [Oscillations *](https://gamma.io/ordinals/collections/oscillations-mdv) collection utilizes delegation, provenance, recursion, sat-endpoint, and detects the kind of sat that each piece is inscribed on (sattribute-aware). Each piece is a delegate of [this inscription](https://ordinals.com/inscription/52b4ea10c2518c954c73594e403ccfb2d50044f5a3b09a224dfa3bf06dd1d499i0).
+* [This inscription](https://ordinals.com/inscription/23a8f17fff4a73e2932dfc76e46d14d4f8975da96f5d5ae9a45898422056071ai0) was inscribed as a delegate of [this inscription](https://ordinals.com/inscription/9ff39db4c51f831225d41efbd29a399f2b16c758970ec4ab95a1a17e8be59088i0) and is also the parent inscription of a rune.
