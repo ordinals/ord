@@ -5,6 +5,7 @@ use bitcoin::address::Error as AddressError;
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
   #[snafu(display("Failed to parse address `{}`", input))]
+<<<<<<< HEAD
   AddressParseError { input: String },
   #[snafu(display("Failed to parse hash `{}`", input))]
   HashParseError { input: String },
@@ -38,6 +39,49 @@ pub enum SnafuError {
   InvalidChain { chain: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
   AddressConversion { source: AddressError },
+=======
+  AddressParse {
+    source: bitcoin::address::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse hash `{}`", input))]
+  HashParse {
+    source: bitcoin::hashes::hex::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse inscription ID `{}`", input))]
+  InscriptionIdParse {
+    source: inscriptions::inscription_id::ParseError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse integer `{}`", input))]
+  IntegerParse {
+    source: std::num::ParseIntError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse out point `{}`", input))]
+  OutPointParse {
+    source: bitcoin::transaction::ParseOutPointError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse rune `{}`", input))]
+  RuneParse {
+    source: ordinals::spaced_rune::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat `{}`", input))]
+  SatParse {
+    source: ordinals::sat::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat point `{}`", input))]
+  SatPointParse {
+    source: ordinals::sat_point::Error,
+    input: String,
+  },
+  #[snafu(display("Unrecognized representation `{}`", input))]
+  UnrecognizedRepresentation { source: error::Error, input: String },
+>>>>>>> origin/master
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]

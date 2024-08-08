@@ -15,54 +15,44 @@ pub enum Object {
 impl FromStr for Object {
   type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     use Representation::*;
 
-    match Representation::from_str(s).context(SnafuError::UnrecognizedObject {
-      input: s.to_string(),
-    })? {
-      Address => Ok(Self::Address(s.parse().context(
-        SnafuError::AddressParseError {
-          input: s.to_string(),
-        },
-      )?)),
-      Decimal | Degree | Percentile | Name => {
-        Ok(Self::Sat(s.parse().context(SnafuError::SatParseError {
-          input: s.to_string(),
-        })?))
-      }
+    match Representation::from_str(input)
+      .snafu_context(error::UnrecognizedRepresentation { input })?
+    {
+      Address => Ok(Self::Address(
+        input.parse().snafu_context(error::AddressParse { input })?,
+      )),
+      Decimal | Degree | Percentile | Name => Ok(Self::Sat(
+        input.parse().snafu_context(error::SatParse { input })?,
+      )),
       Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(s)
-          .context(SnafuError::HashParseError {
-            input: s.to_string(),
-          })?
+        bitcoin::hashes::sha256::Hash::from_str(input)
+          .snafu_context(error::HashParse { input })?
           .to_byte_array(),
       )),
-      InscriptionId => Ok(Self::InscriptionId(s.parse().context(
-        SnafuError::InscriptionIdParseError {
-          input: s.to_string(),
-        },
-      )?)),
-      Integer => Ok(Self::Integer(s.parse().context(
-        SnafuError::IntegerParseError {
-          input: s.to_string(),
-        },
-      )?)),
-      OutPoint => Ok(Self::OutPoint(s.parse().context(
-        SnafuError::OutPointParseError {
-          input: s.to_string(),
-        },
-      )?)),
-      Rune => Ok(Self::Rune(s.parse().context(
-        SnafuError::RuneParseError {
-          input: s.to_string(),
-        },
-      )?)),
-      SatPoint => Ok(Self::SatPoint(s.parse().context(
-        SnafuError::SatPointParseError {
-          input: s.to_string(),
-        },
-      )?)),
+      InscriptionId => Ok(Self::InscriptionId(
+        input
+          .parse()
+          .snafu_context(error::InscriptionIdParse { input })?,
+      )),
+      Integer => Ok(Self::Integer(
+        input.parse().snafu_context(error::IntegerParse { input })?,
+      )),
+      OutPoint => Ok(Self::OutPoint(
+        input
+          .parse()
+          .snafu_context(error::OutPointParse { input })?,
+      )),
+      Rune => Ok(Self::Rune(
+        input.parse().snafu_context(error::RuneParse { input })?,
+      )),
+      SatPoint => Ok(Self::SatPoint(
+        input
+          .parse()
+          .snafu_context(error::SatPointParse { input })?,
+      )),
     }
   }
 }
