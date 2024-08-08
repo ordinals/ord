@@ -5,41 +5,6 @@ use bitcoin::address::Error as AddressError;
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
   #[snafu(display("Failed to parse address `{}`", input))]
-<<<<<<< HEAD
-  AddressParseError { input: String },
-  #[snafu(display("Failed to parse hash `{}`", input))]
-  HashParseError { input: String },
-  #[snafu(display("Failed to parse inscription ID `{}`", input))]
-  InscriptionIdParseError { input: String },
-  #[snafu(display("Failed to parse integer `{}`", input))]
-  IntegerParseError { input: String },
-  #[snafu(display("Failed to parse out point `{}`", input))]
-  OutPointParseError { input: String },
-  #[snafu(display("Failed to parse rune `{}`", input))]
-  RuneParseError { input: String },
-  #[snafu(display("Failed to parse sat `{}`", input))]
-  SatParseError { input: String },
-  #[snafu(display("Failed to parse sat point `{}`", input))]
-  SatPointParseError { input: String },
-  #[snafu(display("Unrecognized object `{}`", input))]
-  UnrecognizedObject { input: String },
-  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
-  UnrecognizedAmount { input: String },
-  #[snafu(display("Unrecognized outgoing rune: `{}`", input))]
-  UnrecognizedRune { input: String },
-  #[snafu(display("Unrecognized outgoing sat: `{}`", input))]
-  UnrecognizedSat { input: String },
-  #[snafu(display("Unrecognized outgoing sat point: `{}`", input))]
-  UnrecognizedSatPoint { input: String },
-  #[snafu(display("Unrecognized outgoing inscription ID: `{}`", input))]
-  UnrecognizedInscriptionId { input: String },
-  #[snafu(display("Unrecognized outgoing: `{}`", input))]
-  UnrecognizedOutgoing { input: String },
-  #[snafu(display("Invalid chain `{}`", chain))]
-  InvalidChain { chain: String },
-  #[snafu(display("Failed to convert script to address: {}", source))]
-  AddressConversion { source: AddressError },
-=======
   AddressParse {
     source: bitcoin::address::Error,
     input: String,
@@ -81,7 +46,24 @@ pub enum SnafuError {
   },
   #[snafu(display("Unrecognized representation `{}`", input))]
   UnrecognizedRepresentation { source: error::Error, input: String },
->>>>>>> origin/master
+  #[snafu(display("Unrecognized object `{}`", input))]
+  UnrecognizedObject { input: String },
+  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
+  UnrecognizedAmount { input: String },
+  #[snafu(display("Unrecognized outgoing rune: `{}`", input))]
+  UnrecognizedRune { input: String },
+  #[snafu(display("Unrecognized outgoing sat: `{}`", input))]
+  UnrecognizedSat { input: String },
+  #[snafu(display("Unrecognized outgoing sat point: `{}`", input))]
+  UnrecognizedSatPoint { input: String },
+  #[snafu(display("Unrecognized outgoing inscription ID: `{}`", input))]
+  UnrecognizedInscriptionId { input: String },
+  #[snafu(display("Unrecognized outgoing: `{}`", input))]
+  UnrecognizedOutgoing { input: String },
+  #[snafu(display("Invalid chain `{}`", chain))]
+  InvalidChain { chain: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion { source: AddressError },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
