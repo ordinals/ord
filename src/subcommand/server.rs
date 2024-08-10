@@ -1067,6 +1067,16 @@ impl Server {
         )
       };
 
+      let address = output
+        .as_ref()
+        .and_then(|output| {
+          server_config
+            .chain
+            .address_from_script(&output.script_pubkey)
+            .ok()
+        })
+        .map(|address| address.to_string());
+
       Ok(
         Json(api::InscriptionRecursive {
           charms: Charm::charms(entry.charms),
@@ -1082,6 +1092,7 @@ impl Server {
           sat: entry.sat,
           satpoint,
           timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          address,
         })
         .into_response(),
       )
@@ -6777,6 +6788,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6806,6 +6818,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6828,6 +6841,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
   }
@@ -7013,6 +7027,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
     );
   }
@@ -7067,6 +7082,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -7111,6 +7127,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
     );
   }
