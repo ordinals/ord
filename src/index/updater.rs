@@ -473,6 +473,7 @@ impl<'index> Updater<'index> {
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,
       id_to_sequence_number: &mut inscription_id_to_sequence_number,
+      index_addresses: self.index.index_addresses,
       index_transactions: self.index.index_transactions,
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
