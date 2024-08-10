@@ -76,7 +76,7 @@ impl<'index> Updater<'index> {
     let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
 
     let (mut output_sender, mut txout_receiver, mut address_txout_receiver) =
-      Self::spawn_fetcher(&self.index.settings)?;
+      Self::spawn_fetcher(&self.index)?;
 
     let mut uncommitted = 0;
     let mut utxo_cache = HashMap::new();
@@ -240,13 +240,13 @@ impl<'index> Updater<'index> {
   }
 
   fn spawn_fetcher(
-    settings: &Settings,
+    index: &Index,
   ) -> Result<(
     mpsc::Sender<OutPoint>,
     broadcast::Receiver<TxOut>,
     Option<broadcast::Receiver<TxOut>>,
   )> {
-    let fetcher = Fetcher::new(settings)?;
+    let fetcher = Fetcher::new(&index.settings)?;
 
     // A block probably has no more than 20k inputs
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
@@ -258,7 +258,7 @@ impl<'index> Updater<'index> {
 
     let (txout_sender, txout_receiver) = broadcast::channel::<TxOut>(CHANNEL_BUFFER_SIZE);
 
-    let address_txout_receiver = if settings.index_addresses() {
+    let address_txout_receiver = if index.index_addresses {
       Some(txout_sender.subscribe())
     } else {
       None
@@ -267,7 +267,7 @@ impl<'index> Updater<'index> {
     // Default rpcworkqueue in bitcoind is 16, meaning more than 16 concurrent requests will be rejected.
     // Since we are already requesting blocks on a separate thread, and we don't want to break if anything
     // else runs a request, we keep this to 12.
-    let parallel_requests: usize = settings.bitcoin_rpc_limit().try_into().unwrap();
+    let parallel_requests: usize = index.settings.bitcoin_rpc_limit().try_into().unwrap();
 
     thread::spawn(move || {
       let rt = tokio::runtime::Builder::new_multi_thread()
@@ -348,8 +348,8 @@ impl<'index> Updater<'index> {
 
     let mut outpoint_to_txout = wtx.open_table(OUTPOINT_TO_TXOUT)?;
 
-    let index_inscriptions = self.height >= self.index.first_inscription_height
-      && self.index.settings.index_inscriptions();
+    let index_inscriptions =
+      self.height >= self.index.first_inscription_height && self.index.index_inscriptions;
 
     // If the receiver still has inputs something went wrong in the last
     // block and we shouldn't recover from this and commit the last block

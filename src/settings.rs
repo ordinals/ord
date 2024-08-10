@@ -533,15 +533,15 @@ impl Settings {
     self.index.as_ref().unwrap()
   }
 
-  pub fn index_addresses(&self) -> bool {
+  pub fn index_addresses_raw(&self) -> bool {
     self.index_addresses
   }
 
-  pub fn index_inscriptions(&self) -> bool {
+  pub fn index_inscriptions_raw(&self) -> bool {
     !self.no_index_inscriptions
   }
 
-  pub fn index_runes(&self) -> bool {
+  pub fn index_runes_raw(&self) -> bool {
     self.index_runes
   }
 
@@ -549,15 +549,15 @@ impl Settings {
     self.index_cache_size.unwrap()
   }
 
-  pub fn index_sats(&self) -> bool {
+  pub fn index_sats_raw(&self) -> bool {
     self.index_sats
   }
 
-  pub fn index_spent_sats(&self) -> bool {
+  pub fn index_spent_sats_raw(&self) -> bool {
     self.index_spent_sats
   }
 
-  pub fn index_transactions(&self) -> bool {
+  pub fn index_transactions_raw(&self) -> bool {
     self.index_transactions
   }
 
