@@ -922,9 +922,9 @@ mod tests {
 
   #[test]
   fn index_runes() {
-    assert!(parse(&["--chain=signet", "--index-runes"]).index_runes());
-    assert!(parse(&["--index-runes"]).index_runes());
-    assert!(!parse(&[]).index_runes());
+    assert!(parse(&["--chain=signet", "--index-runes"]).index_runes_raw());
+    assert!(parse(&["--index-runes"]).index_runes_raw());
+    assert!(!parse(&[]).index_runes_raw());
   }
 
   #[test]

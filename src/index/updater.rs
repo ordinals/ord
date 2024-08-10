@@ -76,7 +76,7 @@ impl<'index> Updater<'index> {
     let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
 
     let (mut output_sender, mut txout_receiver, mut address_txout_receiver) =
-      Self::spawn_fetcher(&self.index)?;
+      Self::spawn_fetcher(self.index)?;
 
     let mut uncommitted = 0;
     let mut utxo_cache = HashMap::new();
