@@ -48,7 +48,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 26;
+const SCHEMA_VERSION: u64 = 27;
 
 define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
@@ -92,6 +92,7 @@ pub(crate) enum Statistic {
   IndexSpentSats = 13,
   InitialSyncTime = 14,
   IndexAddresses = 15,
+  IndexInscriptions = 16,
 }
 
 impl Statistic {
@@ -192,6 +193,7 @@ pub struct Index {
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u32>,
   index_addresses: bool,
+  index_inscriptions: bool,
   index_runes: bool,
   index_sats: bool,
   index_spent_sats: bool,
@@ -321,44 +323,50 @@ impl Index {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if settings.index_sats() {
+          if settings.index_sats_raw() {
             outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
           }
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexAddresses,
-            u64::from(settings.index_addresses()),
+            u64::from(settings.index_addresses_raw()),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexInscriptions,
+            u64::from(settings.index_inscriptions_raw()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexRunes,
-            u64::from(settings.index_runes()),
+            u64::from(settings.index_runes_raw()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(settings.index_sats() || settings.index_spent_sats()),
+            u64::from(settings.index_sats_raw() || settings.index_spent_sats_raw()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSpentSats,
-            u64::from(settings.index_spent_sats()),
+            u64::from(settings.index_spent_sats_raw()),
           )?;
 
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexTransactions,
-            u64::from(settings.index_transactions()),
+            u64::from(settings.index_transactions_raw()),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
-        if settings.index_runes() && settings.chain() == Chain::Mainnet {
+        if settings.index_runes_raw() && settings.chain() == Chain::Mainnet {
           let rune = Rune(2055900680524219742);
 
           let id = RuneId { block: 1, tx: 0 };
@@ -414,11 +422,13 @@ impl Index {
     let index_sats;
     let index_spent_sats;
     let index_transactions;
+    let index_inscriptions;
 
     {
       let tx = database.begin_read()?;
       let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
       index_addresses = Self::is_statistic_set(&statistics, Statistic::IndexAddresses)?;
+      index_inscriptions = Self::is_statistic_set(&statistics, Statistic::IndexInscriptions)?;
       index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
       index_spent_sats = Self::is_statistic_set(&statistics, Statistic::IndexSpentSats)?;
@@ -442,6 +452,7 @@ impl Index {
       index_sats,
       index_spent_sats,
       index_transactions,
+      index_inscriptions,
       settings: settings.clone(),
       path,
       started: Utc::now(),
@@ -1660,7 +1671,7 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.settings.index_addresses() {
+        && if self.index_addresses {
           self
             .database
             .begin_read()?
