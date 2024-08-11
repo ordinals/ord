@@ -1,0 +1,12 @@
+<h1>{{ self.rune }}</h1>
+<dl>
+%% if self.reserved {
+  <dt>reserved</dt>
+  <dd>{{ self.reserved }}</dd>
+%% } else {
+  <dt>unlock height</dt>
+  <dd>{{ self.unlock_height.unwrap() }}</dd>
+  <dt>etchable</dt>
+  <dd>{{ self.etchable }}</dd>
+%% }
+</dl>
