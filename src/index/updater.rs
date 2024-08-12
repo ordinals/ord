@@ -136,15 +136,15 @@ impl<'index> Updater<'index> {
       }
     }
 
+    if uncommitted > 0 {
+      self.commit(wtx, utxo_cache)?;
+    }
+
     if starting_index_height == 0 && self.height > 0 {
       wtx.open_table(STATISTIC_TO_COUNT)?.insert(
         Statistic::InitialSyncTime.key(),
         &u64::try_from(start.elapsed().as_micros())?,
       )?;
-    }
-
-    if uncommitted > 0 {
-      self.commit(wtx, utxo_cache)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
