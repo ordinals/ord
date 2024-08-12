@@ -10,7 +10,8 @@ pub(crate) struct Outputs {
 pub struct Output {
   pub output: OutPoint,
   pub amount: u64,
-  pub sat_ranges: Vec<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub sat_ranges: Option<Vec<String>>,
 }
 
 impl Outputs {
@@ -18,13 +19,15 @@ impl Outputs {
     let mut outputs = Vec::new();
     for (output, txout) in wallet.utxos() {
       let sat_ranges = if wallet.has_sat_index() && self.ranges {
-        wallet
-          .get_output_sat_ranges(output)?
-          .into_iter()
-          .map(|(start, end)| format!("{start}-{end}"))
-          .collect()
+        Some(
+          wallet
+            .get_output_sat_ranges(output)?
+            .into_iter()
+            .map(|(start, end)| format!("{start}-{end}"))
+            .collect(),
+        )
       } else {
-        Vec::new()
+        None
       };
 
       outputs.push(Output {

@@ -1,7 +1,67 @@
 Changelog
 =========
 
-[0.18.5](https://github.com/ordinals/ord/releases/tag/0.18.5) - 2023-05-09
+[0.19.1](https://github.com/ordinals/ord/releases/tag/0.19.1) - 2024-07-18
+--------------------------------------------------------------------------
+
+### Changed
+- Commit twice to work around redb off-by-one bug ([#3856](https://github.com/ordinals/ord/pull/3856) by [casey](https://github.com/casey))
+
+### Misc
+- Change test-bitcoincore-rpc to mockcore in README.md ([#3842](https://github.com/ordinals/ord/pull/3842) by [TheHeBoy](https://github.com/TheHeBoy))
+
+[0.19.0](https://github.com/ordinals/ord/releases/tag/0.19.0) - 2024-07-09
+--------------------------------------------------------------------------
+
+### Added
+- Add inscriptions to address page ([#3843](https://github.com/ordinals/ord/pull/3843) by [raphjaph](https://github.com/raphjaph))
+- Add ability to cancel shutdown ([#3820](https://github.com/ordinals/ord/pull/3820) by [felipelincoln](https://github.com/felipelincoln))
+- Add charm to burned inscriptions ([#3836](https://github.com/ordinals/ord/pull/3836) by [onchainguy-btc](https://github.com/onchainguy-btc))
+- Display aggregated rune balances in address page ([#3831](https://github.com/ordinals/ord/pull/3831) by [yoitsyoung](https://github.com/yoitsyoung))
+- Add --all flag on `ord wallet sats` ([#3824](https://github.com/ordinals/ord/pull/3824) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add sat ranges to output ([#3817](https://github.com/ordinals/ord/pull/3817) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add sat name to inscription page ([#3826](https://github.com/ordinals/ord/pull/3826) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add public `shut_down()` function ([#3811](https://github.com/ordinals/ord/pull/3811) by [felipelincoln](https://github.com/felipelincoln))
+- Add all transaction hex to block json response ([#3805](https://github.com/ordinals/ord/pull/3805) by [thewrlck](https://github.com/thewrlck))
+- Make Index public ([#3807](https://github.com/ordinals/ord/pull/3807) by [felipelincoln](https://github.com/felipelincoln))
+- Add sat balance to address page ([#3810](https://github.com/ordinals/ord/pull/3810) by [raphjaph](https://github.com/raphjaph))
+- Add --http-port to settings yaml ([#3796](https://github.com/ordinals/ord/pull/3796) by [raphjaph](https://github.com/raphjaph))
+- Make settings public ([#3800](https://github.com/ordinals/ord/pull/3800) by [felipelincoln](https://github.com/felipelincoln))
+- Make recursive endpoints proxiable ([#3797](https://github.com/ordinals/ord/pull/3797) by [raphjaph](https://github.com/raphjaph))
+- Add recursive endpoint with more details about children ([#3771](https://github.com/ordinals/ord/pull/3771) by [gmart7t2](https://github.com/gmart7t2))
+- Add delegate value to recursive inscription endpoint ([#3751](https://github.com/ordinals/ord/pull/3751) by [phorkish](https://github.com/phorkish))
+- Update `ord list` to include inscriptions and runes information ([#3766](https://github.com/ordinals/ord/pull/3766) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add feerate percentiles to blockinfo endpoint ([#3753](https://github.com/ordinals/ord/pull/3753) by [benbuschmann](https://github.com/benbuschmann))
+- Add mint progress field to rune.html ([#3748](https://github.com/ordinals/ord/pull/3748) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add /inscription/:query/:child_number route ([#3777](https://github.com/ordinals/ord/pull/3777) by [casey](https://github.com/casey))
+- Add parents recursive endpoint ([#3749](https://github.com/ordinals/ord/pull/3749) by [phorkish](https://github.com/phorkish))
+- Index addresses ([#3757](https://github.com/ordinals/ord/pull/3757) by [raphjaph](https://github.com/raphjaph))
+- Make settings public ([#3768](https://github.com/ordinals/ord/pull/3768) by [raphjaph](https://github.com/raphjaph))
+- Add decode api ([#3733](https://github.com/ordinals/ord/pull/3733) by [shadowv0vshadow](https://github.com/shadowv0vshadow))
+- Add command to list pending etchings ([#3732](https://github.com/ordinals/ord/pull/3732) by [ldiego08](https://github.com/ldiego08))
+- Add `ord wallet runics` command ([#3734](https://github.com/ordinals/ord/pull/3734) by [ldiego08](https://github.com/ldiego08))
+
+### Changed
+- Enable resuming a specific rune etching ([#3679](https://github.com/ordinals/ord/pull/3679) by [ldiego08](https://github.com/ldiego08))
+
+### Fixed
+- Fix panic in ord env shutdown ([#3787](https://github.com/ordinals/ord/pull/3787) by [cryptoni9n](https://github.com/cryptoni9n))
+- Allow postage equal to dust limit in mint.rs ([#3756](https://github.com/ordinals/ord/pull/3756) by [gmart7t2](https://github.com/gmart7t2))
+- Update index.rs to fix ord list command ([#3762](https://github.com/ordinals/ord/pull/3762) by [cryptoni9n](https://github.com/cryptoni9n))
+
+### Misc
+- Update Spanish Translation ([#3835](https://github.com/ordinals/ord/pull/3835) by [Zerone495](https://github.com/Zerone495))
+- Add debugging tips README ([#3823](https://github.com/ordinals/ord/pull/3823) by [nick07002](https://github.com/nick07002))
+- Add typed errors with `snafu` ([#3832](https://github.com/ordinals/ord/pull/3832) by [casey](https://github.com/casey))
+- Add -dev suffix to version ([#3812](https://github.com/ordinals/ord/pull/3812) by [casey](https://github.com/casey))
+- Link address on output & tx ([#3799](https://github.com/ordinals/ord/pull/3799) by [cryptoni9n](https://github.com/cryptoni9n))
+- Link address on inscription.html ([#3801](https://github.com/ordinals/ord/pull/3801) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix fuzz testers  ([#3740](https://github.com/ordinals/ord/pull/3740) by [jeasonstudio](https://github.com/jeasonstudio))
+- Remove duplicate example ([#3776](https://github.com/ordinals/ord/pull/3776) by [gmart7t2](https://github.com/gmart7t2))
+- Update runes spec ([#3745](https://github.com/ordinals/ord/pull/3745) by [gmart7t2](https://github.com/gmart7t2))
+- Clarify teleburning.md ([#3744](https://github.com/ordinals/ord/pull/3744) by [gmart7t2](https://github.com/gmart7t2))
+
+[0.18.5](https://github.com/ordinals/ord/releases/tag/0.18.5) - 2024-05-09
 --------------------------------------------------------------------------
 
 ### Added
@@ -15,7 +75,7 @@ Changelog
 - Patch some omissions in the Chinese translation ([#3694](https://github.com/ordinals/ord/pull/3694) by [shadowv0vshadow](https://github.com/shadowv0vshadow))
 - Bump rustfmt version 2018 to 2021 ([#3721](https://github.com/ordinals/ord/pull/3721) by [bingryan](https://github.com/bingryan))
 
-[0.18.4](https://github.com/ordinals/ord/releases/tag/0.18.4) - 2023-05-02
+[0.18.4](https://github.com/ordinals/ord/releases/tag/0.18.4) - 2024-05-02
 --------------------------------------------------------------------------
 
 ### Added
@@ -41,7 +101,7 @@ Changelog
 - Fix zh.po translations ([#3588](https://github.com/ordinals/ord/pull/3588) by [losingle](https://github.com/losingle))
 - Update sparrow-wallet.md --name flag update ([#3635](https://github.com/ordinals/ord/pull/3635) by [taha-abbasi](https://github.com/taha-abbasi))
 
-[0.18.3](https://github.com/ordinals/ord/releases/tag/0.18.3) - 2023-04-19
+[0.18.3](https://github.com/ordinals/ord/releases/tag/0.18.3) - 2024-04-19
 --------------------------------------------------------------------------
 
 ### Added
@@ -63,7 +123,7 @@ Changelog
 - Address runes review comments ([#3605](https://github.com/ordinals/ord/pull/3605) by [casey](https://github.com/casey))
 - Generate sample batch.yaml in env command ([#3530](https://github.com/ordinals/ord/pull/3530) by [twosatsmaxi](https://github.com/twosatsmaxi))
 
-[0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2023-04-17
+[0.18.2](https://github.com/ordinals/ord/releases/tag/0.18.2) - 2024-04-17
 --------------------------------------------------------------------------
 
 ### Migration
@@ -95,13 +155,13 @@ Changelog
 - Fix typo in recursion docs ([#3529](https://github.com/ordinals/ord/pull/3529) by [nix-eth](https://github.com/nix-eth))
 - Put rune higher on /inscription ([#3363](https://github.com/ordinals/ord/pull/3363) by [lugondev](https://github.com/lugondev))
 
-[0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2023-04-11
+[0.18.1](https://github.com/ordinals/ord/releases/tag/0.18.1) - 2024-04-11
 --------------------------------------------------------------------------
 
 ### Fixed
 - Fix off-by-one in wallet when waiting for etching commitment to mature ([#3515](https://github.com/ordinals/ord/pull/3515) by [casey](https://github.com/casey))
 
-[0.18.0](https://github.com/ordinals/ord/releases/tag/0.18.0) - 2023-04-10
+[0.18.0](https://github.com/ordinals/ord/releases/tag/0.18.0) - 2024-04-10
 --------------------------------------------------------------------------
 
 ### Fixed
@@ -136,7 +196,7 @@ Changelog
 - Fix deploy bitcoin.conf typo ([#3443](https://github.com/ordinals/ord/pull/3443) by [bitspill](https://github.com/bitspill))
 - Fix type in runes docs ([#3447](https://github.com/ordinals/ord/pull/3447) by [twosatsmaxi](https://github.com/twosatsmaxi))
 
-[0.17.1](https://github.com/ordinals/ord/releases/tag/0.17.1) - 2023-04-01
+[0.17.1](https://github.com/ordinals/ord/releases/tag/0.17.1) - 2024-04-01
 --------------------------------------------------------------------------
 
 ### Fixed
@@ -146,7 +206,7 @@ Changelog
 - Fix typo ([#3429](https://github.com/ordinals/ord/pull/3429) by [lugondev](https://github.com/lugondev))
 - Relax deployed Bitcoin Core relay rules ([#3431](https://github.com/ordinals/ord/pull/3431) by [casey](https://github.com/casey))
 
-[0.17.0](https://github.com/ordinals/ord/releases/tag/0.17.0) - 2023-03-31
+[0.17.0](https://github.com/ordinals/ord/releases/tag/0.17.0) - 2024-03-31
 --------------------------------------------------------------------------
 
 ### Added
@@ -238,7 +298,7 @@ Changelog
 - Add recipe to delete indices ([#3266](https://github.com/ordinals/ord/pull/3266) by [casey](https://github.com/casey))
 - Bump ordinals version: 0.0.3 → 0.0.4 ([#3267](https://github.com/ordinals/ord/pull/3267) by [casey](https://github.com/casey))
 
-[0.16.0](https://github.com/ordinals/ord/releases/tag/0.16.0) - 2023-03-11
+[0.16.0](https://github.com/ordinals/ord/releases/tag/0.16.0) - 2024-03-11
 --------------------------------------------------------------------------
 
 ### Added
@@ -341,7 +401,7 @@ Changelog
 - Optimize get_inscription_ids_by_sat_paginated ([#2996](https://github.com/ordinals/ord/pull/2996) by [casey](https://github.com/casey))
 - Add recipe to deploy to all servers in fleet ([#2992](https://github.com/ordinals/ord/pull/2992) by [casey](https://github.com/casey))
 
-[0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2023-01-08
+[0.15.0](https://github.com/ordinals/ord/releases/tag/0.15.0) - 2024-01-08
 --------------------------------------------------------------------------
 
 ### Added
@@ -369,7 +429,7 @@ Changelog
 - Remove quotes around key to allow shell expansion ([#2951](https://github.com/ordinals/ord/pull/2951) by [casey](https://github.com/casey))
 - Restart sshd in deploy script ([#2952](https://github.com/ordinals/ord/pull/2952) by [raphjaph](https://github.com/raphjaph))
 
-[0.14.1](https://github.com/ordinals/ord/releases/tag/0.14.1) - 2023-01-03
+[0.14.1](https://github.com/ordinals/ord/releases/tag/0.14.1) - 2024-01-03
 --------------------------------------------------------------------------
 
 ### Fixed
@@ -378,7 +438,7 @@ Changelog
 ## Misc
 - Clean up justfile ([#2939](https://github.com/ordinals/ord/pull/2939) by [casey](https://github.com/casey))
 
-[0.14.0](https://github.com/ordinals/ord/releases/tag/0.14.0) - 2023-01-02
+[0.14.0](https://github.com/ordinals/ord/releases/tag/0.14.0) - 2024-01-02
 --------------------------------------------------------------------------
 
 ### Fixed

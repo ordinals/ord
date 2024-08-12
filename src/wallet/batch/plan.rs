@@ -613,7 +613,7 @@ impl Plan {
     );
 
     witness.push(reveal_script);
-    witness.push(&control_block.serialize());
+    witness.push(control_block.serialize());
 
     let recovery_key_pair = key_pair.tap_tweak(&secp256k1, taproot_spend_info.merkle_root());
 
@@ -746,7 +746,7 @@ impl Plan {
               .to_vec(),
           );
           txin.witness.push(script);
-          txin.witness.push(&control_block.serialize());
+          txin.witness.push(control_block.serialize());
         } else {
           txin.witness = Witness::from_slice(&[&[0; SCHNORR_SIGNATURE_SIZE]]);
         }
