@@ -31,6 +31,7 @@ enum Origin {
     reinscription: bool,
     unbound: bool,
     vindicated: bool,
+    content_hash: String,
   },
   Old {
     old_satpoint: SatPoint,
@@ -99,7 +100,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         self.sequence_number_to_entry,
         txin.previous_output,
       )? {
-        let offset = total_input_value + old_satpoint.offset;
+        let offset: u64 = total_input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
           offset,
           inscription_id,
@@ -215,6 +216,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             pointer: inscription.payload.pointer(),
+            content_hash: inscription.payload.content_hash(),
             reinscription: inscribed_offsets.contains_key(&offset),
             unbound: txout.value == 0
               || curse == Some(Curse::UnrecognizedEvenField)
@@ -432,13 +434,15 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         }
 
         if let Some(sender) = self.event_sender {
-          sender.blocking_send(Event::InscriptionTransferred {
+          let evt = Event::InscriptionTransferred {
             block_height: self.height,
             inscription_id,
             new_location: new_satpoint,
             old_location: old_satpoint,
             sequence_number,
-          })?;
+          };
+
+          sender.blocking_send(evt)?;
         }
 
         (false, sequence_number)
@@ -452,6 +456,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         reinscription,
         unbound,
         vindicated,
+        content_hash,
       } => {
         let inscription_number = if cursed {
           let number: i32 = self.cursed_inscription_count.try_into().unwrap();
@@ -528,14 +533,17 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .collect::<Result<Vec<u32>>>()?;
 
         if let Some(sender) = self.event_sender {
-          sender.blocking_send(Event::InscriptionCreated {
+          let evt = Event::InscriptionCreated {
             block_height: self.height,
             charms,
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
             parent_inscription_ids: parents,
             sequence_number,
-          })?;
+            content_hash,
+          };
+
+          sender.blocking_send(evt)?;
         }
 
         self.sequence_number_to_entry.insert(

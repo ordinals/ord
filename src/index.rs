@@ -6528,6 +6528,7 @@ mod tests {
         block_height: 2,
         charms: expected_charms,
         parent_inscription_ids: Vec::new(),
+        content_hash: inscription.content_hash(),
       }
     );
 
