@@ -9,6 +9,7 @@ pub(crate) struct ServerConfig {
   pub(crate) domain: Option<String>,
   pub(crate) index_sats: bool,
   pub(crate) json_api_enabled: bool,
+  pub(crate) cross_origin_isolated: bool,
 }
 
 impl ServerConfig {

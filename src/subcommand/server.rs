@@ -15,7 +15,7 @@ use {
   axum::{
     body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{header, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderName, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -84,6 +84,8 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
+  #[arg(long, help = "Disable Cross Origin Isolated Environment. [default: false]")]
+  pub(crate) disable_cross_origin_isolated: bool,
   #[arg(long, help = "Disable JSON API.")]
   pub(crate) disable_json_api: bool,
   #[arg(
@@ -159,6 +161,7 @@ impl Server {
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
+        cross_origin_isolated: !self.disable_cross_origin_isolated,
       });
 
       let router = Router::new()
@@ -284,6 +287,23 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
+
+      let router = if server_config.cross_origin_isolated {
+        router.layer(SetResponseHeaderLayer::overriding(
+          HeaderName::from_static("cross-origin-opener-policy"),
+          HeaderValue::from_static("same-origin"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+          HeaderName::from_static("cross-origin-embedder-policy"),
+          HeaderValue::from_static("require-corp"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+          HeaderName::from_static("cross-origin-resource-policy"),
+          HeaderValue::from_static("same-site"),
+        ))
+      } else {
+        router
+      };
 
       let router = if server_config.json_api_enabled {
         router.layer(DefaultBodyLimit::disable())
