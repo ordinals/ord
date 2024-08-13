@@ -84,8 +84,8 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
-  #[arg(long, help = "Disable Cross Origin Isolated Environment. [default: false]")]
-  pub(crate) disable_cross_origin_isolated: bool,
+  #[arg(long, help = "Disable cross origin isolation.")]
+  pub(crate) disable_cross_origin_isolation: bool,
   #[arg(long, help = "Disable JSON API.")]
   pub(crate) disable_json_api: bool,
   #[arg(
@@ -155,13 +155,13 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
-        proxy: self.proxy.clone(),
+        cross_origin_isolation: !self.disable_cross_origin_isolation,
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
-        cross_origin_isolated: !self.disable_cross_origin_isolated,
+        proxy: self.proxy.clone(),
       });
 
       let router = Router::new()
@@ -288,19 +288,20 @@ impl Server {
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
 
-      let router = if server_config.cross_origin_isolated {
-        router.layer(SetResponseHeaderLayer::overriding(
-          HeaderName::from_static("cross-origin-opener-policy"),
-          HeaderValue::from_static("same-origin"),
-        ))
-        .layer(SetResponseHeaderLayer::overriding(
-          HeaderName::from_static("cross-origin-embedder-policy"),
-          HeaderValue::from_static("require-corp"),
-        ))
-        .layer(SetResponseHeaderLayer::overriding(
-          HeaderName::from_static("cross-origin-resource-policy"),
-          HeaderValue::from_static("same-site"),
-        ))
+      let router = if server_config.cross_origin_isolation {
+        router
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("require-corp"),
+          ))
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-opener-policy"),
+            HeaderValue::from_static("same-origin"),
+          ))
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("same-site"),
+          ))
       } else {
         router
       };
@@ -4874,6 +4875,31 @@ mod tests {
         .unwrap(),
       "max-age=31536000; includeSubDomains; preload",
     );
+  }
+
+  #[test]
+  fn cross_origin_isolation_headers() {
+    const COEP: HeaderName = HeaderName::from_static("cross-origin-embedder-policy");
+    const COOP: HeaderName = HeaderName::from_static("cross-origin-opener-policy");
+    const CORP: HeaderName = HeaderName::from_static("cross-origin-resource-policy");
+
+    {
+      let response = TestServer::new().get("/status");
+      assert_eq!(response.headers().get(COEP).unwrap(), "require-corp");
+      assert_eq!(response.headers().get(COOP).unwrap(), "same-origin");
+      assert_eq!(response.headers().get(CORP).unwrap(), "same-site");
+    }
+
+    {
+      let response = TestServer::builder()
+        .server_flag("--disable-cross-origin-isolation")
+        .build()
+        .get("/status");
+
+      assert!(response.headers().get(COEP).is_none());
+      assert!(response.headers().get(COOP).is_none());
+      assert!(response.headers().get(CORP).is_none());
+    }
   }
 
   #[test]
