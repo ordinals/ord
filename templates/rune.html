@@ -1,14 +1,16 @@
 <h1>{{ self.entry.spaced_rune }}</h1>
 %% if let Some(parent) = self.parent {
-  <div class=thumbnails>
-    {{Iframe::thumbnail(parent)}}
-  </div>
+<div class=thumbnails>
+  {{Iframe::thumbnail(parent)}}
+</div>
 %% }
 <dl>
   <dt>number</dt>
   <dd>{{ self.entry.number }}</dd>
   <dt>timestamp</dt>
-  <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
+  <dd>
+    <time>{{ timestamp(self.entry.timestamp) }}</time>
+  </dd>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>
   <dt>etching block</dt>
@@ -16,27 +18,27 @@
   <dt>etching transaction</dt>
   <dd>{{ self.id.tx }}</dd>
   <dt>mint</dt>
-%% if let Some(terms) = self.entry.terms {
+  %% if let Some(terms) = self.entry.terms {
   <dd>
     <dl>
       <dt>start</dt>
-%% if let Some(start) = self.entry.start() {
+      %% if let Some(start) = self.entry.start() {
       <dd><a href=/block/{{ start }}>{{ start }}</a></dd>
-%% } else {
+      %% } else {
       <dd>none</dd>
-%% }
+      %% }
       <dt>end</dt>
-%% if let Some(end) = self.entry.end() {
+      %% if let Some(end) = self.entry.end() {
       <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
-%% } else {
+      %% } else {
       <dd>none</dd>
-%% }
+      %% }
       <dt>amount</dt>
-%% if let Some(amount) = terms.amount {
+      %% if let Some(amount) = terms.amount {
       <dd>{{ self.entry.pile(amount) }}</dd>
-%% } else {
+      %% } else {
       <dd>none</dd>
-%% }
+      %% }
       <dt>mints</dt>
       <dd>{{ self.entry.mints }}</dd>
       <dt>cap</dt>
@@ -47,31 +49,34 @@
       <dd>{{ self.mintable }}</dd>
     </dl>
   </dd>
-%% } else {
+  %% } else {
   <dd>no</dd>
-%% }
+  %% }
   <dt>supply</dt>
   <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
   <dt>mint progress</dt>
-  <dd>{{ Decimal { value: ((self.entry.supply() as f64 / self.entry.max_supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
+  <dd>{{ Decimal { value: ((self.entry.supply() as f64 / self.entry.max_supply() as f64) * 10000.0) as u128, scale: 2 }
+    }}%
+  </dd>
   <dt>premine</dt>
-  <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
+  <dd>0</dd>
   <dt>premine percentage</dt>
-  <dd>{{ Decimal { value: ((self.entry.premine as f64 / self.entry.supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
+  <dd>0%
+  </dd>
   <dt>burned</dt>
   <dd>{{ self.entry.pile(self.entry.burned) }}</dd>
   <dt>divisibility</dt>
   <dd>{{ self.entry.divisibility }}</dd>
-%% if let Some(symbol) = self.entry.symbol {
+  %% if let Some(symbol) = self.entry.symbol {
   <dt>symbol</dt>
   <dd>{{ symbol }}</dd>
-%% }
+  %% }
   <dt>turbo</dt>
   <dd>{{ self.entry.turbo }}</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
-%% if let Some(parent) = self.parent {
+  %% if let Some(parent) = self.parent {
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
-%% }
+  %% }
 </dl>

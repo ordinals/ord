@@ -2,6 +2,8 @@ pub(super) enum Flag {
   Etching = 0,
   Terms = 1,
   Turbo = 2,
+  Swap = 3,
+  SwapExactInput = 4,
   #[allow(unused)]
   Cenotaph = 127,
 }

@@ -48,7 +48,9 @@ pub struct RuneEntry {
   pub etching: Txid,
   pub mints: u128,
   pub number: u64,
-  pub premine: u128,
+  pub pool: Option<Pool>,
+  // todo had to remove the premine temporarily to allow building (otherwise need manual bytes mapping)
+  // pub premine: u128,
   pub spaced_rune: SpacedRune,
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
@@ -83,22 +85,70 @@ impl RuneEntry {
     Ok(terms.amount.unwrap_or_default())
   }
 
+  pub fn mintable_with_base(&self, base_balance: u128) -> Result<(u128, u128), MintError> {
+    let Some(terms) = self.terms else {
+      return Err(MintError::Unmintable);
+    };
+
+    let cap = terms.cap.unwrap_or_default();
+
+    if self.mints >= cap {
+      return Err(MintError::Cap(cap));
+    }
+
+    let price = terms.price.unwrap_or_default();
+
+    if base_balance < price {
+      return Err(MintError::InsufficientBalance(price));
+    }
+
+    Ok((terms.amount.unwrap_or_default(), price))
+  }
+
+  pub fn swap(&self, swap: PoolSwap, balance: Option<u128>) -> Result<BalanceDiff, SwapError> {
+    let Some(pool) = self.pool else {
+      // fail the swap if pool does not exist (yet)
+      return Err(SwapError::SwapNotAvailable);
+    };
+
+    match pool.execute(swap) {
+      Ok(diff) => {
+        if let Some(balance) = balance {
+          if diff.input > balance {
+            return Err(SwapError::SwapInsufficientBalance(diff.input));
+          }
+        }
+        Ok(diff)
+      }
+      Err(cause) => Err(SwapError::SwapFailed(cause)),
+    }
+  }
+
   pub fn supply(&self) -> u128 {
-    self.premine
-      + self.mints
-        * self
-          .terms
-          .and_then(|terms| terms.amount)
-          .unwrap_or_default()
+    0
+    /*self.premine
+    + self.mints
+      * self
+        .terms
+        .and_then(|terms| terms.amount)
+        .unwrap_or_default()*/
   }
 
   pub fn max_supply(&self) -> u128 {
-    self.premine
-      + self.terms.and_then(|terms| terms.cap).unwrap_or_default()
-        * self
-          .terms
-          .and_then(|terms| terms.amount)
-          .unwrap_or_default()
+    0
+    /*self.premine
+    + self.terms.and_then(|terms| terms.cap).unwrap_or_default()
+      * self
+        .terms
+        .and_then(|terms| terms.amount)
+        .unwrap_or_default()*/
+  }
+
+  pub fn locked_base_supply(&self) -> u128 {
+    self
+      .pool
+      .map(|pool| pool.base_supply)
+      .unwrap_or(self.mints * self.terms.and_then(|terms| terms.price).unwrap_or_default())
   }
 
   pub fn pile(&self, amount: u128) -> Pile {
@@ -149,16 +199,38 @@ type TermsEntryValue = (
   (Option<u64>, Option<u64>), // height
   Option<u128>,               // amount
   (Option<u64>, Option<u64>), // offset
+  Option<RuneIdValue>,        // base
+  Option<u128>,               // price
+  Option<u128>,               // seed
 );
 
+pub type PoolValue = (u128, u128, u8);
+
+impl Entry for Pool {
+  type Value = PoolValue;
+
+  fn load(value: Self::Value) -> Self {
+    Self {
+      base_supply: value.0,
+      quote_supply: value.1,
+      fee_percentage: value.2,
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.base_supply, self.quote_supply, self.fee_percentage)
+  }
+}
+
 pub(super) type RuneEntryValue = (
-  u64,                     // block
-  u128,                    // burned
-  u8,                      // divisibility
-  (u128, u128),            // etching
-  u128,                    // mints
-  u64,                     // number
-  u128,                    // premine
+  u64,               // block
+  u128,              // burned
+  u8,                // divisibility
+  (u128, u128),      // etching
+  u128,              // mints
+  u64,               // number
+  Option<PoolValue>, // pool
+  // u128,                    // premine
   (u128, u32),             // spaced rune
   Option<char>,            // symbol
   Option<TermsEntryValue>, // terms
@@ -175,7 +247,8 @@ impl Default for RuneEntry {
       etching: Txid::all_zeros(),
       mints: 0,
       number: 0,
-      premine: 0,
+      pool: None,
+      // premine: 0,
       spaced_rune: SpacedRune::default(),
       symbol: None,
       terms: None,
@@ -196,7 +269,8 @@ impl Entry for RuneEntry {
       etching,
       mints,
       number,
-      premine,
+      pool,
+      // premine,
       (rune, spacers),
       symbol,
       terms,
@@ -220,17 +294,21 @@ impl Entry for RuneEntry {
       },
       mints,
       number,
-      premine,
+      pool: pool.map(|value| Pool::load(value)),
+      // premine,
       spaced_rune: SpacedRune {
         rune: Rune(rune),
         spacers,
       },
       symbol,
-      terms: terms.map(|(cap, height, amount, offset)| Terms {
+      terms: terms.map(|(cap, height, amount, offset, base, price, seed)| Terms {
         cap,
         height,
         amount,
         offset,
+        base: base.map(|b| RuneId::load(b)),
+        price,
+        seed,
       }),
       timestamp,
       turbo,
@@ -257,16 +335,30 @@ impl Entry for RuneEntry {
       },
       self.mints,
       self.number,
-      self.premine,
+      self.pool.map(|pool| pool.store()),
+      // self.premine,
       (self.spaced_rune.rune.0, self.spaced_rune.spacers),
       self.symbol,
       self.terms.map(
         |Terms {
+           base,
            cap,
            height,
            amount,
            offset,
-         }| (cap, height, amount, offset),
+           price,
+           seed,
+         }| {
+          (
+            cap,
+            height,
+            amount,
+            offset,
+            base.map(|b| b.store()),
+            price,
+            seed,
+          )
+        },
       ),
       self.timestamp,
       self.turbo,
@@ -610,9 +702,12 @@ mod tests {
         height: (Some(2), Some(3)),
         amount: Some(4),
         offset: (Some(5), Some(6)),
+        base: None,
+        price: None,
       }),
       mints: 11,
       number: 6,
+      pool: None,
       premine: 12,
       spaced_rune: SpacedRune {
         rune: Rune(7),

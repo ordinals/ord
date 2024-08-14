@@ -4,6 +4,7 @@ use super::*;
 pub enum MintError {
   Cap(u128),
   End(u64),
+  InsufficientBalance(u128),
   Start(u64),
   Unmintable,
 }
@@ -13,8 +14,32 @@ impl Display for MintError {
     match self {
       MintError::Cap(cap) => write!(f, "limited to {cap} mints"),
       MintError::End(end) => write!(f, "mint ended on block {end}"),
+      MintError::InsufficientBalance(price) => {
+        write!(f, "insufficient balance for mint price of {price}")
+      }
       MintError::Start(start) => write!(f, "mint starts on block {start}"),
       MintError::Unmintable => write!(f, "not mintable"),
+    }
+  }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum SwapError {
+  SwapNotAvailable,
+  SwapFailed(PoolError),
+  SwapInsufficientBalance(u128),
+  SwapInvalid,
+}
+
+impl Display for SwapError {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    match self {
+      SwapError::SwapNotAvailable => write!(f, "liquidity pool for swap not available (yet)"),
+      SwapError::SwapFailed(cause) => write!(f, "swap failed: {cause}"),
+      SwapError::SwapInsufficientBalance(required) => {
+        write!(f, "insufficient balance for swap {required}")
+      }
+      SwapError::SwapInvalid => write!(f, "swap invalid"),
     }
   }
 }

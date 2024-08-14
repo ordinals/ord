@@ -10,6 +10,7 @@ pub struct Runestone {
   pub etching: Option<Etching>,
   pub mint: Option<RuneId>,
   pub pointer: Option<u32>,
+  pub swap: Option<Swap>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -51,6 +52,16 @@ impl Runestone {
       .take(&mut fields, |[flags]| Some(flags))
       .unwrap_or_default();
 
+    let get_non_zero = |tag: Tag, fields: &mut HashMap<u128, VecDeque<u128>>| -> Option<u128> {
+      tag.take(fields, |[value]| (value > 0).then_some(value))
+    };
+
+    let get_rune_id = |tag: Tag, fields: &mut HashMap<u128, VecDeque<u128>>| -> Option<RuneId> {
+      tag.take(fields, |[block, tx]| {
+        RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
+      })
+    };
+
     let etching = Flag::Etching.take(&mut flags).then(|| Etching {
       divisibility: Tag::Divisibility.take(&mut fields, |[divisibility]| {
         let divisibility = u8::try_from(divisibility).ok()?;
@@ -82,12 +93,23 @@ impl Runestone {
           }),
           Tag::OffsetEnd.take(&mut fields, |[end_offset]| u64::try_from(end_offset).ok()),
         ),
+        base: get_rune_id(Tag::Base, &mut fields),
+        price: Tag::Price.take(&mut fields, |[price]| Some(price)),
+        seed: Tag::Seed.take(&mut fields, |[seed]| Some(seed)),
       }),
       turbo: Flag::Turbo.take(&mut flags),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
       RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
+    });
+
+    let swap = Flag::Swap.take(&mut flags).then(|| Swap {
+      input: get_rune_id(Tag::SwapInput, &mut fields),
+      output: get_rune_id(Tag::SwapOutput, &mut fields),
+      input_amount: get_non_zero(Tag::SwapInputAmount, &mut fields),
+      output_amount: get_non_zero(Tag::SwapOutputAmount, &mut fields),
+      is_exact_input: Flag::SwapExactInput.take(&mut flags),
     });
 
     let pointer = Tag::Pointer.take(&mut fields, |[pointer]| {
@@ -100,6 +122,14 @@ impl Runestone {
       .unwrap_or_default()
     {
       flaw.get_or_insert(Flaw::SupplyOverflow);
+    }
+
+    // make sure to not swap from and to the same token
+    if swap
+      .map(|swap| swap.input.unwrap_or(UNCOMMON_GOODS) == swap.output.unwrap_or(UNCOMMON_GOODS))
+      .unwrap_or_default()
+    {
+      flaw.get_or_insert(Flaw::InvalidSwap);
     }
 
     if flags != 0 {
@@ -123,14 +153,15 @@ impl Runestone {
       etching,
       mint,
       pointer,
+      swap,
     }))
   }
 
   pub fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
+    let mut flags = 0;
 
     if let Some(etching) = self.etching {
-      let mut flags = 0;
       Flag::Etching.set(&mut flags);
 
       if etching.terms.is_some() {
@@ -157,6 +188,23 @@ impl Runestone {
         Tag::OffsetStart.encode_option(terms.offset.0, &mut payload);
         Tag::OffsetEnd.encode_option(terms.offset.1, &mut payload);
       }
+    }
+
+    if let Some(swap) = &self.swap {
+      Flag::Swap.set(&mut flags);
+
+      if swap.is_exact_input {
+        Flag::SwapExactInput.set(&mut flags);
+      }
+
+      if let Some(RuneId { block, tx }) = swap.input {
+        Tag::SwapInput.encode([block.into(), tx.into()], &mut payload);
+      }
+      if let Some(RuneId { block, tx }) = swap.output {
+        Tag::SwapOutput.encode([block.into(), tx.into()], &mut payload);
+      }
+      Tag::SwapInputAmount.encode_option(swap.input_amount, &mut payload);
+      Tag::SwapOutputAmount.encode_option(swap.output_amount, &mut payload);
     }
 
     if let Some(RuneId { block, tx }) = self.mint {

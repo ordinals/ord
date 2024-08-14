@@ -29,11 +29,13 @@ use {
 pub use {
   artifact::Artifact, cenotaph::Cenotaph, charm::Charm, decimal_sat::DecimalSat, degree::Degree,
   edict::Edict, epoch::Epoch, etching::Etching, flaw::Flaw, height::Height, pile::Pile,
+  pool::BalanceDiff, pool::Pool, pool::PoolError, pool::PoolSwap, pool::SwapDirection,
   rarity::Rarity, rune::Rune, rune_id::RuneId, runestone::Runestone, sat::Sat, sat_point::SatPoint,
-  spaced_rune::SpacedRune, terms::Terms,
+  spaced_rune::SpacedRune, swap::Swap, terms::Terms,
 };
 
 pub const CYCLE_EPOCHS: u32 = 6;
+pub const UNCOMMON_GOODS: RuneId = RuneId { block: 1, tx: 0 };
 
 fn default<T: Default>() -> T {
   Default::default()
@@ -50,6 +52,7 @@ mod etching;
 mod flaw;
 mod height;
 mod pile;
+mod pool;
 mod rarity;
 mod rune;
 mod rune_id;
@@ -57,5 +60,6 @@ mod runestone;
 pub mod sat;
 pub mod sat_point;
 pub mod spaced_rune;
+mod swap;
 mod terms;
 pub mod varint;

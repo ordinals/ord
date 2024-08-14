@@ -474,6 +474,9 @@ impl Plan {
                   terms.offset.and_then(|range| (range.start)),
                   terms.offset.and_then(|range| (range.end)),
                 ),
+                base: terms.base,
+                price: terms.price,
+                seed: terms.seed,
               })
             })
             .transpose()?,
@@ -481,6 +484,7 @@ impl Plan {
         }),
         mint: None,
         pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
+        swap: None,
       };
 
       let script_pubkey = inner.encipher();

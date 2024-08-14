@@ -27,18 +27,37 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     if let Some(artifact) = &artifact {
       if let Some(id) = artifact.mint() {
-        if let Some(amount) = self.mint(id)? {
-          *unallocated.entry(id).or_default() += amount;
+        if let Some((rune_entry, base_rune_id)) = self.get_base_rune(id)? {
+          let base_balance_entry = unallocated.entry(base_rune_id).or_default();
+          let base_balance_n = base_balance_entry.n();
 
-          if let Some(sender) = self.event_sender {
-            sender.blocking_send(Event::RuneMinted {
-              block_height: self.height,
-              txid,
-              rune_id: id,
-              amount: amount.n(),
-            })?;
+          if let Some((amount, price)) = self.mint_with_base(id, base_balance_n)? {
+            *base_balance_entry -= price;
+            *unallocated.entry(id).or_default() += amount;
+
+            if let Some(sender) = self.event_sender {
+              sender.blocking_send(Event::RuneMinted {
+                block_height: self.height,
+                txid,
+                rune_id: id,
+                amount: amount.n(),
+              })?;
+            }
           }
-        }
+        } else {
+          if let Some(amount) = self.mint(id)? {
+            *unallocated.entry(id).or_default() += amount;
+
+            if let Some(sender) = self.event_sender {
+              sender.blocking_send(Event::RuneMinted {
+                block_height: self.height,
+                txid,
+                rune_id: id,
+                amount: amount.n(),
+              })?;
+            }
+          }
+        };
       }
 
       let etched = self.etched(tx_index, tx, artifact)?;
@@ -47,6 +66,21 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         if let Some((id, ..)) = etched {
           *unallocated.entry(id).or_default() +=
             runestone.etching.unwrap().premine.unwrap_or_default();
+        }
+
+        if let Some(swap) = &runestone.swap {
+          let input = swap.input.unwrap_or(UNCOMMON_GOODS);
+          let output = swap.output.unwrap_or(UNCOMMON_GOODS);
+          let input_balance = unallocated
+            .get(&input)
+            .map(|lot| lot.n())
+            .unwrap_or_default();
+          if let Some((input_amount, output_amount)) =
+            self.swap(txid, &swap, input, output, input_balance)?
+          {
+            *unallocated.entry(input).or_default() -= Lot(input_amount);
+            *unallocated.entry(output).or_default() += Lot(output_amount);
+          }
         }
 
         for Edict { id, amount, output } in runestone.edicts.iter().copied() {
@@ -241,6 +275,16 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     Ok(())
   }
 
+  fn get_base_rune(&self, id: RuneId) -> Result<Option<(RuneEntry, RuneId)>> {
+    if let Some(entry) = self.id_to_entry.get(&id.store())? {
+      let rune_entry = RuneEntry::load(entry.value());
+      let base_rune_id = rune_entry.terms.unwrap().base.unwrap();
+      Ok(Some((rune_entry, base_rune_id)))
+    } else {
+      Ok(None)
+    }
+  }
+
   fn create_rune_entry(
     &mut self,
     txid: Txid,
@@ -269,7 +313,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         terms: None,
         mints: 0,
         number,
-        premine: 0,
+        pool: None,
+        // premine: 0,
         spaced_rune: SpacedRune { rune, spacers: 0 },
         symbol: None,
         timestamp: self.block_time.into(),
@@ -294,7 +339,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           terms,
           mints: 0,
           number,
-          premine: premine.unwrap_or_default(),
+          pool: None,
+          // premine: premine.unwrap_or_default(),
           spaced_rune: SpacedRune {
             rune,
             spacers: spacers.unwrap_or_default(),
@@ -379,6 +425,13 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     )))
   }
 
+  fn load_rune_entry(&self, id: RuneId) -> Result<Option<RuneEntry>> {
+    let Some(entry) = self.id_to_entry.get(&id.store())? else {
+      return Ok(None);
+    };
+    Ok(Some(RuneEntry::load(entry.value())))
+  }
+
   fn mint(&mut self, id: RuneId) -> Result<Option<Lot>> {
     let Some(entry) = self.id_to_entry.get(&id.store())? else {
       return Ok(None);
@@ -397,6 +450,209 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     self.id_to_entry.insert(&id.store(), rune_entry.store())?;
 
     Ok(Some(Lot(amount)))
+  }
+
+  fn mint_with_base(&mut self, id: RuneId, base_balance: u128) -> Result<Option<(Lot, Lot)>> {
+    let Some(mut rune_entry) = self.load_rune_entry(id)? else {
+      return Ok(None);
+    };
+
+    let (amount, price) = match rune_entry.mintable_with_base(base_balance) {
+      Ok(result) => result,
+      Err(cause) => {
+        println!("mint error: {cause}");
+        return Ok(None);
+      }
+    };
+
+    rune_entry.mints += 1;
+
+    // mint cap reached, create liquidity pool
+    if let Some(terms) = &rune_entry.terms {
+      if rune_entry.mints == terms.cap.unwrap_or_default() {
+        assert_eq!(rune_entry.pool, None, "pool already exists");
+        let base_supply = rune_entry.locked_base_supply();
+        let quote_supply = terms.seed.unwrap_or_default();
+        if base_supply == 0 || quote_supply == 0 {
+          println!(
+            "unable to create pool for Rune {}: both token supplies must be non-zero, but got base/quote supply of {base_supply}/{quote_supply}",
+            rune_entry.spaced_rune
+          );
+        } else {
+          rune_entry.pool = Some(Pool {
+            base_supply,
+            quote_supply,
+            // todo: make dynamic
+            fee_percentage: 1,
+          });
+        }
+      }
+    }
+
+    self.id_to_entry.insert(&id.store(), rune_entry.store())?;
+
+    Ok(Some((Lot(amount), Lot(price))))
+  }
+
+  fn swap(
+    &mut self,
+    txid: Txid,
+    swap: &Swap,
+    input: RuneId,
+    output: RuneId,
+    input_balance: u128,
+  ) -> Result<Option<(u128, u128)>> {
+    assert_ne!(
+      input, output,
+      "the parser produced an invalid swap with input rune == output rune"
+    );
+    let input_entry = self.load_rune_entry(input)?;
+    let output_entry = self.load_rune_entry(output)?;
+    match self.swap_calculate(
+      swap,
+      input,
+      &input_entry,
+      output,
+      &output_entry,
+      input_balance,
+    ) {
+      Ok((sell, buy)) => {
+        if let Some(diff) = sell {
+          self.swap_apply(txid, input, &mut input_entry.unwrap(), diff)?;
+        }
+        if let Some(diff) = buy {
+          self.swap_apply(txid, output, &mut output_entry.unwrap(), diff)?;
+        }
+        match (sell, buy) {
+          (Some(sell), None) => Ok(Some((sell.input, sell.output))),
+          (None, Some(buy)) => Ok(Some((buy.input, buy.output))),
+          (Some(sell), Some(buy)) => Ok(Some((sell.input, buy.output))),
+          (None, None) => unreachable!(),
+        }
+      }
+      Err(cause) => {
+        // TODO: handle swap errors: do we need to store the result? the user should be able to see the reason for a failure later
+        println!("swap error: {cause}");
+        Ok(None)
+      }
+    }
+  }
+
+  fn swap_apply(
+    &mut self,
+    txid: Txid,
+    rune_id: RuneId,
+    entry: &mut RuneEntry,
+    diff: BalanceDiff,
+  ) -> Result<()> {
+    entry.pool.as_mut().unwrap().apply(diff);
+    self.id_to_entry.insert(&rune_id.store(), entry.store())?;
+    if diff.fee > 0 {
+      // skipped the fee handling for first PR, different options could work
+      // burning, claim for rune etcher, ...
+    }
+    let (base_amount, quote_amount, fee, is_sell_order) = match diff.direction {
+      SwapDirection::BaseToQuote => (diff.input, diff.output, diff.fee, false),
+      SwapDirection::QuoteToBase => (diff.output, diff.input, diff.fee, true),
+    };
+    if let Some(sender) = self.event_sender {
+      sender.blocking_send(Event::RuneSwapped {
+        base_amount,
+        quote_amount,
+        rune_id,
+        fee,
+        is_sell_order,
+      })?;
+    }
+    Ok(())
+  }
+
+  fn swap_calculate(
+    &self,
+    swap: &Swap,
+    input: RuneId,
+    input_entry: &Option<RuneEntry>,
+    output: RuneId,
+    output_entry: &Option<RuneEntry>,
+    input_balance: u128,
+  ) -> Result<(Option<BalanceDiff>, Option<BalanceDiff>), SwapError> {
+    let simple_swap = |direction: SwapDirection| {
+      if swap.is_exact_input {
+        PoolSwap::Input {
+          direction,
+          input: swap.input_amount.unwrap_or_default(),
+          min_output: swap.output_amount,
+        }
+      } else {
+        PoolSwap::Output {
+          direction,
+          output: swap.output_amount.unwrap_or_default(),
+          max_input: swap.input_amount,
+        }
+      }
+    };
+    let input_entry = input_entry.ok_or(SwapError::SwapInvalid)?;
+    let output_entry = output_entry.ok_or(SwapError::SwapInvalid)?;
+    match (input, output) {
+      // buy output rune
+      (UNCOMMON_GOODS_ID, _) => Ok((
+        None,
+        Some(output_entry.swap(simple_swap(SwapDirection::BaseToQuote), Some(input_balance))?),
+      )),
+      // sell input rune
+      (_, UNCOMMON_GOODS_ID) => Ok((
+        Some(input_entry.swap(simple_swap(SwapDirection::QuoteToBase), Some(input_balance))?),
+        None,
+      )),
+      // dual swap: sell input rune to buy output rune
+      _ => {
+        if swap.is_exact_input {
+          // sell input
+          let diff_sell = input_entry.swap(
+            PoolSwap::Input {
+              direction: SwapDirection::QuoteToBase,
+              input: swap.input_amount.unwrap_or_default(),
+              // no slippage check here, we check on the other swap
+              min_output: None,
+            },
+            Some(input_balance),
+          )?;
+          // buy output
+          let diff_buy = output_entry.swap(
+            PoolSwap::Input {
+              direction: SwapDirection::BaseToQuote,
+              input: diff_sell.output,
+              // slippage check is performed on the second swap, on slippage error both swaps will not be executed
+              min_output: swap.output_amount,
+            },
+            None,
+          )?;
+          Ok((Some(diff_sell), Some(diff_buy)))
+        } else {
+          // calculate the "buy" first to determine how many base tokens we need to get out of the "sell"
+          let diff_buy = output_entry.swap(
+            PoolSwap::Output {
+              direction: SwapDirection::BaseToQuote,
+              output: swap.output_amount.unwrap_or_default(),
+              // no slippage check here, we check on the other swap
+              max_input: None,
+            },
+            None,
+          )?;
+          // sell input
+          let diff_sell = input_entry.swap(
+            PoolSwap::Output {
+              direction: SwapDirection::QuoteToBase,
+              output: diff_buy.input,
+              // slippage check is performed on the second swap, on slippage error both swaps will not be executed
+              max_input: swap.input_amount,
+            },
+            Some(input_balance),
+          )?;
+          Ok((Some(diff_sell), Some(diff_buy)))
+        }
+      }
+    }
   }
 
   fn tx_commits_to_rune(&self, tx: &Transaction, rune: Rune) -> Result<bool> {

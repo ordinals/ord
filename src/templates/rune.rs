@@ -35,7 +35,7 @@ mod tests {
             amount: Some(1000000001),
           }),
           number: 25,
-          premine: 123456789,
+          // premine: 123456789,
           spaced_rune: SpacedRune {
             rune: Rune(u128::MAX),
             spacers: 1
@@ -120,7 +120,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 0,
           number: 25,
-          premine: 0,
+          // premine: 0,
           spaced_rune: SpacedRune {
             rune: Rune(u128::MAX),
             spacers: 1
@@ -154,7 +154,7 @@ mod tests {
           etching: Txid::all_zeros(),
           mints: 0,
           number: 25,
-          premine: 0,
+          // premine: 0,
           spaced_rune: SpacedRune {
             rune: Rune(u128::MAX),
             spacers: 1
@@ -192,7 +192,7 @@ mod tests {
           divisibility: 9,
           etching: Txid::all_zeros(),
           mints: 0,
-          premine: 0,
+          // premine: 0,
           number: 25,
           spaced_rune: SpacedRune {
             rune: Rune(u128::MAX),

@@ -41,4 +41,11 @@ pub enum Event {
     rune_id: RuneId,
     txid: Txid,
   },
+  RuneSwapped {
+    base_amount: u128,
+    fee: u128,
+    is_sell_order: bool,
+    quote_amount: u128,
+    rune_id: RuneId,
+  },
 }

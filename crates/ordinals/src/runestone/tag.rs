@@ -14,6 +14,13 @@ pub(super) enum Tag {
   OffsetEnd = 18,
   Mint = 20,
   Pointer = 22,
+  SwapInput = 24,
+  SwapOutput = 26,
+  SwapInputAmount = 28,
+  SwapOutputAmount = 30,
+  Base = 32,
+  Price = 34,
+  Seed = 36,
   #[allow(unused)]
   Cenotaph = 126,
 
