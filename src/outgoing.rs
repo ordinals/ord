@@ -24,7 +24,7 @@ impl Display for Outgoing {
 impl FromStr for Outgoing {
   type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     lazy_static! {
       static ref AMOUNT: Regex = Regex::new(
         r"(?x)
@@ -63,55 +63,41 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    if re::SAT_NAME.is_match(s) {
-      Ok(Outgoing::Sat(s.parse().context(
-        SnafuError::UnrecognizedSat {
-          input: s.to_string(),
-        },
-      )?))
-    } else if re::SATPOINT.is_match(s) {
-      Ok(Outgoing::SatPoint(s.parse().context(
-        SnafuError::UnrecognizedSatPoint {
-          input: s.to_string(),
-        },
-      )?))
-    } else if re::INSCRIPTION_ID.is_match(s) {
-      Ok(Outgoing::InscriptionId(s.parse().context(
-        SnafuError::UnrecognizedInscriptionId {
-          input: s.to_string(),
-        },
-      )?))
-    } else if AMOUNT.is_match(s) {
-      Ok(Outgoing::Amount(s.parse().context(
-        SnafuError::UnrecognizedAmount {
-          input: s.to_string(),
-        },
-      )?))
-    } else if let Some(captures) = RUNE.captures(s) {
-      let decimal = captures
-        .get(1)
-        .ok_or_else(|| SnafuError::UnrecognizedRune {
-          input: s.to_string(),
-        })?
-        .as_str()
+    if re::SAT_NAME.is_match(input) {
+      Ok(Outgoing::Sat(
+        input
+          .parse()
+          .snafu_context(error::UnrecognizedSat { input })?,
+      ))
+    } else if re::SATPOINT.is_match(input) {
+      Ok(Outgoing::SatPoint(
+        input
+          .parse()
+          .snafu_context(error::UnrecognizedSatPoint { input })?,
+      ))
+    } else if re::INSCRIPTION_ID.is_match(input) {
+      Ok(Outgoing::InscriptionId(
+        input
+          .parse()
+          .snafu_context(error::UnrecognizedInscriptionId { input })?,
+      ))
+    } else if AMOUNT.is_match(input) {
+      Ok(Outgoing::Amount(
+        input
+          .parse()
+          .snafu_context(error::UnrecognizedAmount { input })?,
+      ))
+    } else if let Some(captures) = RUNE.captures(input) {
+      let decimal = captures[1]
+        .parse::<Decimal>()
+        .snafu_context(error::DecimalParse { input })?;
+      let rune = captures[2]
         .parse()
-        .context(SnafuError::UnrecognizedRune {
-          input: s.to_string(),
-        })?;
-      let rune = captures
-        .get(2)
-        .ok_or_else(|| SnafuError::UnrecognizedRune {
-          input: s.to_string(),
-        })?
-        .as_str()
-        .parse()
-        .context(SnafuError::UnrecognizedRune {
-          input: s.to_string(),
-        })?;
-      Ok(Outgoing::Rune { decimal, rune })
+        .snafu_context(error::RuneParse { input })?;
+      Ok(Self::Rune { decimal, rune })
     } else {
       Err(SnafuError::UnrecognizedOutgoing {
-        input: s.to_string(),
+        input: input.to_string(),
       })
     }
   }

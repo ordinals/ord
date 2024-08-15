@@ -46,20 +46,35 @@ pub enum SnafuError {
   },
   #[snafu(display("Unrecognized representation `{}`", input))]
   UnrecognizedRepresentation { source: error::Error, input: String },
-  #[snafu(display("Unrecognized object `{}`", input))]
-  UnrecognizedObject { input: String },
   #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
-  UnrecognizedAmount { input: String },
+  UnrecognizedAmount {
+    source: bitcoin::amount::ParseAmountError,
+    input: String,
+  },
   #[snafu(display("Unrecognized outgoing rune: `{}`", input))]
-  UnrecognizedRune { input: String },
+  UnrecognizedRune {
+    source: ordinals::spaced_rune::Error,
+    input: String,
+  },
   #[snafu(display("Unrecognized outgoing sat: `{}`", input))]
-  UnrecognizedSat { input: String },
+  UnrecognizedSat {
+    source: ordinals::sat::Error,
+    input: String,
+  },
   #[snafu(display("Unrecognized outgoing sat point: `{}`", input))]
-  UnrecognizedSatPoint { input: String },
+  UnrecognizedSatPoint {
+    source: ordinals::sat_point::Error,
+    input: String,
+  },
   #[snafu(display("Unrecognized outgoing inscription ID: `{}`", input))]
-  UnrecognizedInscriptionId { input: String },
+  UnrecognizedInscriptionId {
+    source: inscriptions::inscription_id::ParseError,
+    input: String,
+  },
   #[snafu(display("Unrecognized outgoing: `{}`", input))]
   UnrecognizedOutgoing { input: String },
+  #[snafu(display("Failed to parse decimal: {}", source))]
+  DecimalParse { source: error::Error, input: String },
   #[snafu(display("Invalid chain `{}`", chain))]
   InvalidChain { chain: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
