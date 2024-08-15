@@ -43,6 +43,55 @@ impl Block {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockTxs {
+  pub best_height: u32,
+  pub hash: BlockHash,
+  pub height: u32,
+  pub target: BlockHash,
+  pub parsed_transactions: Vec<ParsedTransaction>,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParsedTransaction {
+  pub txid: bitcoin::Txid,
+  input: Vec<ParsedInput>,
+  output: Vec<bitcoin::TxOut>,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct ParsedInput {
+    previous_output: bitcoin::OutPoint,
+    sequence: Sequence,
+}
+
+impl BlockTxs {
+  pub(crate) fn new(
+    block: bitcoin::Block,
+    height: Height,
+    best_height: Height,
+  ) -> Self {
+     let parsed_transactions: Vec<ParsedTransaction> = block.txdata.iter().map(|tx| {
+       let pruned_inputs: Vec<ParsedInput> = tx.input.iter().map(|input| {
+          ParsedInput {
+              previous_output: input.previous_output,
+              sequence: input.sequence,
+          }
+      }).collect();
+       ParsedTransaction {
+          txid: tx.txid(),
+          input: pruned_inputs,
+          output: tx.output.clone(), // Clone outputs
+      }
+  }).collect();     
+       Self {
+      hash: block.header.block_hash(),
+      target: target_as_block_hash(block.header.target()),
+      height: height.0,
+      best_height: best_height.0,
+      parsed_transactions,
+      }
+  }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
   pub average_fee: u64,
   pub average_fee_rate: u64,

@@ -222,6 +222,7 @@ impl Server {
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
         .route("/r/blockinfo/:query", get(Self::block_info))
+        .route("/r/inscriptions/:height/:page", get(Self::inscriptions_in_block_paginated_json))
         .route(
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
@@ -254,6 +255,8 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
+        .route("/r/tx/:txid", get(Self::transaction_json))
+        .route("/r/txs/:query", get(Self::transactions_in_block_paginated_json))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -979,6 +982,31 @@ impl Server {
       })
     })
   }
+
+  async fn transaction_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+   ) -> ServerResult {
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+      let inscription_count = index.inscription_count(txid)?;
+ 
+       Ok(Json(api::Transaction {
+          chain: server_config.chain,
+          etching: index.get_etching(txid)?,
+          inscription_count,
+          transaction,
+          txid,
+        })
+        .into_response()
+      )
+    })
+  }
+
 
   async fn decode(
     Extension(index): Extension<Arc<Index>>,
@@ -2009,6 +2037,76 @@ impl Server {
         .into_response()
       })
     })
+  }
+
+  async fn inscriptions_in_block_paginated_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path((block_height, page_index)): Path<(u32, u32)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let page_size = 100;
+
+      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
+      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+
+      let mut inscriptions = index
+        .get_inscriptions_in_block(block_height)?
+        .into_iter()
+        .skip(page_index_usize.saturating_mul(page_size_usize))
+        .take(page_size_usize.saturating_add(1))
+        .collect::<Vec<InscriptionId>>();
+
+      let more = inscriptions.len() > page_size_usize;
+
+      if more {
+        inscriptions.pop();
+      }
+
+      Ok(Json(api::Inscriptions {
+          ids: inscriptions,
+          page_index,
+          more,
+        })
+        .into_response())
+    
+      })
+    
+  }
+
+  async fn transactions_in_block_paginated_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+        let (block, height) = match query {
+        query::Block::Height(height) => {
+          let block = index
+            .get_block_by_height(height)?
+            .ok_or_not_found(|| format!("block {height}"))?;
+
+          (block, height)
+        }
+        query::Block::Hash(hash) => {
+          let info = index
+            .block_header_info(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
+
+          let block = index
+            .get_block_by_hash(hash)?
+            .ok_or_not_found(|| format!("block {hash}"))?;
+
+          (block, u32::try_from(info.height).unwrap())
+        }
+      };
+         Ok(Json(api::BlockTxs::new(
+          block,
+          Height(height),
+          Self::index_height(&index)?,
+        ))
+        .into_response())
+    })
+    
+    
   }
 
   async fn parents(
