@@ -48,6 +48,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'tx, InscriptionIdValue, u32>,
+  pub(super) index_addresses: bool,
   pub(super) index_transactions: bool,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
   pub(super) lost_sats: u64,
@@ -317,13 +318,15 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       output_value = end;
 
-      self.utxo_cache.insert(
-        OutPoint {
-          vout: vout.try_into().unwrap(),
-          txid,
-        },
-        txout.clone(),
-      );
+      if !self.index_addresses {
+        self.utxo_cache.insert(
+          OutPoint {
+            vout: vout.try_into().unwrap(),
+            txid,
+          },
+          txout.clone(),
+        );
+      }
     }
 
     for (new_satpoint, mut flotsam, op_return) in new_locations.into_iter() {
