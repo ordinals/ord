@@ -67,36 +67,36 @@ impl FromStr for Outgoing {
       Ok(Outgoing::Sat(
         input
           .parse()
-          .snafu_context(error::UnrecognizedSat { input })?,
+          .snafu_context(error::OutgoingSatParse { input })?,
       ))
     } else if re::SATPOINT.is_match(input) {
       Ok(Outgoing::SatPoint(
         input
           .parse()
-          .snafu_context(error::UnrecognizedSatPoint { input })?,
+          .snafu_context(error::OutgoingSatPointParse { input })?,
       ))
     } else if re::INSCRIPTION_ID.is_match(input) {
       Ok(Outgoing::InscriptionId(
         input
           .parse()
-          .snafu_context(error::UnrecognizedInscriptionId { input })?,
+          .snafu_context(error::OutgoingInscriptionIdParse { input })?,
       ))
     } else if AMOUNT.is_match(input) {
       Ok(Outgoing::Amount(
         input
           .parse()
-          .snafu_context(error::UnrecognizedAmount { input })?,
+          .snafu_context(error::AmountParse { input })?,
       ))
     } else if let Some(captures) = RUNE.captures(input) {
       let decimal = captures[1]
         .parse::<Decimal>()
-        .snafu_context(error::DecimalParse { input })?;
+        .snafu_context(error::RuneAmountParse { input })?;
       let rune = captures[2]
         .parse()
-        .snafu_context(error::RuneParse { input })?;
+        .snafu_context(error::OutgoingRuneParse { input })?;
       Ok(Self::Rune { decimal, rune })
     } else {
-      Err(SnafuError::UnrecognizedOutgoing {
+      Err(SnafuError::OutgoingParse {
         input: input.to_string(),
       })
     }
