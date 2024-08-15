@@ -76,16 +76,12 @@ impl FromStr for Outgoing {
           .snafu_context(error::OutgoingSatPointParse { input })?,
       ))
     } else if re::INSCRIPTION_ID.is_match(input) {
-      Ok(Outgoing::InscriptionId(
-        input
-          .parse()
-          .snafu_context(error::OutgoingInscriptionIdParse { input })?,
-      ))
+      Ok(Outgoing::InscriptionId(input.parse().snafu_context(
+        error::OutgoingInscriptionIdParse { input },
+      )?))
     } else if AMOUNT.is_match(input) {
       Ok(Outgoing::Amount(
-        input
-          .parse()
-          .snafu_context(error::AmountParse { input })?,
+        input.parse().snafu_context(error::AmountParse { input })?,
       ))
     } else if let Some(captures) = RUNE.captures(input) {
       let decimal = captures[1]
