@@ -16,6 +16,7 @@ pub mod supply;
 pub mod teleburn;
 pub mod traits;
 pub mod wallet;
+pub mod wallets;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
@@ -51,6 +52,8 @@ pub(crate) enum Subcommand {
   Traits(traits::Traits),
   #[command(about = "Wallet commands")]
   Wallet(wallet::WalletCommand),
+  #[command(about = "List all Bitcoin Core wallets")]
+  Wallets,
 }
 
 impl Subcommand {
@@ -77,6 +80,7 @@ impl Subcommand {
       Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(settings),
+      Self::Wallets => wallets::run(settings),
     }
   }
 }
