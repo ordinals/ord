@@ -40,7 +40,7 @@
 %% if end - start == 1 {
   <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
-  <li><a href=/range/{{start}}/{{end}} class={{Sat(*start).rarity()}}>{{start}}–{{end}}</a></li>
+  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a>-<a href=/sat/{{end}}>{{end}}</a><a href=/range/{{start}}/{{end}}>(range)</a></li>
 %% }
 %% }
 </ul>
