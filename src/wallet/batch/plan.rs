@@ -9,7 +9,7 @@ pub struct Plan {
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
-  pub(crate) parent_info: Option<ParentInfo>,
+  pub(crate) parents_info: Vec<ParentInfo>,
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
@@ -28,7 +28,7 @@ impl Default for Plan {
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
-      parent_info: None,
+      parents_info: Vec::new(),
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
@@ -206,19 +206,9 @@ impl Plan {
       let index = u32::try_from(i).unwrap();
 
       let vout = match self.mode {
-        Mode::SharedOutput | Mode::SameSat => {
-          if self.parent_info.is_some() {
-            1
-          } else {
-            0
-          }
-        }
+        Mode::SharedOutput | Mode::SameSat => self.parents_info.len().try_into().unwrap(),
         Mode::SeparateOutputs | Mode::SatPoints => {
-          if self.parent_info.is_some() {
-            index + 1
-          } else {
-            index
-          }
+          index + u32::try_from(self.parents_info.len()).unwrap()
         }
       };
 
@@ -252,7 +242,7 @@ impl Plan {
       commit,
       commit_psbt,
       inscriptions: inscriptions_output,
-      parent: self.parent_info.clone().map(|info| info.id),
+      parents: self.parents_info.iter().map(|info| info.id).collect(),
       reveal,
       reveal_broadcast,
       reveal_psbt,
@@ -271,7 +261,7 @@ impl Plan {
     commit_change: [Address; 2],
     reveal_change: Address,
   ) -> Result<Transactions> {
-    if let Some(parent_info) = &self.parent_info {
+    for parent_info in &self.parents_info {
       for inscription in &self.inscriptions {
         assert_eq!(inscription.parents(), vec![parent_info.id]);
       }
@@ -396,12 +386,12 @@ impl Plan {
     let mut reveal_inputs = Vec::new();
     let mut reveal_outputs = Vec::new();
 
-    if let Some(ParentInfo {
+    for ParentInfo {
       location,
       id: _,
       destination,
       tx_out,
-    }) = self.parent_info.clone()
+    } in &self.parents_info
     {
       reveal_inputs.push(location.outpoint);
       reveal_outputs.push(TxOut {
@@ -505,7 +495,7 @@ impl Plan {
       runestone = None;
     }
 
-    let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
+    let commit_input = self.parents_info.len() + self.reveal_satpoints.len();
 
     let (_reveal_tx, reveal_fee) = Self::build_reveal_transaction(
       commit_input,
@@ -571,8 +561,8 @@ impl Plan {
 
     let mut prevouts = Vec::new();
 
-    if let Some(parent_info) = self.parent_info.clone() {
-      prevouts.push(parent_info.tx_out);
+    for parent_info in &self.parents_info {
+      prevouts.push(parent_info.tx_out.clone());
     }
 
     if self.mode == Mode::SatPoints {

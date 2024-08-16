@@ -145,7 +145,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -360,7 +360,7 @@ fn batch_in_separate_outputs_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -437,7 +437,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -688,7 +688,7 @@ fn batch_same_sat_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: same-sat\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("mode: same-sat\nparents:\n- {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -872,7 +872,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -1166,7 +1166,8 @@ fn batch_inscribe_with_satpoints_with_parent() {
       format!(
         r#"
 mode: satpoints
-parent: {parent_id}
+parents:
+- {parent_id}
 inscriptions:
 - file: inscription.txt
   satpoint: {}

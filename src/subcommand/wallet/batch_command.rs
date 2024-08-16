@@ -17,12 +17,12 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    let parent_info = wallet.get_parent_info(batchfile.parent)?;
+    let parents_info = wallet.get_parents_info(batchfile.parents.clone())?;
 
     let (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
       &wallet,
       utxos,
-      parent_info.as_ref().map(|info| info.tx_out.value),
+      parents_info.iter().map(|info| info.tx_out.value).collect(),
       self.shared.compress,
     )?;
 
@@ -47,7 +47,7 @@ impl Batch {
       mode: batchfile.mode,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
-      parent_info,
+      parents_info,
       postages,
       reinscribe: batchfile.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,
@@ -204,7 +204,8 @@ mod tests {
       &batch_path,
       format!(
         "mode: separate-outputs
-parent: {parent}
+parents:
+- {parent}
 inscriptions:
 - file: {}
   metadata:
@@ -241,7 +242,7 @@ inscriptions:
             ..default()
           }
         ],
-        parent: Some(parent),
+        parents: vec![parent],
         ..default()
       }
     );

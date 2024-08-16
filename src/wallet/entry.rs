@@ -76,7 +76,7 @@ mod tests {
       commit: txid,
       commit_psbt: None,
       inscriptions: Vec::new(),
-      parent: None,
+      parents: Vec::new(),
       reveal: txid,
       reveal_broadcast: true,
       reveal_psbt: None,

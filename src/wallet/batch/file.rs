@@ -5,7 +5,8 @@ use super::*;
 pub struct File {
   pub inscriptions: Vec<Entry>,
   pub mode: Mode,
-  pub parent: Option<InscriptionId>,
+  #[serde(default)]
+  pub parents: Vec<InscriptionId>,
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
@@ -107,7 +108,7 @@ impl File {
     &self,
     wallet: &Wallet,
     utxos: &BTreeMap<OutPoint, TxOut>,
-    parent_value: Option<u64>,
+    parents_values: Vec<u64>,
     compress: bool,
   ) -> Result<(
     Vec<Inscription>,
@@ -119,7 +120,7 @@ impl File {
     let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
 
-    let mut pointer = parent_value.unwrap_or_default();
+    let mut pointer = parents_values.iter().sum();
 
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {
@@ -135,7 +136,7 @@ impl File {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent.into_iter().collect(),
+        self.parents.clone(),
         entry.file.clone(),
         Some(pointer),
         self
@@ -366,11 +367,11 @@ inscriptions:
       batch::File::load(Path::new("batch.yaml")).unwrap(),
       batch::File {
         mode: batch::Mode::SeparateOutputs,
-        parent: Some(
+        parents: vec![
           "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
             .parse()
             .unwrap()
-        ),
+        ],
         postage: Some(12345),
         reinscribe: true,
         sat: None,
