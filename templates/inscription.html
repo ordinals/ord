@@ -39,6 +39,10 @@
     </div>
   </dd>
 %% }
+%% if let Some(rune) = self.rune {
+  <dt>rune</dt>
+  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
+%% }
   <dt>id</dt>
   <dd class=monospace>{{ self.id }}</dd>
 %% if self.charms != 0 {
@@ -46,7 +50,7 @@
   <dd>
 %% for charm in Charm::ALL {
 %%   if charm.is_set(self.charms) {
-    <span title={{charm.title()}}>{{charm.icon()}}</span>
+    <span title={{charm}}>{{charm.icon()}}</span>
 %%   }
 %% }
   </dd>
@@ -60,7 +64,7 @@
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
-  <dd class=monospace>{{ address }}</dd>
+  <dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
   <dd>{{ output.value }}</dd>
@@ -68,6 +72,8 @@
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+  <dt>sat name</dt>
+  <dd><a href=/sat/{{ sat.name() }}>{{ sat.name() }}</a></dd>
 %% }
 %% if let Some(metaprotocol) = self.inscription.metaprotocol() {
   <dt>metaprotocol</dt>
@@ -111,8 +117,4 @@
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
   <dd>{{ teleburn::Ethereum::from(self.id) }}</dd>
-%% if let Some(rune) = self.rune {
-  <dt>rune</dt>
-  <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
-%% }
 </dl>

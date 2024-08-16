@@ -24,10 +24,6 @@ impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.number)
   }
-
-  fn preview_image_url(&self) -> Option<Trusted<String>> {
-    Some(Trusted(format!("/content/{}", self.id)))
-  }
 }
 
 #[cfg(test)]
@@ -43,7 +39,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -95,10 +91,10 @@ mod tests {
         number: 1,
         output: Some(tx_out(1, address())),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
-        <h1>Inscription 1</h1>
+        .*<h1>Inscription 1</h1>
         <div class=inscription>
         <div>❮</div>
         <iframe .* src=/preview/1{64}i1></iframe>
@@ -107,7 +103,7 @@ mod tests {
         <dl>
           .*
           <dt>address</dt>
-          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
+          <dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>
           <dt>value</dt>
           <dd>1</dd>
           .*
@@ -128,7 +124,7 @@ mod tests {
         output: Some(tx_out(1, address())),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -137,6 +133,8 @@ mod tests {
           .*
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
+          <dt>sat name</dt>
+          <dd><a href=/sat/nvtdijuwxlo>nvtdijuwxlo</a></dd>
           <dt>preview</dt>
           .*
         </dl>
@@ -158,7 +156,7 @@ mod tests {
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -187,7 +185,7 @@ mod tests {
           offset: 0
         },
         timestamp: timestamp(0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription -1</h1>
@@ -215,7 +213,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -276,7 +274,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -338,7 +336,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
@@ -402,15 +400,15 @@ mod tests {
           rune: Rune(26),
           spacers: 1
         }),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>
         .*
         <dl>
-          .*
           <dt>rune</dt>
           <dd><a href=/rune/A•A>A•A</a></dd>
+          .*
         </dl>
       "
       .unindent()
@@ -429,7 +427,7 @@ mod tests {
         id: inscription_id(1),
         number: 1,
         satpoint: satpoint(1, 0),
-        ..Default::default()
+        ..default()
       },
       "
         <h1>Inscription 1</h1>

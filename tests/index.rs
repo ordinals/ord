@@ -2,15 +2,15 @@ use super::*;
 
 #[test]
 fn run_is_an_alias_for_update() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
+  let core = mockcore::spawn();
+  core.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
 
   let index_path = tempdir.path().join("foo.redb");
 
   CommandBuilder::new(format!("--index {} index run", index_path.display()))
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 
   assert!(index_path.is_file())
@@ -18,15 +18,15 @@ fn run_is_an_alias_for_update() {
 
 #[test]
 fn custom_index_path() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
+  let core = mockcore::spawn();
+  core.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
 
   let index_path = tempdir.path().join("foo.redb");
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 
   assert!(index_path.is_file())
@@ -34,42 +34,42 @@ fn custom_index_path() {
 
 #[test]
 fn re_opening_database_does_not_trigger_schema_check() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
+  let core = mockcore::spawn();
+  core.mine_blocks(1);
 
   let tempdir = TempDir::new().unwrap();
 
   let index_path = tempdir.path().join("foo.redb");
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 
   assert!(index_path.is_file());
 
   CommandBuilder::new(format!("--index {} index update", index_path.display()))
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .run_and_extract_stdout();
 }
 
 #[test]
 fn export_inscription_number_to_id_tsv() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   let temp_dir = TempDir::new().unwrap();
 
-  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
-  inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  inscribe(&core, &ord);
+  inscribe(&core, &ord);
 
-  let (inscription, _) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (inscription, _) = inscribe(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let tsv = CommandBuilder::new("index export --tsv foo.tsv")
-    .bitcoin_rpc_server(&bitcoin_rpc_server)
+    .core(&core)
     .temp_dir(Arc::new(temp_dir))
     .run_and_extract_file("foo.tsv");
 

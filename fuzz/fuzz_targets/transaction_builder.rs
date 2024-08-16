@@ -4,10 +4,11 @@ use {
   arbitrary::Arbitrary,
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    Amount, OutPoint,
+    Amount, OutPoint, TxOut,
   },
   libfuzzer_sys::fuzz_target,
-  ord::{FeeRate, SatPoint, Target, TransactionBuilder},
+  ord::{FeeRate, InscriptionId, Target, TransactionBuilder},
+  ordinals::SatPoint,
   std::collections::{BTreeMap, BTreeSet},
 };
 
@@ -15,7 +16,6 @@ use {
 struct Input {
   output_value: Option<u64>,
   fee_rate: f64,
-  utxos: Vec<u64>,
 }
 
 fuzz_target!(|input: Input| {
@@ -28,23 +28,24 @@ fuzz_target!(|input: Input| {
     .unwrap();
 
   let inscription_id = "1111111111111111111111111111111111111111111111111111111111111111i1"
-    .parse()
+    .parse::<InscriptionId>()
     .unwrap();
 
   let mut inscriptions = BTreeMap::new();
-  inscriptions.insert(satpoint, inscription_id);
+  inscriptions.insert(satpoint, vec![inscription_id]);
 
+  let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    .parse::<Address<NetworkUnchecked>>()
+    .unwrap()
+    .assume_checked();
   let mut amounts = BTreeMap::new();
-  amounts.insert(outpoint, Amount::from_sat(1_000_000));
-
-  for (i, value) in input.utxos.into_iter().enumerate() {
-    amounts.insert(
-      format!("0000000000000000000000000000000000000000000000000000000000000000:{i}",)
-        .parse()
-        .unwrap(),
-      Amount::from_sat(value),
-    );
-  }
+  amounts.insert(
+    outpoint,
+    TxOut {
+      value: 50_000,
+      script_pubkey: address.script_pubkey(),
+    },
+  );
 
   let recipient = "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
     .parse::<Address<NetworkUnchecked>>()

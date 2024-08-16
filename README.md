@@ -87,10 +87,19 @@ command line.
 Building
 --------
 
-On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
+On Linux, `ord` requires `libssl-dev` when building from source.
+
+On Debian-derived Linux distributions, including Ubuntu:
 
 ```
-sudo apt-get install pkg-config libssl-dev
+sudo apt-get install pkg-config libssl-dev build-essential
+```
+
+On Red Hat-derived Linux distributions:
+
+```
+yum install -y pkgconfig openssl-devel
+yum groupinstall "Development Tools"
 ```
 
 You'll also need Rust:
@@ -99,17 +108,29 @@ You'll also need Rust:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-To build `ord` from source:
+Clone the `ord` repo:
 
 ```
 git clone https://github.com/ordinals/ord.git
 cd ord
+```
+
+To build a specific version of `ord`, first checkout that version:
+
+```
+git checkout <VERSION>
+```
+
+And finally to actually build `ord`:
+
+```
 cargo build --release
 ```
 
 Once built, the `ord` binary can be found at `./target/release/ord`.
 
-`ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+`ord` requires `rustc` version 1.76.0 or later. Run `rustc --version` to ensure
+you have this version. Run `rustup update` to get the latest stable release.
 
 ### Docker
 
@@ -181,7 +202,7 @@ We also try to follow a TDD (Test-Driven-Development) approach, which means we
 use tests as a way to get visibility into the code. Tests have to run fast for that
 reason so that the feedback loop between making a change, running the test and
 seeing the result is small. To facilitate that we created a mocked Bitcoin Core
-instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc).
+instance in [mockcore](./crates/mockcore)
 
 Syncing
 -------
@@ -243,6 +264,13 @@ the server and show `info`-level log messages and above:
 
 ```
 $ RUST_LOG=info cargo run server
+```
+
+Set the `RUST_BACKTRACE` environment variable in order to turn on full rust
+backtrace. For example, run the server and turn on debugging and full backtrace:
+
+```
+$ RUST_BACKTRACE=1 RUST_LOG=debug ord server
 ```
 
 New Releases

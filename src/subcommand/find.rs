@@ -32,7 +32,10 @@ impl Find {
 
     match self.end {
       Some(end) => match index.find_range(self.sat, end)? {
-        Some(result) => Ok(Some(Box::new(result))),
+        Some(mut results) => {
+          results.sort_by_key(|find_range_output| find_range_output.start);
+          Ok(Some(Box::new(results)))
+        }
         None => Err(anyhow!("range has not been mined as of index height")),
       },
       None => match index.find(self.sat)? {

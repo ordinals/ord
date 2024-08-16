@@ -1,14 +1,14 @@
 use super::*;
 
 #[derive(Copy, Clone)]
-pub(crate) enum Blocktime {
+pub enum Blocktime {
   Confirmed(DateTime<Utc>),
   Expected(DateTime<Utc>),
 }
 
 impl Blocktime {
   pub(crate) fn confirmed(seconds: u32) -> Self {
-    Self::Confirmed(timestamp(seconds))
+    Self::Confirmed(timestamp(seconds.into()))
   }
 
   pub(crate) fn timestamp(self) -> DateTime<Utc> {

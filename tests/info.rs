@@ -2,9 +2,9 @@ use {super::*, ord::subcommand::index::info::TransactionsOutput};
 
 #[test]
 fn json_with_satoshi_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
   CommandBuilder::new("--index-sats index info")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .stdout_regex(
       r#"\{
   "blocks_indexed": 1,
@@ -36,9 +36,9 @@ fn json_with_satoshi_index() {
 
 #[test]
 fn json_without_satoshi_index() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
   CommandBuilder::new("index info")
-    .bitcoin_rpc_server(&rpc_server)
+    .core(&core)
     .stdout_regex(
       r#"\{
   "blocks_indexed": 1,
@@ -70,7 +70,7 @@ fn json_without_satoshi_index() {
 
 #[test]
 fn transactions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
   let tempdir = TempDir::new().unwrap();
 
@@ -80,30 +80,30 @@ fn transactions() {
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .bitcoin_rpc_server(&rpc_server)
+  .core(&core)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>()
   .is_empty());
 
-  rpc_server.mine_blocks(10);
+  core.mine_blocks(10);
 
   let output = CommandBuilder::new(format!(
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .bitcoin_rpc_server(&rpc_server)
+  .core(&core)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[0].start, 0);
   assert_eq!(output[0].end, 1);
   assert_eq!(output[0].count, 1);
 
-  rpc_server.mine_blocks(10);
+  core.mine_blocks(10);
 
   let output = CommandBuilder::new(format!(
     "--index {} index info --transactions",
     index_path.display()
   ))
-  .bitcoin_rpc_server(&rpc_server)
+  .core(&core)
   .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[1].start, 1);

@@ -11,6 +11,8 @@ Summary
   - [Provenance](inscriptions/provenance.md)
   - [Recursion](inscriptions/recursion.md)
   - [Rendering](inscriptions/rendering.md)
+- [Runes](runes.md)
+  - [Specification](runes/specification.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Donate](donate.md)

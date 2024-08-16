@@ -1,23 +1,25 @@
 use {
-  super::{
-    target_as_block_hash, BlockHash, Chain, Deserialize, Height, InscriptionId, OutPoint, Pile,
-    Rarity, SatPoint, Serialize, SpacedRune, TxMerkleNode, TxOut,
-  },
+  super::*,
   serde_hex::{SerHex, Strict},
 };
 
-pub use crate::templates::{
-  BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
-  TransactionHtml as Transaction,
+pub use crate::{
+  subcommand::decode::RawOutput as Decode,
+  templates::{
+    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
+    TransactionHtml as Transaction,
+  },
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
-  pub hash: BlockHash,
-  pub target: BlockHash,
   pub best_height: u32,
+  pub hash: BlockHash,
   pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
+  pub runes: Vec<SpacedRune>,
+  pub target: BlockHash,
+  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
 }
 
 impl Block {
@@ -26,6 +28,7 @@ impl Block {
     height: Height,
     best_height: Height,
     inscriptions: Vec<InscriptionId>,
+    runes: Vec<SpacedRune>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -33,6 +36,8 @@ impl Block {
       height: height.0,
       best_height: best_height.0,
       inscriptions,
+      runes,
+      transactions: block.txdata,
     }
   }
 }
@@ -47,6 +52,7 @@ pub struct BlockInfo {
   pub confirmations: i32,
   pub difficulty: f64,
   pub hash: BlockHash,
+  pub feerate_percentiles: [u64; 5],
   pub height: u32,
   pub max_fee: u64,
   pub max_fee_rate: u64,
@@ -76,13 +82,21 @@ pub struct Children {
   pub page: usize,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptions {
+  pub children: Vec<ChildInscriptionRecursive>,
+  pub more: bool,
+  pub page: usize,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
+  pub effective_content_type: Option<String>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
@@ -99,9 +113,10 @@ pub struct Inscription {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionRecursive {
-  pub charms: Vec<String>,
+  pub charms: Vec<Charm>,
   pub content_type: Option<String>,
   pub content_length: Option<usize>,
+  pub delegate: Option<InscriptionId>,
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
@@ -114,6 +129,19 @@ pub struct InscriptionRecursive {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptionRecursive {
+  pub charms: Vec<Charm>,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inscriptions {
   pub ids: Vec<InscriptionId>,
   pub more: bool,
@@ -122,10 +150,10 @@ pub struct Inscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub address: Option<String>,
+  pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: Vec<(SpacedRune, Pile)>,
+  pub runes: BTreeMap<SpacedRune, Pile>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: String,
   pub spent: bool,
@@ -138,45 +166,46 @@ impl Output {
     chain: Chain,
     inscriptions: Vec<InscriptionId>,
     outpoint: OutPoint,
-    output: TxOut,
+    tx_out: TxOut,
     indexed: bool,
-    runes: Vec<(SpacedRune, Pile)>,
+    runes: BTreeMap<SpacedRune, Pile>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
     Self {
       address: chain
-        .address_from_script(&output.script_pubkey)
+        .address_from_script(&tx_out.script_pubkey)
         .ok()
-        .map(|address| address.to_string()),
+        .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
       runes,
       sat_ranges,
-      script_pubkey: output.script_pubkey.to_asm_string(),
+      script_pubkey: tx_out.script_pubkey.to_asm_string(),
       spent,
       transaction: outpoint.txid.to_string(),
-      value: output.value,
+      value: tx_out.value,
     }
   }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
-  pub number: u64,
+  pub block: u32,
+  pub charms: Vec<Charm>,
+  pub cycle: u32,
   pub decimal: String,
   pub degree: String,
-  pub name: String,
-  pub block: u32,
-  pub cycle: u32,
   pub epoch: u32,
-  pub period: u32,
+  pub inscriptions: Vec<InscriptionId>,
+  pub name: String,
+  pub number: u64,
   pub offset: u64,
-  pub rarity: Rarity,
   pub percentile: String,
+  pub period: u32,
+  pub rarity: Rarity,
   pub satpoint: Option<SatPoint>,
   pub timestamp: i64,
-  pub inscriptions: Vec<InscriptionId>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

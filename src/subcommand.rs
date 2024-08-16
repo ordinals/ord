@@ -16,6 +16,7 @@ pub mod supply;
 pub mod teleburn;
 pub mod traits;
 pub mod wallet;
+pub mod wallets;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
@@ -51,6 +52,8 @@ pub(crate) enum Subcommand {
   Traits(traits::Traits),
   #[command(about = "Wallet commands")]
   Wallet(wallet::WalletCommand),
+  #[command(about = "List all Bitcoin Core wallets")]
+  Wallets,
 }
 
 impl Subcommand {
@@ -77,24 +80,33 @@ impl Subcommand {
       Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(settings),
+      Self::Wallets => wallets::run(settings),
     }
   }
 }
 
+#[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+pub enum OutputFormat {
+  #[default]
+  Json,
+  Yaml,
+  Minify,
+}
+
 pub trait Output: Send {
-  fn print_json(&self, minify: bool);
+  fn print(&self, format: OutputFormat);
 }
 
 impl<T> Output for T
 where
   T: Serialize + Send,
 {
-  fn print_json(&self, minify: bool) {
-    if minify {
-      serde_json::to_writer(io::stdout(), self).ok();
-    } else {
-      serde_json::to_writer_pretty(io::stdout(), self).ok();
-    }
+  fn print(&self, format: OutputFormat) {
+    match format {
+      OutputFormat::Json => serde_json::to_writer_pretty(io::stdout(), self).ok(),
+      OutputFormat::Yaml => serde_yaml::to_writer(io::stdout(), self).ok(),
+      OutputFormat::Minify => serde_json::to_writer(io::stdout(), self).ok(),
+    };
     println!();
   }
 }

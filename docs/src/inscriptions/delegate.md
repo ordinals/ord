@@ -2,8 +2,9 @@ Delegate
 ========
 
 Inscriptions may nominate a delegate inscription. Requests for the content of
-an inscription with a delegate will instead return the content and content type
-of the delegate. This can be used to cheaply create copies of an inscription.
+an inscription with a delegate will instead return the content, content type 
+and content encoding of the delegate. This can be used to cheaply create copies 
+of an inscription.
 
 ### Specification
 
@@ -36,4 +37,4 @@ OP_ENDIF
 Note that the value of tag `11` is decimal, not hex.
 
 The delegate field value uses the same encoding as the parent field. See
-[provenance](provenance.md) for more examples of inscrpition ID encodings;
+[provenance](provenance.md) for more examples of inscription ID encodings;
