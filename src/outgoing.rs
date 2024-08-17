@@ -65,20 +65,20 @@ impl FromStr for Outgoing {
 
     if re::SAT_NAME.is_match(input) {
       Ok(Outgoing::Sat(
-        input
-          .parse()
-          .snafu_context(error::OutgoingSatParse { input })?,
+        input.parse().snafu_context(error::SatParse { input })?,
       ))
     } else if re::SATPOINT.is_match(input) {
       Ok(Outgoing::SatPoint(
         input
           .parse()
-          .snafu_context(error::OutgoingSatPointParse { input })?,
+          .snafu_context(error::SatPointParse { input })?,
       ))
     } else if re::INSCRIPTION_ID.is_match(input) {
-      Ok(Outgoing::InscriptionId(input.parse().snafu_context(
-        error::OutgoingInscriptionIdParse { input },
-      )?))
+      Ok(Outgoing::InscriptionId(
+        input
+          .parse()
+          .snafu_context(error::InscriptionIdParse { input })?,
+      ))
     } else if AMOUNT.is_match(input) {
       Ok(Outgoing::Amount(
         input.parse().snafu_context(error::AmountParse { input })?,
@@ -89,7 +89,7 @@ impl FromStr for Outgoing {
         .snafu_context(error::RuneAmountParse { input })?;
       let rune = captures[2]
         .parse()
-        .snafu_context(error::OutgoingRuneParse { input })?;
+        .snafu_context(error::RuneParse { input })?;
       Ok(Self::Rune { decimal, rune })
     } else {
       Err(SnafuError::OutgoingParse {
