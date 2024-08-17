@@ -10,7 +10,7 @@ use {
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
     PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -29,7 +29,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -254,7 +254,6 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
-        .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
@@ -652,22 +651,6 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
-  }
-
-  async fn range(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
-      DeserializeFromStr<Sat>,
-      DeserializeFromStr<Sat>,
-    )>,
-  ) -> ServerResult<PageHtml<RangeHtml>> {
-    match start.cmp(&end) {
-      Ordering::Equal => Err(ServerError::BadRequest("empty range".to_string())),
-      Ordering::Greater => Err(ServerError::BadRequest(
-        "range start greater than range end".to_string(),
-      )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(server_config)),
-    }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
@@ -3678,50 +3661,6 @@ mod tests {
   }
 
   #[test]
-  fn range_end_before_range_start_returns_400() {
-    TestServer::new().assert_response(
-      "/range/1/0",
-      StatusCode::BAD_REQUEST,
-      "range start greater than range end",
-    );
-  }
-
-  #[test]
-  fn invalid_range_start_returns_400() {
-    TestServer::new().assert_response(
-      "/range/=/0",
-      StatusCode::BAD_REQUEST,
-      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
-    );
-  }
-
-  #[test]
-  fn invalid_range_end_returns_400() {
-    TestServer::new().assert_response(
-      "/range/0/=",
-      StatusCode::BAD_REQUEST,
-      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
-    );
-  }
-
-  #[test]
-  fn empty_range_returns_400() {
-    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "empty range");
-  }
-
-  #[test]
-  fn range() {
-    TestServer::new().assert_response_regex(
-      "/range/0/1",
-      StatusCode::OK,
-      r".*<title>Sat Range 0–1</title>.*<h1>Sat Range 0–1</h1>
-<dl>
-  <dt>value</dt><dd>1</dd>
-  <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
-</dl>.*",
-    );
-  }
-  #[test]
   fn sat_number() {
     TestServer::new().assert_response_regex("/sat/0", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
   }
@@ -3800,7 +3739,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
+  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000>5000000000</a><a href=/range/0/5000000000> \\(5000000000 sats\\)</a></li>
 </ul>.*"
         ),
       );
@@ -3866,7 +3805,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/range/5000000000/10000000000 class=uncommon>5000000000–10000000000</a></li>
+  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000>10000000000</a><a href=/range/5000000000/10000000000> \\(5000000000 sats\\)</a></li>
 </ul>.*"
       ),
     );
