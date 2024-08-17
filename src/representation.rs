@@ -37,13 +37,13 @@ impl Representation {
 }
 
 impl FromStr for Representation {
-  type Err = Error;
+  type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self> {
-    if let Some(i) = REGEX_SET.matches(s).into_iter().next() {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
+    if let Some(i) = REGEX_SET.matches(input).into_iter().next() {
       Ok(PATTERNS[i].0)
     } else {
-      Err(anyhow!("unrecognized object"))
+      Err(error::UnrecognizedRepresentation { input }.build())
     }
   }
 }
