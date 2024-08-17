@@ -54,9 +54,7 @@ pub enum SnafuError {
   #[snafu(display("Unrecognized outgoing: `{}`", input))]
   OutgoingParse { input: String },
   #[snafu(display("Failed to parse decimal: {}", source))]
-  RuneAmountParse { 
-    source: error::Error, 
-    input: String },
+  RuneAmountParse { source: error::Error, input: String },
   #[snafu(display("Invalid chain `{}`", chain))]
   InvalidChain { chain: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
