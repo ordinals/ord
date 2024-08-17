@@ -261,10 +261,15 @@ impl Plan {
     commit_change: [Address; 2],
     reveal_change: Address,
   ) -> Result<Transactions> {
-    for parent_info in &self.parents_info {
-      for inscription in &self.inscriptions {
-        assert_eq!(inscription.parents(), vec![parent_info.id]);
-      }
+    for inscription in &self.inscriptions {
+      assert_eq!(
+        inscription.parents(),
+        self
+          .parents_info
+          .iter()
+          .map(|info| info.id)
+          .collect::<Vec<InscriptionId>>()
+      );
     }
 
     match self.mode {
