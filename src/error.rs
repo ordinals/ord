@@ -43,8 +43,21 @@ pub enum SnafuError {
     source: ordinals::sat_point::Error,
     input: String,
   },
-  #[snafu(display("Unrecognized representation `{}`", input))]
-  UnrecognizedRepresentation { source: error::Error, input: String },
+  #[snafu(display("Unrecognized representation: `{}`", input))]
+  UnrecognizedRepresentation { input: String },
+  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
+  AmountParse {
+    source: bitcoin::amount::ParseAmountError,
+    input: String,
+  },
+  #[snafu(display("Unrecognized outgoing: `{}`", input))]
+  OutgoingParse { input: String },
+  #[snafu(display("Failed to parse decimal: {}", source))]
+  RuneAmountParse { source: error::Error, input: String },
+  #[snafu(display("Invalid chain `{}`", chain))]
+  InvalidChain { chain: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion { source: bitcoin::address::Error },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]

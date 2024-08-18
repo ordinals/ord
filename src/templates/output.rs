@@ -48,7 +48,7 @@ mod tests {
         <h2>2 Sat Ranges</h2>
         <ul class=monospace>
           <li><a href=/sat/0 class=mythic>0</a></li>
-          <li><a href=/range/1/3 class=common>1–3</a></li>
+          <li><a href=/sat/1 class=common>1</a>-<a href=/sat/3>3</a><a href=/range/1/3> \\(2 sats\\)</a></li>
         </ul>
       "
       .unindent()
@@ -107,7 +107,7 @@ mod tests {
         <h2>2 Sat Ranges</h2>
         <ul class=monospace>
           <li><a href=/sat/0 class=mythic>0</a></li>
-          <li><a href=/range/1/3 class=common>1–3</a></li>
+          <li><a href=/sat/1 class=common>1</a>-<a href=/sat/3>3</a><a href=/range/1/3> \\(2 sats\\)</a></li>
         </ul>
       "
       .unindent()
