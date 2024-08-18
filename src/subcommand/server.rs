@@ -10,12 +10,12 @@ use {
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
     PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RangeHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{header, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderName, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -29,7 +29,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -84,6 +84,8 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
+  #[arg(long, help = "Disable cross origin isolation.")]
+  pub(crate) disable_cross_origin_isolation: bool,
   #[arg(long, help = "Disable JSON API.")]
   pub(crate) disable_json_api: bool,
   #[arg(
@@ -153,12 +155,13 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
-        proxy: self.proxy.clone(),
+        cross_origin_isolation: !self.disable_cross_origin_isolation,
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
+        proxy: self.proxy.clone(),
       });
 
       let router = Router::new()
@@ -251,7 +254,6 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
-        .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
@@ -284,6 +286,24 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
+
+      let router = if server_config.cross_origin_isolation {
+        router
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("require-corp"),
+          ))
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-opener-policy"),
+            HeaderValue::from_static("same-origin"),
+          ))
+          .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("same-site"),
+          ))
+      } else {
+        router
+      };
 
       let router = if server_config.json_api_enabled {
         router.layer(DefaultBodyLimit::disable())
@@ -631,22 +651,6 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
-  }
-
-  async fn range(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
-      DeserializeFromStr<Sat>,
-      DeserializeFromStr<Sat>,
-    )>,
-  ) -> ServerResult<PageHtml<RangeHtml>> {
-    match start.cmp(&end) {
-      Ordering::Equal => Err(ServerError::BadRequest("empty range".to_string())),
-      Ordering::Greater => Err(ServerError::BadRequest(
-        "range start greater than range end".to_string(),
-      )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(server_config)),
-    }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
@@ -3668,50 +3672,6 @@ mod tests {
   }
 
   #[test]
-  fn range_end_before_range_start_returns_400() {
-    TestServer::new().assert_response(
-      "/range/1/0",
-      StatusCode::BAD_REQUEST,
-      "range start greater than range end",
-    );
-  }
-
-  #[test]
-  fn invalid_range_start_returns_400() {
-    TestServer::new().assert_response(
-      "/range/=/0",
-      StatusCode::BAD_REQUEST,
-      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
-    );
-  }
-
-  #[test]
-  fn invalid_range_end_returns_400() {
-    TestServer::new().assert_response(
-      "/range/0/=",
-      StatusCode::BAD_REQUEST,
-      "Invalid URL: failed to parse sat `=`: invalid integer: invalid digit found in string",
-    );
-  }
-
-  #[test]
-  fn empty_range_returns_400() {
-    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "empty range");
-  }
-
-  #[test]
-  fn range() {
-    TestServer::new().assert_response_regex(
-      "/range/0/1",
-      StatusCode::OK,
-      r".*<title>Sat Range 0–1</title>.*<h1>Sat Range 0–1</h1>
-<dl>
-  <dt>value</dt><dd>1</dd>
-  <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
-</dl>.*",
-    );
-  }
-  #[test]
   fn sat_number() {
     TestServer::new().assert_response_regex("/sat/0", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
   }
@@ -3790,7 +3750,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
+  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000>5000000000</a><a href=/range/0/5000000000> \\(5000000000 sats\\)</a></li>
 </ul>.*"
         ),
       );
@@ -3856,7 +3816,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/range/5000000000/10000000000 class=uncommon>5000000000–10000000000</a></li>
+  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000>10000000000</a><a href=/range/5000000000/10000000000> \\(5000000000 sats\\)</a></li>
 </ul>.*"
       ),
     );
@@ -4865,6 +4825,31 @@ mod tests {
         .unwrap(),
       "max-age=31536000; includeSubDomains; preload",
     );
+  }
+
+  #[test]
+  fn cross_origin_isolation_headers() {
+    const COEP: HeaderName = HeaderName::from_static("cross-origin-embedder-policy");
+    const COOP: HeaderName = HeaderName::from_static("cross-origin-opener-policy");
+    const CORP: HeaderName = HeaderName::from_static("cross-origin-resource-policy");
+
+    {
+      let response = TestServer::new().get("/status");
+      assert_eq!(response.headers().get(COEP).unwrap(), "require-corp");
+      assert_eq!(response.headers().get(COOP).unwrap(), "same-origin");
+      assert_eq!(response.headers().get(CORP).unwrap(), "same-site");
+    }
+
+    {
+      let response = TestServer::builder()
+        .server_flag("--disable-cross-origin-isolation")
+        .build()
+        .get("/status");
+
+      assert!(response.headers().get(COEP).is_none());
+      assert!(response.headers().get(COOP).is_none());
+      assert!(response.headers().get(CORP).is_none());
+    }
   }
 
   #[test]

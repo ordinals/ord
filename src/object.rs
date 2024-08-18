@@ -18,9 +18,7 @@ impl FromStr for Object {
   fn from_str(input: &str) -> Result<Self, Self::Err> {
     use Representation::*;
 
-    match Representation::from_str(input)
-      .snafu_context(error::UnrecognizedRepresentation { input })?
-    {
+    match input.parse::<Representation>()? {
       Address => Ok(Self::Address(
         input.parse().snafu_context(error::AddressParse { input })?,
       )),
