@@ -89,7 +89,6 @@ pub(crate) enum Statistic {
   SatRanges = 10,
   UnboundInscriptions = 11,
   IndexTransactions = 12,
-  IndexSpentSats = 13,
   InitialSyncTime = 14,
   IndexAddresses = 15,
   IndexInscriptions = 16,
@@ -196,7 +195,6 @@ pub struct Index {
   index_inscriptions: bool,
   index_runes: bool,
   index_sats: bool,
-  index_spent_sats: bool,
   index_transactions: bool,
   path: PathBuf,
   settings: Settings,
@@ -348,13 +346,7 @@ impl Index {
           Self::set_statistic(
             &mut statistics,
             Statistic::IndexSats,
-            u64::from(settings.index_sats_raw() || settings.index_spent_sats_raw()),
-          )?;
-
-          Self::set_statistic(
-            &mut statistics,
-            Statistic::IndexSpentSats,
-            u64::from(settings.index_spent_sats_raw()),
+            u64::from(settings.index_sats_raw()),
           )?;
 
           Self::set_statistic(
@@ -420,7 +412,6 @@ impl Index {
     let index_addresses;
     let index_runes;
     let index_sats;
-    let index_spent_sats;
     let index_transactions;
     let index_inscriptions;
 
@@ -431,7 +422,6 @@ impl Index {
       index_inscriptions = Self::is_statistic_set(&statistics, Statistic::IndexInscriptions)?;
       index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
-      index_spent_sats = Self::is_statistic_set(&statistics, Statistic::IndexSpentSats)?;
       index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
     }
 
@@ -450,7 +440,6 @@ impl Index {
       index_addresses,
       index_runes,
       index_sats,
-      index_spent_sats,
       index_transactions,
       index_inscriptions,
       settings: settings.clone(),
@@ -6205,112 +6194,6 @@ mod tests {
 
       assert_eq!(sat, entry.sat);
     }
-  }
-
-  #[test]
-  fn index_spent_sats_retains_spent_sat_range_entries() {
-    let ranges = {
-      let context = Context::builder().arg("--index-sats").build();
-
-      context.mine_blocks(1);
-
-      let outpoint = OutPoint {
-        txid: context.core.tx(1, 0).into(),
-        vout: 0,
-      };
-
-      let ranges = context.index.list(outpoint).unwrap().unwrap();
-
-      assert!(!ranges.is_empty());
-
-      context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, Default::default())],
-        ..default()
-      });
-
-      context.mine_blocks(1);
-
-      assert!(context.index.list(outpoint).unwrap().is_none());
-
-      ranges
-    };
-
-    {
-      let context = Context::builder()
-        .arg("--index-sats")
-        .arg("--index-spent-sats")
-        .build();
-
-      context.mine_blocks(1);
-
-      let outpoint = OutPoint {
-        txid: context.core.tx(1, 0).into(),
-        vout: 0,
-      };
-
-      let unspent_ranges = context.index.list(outpoint).unwrap().unwrap();
-
-      assert!(!unspent_ranges.is_empty());
-
-      assert_eq!(unspent_ranges, ranges);
-
-      context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, Default::default())],
-        ..default()
-      });
-
-      context.mine_blocks(1);
-
-      let spent_ranges = context.index.list(outpoint).unwrap().unwrap();
-
-      assert_eq!(spent_ranges, ranges);
-    }
-  }
-
-  #[test]
-  fn index_spent_sats_implies_index_sats() {
-    let context = Context::builder().arg("--index-spent-sats").build();
-
-    context.mine_blocks(1);
-
-    let outpoint = OutPoint {
-      txid: context.core.tx(1, 0).into(),
-      vout: 0,
-    };
-
-    context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Default::default())],
-      ..default()
-    });
-
-    context.mine_blocks(1);
-
-    assert!(context.index.list(outpoint).unwrap().is_some());
-  }
-
-  #[test]
-  fn spent_sats_are_retained_after_flush() {
-    let context = Context::builder().arg("--index-spent-sats").build();
-
-    context.mine_blocks(1);
-
-    let txid = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Default::default())],
-      ..default()
-    });
-
-    context.mine_blocks_with_update(1, false);
-
-    let outpoint = OutPoint { txid, vout: 0 };
-
-    context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 1, 0, Default::default())],
-      ..default()
-    });
-
-    context.mine_blocks(1);
-
-    assert!(context.index.list(outpoint).unwrap().is_some());
   }
 
   #[test]

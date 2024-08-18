@@ -23,7 +23,6 @@ pub struct Settings {
   index_cache_size: Option<usize>,
   index_runes: bool,
   index_sats: bool,
-  index_spent_sats: bool,
   index_transactions: bool,
   integration_test: bool,
   no_index_inscriptions: bool,
@@ -140,7 +139,6 @@ impl Settings {
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
       index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
-      index_spent_sats: self.index_spent_sats || source.index_spent_sats,
       index_transactions: self.index_transactions || source.index_transactions,
       integration_test: self.integration_test || source.integration_test,
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
@@ -177,7 +175,6 @@ impl Settings {
       index_cache_size: options.index_cache_size,
       index_runes: options.index_runes,
       index_sats: options.index_sats,
-      index_spent_sats: options.index_spent_sats,
       index_transactions: options.index_transactions,
       integration_test: options.integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
@@ -267,7 +264,6 @@ impl Settings {
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
       index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
-      index_spent_sats: get_bool("INDEX_SPENT_SATS"),
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
       integration_test: get_bool("INTEGRATION_TEST"),
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
@@ -299,7 +295,6 @@ impl Settings {
       index_cache_size: None,
       index_runes: true,
       index_sats: true,
-      index_spent_sats: false,
       index_transactions: false,
       integration_test: false,
       no_index_inscriptions: false,
@@ -381,7 +376,6 @@ impl Settings {
       }),
       index_runes: self.index_runes,
       index_sats: self.index_sats,
-      index_spent_sats: self.index_spent_sats,
       index_transactions: self.index_transactions,
       integration_test: self.integration_test,
       no_index_inscriptions: self.no_index_inscriptions,
@@ -551,10 +545,6 @@ impl Settings {
 
   pub fn index_sats_raw(&self) -> bool {
     self.index_sats
-  }
-
-  pub fn index_spent_sats_raw(&self) -> bool {
-    self.index_spent_sats
   }
 
   pub fn index_transactions_raw(&self) -> bool {
@@ -1032,7 +1022,6 @@ mod tests {
       ("INDEX_ADDRESSES", "1"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
-      ("INDEX_SPENT_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
       ("INTEGRATION_TEST", "1"),
       ("NO_INDEX_INSCRIPTIONS", "1"),
@@ -1078,7 +1067,6 @@ mod tests {
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
-        index_spent_sats: true,
         index_transactions: true,
         integration_test: true,
         no_index_inscriptions: true,
@@ -1112,7 +1100,6 @@ mod tests {
           "--index-cache-size=4",
           "--index-runes",
           "--index-sats",
-          "--index-spent-sats",
           "--index-transactions",
           "--index=index",
           "--integration-test",
@@ -1143,7 +1130,6 @@ mod tests {
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
-        index_spent_sats: true,
         index_transactions: true,
         integration_test: true,
         no_index_inscriptions: true,
