@@ -636,7 +636,6 @@ impl Index {
           .unwrap_or(0),
         index: self,
         outputs_cached: 0,
-        outputs_inserted_since_flush: 0,
         outputs_traversed: 0,
         sat_ranges_since_flush: 0,
       };
