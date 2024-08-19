@@ -36,7 +36,6 @@ pub(crate) struct Updater<'index> {
   pub(super) height: u32,
   pub(super) index: &'index Index,
   pub(super) outputs_cached: u64,
-  pub(super) outputs_inserted_since_flush: u64,
   pub(super) outputs_traversed: u64,
   pub(super) sat_ranges_since_flush: u64,
 }
@@ -800,7 +799,6 @@ impl<'index> Updater<'index> {
         &mut output_utxo_entries[vout],
       );
       output_utxo_entries[vout].extend_from_slice(&sats);
-      self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())
@@ -816,13 +814,6 @@ impl<'index> Updater<'index> {
     );
 
     {
-      log::info!(
-        "Flushing utxo cache with {} entries ({:.1}% of {} insertions)",
-        utxo_cache.len(),
-        utxo_cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
-        self.outputs_inserted_since_flush
-      );
-
       let mut outpoint_to_utxo_entry = wtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
       let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
       let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
@@ -882,8 +873,6 @@ impl<'index> Updater<'index> {
           }
         }
       }
-
-      self.outputs_inserted_since_flush = 0;
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
