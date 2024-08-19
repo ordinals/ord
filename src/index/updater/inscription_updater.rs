@@ -27,7 +27,6 @@ enum Origin {
     fee: u64,
     hidden: bool,
     parents: Vec<InscriptionId>,
-    pointer: Option<u64>,
     reinscription: bool,
     unbound: bool,
     vindicated: bool,
@@ -214,7 +213,6 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             fee: 0,
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
-            pointer: inscription.payload.pointer(),
             reinscription: inscribed_offsets.contains_key(&offset),
             unbound: txout.value == 0
               || curse == Some(Curse::UnrecognizedEvenField)
@@ -288,7 +286,6 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
-    let mut range_to_vout = BTreeMap::new();
     let mut new_locations = Vec::new();
     let mut output_value = 0;
     for (vout, txout) in tx.output.iter().enumerate() {
@@ -314,8 +311,6 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         ));
       }
 
-      range_to_vout.insert((output_value, end), vout.try_into().unwrap());
-
       output_value = end;
 
       if !self.index_addresses {
@@ -329,28 +324,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       }
     }
 
-    for (new_satpoint, mut flotsam, op_return) in new_locations.into_iter() {
-      let new_satpoint = match flotsam.origin {
-        Origin::New {
-          pointer: Some(pointer),
-          ..
-        } if pointer < output_value => {
-          match range_to_vout.iter().find_map(|((start, end), vout)| {
-            (pointer >= *start && pointer < *end).then(|| (vout, pointer - start))
-          }) {
-            Some((vout, offset)) => {
-              flotsam.offset = pointer;
-              SatPoint {
-                outpoint: OutPoint { txid, vout: *vout },
-                offset,
-              }
-            }
-            _ => new_satpoint,
-          }
-        }
-        _ => new_satpoint,
-      };
-
+    for (new_satpoint, flotsam, op_return) in new_locations.into_iter() {
       self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint, op_return)?;
     }
 
@@ -448,7 +422,6 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         fee,
         hidden,
         parents,
-        pointer: _,
         reinscription,
         unbound,
         vindicated,
