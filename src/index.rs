@@ -679,6 +679,7 @@ impl Index {
     log::info!("exporting database tables to {filename}");
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
+    let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
 
     for result in rtx
       .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?
@@ -704,17 +705,26 @@ impl Index {
         let address = if satpoint.outpoint == unbound_outpoint() {
           "unbound".to_string()
         } else {
-          let output = self
-            .get_transaction(satpoint.outpoint.txid)?
-            .unwrap()
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .unwrap();
+          let script_pubkey = if self.index_addresses {
+            let utxo_entry = outpoint_to_utxo_entry
+              .get(&satpoint.outpoint.store())?
+              .unwrap();
+            ScriptBuf::from_bytes(utxo_entry.value().parse(self).script_pubkey().to_vec())
+          } else {
+            self
+              .get_transaction(satpoint.outpoint.txid)?
+              .unwrap()
+              .output
+              .into_iter()
+              .nth(satpoint.outpoint.vout.try_into().unwrap())
+              .unwrap()
+              .script_pubkey
+          };
+
           self
             .settings
             .chain()
-            .address_from_script(&output.script_pubkey)
+            .address_from_script(&script_pubkey)
             .map(|address| address.to_string())
             .unwrap_or_else(|e| e.to_string())
         };
