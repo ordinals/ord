@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxOutValue, TxidValue,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
     lot::Lot,
@@ -48,9 +48,8 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 27;
+const SCHEMA_VERSION: u64 = 28;
 
-define_multimap_table! { SATPOINT_TO_SEQUENCE_NUMBER, &SatPointValue, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
@@ -61,8 +60,7 @@ define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_TXOUT, &OutPointValue, TxOutValue }
+define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &[u8] }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -89,9 +87,9 @@ pub(crate) enum Statistic {
   SatRanges = 10,
   UnboundInscriptions = 11,
   IndexTransactions = 12,
-  InitialSyncTime = 14,
-  IndexAddresses = 15,
-  IndexInscriptions = 16,
+  InitialSyncTime = 13,
+  IndexAddresses = 14,
+  IndexInscriptions = 15,
 }
 
 impl Statistic {
@@ -178,6 +176,54 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
         Ok(None)
       }
       Err(err) => Err(err.into()),
+    }
+  }
+}
+
+struct ParsedUtxoEntry<'a> {
+  value: Option<u64>,
+  sat_ranges: Option<&'a [u8]>,
+  script_pubkey: Option<&'a [u8]>,
+  inscriptions: Option<&'a [u8]>,
+}
+
+impl ParsedUtxoEntry<'_> {
+  fn parse_inscriptions(&self) -> Vec<(u32, u64)> {
+    let inscriptions = self.inscriptions.unwrap();
+    let mut byte_offset = 0;
+    let mut parsed_inscriptions = Vec::new();
+
+    while byte_offset < inscriptions.len() {
+      let sequence_number = u32::from_le_bytes(
+        inscriptions[byte_offset..byte_offset + 4]
+          .try_into()
+          .unwrap(),
+      );
+      byte_offset += 4;
+
+      let (satpoint_offset, varint_len) = varint::decode(&inscriptions[byte_offset..]).unwrap();
+      let satpoint_offset: u64 = satpoint_offset.try_into().unwrap();
+      byte_offset += varint_len;
+
+      parsed_inscriptions.push((sequence_number, satpoint_offset));
+    }
+
+    parsed_inscriptions
+  }
+
+  fn total_value(&self) -> u64 {
+    if let Some(value) = self.value {
+      value
+    } else if let Some(sat_ranges) = self.sat_ranges {
+      let mut value = 0;
+      for chunk in sat_ranges.chunks_exact(11) {
+        let range = SatRange::load(chunk.try_into().unwrap());
+        value += range.1 - range.0;
+      }
+
+      value
+    } else {
+      panic!("utxo entry didn't have value or sat ranges");
     }
   }
 }
@@ -296,7 +342,6 @@ impl Index {
 
         tx.set_durability(durability);
 
-        tx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
@@ -307,7 +352,6 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-        tx.open_table(OUTPOINT_TO_TXOUT)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
         tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
@@ -318,11 +362,19 @@ impl Index {
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         {
-          let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
+          let mut outpoint_to_utxo_entry = tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-          if settings.index_sats_raw() {
-            outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
+          let empty_utxo_entry = Self::empty_utxo_entry(settings.index_addresses_raw());
+
+          if settings.index_sats_raw() || settings.index_inscriptions_raw() {
+            outpoint_to_utxo_entry
+              .insert(&OutPoint::null().store(), empty_utxo_entry.as_slice())?;
+          }
+
+          if settings.index_inscriptions_raw() {
+            outpoint_to_utxo_entry
+              .insert(&unbound_outpoint().store(), empty_utxo_entry.as_slice())?;
           }
 
           Self::set_statistic(
@@ -449,6 +501,21 @@ impl Index {
     })
   }
 
+  pub fn empty_utxo_entry(index_addresses: bool) -> Vec<u8> {
+    let mut utxo_entry = Vec::new();
+
+    varint::encode_to_vec(0, &mut utxo_entry);
+    if index_addresses {
+      varint::encode_to_vec(0, &mut utxo_entry);
+    }
+
+    utxo_entry
+  }
+
+  pub fn is_special_outpoint(outpoint: &OutPoint) -> bool {
+    outpoint.txid == OutPoint::null().txid
+  }
+
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
@@ -459,7 +526,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(OUTPOINT_TO_TXOUT)?
+        .open_table(OUTPOINT_TO_UTXO_ENTRY)?
         .get(&output.store())?
         .is_some(),
     )
@@ -617,7 +684,7 @@ impl Index {
           })
           .collect(),
         tree_height: stats.tree_height(),
-        utxos_indexed: rtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
+        utxos_indexed: rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?.len()?,
       }
     };
 
@@ -640,7 +707,6 @@ impl Index {
         outputs_cached: 0,
         outputs_inserted_since_flush: 0,
         outputs_traversed: 0,
-        range_cache: HashMap::new(),
         sat_ranges_since_flush: 0,
       };
 
@@ -775,6 +841,10 @@ impl Index {
         .unwrap_or_default()
         != 0,
     )
+  }
+
+  pub(crate) fn have_full_utxo_index(&self) -> bool {
+    self.index_addresses || self.index_sats
   }
 
   #[cfg(test)]
@@ -1501,12 +1571,12 @@ impl Index {
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let rtx = self.database.begin_read()?;
-    let satpoint_to_sequence_number = rtx.open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)?;
+    let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    Self::inscriptions_on_output(
-      &satpoint_to_sequence_number,
+    self.inscriptions_on_output(
+      &outpoint_to_utxo_entry,
       &sequence_number_to_inscription_entry,
       outpoint,
     )
@@ -1566,16 +1636,19 @@ impl Index {
       return Ok(None);
     }
 
-    let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
+    let outpoint_to_utxo_entry = rtx.0.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
 
-    for range in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
-      let (key, value) = range?;
+    for entry in outpoint_to_utxo_entry.iter()? {
+      let (outpoint, utxo_entry) = entry?;
+      let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+      let sat_ranges = parsed_utxo_entry.sat_ranges.unwrap();
+
       let mut offset = 0;
-      for chunk in value.value().chunks_exact(11) {
+      for chunk in sat_ranges.chunks_exact(11) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
         if start <= sat && sat < end {
           return Ok(Some(SatPoint {
-            outpoint: Entry::load(*key.value()),
+            outpoint: Entry::load(*outpoint.value()),
             offset: offset + sat - start,
           }));
         }
@@ -1603,14 +1676,16 @@ impl Index {
       return Err(anyhow!("range end is before range start"));
     };
 
-    let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
+    let outpoint_to_utxo_entry = rtx.0.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
 
     let mut result = Vec::new();
-    for range in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
-      let (outpoint_entry, sat_ranges_entry) = range?;
+    for entry in outpoint_to_utxo_entry.iter()? {
+      let (outpoint, utxo_entry) = entry?;
+      let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+      let sat_ranges = parsed_utxo_entry.sat_ranges.unwrap();
 
       let mut offset = 0;
-      for sat_range in sat_ranges_entry.value().chunks_exact(11) {
+      for sat_range in sat_ranges.chunks_exact(11) {
         let (start, end) = SatRange::load(sat_range.try_into().unwrap());
 
         if end > range_start && start < range_end {
@@ -1621,7 +1696,7 @@ impl Index {
             start: overlap_start,
             size: overlap_end - overlap_start,
             satpoint: SatPoint {
-              outpoint: Entry::load(*outpoint_entry.value()),
+              outpoint: Entry::load(*outpoint.value()),
               offset: offset + overlap_start - start,
             },
           });
@@ -1640,14 +1715,19 @@ impl Index {
   }
 
   pub fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
+    if !self.index_sats {
+      return Ok(None);
+    }
+
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(OUTPOINT_TO_SAT_RANGES)?
+        .open_table(OUTPOINT_TO_UTXO_ENTRY)?
         .get(&outpoint.store())?
-        .map(|outpoint| outpoint.value().to_vec())
-        .map(|sat_ranges| {
+        .map(|utxo_entry| {
+          let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+          let sat_ranges = parsed_utxo_entry.sat_ranges.unwrap();
           sat_ranges
             .chunks_exact(11)
             .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
@@ -1660,11 +1740,11 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.index_addresses {
+        && if self.have_full_utxo_index() {
           self
             .database
             .begin_read()?
-            .open_table(OUTPOINT_TO_TXOUT)?
+            .open_table(OUTPOINT_TO_UTXO_ENTRY)?
             .get(&outpoint.store())?
             .is_none()
         } else {
@@ -2119,9 +2199,7 @@ impl Index {
   ) {
     let rtx = self.database.begin_read().unwrap();
 
-    let satpoint_to_sequence_number = rtx
-      .open_multimap_table(SATPOINT_TO_SEQUENCE_NUMBER)
-      .unwrap();
+    let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY).unwrap();
 
     let sequence_number_to_satpoint = rtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT).unwrap();
 
@@ -2134,11 +2212,6 @@ impl Index {
       .value();
 
     assert_eq!(
-      satpoint_to_sequence_number.len().unwrap(),
-      sequence_number_to_satpoint.len().unwrap(),
-    );
-
-    assert_eq!(
       SatPoint::load(
         *sequence_number_to_satpoint
           .get(sequence_number)
@@ -2149,10 +2222,18 @@ impl Index {
       satpoint,
     );
 
-    assert!(satpoint_to_sequence_number
-      .get(&satpoint.store())
+    let utxo_entry = outpoint_to_utxo_entry
+      .get(&satpoint.outpoint.store())
       .unwrap()
-      .any(|result| result.unwrap().value() == sequence_number));
+      .unwrap();
+    let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+    let parsed_inscriptions = parsed_utxo_entry.parse_inscriptions();
+    let satpoint_offsets: Vec<u64> = parsed_inscriptions
+      .iter()
+      .copied()
+      .filter_map(|(seq, offset)| (seq == sequence_number).then_some(offset))
+      .collect();
+    assert!(satpoint_offsets == [satpoint.offset]);
 
     match sat {
       Some(sat) => {
@@ -2193,47 +2274,33 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_sequence_number: &'a impl ReadableMultimapTable<&'static SatPointValue, u32>,
+    &self,
+    outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static [u8]>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    let start = SatPoint {
-      outpoint,
-      offset: 0,
+    if !self.index_inscriptions {
+      return Ok(Vec::new());
     }
-    .store();
 
-    let end = SatPoint {
-      outpoint,
-      offset: u64::MAX,
-    }
-    .store();
+    let Some(utxo_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? else {
+      return Ok(Vec::new());
+    };
 
-    let mut inscriptions = Vec::new();
+    let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+    let mut parsed_inscriptions = parsed_utxo_entry.parse_inscriptions();
+    parsed_inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
 
-    for range in satpoint_to_sequence_number.range::<&[u8; 44]>(&start..=&end)? {
-      let (satpoint, sequence_numbers) = range?;
-      for sequence_number_result in sequence_numbers {
-        let sequence_number = sequence_number_result?.value();
+    parsed_inscriptions
+      .into_iter()
+      .map(|(sequence_number, offset)| {
         let entry = sequence_number_to_inscription_entry
           .get(sequence_number)?
           .unwrap();
-        inscriptions.push((
-          sequence_number,
-          SatPoint::load(*satpoint.value()),
-          InscriptionEntry::load(entry.value()).id,
-        ));
-      }
-    }
-
-    inscriptions.sort_by_key(|(sequence_number, _, _)| *sequence_number);
-
-    Ok(
-      inscriptions
-        .into_iter()
-        .map(|(_sequence_number, satpoint, inscription_id)| (satpoint, inscription_id))
-        .collect(),
-    )
+        let satpoint = SatPoint { outpoint, offset };
+        Ok((satpoint, InscriptionEntry::load(entry.value()).id))
+      })
+      .collect::<Result<_>>()
   }
 
   pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
@@ -2285,12 +2352,16 @@ impl Index {
   }
 
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
-    let outpoint_to_txout = self.database.begin_read()?.open_table(OUTPOINT_TO_TXOUT)?;
+    let outpoint_to_utxo_entry = self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_UTXO_ENTRY)?;
 
     let mut acc = 0;
     for output in outputs {
-      if let Some(value) = outpoint_to_txout.get(&output.store())? {
-        acc += TxOut::load(value.value()).value;
+      if let Some(utxo_entry) = outpoint_to_utxo_entry.get(&output.store())? {
+        let parsed_utxo_entry = self.parse_utxo_entry(utxo_entry.value());
+        acc += parsed_utxo_entry.total_value();
       };
     }
 
@@ -2350,6 +2421,48 @@ impl Index {
       ),
       txout,
     )))
+  }
+
+  fn parse_utxo_entry<'a>(&self, utxo_entry: &'a [u8]) -> ParsedUtxoEntry<'a> {
+    let mut parsed_value = None;
+    let mut sat_ranges = None;
+    let mut script_pubkey = None;
+    let mut inscriptions = None;
+
+    let mut offset = 0;
+    if self.index_sats {
+      let (num_sat_ranges, varint_len) = varint::decode(utxo_entry).unwrap();
+      offset += varint_len;
+
+      let num_sat_ranges: usize = num_sat_ranges.try_into().unwrap();
+      let sat_ranges_len = num_sat_ranges * 11;
+      sat_ranges = Some(&utxo_entry[offset..offset + sat_ranges_len]);
+      offset += sat_ranges_len;
+    } else {
+      let (value, varint_len) = varint::decode(utxo_entry).unwrap();
+      parsed_value = Some(value.try_into().unwrap());
+      offset += varint_len;
+    };
+
+    if self.index_addresses {
+      let (script_pubkey_len, varint_len) = varint::decode(&utxo_entry[offset..]).unwrap();
+      offset += varint_len;
+
+      let script_pubkey_len: usize = script_pubkey_len.try_into().unwrap();
+      script_pubkey = Some(&utxo_entry[offset..offset + script_pubkey_len]);
+      offset += script_pubkey_len;
+    }
+
+    if self.index_inscriptions {
+      inscriptions = Some(&utxo_entry[offset..utxo_entry.len()]);
+    }
+
+    ParsedUtxoEntry {
+      value: parsed_value,
+      sat_ranges,
+      script_pubkey,
+      inscriptions,
+    }
   }
 }
 
@@ -2693,7 +2806,7 @@ mod tests {
       context
         .index
         .list(
-          "0000000000000000000000000000000000000000000000000000000000000000:0"
+          "0000000000000000000000000000000000000000000000000000000000000000:1"
             .parse()
             .unwrap()
         )
