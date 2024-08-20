@@ -1,8 +1,4 @@
-use {
-  super::*,
-  clap::ValueEnum,
-  error::{AddressConversion, SnafuError},
-};
+use {super::*, clap::ValueEnum};
 
 #[derive(Default, ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -71,7 +67,7 @@ impl Chain {
   }
 
   pub(crate) fn address_from_script(self, script: &Script) -> Result<Address, SnafuError> {
-    Address::from_script(script, self.network()).snafu_context(AddressConversion)
+    Address::from_script(script, self.network()).snafu_context(error::AddressConversion)
   }
 
   pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
@@ -120,7 +116,7 @@ impl FromStr for Chain {
       "signet" => Ok(Self::Signet),
       "testnet" => Ok(Self::Testnet),
       _ => Err(SnafuError::InvalidChain {
-        chain: s.to_string(),
+        input: s.to_string(),
       }),
     }
   }

@@ -1,13 +1,63 @@
 use super::*;
-use bitcoin::address::Error as AddressError;
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
 pub enum SnafuError {
-  #[snafu(display("Invalid chain `{}`", chain))]
-  InvalidChain { chain: String },
+  #[snafu(display("Failed to parse address `{}`", input))]
+  AddressParse {
+    source: bitcoin::address::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse hash `{}`", input))]
+  HashParse {
+    source: bitcoin::hashes::hex::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse inscription ID `{}`", input))]
+  InscriptionIdParse {
+    source: inscriptions::inscription_id::ParseError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse integer `{}`", input))]
+  IntegerParse {
+    source: std::num::ParseIntError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse out point `{}`", input))]
+  OutPointParse {
+    source: bitcoin::transaction::ParseOutPointError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse rune `{}`", input))]
+  RuneParse {
+    source: ordinals::spaced_rune::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat `{}`", input))]
+  SatParse {
+    source: ordinals::sat::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat point `{}`", input))]
+  SatPointParse {
+    source: ordinals::sat_point::Error,
+    input: String,
+  },
+  #[snafu(display("Unrecognized representation: `{}`", input))]
+  UnrecognizedRepresentation { input: String },
+  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
+  AmountParse {
+    source: bitcoin::amount::ParseAmountError,
+    input: String,
+  },
+  #[snafu(display("Unrecognized outgoing: `{}`", input))]
+  OutgoingParse { input: String },
+  #[snafu(display("Failed to parse decimal: {}", source))]
+  RuneAmountParse { source: error::Error, input: String },
+  #[snafu(display("Invalid chain `{}`", input))]
+  InvalidChain { input: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
-  AddressConversion { source: AddressError },
+  AddressConversion { source: bitcoin::address::Error },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
