@@ -1660,7 +1660,7 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.index_addresses {
+        && if self.index_sats {
           self
             .database
             .begin_read()?
