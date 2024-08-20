@@ -22,9 +22,9 @@ impl Display for Outgoing {
 }
 
 impl FromStr for Outgoing {
-  type Err = Error;
+  type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     lazy_static! {
       static ref AMOUNT: Regex = Regex::new(
         r"(?x)
@@ -63,22 +63,39 @@ impl FromStr for Outgoing {
       .unwrap();
     }
 
-    Ok(if re::SAT_NAME.is_match(s) {
-      Self::Sat(s.parse()?)
-    } else if re::SATPOINT.is_match(s) {
-      Self::SatPoint(s.parse()?)
-    } else if re::INSCRIPTION_ID.is_match(s) {
-      Self::InscriptionId(s.parse()?)
-    } else if AMOUNT.is_match(s) {
-      Self::Amount(s.parse()?)
-    } else if let Some(captures) = RUNE.captures(s) {
-      Self::Rune {
-        decimal: captures[1].parse()?,
-        rune: captures[2].parse()?,
-      }
+    if re::SAT_NAME.is_match(input) {
+      Ok(Outgoing::Sat(
+        input.parse().snafu_context(error::SatParse { input })?,
+      ))
+    } else if re::SATPOINT.is_match(input) {
+      Ok(Outgoing::SatPoint(
+        input
+          .parse()
+          .snafu_context(error::SatPointParse { input })?,
+      ))
+    } else if re::INSCRIPTION_ID.is_match(input) {
+      Ok(Outgoing::InscriptionId(
+        input
+          .parse()
+          .snafu_context(error::InscriptionIdParse { input })?,
+      ))
+    } else if AMOUNT.is_match(input) {
+      Ok(Outgoing::Amount(
+        input.parse().snafu_context(error::AmountParse { input })?,
+      ))
+    } else if let Some(captures) = RUNE.captures(input) {
+      let decimal = captures[1]
+        .parse::<Decimal>()
+        .snafu_context(error::RuneAmountParse { input })?;
+      let rune = captures[2]
+        .parse()
+        .snafu_context(error::RuneParse { input })?;
+      Ok(Self::Rune { decimal, rune })
     } else {
-      bail!("unrecognized outgoing: {s}");
-    })
+      Err(SnafuError::OutgoingParse {
+        input: input.to_string(),
+      })
+    }
   }
 }
 
