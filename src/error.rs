@@ -45,6 +45,10 @@ pub enum SnafuError {
   },
   #[snafu(display("Unrecognized representation `{}`", input))]
   UnrecognizedRepresentation { source: error::Error, input: String },
+  #[snafu(display("Invalid chain {}", input))]
+  InvalidChain { input: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion { source: bitcoin::address::Error },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]
