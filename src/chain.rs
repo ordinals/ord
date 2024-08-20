@@ -116,7 +116,7 @@ impl FromStr for Chain {
       "signet" => Ok(Self::Signet),
       "testnet" => Ok(Self::Testnet),
       _ => Err(SnafuError::InvalidChain {
-        input: s.to_string(),
+        chain: s.to_string(),
       }),
     }
   }
