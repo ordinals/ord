@@ -20,7 +20,6 @@ pub(crate) use {
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
-  range::RangeHtml,
   rare::RareTxt,
   sat::SatHtml,
 };
@@ -46,7 +45,6 @@ mod metadata;
 pub mod output;
 mod parents;
 mod preview;
-mod range;
 mod rare;
 pub mod rune;
 pub mod runes;
