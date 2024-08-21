@@ -81,8 +81,8 @@ impl Inscribe {
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
-      parents_info: wallet
-        .get_parents_info(self.parent.map_or_else(Vec::new, |parent| vec![parent]))?,
+      parent_info: wallet
+        .get_parent_info(self.parent.map_or_else(Vec::new, |parent| vec![parent]))?,
       postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,

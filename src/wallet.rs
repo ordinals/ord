@@ -200,8 +200,8 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_parents_info(&self, parents: Vec<InscriptionId>) -> Result<Vec<ParentInfo>> {
-    let mut parents_info = Vec::new();
+  pub(crate) fn get_parent_info(&self, parents: Vec<InscriptionId>) -> Result<Vec<ParentInfo>> {
+    let mut parent_info = Vec::new();
     for parent_id in parents {
       if !self.inscription_exists(parent_id)? {
         return Err(anyhow!("parent {parent_id} does not exist"));
@@ -219,7 +219,7 @@ impl Wallet {
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .clone();
 
-      parents_info.push(ParentInfo {
+      parent_info.push(ParentInfo {
         destination: self.get_change_address()?,
         id: parent_id,
         location: satpoint,
@@ -227,7 +227,7 @@ impl Wallet {
       });
     }
 
-    Ok(parents_info)
+    Ok(parent_info)
   }
 
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
