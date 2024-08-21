@@ -82,7 +82,7 @@ impl Inscribe {
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
       parent_info: wallet
-        .get_parent_info(self.parent.map_or_else(Vec::new, |parent| vec![parent]))?,
+        .get_parent_info(self.parent.map(|parent| vec![parent]).unwrap_or_default())?,
       postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,
