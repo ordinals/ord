@@ -200,16 +200,16 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_parent_info(&self, parents: Vec<InscriptionId>) -> Result<Vec<ParentInfo>> {
+  pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
     let mut parent_info = Vec::new();
     for parent_id in parents {
-      if !self.inscription_exists(parent_id)? {
+      if !self.inscription_exists(*parent_id)? {
         return Err(anyhow!("parent {parent_id} does not exist"));
       }
 
       let satpoint = self
         .inscription_info
-        .get(&parent_id)
+        .get(parent_id)
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .satpoint;
 
@@ -221,7 +221,7 @@ impl Wallet {
 
       parent_info.push(ParentInfo {
         destination: self.get_change_address()?,
-        id: parent_id,
+        id: *parent_id,
         location: satpoint,
         tx_out,
       });

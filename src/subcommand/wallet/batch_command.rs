@@ -17,7 +17,7 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    let parent_info = wallet.get_parent_info(batchfile.parents.clone())?;
+    let parent_info = wallet.get_parent_info(&batchfile.parents)?;
 
     let (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
       &wallet,
