@@ -12,7 +12,7 @@ pub(crate) struct Verify {
 
 impl Verify {
   pub(crate) fn run(self) -> SubcommandResult {
-    match bip322::verify::simple_encoded(&self.address, &self.message, &self.signature) {
+    match bip322::verify_simple_encoded(&self.address, &self.message, &self.signature) {
       Ok(_) => Ok(Some(Box::new(true))),
       Err(e) => Err(e.into()),
     }
