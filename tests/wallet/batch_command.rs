@@ -169,66 +169,6 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 }
 
 #[test]
-fn batch_inscribe_inscriptions_with_two_parents() {
-  let core = mockcore::spawn();
-
-  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
-
-  create_wallet(&core, &ord);
-
-  core.mine_blocks(1);
-
-  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
-    .write("parent.png", [1; 520])
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Batch>();
-
-  core.mine_blocks(1);
-
-  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
-    .write("parent.png", [1; 520])
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Batch>();
-
-  core.mine_blocks(1);
-
-  assert_eq!(core.descriptors().len(), 4);
-
-  let parent_id_1 = parent_output_1.inscriptions[0].id;
-  let parent_id_2 = parent_output_2.inscriptions[0].id;
-
-  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
-    .write("inscription.txt", "Hello World")
-    .write("tulip.png", [0; 555])
-    .write("meow.wav", [0; 2048])
-    .write(
-      "batch.yaml",
-      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
-    )
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Batch>();
-
-  core.mine_blocks(1);
-
-  ord.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
-    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
-  );
-
-  ord.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[1].id),
-    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
-  );
-
-  let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
-  assert_eq!(request.status(), 200);
-  assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
-}
-
-#[test]
 fn batch_inscribe_inscriptions_with_multiple_parents() {
   let core = mockcore::spawn();
 
@@ -289,6 +229,66 @@ fn batch_inscribe_inscriptions_with_multiple_parents() {
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*{parent_id_3}.*",),
   );
+}
+
+#[test]
+fn batch_inscribe_and_etch_with_two_parents() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  assert_eq!(core.descriptors().len(), 4);
+
+  let parent_id_1 = parent_output_1.inscriptions[0].id;
+  let parent_id_2 = parent_output_2.inscriptions[0].id;
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
+  );
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
+  );
+
+  let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
+  assert_eq!(request.status(), 200);
+  assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
 }
 
 #[test]
