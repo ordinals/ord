@@ -51,7 +51,7 @@ pub(crate) enum Subcommand {
   Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[command(about = "Verify a BIP322 signature")]
+  #[command(about = "Verify BIP322 signature")]
   Verify(verify::Verify),
   #[command(about = "Wallet commands")]
   Wallet(wallet::WalletCommand),

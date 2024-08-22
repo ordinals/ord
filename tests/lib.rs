@@ -69,6 +69,7 @@ mod settings;
 mod subsidy;
 mod supply;
 mod traits;
+mod verify;
 mod version;
 mod wallet;
 

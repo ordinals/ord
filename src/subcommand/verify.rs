@@ -1,20 +1,40 @@
 use super::*;
 
 #[derive(Debug, Parser)]
+#[clap(group(
+  ArgGroup::new("signature")
+    .required(true)
+    .args(&["transaction", "witness"]))
+)]
 pub(crate) struct Verify {
-  #[arg(help = "<ADDRESS> to verify signature for.")]
-  address: String,
-  #[arg(help = "<MESSAGE> to verify signature for.")]
+  #[arg(long, help = "Verify signature for <ADDRESS>.")]
+  address: Address<NetworkUnchecked>,
+  #[arg(long, help = "Verify signature for <MESSAGE>.")]
   message: String,
-  #[arg(help = "Base64 encoded BIP322 <SIGNATURE>.")]
-  signature: String,
+  #[arg(long, help = "Verify base64-encoded <WITNESS>.")]
+  witness: Option<String>,
+  #[arg(long, help = "Verify base64-encoded <TRANSACTION>.")]
+  transaction: Option<String>,
 }
 
 impl Verify {
   pub(crate) fn run(self) -> SubcommandResult {
-    match bip322::verify_simple_encoded(&self.address, &self.message, &self.signature) {
-      Ok(_) => Ok(Some(Box::new(true))),
-      Err(e) => Err(e.into()),
+    if let Some(witness) = self.witness {
+      bip322::verify_simple_encoded(
+        &self.address.assume_checked().to_string(),
+        &self.message,
+        &witness,
+      )
+      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+    } else if let Some(transaction) = self.transaction {
+      bip322::verify_full_encoded(
+        &self.address.assume_checked().to_string(),
+        &self.message,
+        &transaction,
+      )
+      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+    } else {
+      unreachable!()
     }
   }
 }
