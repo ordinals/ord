@@ -92,6 +92,3 @@ path = "src/lib.rs"
 [[test]]
 name = "integration"
 path = "tests/lib.rs"
-
-[patch.crates-io]
-bip322 = { path = "../bip322" }
