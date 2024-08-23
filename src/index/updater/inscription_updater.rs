@@ -41,16 +41,13 @@ enum Origin {
 
 pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) blessed_inscription_count: u64,
-  pub(super) chain: Chain,
   pub(super) content_type_to_count: &'a mut Table<'tx, Option<&'static [u8]>, u64>,
   pub(super) cursed_inscription_count: u64,
-  pub(super) event_sender: Option<&'a mpsc::Sender<Event>>,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'tx, InscriptionIdValue, u32>,
-  pub(super) index_transactions: bool,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
@@ -78,7 +75,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
     let mut inscribed_offsets = BTreeMap::new();
-    let jubilant = self.height >= self.chain.jubilee_height();
+    let jubilant = self.height >= index.settings.chain().jubilee_height();
     let mut total_input_value = 0;
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
@@ -232,7 +229,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       }
     }
 
-    if self.index_transactions && inscriptions {
+    if index.index_transactions && inscriptions {
       tx.consensus_encode(&mut self.transaction_buffer)
         .expect("in-memory writers don't error");
 
@@ -411,7 +408,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           )?;
         }
 
-        if let Some(sender) = self.event_sender {
+        if let Some(ref sender) = index.event_sender {
           sender.blocking_send(Event::InscriptionTransferred {
             block_height: self.height,
             inscription_id,
@@ -506,7 +503,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           })
           .collect::<Result<Vec<u32>>>()?;
 
-        if let Some(sender) = self.event_sender {
+        if let Some(ref sender) = index.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
             block_height: self.height,
             charms,

@@ -505,16 +505,13 @@ impl<'index> Updater<'index> {
 
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
-      chain: self.index.settings.chain(),
       content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
-      event_sender: self.index.event_sender.as_ref(),
       flotsam: Vec::new(),
       height: self.height,
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,
       id_to_sequence_number: inscription_id_to_sequence_number,
-      index_transactions: self.index.index_transactions,
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
       next_sequence_number,
