@@ -668,7 +668,7 @@ impl<'index> Updater<'index> {
       }
 
       if self.index.index_addresses {
-        self.index_transaction_output_script_pubkeys(tx, &mut output_utxo_entries)?;
+        self.index_transaction_output_script_pubkeys(tx, &mut output_utxo_entries);
       }
 
       if index_inscriptions {
@@ -725,12 +725,10 @@ impl<'index> Updater<'index> {
     &mut self,
     tx: &Transaction,
     output_utxo_entries: &mut [UtxoEntryBuf],
-  ) -> Result {
+  ) {
     for (vout, txout) in tx.output.iter().enumerate() {
       output_utxo_entries[vout].push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
     }
-
-    Ok(())
   }
 
   fn index_transaction_sats(
