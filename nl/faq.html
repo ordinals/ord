@@ -1,0 +1,404 @@
+<!DOCTYPE HTML>
+<html lang="nl" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Veelgestelde Vragen - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introductie</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Overzicht</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digitale artefacten</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscripties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/delegate.html"><strong aria-hidden="true">3.1.</strong> Gemachtigde</a></li><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.2.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="inscriptions/pointer.html"><strong aria-hidden="true">3.3.</strong> Pointer</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.4.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.5.</strong> Recursie</a></li><li class="chapter-item expanded "><a href="inscriptions/rendering.html"><strong aria-hidden="true">3.6.</strong> Rendering</a></li></ol></li><li class="chapter-item expanded "><a href="runes.html"><strong aria-hidden="true">4.</strong> Runes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="runes/specification.html"><strong aria-hidden="true">4.1.</strong> Specificatie</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html" class="active"><strong aria-hidden="true">5.</strong> Veelgestelde Vragen</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Bijdragen</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">7.</strong> Donaties</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">8.</strong> Handleidingen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">8.1.</strong> Verkenner</a></li><li class="chapter-item expanded "><a href="guides/wallet.html"><strong aria-hidden="true">8.2.</strong> Wallet</a></li><li class="chapter-item expanded "><a href="guides/batch-inscribing.html"><strong aria-hidden="true">8.3.</strong> Batch Inscriptie</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">8.4.</strong> Verzamelen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">8.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">8.5.</strong> Beheer</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">8.6.</strong> Herindexeren</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">8.7.</strong> Sats Jagen</a></li><li class="chapter-item expanded "><a href="guides/settings.html"><strong aria-hidden="true">8.8.</strong> Instellingen</a></li><li class="chapter-item expanded "><a href="guides/teleburning.html"><strong aria-hidden="true">8.9.</strong> Teleburnen</a></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">8.10.</strong> Testen</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">9.</strong> Beloningen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">9.1.</strong> Beloning 0: 100.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">9.2.</strong> Beloning 1: 200.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">9.3.</strong> Beloning 2: 300.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">9.4.</strong> Beloning 3: 400.000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="it">Italiano</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="nl">Nederlands</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("nl");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "faq.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="ordinal-theory-faq"><a class="header" href="#ordinal-theory-faq">Ordinal Theory FAQ</a></h1>
+<h2 id="wat-is-ordinal-theory"><a class="header" href="#wat-is-ordinal-theory">Wat is Ordinal Theory?</a></h2>
+<p>Ordinal Theory is een protocol voor het toewijzen van serienummers aan satoshi's, de kleinste onderverdeling van een bitcoin, en het volgen van die satoshi's naarmate ze worden uitgegeven door transacties.</p>
+<p>Deze serienummers zijn grote getallen, zoals 804766073970493. Elke satoshi, die ¹⁄₁₀₀₀₀₀₀₀₀ van een bitcoin is, heeft een ordinaal nummer.</p>
+<h2 id="vereist-ordinale-theorie-een-zij-keten-een-aparte-token-of-veranderingen-aan-bitcoin"><a class="header" href="#vereist-ordinale-theorie-een-zij-keten-een-aparte-token-of-veranderingen-aan-bitcoin">Vereist ordinale theorie een zij-keten, een aparte token, of veranderingen aan Bitcoin?</a></h2>
+<p>Nee! Ordinale theorie werkt nu al, zonder een zij-keten, en de enige token die nodig is, is bitcoin zelf.</p>
+<h2 id="waar-is-ordinale-theorie-goed-voor"><a class="header" href="#waar-is-ordinale-theorie-goed-voor">Waar is ordinale theorie goed voor?</a></h2>
+<p>Verzamelen, handelen en plannen. Ordinale theorie kent identiteiten toe aan individuele satoshis, waardoor ze afzonderlijk kunnen worden gevolgd en verhandeld, als curiosa en voor numismatische waarde.</p>
+<p>De ordinale theorie maakt ook inscripties mogelijk, een protocol voor het aanhechten van willekeurige inhoud aan individuele satoshis, waardoor ze digitale artefacten van bitcoin-native aard worden.</p>
+<h2 id="hoe-werkt-de-ordinale-theorie"><a class="header" href="#hoe-werkt-de-ordinale-theorie">Hoe werkt de ordinale theorie?</a></h2>
+<p>Ordinale nummers worden toegekend aan satoshis in de volgorde waarin ze worden gemijnd. De eerste satoshi in het eerste blok heeft het ordinale nummer 0, de tweede heeft ordinale nummer 1, en de laatste satoshi van het eerste blok heeft ordinale nummer 4.999.999.999.</p>
+<p>Satoshis bevinden zich in outputs, maar transacties vernietigen outputs en creëren nieuwe. Daarom gebruikt ordinal theory een algoritme om te bepalen hoe satoshis van de inputs van een transactie naar de outputs hoppen.</p>
+<p>Gelukkig is dat algoritme heel eenvoudig.</p>
+<p>Satoshis worden overgedragen in een first-in-first-out volgorde. Denk aan de invoeren van een transactie als een lijst van satoshi's, en de uitgangen als een lijst van slots die wachten om een satoshi te ontvangen. Om input satoshi's aan slots toe te wijzen, doorloop je elke satoshi in de invoeren in volgorde en wijs je elke toe aan het eerste beschikbare slot in de uitgangen.</p>
+<p>Stel je een transactie voor met drie invoeren en twee uitgangen. De invoeren staan links van de pijl en de uitgangen staan rechts, allemaal gelabeld met hun waarden:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Laten we nu dezelfde transactie labelen met de ordinale nummers van de satoshis die elke invoer bevat, en vraagtekens voor elke uitgangsslot. Ordinale nummers zijn groot, dus laten we letters gebruiken om ze te vertegenwoordigen:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Om te bepalen welke satoshi naar welke output gaat, doorloop je de input-satoshis in volgorde en wijs je er een toe aan elk vraagteken:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>Je zou je kunnen afvragen: "Hoe zit het met vergoedingen?" Goede vraag! Laten we ons dezelfde transactie voorstellen, maar deze keer met een vergoeding van twee satoshis. Transacties met vergoedingen sturen meer satoshis in de inputs dan er door de outputs worden ontvangen, dus om onze transactie er een te maken die vergoedingen betaalt, verwijderen we de tweede output:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>De satoshis <var>e</var> en <var>f</var> hebben nu geen plek om naartoe te gaan in de outputs:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>Dus gaan ze als transactiekosten naar de miner die het blok heeft gemined. <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">De BIP</a> bevat de details, maar kort gezegd worden transactiekosten behandeld als extra inputs voor de coinbase-transactie, en worden ze gerangschikt volgens de volgorde van hun bijbehorende transacties in het blok. De coinbase-transactie van het blok zou er als volgt uit kunnen zien:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="waar-kan-ik-de-fijne-details-vinden"><a class="header" href="#waar-kan-ik-de-fijne-details-vinden">Waar kan ik de fijne details vinden?</a></h2>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">Het BIP!</a></p>
+<h2 id="waarom-worden-sat-inscripties-digitale-artefacten-genoemd-in-plaats-van-nfts"><a class="header" href="#waarom-worden-sat-inscripties-digitale-artefacten-genoemd-in-plaats-van-nfts">Waarom worden sat-inscripties "digitale artefacten" genoemd in plaats van "NFT's"?</a></h2>
+<p>Een inscriptie is een NFT, maar de term "digitaal artefact" wordt in plaats daarvan gebruikt omdat het simpel, suggestief en vertrouwd is.</p>
+<p>De term "digitaal artefact" is zeer suggestief, zelfs voor iemand die de term nog nooit heeft gehoord. Daarentegen is NFT een acroniem en geeft het geen aanwijzing over wat het betekent als je de term nog niet eerder hebt gehoord.</p>
+<p>Daarnaast voelt "NFT" aan als financiële terminologie, en zowel het woord "fungible" als de betekenis van het woord "token" zoals gebruikt in "NFT" zijn ongebruikelijk buiten financiële contexten.</p>
+<h2 id="hoe-verhouden-sat-inscripties-zich-tot"><a class="header" href="#hoe-verhouden-sat-inscripties-zich-tot">Hoe verhouden sat-inscripties zich tot…</a></h2>
+<h3 id="ethereum-nfts"><a class="header" href="#ethereum-nfts">Ethereum NFTs?</a></h3>
+<p><em>Inscripties zijn altijd onveranderlijk.</em></p>
+<p>Er is simpelweg geen manier voor de maker of de eigenaar van een inscriptie om deze te wijzigen nadat deze is aangemaakt.</p>
+<p>Ethereum NFT's <em>kunnen</em> immuut zijn, maar veel zijn dat niet en kunnen worden gewijzigd of verwijderd door de eigenaar van het NFT-contract.</p>
+<p>Om ervoor te zorgen dat een bepaald Ethereum NFT immuut is, moet de contractcode worden gecontroleerd, wat gedetailleerde kennis van de EVM en Solidity-semantiek vereist.</p>
+<p>Het is erg moeilijk voor een niet-technische gebruiker om te bepalen of een gegeven Ethereum NFT wijzigbaar of immuut is, en Ethereum NFT-platforms doen geen moeite om te onderscheiden of een NFT wijzigbaar of immuut is, en of de contractbroncode beschikbaar is en gecontroleerd is.</p>
+<p><em>Inscriptie-inhoud staat altijd op de blockchain.</em></p>
+<p>Een inscriptie kan op geen enkele manier naar inhoud buiten de blockchain verwijzen. Dit maakt inscripties duurzamer, omdat de inhoud niet verloren kan gaan, en schaarser, omdat makers van inscripties kosten moeten betalen die evenredig zijn aan de omvang van de inhoud.</p>
+<p>Sommige Ethereum NFT-inhoud is on-chain, maar veel is off-chain en wordt opgeslagen op platforms zoals IPFS of Arweave, of op traditionele, volledig gecentraliseerde webservers. Inhoud op IPFS is niet gegarandeerd beschikbaar, en sommige NFT-inhoud opgeslagen op IPFS is al verloren gegaan. Platforms zoals Arweave zijn afhankelijk van zwakke economische aannames en zullen waarschijnlijk catastrofaal falen wanneer deze economische aannames niet langer worden voldaan. Gecentraliseerde webservers kunnen op elk moment verdwijnen.</p>
+<p>Het is voor een niet-technische gebruiker zeer moeilijk om te bepalen waar de inhoud van een gegeven Ethereum NFT is opgeslagen.</p>
+<p><em>Inscriptions zijn veel eenvoudiger.</em></p>
+<p>Ethereum NFT's zijn afhankelijk van het Ethereum-netwerk en de virtuele machine, die uiterst complex, voortdurend veranderend zijn en veranderingen introduceren via backwards-incompatibele hard forks.</p>
+<p>Inscriptions daarentegen zijn afhankelijk van de Bitcoin-blockchain, die relatief eenvoudig en conservatief is, en veranderingen introduceert via backwards-compatibele soft forks.</p>
+<p><em>Inscriptions zijn veiliger.</em></p>
+<p>Inscriptions erven het transactie-model van Bitcoin, waarmee een gebruiker precies kan zien welke inscriptions worden overgedragen door een transactie voordat deze wordt ondertekend. Inscriptions kunnen te koop worden aangeboden met behulp van gedeeltelijk ondertekende transacties, die geen toestemming vereisen van een derde partij, zoals een beurs of marktplaats, om ze namens de gebruiker over te dragen.</p>
+<p>Ter vergelijking, Ethereum NFT's worden gekenmerkt door beveiligingsproblemen voor eindgebruikers. Het is gebruikelijk om transacties blindo te ondertekenen, derden onbeperkte machtigingen over de NFT's van een gebruiker te geven en te interageren met complexe en onvoorspelbare slimme contracten. Dit creëert een mijnenveld van risico's voor Ethereum NFT-gebruikers, wat eenvoudigweg geen probleem is voor ordinal theoristen.</p>
+<p><em>Inscriptions zijn schaarser.</em></p>
+<p>Inscriptions vereisen bitcoin om te minten, over te dragen en op te slaan. Dit lijkt op het eerste gezicht een nadeel, maar de reden van bestaan van digitale artefacten is om schaars en dus waardevol te zijn.</p>
+<p>Ethereum NFT's daarentegen kunnen in vrijwel onbeperkte hoeveelheden worden gemint met een enkele transactie, waardoor ze van nature minder schaars en daardoor mogelijk minder waardevol zijn.</p>
+<p><em>Inscriptions doen niet alsof ze on-chain royalty's ondersteunen.</em></p>
+<p>On-chain royalty’s zijn een goed idee in theorie, maar niet in de praktijk. Royaltybetalingen kunnen niet op de blockchain worden afgedwongen zonder complexe en ingrijpende beperkingen. Het Ethereum NFT-ecosysteem worstelt momenteel met verwarring rond royalty's en komt collectief tot het besef dat on-chain royalty's, die aan artiesten werden gepresenteerd als een voordeel van NFT's, niet mogelijk zijn, terwijl platforms race naar beneden maken en royalty-ondersteuning verwijderen.</p>
+<p>Inscriptions vermijden deze situatie volledig door geen valse beloftes te doen over het ondersteunen van royalty's op de blockchain, en vermijden zo de verwarring, chaos en negativiteit van de Ethereum NFT-situatie.</p>
+<p><em>Inscriptions ontgrendelen nieuwe markten.</em></p>
+<p>De marktkapitalisatie en liquiditeit van Bitcoin zijn veel groter dan die van Ethereum. Een groot deel van deze liquiditeit is niet beschikbaar voor Ethereum NFT's, aangezien veel Bitcoin-gebruikers liever niet met het Ethereum-ecosysteem omgaan vanwege bezorgdheden over eenvoud, beveiliging en decentralisatie.</p>
+<p>Zo'n Bitcoiners kunnen meer geïnteresseerd zijn in inscripties dan in Ethereum NFT's, waardoor nieuwe klassen van verzamelaars worden ontsloten.</p>
+<p><em>Inscriptions hebben een rijker datamodel.</em></p>
+<p>Inscriptions bestaan uit een inhoudstype, ook bekend als een MIME-type, en inhoud, wat een willekeurige byte-reeks is. Dit is hetzelfde datamodel dat door het web wordt gebruikt, en stelt inhoud van inscripties in staat om mee te evolueren met het web en elke soort inhoud te ondersteunen die door webbrowsers wordt ondersteund, zonder wijzigingen aan het onderliggende protocol te vereisen.</p>
+<h3 id="rgb-en-taro-assets"><a class="header" href="#rgb-en-taro-assets">RGB en Taro assets?</a></h3>
+<p>RGB en Taro zijn beide tweede-laag assetprotocollen gebouwd op Bitcoin. In vergelijking met inscripties zijn ze veel gecompliceerder, maar ook veel veelzijdiger.</p>
+<p>Ordinal theory is vanaf de grond af ontworpen voor digitale artefacten, terwijl de primaire use-case van RGB en Taro fungibele tokens zijn. Daarom is de gebruikerservaring voor inscripties waarschijnlijk eenvoudiger en verfijnder dan de gebruikerservaring voor RGB en Taro NFT's.</p>
+<p>RGB en Taro slaan beide inhoud off-chain op, wat extra infrastructuur vereist en verloren kan gaan. In tegenstelling hiermee wordt inscriptie-inhoud on-chain opgeslagen en kan deze niet verloren gaan.</p>
+<p>Ordinal theory, RGB en Taro bevinden zich allemaal in een zeer vroege fase, dus dit is speculatie, maar de focus van ordinal theory kan het voordeel geven op het gebied van functies voor digitale artefacten, inclusief een beter inhoudsmodel en functies zoals wereldwijd unieke symbolen.</p>
+<h3 id="counterparty-assets"><a class="header" href="#counterparty-assets">Counterparty-assets?</a></h3>
+<p>Ordinal theory, RGB en Taro bevinden zich allemaal in een zeer vroege fase, dus dit is speculatie, maar de focus van ordinal theory kan het voordeel geven op het gebied van functies voor digitale artefacten, inclusief een beter inhoudsmodel en functies zoals wereldwijd unieke symbolen.</p>
+<p>Ordinal theory is vanaf de grond af ontworpen voor digitale artefacten, terwijl Counterparty voornamelijk is ontworpen voor de uitgifte van financiële tokens.</p>
+<h2 id="inscriptions-voor"><a class="header" href="#inscriptions-voor">Inscriptions voor…</a></h2>
+<h3 id="artists"><a class="header" href="#artists">Artists</a></h3>
+<p><em>Inscriptions zijn op Bitcoin.</em> Bitcoin is de digitale valuta met de hoogste status en de grootste kans op lange termijn overleving. Als je wilt garanderen dat je kunst de toekomst overleeft, is er geen betere manier om het te publiceren dan als inscripties.</p>
+<p><em>Goedkoper on-chain opslag.</em> Tegen $20.000 per BTC en de minimum relay fee van 1 satoshi per vbyte, kost het publiceren van inscriptie-inhoud $50 per 1 miljoen bytes.</p>
+<p><em>Inscripties zijn vroeg!</em> Inscripties zijn nog in ontwikkeling en zijn nog niet op de mainnet gelanceerd. Dit biedt je de kans om een vroege gebruiker te zijn en het medium te verkennen terwijl het evolueert.</p>
+<p><em>Inscripties zijn eenvoudig.</em> Inscripties vereisen geen slimme contracten te schrijven of te begrijpen.</p>
+<p><em>Inscripties ontsluiten nieuwe liquiditeit.</em> Inscripties zijn toegankelijker en aantrekkelijker voor bitcoinhouders, waardoor een geheel nieuwe klasse van verzamelaars wordt ontsloten.</p>
+<p><em>Inscripties zijn ontworpen voor digitale artefacten.</em> Inscripties zijn vanaf de grond opgebouwd om NFT's te ondersteunen en beschikken over een beter datamodel, evenals functies zoals wereldwijd unieke symbolen en verbeterde herkomst.</p>
+<p><em>Inscripties ondersteunen geen on-chain royalty's.</em> Dit is negatief, maar afhankelijk van hoe je het bekijkt. On-chain royalty's zijn een zegen voor makers geweest, maar hebben ook veel verwarring gecreëerd in het Ethereum NFT-ecosysteem. Het ecosysteem worstelt nu met dit probleem en is verwikkeld in een race naar de bodem, richting een toekomst waarin royalty's optioneel zijn. Inscripties hebben geen ondersteuning voor on-chain royalty's, omdat ze technisch onhaalbaar zijn. Als je kiest om inscripties te maken, zijn er veel manieren waarop je deze beperking kunt omzeilen: houd een deel van je inscripties achter voor toekomstige verkoop, om te profiteren van toekomstige waardestijging, of bied misschien voordelen voor gebruikers die optionele royalty's respecteren.</p>
+<h3 id="verzamelaars"><a class="header" href="#verzamelaars">Verzamelaars</a></h3>
+<p><em>Inscripties zijn eenvoudig, duidelijk en hebben geen verrassingen.</em> Ze zijn altijd onveranderlijk en on-chain, zonder speciale zorgvuldigheidseisen.</p>
+<p><em>Inscripties zijn op Bitcoin.</em> Je kunt de locatie en eigenschappen van inscripties eenvoudig verifiëren met een Bitcoin full node die je zelf beheert.</p>
+<h3 id="bitcoiners"><a class="header" href="#bitcoiners">Bitcoiners</a></h3>
+<p>Laat me deze sectie beginnen met te zeggen: het belangrijkste dat het Bitcoin-netwerk doet is het decentraliseren van geld. Alle andere gebruikstoepassingen zijn secundair, inclusief ordinale theorie. De ontwikkelaars van ordinale theorie begrijpen en erkennen dit, en geloven dat ordinale theorie op zijn minst op een kleine manier bijdraagt aan de primaire missie van Bitcoin.</p>
+<p>In tegenstelling tot veel andere dingen in de altcoin-ruimte, hebben digitale artefacten waarde. Er zijn natuurlijk veel NFT's die lelijk, dom en frauduleus zijn. Er zijn echter ook veel NFT's die fantastisch creatief zijn, en het maken en verzamelen van kunst maakt al sinds het begin deel uit van het menselijke verhaal, en gaat zelfs verder terug dan handel en geld, die ook oude technologieën zijn.</p>
+<p>Bitcoin biedt een geweldig platform voor het creëren en verzamelen van digitale artefacten op een veilige, gedecentraliseerde manier, die gebruikers en kunstenaars beschermt op dezelfde manier als het een geweldig platform biedt voor het verzenden en ontvangen van waarde, en om dezelfde redenen.</p>
+<p>Ordinals en inscripties verhogen de vraag naar Bitcoin-blockruimte, wat het beveiligingsbudget van Bitcoin vergroot, wat essentieel is voor het waarborgen van de overgang van Bitcoin naar een op vergoedingen gebaseerde beveiligingsmodel, aangezien de blocksubsidie tot verwaarlozing wordt gehalveerd.</p>
+<p>Inscriptie-inhoud wordt on-chain opgeslagen, en de vraag naar blockruimte voor inscripties is dus onbeperkt. Dit creëert een koper van laatste instantie voor <em>alle</em> Bitcoin blockruimte. Dit zal helpen om een robuuste vergoedingmarkt te ondersteunen, wat ervoor zorgt dat Bitcoin veilig blijft.</p>
+<p>Inscripties weerleggen ook het narratief dat Bitcoin niet kan worden uitgebreid of gebruikt voor nieuwe use-cases. Als je projecten zoals DLC's, Fedimint, Lightning, Taro en RGB volgt, weet je dat dit narratief onjuist is, maar inscripties bieden een tegenargument dat gemakkelijk te begrijpen is, en dat zich richt op een populaire en bewezen use case, NFT's, wat het zeer begrijpelijk maakt.</p>
+<p>Als inscripties, zoals de auteurs hopen, highly sought after digitale artefacten met een rijke geschiedenis blijken te zijn, zullen ze dienen als een krachtige haak voor Bitcoin-adoptie: kom voor het plezierige, rijke kunstwerk, blijf voor het gedecentraliseerde digitale geld.</p>
+<p>Inscripties zijn een uiterst onschadelijke bron van vraag naar blokruimte. In tegenstelling tot bijvoorbeeld stablecoins, die potentiëel grote stablecoin-uitgevers invloed kunnen geven op de toekomst van Bitcoin-ontwikkeling, of DeFi, dat mogelijk mining kan centraliseren door kansen voor MEV te introduceren, zullen digitale kunst en verzamelobjecten op Bitcoin waarschijnlijk geen individuele entiteiten voortbrengen met genoeg macht om Bitcoin te corrumperen. Kunst is gedecentraliseerd.</p>
+<p>Gebruikers van inscripties en dienstverleners worden gestimuleerd om Bitcoin full nodes te draaien, om inscripties te publiceren en bij te houden, en daarmee hun economische gewicht achter de eerlijke keten te plaatsen.</p>
+<p>Ordinale theorie en inscripties beïnvloeden de verhandelbaarheid van Bitcoin niet op een betekenisvolle manier. Bitcoin-gebruikers kunnen beide negeren en worden er niet door beïnvloed.</p>
+<p>We hopen dat de ordinale theorie Bitcoin versterkt en verrijkt, en het een extra dimensie van aantrekkingskracht en functionaliteit geeft, zodat het effectiever zijn primaire gebruiksdoel kan dienen als de gedecentraliseerde waardeopslag van de mensheid.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="runes/specification.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="runes/specification.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

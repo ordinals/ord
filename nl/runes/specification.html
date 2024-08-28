@@ -1,0 +1,635 @@
+<!DOCTYPE HTML>
+<html lang="nl" class="coal" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Specificatie - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introductie</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> Overzicht</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digitale artefacten</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> Inscripties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/delegate.html"><strong aria-hidden="true">3.1.</strong> Gemachtigde</a></li><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.2.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.3.</strong> Pointer</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.4.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.5.</strong> Recursie</a></li><li class="chapter-item expanded "><a href="../inscriptions/rendering.html"><strong aria-hidden="true">3.6.</strong> Rendering</a></li></ol></li><li class="chapter-item expanded "><a href="../runes.html"><strong aria-hidden="true">4.</strong> Runes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../runes/specification.html" class="active"><strong aria-hidden="true">4.1.</strong> Specificatie</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">5.</strong> Veelgestelde Vragen</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Bijdragen</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">7.</strong> Donaties</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">8.</strong> Handleidingen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">8.1.</strong> Verkenner</a></li><li class="chapter-item expanded "><a href="../guides/wallet.html"><strong aria-hidden="true">8.2.</strong> Wallet</a></li><li class="chapter-item expanded "><a href="../guides/batch-inscribing.html"><strong aria-hidden="true">8.3.</strong> Batch Inscriptie</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">8.4.</strong> Verzamelen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">8.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">8.5.</strong> Beheer</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">8.6.</strong> Herindexeren</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">8.7.</strong> Sats Jagen</a></li><li class="chapter-item expanded "><a href="../guides/settings.html"><strong aria-hidden="true">8.8.</strong> Instellingen</a></li><li class="chapter-item expanded "><a href="../guides/teleburning.html"><strong aria-hidden="true">8.9.</strong> Teleburnen</a></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">8.10.</strong> Testen</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">9.</strong> Beloningen</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">9.1.</strong> Beloning 0: 100.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">9.2.</strong> Beloning 1: 200.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">9.3.</strong> Beloning 2: 300.000 sats Geclaimd!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">9.4.</strong> Beloning 3: 400.000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="pt">Português</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="hi">हिंदी</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="it">Italiano</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="nl">Nederlands</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("nl");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "runes/specification.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="runes-hebben-geen-specificatie"><a class="header" href="#runes-hebben-geen-specificatie">Runes hebben geen specificatie</a></h1>
+<p>De referentie-implementatie van Runes, <code>ord</code>, is de normatieve specificatie van het Runes-protocol.</p>
+<p>Niets wat je hier of elders leest, behalve de code van <code>ord</code>, is een specificatie. Deze prozaïsche beschrijving van het runes-protocol wordt verstrekt als een gids voor het gedrag van <code>ord</code>, en de code van <code>ord</code> zelf moet altijd worden geraadpleegd om de juistheid van elke prozaïsche beschrijving te bevestigen.</p>
+<p>Als door een bug in <code>ord</code> dit document afwijkt van het daadwerkelijke gedrag van <code>ord</code> en het onpraktisch verstorend is om het gedrag van <code>ord</code> te wijzigen, zal dit document worden aangepast om overeen te komen met het werkelijke gedrag van <code>ord</code>.</p>
+<p>Gebruikers van alternatieve implementaties doen dit op eigen risico, en diensten die Runes willen integreren worden sterk aangemoedigd om <code>ord</code> zelf te gebruiken voor het uitvoeren van Runes-transacties en voor het bepalen van de status van runes, mints en saldi.</p>
+<h2 id="runestones"><a class="header" href="#runestones">Runestones</a></h2>
+<p>Berichten van het rune-protocol worden "runestones" genoemd.</p>
+<p>Het Runes-protocol wordt geactiveerd bij blok 840.000. Runestones in eerdere blokken worden genegeerd.</p>
+<p>In abstracte termen bevatten runestones de volgende velden:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Runestone {
+  edicts: Vec&lt;Edict&gt;,
+  etching: Option&lt;Etching&gt;,
+  mint: Option&lt;RuneId&gt;,
+  pointer: Option&lt;u32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Runes worden gecreëerd door etchings:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Etching {
+  divisibility: Option&lt;u8&gt;,
+  premine: Option&lt;u128&gt;,
+  rune: Option&lt;Rune&gt;,
+  spacers: Option&lt;u32&gt;,
+  symbol: Option&lt;char&gt;,
+  terms: Option&lt;Terms&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Die mint-voorwaarden kunnen bevatten:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Terms {
+  amount: Option&lt;u128&gt;,
+  cap: Option&lt;u128&gt;,
+  height: (Option&lt;u64&gt;, Option&lt;u64&gt;),
+  offset: (Option&lt;u64&gt;, Option&lt;u64&gt;),
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Runes worden overgedragen door middel van een edict:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Edict {
+  id: RuneId,
+  amount: u128,
+  output: u32,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Rune-ID's worden gecodeerd als de blokhoogte en de transactie-index van de transactie waarin de rune werd geëtched:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct RuneId {
+  block: u64,
+  tx: u32,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Rune-ID's worden in tekst weergegeven als <code>BLOCK:TX</code>.</p>
+<p>Rune-namen worden gecodeerd als gemodificeerde base-26 gehele getallen:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Rune(u128);
+<span class="boring">}</span></code></pre></pre>
+<h3 id="ontcijferen"><a class="header" href="#ontcijferen">Ontcijferen</a></h3>
+<p>Runestones worden ontcijferd uit transacties met de volgende stappen:</p>
+<ol>
+<li>
+<p>Vind de eerste transactie-output waarvan de script pubkey begint met <code>OP_RETURN OP_13</code>.</p>
+</li>
+<li>
+<p>Concateneer alle volgende data pushes in een payload-buffer.</p>
+</li>
+<li>
+<p>Decodeer een reeks van 128-bit <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a> gehele getallen uit de payload-buffer.</p>
+</li>
+<li>
+<p>Parse de reeks van gehele getallen in een ongetypeerd bericht.</p>
+</li>
+<li>
+<p>Parse het ongetypeerde bericht naar een runestone.</p>
+</li>
+</ol>
+<p>Decoderen kan een onjuist gevormde runestone opleveren, genoemd een <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaph</a>.</p>
+<h4 id="het-vinden-van-de-runestone-output"><a class="header" href="#het-vinden-van-de-runestone-output">Het vinden van de Runestone-output</a></h4>
+<p>Outputs worden doorzocht naar de eerste script pubkey die begint met <code>OP_RETURN OP_13</code>. Als het decoderen mislukt, worden latere overeenkomende outputs niet beschouwd.</p>
+<h4 id="het-payloadbuffer-samenstellen"><a class="header" href="#het-payloadbuffer-samenstellen">Het payloadbuffer samenstellen</a></h4>
+<p>Het payloadbuffer wordt samengesteld door de datastukken na <code>OP_13</code> in de overeenkomende script pubkey aan elkaar te koppelen.</p>
+<p>De datastukken zijn opcodes 0 tot en met 78 inclusief. Als een niet-data push opcode wordt aangetroffen, dat wil zeggen een opcode gelijk aan of groter dan opcode 79, dan is de ontcijferde runestone een cenotaaf zonder etching, mint of edicts.</p>
+<h4 id="decoderen-van-de-gehele-reeks-van-128-bit-leb128-getallen-uit-de-payloadbuffer"><a class="header" href="#decoderen-van-de-gehele-reeks-van-128-bit-leb128-getallen-uit-de-payloadbuffer">Decoderen van de gehele reeks van 128-bit LEB128-getallen uit de payloadbuffer</a></h4>
+<p>Een reeks van 128-bit gehele getallen wordt uit de payload gedecodeerd als LEB128 varints.</p>
+<p>LEB128 varints worden gecodeerd als een reeks bytes, waarvan elke byte het meest significante bit ingesteld heeft, behalve de laatste.</p>
+<p>Als een LEB128 varint meer dan 18 bytes bevat, een <code>u128</code> zou overlopen, of wordt afgekapt, wat betekent dat het einde van de payloadbuffer is bereikt voordat een byte met het voortzettingsbit niet ingesteld is wordt aangetroffen, is de gedecodeerde runestone een cenotaph zonder etching, mint of edicts.</p>
+<h4 id="het-ontleden-van-de-boodschap"><a class="header" href="#het-ontleden-van-de-boodschap">Het ontleden van de boodschap</a></h4>
+<p>De reeks gehele getallen wordt ontleed in een ongetypte boodschap:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Message {
+  fields: Map&lt;u128, Vec&lt;u128&gt;&gt;,
+  edicts: Vec&lt;Edict&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>De gehele getallen worden geïnterpreteerd als een reeks tag/waarde-paren, waarbij dubbele tags hun waarde toevoegen aan de veldwaarde.</p>
+<p>Als een tag met de waarde nul wordt aangetroffen, worden alle volgende gehele getallen geïnterpreteerd als een reeks van vier-integer edicts, elk bestaande uit een rune-ID blockhoogte, rune-ID transactienummer, hoeveelheid en uitvoer.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Edict {
+  id: RuneId,
+  amount: u128,
+  output: u32,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>De blockhoogtes en transactienummers van rune-ID's in edicts zijn delta-gecodeerd.</p>
+<p>Decodering van edict rune-ID's begint met een basis blockhoogte en transactienummer van nul. Bij het decoderen van elke rune-ID wordt eerst de gecodeerde blockhoogte-delta bij de basis blockhoogte opgeteld. Als de blockhoogte-delta nul is, is het volgende geheel getal een transactienummer-delta. Als de blockhoogte-delta groter is dan nul, is het volgende geheel getal in plaats daarvan een absoluut transactienummer.</p>
+<p>Dit houdt in dat edicts eerst gesorteerd moeten worden op rune-ID voordat ze worden gecodeerd in een runestone.</p>
+<p>Bijvoorbeeld, om de volgende edicts te coderen:</p>
+<div class="table-wrapper"><table><thead><tr><th>block</th><th>TX</th><th>aantal</th><th>output</th></tr></thead><tbody>
+<tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
+<tr><td>50</td><td>1</td><td>25</td><td>4</td></tr>
+<tr><td>10</td><td>7</td><td>1</td><td>8</td></tr>
+<tr><td>10</td><td>5</td><td>10</td><td>3</td></tr>
+</tbody></table>
+</div>
+<p>Ze worden eerst gesorteerd op blokhoogte en transactie-index:</p>
+<div class="table-wrapper"><table><thead><tr><th>block</th><th>TX</th><th>aantal</th><th>output</th></tr></thead><tbody>
+<tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
+<tr><td>10</td><td>5</td><td>10</td><td>3</td></tr>
+<tr><td>10</td><td>7</td><td>1</td><td>8</td></tr>
+<tr><td>50</td><td>1</td><td>25</td><td>4</td></tr>
+</tbody></table>
+</div>
+<p>En daarna delta-gecodeerd als:</p>
+<div class="table-wrapper"><table><thead><tr><th>block delta</th><th>TX delta</th><th>aantal</th><th>output</th></tr></thead><tbody>
+<tr><td>10</td><td>5</td><td>5</td><td>1</td></tr>
+<tr><td>0</td><td>0</td><td>10</td><td>3</td></tr>
+<tr><td>0</td><td>2</td><td>1</td><td>8</td></tr>
+<tr><td>40</td><td>1</td><td>25</td><td>4</td></tr>
+</tbody></table>
+</div>
+<p>Als een edictoutput groter is dan het aantal outputs van de transactie, wordt een edict-rune-ID aangetroffen met block nul en een niet-nul transactieverwijzing, of een veld is afgebroken, wat betekent dat een tag zonder waarde wordt aangetroffen, dan is de gedecodeerde runestone een cenotaaf.</p>
+<p>Houd er rekening mee dat als hier een cenotaaf wordt geproduceerd, de cenotaaf niet leeg is, wat betekent dat deze de velden en edicts bevat, die een etching en mint kunnen omvatten.</p>
+<h4 id="het-ontcijferen-van-de-runestone"><a class="header" href="#het-ontcijferen-van-de-runestone">Het Ontcijferen van de Runestone</a></h4>
+<p>De runestone:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Runestone {
+  edicts: Vec&lt;Edict&gt;,
+  etching: Option&lt;Etching&gt;,
+  mint: Option&lt;RuneId&gt;,
+  pointer: Option&lt;u32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Wordt ontcijferd uit het ongetekende bericht met behulp van de volgende tags:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Tag {
+  Body = 0,
+  Flags = 2,
+  Rune = 4,
+  Premine = 6,
+  Cap = 8,
+  Amount = 10,
+  HeightStart = 12,
+  HeightEnd = 14,
+  OffsetStart = 16,
+  OffsetEnd = 18,
+  Mint = 20,
+  Pointer = 22,
+  Cenotaph = 126,
+
+  Divisibility = 1,
+  Spacers = 3,
+  Symbol = 5,
+  Nop = 127,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Let op dat tags worden gegroepeerd op pariteit, d.w.z. of ze even of oneven zijn. Onbekende oneven tags worden genegeerd. Onbekende even tags produceren een cenotaaf.</p>
+<p>All unused tags are reserved for use by the protocol, may be assigned at any time, and should not be used.</p>
+<h5 id="lichaam-body"><a class="header" href="#lichaam-body">Lichaam (Body)</a></h5>
+<p>The <code>Body</code> tag marks the end of the runestone's fields, causing all following integers to be interpreted as edicts.</p>
+<h5 id="vlag-flag"><a class="header" href="#vlag-flag">Vlag (Flag)</a></h5>
+<p>Het <code>Flag</code>-veld bevat een bitmap van vlaggen, waarvan de positie <code>1 &lt;&lt; FLAG_VALUE</code> is:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Flag {
+  Etching = 0,
+  Terms = 1,
+  Turbo = 2,
+  Cenotaph = 127,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>De <code>Etching</code>-vlag markeert deze transactie als een etching.</p>
+<p>De <code>Terms</code>-vlag markeert de etching van deze transactie als het hebben van open mint-voorwaarden.</p>
+<p>De <code>Turbo</code>-vlag markeert de etching van deze transactie als meewerkend aan toekomstige protocolwijzigingen. Deze protocolwijzigingen kunnen de validatiekosten voor lichte clients verhogen, of gewoon sterk afwijkend zijn.</p>
+<p>De <code>Cenotaph</code>-vlag wordt niet herkend.</p>
+<p>Als de waarde van het <code>Flags</code>-veld, na het verwijderen van erkende vlaggen, niet nul is, wordt de runestone beschouwd als een cenotaaf.</p>
+<h5 id="rune"><a class="header" href="#rune">Rune</a></h5>
+<p>Het <code>Rune</code>-veld bevat de naam van de rune die wordt geëtst. Als de <code>Etching</code>-vlag is ingesteld maar het <code>Rune</code>-veld ontbreekt, wordt een gereserveerde rune-naam toegewezen.</p>
+<h5 id="premine"><a class="header" href="#premine">Premine</a></h5>
+<p>Het <code>Premine</code>-veld bevat het aantal voorgemijnde runes.</p>
+<h5 id="limiet"><a class="header" href="#limiet">Limiet</a></h5>
+<p>Het <code>Cap</code>-veld bevat het toegestane aantal mints.</p>
+<h5 id="aantal"><a class="header" href="#aantal">Aantal</a></h5>
+<p>Het <code>Amount</code>-veld bevat het aantal runes dat elke mint-transactie ontvangt.</p>
+<h5 id="heightstart-en-heightend"><a class="header" href="#heightstart-en-heightend">HeightStart en HeightEnd</a></h5>
+<p>De velden <code>HeightStart</code> en <code>HeightEnd</code> bevatten respectievelijk de absolute blokhoogtes waarop de mint begint en eindigt. De mint is open vanaf het blok met hoogte <code>HeightStart</code> en sluit in het blok met hoogte <code>HeightEnd</code>.</p>
+<h5 id="offsetstart-en-offsetend"><a class="header" href="#offsetstart-en-offsetend">OffsetStart en OffsetEnd</a></h5>
+<p>De velden <code>OffsetStart</code> en <code>OffsetEnd</code> bevatten de relatieve start- en eindblokhoogtes van de mint, ten opzichte van het blok waarin de etching wordt gemined. De mint is open vanaf het blok met hoogte <code>OffsetStart</code> + <code>ETCHING_HEIGHT</code>, en sluit in het blok met hoogte <code>OffsetEnd</code> + <code>ETCHING_HEIGHT</code>.</p>
+<h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
+<p>Het veld <code>Mint</code> bevat de Rune ID van de rune die in deze transactie gemint moet worden.</p>
+<h5 id="pointer"><a class="header" href="#pointer">Pointer</a></h5>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<h5 id="cenotaaf"><a class="header" href="#cenotaaf">Cenotaaf</a></h5>
+<p>Het veld <code>Cenotaph</code> is niet herkend.</p>
+<h5 id="deelbaarheid"><a class="header" href="#deelbaarheid">Deelbaarheid</a></h5>
+<p>Het veld <code>Divisibility</code>, verheven tot de macht van tien, is het aantal subeenheden in een supereenheid van runes.</p>
+<p>Bijvoorbeeld, het bedrag van <code>1234</code> runes met een divisibility van 0 tot 3 wordt als volgt weergegeven:</p>
+<div class="table-wrapper"><table><thead><tr><th>Deelbaarheid</th><th>Weergave</th></tr></thead><tbody>
+<tr><td>0</td><td>1234</td></tr>
+<tr><td>1</td><td>123.4</td></tr>
+<tr><td>2</td><td>12.34</td></tr>
+<tr><td>3</td><td>1.234</td></tr>
+</tbody></table>
+</div>
+<h5 id="spaties"><a class="header" href="#spaties">Spaties</a></h5>
+<p>Het veld <code>Spacers</code> is een bitveld van <code>•</code> spaties die moeten worden weergegeven tussen de letters van de naam van de rune.</p>
+<p>Het N-de veld van het bitveld, beginnend bij de minst significante bit, bepaalt of er al dan niet een spatie moet worden weergegeven tussen de N-de en de N+1-de karakter, beginnend vanaf de linkerkant van de naam van de rune.</p>
+<p>Bijvoorbeeld, de rune-naam <code>AAAA</code> weergegeven met verschillende spaties:</p>
+<div class="table-wrapper"><table><thead><tr><th>Spaties</th><th>Weergave</th></tr></thead><tbody>
+<tr><td>0b1</td><td>A•AAA</td></tr>
+<tr><td>0b11</td><td>A•A•AA</td></tr>
+<tr><td>0b10</td><td>AA•AA</td></tr>
+<tr><td>0b111</td><td>A•A•A•A</td></tr>
+</tbody></table>
+</div>
+<p>Achteraf geplaatste spaties worden genegeerd.</p>
+<h5 id="symbool"><a class="header" href="#symbool">Symbool</a></h5>
+<p>Het veld <code>Symbol</code> is de Unicode-codepunt van het valuta-symbool van de Rune, dat na de bedragen van die rune moet worden weergegeven. Als een rune geen valuta-symbool heeft, moet het algemene valutateken <code>¤</code> worden gebruikt.</p>
+<p>Bijvoorbeeld, als het <code>Symbol</code> <code>#</code> is en de deelbaarheid 2 is, zou het bedrag van <code>1234</code> eenheden worden weergegeven als <code>12.34 #</code>.</p>
+<h5 id="nop"><a class="header" href="#nop">Nop</a></h5>
+<p>Het <code>Nop</code>-veld is niet herkend.</p>
+<h4 id="cenotaaf-1"><a class="header" href="#cenotaaf-1">Cenotaaf</a></h4>
+<p>Cenotafen hebben de volgende effecten:</p>
+<ul>
+<li>
+<p>Alle runes die worden ingevoerd in een transactie die een cenotaph bevat, worden verbrand.</p>
+</li>
+<li>
+<p>Als de runestone die de cenotaph heeft geproduceerd een etching bevatte, heeft de geëtste rune een aanbod van nul en kan deze niet worden gemint.</p>
+</li>
+<li>
+<p>Als de runestone die de cenotaph heeft geproduceerd een mint is, telt de mint mee voor de mint cap en worden de geminte runes verbrand.</p>
+</li>
+</ul>
+<p>Cenotaphs kunnen worden gemaakt als een runestone een niet-herkenbaar even tag bevat, een niet-herkenbaar vlag, een edict met een outputnummer groter dan het aantal inputs, een rune ID met blok nul en een niet-nul transactienummer, een verkeerd geformatteerde varint, een niet-datapush-instructie in het runestone outputscript pubkey, een tag zonder een volgende waarde, of achterblijvende gehele getallen die geen deel uitmaken van een edict.</p>
+<h4 id="uitvoeren-van-de-runestone"><a class="header" href="#uitvoeren-van-de-runestone">Uitvoeren van de Runestone</a></h4>
+<p>Runestones worden uitgevoerd in de volgorde waarin hun transacties in blokken zijn opgenomen.</p>
+<h5 id="etchings"><a class="header" href="#etchings">Etchings</a></h5>
+<p>Een runestone kan een etching bevatten:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Etching {
+  divisibility: Option&lt;u8&gt;,
+  premine: Option&lt;u128&gt;,
+  rune: Option&lt;Rune&gt;,
+  spacers: Option&lt;u32&gt;,
+  symbol: Option&lt;char&gt;,
+  terms: Option&lt;Terms&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p><code>rune</code> is de naam van de rune die geëtst moet worden, gecodeerd als een gemodificeerde base-26 integer.</p>
+<p>Rune-namen bestaan uit de letters A tot Z, met de volgende codering:</p>
+<div class="table-wrapper"><table><thead><tr><th>Naam</th><th>Codering</th></tr></thead><tbody>
+<tr><td>A</td><td>0</td></tr>
+<tr><td>B</td><td>1</td></tr>
+<tr><td>…</td><td>…</td></tr>
+<tr><td>Y</td><td>24</td></tr>
+<tr><td>Z</td><td>25</td></tr>
+<tr><td>AA</td><td>26</td></tr>
+<tr><td>AB</td><td>27</td></tr>
+<tr><td>…</td><td>…</td></tr>
+<tr><td>AY</td><td>50</td></tr>
+<tr><td>AZ</td><td>51</td></tr>
+<tr><td>BA</td><td>52</td></tr>
+</tbody></table>
+</div>
+<p>Enzovoort, enzovoort.</p>
+<p>Rune-namen <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code> en hoger zijn gereserveerd.</p>
+<p>Als <code>rune</code> wordt weggelaten, wordt een gereserveerde runenaam toegewezen als volgt:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn reserve(block: u64, tx: u32) -&gt; Rune {
+  Rune(
+    6402364363415443603228541259936211926
+    + (u128::from(block) &lt;&lt; 32 | u128::from(tx))
+  )
+}
+<span class="boring">}</span></code></pre></pre>
+<p><code>6402364363415443603228541259936211926</code> reageert op de naam van de rune <code>AAAAAAAAAAAAAAAAAAAAAAAAAAA</code>.</p>
+<p>Als <code>rune</code> aanwezig is, moet deze worden ontgrendeld vanaf de block waarin de etching verschijnt.</p>
+<p>Aanvankelijk worden alle runenamen met een lengte van dertien tekens en langer, tot aan de eerste gereserveerde runenaam, ontgrendeld.</p>
+<p>Runen beginnen te ontgrendelen in blok 840.000, het blok waarin het runes-protocol wordt geactiveerd.</p>
+<p>Daarna wordt in elke periode van 17.500 blokken de volgende kortste lengte van runenamen continu ontgrendeld. Dus, tussen blok 840.000 en blok 857.500 worden de runenamen van twaalf tekens ontgrendeld, tussen blok 857.500 en blok 875.000 worden de runenamen van elf tekens ontgrendeld, enzovoort, totdat de runenamen van één teken worden ontgrendeld tussen blok 1.032.500 en blok 1.050.000. Zie de <code>ord</code> codebase voor het exacte ontgrendelingsschema.</p>
+<p>Om frontrunning van een etching die is uitgezonden maar nog niet gemined is te voorkomen, moet de etching-transactie, indien een niet-gereserveerde runenaam wordt geëtst, een geldige toewijding aan de te etsen naam bevatten.</p>
+<p>Een toewijding bestaat uit een datapush van de runenaam, gecodeerd als een little-endian geheel getal waarbij de achteraan geplaatste nullen zijn weggelaten, aanwezig in een input witness tapscript waarbij de output die wordt uitgegeven minstens zes bevestigingen heeft.</p>
+<p>Als een geldige toewijding niet aanwezig is, wordt het etsen genegeerd.</p>
+<h4 id="minting"><a class="header" href="#minting">Minting</a></h4>
+<p>Een runestone kan een rune slaan door de ID van de rune op te nemen in het <code>Mint</code>-veld.</p>
+<p>Als de mint open is, wordt het mintbedrag toegevoegd aan de niet-toegewezen runes in de inputs van de transactie. Deze runes kunnen worden overgedragen met behulp van edicten en worden anders overgedragen naar de eerste niet-<code>OP_RETURN</code> output of naar de output die is aangewezen door het <code>Pointer</code>-veld.</p>
+<p>Mints kunnen in elke transactie worden uitgevoerd na een etching, inclusief in hetzelfde blok.</p>
+<h4 id="overdragen"><a class="header" href="#overdragen">Overdragen</a></h4>
+<p>Runes worden overgedragen door middel van een edict:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Edict {
+  id: RuneId,
+  amount: u128,
+  output: u32,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Een runestone kan een onbeperkt aantal edicten bevatten, die in volgorde worden verwerkt.</p>
+<p>Voordat edicten worden verwerkt, zijn de invoerrunes, evenals geminte of vooraf gemijnde runes, indien aanwezig, niet toegewezen.</p>
+<p>Elke edict verlaagt de niet-toegewezen balans van rune <code>id</code> en verhoogt de balans die is toegewezen aan de transactievermeldingen van rune <code>id</code>.</p>
+<p>Als een edict meer runes zou toewijzen dan er momenteel niet-toegewezen zijn, wordt het <code>amount</code> verlaagd tot het aantal momenteel niet-toegewezen runes. Met andere woorden, de edict wijst alle resterende niet-toegewezen eenheden van rune <code>id</code> toe.</p>
+<p>Omdat de ID van een gegraveerde rune niet bekend is voordat deze in een blok is opgenomen, wordt ID <code>0:0</code> gebruikt om de rune aan te duiden die in deze transactie wordt gegraveerd, indien aanwezig.</p>
+<p>Een edict met een <code>amount</code> van nul wijst alle resterende eenheden van rune <code>id</code> toe.</p>
+<p>Een edict met <code>output</code> gelijk aan het aantal transactie-uitgangen wijst <code>amount</code> runes toe aan elke niet-<code>OP_RETURN</code> uitgang in volgorde.</p>
+<p>Een edict met <code>amount</code> nul en <code>output</code> gelijk aan het aantal transactie-uitgangen verdeelt alle niet-toegewezen eenheden van rune <code>id</code> over elke niet-<code>OP_RETURN</code> uitgang. Als het aantal niet-toegewezen runes niet deelbaar is door het aantal niet-<code>OP_RETURN</code> uitgangen, wordt 1 extra rune toegewezen aan de eerste <code>R</code> niet-<code>OP_RETURN</code> uitgangen, waarbij <code>R</code> de rest is na deling van het saldo van niet-toegewezen eenheden van rune <code>id</code> door het aantal niet-<code>OP_RETURN</code> uitgangen.</p>
+<p>Als een edict in een runestone een rune-ID heeft met <code>block</code> nul en <code>tx</code> groter dan nul, of <code>output</code> groter dan het aantal transactie-uitgangen, is de runestone een cenotaph.</p>
+<p>Let op dat edicts in cenotaphs niet worden verwerkt en alle invoerrunes worden verbrand.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../runes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../faq.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../runes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../faq.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
