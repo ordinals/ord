@@ -88,11 +88,12 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
         continue;
       }
 
-      // find existing inscriptions on input (transfers of inscriptions)
-      let mut parsed_inscriptions = parsed_input_utxo_entries[input_index].parse_inscriptions();
-      parsed_inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
+      let mut transferred_inscriptions =
+        parsed_input_utxo_entries[input_index].parse_inscriptions();
 
-      for (sequence_number, old_satpoint_offset) in parsed_inscriptions {
+      transferred_inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
+
+      for (sequence_number, old_satpoint_offset) in transferred_inscriptions {
         let old_satpoint = SatPoint {
           outpoint: txin.previous_output,
           offset: old_satpoint_offset,
