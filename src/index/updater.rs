@@ -412,7 +412,6 @@ impl<'index> Updater<'index> {
     sat_ranges_written: &mut u64,
     outputs_in_block: &mut u64,
   ) -> Result<(), Error> {
-    let mut content_type_to_count = wtx.open_table(CONTENT_TYPE_TO_COUNT)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_number_to_sequence_number =
@@ -503,7 +502,6 @@ impl<'index> Updater<'index> {
 
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
-      content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
       flotsam: Vec::new(),
       height: self.height,

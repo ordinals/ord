@@ -39,7 +39,6 @@ enum Origin {
 
 pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) blessed_inscription_count: u64,
-  pub(super) content_type_to_count: &'a mut Table<'tx, Option<&'static [u8]>, u64>,
   pub(super) cursed_inscription_count: u64,
   pub(super) flotsam: Vec<Flotsam>,
   pub(super) height: u32,
@@ -188,18 +187,6 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .pointer()
           .filter(|&pointer| pointer < total_output_value)
           .unwrap_or(offset);
-
-        let content_type = inscription.payload.content_type.as_deref();
-
-        let content_type_count = self
-          .content_type_to_count
-          .get(content_type)?
-          .map(|entry| entry.value())
-          .unwrap_or_default();
-
-        self
-          .content_type_to_count
-          .insert(content_type, content_type_count + 1)?;
 
         floating_inscriptions.push(Flotsam {
           inscription_id,

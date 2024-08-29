@@ -55,7 +55,6 @@ const SCHEMA_VERSION: u64 = 28;
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
-define_table! { CONTENT_TYPE_TO_COUNT, Option<&[u8]>, u64 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
@@ -299,7 +298,6 @@ impl Index {
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
-        tx.open_table(CONTENT_TYPE_TO_COUNT)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -507,21 +505,10 @@ impl Index {
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
     let initial_sync_time = statistic(Statistic::InitialSyncTime)?;
 
-    let mut content_type_counts = rtx
-      .open_table(CONTENT_TYPE_TO_COUNT)?
-      .iter()?
-      .map(|result| {
-        result.map(|(key, value)| (key.value().map(|slice| slice.into()), value.value()))
-      })
-      .collect::<Result<Vec<(Option<Vec<u8>>, u64)>, StorageError>>()?;
-
-    content_type_counts.sort_by_key(|(_content_type, count)| Reverse(*count));
-
     Ok(StatusHtml {
       address_index: self.has_address_index(),
       blessed_inscriptions,
       chain: self.settings.chain(),
-      content_type_counts,
       cursed_inscriptions,
       height,
       initial_sync_time: Duration::from_micros(initial_sync_time),
