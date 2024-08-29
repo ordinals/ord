@@ -1,15 +1,14 @@
-use std::ops::Deref;
-
-use ordinals::varint;
-use redb::TypeName;
-use ref_cast::RefCast;
-
-use super::{
-  entry::{Entry, SatRange},
-  Index,
+use {
+  super::{
+    entry::{Entry, SatRange},
+    Index,
+  },
+  ordinals::varint,
+  redb::TypeName,
+  ref_cast::RefCast,
+  std::ops::Deref,
+  SatRangesOrValue::{SatRanges, Value},
 };
-
-use SatRangesOrValue::{SatRanges, Value};
 
 // A UtxoEntry stores information about an unspent transaction output.
 // It contains the following, depending on the indexing options:
