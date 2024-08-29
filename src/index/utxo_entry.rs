@@ -135,7 +135,6 @@ impl<'a> UtxoEntry<'a> {
           let range = SatRange::load(chunk.try_into().unwrap());
           value += range.1 - range.0;
         }
-
         value
       }
     }
@@ -145,7 +144,6 @@ impl<'a> UtxoEntry<'a> {
     let Sats::Ranges(ranges) = self.sats else {
       panic!("sat ranges are missing");
     };
-
     ranges
   }
 
@@ -171,7 +169,7 @@ impl<'a> UtxoEntry<'a> {
       byte_offset += 4;
 
       let (satpoint_offset, varint_len) = varint::decode(&inscriptions[byte_offset..]).unwrap();
-      let satpoint_offset: u64 = satpoint_offset.try_into().unwrap();
+      let satpoint_offset = u64::try_from(satpoint_offset).unwrap();
       byte_offset += varint_len;
 
       parsed_inscriptions.push((sequence_number, satpoint_offset));
@@ -182,9 +180,9 @@ impl<'a> UtxoEntry<'a> {
 }
 
 #[cfg(debug_assertions)]
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Debug, Eq, PartialEq)]
 enum State {
-  NeedSatRangesOrValue,
+  NeedSats,
   NeedScriptPubkey,
   Valid,
 }
@@ -201,7 +199,7 @@ impl UtxoValueBuf {
     Self {
       vec: Vec::new(),
       #[cfg(debug_assertions)]
-      state: State::NeedSatRangesOrValue,
+      state: State::NeedSats,
     }
   }
 
@@ -210,7 +208,7 @@ impl UtxoValueBuf {
     varint::encode_to_vec(value.into(), &mut self.vec);
 
     #[cfg(debug_assertions)]
-    self.advance_state(State::NeedSatRangesOrValue, State::NeedScriptPubkey, index);
+    self.advance_state(State::NeedSats, State::NeedScriptPubkey, index);
   }
 
   pub fn push_sat_ranges(&mut self, sat_ranges: &[u8], index: &Index) {
@@ -221,7 +219,7 @@ impl UtxoValueBuf {
     self.vec.extend(sat_ranges);
 
     #[cfg(debug_assertions)]
-    self.advance_state(State::NeedSatRangesOrValue, State::NeedScriptPubkey, index);
+    self.advance_state(State::NeedSats, State::NeedScriptPubkey, index);
   }
 
   pub fn push_script_pubkey(&mut self, script_pubkey: &[u8], index: &Index) {
