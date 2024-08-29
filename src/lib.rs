@@ -245,9 +245,8 @@ fn gracefully_shut_down_indexer() {
 }
 
 pub fn main() {
-  env_logger::Builder::from_default_env()
-    .format_timestamp_millis()
-    .init();
+  env_logger::init();
+
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
