@@ -561,10 +561,10 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       new_satpoint
     };
 
-    // Special outpoints (OutPoint::null() and unbound_outpoint()) don't
-    // follow the normal rules -- unlike real outputs, they get written
-    // to more than once.  So we can create a new utxo entry here, and
-    // commit() will merge it with any existing entry.
+    // The special outpoints, i.e., the null outpoint and the unbound outpoint,
+    // don't follow the normal rulesr. Unlike real outputs they get written to
+    // more than once. So we create a new UTXO entry here and commit() will
+    // merge it with any existing entry.
     let output_utxo_entry = normal_output_utxo_entry.unwrap_or_else(|| {
       assert!(Index::is_special_outpoint(satpoint.outpoint));
       utxo_cache
