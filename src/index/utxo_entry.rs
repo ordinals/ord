@@ -14,7 +14,7 @@ enum Sats<'a> {
   Value(u64),
 }
 
-// A `UtxoEntry` stores the following information about an unspent transaction
+// A `UtxoValue` stores the following information about an unspent transaction
 // output, depending on the indexing options:
 //
 // If `--index-sats`, the full list of sat ranges, stored as a varint followed
@@ -31,9 +31,9 @@ enum Sats<'a> {
 // Note that the list of inscriptions doesn't need an explicit length, it
 // continues until the end of the array.
 //
-// A `UtxoValue` is the low-level read-only redb value. A `UtxoValueBuf` is the
-// writeable version, used for constructing new `UtxoValue`s. A `UtxoEntry` is
-// the parsed value.
+// A `UtxoValue` is the low-level read-only value stored in redb. A
+// `UtxoValueBuf` is the writeable version, used for constructing new
+// `UtxoValue`s. A `UtxoEntry` is the parsed value.
 
 #[derive(Debug, RefCast)]
 #[repr(transparent)]
