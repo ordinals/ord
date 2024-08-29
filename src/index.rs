@@ -711,10 +711,15 @@ impl Index {
           "unbound".to_string()
         } else {
           let script_pubkey = if self.index_addresses {
-            let utxo_entry = outpoint_to_utxo_entry
-              .get(&satpoint.outpoint.store())?
-              .unwrap();
-            ScriptBuf::from_bytes(utxo_entry.value().parse(self).script_pubkey().to_vec())
+            ScriptBuf::from_bytes(
+              outpoint_to_utxo_entry
+                .get(&satpoint.outpoint.store())?
+                .unwrap()
+                .value()
+                .parse(self)
+                .script_pubkey()
+                .to_vec(),
+            )
           } else {
             self
               .get_transaction(satpoint.outpoint.txid)?
