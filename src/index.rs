@@ -2231,10 +2231,11 @@ impl Index {
       return Ok(Vec::new());
     };
 
-    let mut parsed_inscriptions = utxo_entry.value().parse(self).parse_inscriptions();
-    parsed_inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
+    let mut inscriptions = utxo_entry.value().parse(self).parse_inscriptions();
 
-    parsed_inscriptions
+    inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
+
+    inscriptions
       .into_iter()
       .map(|(sequence_number, offset)| {
         let entry = sequence_number_to_inscription_entry
