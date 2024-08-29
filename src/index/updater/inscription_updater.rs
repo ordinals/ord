@@ -567,7 +567,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     // to more than once.  So we can create a new utxo entry here, and
     // commit() will merge it with any existing entry.
     let output_utxo_entry = normal_output_utxo_entry.unwrap_or_else(|| {
-      assert!(Index::is_special_outpoint(&satpoint.outpoint));
+      assert!(Index::is_special_outpoint(satpoint.outpoint));
       utxo_cache
         .entry(satpoint.outpoint)
         .or_insert(UtxoEntryBuf::empty(index))

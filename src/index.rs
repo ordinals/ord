@@ -443,8 +443,13 @@ impl Index {
     })
   }
 
-  pub fn is_special_outpoint(outpoint: &OutPoint) -> bool {
-    outpoint.txid == OutPoint::null().txid
+  /// Unlike normal outpoints, which are added to index on creation and removed
+  /// when spent, the UTXO entry for special outpoints may be updated.
+  ///
+  /// The special outpoints are the null outpoint, which receives lost sats,
+  /// and the unbound outpoint, which receives unbound inscriptions.
+  pub fn is_special_outpoint(outpoint: OutPoint) -> bool {
+    outpoint == OutPoint::null() || outpoint == unbound_outpoint()
   }
 
   #[cfg(test)]

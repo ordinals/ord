@@ -810,7 +810,7 @@ impl<'index> Updater<'index> {
       let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
       for (outpoint, mut utxo_entry) in utxo_cache {
-        if Index::is_special_outpoint(&outpoint) {
+        if Index::is_special_outpoint(outpoint) {
           if let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? {
             utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
           }
