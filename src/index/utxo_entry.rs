@@ -9,34 +9,40 @@ use {
   std::ops::Deref,
 };
 
-// A UtxoEntry stores information about an unspent transaction output.
-// It contains the following, depending on the indexing options:
+enum Sats<'a> {
+  Ranges(&'a [u8]),
+  Value(u64),
+}
+
+// A `UtxoEntry` stores the following information about an unspent transaction
+// output, depending on the indexing options:
 //
-//    if index_sats is true:
-//      * the full list of sat ranges, stored as a varint length followed
-//        by that many 11-byte sat-range entries
-//    otherwise:
-//      * the total output value, stored as a varint
+// If `--index-sats`, the full list of sat ranges, stored as a varint followed
+// by that many 11-byte sat range entries, otherwise the total output value
+// stored as a varint.
 //
-//    if index_addresses is true:
-//      * the script pubkey, stored as a varint length followed by that
-//        many bytes of data
+// If `--index-addresses`, the script pubkey stored as a varint followed by
+// that many bytes of data.
 //
-//    if index_inscriptions is true:
-//      * the list of inscriptions, stored as (sequence_number, offset)
-//        pairs; the sequence number is a u32 and the offset is a varint
+// If `--index-inscriptions`, the list of inscriptions stored as
+// `(sequence_number, offset)`, with the sequence number stored as a u32 and
+// the offset as a varint.
 //
-// Note that the list of inscriptions doesn't need an explicit length;
-// it just continues until the end of the array.
+// Note that the list of inscriptions doesn't need an explicit length, it
+// continues until the end of the array.
+//
+// A `UtxoValue` is the low-level read-only redb value. A `UtxoValueBuf` is the
+// writeable version, used for constructing new `UtxoValue`s. A `UtxoEntry` is
+// the parsed value.
 
 #[derive(Debug, RefCast)]
 #[repr(transparent)]
-pub struct UtxoEntry {
+pub struct UtxoValue {
   bytes: [u8],
 }
 
-impl UtxoEntry {
-  pub fn parse(&self, index: &Index) -> ParsedUtxoEntry {
+impl UtxoValue {
+  pub fn parse(&self, index: &Index) -> UtxoEntry {
     let sats;
     let mut script_pubkey = None;
     let mut inscriptions = None;
@@ -69,15 +75,15 @@ impl UtxoEntry {
       inscriptions = Some(&self.bytes[offset..self.bytes.len()]);
     }
 
-    ParsedUtxoEntry {
+    UtxoEntry {
       sats,
       script_pubkey,
       inscriptions,
     }
   }
 
-  pub fn to_buf(&self) -> UtxoEntryBuf {
-    UtxoEntryBuf {
+  pub fn to_buf(&self) -> UtxoValueBuf {
+    UtxoValueBuf {
       vec: self.bytes.to_vec(),
       #[cfg(debug_assertions)]
       state: State::Valid,
@@ -85,8 +91,8 @@ impl UtxoEntry {
   }
 }
 
-impl redb::Value for &UtxoEntry {
-  type SelfType<'a> = &'a UtxoEntry where Self: 'a;
+impl redb::Value for &UtxoValue {
+  type SelfType<'a> = &'a UtxoValue where Self: 'a;
   type AsBytes<'a> = &'a [u8] where Self: 'a;
 
   fn fixed_width() -> Option<usize> {
@@ -97,7 +103,7 @@ impl redb::Value for &UtxoEntry {
   where
     Self: 'a,
   {
-    UtxoEntry::ref_cast(data)
+    UtxoValue::ref_cast(data)
   }
 
   fn as_bytes<'a, 'b: 'a>(value: &'a Self::SelfType<'b>) -> Self::AsBytes<'a>
@@ -109,22 +115,17 @@ impl redb::Value for &UtxoEntry {
   }
 
   fn type_name() -> TypeName {
-    TypeName::new("&ord::index::utxo_entry::UtxoEntry")
+    TypeName::new("&ord::index::utxo_entry::UtxoValue")
   }
 }
 
-enum Sats<'a> {
-  Ranges(&'a [u8]),
-  Value(u64),
-}
-
-pub struct ParsedUtxoEntry<'a> {
+pub struct UtxoEntry<'a> {
   sats: Sats<'a>,
   script_pubkey: Option<&'a [u8]>,
   inscriptions: Option<&'a [u8]>,
 }
 
-impl<'a> ParsedUtxoEntry<'a> {
+impl<'a> UtxoEntry<'a> {
   pub fn total_value(&self) -> u64 {
     match self.sats {
       Sats::Value(value) => value,
@@ -189,13 +190,13 @@ enum State {
 }
 
 #[derive(Debug)]
-pub struct UtxoEntryBuf {
+pub struct UtxoValueBuf {
   vec: Vec<u8>,
   #[cfg(debug_assertions)]
   state: State,
 }
 
-impl UtxoEntryBuf {
+impl UtxoValueBuf {
   pub fn new() -> Self {
     Self {
       vec: Vec::new(),
@@ -259,7 +260,7 @@ impl UtxoEntryBuf {
     }
   }
 
-  pub fn merged(a: &UtxoEntry, b: &UtxoEntry, index: &Index) -> Self {
+  pub fn merged(a: &UtxoValue, b: &UtxoValue, index: &Index) -> Self {
     let a_parsed = a.parse(index);
     let b_parsed = b.parse(index);
     let mut merged = Self::new();
@@ -303,23 +304,23 @@ impl UtxoEntryBuf {
     utxo_entry
   }
 
-  pub fn as_ref(&self) -> &UtxoEntry {
+  pub fn as_ref(&self) -> &UtxoValue {
     #[cfg(debug_assertions)]
     assert!(self.state == State::Valid);
-    UtxoEntry::ref_cast(&self.vec)
+    UtxoValue::ref_cast(&self.vec)
   }
 }
 
-impl Default for UtxoEntryBuf {
+impl Default for UtxoValueBuf {
   fn default() -> Self {
     Self::new()
   }
 }
 
-impl Deref for UtxoEntryBuf {
-  type Target = UtxoEntry;
+impl Deref for UtxoValueBuf {
+  type Target = UtxoValue;
 
-  fn deref(&self) -> &UtxoEntry {
+  fn deref(&self) -> &UtxoValue {
     self.as_ref()
   }
 }

@@ -8,7 +8,7 @@ use {
     lot::Lot,
     reorg::Reorg,
     updater::Updater,
-    utxo_entry::{ParsedUtxoEntry, UtxoEntry, UtxoEntryBuf},
+    utxo_entry::{UtxoEntry, UtxoValue, UtxoValueBuf},
   },
   super::*,
   crate::{
@@ -62,7 +62,7 @@ define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
+define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoValue }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
 define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -2219,7 +2219,7 @@ impl Index {
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     &self,
-    outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static UtxoEntry>,
+    outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static UtxoValue>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
