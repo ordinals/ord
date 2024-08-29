@@ -1,5 +1,3 @@
-use utxo_entry::ParsedUtxoEntry;
-
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]

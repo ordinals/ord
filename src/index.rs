@@ -8,6 +8,7 @@ use {
     lot::Lot,
     reorg::Reorg,
     updater::Updater,
+    utxo_entry::{ParsedUtxoEntry, UtxoEntry, UtxoEntryBuf},
   },
   super::*,
   crate::{
@@ -33,7 +34,6 @@ use {
     io::{BufWriter, Write},
     sync::Once,
   },
-  utxo_entry::UtxoEntry,
 };
 
 pub use self::entry::RuneEntry;

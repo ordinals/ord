@@ -6,7 +6,6 @@ use {
     broadcast::{self, error::TryRecvError},
     mpsc::{self},
   },
-  utxo_entry::UtxoEntryBuf,
 };
 
 mod inscription_updater;
