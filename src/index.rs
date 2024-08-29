@@ -76,22 +76,22 @@ define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
-  Schema = 0,
-  BlessedInscriptions = 1,
-  Commits = 2,
-  CursedInscriptions = 3,
-  IndexRunes = 4,
-  IndexSats = 5,
-  LostSats = 6,
-  OutputsTraversed = 7,
-  ReservedRunes = 8,
-  Runes = 9,
-  SatRanges = 10,
-  UnboundInscriptions = 11,
-  IndexTransactions = 12,
-  InitialSyncTime = 13,
-  IndexAddresses = 14,
-  IndexInscriptions = 15,
+  BlessedInscriptions = 0,
+  Commits = 1,
+  CursedInscriptions = 2,
+  IndexAddresses = 3,
+  IndexInscriptions = 4,
+  IndexRunes = 5,
+  IndexSats = 6,
+  IndexTransactions = 7,
+  InitialSyncTime = 8,
+  LostSats = 9,
+  OutputsTraversed = 10,
+  ReservedRunes = 11,
+  Runes = 12,
+  SatRanges = 13,
+  Schema = 14,
+  UnboundInscriptions = 15,
 }
 
 impl Statistic {
