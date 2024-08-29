@@ -30,7 +30,7 @@ use {
 // Note that the list of inscriptions doesn't need an explicit length;
 // it just continues until the end of the array.
 
-#[derive(RefCast, Debug)]
+#[derive(Debug, RefCast)]
 #[repr(transparent)]
 pub struct UtxoEntry {
   bytes: [u8],
