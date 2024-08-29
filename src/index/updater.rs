@@ -583,15 +583,19 @@ impl<'index> Updater<'index> {
 
             Ok(utxo_entry)
           })
-          .collect::<Result<_>>()?
+          .collect::<Result<Vec<UtxoEntryBuf>>>()?
       };
 
-      let parsed_input_utxo_entries: Vec<_> = input_utxo_entries
+      let parsed_input_utxo_entries = input_utxo_entries
         .iter()
         .map(|entry| entry.parse(self.index))
-        .collect();
+        .collect::<Vec<ParsedUtxoEntry>>();
 
-      let mut output_utxo_entries: Vec<_> = tx.output.iter().map(|_| UtxoEntryBuf::new()).collect();
+      let mut output_utxo_entries = tx
+        .output
+        .iter()
+        .map(|_| UtxoEntryBuf::new())
+        .collect::<Vec<UtxoEntryBuf>>();
 
       let mut orig_input_sat_ranges = None;
       if self.index.index_sats {
@@ -683,7 +687,7 @@ impl<'index> Updater<'index> {
       }
 
       for (vout, output_utxo_entry) in output_utxo_entries.into_iter().enumerate() {
-        let vout: u32 = vout.try_into().unwrap();
+        let vout = u32::try_from(vout).unwrap();
         utxo_cache.insert(OutPoint { txid: *txid, vout }, output_utxo_entry);
       }
     }
