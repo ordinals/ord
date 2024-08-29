@@ -14,7 +14,7 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES: de fr es pt ru zh ja ko fil ar hi it
+  LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
 
 jobs:
   docs:
