@@ -7,7 +7,6 @@ use {
   redb::TypeName,
   ref_cast::RefCast,
   std::ops::Deref,
-  SatRangesOrValue::{SatRanges, Value},
 };
 
 // A UtxoEntry stores information about an unspent transaction output.
@@ -38,7 +37,7 @@ pub struct UtxoEntry {
 
 impl UtxoEntry {
   pub fn parse(&self, index: &Index) -> ParsedUtxoEntry {
-    let sat_ranges_or_value;
+    let sats;
     let mut script_pubkey = None;
     let mut inscriptions = None;
 
@@ -49,11 +48,11 @@ impl UtxoEntry {
 
       let num_sat_ranges: usize = num_sat_ranges.try_into().unwrap();
       let sat_ranges_len = num_sat_ranges * 11;
-      sat_ranges_or_value = SatRanges(&self.bytes[offset..offset + sat_ranges_len]);
+      sats = Sats::Ranges(&self.bytes[offset..offset + sat_ranges_len]);
       offset += sat_ranges_len;
     } else {
       let (value, varint_len) = varint::decode(&self.bytes).unwrap();
-      sat_ranges_or_value = Value(value.try_into().unwrap());
+      sats = Sats::Value(value.try_into().unwrap());
       offset += varint_len;
     };
 
@@ -71,7 +70,7 @@ impl UtxoEntry {
     }
 
     ParsedUtxoEntry {
-      sat_ranges_or_value,
+      sats,
       script_pubkey,
       inscriptions,
     }
@@ -114,24 +113,24 @@ impl redb::Value for &UtxoEntry {
   }
 }
 
-enum SatRangesOrValue<'a> {
-  SatRanges(&'a [u8]),
+enum Sats<'a> {
+  Ranges(&'a [u8]),
   Value(u64),
 }
 
 pub struct ParsedUtxoEntry<'a> {
-  sat_ranges_or_value: SatRangesOrValue<'a>,
+  sats: Sats<'a>,
   script_pubkey: Option<&'a [u8]>,
   inscriptions: Option<&'a [u8]>,
 }
 
 impl<'a> ParsedUtxoEntry<'a> {
   pub fn total_value(&self) -> u64 {
-    match self.sat_ranges_or_value {
-      Value(value) => value,
-      SatRanges(sat_ranges) => {
+    match self.sats {
+      Sats::Value(value) => value,
+      Sats::Ranges(ranges) => {
         let mut value = 0;
-        for chunk in sat_ranges.chunks_exact(11) {
+        for chunk in ranges.chunks_exact(11) {
           let range = SatRange::load(chunk.try_into().unwrap());
           value += range.1 - range.0;
         }
@@ -142,11 +141,11 @@ impl<'a> ParsedUtxoEntry<'a> {
   }
 
   pub fn sat_ranges(&self) -> &'a [u8] {
-    let SatRanges(sat_ranges) = self.sat_ranges_or_value else {
+    let Sats::Ranges(ranges) = self.sats else {
       panic!("sat ranges are missing");
     };
 
-    sat_ranges
+    ranges
   }
 
   pub fn script_pubkey(&self) -> &'a [u8] {
