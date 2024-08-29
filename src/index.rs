@@ -1670,8 +1670,10 @@ impl Index {
         .open_table(OUTPOINT_TO_UTXO_ENTRY)?
         .get(&outpoint.store())?
         .map(|utxo_entry| {
-          let sat_ranges = utxo_entry.value().parse(self).sat_ranges();
-          sat_ranges
+          utxo_entry
+            .value()
+            .parse(self)
+            .sat_ranges()
             .chunks_exact(11)
             .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
             .collect::<Vec<(u64, u64)>>()
