@@ -3585,15 +3585,6 @@ mod tests {
       [[:xdigit:]]{40}
     </a>
   </dd>
-  <dt>inscription content types</dt>
-  <dd>
-    <dl>
-      <dt>text/plain;charset=utf-8</dt>
-      <dd>2</dt>
-      <dt><em>none</em></dt>
-      <dd>1</dt>
-    </dl>
-  </dd>
 </dl>
 .*",
     );
