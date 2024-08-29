@@ -78,7 +78,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
     let envelopes = ParsedEnvelope::from_transaction(tx);
-    let inscriptions = !envelopes.is_empty();
+    let has_new_inscriptions = !envelopes.is_empty();
     let mut envelopes = envelopes.into_iter().peekable();
 
     for (input_index, txin) in tx.input.iter().enumerate() {
@@ -227,7 +227,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       }
     }
 
-    if index.index_transactions && inscriptions {
+    if index.index_transactions && has_new_inscriptions {
       tx.consensus_encode(&mut self.transaction_buffer)
         .expect("in-memory writers don't error");
 
