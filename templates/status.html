@@ -48,17 +48,4 @@
     </a>
   </dd>
 %% }
-  <dt>inscription content types</dt>
-  <dd>
-    <dl>
-%% for (content_type, count) in &self.content_type_counts {
-%% if let Some(content_type) = content_type {
-      <dt>{{String::from_utf8_lossy(&content_type)}}</dt>
-%% } else {
-      <dt><em>none</em></dt>
-%% }
-      <dd>{{count}}</dt>
-%% }
-    </dl>
-  </dd>
 </dl>

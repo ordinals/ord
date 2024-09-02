@@ -416,7 +416,6 @@ impl<'index> Updater<'index> {
       }
     };
 
-    let mut content_type_to_count = wtx.open_table(CONTENT_TYPE_TO_COUNT)?;
     let mut height_to_block_header = wtx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
@@ -465,7 +464,6 @@ impl<'index> Updater<'index> {
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
       chain: self.index.settings.chain(),
-      content_type_to_count: &mut content_type_to_count,
       cursed_inscription_count,
       event_sender: self.index.event_sender.as_ref(),
       flotsam: Vec::new(),

@@ -188,7 +188,7 @@ open-docs:
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for language in ar de es fil fr hi it ja ko pt ru zh; do
+  for language in ar de es fil fr hi it ja ko pt ru zh nl; do
     MDBOOK_BOOK__LANGUAGE=$language mdbook build docs -d build/$language
     mv docs/build/$language/html docs/build/html/$language
   done

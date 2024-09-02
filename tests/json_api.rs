@@ -496,7 +496,6 @@ fn get_status() {
       address_index: false,
       blessed_inscriptions: 1,
       chain: Chain::Regtest,
-      content_type_counts: vec![(Some("text/plain;charset=utf-8".into()), 1)],
       cursed_inscriptions: 0,
       height: Some(3),
       initial_sync_time: dummy_duration,
