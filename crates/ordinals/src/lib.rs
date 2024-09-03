@@ -17,11 +17,10 @@ use {
   std::{
     cmp,
     collections::{HashMap, VecDeque},
-    fmt::{self, Display, Formatter},
+    fmt::{self, Formatter},
     io,
     num::ParseIntError,
     ops::{Add, AddAssign, Sub},
-    str::FromStr,
   },
   thiserror::Error,
 };

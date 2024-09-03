@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.20.0-dev"
+version = "0.20.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -48,7 +48,7 @@ mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.2"
-ordinals = { version = "0.0.9", path = "crates/ordinals" }
+ordinals = { version = "0.0.10", path = "crates/ordinals" }
 redb = "2.1.1"
 ref-cast = "1.0.23"
 regex = "1.6.0"
@@ -64,7 +64,7 @@ serde_with = "3.7.0"
 serde_yaml = "0.9.17"
 sha3 = "0.10.8"
 snafu = "0.8.3"
-sysinfo = "0.30.3"
+sysinfo = "0.31.0"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
