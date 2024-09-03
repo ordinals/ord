@@ -50,7 +50,7 @@ The recursive endpoints are:
 - `/r/sat/<SAT_NUMBER>`: the first 100 inscription ids on a sat.
 - `/r/sat/<SAT_NUMBER>/<PAGE>`: the set of 100 inscription ids on `<PAGE>`.
 - `/r/sat/<SAT_NUMBER>/at/<INDEX>`: the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example.
-
+- `/r/txs/:query`: transaction input and outputs in a block.
 Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
 notations like degree, percentile or decimal. We may expand to allow those in
 the future.
