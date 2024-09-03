@@ -63,9 +63,9 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     &mut self,
     tx: &Transaction,
     txid: Txid,
-    input_utxo_entries: &[UtxoEntry],
-    output_utxo_entries: &mut [UtxoValueBuf],
-    utxo_cache: &mut HashMap<OutPoint, UtxoValueBuf>,
+    input_utxo_entries: &[ParsedUtxoEntry],
+    output_utxo_entries: &mut [UtxoEntryBuf],
+    utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
@@ -365,8 +365,8 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     flotsam: Flotsam,
     new_satpoint: SatPoint,
     op_return: bool,
-    mut normal_output_utxo_entry: Option<&mut UtxoValueBuf>,
-    utxo_cache: &mut HashMap<OutPoint, UtxoValueBuf>,
+    mut normal_output_utxo_entry: Option<&mut UtxoEntryBuf>,
+    utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
@@ -555,7 +555,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
       assert!(Index::is_special_outpoint(satpoint.outpoint));
       utxo_cache
         .entry(satpoint.outpoint)
-        .or_insert(UtxoValueBuf::empty(index))
+        .or_insert(UtxoEntryBuf::empty(index))
     });
 
     output_utxo_entry.push_inscription(sequence_number, satpoint.offset, index);

@@ -314,7 +314,7 @@ impl<'index> Updater<'index> {
     txout_receiver: &mut broadcast::Receiver<TxOut>,
     wtx: &mut WriteTransaction,
     block: BlockData,
-    utxo_cache: &mut HashMap<OutPoint, UtxoValueBuf>,
+    utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
   ) -> Result<()> {
     Reorg::detect_reorg(&block, self.height, self.index)?;
 
@@ -405,7 +405,7 @@ impl<'index> Updater<'index> {
     block: &BlockData,
     txout_receiver: &mut broadcast::Receiver<TxOut>,
     output_sender: &mut mpsc::Sender<OutPoint>,
-    utxo_cache: &mut HashMap<OutPoint, UtxoValueBuf>,
+    utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     wtx: &'wtx WriteTransaction,
     inscription_id_to_sequence_number: &mut Table<'wtx, (u128, u128, u32), u32>,
     statistic_to_count: &mut Table<'wtx, u64, u64>,
@@ -541,7 +541,7 @@ impl<'index> Updater<'index> {
     {
       log::trace!("Indexing transaction {tx_offset}…");
 
-      let input_utxo_values = if tx_offset == 0 {
+      let input_utxo_entries = if tx_offset == 0 {
         Vec::new()
       } else {
         tx.input
@@ -549,18 +549,18 @@ impl<'index> Updater<'index> {
           .map(|input| {
             let outpoint = input.previous_output.store();
 
-            let value = if let Some(value) = utxo_cache.remove(&OutPoint::load(outpoint)) {
+            let entry = if let Some(entry) = utxo_cache.remove(&OutPoint::load(outpoint)) {
               self.outputs_cached += 1;
-              value
-            } else if let Some(value) = outpoint_to_utxo_entry.remove(&outpoint)? {
+              entry
+            } else if let Some(entry) = outpoint_to_utxo_entry.remove(&outpoint)? {
               if self.index.index_addresses {
-                let script_pubkey = value.value().parse(self.index).script_pubkey();
+                let script_pubkey = entry.value().parse(self.index).script_pubkey();
                 if !script_pubkey_to_outpoint.remove(script_pubkey, outpoint)? {
                   panic!("script pubkey entry ({script_pubkey:?}, {outpoint:?}) not found");
                 }
               }
 
-              value.value().to_buf()
+              entry.value().to_buf()
             } else {
               assert!(!self.index.index_sats);
               let txout = txout_receiver.blocking_recv().map_err(|err| {
@@ -570,30 +570,30 @@ impl<'index> Updater<'index> {
                 )
               })?;
 
-              let mut value = UtxoValueBuf::new();
-              value.push_value(txout.value, self.index);
+              let mut entry = UtxoEntryBuf::new();
+              entry.push_value(txout.value, self.index);
               if self.index.index_addresses {
-                value.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
+                entry.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
               }
 
-              value
+              entry
             };
 
-            Ok(value)
+            Ok(entry)
           })
-          .collect::<Result<Vec<UtxoValueBuf>>>()?
+          .collect::<Result<Vec<UtxoEntryBuf>>>()?
       };
 
-      let input_utxo_entries = input_utxo_values
+      let input_utxo_entries = input_utxo_entries
         .iter()
         .map(|entry| entry.parse(self.index))
-        .collect::<Vec<UtxoEntry>>();
+        .collect::<Vec<ParsedUtxoEntry>>();
 
       let mut output_utxo_entries = tx
         .output
         .iter()
-        .map(|_| UtxoValueBuf::new())
-        .collect::<Vec<UtxoValueBuf>>();
+        .map(|_| UtxoEntryBuf::new())
+        .collect::<Vec<UtxoEntryBuf>>();
 
       let mut orig_input_sat_ranges = None;
       if self.index.index_sats {
@@ -632,7 +632,7 @@ impl<'index> Updater<'index> {
             // our new entry with any existing one.
             let utxo_entry = utxo_cache
               .entry(OutPoint::null())
-              .or_insert(UtxoValueBuf::empty(self.index));
+              .or_insert(UtxoEntryBuf::empty(self.index));
 
             let mut lost_sat_ranges = Vec::new();
             for (start, end) in input_sat_ranges {
@@ -651,13 +651,13 @@ impl<'index> Updater<'index> {
               lost_sats += end - start;
             }
 
-            let mut new_utxo_entry = UtxoValueBuf::new();
+            let mut new_utxo_entry = UtxoEntryBuf::new();
             new_utxo_entry.push_sat_ranges(&lost_sat_ranges, self.index);
             if self.index.index_addresses {
               new_utxo_entry.push_script_pubkey(&[], self.index);
             }
 
-            *utxo_entry = UtxoValueBuf::merged(utxo_entry, &new_utxo_entry, self.index);
+            *utxo_entry = UtxoEntryBuf::merged(utxo_entry, &new_utxo_entry, self.index);
           }
         } else {
           coinbase_inputs.extend(input_sat_ranges);
@@ -725,7 +725,7 @@ impl<'index> Updater<'index> {
   fn index_transaction_output_script_pubkeys(
     &mut self,
     tx: &Transaction,
-    output_utxo_entries: &mut [UtxoValueBuf],
+    output_utxo_entries: &mut [UtxoEntryBuf],
   ) {
     for (vout, txout) in tx.output.iter().enumerate() {
       output_utxo_entries[vout].push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
@@ -737,7 +737,7 @@ impl<'index> Updater<'index> {
     tx: &Transaction,
     txid: Txid,
     sat_to_satpoint: &mut Table<u64, &SatPointValue>,
-    output_utxo_entries: &mut [UtxoValueBuf],
+    output_utxo_entries: &mut [UtxoEntryBuf],
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -795,7 +795,7 @@ impl<'index> Updater<'index> {
   fn commit(
     &mut self,
     wtx: WriteTransaction,
-    utxo_cache: HashMap<OutPoint, UtxoValueBuf>,
+    utxo_cache: HashMap<OutPoint, UtxoEntryBuf>,
   ) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
@@ -813,7 +813,7 @@ impl<'index> Updater<'index> {
       for (outpoint, mut utxo_entry) in utxo_cache {
         if Index::is_special_outpoint(outpoint) {
           if let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? {
-            utxo_entry = UtxoValueBuf::merged(old_entry.value(), &utxo_entry, self.index);
+            utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
           }
         }
 
