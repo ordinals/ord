@@ -270,7 +270,7 @@ impl Server {
           get(Self::sat_inscription_at_index),
         )
         .route("/r/tx/:txid", get(Self::transaction_json))
-        .route("/r/txs/:query", get(Self::transactions_in_block_paginated_json))
+        .route("/r/txs/:query", get(Self::transactions_in_block_json))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
@@ -2063,7 +2063,7 @@ impl Server {
     
   }
 
-  async fn transactions_in_block_paginated_json(
+  async fn transactions_in_block_json(
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
   ) -> ServerResult {
