@@ -75,22 +75,22 @@ define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
-  BlessedInscriptions = 0,
-  Commits = 1,
-  CursedInscriptions = 2,
-  IndexAddresses = 3,
-  IndexInscriptions = 4,
-  IndexRunes = 5,
-  IndexSats = 6,
-  IndexTransactions = 7,
-  InitialSyncTime = 8,
-  LostSats = 9,
-  OutputsTraversed = 10,
-  ReservedRunes = 11,
-  Runes = 12,
-  SatRanges = 13,
-  Schema = 14,
-  UnboundInscriptions = 15,
+  Schema = 0,
+  BlessedInscriptions = 1,
+  Commits = 2,
+  CursedInscriptions = 3,
+  IndexAddresses = 4,
+  IndexInscriptions = 5,
+  IndexRunes = 6,
+  IndexSats = 7,
+  IndexTransactions = 8,
+  InitialSyncTime = 9,
+  LostSats = 10,
+  OutputsTraversed = 11,
+  ReservedRunes = 12,
+  Runes = 13,
+  SatRanges = 14,
+  UnboundInscriptions = 16,
 }
 
 impl Statistic {
@@ -6691,5 +6691,13 @@ mod tests {
         rune_id: id,
       }
     );
+  }
+
+  #[test]
+  fn assert_schema_statistic_key_is_zero() {
+    // other schema statistic keys may chenge when the schema changes, but for
+    // good error messages in older versions, the schema statistic key must be
+    // zero
+    assert_eq!(Statistic::Schema.key(), 0);
   }
 }
