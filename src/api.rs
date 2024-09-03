@@ -126,6 +126,7 @@ pub struct InscriptionRecursive {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+  pub address: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -494,8 +494,11 @@ fn recursive_inscription_endpoint() {
     "application/json"
   );
 
-  let inscription_recursive_json: api::InscriptionRecursive =
+  let mut inscription_recursive_json: api::InscriptionRecursive =
     serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_regex_match!(inscription_recursive_json.address.unwrap(), r"bc1p.*");
+  inscription_recursive_json.address = None;
 
   pretty_assert_eq!(
     inscription_recursive_json,
@@ -516,6 +519,7 @@ fn recursive_inscription_endpoint() {
       },
       timestamp: 2,
       value: Some(10000),
+      address: None,
     }
   )
 }

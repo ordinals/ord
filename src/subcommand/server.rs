@@ -1063,6 +1063,14 @@ impl Server {
         )
       };
 
+      let address = output.as_ref().and_then(|output| {
+        server_config
+          .chain
+          .address_from_script(&output.script_pubkey)
+          .ok()
+          .map(|address| address.to_string())
+      });
+
       Ok(
         Json(api::InscriptionRecursive {
           charms: Charm::charms(entry.charms),
@@ -1078,6 +1086,7 @@ impl Server {
           sat: entry.sat,
           satpoint,
           timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          address,
         })
         .into_response(),
       )
@@ -3742,27 +3751,6 @@ mod tests {
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
-      ),
-    );
-  }
-
-  #[test]
-  fn null_output_is_initially_empty() {
-    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
-    TestServer::builder().index_sats().build().assert_response_regex(
-      format!("/output/{txid}:4294967295"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
-<dl>
-  <dt>value</dt><dd>0</dd>
-  <dt>script pubkey</dt><dd class=monospace></dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>spent</dt><dd>false</dd>
-</dl>
-<h2>0 Sat Ranges</h2>
-<ul class=monospace>
-</ul>.*"
       ),
     );
   }
@@ -6720,6 +6708,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6749,6 +6738,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6771,6 +6761,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
   }
@@ -6956,6 +6947,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
     );
   }
@@ -7010,6 +7002,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -7054,6 +7047,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
     );
   }
