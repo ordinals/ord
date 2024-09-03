@@ -1059,15 +1059,13 @@ impl Server {
         )
       };
 
-      let address = output
-        .as_ref()
-        .and_then(|output| {
-          server_config
-            .chain
-            .address_from_script(&output.script_pubkey)
-            .ok()
-        })
-        .map(|address| address.to_string());
+      let address = output.as_ref().and_then(|output| {
+        server_config
+          .chain
+          .address_from_script(&output.script_pubkey)
+          .ok()
+          .map(|address| address.to_string())
+      });
 
       Ok(
         Json(api::InscriptionRecursive {
