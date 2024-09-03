@@ -17,11 +17,12 @@ ExecStart=/usr/local/bin/ord \
   --index-runes \
   --index-sats \
   server \
-  --acme-contact mailto:casey@rodarmor.com \
-  --csp-origin https://${CSP_ORIGIN} \
+#  --acme-contact mailto:info@inscribingatlantis.com \
+#  --acme-domain ${CSP_ORIGIN} \
   --http \
-  --https \
-  --disable-json-api
+#  --https \
+  --http-port 8080
+#  --https-port 8443
 Group=ord
 LimitNOFILE=65536
 MemoryDenyWriteExecute=true
