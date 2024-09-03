@@ -3743,27 +3743,6 @@ mod tests {
   }
 
   #[test]
-  fn null_output_is_initially_empty() {
-    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
-    TestServer::builder().index_sats().build().assert_response_regex(
-      format!("/output/{txid}:4294967295"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
-<dl>
-  <dt>value</dt><dd>0</dd>
-  <dt>script pubkey</dt><dd class=monospace></dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>spent</dt><dd>false</dd>
-</dl>
-<h2>0 Sat Ranges</h2>
-<ul class=monospace>
-</ul>.*"
-      ),
-    );
-  }
-
-  #[test]
   fn null_output_receives_lost_sats() {
     let server = TestServer::builder().index_sats().build();
 
