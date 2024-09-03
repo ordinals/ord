@@ -4,55 +4,50 @@ const MAX_BURN_SATS: u64 = 10000;
 
 #[derive(Debug, Parser)]
 pub struct Burn {
-  #[arg(long, help = "Don't sign or broadcast transaction")]
-  pub(crate) dry_run: bool,
-  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
+  #[arg(long, help = "Don't sign or broadcast transaction.")]
+  dry_run: bool,
+  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
   )]
-  pub(crate) postage: Option<Amount>,
-  outgoing: Outgoing,
+  postage: Option<Amount>,
+  inscription_id: InscriptionId,
 }
 
 impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let unsigned_transaction = match self.outgoing {
-      Outgoing::InscriptionId(id) => {
-        let inscription_info = wallet
-          .inscription_info()
-          .get(&id)
-          .ok_or_else(|| anyhow!("inscription {id} not found"))?
-          .clone();
+    let inscription_info = wallet
+      .inscription_info()
+      .get(&self.inscription_id)
+      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription_id))?
+      .clone();
 
-        if inscription_info.value.unwrap() > MAX_BURN_SATS {
-          return Err(anyhow!(
-            "The amount of sats where the inscription is on exceeds {}",
-            MAX_BURN_SATS
-          ));
-        }
+    if inscription_info.value.unwrap() > MAX_BURN_SATS {
+      return Err(anyhow!(
+        "The amount of sats where the inscription is on exceeds {}",
+        MAX_BURN_SATS
+      ));
+    }
 
-        if self.postage.unwrap_or_default() > Amount::from_sat(MAX_BURN_SATS) {
-          return Err(anyhow!("Target postage exceeds {}", MAX_BURN_SATS));
-        }
+    if self.postage.unwrap_or_default() > Amount::from_sat(MAX_BURN_SATS) {
+      return Err(anyhow!("Target postage exceeds {}", MAX_BURN_SATS));
+    }
 
-        Self::create_unsigned_burn_transaction(
-          &wallet,
-          inscription_info.satpoint,
-          self.postage,
-          self.fee_rate,
-        )?
-      }
-      _ => panic!("Only inscriptions can be burned for now"),
-    };
+    let unsigned_transaction = Self::create_unsigned_burn_transaction(
+      &wallet,
+      inscription_info.satpoint,
+      self.postage,
+      self.fee_rate,
+    )?;
 
     let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      outgoing: self.outgoing,
+      outgoing: Outgoing::InscriptionId(self.inscription_id),
       fee,
     })))
   }
