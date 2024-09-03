@@ -124,7 +124,9 @@ pub struct Server {
 #[derive(Serialize)]
 struct AddressResponse {
   outputs: Vec<OutPoint>,
+  inscriptions: Vec<InscriptionId>,
   sat_balance: u64,
+  runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
 }
 
 impl Server {
@@ -843,6 +845,8 @@ impl Server {
         Json(AddressResponse {
           sat_balance,
           outputs,
+          inscriptions,
+          runes_balances,
         })
         .into_response()
       } else {
