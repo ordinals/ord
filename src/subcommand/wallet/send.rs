@@ -72,7 +72,7 @@ impl Send {
       )?,
     };
 
-    let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(Output {
       txid,

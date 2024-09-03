@@ -47,7 +47,7 @@ impl Burn {
       _ => panic!("Only inscriptions can be burned for now"),
     };
 
-    let (txid, psbt, fee) = sign_transaction(&wallet, unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(send::Output {
       txid,

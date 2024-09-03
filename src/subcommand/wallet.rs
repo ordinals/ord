@@ -3,7 +3,6 @@ use {
   crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
   bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   shared_args::SharedArgs,
-  sign_transaction::*,
 };
 
 pub mod balance;
@@ -25,7 +24,6 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
-mod sign_transaction;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
