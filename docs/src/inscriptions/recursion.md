@@ -192,7 +192,8 @@ percentile in sats/vB.
   "sat": null,
   "satpoint": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0:0",
   "timestamp": 1708312562,
-  "value": 10000
+  "value": 10000,
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf"
 }
 ```
 

@@ -5,7 +5,6 @@ pub struct StatusHtml {
   pub address_index: bool,
   pub blessed_inscriptions: u64,
   pub chain: Chain,
-  pub content_type_counts: Vec<(Option<Vec<u8>>, u64)>,
   pub cursed_inscriptions: u64,
   pub height: Option<u32>,
   pub initial_sync_time: Duration,

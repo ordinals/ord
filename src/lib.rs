@@ -62,7 +62,7 @@ use {
   snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
     backtrace::BacktraceStatus,
-    cmp::{self, Reverse},
+    cmp,
     collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     env,
     ffi::OsString,
@@ -246,6 +246,7 @@ fn gracefully_shut_down_indexer() {
 
 pub fn main() {
   env_logger::init();
+
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
