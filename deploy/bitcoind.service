@@ -9,8 +9,7 @@ ConfigurationDirectory=bitcoin
 ConfigurationDirectoryMode=0710
 ExecStart=/usr/local/bin/bitcoind \
   -conf=/etc/bitcoin/bitcoin.conf \
-  -chain=${CHAIN} \
-  -nosettings
+  -chain=${CHAIN}
 ExecStartPre=/bin/chgrp bitcoin /etc/bitcoin
 Group=bitcoin
 MemoryDenyWriteExecute=true
