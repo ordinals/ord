@@ -11,7 +11,6 @@ use {
     script::{self, Instruction},
     Network, OutPoint, ScriptBuf, Transaction,
   },
-  derive_more::{Display, FromStr},
   serde::{Deserialize, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   std::{
