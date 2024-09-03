@@ -238,3 +238,69 @@ percentile in sats/vB.
    "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 ```
+`/r/txs/:query`:
+```json
+{
+"best_height": 828677,
+  "hash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72728a054",
+  "height": 800000,
+  "target": "0000000000000000000538940000000000000000000000000000000000000000",
+  "parsed_transactions": [
+    {
+      "txid": "b75ca3106ed100521aa50e3ec267a06431c6319538898b25e1b757a5736f5fb4",
+      "input": [
+        {
+          "previous_output": "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+          "sequence": 4294967295
+        }
+      ],
+      "output": [
+        {
+          "value": 638687680,
+          "script_pubkey": "a914c3f8f898ae5cab4f4c1d597ecb0f3a81a9b146c387"
+        },
+        {
+          "value": 0,
+          "script_pubkey": "6a24aa21a9ed9fbe517a588ccaca585a868f3cf19cb6897e3c26f3351361fb28ac8509e69a7e"
+        }
+      ]
+    },
+    {
+      "txid": "d41f5de48325e79070ccd3a23005f7a3b405f3ce1faa4df09f6d71770497e9d5",
+      "input": [
+        {
+          "previous_output": "a992dbddbeb7382e3defc6914f970ea769ef813e69a923afa336976f2cbf0465:1",
+          "sequence": 4294967295
+        }
+      ],
+      "output": [
+        {
+          "value": 143332,
+          "script_pubkey": "51202d618c1f73d5133fdc97d545bfbf55b4cba2ab2a9d41e4596b1df6b8ea9d9348"
+        },
+        {
+          "value": 291851,
+          "script_pubkey": "001464dbbc84f12f32699ca5010faa618d6a25559b6f"
+        }
+      ]
+    },
+    ...
+     {
+      "txid": "b2088e443cf4b28ade8873cc6b3f6a67557f104ec4dc5b5e293c12973ab8b6b8",
+      "input": [
+        {
+          "previous_output": "856bce86ad1f0039ccd9eabe49e58e640e3f05952bd0a26d6687710d3de9a5ad:0",
+          "sequence": 0
+        }
+      ],
+      "output": [
+        {
+          "value": 499441,
+          "script_pubkey": "00149549a8a78144db492bedbbe57b99343d034bfafb"
+        }
+      ]   
+     }
+  ]
+}
+```
+
