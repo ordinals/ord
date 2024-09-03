@@ -11,16 +11,16 @@ use {
     script::{self, Instruction},
     Network, OutPoint, ScriptBuf, Transaction,
   },
+  derive_more::{Display, FromStr},
   serde::{Deserialize, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   std::{
     cmp,
     collections::{HashMap, VecDeque},
-    fmt::{self, Display, Formatter},
+    fmt::{self, Formatter},
     io,
     num::ParseIntError,
     ops::{Add, AddAssign, Sub},
-    str::FromStr,
   },
   thiserror::Error,
 };

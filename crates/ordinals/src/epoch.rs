@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, derive_more::Display, Serialize, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Serialize, PartialOrd)]
 pub struct Epoch(pub u32);
 
 impl Epoch {

@@ -1,8 +1,6 @@
 use {super::*, std::num::ParseFloatError};
 
-#[derive(
-  Copy, Clone, Eq, PartialEq, Debug, derive_more::Display, Ord, PartialOrd, Deserialize, Serialize,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct Sat(pub u64);
 
