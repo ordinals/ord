@@ -4,12 +4,7 @@ Delegate
 Inscriptions may nominate a delegate inscription. Requests for the content of
 an inscription with a delegate will instead return the content, content type 
 and content encoding of the delegate. This can be used to cheaply create copies 
-of an inscription. 
-
-Delegator
-========
-
-A delegated inscription known as a delegator can access its own inscribed content at `/r/delegator/:id`. This allows for a delegate to have access to itw own unique inscription data.
+of an inscription.
 
 ### Specification
 
