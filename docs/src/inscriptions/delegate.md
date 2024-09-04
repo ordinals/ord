@@ -9,7 +9,7 @@ of an inscription.
 Delegator
 ========
 
-A delegated inscription known as a delegator can access its own inscribed content at `/r/delegator/:id`. This allows for a delegate to have access to any unique data inscribed by the delegator.
+A delegated inscription known as a delegator can access its own inscribed content at `/r/delegator/:id`. This allows for a delegate to have access to itw own unique inscription data.
 
 ### Specification
 
