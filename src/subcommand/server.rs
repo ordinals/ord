@@ -121,13 +121,6 @@ pub struct Server {
   )]
   pub(crate) polling_interval: humantime::Duration,
 }
-#[derive(Serialize)]
-struct AddressResponse {
-  outputs: Vec<OutPoint>,
-  inscriptions: Vec<InscriptionId>,
-  sat_balance: u64,
-  runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
-}
 
 impl Server {
   pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
@@ -842,7 +835,7 @@ impl Server {
       let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
       Ok(if accept_json {
-        Json(AddressResponse {
+        Json(api::AddressInfo {
           sat_balance,
           outputs,
           inscriptions,

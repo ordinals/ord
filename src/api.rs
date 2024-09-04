@@ -220,3 +220,11 @@ pub struct SatInscriptions {
   pub more: bool,
   pub page: u64,
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct AddressInfo {
+  pub outputs: Vec<OutPoint>,
+  pub inscriptions: Vec<InscriptionId>,
+  pub sat_balance: u64,
+  pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+}
