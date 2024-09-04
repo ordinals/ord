@@ -243,6 +243,7 @@ impl Server {
           "/r/children/:inscription_id/inscriptions/:page",
           get(Self::child_inscriptions_recursive_paginated),
         )
+        .route("/r/delegator/:inscription_id", get(Self::content_delegator))
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/parents/:inscription_id", get(Self::parents_recursive))
         .route(
@@ -1464,6 +1465,36 @@ impl Server {
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       )
+    })
+  }
+
+  async fn content_delegator(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Path(inscription_id): Path<InscriptionId>,
+    accept_encoding: AcceptEncoding,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if settings.is_hidden(inscription_id) {
+        return Ok(PreviewUnknownHtml.into_response());
+      }
+
+      let inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      if inscription.delegate().is_some() {
+        Ok(
+          Self::content_response(inscription, accept_encoding, &server_config)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+            .into_response(),
+        )
+      } else {
+        Err(ServerError::NotFound(
+          "inscription is not delegated".to_string(),
+        ))
+      }
     })
   }
 
@@ -6507,6 +6538,78 @@ next
         .delegate,
       Some(delegate)
     );
+  }
+
+  #[test]
+  fn delegator_content() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let delegate = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("foo".into()),
+      ..default()
+    };
+
+    let delegate_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, delegate.to_witness())],
+      ..default()
+    });
+
+    let delegate_id = InscriptionId {
+      txid: delegate_txid,
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("bar".into()),
+      delegate: Some(delegate_id.value()),
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(format!("/r/delegator/{id}"), StatusCode::OK, "bar");
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    // Test normal inscription without delegate
+    let normal_inscription = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("baz".into()),
+      ..default()
+    };
+
+    let normal_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(3, 0, 0, normal_inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let normal_id = InscriptionId {
+      txid: normal_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/delegator/{normal_id}"),
+      StatusCode::NOT_FOUND,
+      "inscription is not delegated",
+    );
+
+    server.assert_response(format!("/content/{normal_id}"), StatusCode::OK, "baz");
   }
 
   #[test]

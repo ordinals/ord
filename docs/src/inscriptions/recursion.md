@@ -42,6 +42,7 @@ The recursive endpoints are:
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
 - `/r/children/<INSCRIPTION_ID>/inscriptions`: details of the first 100 child inscriptions.
 - `/r/children/<INSCRIPTION_ID>/inscriptions/<PAGE>`: details of the set of 100 child inscriptions on `<PAGE>`.
+- `/r/delegator/<INSCRIPTION_ID>`: inscription content of the delegator.
 - `/r/inscription/<INSCRIPTION_ID>`: information about an inscription
 - `/r/metadata/<INSCRIPTION_ID>`: JSON string containing the hex-encoded CBOR metadata.
 - `/r/parents/<INSCRIPTION_ID>`: the first 100 parent inscription ids.
@@ -62,6 +63,17 @@ plain-text responses.
 - `/blockhash`: latest block hash.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
+
+Delegated inscriptions:
+
+An inscription with delegated content "foo" and original content "bar" will return the following:
+
+| Endpoint           | Response |
+|--------------------|----------|
+| `/content/:id`     | foo      |
+| `/r/delegator/:id` | bar      |
+
+This allows delegated inscriptions to access both the content they delegate to and their own original content.
 
 Examples
 --------
