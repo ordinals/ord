@@ -232,10 +232,10 @@ impl Server {
           "/r/children/:inscription_id/inscriptions",
           get(Self::child_inscriptions_recursive),
         )
-          .route(
-            "/r/children/:inscription_id/inscriptions/at/:index",
-            get(Self::child_inscription_at_index),
-          )
+        .route(
+          "/r/children/:inscription_id/inscriptions/at/:index",
+          get(Self::child_inscription_at_index),
+        )
         .route(
           "/r/children/:inscription_id/inscriptions/:page",
           get(Self::child_inscriptions_recursive_paginated),
@@ -1894,7 +1894,8 @@ impl Server {
         .get_inscription_entry(parent)?
         .ok_or_not_found(|| format!("inscription {parent}"))?;
 
-      let id = index.get_children_at_index_by_sequence_number(entry.sequence_number, inscription_index)?
+      let id = index
+        .get_children_at_index_by_sequence_number(entry.sequence_number, inscription_index)?
         .ok_or_not_found(|| format!("child {inscription_index}"))?;
 
       let satpoint = index
@@ -6267,7 +6268,8 @@ next
 
     server.mine_blocks(1);
 
-    let children_json = server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}"));
+    let children_json =
+      server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}"));
     assert_eq!(children_json.ids.len(), 0);
 
     let mut builder = script::Builder::new();
@@ -6291,7 +6293,9 @@ next
 
     server.mine_blocks(1);
     let latest_child_inscription_id = InscriptionId { txid, index: 110 };
-    let children_json = server.get_json::<api::ChildInscriptionRecursive>(format!("/r/children/{parent_inscription_id}/inscriptions/at/-1"));
+    let children_json = server.get_json::<api::ChildInscriptionRecursive>(format!(
+      "/r/children/{parent_inscription_id}/inscriptions/at/-1"
+    ));
     assert_eq!(children_json.id, latest_child_inscription_id);
   }
 

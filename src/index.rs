@@ -1416,13 +1416,15 @@ impl Index {
 
     let sequence_number_to_children = rtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
     let sequence_number_to_inscription_entry =
-        rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     if index < 0 {
       sequence_number_to_children
         .get(sequence_number)?
         .nth_back((index + 1).abs_diff(0))
     } else {
-      sequence_number_to_children.get(sequence_number)?.nth(index.abs_diff(0))
+      sequence_number_to_children
+        .get(sequence_number)?
+        .nth(index.abs_diff(0))
     }
     .map(|result| {
       result
@@ -1433,7 +1435,8 @@ impl Index {
             .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
         })
         .map_err(|err| anyhow!(err.to_string()))
-    }).transpose()
+    })
+    .transpose()
   }
   #[cfg(test)]
   pub(crate) fn get_inscription_id_by_inscription_number(
