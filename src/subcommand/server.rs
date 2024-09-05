@@ -232,6 +232,10 @@ impl Server {
           "/r/children/:inscription_id/inscriptions",
           get(Self::child_inscriptions_recursive),
         )
+          .route(
+            "/r/children/:inscription_id/inscriptions/at/:index",
+            get(Self::child_inscription_at_index),
+          )
         .route(
           "/r/children/:inscription_id/inscriptions/:page",
           get(Self::child_inscriptions_recursive_paginated),
@@ -1881,6 +1885,40 @@ impl Server {
     })
   }
 
+  async fn child_inscription_at_index(
+    Extension(index): Extension<Arc<Index>>,
+    Path((parent, inscription_index)): Path<(InscriptionId, isize)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(parent)?
+        .ok_or_not_found(|| format!("inscription {parent}"))?;
+
+      let id = index.get_children_at_index_by_sequence_number(entry.sequence_number, inscription_index)?
+        .ok_or_not_found(|| format!("child {inscription_index}"))?;
+
+      let satpoint = index
+        .get_inscription_satpoint_by_id(id)
+        .ok()
+        .flatten()
+        .unwrap();
+
+      Ok(
+        Json(api::ChildInscriptionRecursive {
+          charms: Charm::charms(entry.charms),
+          fee: entry.fee,
+          height: entry.height,
+          id,
+          number: entry.inscription_number,
+          output: satpoint.outpoint,
+          sat: entry.sat,
+          satpoint,
+          timestamp: timestamp(entry.timestamp.into()).timestamp(),
+        })
+        .into_response(),
+      )
+    })
+  }
   async fn inscriptions(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -6204,6 +6242,57 @@ next
     assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
     assert!(!children_json.more);
     assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn children_recursive_indexed_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/children/{parent_inscription_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let children_json = server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}"));
+    assert_eq!(children_json.ids.len(), 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![parent_inscription_id.value()],
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+    let latest_child_inscription_id = InscriptionId { txid, index: 110 };
+    let children_json = server.get_json::<api::ChildInscriptionRecursive>(format!("/r/children/{parent_inscription_id}/inscriptions/at/-1"));
+    assert_eq!(children_json.id, latest_child_inscription_id);
   }
 
   #[test]

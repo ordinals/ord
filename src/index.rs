@@ -1407,6 +1407,34 @@ impl Index {
     .transpose()
   }
 
+  pub fn get_children_at_index_by_sequence_number(
+    &self,
+    sequence_number: u32,
+    index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_children = rtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+    let sequence_number_to_inscription_entry =
+        rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    if index < 0 {
+      sequence_number_to_children
+        .get(sequence_number)?
+        .nth_back((index + 1).abs_diff(0))
+    } else {
+      sequence_number_to_children.get(sequence_number)?.nth(index.abs_diff(0))
+    }
+    .map(|result| {
+      result
+        .and_then(|sequence_number| {
+          let sequence_number = sequence_number.value();
+          sequence_number_to_inscription_entry
+            .get(sequence_number)
+            .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+        })
+        .map_err(|err| anyhow!(err.to_string()))
+    }).transpose()
+  }
   #[cfg(test)]
   pub(crate) fn get_inscription_id_by_inscription_number(
     &self,
