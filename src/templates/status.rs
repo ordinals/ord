@@ -8,6 +8,7 @@ pub struct StatusHtml {
   pub cursed_inscriptions: u64,
   pub height: Option<u32>,
   pub initial_sync_time: Duration,
+  pub inscription_index: bool,
   pub inscriptions: u64,
   pub lost_sats: u64,
   pub minimum_rune_for_next_block: Rune,
