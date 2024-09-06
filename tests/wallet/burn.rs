@@ -51,6 +51,95 @@ fn inscriptions_can_be_burned() {
 }
 
 #[test]
+fn runes_cannot_be_burned() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[""]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+  let rune_id = RuneId { block: 7, tx: 1 };
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 {rune_id}",))
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(r"error: invalid value '7:1' for '<INSCRIPTION_ID>.*")
+    .expected_exit_code(2)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn runic_outputs_are_protected() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[""]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let height = core.height();
+
+  let rune = Rune(RUNE);
+  etch(&core, &ord, rune);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  CommandBuilder::new(format!(
+    "--regtest --index-runes wallet send --fee-rate 1 {} 1000:{} --postage 1000sat",
+    address.clone().require_network(Network::Regtest).unwrap(),
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(2);
+
+  let txid = core.broadcast_tx(TransactionTemplate {
+    inputs: &[
+      // send rune and inscription to the same output
+      (height as usize, 2, 0, Witness::new()),
+      ((core.height() - 1) as usize, 1, 0, Witness::new()),
+      // fees
+      (core.height() as usize, 0, 0, Witness::new()),
+    ],
+    outputs: 2,
+    output_values: &[2000, 50 * COIN_VALUE],
+    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/output/{}:0", txid),
+    format!(r".*<a href=/inscription/{}>.*</a>.*", inscription),
+  );
+
+  ord.assert_response_regex(
+    format!("/output/{}:0", txid),
+    format!(r".*<a href=/rune/{rune}>{rune}</a>.*"),
+  );
+
+  CommandBuilder::new(format!(
+    "--regtest --index-runes wallet burn --fee-rate 1 {inscription}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr("error: runic outpoints may not be burned\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
 fn inscriptions_on_large_utxos_are_protected() {
   let core = mockcore::spawn();
 
@@ -62,13 +151,66 @@ fn inscriptions_on_large_utxos_are_protected() {
 
   let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(10_001));
 
-  core.mine_blocks(1);
-
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
-    .stdout_regex(r".*")
     .expected_stderr("error: The amount of sats where the inscription is on exceeds 10000\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn multiple_inscriptions_on_same_utxo_are_protected() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  let (inscription0, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let height0 = core.height();
+  let (inscription1, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let height1 = core.height();
+  let (inscription2, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let height2 = core.height();
+
+  let txid = core.broadcast_tx(TransactionTemplate {
+    inputs: &[
+      // send all 3 inscriptions on a single output
+      (height0 as usize, 2, 0, Witness::new()),
+      (height1 as usize, 2, 0, Witness::new()),
+      (height2 as usize, 2, 0, Witness::new()),
+      // fees
+      (core.height() as usize, 0, 0, Witness::new()),
+    ],
+    outputs: 2,
+    output_values: &[3000, 50 * COIN_VALUE],
+    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/output/{}:0", txid),
+    format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", inscription0, inscription1, inscription2),
+  );
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 {inscription0}",))
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr(format!(
+      "error: cannot send {txid}:0:0 without also sending inscription {inscription2} at {txid}:0:2000\n"
+    ))
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -92,7 +234,6 @@ fn large_postage_is_protected() {
   ))
   .core(&core)
   .ord(&ord)
-  .stdout_regex(r".*")
   .expected_stderr("error: Target postage exceeds 10000\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
