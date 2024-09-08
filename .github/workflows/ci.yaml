@@ -28,7 +28,7 @@ jobs:
         override: true
         toolchain: stable
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@v2.7.3
 
     - uses: peaceiris/actions-mdbook@v1
       with:
