@@ -80,7 +80,7 @@ jobs:
         override: true
         toolchain: stable
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@v2.7.3
 
     - name: Clippy
       run: cargo clippy --all --all-targets
@@ -112,7 +112,7 @@ jobs:
         profile: minimal
         toolchain: stable
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@v2.7.3
 
     - name: Test
       run: cargo test --all
