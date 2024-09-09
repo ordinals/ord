@@ -470,6 +470,10 @@ impl Index {
     self.index_addresses
   }
 
+  pub fn has_inscription_index(&self) -> bool {
+    self.index_inscriptions
+  }
+
   pub fn has_rune_index(&self) -> bool {
     self.index_runes
   }
@@ -512,6 +516,7 @@ impl Index {
       cursed_inscriptions,
       height,
       initial_sync_time: Duration::from_micros(initial_sync_time),
+      inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
