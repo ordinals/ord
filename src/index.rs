@@ -470,6 +470,10 @@ impl Index {
     self.index_addresses
   }
 
+  pub fn has_inscription_index(&self) -> bool {
+    self.index_inscriptions
+  }
+
   pub fn has_rune_index(&self) -> bool {
     self.index_runes
   }
@@ -512,6 +516,7 @@ impl Index {
       cursed_inscriptions,
       height,
       initial_sync_time: Duration::from_micros(initial_sync_time),
+      inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
@@ -4515,7 +4520,7 @@ mod tests {
             i,
             if i == 1 { 0 } else { 1 },
             0,
-            inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness(),
+            inscription("text/plain;charset=utf-8", format!("hello {i}")).to_witness(),
           )], // for the first inscription use coinbase, otherwise use the previous tx
           ..default()
         });
@@ -6699,5 +6704,17 @@ mod tests {
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
+  }
+
+  #[test]
+  fn reminder_to_update_utxo_entry_type_name() {
+    // This test will break when the schema version is updated, and is a
+    // reminder to fix the type name in `impl redb::Value for &UtxoEntry`.
+    //
+    // The type name should be changed from `ord::index::utxo_entry::UtxoValue`
+    // to `ord::UtxoEntry`. I think it's probably best if we just name types
+    // `ord::NAME`, instead of including the full path, since the full path
+    // will change if we reorganize the code.
+    assert_eq!(SCHEMA_VERSION, 28);
   }
 }

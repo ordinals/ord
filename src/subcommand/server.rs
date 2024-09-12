@@ -3556,6 +3556,8 @@ mod tests {
   <dd>false</dd>
   <dt>address index</dt>
   <dd>false</dd>
+  <dt>inscription index</dt>
+  <dd>true</dd>
   <dt>rune index</dt>
   <dd>false</dd>
   <dt>sat index</dt>

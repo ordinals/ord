@@ -1,6 +1,44 @@
 Changelog
 =========
 
+[0.20.0](https://github.com/ordinals/ord/releases/tag/0.20.0) - 2024-09-03
+--------------------------------------------------------------------------
+
+### Fixed
+- Make index settings harder to misuse ([#3893](https://github.com/ordinals/ord/pull/3893) by [casey](https://github.com/casey))
+- Fix rune links for runes with no symbol ([#3849](https://github.com/ordinals/ord/pull/3849) by [cryptoni9n](https://github.com/cryptoni9n))
+
+### Added
+- Add inscriptions and runes details to address API endpoint ([#3924](https://github.com/ordinals/ord/pull/3924) by [twosatsmaxi](https://github.com/twosatsmaxi))
+- Add address field to `/r/inscription/:id` ([#3891](https://github.com/ordinals/ord/pull/3891) by [elocremarc](https://github.com/elocremarc))
+- Add sat_balance to address API ([#3905](https://github.com/ordinals/ord/pull/3905) by [cryptoni9n](https://github.com/cryptoni9n))
+- List all Bitcoin Core wallets ([#3902](https://github.com/ordinals/ord/pull/3902) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Remove inscription content type counts from /status page ([#3922](https://github.com/ordinals/ord/pull/3922) by [casey](https://github.com/casey))
+- Suppress printing sat_ranges by default ([#3867](https://github.com/ordinals/ord/pull/3867) by [cryptoni9n](https://github.com/cryptoni9n))
+
+### Performance
+- Unified OUTPOINT_TO_UTXO_ENTRY table ([#3915](https://github.com/ordinals/ord/pull/3915) by [partialord](https://github.com/partialord))
+
+### Misc
+- Revert "Serve responses with cross origin isolation headers" ([#3920](https://github.com/ordinals/ord/pull/3920) by [casey](https://github.com/casey))
+- Bump version to 0.20.0-dev ([#3916](https://github.com/ordinals/ord/pull/3916) by [casey](https://github.com/casey))
+- Migrate chain.rs to snafu error ([#3904](https://github.com/ordinals/ord/pull/3904) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add Dutch translation to Ordinals Handbook ([#3907](https://github.com/ordinals/ord/pull/3907) by [Tibebtc](https://github.com/Tibebtc))
+- Update Bitcoin Core deploy to 27.1 ([#3912](https://github.com/ordinals/ord/pull/3912) by [casey](https://github.com/casey))
+- Migrate Outgoing to SnafuError ([#3854](https://github.com/ordinals/ord/pull/3854) by [cryptoni9n](https://github.com/cryptoni9n))
+- Make first first and last sat in range clickable ([#3903](https://github.com/ordinals/ord/pull/3903) by [raphjaph](https://github.com/raphjaph))
+- Serve responses with cross origin isolation headers ([#3898](https://github.com/ordinals/ord/pull/3898) by [patrick99e99](https://github.com/patrick99e99))
+- Remove trailing space from runes specification ([#3896](https://github.com/ordinals/ord/pull/3896) by [casey](https://github.com/casey))
+- Don't unnecessarily insert into utxo cache when indexing addresses ([#3894](https://github.com/ordinals/ord/pull/3894) by [raphjaph](https://github.com/raphjaph))
+- Migrate object.rs to snafu error handling ([#3858](https://github.com/ordinals/ord/pull/3858) by [cryptoni9n](https://github.com/cryptoni9n))
+- Clarify that unused runes tags should not be used ([#3885](https://github.com/ordinals/ord/pull/3885) by [casey](https://github.com/casey))
+- Update pointer specification ([#3861](https://github.com/ordinals/ord/pull/3861) by [ansigroup](https://github.com/ansigroup))
+- Re-enter beta ([#3884](https://github.com/ordinals/ord/pull/3884) by [casey](https://github.com/casey))
+- Updated Chinese translation  ([#3881](https://github.com/ordinals/ord/pull/3881) by [DrJingLee](https://github.com/DrJingLee))
+- Update Portuguese Translation pt.po ([#3837](https://github.com/ordinals/ord/pull/3837) by [0xArtur](https://github.com/0xArtur))
+
 [0.19.1](https://github.com/ordinals/ord/releases/tag/0.19.1) - 2024-07-18
 --------------------------------------------------------------------------
 
