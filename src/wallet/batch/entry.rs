@@ -1,5 +1,6 @@
 use super::*;
 
+#[serde_with::skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Entry {
