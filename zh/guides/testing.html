@@ -266,7 +266,7 @@ ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
 $ord outputs
 </code></pre>
 <p>如果<code>ord</code>在<code>$PATH</code>中，并且环境目录是<code>env</code>，那么<code>bitcoin-cli</code>命令将会是：</p>
-<pre><code>bitcoin-cli -datadir=env`
+<pre><code>bitcoin-cli -datadir=env
 </code></pre>
 <p><code>ord</code>将是</p>
 <pre><code>ord --datadir env

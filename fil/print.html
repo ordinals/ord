@@ -2168,7 +2168,7 @@ ord=`jq -r '.ord_wallet_command | join(" ")' env/env.json`
 $ord outputs
 </code></pre>
 <p>If <code>ord</code> is in the <code>$PATH</code> and the env directory is <code>env</code>, the <code>bitcoin-cli</code> command will be:</p>
-<pre><code>bitcoin-cli -datadir=env`
+<pre><code>bitcoin-cli -datadir=env
 </code></pre>
 <p>And the <code>ord</code> will be:</p>
 <pre><code>ord --datadir env
