@@ -1176,6 +1176,8 @@ impl Server {
         Ok(Redirect::to(&format!("/rune/{rune}")))
       } else if re::ADDRESS.is_match(query) {
         Ok(Redirect::to(&format!("/address/{query}")))
+      } else if re::SATPOINT.is_match(query) {
+        Ok(Redirect::to(&format!("/satpoint/{query}")))
       } else {
         Ok(Redirect::to(&format!("/sat/{query}")))
       }
