@@ -636,9 +636,9 @@ impl Server {
         total += count;
       }
 
-      return Err(ServerError::NotFound(format!(
+      Err(ServerError::NotFound(format!(
         "satpoint {satpoint} not found"
-      )));
+      )))
     })
   }
 
