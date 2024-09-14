@@ -616,6 +616,7 @@ impl Server {
     Path(satpoint): Path<SatPoint>,
   ) -> ServerResult<Redirect> {
     task::block_in_place(|| {
+      log::info!("here");
       let (output_info, _) = index
         .get_output_info(satpoint.outpoint)?
         .ok_or_not_found(|| format!("satpoint {satpoint}"))?;
