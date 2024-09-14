@@ -3826,7 +3826,7 @@ mod tests {
 <dl>
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts loading=lazy src=/preview/.*></iframe></a>
   </dd>.*",
     );
   }
