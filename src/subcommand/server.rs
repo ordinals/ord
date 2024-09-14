@@ -257,6 +257,7 @@ impl Server {
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
+        .route("/satpoint/:satpoint", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -607,6 +608,37 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn satpoint(
+    Extension(index): Extension<Arc<Index>>,
+    Path(satpoint): Path<SatPoint>,
+  ) -> ServerResult<Redirect> {
+    task::block_in_place(|| {
+      let (output_info, _) = index
+        .get_output_info(satpoint.outpoint)?
+        .ok_or_not_found(|| format!("satpoint {satpoint}"))?;
+
+      let Some(ranges) = output_info.sat_ranges else {
+        return Err(ServerError::NotFound("sat index required".into()));
+      };
+
+      let mut total = 0;
+      for (start, end) in ranges {
+        let count = end - start + 1;
+        if satpoint.offset < total + count {
+          return Ok(Redirect::to(&format!(
+            "/sat/{}",
+            start + satpoint.offset - total
+          )));
+        }
+        total += count;
+      }
+
+      return Err(ServerError::NotFound(format!(
+        "satpoint {satpoint} not found"
+      )));
     })
   }
 
