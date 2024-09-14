@@ -84,3 +84,7 @@ OP_ENDIF
 
 Which would then be concatenated into
 `{"very":"long","metadata":"is","finally":"done"}`.
+
+
+See
+[examples](examples.md#metdata) for on-chain examples of inscriptions that feature this functionality.
