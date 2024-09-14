@@ -624,10 +624,12 @@ impl Server {
         return Err(ServerError::NotFound("sat index required".into()));
       };
 
+      log::info!("{:?}", ranges);
+
       let mut total = 0;
       for (start, end) in ranges {
-        let count = end - start + 1;
-        if satpoint.offset < total + count {
+        let count = end - start;
+        if satpoint.offset <= total + count {
           return Ok(Redirect::to(&format!(
             "/sat/{}",
             start + satpoint.offset - total
