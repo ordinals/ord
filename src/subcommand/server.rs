@@ -629,7 +629,7 @@ impl Server {
       let mut total = 0;
       for (start, end) in ranges {
         let size = end - start;
-        if satpoint.offset + 1 <= total + size {
+        if satpoint.offset < total + size {
           return Ok(Redirect::to(&format!(
             "/sat/{}",
             start + satpoint.offset - total
