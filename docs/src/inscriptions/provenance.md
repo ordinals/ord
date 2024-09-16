@@ -80,3 +80,7 @@ recognized and tracked by old versions of `ord`.
 
 A collection can be closed by burning the collection's parent inscription,
 which guarantees that no more items in the collection can be issued.
+
+
+See
+[examples](examples.md#provenance) for on-chain examples of inscriptions that feature this functionality.

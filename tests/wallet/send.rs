@@ -39,7 +39,7 @@ fn inscriptions_can_be_sent() {
   <dd>text/plain;charset=utf-8</dd>
   .*
   <dt>location</dt>
-  <dd class=monospace>{send_txid}:0:0</dd>
+  <dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>
   .*
 </dl>
 .*",
@@ -94,9 +94,7 @@ fn send_inscribed_inscription() {
 
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
-    format!(
-      ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
-    ),
+    format!(".*<h1>Inscription 0</h1>.*<dt>location</dt>.*{send_txid}:0:0</a></dd>.*",),
   );
 }
 
@@ -155,7 +153,7 @@ fn send_inscription_by_sat() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>.*",
     ),
   );
 }
