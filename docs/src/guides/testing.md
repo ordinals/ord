@@ -33,7 +33,7 @@ If `ord` is in the `$PATH` and the env directory is `env`, the `bitcoin-cli`
 command will be:
 
 ```
-bitcoin-cli -datadir=env`
+bitcoin-cli -datadir=env
 ```
 
 And the `ord` will be:

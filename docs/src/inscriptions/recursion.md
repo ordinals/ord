@@ -222,3 +222,7 @@ percentile in sats/vB.
    "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 ```
+
+
+See
+[examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.

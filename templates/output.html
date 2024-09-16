@@ -41,7 +41,7 @@
 %% if value == 1 {
   <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
-  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a>-<a href=/sat/{{end}}>{{end}}</a><a href=/range/{{start}}/{{end}}> ({{value}} sats)</a></li>
+  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a>-<a href=/sat/{{end}} class={{Sat(*end).rarity()}}>{{end}}</a> ({{value}} sats)</li>
 %% }
 %% }
 </ul>
