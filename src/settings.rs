@@ -410,13 +410,13 @@ impl Settings {
 
     let bitcoin_credentials = self.bitcoin_credentials()?;
 
-    log::info!(
+    log::trace!(
       "Connecting to Bitcoin Core at {}",
       self.bitcoin_rpc_url(None)
     );
 
     if let Auth::CookieFile(cookie_file) = &bitcoin_credentials {
-      log::info!(
+      log::trace!(
         "Using credentials from cookie file at `{}`",
         cookie_file.display()
       );
@@ -428,8 +428,16 @@ impl Settings {
       );
     }
 
-    let client = Client::new(&rpc_url, bitcoin_credentials)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at `{rpc_url}`"))?;
+    let client = Client::new(&rpc_url, bitcoin_credentials.clone()).with_context(|| {
+      format!(
+        "failed to connect to Bitcoin Core RPC at `{rpc_url}` with {}",
+        match bitcoin_credentials {
+          Auth::None => "no credentials".into(),
+          Auth::UserPass(_, _) => "username and password".into(),
+          Auth::CookieFile(cookie_file) => format!("cookie file at {}", cookie_file.display()),
+        }
+      )
+    })?;
 
     let mut checks = 0;
     let rpc_chain = loop {

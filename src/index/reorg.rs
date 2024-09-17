@@ -83,7 +83,11 @@ impl Reorg {
       return Ok(());
     }
 
-    if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
+    let wtx = index.begin_write()?;
+
+    let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
+
+    if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0 || savepoints.len() < 2)
       && u32::try_from(
         index
           .settings
@@ -95,10 +99,6 @@ impl Reorg {
       .saturating_sub(height)
         <= CHAIN_TIP_DISTANCE
     {
-      let wtx = index.begin_write()?;
-
-      let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
-
       if savepoints.len() >= usize::try_from(MAX_SAVEPOINTS).unwrap() {
         wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
       }
