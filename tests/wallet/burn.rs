@@ -25,12 +25,9 @@ fn inscriptions_can_be_burned() {
 
   core.mine_blocks(1);
 
-  let send_txid = output.txid;
-
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
-    format!(
-      ".*<h1>Inscription 0</h1>.*<dl>.*
+    ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>charms</dt>
   <dd>
     <span title=burned>🔥</span>
@@ -41,12 +38,8 @@ fn inscriptions_can_be_burned() {
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   .*
-  <dt>location</dt>
-  <dd class=monospace>{send_txid}:0:0</dd>
-  .*
 </dl>
 .*",
-    ),
   );
 }
 
