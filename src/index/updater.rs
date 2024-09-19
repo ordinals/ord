@@ -71,7 +71,7 @@ impl<'index> Updater<'index> {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
+    let rx = Self::fetch_blocks_from(self.index, self.height)?;
 
     let (mut output_sender, mut txout_receiver) = Self::spawn_fetcher(self.index)?;
 
@@ -153,15 +153,14 @@ impl<'index> Updater<'index> {
   fn fetch_blocks_from(
     index: &Index,
     mut height: u32,
-    index_sats: bool,
   ) -> Result<std::sync::mpsc::Receiver<BlockData>> {
     let (tx, rx) = std::sync::mpsc::sync_channel(32);
+
+    let first_index_height = index.first_index_height;
 
     let height_limit = index.height_limit;
 
     let client = index.settings.bitcoin_rpc_client(None)?;
-
-    let first_inscription_height = index.settings.first_inscription_height();
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -170,7 +169,7 @@ impl<'index> Updater<'index> {
         }
       }
 
-      match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
+      match Self::get_block_with_retries(&client, height, first_index_height) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block.into()) {
             log::info!("Block receiver disconnected: {err}");
@@ -192,8 +191,7 @@ impl<'index> Updater<'index> {
   fn get_block_with_retries(
     client: &Client,
     height: u32,
-    index_sats: bool,
-    first_inscription_height: u32,
+    first_index_height: u32,
   ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
@@ -203,7 +201,7 @@ impl<'index> Updater<'index> {
         .and_then(|option| {
           option
             .map(|hash| {
-              if index_sats || height >= first_inscription_height {
+              if height >= first_index_height {
                 Ok(client.get_block(&hash)?)
               } else {
                 Ok(Block {
@@ -437,7 +435,7 @@ impl<'index> Updater<'index> {
       );
     }
 
-    if !self.index.index_sats {
+    if !self.index.have_full_utxo_index() {
       // Send all missing input outpoints to be fetched
       let txids = block
         .txdata
@@ -562,7 +560,7 @@ impl<'index> Updater<'index> {
 
               entry.value().to_buf()
             } else {
-              assert!(!self.index.index_sats);
+              assert!(!self.index.have_full_utxo_index());
               let txout = txout_receiver.blocking_recv().map_err(|err| {
                 anyhow!(
                   "failed to get transaction for {}: {err}",

@@ -197,6 +197,7 @@ pub struct Index {
   path: PathBuf,
   settings: Settings,
   started: DateTime<Utc>,
+  first_index_height: u32,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -419,12 +420,23 @@ impl Index {
     let genesis_block_coinbase_transaction =
       settings.chain().genesis_block().coinbase().unwrap().clone();
 
+    let first_index_height = if index_sats || index_addresses {
+      0
+    } else if index_inscriptions {
+      settings.first_inscription_height()
+    } else if index_runes {
+      settings.first_rune_height()
+    } else {
+      u32::MAX
+    };
+
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       client,
       database,
       durability,
       event_sender,
+      first_index_height,
       genesis_block_coinbase_transaction,
       height_limit: settings.height_limit(),
       index_addresses,
@@ -437,6 +449,10 @@ impl Index {
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  pub fn have_full_utxo_index(&self) -> bool {
+    self.first_index_height == 0
   }
 
   /// Unlike normal outpoints, which are added to index on creation and removed
@@ -1675,7 +1691,7 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.index_sats {
+        && if self.have_full_utxo_index() {
           self
             .database
             .begin_read()?
