@@ -161,7 +161,7 @@ impl<'index> Updater<'index> {
 
     let client = index.settings.bitcoin_rpc_client(None)?;
 
-    let first_inscription_height = index.first_inscription_height;
+    let first_inscription_height = index.settings.first_inscription_height();
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -425,8 +425,8 @@ impl<'index> Updater<'index> {
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
-    let index_inscriptions =
-      self.height >= self.index.first_inscription_height && self.index.index_inscriptions;
+    let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
+      && self.index.index_inscriptions;
 
     // If the receiver still has inputs something went wrong in the last
     // block and we shouldn't recover from this and commit the last block
