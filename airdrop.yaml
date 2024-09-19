@@ -1,0 +1,11 @@
+mode: separate-outputs
+etching:
+  rune: ZSACQHRQLOBB
+  divisibility: 2
+  premine: 100
+  supply: 100
+  symbol: $
+  turbo: true
+
+inscriptions:
+  -
