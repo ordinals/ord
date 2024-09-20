@@ -14,7 +14,6 @@ pub struct Settings {
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
   data_dir: Option<PathBuf>,
-  first_inscription_height: Option<u32>,
   height_limit: Option<u32>,
   hidden: Option<HashSet<InscriptionId>>,
   http_port: Option<u16>,
@@ -120,9 +119,6 @@ impl Settings {
       config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
       data_dir: self.data_dir.or(source.data_dir),
-      first_inscription_height: self
-        .first_inscription_height
-        .or(source.first_inscription_height),
       height_limit: self.height_limit.or(source.height_limit),
       hidden: Some(
         self
@@ -166,7 +162,6 @@ impl Settings {
       config_dir: options.config_dir,
       cookie_file: options.cookie_file,
       data_dir: options.data_dir,
-      first_inscription_height: options.first_inscription_height,
       height_limit: options.height_limit,
       hidden: None,
       http_port: None,
@@ -255,7 +250,6 @@ impl Settings {
       config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
       data_dir: get_path("DATA_DIR"),
-      first_inscription_height: get_u32("FIRST_INSCRIPTION_HEIGHT")?,
       height_limit: get_u32("HEIGHT_LIMIT")?,
       hidden: inscriptions("HIDDEN")?,
       http_port: get_u16("HTTP_PORT")?,
@@ -286,7 +280,6 @@ impl Settings {
       config_dir: None,
       cookie_file: None,
       data_dir: Some(dir.into()),
-      first_inscription_height: None,
       height_limit: None,
       hidden: None,
       http_port: None,
@@ -354,13 +347,6 @@ impl Settings {
       config_dir: None,
       cookie_file: Some(cookie_file),
       data_dir: Some(data_dir),
-      first_inscription_height: Some(if self.integration_test {
-        0
-      } else {
-        self
-          .first_inscription_height
-          .unwrap_or_else(|| chain.first_inscription_height())
-      }),
       height_limit: self.height_limit,
       hidden: self.hidden,
       http_port: self.http_port,
@@ -516,7 +502,11 @@ impl Settings {
   }
 
   pub fn first_inscription_height(&self) -> u32 {
-    self.first_inscription_height.unwrap()
+    if self.integration_test {
+      0
+    } else {
+      self.chain.unwrap().first_inscription_height()
+    }
   }
 
   pub fn first_rune_height(&self) -> u32 {
@@ -1021,7 +1011,6 @@ mod tests {
       ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
       ("DATA_DIR", "/data/dir"),
-      ("FIRST_INSCRIPTION_HEIGHT", "2"),
       ("HEIGHT_LIMIT", "3"),
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
     ("HTTP_PORT", "8080"),
@@ -1055,7 +1044,6 @@ mod tests {
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
-        first_inscription_height: Some(2),
         height_limit: Some(3),
         hidden: Some(
           vec![
@@ -1102,7 +1090,6 @@ mod tests {
           "--config-dir=config dir",
           "--cookie-file=cookie file",
           "--datadir=/data/dir",
-          "--first-inscription-height=2",
           "--height-limit=3",
           "--index-addresses",
           "--index-cache-size=4",
@@ -1129,7 +1116,6 @@ mod tests {
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
-        first_inscription_height: Some(2),
         height_limit: Some(3),
         hidden: None,
         http_port: None,

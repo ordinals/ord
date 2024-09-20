@@ -186,7 +186,6 @@ pub struct Index {
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
-  first_inscription_height: u32,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u32>,
@@ -198,6 +197,7 @@ pub struct Index {
   path: PathBuf,
   settings: Settings,
   started: DateTime<Utc>,
+  first_index_height: u32,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -420,13 +420,23 @@ impl Index {
     let genesis_block_coinbase_transaction =
       settings.chain().genesis_block().coinbase().unwrap().clone();
 
+    let first_index_height = if index_sats || index_addresses {
+      0
+    } else if index_inscriptions {
+      settings.first_inscription_height()
+    } else if index_runes {
+      settings.first_rune_height()
+    } else {
+      u32::MAX
+    };
+
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       client,
       database,
       durability,
       event_sender,
-      first_inscription_height: settings.first_inscription_height(),
+      first_index_height,
       genesis_block_coinbase_transaction,
       height_limit: settings.height_limit(),
       index_addresses,
@@ -439,6 +449,10 @@ impl Index {
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  pub fn have_full_utxo_index(&self) -> bool {
+    self.first_index_height == 0
   }
 
   /// Unlike normal outpoints, which are added to index on creation and removed
@@ -1677,7 +1691,7 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.index_sats {
+        && if self.have_full_utxo_index() {
           self
             .database
             .begin_read()?
@@ -2420,9 +2434,7 @@ mod tests {
     }
 
     {
-      let context = Context::builder()
-        .arg("--first-inscription-height=3")
-        .build();
+      let context = Context::builder().chain(Chain::Mainnet).build();
       context.mine_blocks(1);
       let txid = context.core.broadcast_tx(template);
       let inscription_id = InscriptionId { txid, index: 0 };
@@ -3010,53 +3022,6 @@ mod tests {
   }
 
   #[test]
-  fn missing_inputs_are_fetched_from_bitcoin_core() {
-    for args in [
-      ["--first-inscription-height", "2"].as_slice(),
-      ["--first-inscription-height", "2", "--index-sats"].as_slice(),
-    ] {
-      let context = Context::builder().args(args).build();
-      context.mine_blocks(1);
-
-      let txid = context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
-        ..default()
-      });
-      let inscription_id = InscriptionId { txid, index: 0 };
-
-      context.mine_blocks(1);
-
-      context.index.assert_inscription_location(
-        inscription_id,
-        SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        },
-        Some(50 * COIN_VALUE),
-      );
-
-      let send_txid = context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 0, 0, Default::default()), (2, 1, 0, Default::default())],
-        ..default()
-      });
-
-      context.mine_blocks(1);
-
-      context.index.assert_inscription_location(
-        inscription_id,
-        SatPoint {
-          outpoint: OutPoint {
-            txid: send_txid,
-            vout: 0,
-          },
-          offset: 50 * COIN_VALUE,
-        },
-        Some(50 * COIN_VALUE),
-      );
-    }
-  }
-
-  #[test]
   fn one_input_fee_spent_inscriptions_are_tracked_correctly() {
     for context in Context::configurations() {
       context.mine_blocks(1);
@@ -3231,9 +3196,7 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::builder()
-      .args(["--index-sats", "--first-inscription-height", "10"])
-      .build();
+    let context = Context::builder().args(["--index-sats"]).build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -3260,9 +3223,7 @@ mod tests {
 
   #[test]
   fn lost_sat_ranges_are_tracked_correctly() {
-    let context = Context::builder()
-      .args(["--index-sats", "--first-inscription-height", "10"])
-      .build();
+    let context = Context::builder().args(["--index-sats"]).build();
 
     let null_ranges = || {
       context
