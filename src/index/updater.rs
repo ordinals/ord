@@ -6,6 +6,7 @@ use {
     broadcast::{self, error::TryRecvError},
     mpsc::{self},
   },
+  bitcoin::absolute::LOCK_TIME_THRESHOLD,
 };
 
 mod inscription_updater;
@@ -680,6 +681,18 @@ impl<'index> Updater<'index> {
           self.index,
           orig_input_sat_ranges.as_ref(),
         )?;
+      }
+
+      // CAT-21: TODO index cats
+      let lock_time: LockTime = tx.lock_time;
+      let lock_time_value: u32 = lock_time.to_consensus_u32();
+
+      if lock_time_value == 21 {
+        println!("Lock time value is 21! Meow! 😺");
+      } else if lock_time_value > LOCK_TIME_THRESHOLD {
+          // println!("Lock time is interpreted as a Unix timestamp: {}", lock_time_value);
+      } else if lock_time_value > 0 {
+          println!("Lock time is interpreted as a block height: {}", lock_time_value);
       }
 
       for (vout, output_utxo_entry) in output_utxo_entries.into_iter().enumerate() {
