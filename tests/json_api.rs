@@ -235,11 +235,7 @@ fn get_inscriptions() {
 fn get_inscriptions_in_block() {
   let core = mockcore::spawn();
 
-  let ord = TestServer::spawn_with_server_args(
-    &core,
-    &["--index-sats", "--first-inscription-height", "0"],
-    &[],
-  );
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
   create_wallet(&core, &ord);
 

@@ -17,7 +17,6 @@ fn default() {
   "config_dir": null,
   "cookie_file": ".*\.cookie",
   "data_dir": ".*",
-  "first_inscription_height": 767430,
   "height_limit": null,
   "hidden": \[\],
   "http_port": null,
