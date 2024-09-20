@@ -55,9 +55,9 @@ impl List {
       inscriptions: list.inscriptions,
       runes: list.runes,
       sat_ranges: list.sat_ranges.map(output_ranges),
-      script_pubkey: list.script_pubkey,
+      script_pubkey: list.script_pubkey.to_asm_string(),
       spent: list.spent,
-      transaction: list.transaction,
+      transaction: list.transaction.to_string(),
       value: list.value,
     })))
   }
