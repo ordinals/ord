@@ -362,9 +362,9 @@ inscriptions:
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
-      script_pubkey: destination.payload.script_pubkey().to_asm_string(),
+      script_pubkey: destination.payload.script_pubkey(),
       spent: false,
-      transaction: reveal_txid.to_string(),
+      transaction: reveal_txid,
       value: 30_000,
     }
   );
