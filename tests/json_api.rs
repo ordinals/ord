@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::BlockHash,
+  bitcoin::{BlockHash, ScriptBuf},
   ord::{Envelope, Inscription},
 };
 
@@ -349,9 +349,14 @@ fn get_output() {
         (10000000000, 15000000000,),
         (15000000000, 20000000000,),
       ],),
-      script_pubkey: "OP_0 OP_PUSHBYTES_20 0000000000000000000000000000000000000000".into(),
+      script_pubkey: ScriptBuf::from(
+        "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs"
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked()
+      ),
       spent: false,
-      transaction: txid.to_string(),
+      transaction: txid,
       value: 3 * 50 * COIN_VALUE,
     }
   );
