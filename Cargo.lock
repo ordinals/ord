@@ -518,6 +518,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoincore-rpc"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d6c0ee9354e3dac217db4cb1dd31941073a87fe53c86bcf3eb2b8bc97f00a08"
+dependencies = [
+ "bitcoin-private",
+ "bitcoincore-rpc-json",
+ "jsonrpc",
+ "log",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bitcoincore-rpc-json"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d30ce6f40fb0a2e8d98522796219282504b7a4b14e2b4c26139a7bea6aec6586"
+dependencies = [
+ "bitcoin",
+ "bitcoin-private",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2193,6 +2219,7 @@ dependencies = [
  "base64 0.22.1",
  "bip39",
  "bitcoin",
+ "bitcoincore-rpc",
  "boilerplate",
  "brotli",
  "chrono",
@@ -2219,7 +2246,6 @@ dependencies = [
  "mockcore",
  "mp4",
  "nix",
- "ord-bitcoincore-rpc",
  "ordinals",
  "pretty_assertions",
  "redb",

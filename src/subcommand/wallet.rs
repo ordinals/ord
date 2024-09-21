@@ -1,7 +1,6 @@
 use {
   super::*,
-  crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
-  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
+  crate::wallet::{batch, wallet_constructor::WalletConstructor, ListDescriptorsResult, Wallet},
   shared_args::SharedArgs,
 };
 

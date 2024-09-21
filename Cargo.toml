@@ -47,7 +47,7 @@ mime = "0.3.16"
 mime_guess = "2.0.4"
 miniscript = "10.0.0"
 mp4 = "0.14.0"
-ord-bitcoincore-rpc = "0.17.2"
+bitcoincore-rpc = "0.17.0"
 ordinals = { version = "0.0.10", path = "crates/ordinals" }
 redb = "2.1.1"
 ref-cast = "1.0.23"
