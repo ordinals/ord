@@ -10,7 +10,7 @@ pub enum SnafuError {
   },
   #[snafu(display("Failed to parse hash `{}`", input))]
   HashParse {
-    source: bitcoin::hashes::hex::Error,
+    source: bitcoin::bip32::Error,
     input: String,
   },
   #[snafu(display("Failed to parse inscription ID `{}`", input))]

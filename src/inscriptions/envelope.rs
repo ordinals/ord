@@ -885,7 +885,7 @@ mod tests {
 
   #[test]
   fn pushnum_opcodes_are_parsed_correctly() {
-    const PUSHNUMS: &[(opcodes::All, u8)] = &[
+    const PUSHNUMS: &[(opcodes::Opcode, u8)] = &[
       (opcodes::all::OP_PUSHNUM_NEG1, 0x81),
       (opcodes::all::OP_PUSHNUM_1, 1),
       (opcodes::all::OP_PUSHNUM_2, 2),

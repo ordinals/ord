@@ -569,7 +569,7 @@ impl<'index> Updater<'index> {
               })?;
 
               let mut entry = UtxoEntryBuf::new();
-              entry.push_value(txout.value, self.index);
+              entry.push_value(txout.value.to_sat(), self.index);
               if self.index.index_addresses {
                 entry.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
               }
@@ -662,7 +662,7 @@ impl<'index> Updater<'index> {
         }
       } else {
         for (vout, txout) in tx.output.iter().enumerate() {
-          output_utxo_entries[vout].push_value(txout.value, self.index);
+          output_utxo_entries[vout].push_value(txout.value.to_sat(), self.index);
         }
       }
 
@@ -747,7 +747,7 @@ impl<'index> Updater<'index> {
       };
       let mut sats = Vec::new();
 
-      let mut remaining = output.value;
+      let mut remaining = output.value.to_sat();
       while remaining > 0 {
         let range = input_sat_ranges
           .pop_front()
@@ -758,7 +758,7 @@ impl<'index> Updater<'index> {
             &range.0,
             &SatPoint {
               outpoint,
-              offset: output.value - remaining,
+              offset: output.value.to_sat() - remaining,
             }
             .store(),
           )?;

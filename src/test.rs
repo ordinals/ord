@@ -2,7 +2,6 @@ pub(crate) use {
   super::*,
   bitcoin::{
     blockdata::script::{PushBytes, PushBytesBuf},
-    constants::COIN_VALUE,
     opcodes, WPubkeyHash,
   },
   mockcore::TransactionTemplate,
@@ -71,7 +70,7 @@ pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
 
 pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   TxOut {
-    value,
+    value: Amount::from_sat(value),
     script_pubkey: address.script_pubkey(),
   }
 }

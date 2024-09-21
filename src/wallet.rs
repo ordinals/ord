@@ -4,7 +4,7 @@ use {
   batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpub},
     psbt::Psbt,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -531,7 +531,7 @@ impl Wallet {
     settings: &Settings,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
-    derived_private_key: ExtendedPrivKey,
+    derived_private_key: Xpub,
     change: bool,
   ) -> Result {
     let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {

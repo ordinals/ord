@@ -47,7 +47,7 @@ pub enum ParseError {
   Character(char),
   Length(usize),
   Separator(char),
-  Txid(bitcoin::hashes::hex::Error),
+  Txid(bitcoin::bip32::Error),
   Index(std::num::ParseIntError),
 }
 
