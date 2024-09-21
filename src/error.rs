@@ -5,12 +5,12 @@ use super::*;
 pub enum SnafuError {
   #[snafu(display("Failed to parse address `{}`", input))]
   AddressParse {
-    source: bitcoin::address::Error,
+    source: bitcoin::address::error::Error,
     input: String,
   },
   #[snafu(display("Failed to parse hash `{}`", input))]
   HashParse {
-    source: bitcoin::bip32::Error,
+    source: bitcoin::hex::HexToArrayError,
     input: String,
   },
   #[snafu(display("Failed to parse inscription ID `{}`", input))]
