@@ -7,7 +7,7 @@ use {
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     psbt::Psbt,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
+  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -465,7 +465,7 @@ impl Wallet {
       })
       .collect::<Vec<ImportDescriptors>>();
 
-    client.import_descriptors(descriptors)?;
+    client.call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
 
     Ok(())
   }
@@ -536,7 +536,7 @@ impl Wallet {
 
     settings
       .bitcoin_rpc_client(Some(name.clone()))?
-      .import_descriptors(vec![ImportDescriptors {
+      .import_descriptors(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
@@ -544,7 +544,7 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      }])?;
+      })?;
 
     Ok(())
   }
