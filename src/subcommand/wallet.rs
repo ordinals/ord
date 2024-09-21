@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
+  crate::wallet::{batch, wallet_constructor::WalletConstructor, ListDescriptorsResult, Wallet},
   shared_args::SharedArgs,
 };
 

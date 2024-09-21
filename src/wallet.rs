@@ -47,6 +47,22 @@ impl From<Statistic> for u64 {
   }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct Descriptor {
+  pub desc: String,
+  pub timestamp: bitcoincore_rpc::bitcoincore_rpc_json::Timestamp,
+  pub active: bool,
+  pub internal: Option<bool>,
+  pub range: Option<(u64, u64)>,
+  pub next: Option<u64>,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct ListDescriptorsResult {
+  pub wallet_name: String,
+  pub descriptors: Vec<Descriptor>,
+}
+
 #[derive(Debug, PartialEq)]
 pub(crate) enum Maturity {
   BelowMinimumHeight(u64),

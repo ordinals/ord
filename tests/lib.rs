@@ -12,7 +12,7 @@ use {
   mockcore::TransactionTemplate,
   ord::{
     api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, InscriptionId, ListDescriptorsResult, RuneEntry,
+    wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
