@@ -205,7 +205,8 @@ impl TransactionBuilder {
       .amounts
       .get(&self.outgoing.outpoint)
       .ok_or(Error::NotInWallet(self.outgoing))?
-      .value;
+      .value
+      .to_sat();
 
     if self.outgoing.offset >= amount {
       return Err(Error::OutOfRange(self.outgoing, amount - 1));
@@ -433,7 +434,7 @@ impl TransactionBuilder {
 
   fn estimate_vbytes_with(inputs: usize, outputs: Vec<Address>) -> usize {
     Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: (0..inputs)
         .map(|_| TxIn {
@@ -446,7 +447,7 @@ impl TransactionBuilder {
       output: outputs
         .into_iter()
         .map(|address| TxOut {
-          value: 0,
+          value: Amount::from_sat(0),
           script_pubkey: address.script_pubkey(),
         })
         .collect(),
@@ -461,7 +462,7 @@ impl TransactionBuilder {
   fn build(self) -> Result<Transaction> {
     let recipient = self.recipient.script_pubkey();
     let transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: self
         .inputs
@@ -477,7 +478,7 @@ impl TransactionBuilder {
         .outputs
         .iter()
         .map(|(address, amount)| TxOut {
-          value: amount.to_sat(),
+          value: *amount,
           script_pubkey: address.script_pubkey(),
         })
         .collect(),
@@ -488,7 +489,7 @@ impl TransactionBuilder {
         .amounts
         .iter()
         .filter(|(outpoint, txout)| *outpoint == &self.outgoing.outpoint
-          && self.outgoing.offset < txout.value)
+          && self.outgoing.offset < txout.value.to_sat())
         .count(),
       1,
       "invariant: outgoing sat is contained in utxos"
@@ -512,7 +513,7 @@ impl TransactionBuilder {
         found = true;
         break;
       } else {
-        sat_offset += self.amounts[&tx_in.previous_output].value;
+        sat_offset += self.amounts[&tx_in.previous_output].value.to_sat();
       }
     }
     assert!(found, "invariant: outgoing sat is found in inputs");
@@ -520,7 +521,7 @@ impl TransactionBuilder {
     let mut output_end = 0;
     let mut found = false;
     for tx_out in &transaction.output {
-      output_end += tx_out.value;
+      output_end += tx_out.value.to_sat();
       if output_end > sat_offset {
         assert_eq!(
           tx_out.script_pubkey, recipient,
@@ -563,19 +564,19 @@ impl TransactionBuilder {
         match self.target {
           Target::Postage => {
             assert!(
-              Amount::from_sat(output.value) <= Self::MAX_POSTAGE + slop,
+              output.value <= Self::MAX_POSTAGE + slop,
               "invariant: excess postage is stripped"
             );
           }
           Target::ExactPostage(postage) => {
             assert!(
-              Amount::from_sat(output.value) <= postage + slop,
+              output.value <= postage + slop,
               "invariant: excess postage is stripped"
             );
           }
           Target::Value(value) => {
             assert!(
-              Amount::from_sat(output.value).checked_sub(value).unwrap()
+              output.value.checked_sub(value).unwrap()
                 <= self
                   .change_addresses
                   .iter()
@@ -601,15 +602,15 @@ impl TransactionBuilder {
           output.script_pubkey
         );
       }
-      offset += output.value;
+      offset += output.value.to_sat();
     }
 
     let mut actual_fee = Amount::ZERO;
     for input in &transaction.input {
-      actual_fee += Amount::from_sat(self.amounts[&input.previous_output].value);
+      actual_fee += self.amounts[&input.previous_output].value;
     }
     for output in &transaction.output {
-      actual_fee -= Amount::from_sat(output.value);
+      actual_fee -= output.value;
     }
 
     let mut modified_tx = transaction.clone();
@@ -625,7 +626,7 @@ impl TransactionBuilder {
 
     for tx_out in &transaction.output {
       assert!(
-        Amount::from_sat(tx_out.value) >= tx_out.script_pubkey.dust_value(),
+        tx_out.value >= tx_out.script_pubkey.dust_value(),
         "invariant: all outputs are above dust limit",
       );
     }
@@ -639,7 +640,7 @@ impl TransactionBuilder {
       if *outpoint == self.outgoing.outpoint {
         return sat_offset + self.outgoing.offset;
       } else {
-        sat_offset += self.amounts[outpoint].value;
+        sat_offset += self.amounts[outpoint].value.to_sat();
       }
     }
 
@@ -676,7 +677,7 @@ impl TransactionBuilder {
         continue;
       }
 
-      let current_value = self.amounts[utxo].value;
+      let current_value = self.amounts[utxo].value.to_sat();
 
       let (_, best_value) = match best_match {
         Some(prev) => prev,

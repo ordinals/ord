@@ -4,7 +4,7 @@ use {
   batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpub},
+    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv, Xpub},
     psbt::Psbt,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -499,7 +499,7 @@ impl Wallet {
 
     let secp = Secp256k1::new();
 
-    let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
+    let master_private_key = Xpriv::new_master(network, &seed)?;
 
     let fingerprint = master_private_key.fingerprint(&secp);
 
@@ -531,7 +531,7 @@ impl Wallet {
     settings: &Settings,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
-    derived_private_key: Xpub,
+    derived_private_key: Xpriv,
     change: bool,
   ) -> Result {
     let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
@@ -545,7 +545,7 @@ impl Wallet {
 
     let public_key = secret_key.to_public(secp)?;
 
-    let mut key_map = HashMap::new();
+    let mut key_map = BTreeMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;

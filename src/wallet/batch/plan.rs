@@ -106,7 +106,7 @@ impl Plan {
             vout: vout.try_into().unwrap(),
             script_pub_key: output.script_pubkey.clone(),
             redeem_script: None,
-            amount: Some(Amount::from_sat(output.value)),
+            amount: Some(output.value),
           })
           .collect::<Vec<SignRawTransactionInput>>(),
       ),
@@ -327,7 +327,7 @@ impl Plan {
       utxos
         .iter()
         .find(|(outpoint, txout)| {
-          txout.value > 0
+          txout.value.to_sat() > 0
             && !inscribed_utxos.contains(outpoint)
             && !locked_utxos.contains(outpoint)
             && !runic_utxos.contains(outpoint)
@@ -391,7 +391,7 @@ impl Plan {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = self.postages.iter().map(|amount| amount.to_sat()).sum();
+    let total_postage = self.postages.clone().into_iter().sum();
 
     let mut reveal_inputs = Vec::new();
     let mut reveal_outputs = Vec::new();
@@ -422,7 +422,7 @@ impl Plan {
       reveal_outputs.push(TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(),
+          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i],
           Mode::SharedOutput | Mode::SameSat => total_postage,
         },
       });
@@ -443,7 +443,7 @@ impl Plan {
 
         reveal_outputs.push(TxOut {
           script_pubkey: reveal_change.into(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: TARGET_POSTAGE,
         });
 
         vout = Some(output);
@@ -495,7 +495,7 @@ impl Plan {
 
       reveal_outputs.push(TxOut {
         script_pubkey,
-        value: 0,
+        value: Amount::from_sat(0),
       });
 
       rune = Some((destination, etching.rune, vout));
@@ -520,7 +520,7 @@ impl Plan {
     let mut target_value = reveal_fee;
 
     if self.mode != Mode::SatPoints {
-      target_value += Amount::from_sat(total_postage);
+      target_value += total_postage;
     }
 
     if premine > 0 {
@@ -564,7 +564,7 @@ impl Plan {
 
     for output in reveal_tx.output.iter() {
       ensure!(
-        output.value >= output.script_pubkey.dust_value().to_sat(),
+        output.value >= output.script_pubkey.dust_value(),
         "commit transaction output would be dust"
       );
     }
@@ -688,7 +688,11 @@ impl Plan {
     let response = wallet
       .bitcoin_client()
       .import_descriptors(ImportDescriptors {
-        descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+        descriptor: format!(
+          "rawtr({})#{}",
+          recovery_private_key.to_wif(),
+          info.checksum.unwrap_or_default()
+        ),
         timestamp: Timestamp::Now,
         active: Some(false),
         range: None,
@@ -731,7 +735,7 @@ impl Plan {
         .collect(),
       output,
       lock_time: LockTime::ZERO,
-      version: 2,
+      version: Version(2),
     };
 
     let fee = {
@@ -762,8 +766,9 @@ impl Plan {
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().value)
-      .sum::<u64>()
-      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .sum::<Amount>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<Amount>())
       .unwrap()
+      .to_sat()
   }
 }

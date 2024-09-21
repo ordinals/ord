@@ -175,7 +175,7 @@ impl WalletConstructor {
           let outpoint = OutPoint::new(utxo.txid, utxo.vout);
           let txout = TxOut {
             script_pubkey: utxo.script_pub_key,
-            value: utxo.amount.to_sat(),
+            value: utxo.amount,
           };
 
           (outpoint, txout)
