@@ -489,6 +489,85 @@ impl Entry for Txid {
   }
 }
 
+// CAT-21 😺 - START
+
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub struct LockTimeOrdinalEntry {
+    pub transaction_id: Txid, // 1.
+    pub lock_time:      u32,  // 2.
+    pub number:         u32,  // 3.
+    pub block_height:   u32,  // 4.
+    pub block_time:     u32,  // 5.
+    pub fee:            u64,  // 6.
+    pub size:           u64,  // 7.
+    pub weight:         u64,  // 8.
+    pub value:          u64,  // 9.
+    pub sat:            u64,  // 10.
+}
+
+pub(crate) type LockTimeOrdinalEntryValue = (
+  TxidValue,    // 1. transaction id
+  u32,          // 2. lock time
+  u32,          // 3. number
+  u32,          // 4. block height
+  u32,          // 5. block time
+  u64,          // 6. fee
+  u64,          // 7. size
+  u64,          // 8. weight
+  u64,          // 9. value
+  u64,          // 10. sat
+);
+
+impl Entry for LockTimeOrdinalEntry {
+  type Value = LockTimeOrdinalEntryValue;
+
+  fn load(
+      (
+          transaction_id,  // 1.
+          lock_time,            // 2.
+          number,               // 3.
+          block_height,         // 4.
+          block_time,           // 5.
+          fee,                  // 6.
+          size,                 // 7.
+          weight,               // 8.
+          value,                // 9.
+          sat,                  // 10.
+      ): LockTimeOrdinalEntryValue,
+  ) -> Self {
+      Self {
+          transaction_id: Txid::load(transaction_id),
+          lock_time,
+          number,
+          block_height,
+          block_time,
+          fee,
+          size,
+          weight,
+          value,
+          sat
+      }
+  }
+
+  fn store(self) -> Self::Value {
+      (
+          self.transaction_id.store(),
+          self.lock_time,
+          self.number,
+          self.block_height,
+          self.block_time,
+          self.fee,
+          self.size,
+          self.weight,
+          self.value,
+          self.sat,
+      )
+  }
+}
+
+// CAT-21 😺 - END
+
+
 #[cfg(test)]
 mod tests {
   use super::*;

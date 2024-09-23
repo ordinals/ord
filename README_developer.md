@@ -1,7 +1,7 @@
 `cat-21-ord`
 =====
 
-Super quick howto to jump into coding.
+Super quick howto to jump into coding (or building the executable).
 Generally, this is a great start: https://code.visualstudio.com/docs/languages/rust
 
 
@@ -21,12 +21,35 @@ Generally, this is a great start: https://code.visualstudio.com/docs/languages/r
 
 8. Generate a new `launch.json` by trying to debug (VS Code should create one for you)
 
-9. Add this to your `launch.json`
+9. Add a configuration like this to your `launch.json`
 
 ```json
 {
     "version": "0.2.0",
     "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'ord' INDEX-SATS (Localhost RPC Setup)",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=ord",
+                    "--package=ord"
+                ],
+                "filter": {
+                    "name": "ord",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+              "--index-sats",
+              "--bitcoin-rpc-username=xxx",
+              "--bitcoin-rpc-password=yyy",
+              "server"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
         {
             "type": "lldb",
             "request": "launch",
@@ -44,6 +67,7 @@ Generally, this is a great start: https://code.visualstudio.com/docs/languages/r
             },
             "args": [
               "--index-sats",
+              "--bitcoin-rpc-url=192.0.2.1:8332",
               "--bitcoin-rpc-username=xxx",
               "--bitcoin-rpc-password=yyy",
               "server"
