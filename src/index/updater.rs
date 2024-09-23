@@ -720,6 +720,10 @@ impl<'index> Updater<'index> {
           let size = tx.size().try_into().unwrap();
           let weight = tx.weight().into();
 
+          if lock_time == 21 {
+            println!("Meow! 😺 {} {} {}", next_lock_time_number, tx.txid(), sat);
+          }
+
           let lock_time_ordinal_entry: LockTimeOrdinalEntry = LockTimeOrdinalEntry {
               transaction_id: tx.txid(),
               lock_time,
@@ -924,8 +928,8 @@ fn get_next_lock_time_number(
       .map(|entry| entry.value()) // Get the current value
       .unwrap_or(0); // If not present, start with 0
 
-  // Increment the number
-  let next_number = current_number + 1;
+  // To keep next_number as 0 or increment it otherwise (counting should start 0, which is cooler)
+  let next_number = if current_number == 0 { 0 } else { current_number + 1 };
 
   // Store the incremented number back into the table
   lock_time_to_number.insert(&lock_time, &next_number)?;
