@@ -1,4 +1,4 @@
-`cat-21-ord`
+`cat21-ord`
 =====
 
 ![Orange Banner](https://raw.githubusercontent.com/ordpool-space/cat-21/main/assets/cat21-banner.svg)
@@ -6,9 +6,9 @@
 This is a hacked version of [ord](https://github.com/ordinals/ord), that indexes [CAT-21 ordinals](https://github.com/ordpool-space/cat-21). Meow! 😺
 
 In general, there is no difference to the normal ord, except that cats are also indexed.
-If you want to learn how to set up an ord instance, [refer to this guide](https://gist.github.com/hans-crypto/30d05b9dcb3c05940e9a8db2e365da1e) (Mac only) or any other guide in offical ord Discord. Of course you need the executable from this repo if ord should also index cats.
+If you want to learn how to set up an ord instance, [refer to this guide](https://gist.github.com/hans-crypto/30d05b9dcb3c05940e9a8db2e365da1e) or any other guide in offical ord Discord. Of course you need the executable from this repo if ord should also index cats.
 
-If you are a coder (or want to build the executable), [read on here](README_developer).
+If you are a coder (or want to run/build the executable), [read on here](README_developer).
 
 ---
 

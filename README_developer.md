@@ -1,4 +1,4 @@
-`cat-21-ord`
+`cat21-ord`
 =====
 
 Super quick howto to jump into coding (or building the executable).
@@ -9,8 +9,8 @@ Generally, this is a great start: https://code.visualstudio.com/docs/languages/r
 
 ```sh
 cd ~
-git clone https://github.com/ordpool-space/cat-21-ord.git
-cd cat-21-ord
+git clone https://github.com/ordpool-space/cat21-ord.git
+cd cat21-ord
 ```
 
 
@@ -25,7 +25,7 @@ cd cat-21-ord
 
 3. `rustc --version` must work!
 
-4. `cd cat-21-ord` into the repo
+4. `cd cat21-ord` into the repo
 
 5. `cargo build`, once built, the `ord` binary (debug build) can be found at `./target/debug/ord`.
 
@@ -96,7 +96,7 @@ cd cat-21-ord
 }
 ```
 
-## 3. Building & Running a `cat-21-ord` server (not a normal ord) on Linux
+## 3. Building & Running a `cat21-ord` server (not a normal ord) on Linux
 
 > You want this option when you want to build the full damn index.
 > On a beafy server, 64 GB RAM, 2TB SSD. Do not try lower hardware!
@@ -116,7 +116,7 @@ cd cat-21-ord
 
 3. `rustc --version` must work!
 
-4. `cd cat-21-ord` into the repo
+4. `cd cat21-ord` into the repo
 
 5. `cargo build --release`, once built, the `ord` binary (release build) can be found at `./target/release/ord`.
 
