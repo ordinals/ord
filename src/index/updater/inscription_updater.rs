@@ -74,7 +74,11 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut inscribed_offsets = BTreeMap::new();
     let jubilant = self.height >= index.settings.chain().jubilee_height();
     let mut total_input_value = 0;
-    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+    let total_output_value = tx
+      .output
+      .iter()
+      .map(|txout| txout.value.to_sat())
+      .sum::<u64>();
 
     let envelopes = ParsedEnvelope::from_transaction(tx);
     let has_new_inscriptions = !envelopes.is_empty();
@@ -272,7 +276,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut new_locations = Vec::new();
     let mut output_value = 0;
     for (vout, txout) in tx.output.iter().enumerate() {
-      let end = output_value + txout.value;
+      let end = output_value + txout.value.to_sat();
 
       while let Some(flotsam) = inscriptions.peek() {
         if flotsam.offset >= end {

@@ -72,17 +72,17 @@ impl Mint {
     );
 
     let unfunded_transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![
         TxOut {
           script_pubkey,
-          value: 0,
+          value: Amount::from_sat(0),
         },
         TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: postage.to_sat(),
+          value: postage,
         },
       ],
     };

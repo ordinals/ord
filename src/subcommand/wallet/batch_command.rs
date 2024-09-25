@@ -22,7 +22,7 @@ impl Batch {
     let (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
       &wallet,
       utxos,
-      parent_info.as_ref().map(|info| info.tx_out.value),
+      parent_info.as_ref().map(|info| info.tx_out.value.to_sat()),
       self.shared.compress,
     )?;
 

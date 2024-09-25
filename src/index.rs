@@ -2112,7 +2112,7 @@ impl Index {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
-        value: output.as_ref().map(|o| o.value),
+        value: output.as_ref().map(|o| o.value.to_sat()),
       },
       output,
       inscription,
@@ -2334,7 +2334,7 @@ impl Index {
       indexed = true;
 
       TxOut {
-        value,
+        value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       }
     } else {

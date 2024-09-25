@@ -157,19 +157,15 @@ impl File {
 
         txout.value
       } else {
-        self
-          .postage
-          .map(Amount::from_sat)
-          .unwrap_or(TARGET_POSTAGE)
-          .to_sat()
+        self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE)
       };
 
-      pointer += postage;
+      pointer += postage.to_sat();
 
       if self.mode == Mode::SameSat && i > 0 {
         continue;
       } else {
-        postages.push(Amount::from_sat(postage));
+        postages.push(postage);
       }
     }
 
