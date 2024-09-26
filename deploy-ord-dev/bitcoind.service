@@ -1,0 +1,14 @@
+[Unit]
+Description=Bitcoin Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/linuxbrew/.linuxbrew/opt/bitcoin/bin/bitcoind -daemon -conf=/home/ord-dev/bitcoin/bitcoin.conf
+User=ord-dev
+Group=ord-dev
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
