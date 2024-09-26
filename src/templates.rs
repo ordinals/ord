@@ -76,7 +76,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "beta".into()
+      "CAT-21 😺".into()
     } else {
       self.config.chain.to_string()
     }
