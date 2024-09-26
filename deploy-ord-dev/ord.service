@@ -1,0 +1,19 @@
+[Unit]
+Description=Ord Daemon
+After=network.target
+
+[Service]
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Environment=RUST_BACKTRACE=1
+Environment=RUST_LOG=info
+ExecStart=/home/ord-dev/cat21-ord/target/release/ord \
+  --index-sats \
+  --index-addresses \
+  --no-index-inscriptions \
+  server \
+  --http
+User=ord-dev
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

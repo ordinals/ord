@@ -103,6 +103,18 @@ cd cat21-ord
 
 1. Bitcoin must be up and running, see [Mac/Linux beginner's guide for ORD development](https://gist.github.com/hans-crypto/30d05b9dcb3c05940e9a8db2e365da1e)
 
+    Feel free to use the files in `deploy-ord-dev` for a fast setup:
+
+    ```
+    sudo cp /home/ord-dev/cat21-ord/deploy-ord-dev/bitcoind.service /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable bitcoind
+    sudo systemctl start bitcoind
+    sudo systemctl status bitcoind
+
+    tail -F -n 10000 ~/.bitcoin/debug.log
+    ```
+
 2. Install rust via curl (rustup) or homebrew, both should work:
 
     * Rustup is officially recommended.
@@ -136,6 +148,17 @@ cd cat21-ord
     --http-port 8080
   ```
 
+9. Run the ord daemon permanently:
+
+
+    ```
+    sudo cp /home/ord-dev/cat21-ord/deploy-ord-dev/ord.service /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable ord
+    sudo systemctl start ord
+    sudo systemctl status ord
+
+    ```
 
 ### Personal Notepad with intersting links
 
