@@ -139,7 +139,7 @@ cd cat21-ord
 
 7. Start the indexing:
 
-  ```
+  ```sh
   ./target/release/ord \
     --index-sats \
     --index-addresses \
@@ -150,14 +150,30 @@ cd cat21-ord
 
 9. Run the ord daemon permanently:
 
-
-    ```
+    ```sh
     sudo cp /home/ord-dev/cat21-ord/deploy-ord-dev/ord.service /etc/systemd/system/
     sudo systemctl daemon-reload
     sudo systemctl enable ord
     sudo systemctl start ord
     sudo systemctl status ord
+    ```
 
+    To view the full logs for your `ord` service managed by `systemd`, you can use `journalctl`, which collects logs for all systemd-managed services.
+    This will show the complete log history:
+
+    ```sh
+    sudo journalctl -u ord
+    ```
+
+    Or follow the logs in real-time (like `tail -f`):
+
+    ```
+    sudo journalctl -u ord -f
+    ```
+
+    To delete logs older than a specific time period, such as 1 week:
+    ```
+    sudo journalctl --vacuum-time=1w
     ```
 
 ### Personal Notepad with intersting links
