@@ -9,6 +9,7 @@ pub(crate) struct ServerConfig {
   pub(crate) index_sats: bool,
   pub(crate) json_api_enabled: bool,
   pub(crate) proxy: Option<Url>,
+  pub(crate) wallet: Option<Wallet>,
 }
 
 impl ServerConfig {

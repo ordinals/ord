@@ -72,3 +72,21 @@ impl From<Error> for ServerError {
     Self::Internal(error)
   }
 }
+
+impl From<bitcoincore_rpc::Error> for ServerError {
+  fn from(error: bitcoincore_rpc::Error) -> Self {
+      Self::Internal(Error::new(error))
+  }
+}
+
+impl From<bitcoin::address::Error> for ServerError {
+  fn from(error: bitcoin::address::Error) -> Self {
+      Self::Internal(Error::new(error))
+  }
+}
+
+impl From<bitcoin::psbt::Error> for ServerError {
+  fn from(error: bitcoin::psbt::Error) -> Self {
+      Self::Internal(Error::new(error))
+  }
+}
