@@ -18,11 +18,14 @@
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>{{ self.superscript() }}</sup></a>
+      <a href=/ title=home>{{ self.superscript() }}&nbsp;<sup>Ordinals</sup></a>
+      <!--
       <a href=/inscriptions title=inscriptions><img class=icon src=/static/images.svg></a>
       <a href=/runes title=runes><img class=icon src=/static/rune.svg></a>
       <a href=/collections title=collections><img class=icon src=/static/diagram-project.svg></a>
+      -->
       <a href=/blocks title=blocks><img class=icon src=/static/cubes.svg></a>
+      <!--
       <a href=/clock title=clock><img class=icon src=/static/clock.svg></a>
 %% if self.config.index_sats {
       <a href=/rare.txt title=rare><img class=icon src=/static/gem.svg></a>
@@ -34,6 +37,7 @@
         <input type=text autocapitalize=off autocomplete=off autocorrect=off name=query spellcheck=false>
         <input class=icon type=image src=/static/magnifying-glass.svg alt=Search>
       </form>
+      -->
     </nav>
   </header>
   <main>
