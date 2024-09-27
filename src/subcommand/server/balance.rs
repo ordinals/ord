@@ -12,62 +12,68 @@ pub struct Output {
 }
 
 pub(super) async fn run(
-  Extension(config): Extension<Arc<ServerConfig>>,
+  Extension(wallet): Extension<Arc<Mutex<Option<Wallet>>>>,
 ) -> ServerResult {
-  let wallet = config.wallet.as_ref().ok_or_else(|| anyhow!("no wallet loaded"))?;
-  let unspent_outputs = wallet.utxos();
+  let wallet = wallet.lock().unwrap();
 
-  let inscription_outputs = wallet
-    .inscriptions()
-    .keys()
-    .map(|satpoint| satpoint.outpoint)
-    .collect::<BTreeSet<OutPoint>>();
+  if let Some(wallet) = wallet.as_ref() {
+    let unspent_outputs = wallet.utxos();
 
-  let mut cardinal = 0;
-  let mut ordinal = 0;
-  let mut runes = BTreeMap::new();
-  let mut runic = 0;
+    let inscription_outputs = wallet
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<BTreeSet<OutPoint>>();
 
-  for (output, txout) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_in_output(output)?;
+    let mut cardinal = 0;
+    let mut ordinal = 0;
+    let mut runes = BTreeMap::new();
+    let mut runic = 0;
 
-    let is_ordinal = inscription_outputs.contains(output);
-    let is_runic = !rune_balances.is_empty();
+    for (output, txout) in unspent_outputs {
+      let rune_balances = wallet.get_runes_balances_in_output(output)?;
 
-    if is_ordinal {
-      ordinal += txout.value;
-    }
+      let is_ordinal = inscription_outputs.contains(output);
+      let is_runic = !rune_balances.is_empty();
 
-    if is_runic {
-      for (spaced_rune, pile) in rune_balances {
-        runes
-          .entry(spaced_rune)
-          .and_modify(|decimal: &mut Decimal| {
-            assert_eq!(decimal.scale, pile.divisibility);
-            decimal.value += pile.amount;
-          })
-          .or_insert(Decimal {
-            value: pile.amount,
-            scale: pile.divisibility,
-          });
+      if is_ordinal {
+        ordinal += txout.value;
       }
-      runic += txout.value;
+
+      if is_runic {
+        for (spaced_rune, pile) in rune_balances {
+          runes
+            .entry(spaced_rune)
+            .and_modify(|decimal: &mut Decimal| {
+              assert_eq!(decimal.scale, pile.divisibility);
+              decimal.value += pile.amount;
+            })
+            .or_insert(Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            });
+        }
+        runic += txout.value;
+      }
+
+      if !is_ordinal && !is_runic {
+        cardinal += txout.value;
+      }
+
+      if is_ordinal && is_runic {
+        eprintln!("warning: output {output} contains both inscriptions and runes");
+      }
     }
 
-    if !is_ordinal && !is_runic {
-      cardinal += txout.value;
-    }
-
-    if is_ordinal && is_runic {
-      eprintln!("warning: output {output} contains both inscriptions and runes");
-    }
+    Ok(Json(Output {
+      cardinal,
+      ordinal,
+      runes: wallet.has_rune_index().then_some(runes),
+      runic: wallet.has_rune_index().then_some(runic),
+      total: cardinal + ordinal + runic,
+    }).into_response())
+  } else {
+    eprintln!("no wallet loaded");
+    return Err(anyhow!("no wallet loaded").into());
   }
-
-  Ok(Json(Output {
-    cardinal,
-    ordinal,
-    runes: wallet.has_rune_index().then_some(runes),
-    runic: wallet.has_rune_index().then_some(runic),
-    total: cardinal + ordinal + runic,
-  }).into_response())
 }

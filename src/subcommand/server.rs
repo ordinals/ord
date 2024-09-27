@@ -171,11 +171,8 @@ impl Server {
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
-  
-      // wallet 
-      let mut wallet: Option<Wallet> = None;
-      let settings_wallet = settings.
 
+      let settings_wallet = settings.clone();
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
 
@@ -187,16 +184,18 @@ impl Server {
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
         proxy: self.proxy.clone(),
-        wallet: wallet,
       });
 
       // router for wallet
+      let wallet: Arc<Mutex<Option<Wallet>>> = Arc::new(Mutex::new(None));
       let wallet_router = Router::new()
         .route("/balance", get(balance::run))
         .route("/runics", get(runics::run))
+        .route("/pending", get(pending::run))
         .route("/send", post(send::run))
         .route("/transactions/:limit", get(transactions::run))
-        .route("/receive/:number", get(receive::run));
+        .route("/receive/:number", get(receive::run))
+        .layer(Extension(wallet.clone()));
 
       let router = Router::new()
         .route("/", get(Self::home))
@@ -384,15 +383,16 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      let wallet = WalletConstructor::construct(
-        self.wallet_name.clone(),
-        false,
-        (*settings).clone(),
-        settings.server_url()
-        .unwrap_or("http://127.0.0.1:80")
-        .parse::<Url>()
-        .context("invalid server URL")?,
-      )?;
+      let mut wallet_guard = wallet.lock().unwrap();
+      *wallet_guard = Some(WalletConstructor::construct(
+          self.wallet_name.clone(),
+          false,
+          settings_wallet,
+          settings.server_url()
+              .unwrap_or("http://127.0.0.1:80")
+              .parse::<Url>()
+              .context("invalid server URL")?,
+      )?);
 
       Ok(None)
     })

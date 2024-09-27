@@ -5,11 +5,13 @@ pub struct PendingOutput {
   pub commit: Txid,
   pub rune: SpacedRune,
 }
-#[derive(Debug, Parser)]
-pub(crate) struct Pending {}
 
-impl Pending {
-  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
+pub(super) async fn run(
+  Extension(wallet): Extension<Arc<Mutex<Option<Wallet>>>>,
+) -> ServerResult {
+  let wallet = wallet.lock().unwrap();
+
+  if let Some(wallet) = wallet.as_ref() {
     let etchings: Vec<PendingOutput> = wallet
       .pending_etchings()?
       .into_iter()
@@ -23,6 +25,9 @@ impl Pending {
       })
       .collect::<Vec<PendingOutput>>();
 
-    Ok(Some(Box::new(etchings) as Box<dyn Output>))
+    Ok(Json(etchings).into_response())
+  } else {
+    eprintln!("no wallet loaded");
+    return Err(anyhow!("no wallet loaded").into());
   }
 }
