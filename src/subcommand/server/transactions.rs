@@ -6,32 +6,41 @@ pub struct Output {
   pub confirmations: i32,
 }
 
+pub(super) async fn run_nolimit(
+  Extension(wallet): Extension<Arc<Mutex<Option<Arc<Wallet>>>>>,
+  Extension(settings): Extension<Arc<Settings>>,
+) -> ServerResult {
+  run(Extension(wallet), Extension(settings), Path(0)).await
+}
+
 pub(super) async fn run(
-  Extension(wallet): Extension<Arc<Mutex<Option<Wallet>>>>,
+  Extension(wallet): Extension<Arc<Mutex<Option<Arc<Wallet>>>>>,
+  Extension(settings): Extension<Arc<Settings>>,
   Path(limit): Path<usize>,
 ) -> ServerResult {
-  let wallet = wallet.lock().unwrap();
-
-  if let Some(wallet) = wallet.as_ref() {
-    let client = wallet.bitcoin_client();
-
-    let mut output = Vec::new();
-    for tx in client.list_transactions(
-      None,
-      if limit == 0 { Some(usize::MAX) } else { Some(limit) },
-      None,
-      None,
-    )? {
-      output.push(Output {
-        transaction: tx.info.txid,
-        confirmations: tx.info.confirmations,
-      });
+  let wallet = match init_wallet::init(wallet, settings).await {
+    Ok(wallet) => wallet,
+    Err(err) => {
+        println!("Failed to initialize wallet: {:?}", err);
+        return Err(anyhow!("Failed to initialize wallet").into());
     }
+  };
 
-    Ok(Json(output).into_response())
-  } else {
-    eprintln!("no wallet loaded");
-    return Err(anyhow!("no wallet loaded").into());
+  let client = wallet.bitcoin_client();
+
+  let mut output = Vec::new();
+  for tx in client.list_transactions(
+    None,
+    if limit == 0 { Some(usize::MAX) } else { Some(limit) },
+    None,
+    None,
+  )? {
+    output.push(Output {
+      transaction: tx.info.txid,
+      confirmations: tx.info.confirmations,
+    });
   }
+
+  Ok(Json(output).into_response())
 }
 

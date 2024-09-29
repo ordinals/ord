@@ -71,6 +71,7 @@ impl WalletConstructor {
 
     if !self.no_sync {
       for i in 0.. {
+        println!("synchronizing wallet with `ord server`... {i}");
         let response = self.get("/blockcount")?;
 
         if response
@@ -80,10 +81,10 @@ impl WalletConstructor {
           >= chain_block_count
         {
           break;
-        } else if i == 20 {
+        } else if i == 200 {
           bail!("wallet failed to synchronize with `ord server` after {i} attempts");
         }
-        std::thread::sleep(Duration::from_millis(50));
+        std::thread::sleep(Duration::from_secs(1));
       }
     }
 

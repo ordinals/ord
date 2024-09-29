@@ -25,123 +25,126 @@ pub struct Output {
 }
 
 pub(super) async fn run(
-  Extension(wallet): Extension<Arc<Mutex<Option<Wallet>>>>,
+  Extension(wallet): Extension<Arc<Mutex<Option<Arc<Wallet>>>>>,
+  Extension(settings): Extension<Arc<Settings>>,
   Json(send): Json<Send>,
 ) -> ServerResult {
-  let wallet = wallet.lock().unwrap();
-
-  if let Some(wallet) = wallet.as_ref() {
-    let address = send
-      .address
-      .clone()
-      .require_network(wallet.chain().network())?;
-
-    let fee = FeeRate::try_from(send.fee_rate)?;
-    let postage = Option::from(Amount::from_sat(send.postage.unwrap_or(TARGET_POSTAGE.to_sat())));
-
-    let unsigned_transaction = match send.outgoing {
-      Outgoing::Amount(amount) => {
-        create_unsigned_send_amount_transaction(&wallet, address, amount, fee)?
-      }
-      Outgoing::Rune { decimal, rune } => create_unsigned_send_runes_transaction(
-        &wallet,
-        address,
-        rune,
-        decimal,
-        postage.unwrap_or(TARGET_POSTAGE),
-        fee,
-      )?,
-      Outgoing::InscriptionId(id) => create_unsigned_send_satpoint_transaction(
-        &wallet,
-        address,
-        wallet
-          .inscription_info()
-          .get(&id)
-          .ok_or_else(|| anyhow!("inscription {id} not found"))?
-          .satpoint,
-        postage,
-        fee,
-        true,
-      )?,
-      Outgoing::SatPoint(satpoint) => create_unsigned_send_satpoint_transaction(
-        &wallet,
-        address,
-        satpoint,
-        postage,
-        fee,
-        false,
-      )?,
-      Outgoing::Sat(sat) => create_unsigned_send_satpoint_transaction(
-        &wallet,
-        address,
-        wallet.find_sat_in_outputs(sat)?,
-        postage,
-        fee,
-        true,
-      )?,
-    };
-
-    let unspent_outputs = wallet.utxos();
-
-    let (txid, psbt) = if send.dry_run {
-      let psbt = wallet
-        .bitcoin_client()
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
-          Some(false),
-          None,
-          None,
-        )?
-        .psbt;
-
-      (unsigned_transaction.txid(), psbt)
-    } else {
-      let psbt = wallet
-        .bitcoin_client()
-        .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
-          Some(true),
-          None,
-          None,
-        )?
-        .psbt;
-
-      let signed_tx = wallet
-        .bitcoin_client()
-        .finalize_psbt(&psbt, None)?
-        .hex
-        .ok_or_else(|| anyhow!("unable to sign transaction"))?;
-
-      (
-        wallet.bitcoin_client().send_raw_transaction(&signed_tx)?,
-        psbt,
-      )
-    };
-
-    let mut fee = 0;
-    for txin in unsigned_transaction.input.iter() {
-      let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
-        panic!("input {} not found in utxos", txin.previous_output);
-      };
-      fee += txout.value;
+  let wallet = match init_wallet::init(wallet, settings).await {
+    Ok(wallet) => wallet,
+    Err(err) => {
+        println!("Failed to initialize wallet: {:?}", err);
+        return Err(anyhow!("Failed to initialize wallet").into());
     }
+  };
 
-    for txout in unsigned_transaction.output.iter() {
-      fee = fee.checked_sub(txout.value).unwrap();
+
+  let address = send
+    .address
+    .clone()
+    .require_network(wallet.chain().network())?;
+
+  let fee = FeeRate::try_from(send.fee_rate)?;
+  let postage = Option::from(Amount::from_sat(send.postage.unwrap_or(TARGET_POSTAGE.to_sat())));
+
+  let unsigned_transaction = match send.outgoing {
+    Outgoing::Amount(amount) => {
+      create_unsigned_send_amount_transaction(&wallet, address, amount, fee)?
     }
-
-    Ok(Json(Output {
-      txid,
-      psbt,
-      outgoing: send.outgoing,
+    Outgoing::Rune { decimal, rune } => create_unsigned_send_runes_transaction(
+      &wallet,
+      address,
+      rune,
+      decimal,
+      postage.unwrap_or(TARGET_POSTAGE),
       fee,
-    }).into_response())
+    )?,
+    Outgoing::InscriptionId(id) => create_unsigned_send_satpoint_transaction(
+      &wallet,
+      address,
+      wallet
+        .inscription_info()
+        .get(&id)
+        .ok_or_else(|| anyhow!("inscription {id} not found"))?
+        .satpoint,
+      postage,
+      fee,
+      true,
+    )?,
+    Outgoing::SatPoint(satpoint) => create_unsigned_send_satpoint_transaction(
+      &wallet,
+      address,
+      satpoint,
+      postage,
+      fee,
+      false,
+    )?,
+    Outgoing::Sat(sat) => create_unsigned_send_satpoint_transaction(
+      &wallet,
+      address,
+      wallet.find_sat_in_outputs(sat)?,
+      postage,
+      fee,
+      true,
+    )?,
+  };
+
+  let unspent_outputs = wallet.utxos();
+
+  let (txid, psbt) = if send.dry_run {
+    let psbt = wallet
+      .bitcoin_client()
+      .wallet_process_psbt(
+        &base64::engine::general_purpose::STANDARD
+          .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+        Some(false),
+        None,
+        None,
+      )?
+      .psbt;
+
+    (unsigned_transaction.txid(), psbt)
   } else {
-    eprintln!("no wallet loaded");
-    return Err(anyhow!("no wallet loaded").into());
+    let psbt = wallet
+      .bitcoin_client()
+      .wallet_process_psbt(
+        &base64::engine::general_purpose::STANDARD
+          .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+        Some(true),
+        None,
+        None,
+      )?
+      .psbt;
+
+    let signed_tx = wallet
+      .bitcoin_client()
+      .finalize_psbt(&psbt, None)?
+      .hex
+      .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+
+    (
+      wallet.bitcoin_client().send_raw_transaction(&signed_tx)?,
+      psbt,
+    )
+  };
+
+  let mut fee = 0;
+  for txin in unsigned_transaction.input.iter() {
+    let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
+      panic!("input {} not found in utxos", txin.previous_output);
+    };
+    fee += txout.value;
   }
+
+  for txout in unsigned_transaction.output.iter() {
+    fee = fee.checked_sub(txout.value).unwrap();
+  }
+
+  Ok(Json(Output {
+    txid,
+    psbt,
+    outgoing: send.outgoing,
+    fee,
+  }).into_response())
 }
 
 fn create_unsigned_send_amount_transaction(

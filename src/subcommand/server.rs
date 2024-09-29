@@ -33,6 +33,7 @@ use {
   },
   std::{str, sync::Arc},
   tokio_stream::StreamExt,
+  tokio::sync::Mutex,
   tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
@@ -68,6 +69,7 @@ pub mod sats;
 pub mod send;
 mod shared_args;
 pub mod transactions;
+pub mod init_wallet;
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -172,7 +174,6 @@ impl Server {
 
       INDEXER.lock().unwrap().replace(index_thread);
 
-      let settings_wallet = settings.clone();
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
 
@@ -187,14 +188,17 @@ impl Server {
       });
 
       // router for wallet
-      let wallet: Arc<Mutex<Option<Wallet>>> = Arc::new(Mutex::new(None));
+      let wallet: Arc<Mutex<Option<Arc<Wallet>>>> = Arc::new(Mutex::new(None));
       let wallet_router = Router::new()
         .route("/balance", get(balance::run))
-        .route("/runics", get(runics::run))
+        .route("/outputs", get(outputs::run))
         .route("/pending", get(pending::run))
-        .route("/send", post(send::run))
-        .route("/transactions/:limit", get(transactions::run))
+        .route("/receive", get(receive::run_one))
         .route("/receive/:number", get(receive::run))
+        .route("/runics", get(runics::run))
+        .route("/send", post(send::run))
+        .route("/transactions", get(transactions::run_nolimit))
+        .route("/transactions/:limit", get(transactions::run))
         .layer(Extension(wallet.clone()));
 
       let router = Router::new()
@@ -333,7 +337,7 @@ impl Server {
       } else {
         router
       };
-
+      println!("Server Initializing...");
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
           self
@@ -383,19 +387,10 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      let mut wallet_guard = wallet.lock().unwrap();
-      *wallet_guard = Some(WalletConstructor::construct(
-          self.wallet_name.clone(),
-          false,
-          settings_wallet,
-          settings.server_url()
-              .unwrap_or("http://127.0.0.1:80")
-              .parse::<Url>()
-              .context("invalid server URL")?,
-      )?);
-
       Ok(None)
     })
+
+
   }
 
   fn spawn(
@@ -431,6 +426,7 @@ impl Server {
         }
       );
     }
+    println!("Server Initialized!");
 
     Ok(tokio::spawn(async move {
       match config {
