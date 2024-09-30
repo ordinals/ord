@@ -1,5 +1,6 @@
 use {
   super::*,
+  api::RuneInfo,
   base64::{self, Engine},
   batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
@@ -260,7 +261,7 @@ impl Wallet {
   pub(crate) fn get_runes_balances_in_output(
     &self,
     output: &OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<BTreeMap<SpacedRune, RuneInfo>> {
     Ok(
       self
         .output_info

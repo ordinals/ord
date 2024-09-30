@@ -36,7 +36,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     }
 
     if is_runic {
-      for (spaced_rune, pile) in rune_balances {
+      for (spaced_rune, info) in rune_balances {
+        let pile = info.pile;
         runes
           .entry(spaced_rune)
           .and_modify(|decimal: &mut Decimal| {

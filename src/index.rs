@@ -1,5 +1,6 @@
 use {
   self::{
+    api::RuneInfo,
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
@@ -1007,7 +1008,7 @@ impl Index {
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<BTreeMap<SpacedRune, RuneInfo>> {
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -1030,10 +1031,13 @@ impl Index {
 
       balances.insert(
         entry.spaced_rune,
-        Pile {
-          amount,
-          divisibility: entry.divisibility,
-          symbol: entry.symbol,
+        RuneInfo {
+          id,
+          pile: Pile {
+            amount,
+            divisibility: entry.divisibility,
+            symbol: entry.symbol,
+          },
         },
       );
     }
@@ -2276,19 +2280,19 @@ impl Index {
     for output in outputs {
       let rune_balances = self.get_rune_balances_for_output(*output)?;
 
-      for (spaced_rune, pile) in rune_balances {
+      for (spaced_rune, info) in rune_balances {
         runes
           .entry(spaced_rune)
           .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
-            assert_eq!(decimal.scale, pile.divisibility);
-            decimal.value += pile.amount;
+            assert_eq!(decimal.scale, info.pile.divisibility);
+            decimal.value += info.pile.amount;
           })
           .or_insert((
             Decimal {
-              value: pile.amount,
-              scale: pile.divisibility,
+              value: info.pile.amount,
+              scale: info.pile.divisibility,
             },
-            pile.symbol,
+            info.pile.symbol,
           ));
       }
     }

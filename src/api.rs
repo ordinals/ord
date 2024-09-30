@@ -149,12 +149,18 @@ pub struct Inscriptions {
   pub page_index: u32,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct RuneInfo {
+  pub id: RuneId,
+  pub pile: Pile,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub runes: BTreeMap<SpacedRune, RuneInfo>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
   pub spent: bool,
@@ -169,7 +175,7 @@ impl Output {
     outpoint: OutPoint,
     tx_out: TxOut,
     indexed: bool,
-    runes: BTreeMap<SpacedRune, Pile>,
+    runes: BTreeMap<SpacedRune, RuneInfo>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {

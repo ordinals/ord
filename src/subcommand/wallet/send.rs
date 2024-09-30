@@ -194,7 +194,7 @@ impl Send {
             output,
             balance
               .into_iter()
-              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+              .map(|(spaced_rune, info)| (spaced_rune.rune, info.pile))
               .collect(),
           )
         })
