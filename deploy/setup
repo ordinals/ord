@@ -40,7 +40,7 @@ ufw allow ssh
 case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
-    CSP_ORIGIN=ordinals.com
+    CSP_ORIGIN=node.wizards.art
     ufw allow 8333
     ;;
   regtest)
