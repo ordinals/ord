@@ -1577,7 +1577,7 @@ impl Index {
       }
     }
 
-    self.client.get_raw_transaction(&txid, None).into_option()
+    Ok(self.client.get_raw_transaction(&txid, None).ok())
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
