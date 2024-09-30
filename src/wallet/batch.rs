@@ -34,7 +34,7 @@ pub struct Output {
   pub commit: Txid,
   pub commit_psbt: Option<String>,
   pub inscriptions: Vec<InscriptionInfo>,
-  pub parent: Option<InscriptionId>,
+  pub parents: Vec<InscriptionId>,
   pub reveal: Txid,
   pub reveal_broadcast: bool,
   pub reveal_psbt: Option<String>,
@@ -86,7 +86,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint: Some(satpoint(1, 0)),
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -132,7 +132,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint: Some(satpoint(1, 0)),
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -177,7 +177,7 @@ mod tests {
 
     let error = batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -229,7 +229,7 @@ mod tests {
 
     assert!(batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -279,7 +279,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
@@ -367,7 +367,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions: vec![child_inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
@@ -454,7 +454,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(commit_fee_rate).unwrap(),
@@ -513,7 +513,7 @@ mod tests {
 
     let error = batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -554,7 +554,7 @@ mod tests {
 
     let batch::Transactions { reveal_tx, .. } = batch::Plan {
       satpoint,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions: vec![inscription],
       destinations: vec![reveal_address],
       commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
@@ -635,7 +635,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -766,7 +766,7 @@ mod tests {
       ..
     } = batch::Plan {
       reveal_satpoints: reveal_satpoints.clone(),
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -868,7 +868,7 @@ mod tests {
 
     let error = batch::Plan {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 4.0.try_into().unwrap(),
@@ -945,7 +945,7 @@ mod tests {
 
     let _ = batch::Plan {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 4.0.try_into().unwrap(),
@@ -984,7 +984,7 @@ mod tests {
 
     let error = batch::Plan {
       satpoint: None,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: 1.0.try_into().unwrap(),
@@ -1042,7 +1042,7 @@ mod tests {
 
     let batch::Transactions { reveal_tx, .. } = batch::Plan {
       satpoint: None,
-      parent_info: None,
+      parent_info: Vec::new(),
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
@@ -1131,7 +1131,7 @@ mod tests {
       ..
     } = batch::Plan {
       satpoint: None,
-      parent_info: Some(parent_info.clone()),
+      parent_info: vec![parent_info.clone()],
       inscriptions,
       destinations: reveal_addresses,
       commit_fee_rate: fee_rate,
