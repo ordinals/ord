@@ -359,26 +359,17 @@ fn batch_in_same_output_but_different_satpoints() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:10000</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:10000.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:20000</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:20000.*",),
   );
 
   ord.assert_response_regex(
@@ -427,26 +418,17 @@ fn batch_in_same_output_with_non_default_postage() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:777</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:777.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:1554</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:1554.*",),
   );
 
   ord.assert_response_regex(
@@ -511,7 +493,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_1
     ),
   );
@@ -519,7 +501,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_2
     ),
   );
@@ -527,7 +509,7 @@ fn batch_in_separate_outputs_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_3
     ),
   );
@@ -589,7 +571,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_1
     ),
   );
@@ -597,7 +579,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_2
     ),
   );
@@ -605,7 +587,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
       output_3
     ),
   );
@@ -758,26 +740,17 @@ fn batch_same_sat() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
@@ -833,34 +806,22 @@ fn batch_same_sat_with_parent() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", parent_id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
-      txid
-    ),
+    format!(r".*<dt>location</dt>.*{txid}:0:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
-      txid
-    ),
+    format!(r".*<dt>location</dt>.*{txid}:1:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
-      txid
-    ),
+    format!(r".*<dt>location</dt>.*{txid}:1:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:1:0</dd>.*",
-      txid
-    ),
+    format!(r".*<dt>location</dt>.*{txid}:1:0.*",),
   );
 
   ord.assert_response_regex(
@@ -931,34 +892,22 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", inscription_id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
-      outpoint
-    ),
+    format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
   ord.assert_response_regex(
@@ -1311,10 +1260,7 @@ inscriptions:
 
   ord.assert_response_regex(
     format!("/inscription/{}", parent_id),
-    format!(
-      r".*<dt>location</dt>.*<dd class=monospace>{}:0:0</dd>.*",
-      output.reveal
-    ),
+    format!(r".*<dt>location</dt>.*{}:0:0.*", output.reveal),
   );
 
   for inscription in &output.inscriptions {
@@ -1335,7 +1281,7 @@ inscriptions:
 
   ord.assert_response_regex(
     format!("/inscription/{}", inscription_1.id),
-    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}</a></dd>.*",
       50 * COIN_VALUE,
       sat_1,
       inscription_1.location,
@@ -1343,22 +1289,22 @@ inscriptions:
   );
 
   ord.assert_response_regex(
-      format!("/inscription/{}", inscription_2.id),
-      format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-         50 * COIN_VALUE,
-         sat_2,
-         inscription_2.location
-      ),
-    );
+    format!("/inscription/{}", inscription_2.id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}</a></dd>.*",
+       50 * COIN_VALUE,
+       sat_2,
+       inscription_2.location
+    ),
+  );
 
   ord.assert_response_regex(
-      format!("/inscription/{}", inscription_3.id),
-      format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-        50 * COIN_VALUE,
-        sat_3,
-        inscription_3.location
-      ),
-    );
+    format!("/inscription/{}", inscription_3.id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}</a></dd>.*",
+      50 * COIN_VALUE,
+      sat_3,
+      inscription_3.location
+    ),
+  );
 }
 
 #[test]
@@ -1506,33 +1452,31 @@ inscriptions:
   let inscription_3 = &output.inscriptions[2];
 
   ord.assert_response_regex(
-     format!("/inscription/{}", inscription_1.id),
-     format!(
-       r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-       25 * COIN_VALUE,
-       sat_1,
-       inscription_1.location
-     ),
-   );
+    format!("/inscription/{}", inscription_1.id),
+    format!(
+      r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}.*",
+      25 * COIN_VALUE,
+      sat_1,
+      inscription_1.location
+    ),
+  );
 
   ord.assert_response_regex(
-      format!("/inscription/{}", inscription_2.id),
-      format!(
-        r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-        COIN_VALUE,
-        sat_2,
-        inscription_2.location
-      ),
-    );
+    format!("/inscription/{}", inscription_2.id),
+    format!(
+      r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}.*",
+      COIN_VALUE, sat_2, inscription_2.location
+    ),
+  );
 
   ord.assert_response_regex(
-         format!("/inscription/{}", inscription_3.id),
-         format!(
-           r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*<dd class=monospace>{}</dd>.*",
-           3 * COIN_VALUE,
-           sat_3,
-           inscription_3.location
-         ),
+    format!("/inscription/{}", inscription_3.id),
+    format!(
+      r".*<dt>value</dt>.*<dd>{}</dd>.*<dt>sat</dt>.*<dd>.*{}.*</dd>.*<dt>location</dt>.*{}.*",
+      3 * COIN_VALUE,
+      sat_3,
+      inscription_3.location
+    ),
   );
 }
 
