@@ -84,7 +84,8 @@ fi
 
 bitcoind --version
 
-chown bitcoin:bitcoin /var/lib/bitcoind/settings.json
+# FIXME: bitcoin user/group does not exist at this point
+# chown bitcoin:bitcoin /var/lib/bitcoind/settings.json
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -104,10 +105,12 @@ cp deploy/bitcoind.service /etc/systemd/system/
 
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+chown bitcoin:bitcoin /etc/bitcoin/bitcoin.conf
 
 if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
   mkdir -p ~/.bitcoin
   ln -s /etc/bitcoin/bitcoin.conf ~/.bitcoin/bitcoin.conf
+  chown -R bitcoin:bitcoin ~/.bitcoin
 fi
 
 systemctl daemon-reload
@@ -127,11 +130,13 @@ setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
 journalctl --unit ord --vacuum-time 1s
 
 cp deploy/ord.service /etc/systemd/system/
-systemctl daemon-reload
-systemctl enable ord
-systemctl restart ord
 
-while ! curl --fail https://$DOMAIN/status > /dev/null; do
-  echo "Waiting for ord at https://$DOMAIN/status…"
-  sleep 1
-done
+# TODO: Load/start ord after copying over index
+# systemctl daemon-reload
+# systemctl enable ord
+# systemctl restart ord
+
+# while ! curl --fail https://$DOMAIN/status > /dev/null; do
+#   echo "Waiting for ord at https://$DOMAIN/status…"
+#   sleep 1
+# done
