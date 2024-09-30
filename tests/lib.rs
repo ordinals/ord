@@ -7,13 +7,12 @@ use {
     blockdata::constants::COIN_VALUE,
     Network, OutPoint, Sequence, Txid, Witness,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
     api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, InscriptionId, RuneEntry, TARGET_POSTAGE,
+    wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry, TARGET_POSTAGE,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,

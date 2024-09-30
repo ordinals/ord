@@ -56,7 +56,12 @@ impl WalletConstructor {
       }
 
       if client.get_wallet_info()?.private_keys_enabled {
-        Wallet::check_descriptors(&self.name, client.list_descriptors(None)?.descriptors)?;
+        Wallet::check_descriptors(
+          &self.name,
+          client
+            .call::<ListDescriptorsResult>("listdescriptors", &[serde_json::Value::Null])?
+            .descriptors,
+        )?;
       }
 
       client

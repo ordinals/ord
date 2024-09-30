@@ -57,10 +57,16 @@ impl Sat {
     self.into()
   }
 
-  /// `Sat::rarity` is expensive and is called frequently when indexing.
-  /// Sat::is_common only checks if self is `Rarity::Common` but is
-  /// much faster.
+  /// Is this sat common or not?  Much faster than `Sat::rarity()`.
   pub fn common(self) -> bool {
+    // The block rewards for epochs 0 through 9 are all multiples
+    // of 9765625 (the epoch 9 reward), so any sat from epoch 9 or
+    // earlier that isn't divisible by 9765625 is definitely common.
+    if self < Epoch(10).starting_sat() && self.0 % Epoch(9).subsidy() != 0 {
+      return true;
+    }
+
+    // Fall back to the full calculation.
     let epoch = self.epoch();
     (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
@@ -752,6 +758,16 @@ mod tests {
     case(2067187500000000 - 1);
     case(2067187500000000);
     case(2067187500000000 + 1);
+  }
+
+  #[test]
+  fn common_fast_path() {
+    // Exhaustively test the Sat::common() fast path on every
+    // uncommon sat.
+    for height in 0..Epoch::FIRST_POST_SUBSIDY.starting_height().0 {
+      let height = Height(height);
+      assert!(!Sat::common(height.starting_sat()));
+    }
   }
 
   #[test]

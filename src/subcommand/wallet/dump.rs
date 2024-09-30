@@ -9,6 +9,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   );
 
   Ok(Some(Box::new(
-    wallet.bitcoin_client().list_descriptors(Some(true))?,
+    wallet
+      .bitcoin_client()
+      .call::<ListDescriptorsResult>("listdescriptors", &[serde_json::to_value(true)?])?,
   )))
 }

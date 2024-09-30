@@ -7,7 +7,7 @@ use {
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     psbt::Psbt,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{Descriptor, ImportDescriptors, Timestamp},
+  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -45,6 +45,22 @@ impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
   }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct Descriptor {
+  pub desc: String,
+  pub timestamp: bitcoincore_rpc::bitcoincore_rpc_json::Timestamp,
+  pub active: bool,
+  pub internal: Option<bool>,
+  pub range: Option<(u64, u64)>,
+  pub next: Option<u64>,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct ListDescriptorsResult {
+  pub wallet_name: String,
+  pub descriptors: Vec<Descriptor>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -465,7 +481,7 @@ impl Wallet {
       })
       .collect::<Vec<ImportDescriptors>>();
 
-    client.import_descriptors(descriptors)?;
+    client.call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
 
     Ok(())
   }
@@ -536,7 +552,7 @@ impl Wallet {
 
     settings
       .bitcoin_rpc_client(Some(name.clone()))?
-      .import_descriptors(vec![ImportDescriptors {
+      .import_descriptors(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
@@ -544,7 +560,7 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      }])?;
+      })?;
 
     Ok(())
   }
