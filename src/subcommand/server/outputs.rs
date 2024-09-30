@@ -14,29 +14,38 @@ pub struct Output {
   pub sat_ranges: Option<Vec<String>>,
 }
 
-impl Outputs {
-  pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let mut outputs = Vec::new();
-    for (output, txout) in wallet.utxos() {
-      let sat_ranges = if wallet.has_sat_index() && self.ranges {
-        Some(
-          wallet
-            .get_output_sat_ranges(output)?
-            .into_iter()
-            .map(|(start, end)| format!("{start}-{end}"))
-            .collect(),
-        )
-      } else {
-        None
-      };
-
-      outputs.push(Output {
-        output: *output,
-        amount: txout.value,
-        sat_ranges,
-      });
+pub(super) async fn run(
+  Extension(wallet): Extension<Arc<Mutex<Option<Arc<Wallet>>>>>,
+  Extension(settings): Extension<Arc<Settings>>,
+) -> ServerResult {
+  let wallet = match init_wallet::init(wallet, settings).await {
+    Ok(wallet) => wallet,
+    Err(err) => {
+        println!("Failed to initialize wallet: {:?}", err);
+        return Err(anyhow!("Failed to initialize wallet").into());
     }
+  };
 
-    Ok(Some(Box::new(outputs)))
+  let mut outputs = Vec::new();
+  for (output, txout) in wallet.utxos() {
+    let sat_ranges = if wallet.has_sat_index() {
+      Some(
+        wallet
+          .get_output_sat_ranges(output)?
+          .into_iter()
+          .map(|(start, end)| format!("{start}-{end}"))
+          .collect(),
+      )
+    } else {
+      None
+    };
+
+    outputs.push(Output {
+      output: *output,
+      amount: txout.value,
+      sat_ranges,
+    });
   }
+
+  Ok(Json(outputs).into_response())
 }

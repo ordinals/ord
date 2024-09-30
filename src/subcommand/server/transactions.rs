@@ -31,7 +31,7 @@ pub(super) async fn run(
   let mut output = Vec::new();
   for tx in client.list_transactions(
     None,
-    if limit == 0 { Some(usize::MAX) } else { Some(limit) },
+    if limit == 0 { Some(u16::MAX.into()) } else { Some(limit) },
     None,
     None,
   )? {

@@ -7,27 +7,30 @@ pub struct PendingOutput {
 }
 
 pub(super) async fn run(
-  Extension(wallet): Extension<Arc<Mutex<Option<Wallet>>>>,
+  Extension(wallet): Extension<Arc<Mutex<Option<Arc<Wallet>>>>>,
+  Extension(settings): Extension<Arc<Settings>>,
 ) -> ServerResult {
-  let wallet = wallet.lock().unwrap();
+  let wallet = match init_wallet::init(wallet, settings).await {
+    Ok(wallet) => wallet,
+    Err(err) => {
+        println!("Failed to initialize wallet: {:?}", err);
+        return Err(anyhow!("Failed to initialize wallet").into());
+    }
+  };
 
-  if let Some(wallet) = wallet.as_ref() {
-    let etchings: Vec<PendingOutput> = wallet
-      .pending_etchings()?
-      .into_iter()
-      .map(|(_, entry)| {
-        let spaced_rune = entry.output.rune.unwrap().rune;
+  let etchings: Vec<PendingOutput> = wallet
+    .pending_etchings()?
+    .into_iter()
+    .map(|(_, entry)| {
+      let spaced_rune = entry.output.rune.unwrap().rune;
 
-        PendingOutput {
-          rune: spaced_rune,
-          commit: entry.commit.txid(),
-        }
-      })
-      .collect::<Vec<PendingOutput>>();
+      PendingOutput {
+        rune: spaced_rune,
+        commit: entry.commit.txid(),
+      }
+    })
+    .collect::<Vec<PendingOutput>>();
 
-    Ok(Json(etchings).into_response())
-  } else {
-    eprintln!("no wallet loaded");
-    return Err(anyhow!("no wallet loaded").into());
-  }
+  Ok(Json(etchings).into_response())
+
 }
