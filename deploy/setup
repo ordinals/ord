@@ -110,6 +110,9 @@ cp deploy/bitcoind.service /etc/systemd/system/
 mkdir -p /etc/bitcoin
 cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
 chown bitcoin:bitcoin /etc/bitcoin/bitcoin.conf
+
+mkdir -p /var/lib/bitcoind
+cp deploy/settings.json /var/lib/bitcoind/settings.json
 chown bitcoin:bitcoin /var/lib/bitcoind/settings.json
 
 if [[ ! -e ~/.bitcoin/bitcoin.conf ]]; then
