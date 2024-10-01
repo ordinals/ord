@@ -20,4 +20,5 @@ git reset --hard origin/$BRANCH
 
 COMMIT=$(git rev-parse --short HEAD)
 
+# ./deploy/setup main node1.wizards.art deploy c28b816
 ./deploy/setup $CHAIN $DOMAIN $BRANCH $COMMIT
