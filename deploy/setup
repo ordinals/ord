@@ -8,7 +8,13 @@ CHAIN=$1
 DOMAIN=$2
 BRANCH=$3
 COMMIT=$4
+SKIP_BOOT_ORD=$5
 REVISION="ord-$BRANCH-$COMMIT"
+
+if [ -z "$SKIP_BOOT_ORD" ]; then
+  echo "No argument provided for SKIP_BOOT_ORD. Proceeding to boot ord server."
+  SKIP_BOOT_ORD="false"
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -130,12 +136,12 @@ journalctl --unit ord --vacuum-time 1s
 
 cp deploy/ord.service /etc/systemd/system/
 
-# TODO: Load/start ord after copying over index
-# systemctl daemon-reload
-# systemctl enable ord
-# systemctl restart ord
+if [ "$SKIP_BOOT_ORD" == "true" ]; then
+  echo "Skipping booting ord server. Please start after loading the index."
+else
+  echo "Booting ord server..."
 
-# while ! curl --fail https://$DOMAIN/status > /dev/null; do
-#   echo "Waiting for ord at https://$DOMAIN/status…"
-#   sleep 1
-# done
+  systemctl daemon-reload
+  systemctl enable ord
+  systemctl restart ord
+fi
