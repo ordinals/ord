@@ -32,9 +32,8 @@ apt-get remove --yes --auto-remove
 ufw default allow outgoing
 ufw default deny incoming
 
-ufw allow 8080
 ufw allow http
-ufw allow https
+# ufw allow https
 ufw allow ssh
 
 case $CHAIN in
