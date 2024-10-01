@@ -10,10 +10,17 @@
 #   $ aria2 <torrent>
 #   <Ctrl + b, then d> to exit tmux. `tmux attach -t ordstuff` to check up on it.
 #   ...few hours later..
-#   $ bitcoin-cli getblockchaininfo
-#   $ cp <index.redb> /var/lib/ord/index.redb
 #
+# 3. Make sure bitcoin node has caught up and ord index file has downloaded.
+#   $ bitcoin-cli getblockchaininfo
+#
+# 4. Setup ord
+#   $ cp <index.redb> /var/lib/ord/index.redb
 #   <run ./deploy/setup with last argument as false>
+#
+# To check logs:
+#   $ journalctl -u bitcoind.service
+#   $ journalctl -u ord.service
 
 set -euxo pipefail
 
