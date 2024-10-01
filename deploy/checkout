@@ -1,11 +1,29 @@
 #!/usr/bin/env bash
 
+# Steps:
+# 1. wget this file under ~ and run the following with the correct host name.
+#   ./checkout node TheWizardsOfOrd/ord main node2.wizards.art
+#
+# 2. Download prebuilt ord index torrent with tmux
+#   $ wget <torrent>
+#   $ tmux new -s ordstuff
+#   $ aria2 <torrent>
+#   <Ctrl + b, then d> to exit tmux. `tmux attach -t ordstuff` to check up on it.
+#   ...few hours later..
+#   $ bitcoin-cli getblockchaininfo
+#   $ cp <index.redb> /var/lib/ord/index.redb
+#
+#   <run ./deploy/setup with last argument as false>
+
 set -euxo pipefail
 
 BRANCH=$1
 REMOTE=$2
 CHAIN=$3
 DOMAIN=$4
+
+apt-get update
+apt-get -y install git aria2 tmux
 
 if [[ ! -d $REMOTE ]]; then
   mkdir -p $REMOTE
