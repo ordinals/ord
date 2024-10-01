@@ -20,7 +20,6 @@ ExecStart=/usr/local/bin/ord \
   --acme-contact mailto:lifo@hey.com \
   --csp-origin https://${CSP_ORIGIN} \
   --http \
-  --https
 Group=ord
 LimitNOFILE=65536
 MemoryDenyWriteExecute=true
