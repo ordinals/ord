@@ -178,6 +178,13 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
       {
         Ok(None)
       }
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+      )))
+        if message.ends_with("not found") =>
+      {
+        Ok(None)
+      }
       Err(err) => Err(err.into()),
     }
   }
