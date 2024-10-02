@@ -377,8 +377,8 @@ inscriptions:
         reinscribe: true,
         sat: None,
         satpoint: None,
-        etching: Some(Etching {
-          rune: "THE•BEST•RUNE".parse().unwrap(),
+        etching: Some(batch::Etching {
+          rune: "THE•BEST•RUNE".parse::<SpacedRune>().unwrap(),
           divisibility: 2,
           premine: "1000.00".parse().unwrap(),
           supply: "10000.00".parse().unwrap(),
