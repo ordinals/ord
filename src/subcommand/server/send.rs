@@ -210,10 +210,11 @@ fn create_unsigned_send_satpoint_transaction(
       wallet.utxos().clone(),
       wallet.locked_utxos().clone().into_keys().collect(),
       runic_outputs,
-      destination.clone(),
+      destination.script_pubkey(),
       change,
       fee_rate,
       postage,
+      wallet.chain().network(),
     )
     .build_transaction()?,
   )
