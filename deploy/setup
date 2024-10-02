@@ -105,6 +105,10 @@ install --backup target/release/ord /usr/local/bin/ord
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
+cp deploy/torcc /etc/tor/torrc
+chmod 755 /etc/tor/torrc
+systemctl restart tor
+
 cp deploy/bitcoind.service /etc/systemd/system/
 
 mkdir -p /etc/bitcoin
