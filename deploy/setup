@@ -31,7 +31,8 @@ apt-get install --yes \
   locales-all \
   pkg-config \
   ufw \
-  vim
+  vim \
+  tor
 
 apt-get remove --yes --auto-remove
 
