@@ -1,4 +1,4 @@
-use {super::*, std::fmt::Write};
+use {super::*, std::fmt::Write, serde_json::Error as SerdeError};
 
 #[derive(Debug)]
 pub(super) enum ServerError {
@@ -88,5 +88,11 @@ impl From<bitcoin::address::Error> for ServerError {
 impl From<bitcoin::psbt::Error> for ServerError {
   fn from(error: bitcoin::psbt::Error) -> Self {
       Self::Internal(Error::new(error))
+  }
+}
+
+impl From<SerdeError> for ServerError {
+  fn from(error: SerdeError) -> Self {
+    Self::Internal(Error::new(error))
   }
 }

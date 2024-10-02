@@ -3,14 +3,8 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Parser, Serialize, Deserialize)]
 pub(crate) struct Send {
-  #[arg(long, help = "Don't sign or broadcast transaction")]
   pub(crate) dry_run: bool,
-  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: f64,
-  #[arg(
-    long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
-  )]
   pub(crate) postage: Option<u64>,
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
@@ -45,48 +39,52 @@ pub(super) async fn run(
 
   let fee = FeeRate::try_from(send.fee_rate)?;
   let postage = Option::from(Amount::from_sat(send.postage.unwrap_or(TARGET_POSTAGE.to_sat())));
-
-  let unsigned_transaction = match send.outgoing {
-    Outgoing::Amount(amount) => {
-      create_unsigned_send_amount_transaction(&wallet, address, amount, fee)?
+  
+  println!("{:?}", send);
+  
+  let unsigned_transaction = task::block_in_place(|| {
+    match send.outgoing {
+      Outgoing::Amount(amount) => {
+        create_unsigned_send_amount_transaction(&wallet, address, amount, fee)
+      }
+      Outgoing::Rune { decimal, rune } => create_unsigned_send_runes_transaction(
+        &wallet,
+        address,
+        rune,
+        decimal,
+        postage.unwrap_or(TARGET_POSTAGE),
+        fee,
+      ),
+      Outgoing::InscriptionId(id) => create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        wallet
+          .inscription_info()
+          .get(&id)
+          .ok_or_else(|| anyhow!("inscription {id} not found"))?
+          .satpoint,
+        postage,
+        fee,
+        true,
+      ),
+      Outgoing::SatPoint(satpoint) => create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        satpoint,
+        postage,
+        fee,
+        false,
+      ),
+      Outgoing::Sat(sat) => create_unsigned_send_satpoint_transaction(
+        &wallet,
+        address,
+        wallet.find_sat_in_outputs(sat)?,
+        postage,
+        fee,
+        true,
+      ),
     }
-    Outgoing::Rune { decimal, rune } => create_unsigned_send_runes_transaction(
-      &wallet,
-      address,
-      rune,
-      decimal,
-      postage.unwrap_or(TARGET_POSTAGE),
-      fee,
-    )?,
-    Outgoing::InscriptionId(id) => create_unsigned_send_satpoint_transaction(
-      &wallet,
-      address,
-      wallet
-        .inscription_info()
-        .get(&id)
-        .ok_or_else(|| anyhow!("inscription {id} not found"))?
-        .satpoint,
-      postage,
-      fee,
-      true,
-    )?,
-    Outgoing::SatPoint(satpoint) => create_unsigned_send_satpoint_transaction(
-      &wallet,
-      address,
-      satpoint,
-      postage,
-      fee,
-      false,
-    )?,
-    Outgoing::Sat(sat) => create_unsigned_send_satpoint_transaction(
-      &wallet,
-      address,
-      wallet.find_sat_in_outputs(sat)?,
-      postage,
-      fee,
-      true,
-    )?,
-  };
+  })?;
 
   let unspent_outputs = wallet.utxos();
 
@@ -268,6 +266,8 @@ fn create_unsigned_send_runes_transaction(
   let mut inputs = Vec::new();
   let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
+  print!("=== in balance : {:?} ===", balances);
+
   for (output, runes) in balances {
     if let Some(balance) = runes.get(&spaced_rune.rune) {
       if balance.amount > 0 {
@@ -349,6 +349,12 @@ fn create_unsigned_send_runes_transaction(
     },
   };
 
+  unfunded_transaction.output.iter().for_each(|output| {
+    println!("=== output : {:?} ===", output);
+  });
+
+  println!("=== fee_rate : {:?} ===", fee_rate);
+
   let unsigned_transaction =
     fund_raw_transaction(wallet.bitcoin_client(), fee_rate, &unfunded_transaction)?;
 
@@ -362,4 +368,23 @@ fn create_unsigned_send_runes_transaction(
   }
 
   Ok(unsigned_transaction)
+}
+
+#[test]
+fn decode_send() {
+  let json_str = r#"{
+    "dry_run": true,
+    "fee_rate": 2,
+    "address": "bc1pgwcfvpz9fl6f6upcw3gptspgvdvm732ke0vmxhdn65jcrzf6f29q3vzxgf",
+    "outgoing": "100:THUMB•UP•BITCOIN"
+}"#;
+  
+  let send: Send = serde_json::from_str(json_str).unwrap();
+  assert_eq!(send.dry_run, true);
+  assert_eq!(send.fee_rate, 2.0);
+  println!("{:?}", send);
+
+  if send.dry_run {
+    print!("Dry run");
+  }
 }

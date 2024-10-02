@@ -191,6 +191,8 @@ impl Server {
       let wallet: Arc<Mutex<Option<Arc<Wallet>>>> = Arc::new(Mutex::new(None));
       let wallet_router = Router::new()
         .route("/balance", get(balance::run))
+        .route("/cardinals", get(cardinals::run))
+        .route("/dump", get(dump::run))
         .route("/outputs", get(outputs::run))
         .route("/pending", get(pending::run))
         .route("/receive", get(receive::run_one))

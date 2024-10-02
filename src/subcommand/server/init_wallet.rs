@@ -5,7 +5,6 @@ pub async fn init(wallet: Arc<Mutex<Option<Arc<Wallet>>>>, settings: Arc<Setting
 
   task::block_in_place(|| {
     if let Some(wallet) = wallet_guard.as_ref() {
-        println!("Wallet already initialized");
         return Ok(wallet.clone());
     }
 
