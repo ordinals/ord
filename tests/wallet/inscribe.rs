@@ -623,7 +623,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   .run_and_deserialize_output::<Batch>();
 
   assert_eq!(core.descriptors().len(), 4);
-  assert_eq!(parent_id, child_output.parent.unwrap());
+  assert_eq!(parent_id, *child_output.parents.first().unwrap());
 
   let commit_tx = &core.mempool()[0];
   let reveal_tx = &core.mempool()[1];
@@ -639,7 +639,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   core.mine_blocks(1);
 
   ord.assert_response_regex(
-    format!("/inscription/{}", child_output.parent.unwrap()),
+    format!("/inscription/{}", child_output.parents.first().unwrap()),
     format!(
       ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
       child_output.inscriptions[0].id
@@ -650,7 +650,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
       ".*<dt>parents</dt>.*<a href=/inscription/{}>.*",
-      child_output.parent.unwrap()
+      child_output.parents.first().unwrap()
     ),
   );
 }

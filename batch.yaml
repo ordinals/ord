@@ -7,8 +7,9 @@
 # - `shared-output`: inscribe on a single output separated by postage
 mode: separate-outputs
 
-# parent inscription:
-parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+# parent inscriptions:
+parents:
+- 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 
 # postage for each inscription:
 postage: 12345
