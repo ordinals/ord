@@ -107,6 +107,7 @@ id --user ord || useradd --system ord
 
 cp deploy/torcc /etc/tor/torrc
 chmod 755 /etc/tor/torrc
+usermod -aG debian-tor bitcoin
 systemctl restart tor
 
 cp deploy/bitcoind.service /etc/systemd/system/
