@@ -170,9 +170,11 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+        bitcoincore_rpc::jsonrpc::error::RpcError {
+          code: -5, message, ..
+        },
       )))
-        if message.ends_with("not found") =>
+        if message.starts_with("No such mempool or blockchain transaction") =>
       {
         Ok(None)
       }
@@ -1577,7 +1579,7 @@ impl Index {
       }
     }
 
-    Ok(self.client.get_raw_transaction(&txid, None).ok())
+    self.client.get_raw_transaction(&txid, None).into_option()
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
