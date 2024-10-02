@@ -139,6 +139,9 @@ journalctl --unit ord --vacuum-time 1s
 
 cp deploy/ord.service /etc/systemd/system/
 
+mkdir -p /var/lib/ord
+chown -R ord:ord /var/lib/ord
+
 if [ "$SKIP_BOOT_ORD" == "true" ]; then
   echo "Skipping booting ord server. Please start after loading the index."
 else

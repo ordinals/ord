@@ -7,7 +7,7 @@
 # 2. Download prebuilt ord index torrent with tmux
 #   $ wget <torrent>
 #   $ tmux new -s ordstuff
-#   $ aria2 <torrent>
+#   $ aria2c <torrent>
 #   <Ctrl + b, then d> to exit tmux. `tmux attach -t ordstuff` to check up on it.
 #   ...few hours later..
 #
@@ -15,12 +15,14 @@
 #   $ bitcoin-cli getblockchaininfo
 #
 # 4. Setup ord
+#   $ mkdir -p /var/lib/ord
 #   $ cp <index.redb> /var/lib/ord/index.redb
+#   $ chown -R ord:ord /var/lib/ord
 #   <run ./deploy/setup with last argument as false>
 #
 # To check logs:
 #   $ journalctl -u bitcoind.service
-#   $ journalctl -u ord.service
+#   $ journalctl -u ord.service -f
 
 set -euxo pipefail
 
