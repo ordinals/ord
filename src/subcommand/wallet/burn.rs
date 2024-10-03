@@ -23,15 +23,18 @@ impl Burn {
       .ok_or_else(|| anyhow!("inscription {} not found", self.inscription_id))?
       .clone();
 
-    if inscription_info.value.unwrap() > TARGET_POSTAGE.to_sat() {
-      return Err(anyhow!(
-        "The amount of sats where the inscription is on exceeds {}",
-        TARGET_POSTAGE
-      ));
+    let Some(value) = inscription_info.value else {
+      bail!("Cannot burn unbound inscription");
+    };
+
+    ensure! {
+      value <= TARGET_POSTAGE.to_sat(),
+      "Cannot burn inscription contained in UTXO exceeding {TARGET_POSTAGE}",
     }
 
-    if self.postage.unwrap_or_default() > TARGET_POSTAGE {
-      return Err(anyhow!("Target postage exceeds {}", TARGET_POSTAGE));
+    ensure! {
+      self.postage.unwrap_or_default() <= TARGET_POSTAGE,
+      "Postage may not exceed {TARGET_POSTAGE}",
     }
 
     let unsigned_transaction = Self::create_unsigned_burn_transaction(

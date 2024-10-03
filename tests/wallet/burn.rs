@@ -147,7 +147,7 @@ fn inscriptions_on_large_utxos_are_protected() {
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: The amount of sats where the inscription is on exceeds 10000\n")
+    .expected_stderr("error: Cannot burn inscription contained in UTXO exceeding 0.0001 BTC\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -227,7 +227,7 @@ fn large_postage_is_protected() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: Target postage exceeds 10000\n")
+  .expected_stderr("error: Postage may not exceed 0.0001 BTC\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
