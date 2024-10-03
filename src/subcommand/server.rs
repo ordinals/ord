@@ -1510,17 +1510,11 @@ impl Server {
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-      if inscription.delegate().is_some() {
-        Ok(
-          Self::content_response(inscription, accept_encoding, &server_config)?
-            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-            .into_response(),
-        )
-      } else {
-        Err(ServerError::NotFound(
-          "inscription is not delegated".to_string(),
-        ))
-      }
+      Ok(
+        Self::content_response(inscription, accept_encoding, &server_config)?
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      )
     })
   }
 
@@ -6704,12 +6698,7 @@ next
       index: 0,
     };
 
-    server.assert_response(
-      format!("/r/delegator/{normal_id}"),
-      StatusCode::NOT_FOUND,
-      "inscription is not delegated",
-    );
-
+    server.assert_response(format!("/r/delegator/{normal_id}"), StatusCode::OK, "baz");
     server.assert_response(format!("/content/{normal_id}"), StatusCode::OK, "baz");
   }
 
