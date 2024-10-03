@@ -805,7 +805,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2)), tx_in(outpoint(3))],
         output: vec![
-          tx_out(5_000, recipient_as_address()),
+          tx_out(5_000, recipient_address()),
           tx_out(5_000, change(0)),
           tx_out(1_724, change(1))
         ],
@@ -856,7 +856,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(4901, recipient_as_address())],
+        output: vec![tx_out(4901, recipient_address())],
       })
     )
   }
@@ -910,10 +910,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
-        output: vec![
-          tx_out(4_950, change(1)),
-          tx_out(4_862, recipient_as_address())
-        ],
+        output: vec![tx_out(4_950, change(1)), tx_out(4_862, recipient_address())],
       })
     )
   }
@@ -992,7 +989,7 @@ mod tests {
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![
           tx_out(4_950, change(1)),
-          tx_out(TARGET_POSTAGE.to_sat(), recipient_as_address()),
+          tx_out(TARGET_POSTAGE.to_sat(), recipient_address()),
           tx_out(14_831, change(0)),
         ],
       })
@@ -1139,7 +1136,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(TARGET_POSTAGE.to_sat(), recipient_as_address()),
+          tx_out(TARGET_POSTAGE.to_sat(), recipient_address()),
           tx_out(989_870, change(1))
         ],
       })
@@ -1191,10 +1188,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![
-          tx_out(3_333, change(1)),
-          tx_out(6_537, recipient_as_address())
-        ],
+        output: vec![tx_out(3_333, change(1)), tx_out(6_537, recipient_address())],
       })
     )
   }
@@ -1226,7 +1220,7 @@ mod tests {
         input: vec![tx_in(outpoint(2)), tx_in(outpoint(1))],
         output: vec![
           tx_out(10_001, change(1)),
-          tx_out(9_811, recipient_as_address())
+          tx_out(9_811, recipient_address())
         ],
       })
     )
@@ -1527,7 +1521,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(10_000 - fee.to_sat(), recipient_as_address())],
+        output: vec![tx_out(10_000 - fee.to_sat(), recipient_address())],
       }
     )
   }
@@ -1554,10 +1548,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![
-          tx_out(1000, recipient_as_address()),
-          tx_out(3870, change(1))
-        ],
+        output: vec![tx_out(1000, recipient_address()), tx_out(3870, change(1))],
       })
     )
   }
@@ -1587,7 +1578,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
-        output: vec![tx_out(1500, recipient_as_address()), tx_out(312, change(1))],
+        output: vec![tx_out(1500, recipient_address()), tx_out(312, change(1))],
       })
     )
   }
@@ -1713,7 +1704,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(901, recipient_as_address())],
+        output: vec![tx_out(901, recipient_address())],
       }),
     );
   }
@@ -1740,7 +1731,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(20_000, recipient_as_address())],
+        output: vec![tx_out(20_000, recipient_address())],
       }),
     );
   }
@@ -1767,7 +1758,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(1005, recipient_as_address())],
+        output: vec![tx_out(1005, recipient_address())],
       }),
     );
   }
@@ -1806,13 +1797,13 @@ mod tests {
         BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
-        [recipient_as_address(), change(1)],
+        [recipient_address(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
         Network::Testnet,
       )
       .build_transaction(),
-      Err(Error::DuplicateAddress(recipient_as_address()))
+      Err(Error::DuplicateAddress(recipient_address()))
     );
   }
 
@@ -1860,7 +1851,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(1802, recipient_as_address())],
+        output: vec![tx_out(1802, recipient_address())],
       }),
     );
   }
@@ -1887,7 +1878,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(20250, recipient_as_address())],
+        output: vec![tx_out(20250, recipient_address())],
       }),
     );
   }
@@ -2095,7 +2086,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(66_000, recipient_as_address()),
+          tx_out(66_000, recipient_address()),
           tx_out(1_000_000 - 66_000 - fee.to_sat(), change(1))
         ],
       }
