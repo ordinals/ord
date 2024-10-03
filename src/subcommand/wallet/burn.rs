@@ -71,7 +71,7 @@ impl Burn {
 
     let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
-    let burn_script = script::Builder::new()
+    let script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
       .into_script();
 
@@ -82,7 +82,7 @@ impl Burn {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        burn_script,
+        script_pubkey,
         change,
         fee_rate,
         postage,
