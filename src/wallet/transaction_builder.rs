@@ -437,10 +437,10 @@ impl TransactionBuilder {
   /// inputs are taproot key path spends, which allows us to know that witnesses
   /// will all consist of single Schnorr signatures.
   fn estimate_vbytes(&self) -> usize {
-    Self::estimate_vbytes_with(self.inputs.len(), self.outputs.to_vec())
+    Self::estimate_vbytes_with(self.inputs.len(), &self.outputs)
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<TxOut>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: &[TxOut]) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -452,7 +452,7 @@ impl TransactionBuilder {
           witness: Witness::from_slice(&[&[0; Self::SCHNORR_SIGNATURE_SIZE]]),
         })
         .collect(),
-      output: outputs.into_iter().collect(),
+      output: outputs.to_vec(),
     }
     .vsize()
   }
@@ -1657,17 +1657,17 @@ mod tests {
 
   #[test]
   fn additional_input_size_is_correct() {
-    let before = TransactionBuilder::estimate_vbytes_with(0, Vec::new());
-    let after = TransactionBuilder::estimate_vbytes_with(1, Vec::new());
+    let before = TransactionBuilder::estimate_vbytes_with(0, &[]);
+    let after = TransactionBuilder::estimate_vbytes_with(1, &[]);
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_INPUT_VBYTES);
   }
 
   #[test]
   fn additional_output_size_is_correct() {
-    let before = TransactionBuilder::estimate_vbytes_with(0, Vec::new());
+    let before = TransactionBuilder::estimate_vbytes_with(0, &[]);
     let after = TransactionBuilder::estimate_vbytes_with(
       0,
-      vec![TxOut {
+      &[TxOut {
         script_pubkey: "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
           .parse::<Address<NetworkUnchecked>>()
           .unwrap()
