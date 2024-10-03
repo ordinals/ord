@@ -43,7 +43,7 @@ pub enum Error {
     output_value: Amount,
     dust_value: Amount,
   },
-  InvalidAddress,
+  InvalidAddress(bitcoin::address::Error),
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
@@ -69,7 +69,7 @@ impl Display for Error {
         output_value,
         dust_value,
       } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
-      Error::InvalidAddress => write!(f, "invalid address"),
+      Error::InvalidAddress(source) => write!(f, "invalid address: {source}", ),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
       Error::NotEnoughCardinalUtxos => write!(
@@ -94,8 +94,8 @@ impl Display for Error {
 impl std::error::Error for Error {}
 
 impl From<bitcoin::address::Error> for Error {
-  fn from(_: bitcoin::address::Error) -> Self {
-    Self::InvalidAddress
+  fn from(source: bitcoin::address::Error) -> Self {
+    Self::InvalidAddress(source)
   }
 }
 
