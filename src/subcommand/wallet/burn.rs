@@ -69,11 +69,7 @@ impl Burn {
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-    let postage = if let Some(postage) = postage {
-      Target::ExactPostage(postage)
-    } else {
-      Target::Postage
-    };
+    let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
     let burn_script = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
