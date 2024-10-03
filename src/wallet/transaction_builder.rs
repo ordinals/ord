@@ -169,18 +169,15 @@ impl TransactionBuilder {
         return Err(Error::DuplicateAddress(recipient_as_address));
       }
 
-      match self.target {
-        Target::Value(output_value) | Target::ExactPostage(output_value) => {
-          let dust_value = self.recipient.dust_value();
+      if let Target::Value(output_value) | Target::ExactPostage(output_value) = self.target {
+        let dust_value = self.recipient.dust_value();
 
-          if output_value < dust_value {
-            return Err(Error::Dust {
-              output_value,
-              dust_value,
-            });
-          }
+        if output_value < dust_value {
+          return Err(Error::Dust {
+            output_value,
+            dust_value,
+          });
         }
-        _ => (),
       }
     }
 
