@@ -1,4 +1,4 @@
-use {super::*, crate::outgoing::Outgoing};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
