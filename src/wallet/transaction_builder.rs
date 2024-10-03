@@ -475,7 +475,7 @@ impl TransactionBuilder {
           witness: Witness::new(),
         })
         .collect(),
-      output: self.outputs.to_vec(),
+      output: self.outputs.clone(),
     };
 
     assert_eq!(
