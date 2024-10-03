@@ -41,10 +41,10 @@ pub(crate) fn address() -> Address {
 }
 
 pub(crate) fn recipient() -> ScriptBuf {
-  recipient_as_address().script_pubkey()
+  recipient_address().script_pubkey()
 }
 
-pub(crate) fn recipient_as_address() -> Address {
+pub(crate) fn recipient_address() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse::<Address<NetworkUnchecked>>()
     .unwrap()

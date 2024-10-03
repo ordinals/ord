@@ -12,7 +12,7 @@ use {
   mockcore::TransactionTemplate,
   ord::{
     api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry, TARGET_POSTAGE,
+    wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
@@ -98,7 +98,7 @@ fn sats(
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
 }
 
-fn inscribe_with_custom_postage(
+fn inscribe_with_postage(
   core: &mockcore::Handle,
   ord: &TestServer,
   postage: Option<u64>,
@@ -128,7 +128,7 @@ fn inscribe_with_custom_postage(
 }
 
 fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
-  inscribe_with_custom_postage(core, ord, Some(TARGET_POSTAGE.to_sat()))
+  inscribe_with_postage(core, ord, None)
 }
 
 fn drain(core: &mockcore::Handle, ord: &TestServer) {
