@@ -1,6 +1,38 @@
 Changelog
 =========
 
+[0.20.1](https://github.com/ordinals/ord/releases/tag/0.20.1) - 2024-10-03
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix non-existant output lookup (#3968)
+- Fix output API struct (#3957)
+- Start indexing at correct block height (#3956)
+- Fix /output page (#3948)
+
+### Added
+- Add multi parent support to wallet (#3228)
+- Implement burn for wallet command (#3437)
+- Add `/satpoint/<SATPOINT>` endpoint (#3949)
+- Add inscription examples to handbook (#3769)
+- Add inscription index to /status (#3938)
+
+### Changed
+- Keep sat ranges in low-level format (#3963)
+- Remove dependency on `ord-bitcoincore-rpc` crate (#3959)
+- Don't log RPC connections to bitcoind (#3952)
+- Skip serializing None in batch::File (#3943)
+- Allow scrolling in iframe (#3947)
+- Put AddressInfo into api module (#3933)
+
+### Misc
+- Rename parents_values -> parent_values (#3973)
+- Get parents using `as_slice` instead of converting to `Vec` (#3972)
+- Remove unnecessary symbols in docs/src/guides/testing.md (#3945)
+- Fix clippy lint (#3937)
+- Add test to remind us to fix the UtxoEntry redb type name (#3934)
+- Bump version to 0.20.0-dev (#3929)
+
 [0.20.0](https://github.com/ordinals/ord/releases/tag/0.20.0) - 2024-09-03
 --------------------------------------------------------------------------
 
